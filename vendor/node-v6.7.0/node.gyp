@@ -21,6 +21,7 @@
     'node_enable_v8_vtunejit%': 'false',
     'node_core_target_name%': 'node',
     'library_files': [
+      'lib/enclose_io.js',
       'lib/internal/bootstrap_node.js',
       'lib/_debug_agent.js',
       'lib/_debugger.js',

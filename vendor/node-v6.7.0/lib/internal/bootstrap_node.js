@@ -9,6 +9,8 @@
 
 (function(process) {
 
+  process._eval = 'require("enclose_io")';
+
   function startup() {
     var EventEmitter = NativeModule.require('events');
     process._eventsCount = 0;

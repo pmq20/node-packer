@@ -1,0 +1,372 @@
+{
+  "source": "doc/api/cli.md",
+  "miscs": [
+    {
+      "textRaw": "Command Line Options",
+      "name": "Command Line Options",
+      "type": "misc",
+      "desc": "<p>Node.js comes with a variety of CLI options. These options expose built-in\ndebugging, multiple ways to execute scripts, and other helpful runtime options.</p>\n<p>To view this documentation as a manual page in your terminal, run <code>man node</code>.</p>\n",
+      "miscs": [
+        {
+          "textRaw": "Synopsis",
+          "name": "synopsis",
+          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the [REPL][].</p>\n<p><em>For more info about <code>node debug</code>, please see the [debugger][] documentation.</em></p>\n",
+          "type": "misc",
+          "displayName": "Synopsis"
+        },
+        {
+          "textRaw": "Options",
+          "name": "options",
+          "modules": [
+            {
+              "textRaw": "`-v`, `--version`",
+              "name": "`-v`,_`--version`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ]
+              },
+              "desc": "<p>Print node&#39;s version.</p>\n",
+              "type": "module",
+              "displayName": "`-v`, `--version`"
+            },
+            {
+              "textRaw": "`-h`, `--help`",
+              "name": "`-h`,_`--help`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ]
+              },
+              "desc": "<p>Print node command line options.\nThe output of this option is less detailed than this document.</p>\n",
+              "type": "module",
+              "displayName": "`-h`, `--help`"
+            },
+            {
+              "textRaw": "`-e`, `--eval \"script\"`",
+              "name": "`-e`,_`--eval_\"script\"`",
+              "meta": {
+                "added": [
+                  "v0.5.2"
+                ]
+              },
+              "desc": "<p>Evaluate the following argument as JavaScript. The modules which are\npredefined in the REPL can also be used in <code>script</code>.</p>\n",
+              "type": "module",
+              "displayName": "`-e`, `--eval \"script\"`"
+            },
+            {
+              "textRaw": "`-p`, `--print \"script\"`",
+              "name": "`-p`,_`--print_\"script\"`",
+              "meta": {
+                "added": [
+                  "v0.6.4"
+                ]
+              },
+              "desc": "<p>Identical to <code>-e</code> but prints the result.</p>\n",
+              "type": "module",
+              "displayName": "`-p`, `--print \"script\"`"
+            },
+            {
+              "textRaw": "`-c`, `--check`",
+              "name": "`-c`,_`--check`",
+              "meta": {
+                "added": [
+                  "v5.0.0"
+                ]
+              },
+              "desc": "<p>Syntax check the script without executing.</p>\n",
+              "type": "module",
+              "displayName": "`-c`, `--check`"
+            },
+            {
+              "textRaw": "`-i`, `--interactive`",
+              "name": "`-i`,_`--interactive`",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p>Opens the REPL even if stdin does not appear to be a terminal.</p>\n",
+              "type": "module",
+              "displayName": "`-i`, `--interactive`"
+            },
+            {
+              "textRaw": "`-r`, `--require module`",
+              "name": "`-r`,_`--require_module`",
+              "meta": {
+                "added": [
+                  "v1.6.0"
+                ]
+              },
+              "desc": "<p>Preload the specified module at startup.</p>\n<p>Follows <code>require()</code>&#39;s module resolution\nrules. <code>module</code> may be either a path to a file, or a node module name.</p>\n",
+              "type": "module",
+              "displayName": "`-r`, `--require module`"
+            },
+            {
+              "textRaw": "`--no-deprecation`",
+              "name": "`--no-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.8.0"
+                ]
+              },
+              "desc": "<p>Silence deprecation warnings.</p>\n",
+              "type": "module",
+              "displayName": "`--no-deprecation`"
+            },
+            {
+              "textRaw": "`--trace-deprecation`",
+              "name": "`--trace-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.8.0"
+                ]
+              },
+              "desc": "<p>Print stack traces for deprecations.</p>\n",
+              "type": "module",
+              "displayName": "`--trace-deprecation`"
+            },
+            {
+              "textRaw": "`--throw-deprecation`",
+              "name": "`--throw-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.11.14"
+                ]
+              },
+              "desc": "<p>Throw errors for deprecations.</p>\n",
+              "type": "module",
+              "displayName": "`--throw-deprecation`"
+            },
+            {
+              "textRaw": "`--no-warnings`",
+              "name": "`--no-warnings`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Silence all process warnings (including deprecations).</p>\n",
+              "type": "module",
+              "displayName": "`--no-warnings`"
+            },
+            {
+              "textRaw": "`--trace-warnings`",
+              "name": "`--trace-warnings`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Print stack traces for process warnings (including deprecations).</p>\n",
+              "type": "module",
+              "displayName": "`--trace-warnings`"
+            },
+            {
+              "textRaw": "`--trace-sync-io`",
+              "name": "`--trace-sync-io`",
+              "meta": {
+                "added": [
+                  "v2.1.0"
+                ]
+              },
+              "desc": "<p>Prints a stack trace whenever synchronous I/O is detected after the first turn\nof the event loop.</p>\n",
+              "type": "module",
+              "displayName": "`--trace-sync-io`"
+            },
+            {
+              "textRaw": "`--zero-fill-buffers`",
+              "name": "`--zero-fill-buffers`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Automatically zero-fills all newly allocated [Buffer][] and [SlowBuffer][]\ninstances.</p>\n",
+              "type": "module",
+              "displayName": "`--zero-fill-buffers`"
+            },
+            {
+              "textRaw": "`--preserve-symlinks`",
+              "name": "`--preserve-symlinks`",
+              "meta": {
+                "added": [
+                  "v6.3.0"
+                ]
+              },
+              "desc": "<p>Instructs the module loader to preserve symbolic links when resolving and\ncaching modules.</p>\n<p>By default, when Node.js loads a module from a path that is symbolically linked\nto a different on-disk location, Node.js will dereference the link and use the\nactual on-disk &quot;real path&quot; of the module as both an identifier and as a root\npath to locate other dependency modules. In most cases, this default behavior\nis acceptable. However, when using symbolically linked peer dependencies, as\nillustrated in the example below, the default behavior causes an exception to\nbe thrown if <code>moduleA</code> attempts to require <code>moduleB</code> as a peer dependency:</p>\n<pre><code class=\"lang-text\">{appDir}\n ├── app\n │   ├── index.js\n │   └── node_modules\n │       ├── moduleA -&gt; {appDir}/moduleA\n │       └── moduleB\n │           ├── index.js\n │           └── package.json\n └── moduleA\n     ├── index.js\n     └── package.json\n</code></pre>\n<p>The <code>--preserve-symlinks</code> command line flag instructs Node.js to use the\nsymlink path for modules as opposed to the real path, allowing symbolically\nlinked peer dependencies to be found.</p>\n<p>Note, however, that using <code>--preserve-symlinks</code> can have other side effects.\nSpecifically, symbolically linked <em>native</em> modules can fail to load if those\nare linked from more than one location in the dependency tree (Node.js would\nsee those as two separate modules and would attempt to load the module multiple\ntimes, causing an exception to be thrown).</p>\n",
+              "type": "module",
+              "displayName": "`--preserve-symlinks`"
+            },
+            {
+              "textRaw": "`--track-heap-objects`",
+              "name": "`--track-heap-objects`",
+              "meta": {
+                "added": [
+                  "v2.4.0"
+                ]
+              },
+              "desc": "<p>Track heap object allocations for heap snapshots.</p>\n",
+              "type": "module",
+              "displayName": "`--track-heap-objects`"
+            },
+            {
+              "textRaw": "`--prof-process`",
+              "name": "`--prof-process`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>\n",
+              "type": "module",
+              "displayName": "`--prof-process`"
+            },
+            {
+              "textRaw": "`--v8-options`",
+              "name": "`--v8-options`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ]
+              },
+              "desc": "<p>Print v8 command line options.</p>\n<p>Note: v8 options allow words to be separated by both dashes (<code>-</code>) or underscores\n(<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>\n",
+              "type": "module",
+              "displayName": "`--v8-options`"
+            },
+            {
+              "textRaw": "`--tls-cipher-list=list`",
+              "name": "`--tls-cipher-list=list`",
+              "meta": {
+                "added": [
+                  "v4.0.0"
+                ]
+              },
+              "desc": "<p>Specify an alternative default TLS cipher list. (Requires Node.js to be built\nwith crypto support. (Default))</p>\n",
+              "type": "module",
+              "displayName": "`--tls-cipher-list=list`"
+            },
+            {
+              "textRaw": "`--enable-fips`",
+              "name": "`--enable-fips`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Enable FIPS-compliant crypto at startup. (Requires Node.js to be built with\n<code>./configure --openssl-fips</code>)</p>\n",
+              "type": "module",
+              "displayName": "`--enable-fips`"
+            },
+            {
+              "textRaw": "`--force-fips`",
+              "name": "`--force-fips`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Force FIPS-compliant crypto on startup. (Cannot be disabled from script code.)\n(Same requirements as <code>--enable-fips</code>)</p>\n",
+              "type": "module",
+              "displayName": "`--force-fips`"
+            },
+            {
+              "textRaw": "`--icu-data-dir=file`",
+              "name": "`--icu-data-dir=file`",
+              "meta": {
+                "added": [
+                  "v0.11.15"
+                ]
+              },
+              "desc": "<p>Specify ICU data load path. (overrides <code>NODE_ICU_DATA</code>)</p>\n",
+              "type": "module",
+              "displayName": "`--icu-data-dir=file`"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Options"
+        },
+        {
+          "textRaw": "Environment Variables",
+          "name": "environment_variables",
+          "modules": [
+            {
+              "textRaw": "`NODE_DEBUG=module[,…]`",
+              "name": "`node_debug=module[,…]`",
+              "meta": {
+                "added": [
+                  "v0.1.32"
+                ]
+              },
+              "desc": "<p><code>&#39;,&#39;</code>-separated list of core modules that should print debug information.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_DEBUG=module[,…]`"
+            },
+            {
+              "textRaw": "`NODE_PATH=path[:…]`",
+              "name": "`node_path=path[:…]`",
+              "meta": {
+                "added": [
+                  "v0.1.32"
+                ]
+              },
+              "desc": "<p><code>&#39;:&#39;</code>-separated list of directories prefixed to the module search path.</p>\n<p><em>Note: on Windows, this is a <code>&#39;;&#39;</code>-separated list instead.</em></p>\n",
+              "type": "module",
+              "displayName": "`NODE_PATH=path[:…]`"
+            },
+            {
+              "textRaw": "`NODE_DISABLE_COLORS=1`",
+              "name": "`node_disable_colors=1`",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ]
+              },
+              "desc": "<p>When set to <code>1</code> colors will not be used in the REPL.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_DISABLE_COLORS=1`"
+            },
+            {
+              "textRaw": "`NODE_ICU_DATA=file`",
+              "name": "`node_icu_data=file`",
+              "meta": {
+                "added": [
+                  "v0.11.15"
+                ]
+              },
+              "desc": "<p>Data path for ICU (Intl object) data. Will extend linked-in data when compiled\nwith small-icu support.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_ICU_DATA=file`"
+            },
+            {
+              "textRaw": "`NODE_REPL_HISTORY=file`",
+              "name": "`node_repl_history=file`",
+              "meta": {
+                "added": [
+                  "v3.0.0"
+                ]
+              },
+              "desc": "<p>Path to the file used to store the persistent REPL history. The default path is\n<code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value\nto an empty string (<code>&quot;&quot;</code> or <code>&quot; &quot;</code>) disables persistent REPL history.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_REPL_HISTORY=file`"
+            },
+            {
+              "textRaw": "`NODE_TTY_UNSAFE_ASYNC=1`",
+              "name": "`node_tty_unsafe_async=1`",
+              "meta": {
+                "added": [
+                  "6.4.0"
+                ]
+              },
+              "desc": "<p>When set to <code>1</code>, writes to <code>stdout</code> and <code>stderr</code> will be non-blocking and\nasynchronous when outputting to a TTY on platforms which support async stdio.\nSetting this will void any guarantee that stdio will not be interleaved or\ndropped at program exit. <strong>Use of this mode is not recommended.</strong></p>\n",
+              "type": "module",
+              "displayName": "`NODE_TTY_UNSAFE_ASYNC=1`"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Environment Variables"
+        }
+      ]
+    }
+  ]
+}

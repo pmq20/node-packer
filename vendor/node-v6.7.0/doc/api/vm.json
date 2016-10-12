@@ -1,0 +1,653 @@
+{
+  "source": "doc/api/vm.md",
+  "modules": [
+    {
+      "textRaw": "Executing JavaScript",
+      "name": "vm",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n</code></pre>\n<p>JavaScript code can be compiled and run immediately or compiled, saved, and run\nlater.</p>\n",
+      "classes": [
+        {
+          "textRaw": "Class: vm.Script",
+          "type": "class",
+          "name": "vm.Script",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "desc": "<p>Instances of the <code>vm.Script</code> class contain precompiled scripts that can be\nexecuted in specific sandboxes (or &quot;contexts&quot;).</p>\n",
+          "methods": [
+            {
+              "textRaw": "new vm.Script(code, options)",
+              "type": "method",
+              "name": "Script",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`code` {string} The JavaScript code to compile. ",
+                      "name": "code",
+                      "type": "string",
+                      "desc": "The JavaScript code to compile."
+                    },
+                    {
+                      "textRaw": "`options` ",
+                      "options": [
+                        {
+                          "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                          "name": "filename",
+                          "type": "string",
+                          "desc": "Specifies the filename used in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                          "name": "lineOffset",
+                          "type": "number",
+                          "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                          "name": "columnOffset",
+                          "type": "number",
+                          "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                          "name": "displayErrors",
+                          "type": "boolean",
+                          "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                        },
+                        {
+                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                          "name": "timeout",
+                          "type": "number",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                        },
+                        {
+                          "textRaw": "`cachedData` {Buffer} Provides an optional `Buffer` with V8's code cache data for the supplied source. When supplied, the `cachedDataRejected` value will be set to either `true` or `false` depending on acceptance of the data by V8. ",
+                          "name": "cachedData",
+                          "type": "Buffer",
+                          "desc": "Provides an optional `Buffer` with V8's code cache data for the supplied source. When supplied, the `cachedDataRejected` value will be set to either `true` or `false` depending on acceptance of the data by V8."
+                        },
+                        {
+                          "textRaw": "`produceCachedData` {boolean} When `true` and no `cachedData` is present, V8 will attempt to produce code cache data for `code`. Upon success, a `Buffer` with V8's code cache data will be produced and stored in the `cachedData` property of the returned `vm.Script` instance. The `cachedDataProduced` value will be set to either `true` or `false` depending on whether code cache data is produced successfully. ",
+                          "name": "produceCachedData",
+                          "type": "boolean",
+                          "desc": "When `true` and no `cachedData` is present, V8 will attempt to produce code cache data for `code`. Upon success, a `Buffer` with V8's code cache data will be produced and stored in the `cachedData` property of the returned `vm.Script` instance. The `cachedDataProduced` value will be set to either `true` or `false` depending on whether code cache data is produced successfully."
+                        }
+                      ],
+                      "name": "options"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "code"
+                    },
+                    {
+                      "name": "options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Creating a new <code>vm.Script</code> object compiles <code>code</code> but does not run it. The\ncompiled <code>vm.Script</code> can be run later multiple times. It is important to note\nthat the <code>code</code> is not bound to any global object; rather, it is bound before\neach run, just for that run.</p>\n"
+            },
+            {
+              "textRaw": "script.runInContext(contextifiedSandbox[, options])",
+              "type": "method",
+              "name": "runInContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`contextifiedSandbox` {Object} A [contextified][] object as returned by the `vm.createContext()` method. ",
+                      "name": "contextifiedSandbox",
+                      "type": "Object",
+                      "desc": "A [contextified][] object as returned by the `vm.createContext()` method."
+                    },
+                    {
+                      "textRaw": "`options` {Object} ",
+                      "options": [
+                        {
+                          "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                          "name": "filename",
+                          "type": "string",
+                          "desc": "Specifies the filename used in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                          "name": "lineOffset",
+                          "type": "number",
+                          "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                          "name": "columnOffset",
+                          "type": "number",
+                          "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                          "name": "displayErrors",
+                          "type": "boolean",
+                          "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                        },
+                        {
+                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                          "name": "timeout",
+                          "type": "number",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                        },
+                        {
+                          "textRaw": "`breakOnSigint`: if `true`, the execution will be terminated when `SIGINT` (Ctrl+C) is received. Existing handlers for the event that have been attached via `process.on(\"SIGINT\")` will be disabled during script execution, but will continue to work after that. If execution is terminated, an [`Error`][] will be thrown. ",
+                          "name": "breakOnSigint",
+                          "desc": "if `true`, the execution will be terminated when `SIGINT` (Ctrl+C) is received. Existing handlers for the event that have been attached via `process.on(\"SIGINT\")` will be disabled during script execution, but will continue to work after that. If execution is terminated, an [`Error`][] will be thrown."
+                        }
+                      ],
+                      "name": "options",
+                      "type": "Object",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "contextifiedSandbox"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Runs the compiled code contained by the <code>vm.Script</code> object within the given\n<code>contextifiedSandbox</code> and returns the result. Running code does not have access\nto local scope.</p>\n<p>The following example compiles code that increments a global variable, sets\nthe value of another global variable, then execute the code multiple times.\nThe globals are contained in the <code>sandbox</code> object.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nconst script = new vm.Script(&#39;count += 1; name = &quot;kitty&quot;;&#39;);\n\nconst context = new vm.createContext(sandbox);\nfor (var i = 0; i &lt; 10; ++i) {\n  script.runInContext(context);\n}\n\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 12, name: &#39;kitty&#39; }\n</code></pre>\n"
+            },
+            {
+              "textRaw": "script.runInNewContext([sandbox][, options])",
+              "type": "method",
+              "name": "runInNewContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`sandbox` {Object} An object that will be [contextified][]. If `undefined`, a new object will be created. ",
+                      "name": "sandbox",
+                      "type": "Object",
+                      "desc": "An object that will be [contextified][]. If `undefined`, a new object will be created.",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`options` {Object} ",
+                      "options": [
+                        {
+                          "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                          "name": "filename",
+                          "type": "string",
+                          "desc": "Specifies the filename used in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                          "name": "lineOffset",
+                          "type": "number",
+                          "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                          "name": "columnOffset",
+                          "type": "number",
+                          "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                          "name": "displayErrors",
+                          "type": "boolean",
+                          "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                        },
+                        {
+                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                          "name": "timeout",
+                          "type": "number",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                        }
+                      ],
+                      "name": "options",
+                      "type": "Object",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "sandbox",
+                      "optional": true
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>First contextifies the given <code>sandbox</code>, runs the compiled code contained by\nthe <code>vm.Script</code> object within the created sandbox, and returns the result.\nRunning code does not have access to local scope.</p>\n<p>The following example compiles code that sets a global variable, then executes\nthe code multiple times in different contexts. The globals are set on and\ncontained within each individual <code>sandbox</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst script = new vm.Script(&#39;globalVar = &quot;set&quot;&#39;);\n\nconst sandboxes = [{}, {}, {}];\nsandboxes.forEach((sandbox) =&gt; {\n  script.runInNewContext(sandbox);\n});\n\nconsole.log(util.inspect(sandboxes));\n\n// [{ globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }]\n</code></pre>\n"
+            },
+            {
+              "textRaw": "script.runInThisContext([options])",
+              "type": "method",
+              "name": "runInThisContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`options` {Object} ",
+                      "options": [
+                        {
+                          "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                          "name": "filename",
+                          "type": "string",
+                          "desc": "Specifies the filename used in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                          "name": "lineOffset",
+                          "type": "number",
+                          "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                          "name": "columnOffset",
+                          "type": "number",
+                          "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                        },
+                        {
+                          "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                          "name": "displayErrors",
+                          "type": "boolean",
+                          "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                        },
+                        {
+                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                          "name": "timeout",
+                          "type": "number",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                        }
+                      ],
+                      "name": "options",
+                      "type": "Object",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Runs the compiled code contained by the <code>vm.Script</code> within the context of the\ncurrent <code>global</code> object. Running code does not have access to local scope, but\n<em>does</em> have access to the current <code>global</code> object.</p>\n<p>The following example compiles code that increments a <code>global</code> variable then\nexecutes that code multiple times:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n\nglobal.globalVar = 0;\n\nconst script = new vm.Script(&#39;globalVar += 1&#39;, { filename: &#39;myfile.vm&#39; });\n\nfor (var i = 0; i &lt; 1000; ++i) {\n  script.runInThisContext();\n}\n\nconsole.log(globalVar);\n\n// 1000\n</code></pre>\n"
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "vm.createContext([sandbox])",
+          "type": "method",
+          "name": "createContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`sandbox` {Object} ",
+                  "name": "sandbox",
+                  "type": "Object",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "sandbox",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>If given a <code>sandbox</code> object, the <code>vm.createContext()</code> method will [prepare\nthat sandbox][contextified] so that it can be used in calls to\n[<code>vm.runInContext()</code>][] or [<code>script.runInContext()</code>][]. Inside such scripts,\nthe <code>sandbox</code> object will be the global object, retaining all of its existing\nproperties but also having the built-in objects and functions any standard\n[global object][] has. Outside of scripts run by the vm module, <code>sandbox</code> will\nremain unchanged.</p>\n<p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty\n[contextified][] sandbox object will be returned.</p>\n<p>The <code>vm.createContext()</code> method is primarily useful for creating a single\nsandbox that can be used to run multiple scripts. For instance, if emulating a\nweb browser, the method can be used to create a single sandbox representing a\nwindow&#39;s global object, then run all <code>&lt;script&gt;</code> tags together within the context\nof that sandbox.</p>\n"
+        },
+        {
+          "textRaw": "vm.isContext(sandbox)",
+          "type": "method",
+          "name": "isContext",
+          "meta": {
+            "added": [
+              "v0.11.7"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`sandbox` {Object} ",
+                  "name": "sandbox",
+                  "type": "Object"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "sandbox"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Returns <code>true</code> if the given <code>sandbox</code> object has been [contextified][] using\n[<code>vm.createContext()</code>][].</p>\n"
+        },
+        {
+          "textRaw": "vm.runInContext(code, contextifiedSandbox[, options])",
+          "type": "method",
+          "name": "runInContext",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`code` {string} The JavaScript code to compile and run. ",
+                  "name": "code",
+                  "type": "string",
+                  "desc": "The JavaScript code to compile and run."
+                },
+                {
+                  "textRaw": "`contextifiedSandbox` {Object} The [contextified][] object that will be used as the `global` when the `code` is compiled and run. ",
+                  "name": "contextifiedSandbox",
+                  "type": "Object",
+                  "desc": "The [contextified][] object that will be used as the `global` when the `code` is compiled and run."
+                },
+                {
+                  "textRaw": "`options` ",
+                  "options": [
+                    {
+                      "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                      "name": "filename",
+                      "type": "string",
+                      "desc": "Specifies the filename used in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                      "name": "lineOffset",
+                      "type": "number",
+                      "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                      "name": "columnOffset",
+                      "type": "number",
+                      "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                      "name": "displayErrors",
+                      "type": "boolean",
+                      "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                    },
+                    {
+                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                      "name": "timeout",
+                      "type": "number",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                    }
+                  ],
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "contextifiedSandbox"
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>vm.runInContext()</code> method compiles <code>code</code>, runs it within the context of\nthe <code>contextifiedSandbox</code>, then returns the result. Running code does not have\naccess to the local scope. The <code>contextifiedSandbox</code> object <em>must</em> have been\npreviously [contextified][] using the [<code>vm.createContext()</code>][] method.</p>\n<p>The following example compiles and executes different scripts using a single\n[contextified][] object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = { globalVar: 1 };\nvm.createContext(sandbox);\n\nfor (var i = 0; i &lt; 10; ++i) {\n  vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);\n}\nconsole.log(util.inspect(sandbox));\n\n// { globalVar: 1024 }\n</code></pre>\n"
+        },
+        {
+          "textRaw": "vm.runInDebugContext(code)",
+          "type": "method",
+          "name": "runInDebugContext",
+          "meta": {
+            "added": [
+              "v0.11.14"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`code` {string} The JavaScript code to compile and run. ",
+                  "name": "code",
+                  "type": "string",
+                  "desc": "The JavaScript code to compile and run."
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "code"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>vm.runInDebugContext()</code> method compiles and executes <code>code</code> inside the V8\ndebug context. The primary use case is to gain access to the V8 <code>Debug</code> object:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\nconst Debug = vm.runInDebugContext(&#39;Debug&#39;);\nconsole.log(Debug.findScript(process.emit).name);  // &#39;events.js&#39;\nconsole.log(Debug.findScript(process.exit).name);  // &#39;internal/process.js&#39;\n</code></pre>\n<p><em>Note</em>: The debug context and object are intrinsically tied to V8&#39;s debugger\nimplementation and may change (or even be removed) without prior warning.</p>\n<p>The <code>Debug</code> object can also be made available using the V8-specific\n<code>--expose_debug_as=</code> [command line option][cli.md].</p>\n"
+        },
+        {
+          "textRaw": "vm.runInNewContext(code[, sandbox][, options])",
+          "type": "method",
+          "name": "runInNewContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`code` {string} The JavaScript code to compile and run. ",
+                  "name": "code",
+                  "type": "string",
+                  "desc": "The JavaScript code to compile and run."
+                },
+                {
+                  "textRaw": "`sandbox` {Object} An object that will be [contextified][]. If `undefined`, a new object will be created. ",
+                  "name": "sandbox",
+                  "type": "Object",
+                  "desc": "An object that will be [contextified][]. If `undefined`, a new object will be created.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`options` ",
+                  "options": [
+                    {
+                      "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                      "name": "filename",
+                      "type": "string",
+                      "desc": "Specifies the filename used in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                      "name": "lineOffset",
+                      "type": "number",
+                      "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                      "name": "columnOffset",
+                      "type": "number",
+                      "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                      "name": "displayErrors",
+                      "type": "boolean",
+                      "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                    },
+                    {
+                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                      "name": "timeout",
+                      "type": "number",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                    }
+                  ],
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "sandbox",
+                  "optional": true
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>vm.runInNewContext()</code> first contextifies the given <code>sandbox</code> object (or\ncreates a new <code>sandbox</code> if passed as <code>undefined</code>), compiles the <code>code</code>, runs it\nwithin the context of the created context, then returns the result. Running code\ndoes not have access to the local scope.</p>\n<p>The following example compiles and executes code that increments a global\nvariable and sets a new one. These globals are contained in the <code>sandbox</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nvm.runInNewContext(&#39;count += 1; name = &quot;kitty&quot;&#39;, sandbox);\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 3, name: &#39;kitty&#39; }\n</code></pre>\n"
+        },
+        {
+          "textRaw": "vm.runInThisContext(code[, options])",
+          "type": "method",
+          "name": "runInThisContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`code` {string} The JavaScript code to compile and run. ",
+                  "name": "code",
+                  "type": "string",
+                  "desc": "The JavaScript code to compile and run."
+                },
+                {
+                  "textRaw": "`options` ",
+                  "options": [
+                    {
+                      "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. ",
+                      "name": "filename",
+                      "type": "string",
+                      "desc": "Specifies the filename used in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. ",
+                      "name": "lineOffset",
+                      "type": "number",
+                      "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. ",
+                      "name": "columnOffset",
+                      "type": "number",
+                      "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`displayErrors` {boolean} When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace. ",
+                      "name": "displayErrors",
+                      "type": "boolean",
+                      "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
+                    },
+                    {
+                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. ",
+                      "name": "timeout",
+                      "type": "number",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                    }
+                  ],
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p><code>vm.runInThisContext()</code> compiles <code>code</code>, runs it within the context of the\ncurrent <code>global</code> and returns the result. Running code does not have access to\nlocal scope, but does have access to the current <code>global</code> object.</p>\n<p>The following example illustrates using both <code>vm.runInThisContext()</code> and\nthe JavaScript [<code>eval()</code>][] function to run the same code:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\nvar localVar = &#39;initial value&#39;;\n\nconst vmResult = vm.runInThisContext(&#39;localVar = &quot;vm&quot;;&#39;);\nconsole.log(&#39;vmResult:&#39;, vmResult);\nconsole.log(&#39;localVar:&#39;, localVar);\n\nconst evalResult = eval(&#39;localVar = &quot;eval&quot;;&#39;);\nconsole.log(&#39;evalResult:&#39;, evalResult);\nconsole.log(&#39;localVar:&#39;, localVar);\n\n// vmResult: &#39;vm&#39;, localVar: &#39;initial value&#39;\n// evalResult: &#39;eval&#39;, localVar: &#39;eval&#39;\n</code></pre>\n<p>Because <code>vm.runInThisContext()</code> does not have access to the local scope,\n<code>localVar</code> is unchanged. In contrast, [<code>eval()</code>][] <em>does</em> have access to the\nlocal scope, so the value <code>localVar</code> is changed. In this way\n<code>vm.runInThisContext()</code> is much like an [indirect <code>eval()</code> call][], e.g.\n<code>(0,eval)(&#39;code&#39;)</code>.</p>\n<h2>Example: Running an HTTP Server within a VM</h2>\n<p>When using either [<code>script.runInThisContext()</code>][] or [<code>vm.runInThisContext()</code>][], the\ncode is executed within the current V8 global context. The code passed\nto this VM context will have its own isolated scope.</p>\n<p>In order to run a simple web server using the <code>http</code> module the code passed to\nthe context must either call <code>require(&#39;http&#39;)</code> on its own, or have a reference\nto the <code>http</code> module passed to it. For instance:</p>\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\nconst vm = require(&#39;vm&#39;);\n\nlet code =\n`(function(require) {\n\n   const http = require(&#39;http&#39;);\n\n   http.createServer( (request, response) =&gt; {\n     response.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n     response.end(&#39;Hello World\\\\n&#39;);\n   }).listen(8124);\n\n   console.log(&#39;Server running at http://127.0.0.1:8124/&#39;);\n })`;\n\n vm.runInThisContext(code)(require);\n</code></pre>\n<p><em>Note</em>: The <code>require()</code> in the above case shares the state with context it is\npassed from. This may introduce risks when untrusted code is executed, e.g.\naltering objects from the calling thread&#39;s context in unwanted ways.</p>\n"
+        }
+      ],
+      "modules": [
+        {
+          "textRaw": "What does it mean to \"contextify\" an object?",
+          "name": "what_does_it_mean_to_\"contextify\"_an_object?",
+          "desc": "<p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.\nAccording to the [V8 Embedder&#39;s Guide][]:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n&quot;contextifying&quot; the <code>sandbox</code>.</p>\n",
+          "type": "module",
+          "displayName": "What does it mean to \"contextify\" an object?"
+        }
+      ],
+      "type": "module",
+      "displayName": "vm"
+    }
+  ]
+}

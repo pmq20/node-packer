@@ -19,7 +19,8 @@ module Enclose
           msg = "Does not support #{argv0}, supported: #{list.join ', '}"
           raise Error, msg
         end
-        @work_dir = Dir.mktmpdir
+        @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", ENV['TMPDIR'])
+        FileUtils.mkdir_p(@work_dir)
       end
 
       def npm_install
@@ -36,7 +37,7 @@ module Enclose
         source = File.expand_path("./node_modules/.bin/#{@bin_name}", @work_dir)
         target = File.expand_path('./lib/_third_party_main.js', @vendor_dir)
         lines = File.read(source).lines
-        lines.shift if '#!' == lines[0][0..1]
+        lines[0] = '// ' + lines[0] if '#!' == lines[0][0..1]
         File.open(target, "w") { |f| f.print lines.join }
       end
 

@@ -22,6 +22,7 @@ Usage:
     begin
       instance = Compiler.new *ARGV
       instance.npm_install
+      instance.inject_entrance
       instance.compile
       instance.die
     rescue Compiler::Error => e

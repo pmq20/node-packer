@@ -1,0 +1,9 @@
+/vendor/node-v6.8.0/config.gypi
+/vendor/node-v6.8.0/config.mk
+/vendor/node-v6.8.0/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/build/rjsmin.pyc
+/vendor/node-v6.8.0/icu_config.gypi
+/vendor/node-v6.8.0/lib/_third_party_main.js
+/vendor/node-v6.8.0/node
+/vendor/node-v6.8.0/out/
+/vendor/node-v6.8.0/tools/configure.d/nodedownload.pyc
+/vendor/node-v6.8.0/tools/getmoduleversion.pyc

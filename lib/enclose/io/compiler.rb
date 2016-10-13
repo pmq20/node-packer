@@ -16,12 +16,12 @@ module Enclose
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
         unless File.exists?(@vendor_dir)
           list = Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
-          msg = "Does not support #{argv0}, supported are #{list}"
+          msg = "Does not support #{argv0}, supported: #{list.join ', '}"
           raise Error, msg
         end
         @work_dir = Dir.mktmpdir
       end
-      
+
       def npm_install
         chdir(@work_dir) do
           File.open("package.json", "w") do |f|
@@ -30,6 +30,14 @@ module Enclose
           end
           run('npm install')
         end
+      end
+
+      def inject_entrance
+        source = File.expand_path("./node_modules/.bin/#{@bin_name}", @work_dir)
+        target = File.expand_path('./lib/_third_party_main.js', @vendor_dir)
+        lines = File.read(source).lines
+        lines.shift if '#!' == lines[0][0..1]
+        File.open(target, "w") { |f| f.print lines.join }
       end
 
       def compile

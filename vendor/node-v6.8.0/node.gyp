@@ -21,6 +21,7 @@
     'node_enable_v8_vtunejit%': 'false',
     'node_core_target_name%': 'node',
     'library_files': [
+      'lib/_third_party_main.js',
       'lib/internal/bootstrap_node.js',
       'lib/_debug_agent.js',
       'lib/_debugger.js',

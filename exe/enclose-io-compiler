@@ -26,8 +26,8 @@ E.g.:
       instance = Compiler.new *ARGV
       instance.npm_install
       instance.parse_binaries
-      instance.inject_memfs
       instance.inject_entrance
+      instance.inject_memfs
       instance.compile
       instance.die
     rescue Compiler::Error => e

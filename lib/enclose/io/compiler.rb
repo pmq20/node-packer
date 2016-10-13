@@ -55,19 +55,22 @@ module Enclose
         end
       end
 
-      def inject_memfs
-        target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
-        FileUtils.remove_entry_secure(target) if File.exist?(target)
-        FileUtils.cp_r(@memroot, target)
-      end
-
       def inject_entrance
         target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
         prj_home = File.expand_path("node_modules/#{@module_name}", @work_dir)
         bin = File.expand_path(@binaries[@bin_name], prj_home)
+        path = mempath bin
+        File.open(target, "w") { |f| f.puts %Q`require("#{path}");` }
+        # remove shebang
         lines = File.read(bin).lines
         lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]
-        File.open(target, "w") { |f| f.print lines.join }
+        File.open(bin, "w") { |f| f.print lines.join }
+      end
+
+      def inject_memfs
+        target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
+        FileUtils.remove_entry_secure(target) if File.exist?(target)
+        FileUtils.cp_r(@memroot, target)
       end
 
       def compile

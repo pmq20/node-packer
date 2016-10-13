@@ -10,18 +10,20 @@ module Enclose
 enclose-io-compiler v#{Compiler::VERSION}
 
 Usage:
-  enclose-io-compiler [node_version] [module_name]
+  enclose-io-compiler [node_version] [module_name] [module_version]
 
     }.strip
 
-    unless 2 == ARGV.size
+    unless 4 == ARGV.size
       puts usage
       exit 1
     end
 
     begin
       instance = Compiler.new *ARGV
-      instance.run!
+      instance.npm_install
+      instance.compile
+      instance.die
     rescue Compiler::Error => e
       STDERR.puts e.message
       exit 2

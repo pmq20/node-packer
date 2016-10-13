@@ -10,7 +10,7 @@ http://enclose.io
 
 ## Usage
 
-    enclose-io-compiler [node_version] [module_name]
+    enclose-io-compiler [node_version] [module_name] [module_version] [bin_name]
 
 ## Optional Environment Variables
 
@@ -19,5 +19,5 @@ http://enclose.io
 
 ## Examples
 
-    enclose-io-compiler node-v6.7.0 coffee-script
-    ENCLOSE_IO_MAKE_ARGS=-j6 enclose-io-compiler node-v6.7.0 coffee-script
+    enclose-io-compiler node-v6.7.0 coffee-script 1.11.1 coffee
+    ENCLOSE_IO_MAKE_ARGS=-j6 enclose-io-compiler node-v6.7.0 coffee-script 1.11.1 coffee

@@ -1,8 +1,0 @@
-/config.gypi
-/config.mk
-/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/build/rjsmin.pyc
-/icu_config.gypi
-/node
-/out/
-/tools/configure.d/nodedownload.pyc
-/tools/getmoduleversion.pyc

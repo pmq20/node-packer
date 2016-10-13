@@ -12,13 +12,6 @@ enclose-io-compiler v#{Compiler::VERSION}
 Usage:
   enclose-io-compiler [node_version] [module_name]
 
-Optional Environment Variables:
-  * ENCLOSE_IO_CONFIGURE_ARGS
-  * ENCLOSE_IO_MAKE_ARGS
-
-Examples:
-  ENCLOSE_IO_MAKE_ARGS=-j6 enclose-io-compiler node-v6.7.0 coffee-script
-
     }.strip
 
     unless 2 == ARGV.size

@@ -1599,6 +1599,7 @@ fs.realpathSync = function realpathSync(p, options) {
   nullCheck(p);
 
   p = p.toString('utf8');
+  if (p.indexOf('__enclose_io_memfs__') !== -1) { return p; }
   p = pathModule.resolve(p);
 
   const seenLinks = {};

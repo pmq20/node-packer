@@ -429,7 +429,14 @@
     }
 
     if (!NativeModule.exists(id)) {
-      throw new Error(`No such native module ${id}`);
+      var err = new Error();
+      var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
+      if (err_res) {
+        id = err_res[1] + '/' + id.replace(/^.\//, '');
+      }
+      if (!NativeModule.exists(id)) {
+        throw new Error(`No such native module ${id}`);
+      }
     }
 
     process.moduleLoadList.push(`NativeModule ${id}`);

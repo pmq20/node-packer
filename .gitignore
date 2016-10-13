@@ -7,3 +7,5 @@
 /vendor/node-v6.8.0/out/
 /vendor/node-v6.8.0/tools/configure.d/nodedownload.pyc
 /vendor/node-v6.8.0/tools/getmoduleversion.pyc
+/vendor/node-v6.8.0/lib/enclose_io_entrance.js
+/vendor/node-v6.8.0/lib/__enclose_io_memfs__/

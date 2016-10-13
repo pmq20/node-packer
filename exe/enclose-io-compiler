@@ -10,7 +10,10 @@ module Enclose
 enclose-io-compiler v#{Compiler::VERSION}
 
 Usage:
-  enclose-io-compiler [node_version] [module_name] [module_version]
+  enclose-io-compiler [node_version] [module_name] [module_version] [bin_name]
+
+E.g.:
+  enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee
 
     }.strip
 
@@ -22,6 +25,8 @@ Usage:
     begin
       instance = Compiler.new *ARGV
       instance.npm_install
+      instance.parse_binaries
+      instance.inject_memfs
       instance.inject_entrance
       instance.compile
       instance.die

@@ -19,5 +19,4 @@ http://enclose.io
 
 ## Examples
 
-    enclose-io-compiler node-v6.7.0 coffee-script 1.11.1 coffee
-    ENCLOSE_IO_MAKE_ARGS=-j6 enclose-io-compiler node-v6.7.0 coffee-script 1.11.1 coffee
+    enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee

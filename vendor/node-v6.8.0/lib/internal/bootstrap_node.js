@@ -10,6 +10,9 @@
 (function(process) {
 
   process._eval = 'require("enclose_io_entrance");';
+  if (process.argv[1] !== "enclose_io_argv1_placeholder") {
+    process.argv.splice(1, 0, "enclose_io_argv1_placeholder");
+  }
 
   function startup() {
     const EventEmitter = NativeModule.require('events');

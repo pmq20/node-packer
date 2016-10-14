@@ -71,6 +71,14 @@ module Enclose
         target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
         FileUtils.remove_entry_secure(target) if File.exist?(target)
         FileUtils.cp_r(@memroot, target)
+        manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
+        File.open(manifest, "w") do |f|
+          Dir["#{target}/**/*"].each do |fullpath|
+            next unless File.file?(fullpath)
+            entry = "lib/#{fullpath[(fullpath.index '__enclose_io_memfs__')..-1]}"
+            f.puts entry
+          end
+        end
       end
 
       def compile

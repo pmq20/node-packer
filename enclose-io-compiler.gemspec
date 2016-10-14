@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Compiler of Enclose.IO}
   spec.description   = %q{Compiler of Enclose.IO which packs your Node.js app into a single executable.}
-  spec.homepage      = "http://enclose.io/"
+  spec.homepage      = "https://github.com/enclose-io/compiler"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

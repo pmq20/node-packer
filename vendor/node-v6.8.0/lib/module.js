@@ -414,14 +414,36 @@ Module._load = function(request, parent, isMain) {
     debug('Module._load REQUEST %s parent: %s', request, parent.id);
   }
 
-  var filename = Module._resolveFilename(request, parent, isMain);
+  if ('./' === request.substring(0, 2) || '../' === request.substring(0, 3)) {
+    var err = new Error();
+    var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
+    if (err_res) {
+      var request2 = path.resolve(err_res[1], request);
+      var short_index = request2.indexOf('__enclose_io_memfs__');
+      if (short_index !== -1) {
+        request2 = request2.substring(short_index);
+      } else {
+        request2 = undefined;
+      }
+    }
+  } else if ('enclose_io_entrance' == request) {
+    var request2 = request;
+  }
+
+  if (request2 && process.binding('natives').hasOwnProperty(request2)) {
+    var filename = request2;
+  } else {
+    var filename = Module._resolveFilename(request, parent, isMain);
+  }
 
   var cachedModule = Module._cache[filename];
   if (cachedModule) {
     return cachedModule.exports;
   }
 
-  if (NativeModule.nonInternalExists(filename)) {
+  if (NativeModule.nonInternalExists(filename) &&
+      -1 === filename.indexOf('__enclose_io_memfs__') &&
+      'enclose_io_entrance' !== filename) {
     debug('load native module %s', request);
     return NativeModule.require(filename);
   }

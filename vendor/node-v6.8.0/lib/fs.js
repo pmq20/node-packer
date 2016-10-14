@@ -503,6 +503,14 @@ fs.readFileSync = function(path, options) {
   var encoding = options.encoding;
   assertEncoding(encoding);
 
+  if (-1 !== path.indexOf('__enclose_io_memfs__') || 'enclose_io_entrance' === path) {
+    if (encoding) {
+      return process.binding('natives')[path];
+    } else {
+      return Buffer.from(process.binding('natives')[path]);
+    }
+  }
+
   var flag = options.flag || 'r';
   var isUserFd = isFd(path); // file descriptor ownership
   var fd = isUserFd ? path : fs.openSync(path, flag, 0o666);

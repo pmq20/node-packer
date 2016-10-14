@@ -9,9 +9,8 @@
 
 (function(process) {
 
-  process._eval = 'require("enclose_io_entrance");';
-  if (process.argv[1] !== "enclose_io_argv1_placeholder") {
-    process.argv.splice(1, 0, "enclose_io_argv1_placeholder");
+  if (process.argv[1] !== "enclose_io_entrance") {
+    process.argv.splice(1, 0, "enclose_io_entrance");
   }
 
   function startup() {
@@ -129,7 +128,7 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        process.argv[1] = path.resolve(process.argv[1]);
+        // process.argv[1] = path.resolve(process.argv[1]);
 
         const Module = NativeModule.require('module');
 
@@ -432,14 +431,7 @@
     }
 
     if (!NativeModule.exists(id)) {
-      var err = new Error();
-      var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
-      if (err_res) {
-        id = err_res[1] + '/' + id.replace(/^.\//, '');
-      }
-      if (!NativeModule.exists(id)) {
-        throw new Error(`No such native module ${id}`);
-      }
+      throw new Error(`No such native module ${id}`);
     }
 
     process.moduleLoadList.push(`NativeModule ${id}`);
@@ -451,23 +443,6 @@
 
     return nativeModule.exports;
   };
-
-  NativeModule.require.resolve = function(id) {
-    const path = NativeModule.require('path');
-    var err = new Error();
-    var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
-    if (err_res) {
-      var long_path = path.resolve(err_res[1], id);
-      var short_index = long_path.indexOf('__enclose_io_memfs__');
-      if (short_index !== -1) {
-        return long_path.substring(short_index);
-      } else {
-        throw new Error('TODO 1: fall back to ordinary require.resolve');
-      }
-    } else {
-      throw new Error('TODO 2: fall back to ordinary require.resolve');
-    }
-  }
 
   NativeModule.getCached = function(id) {
     return NativeModule._cache[id];

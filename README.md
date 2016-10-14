@@ -22,6 +22,6 @@ http://enclose.io
 
     enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee
 
-Then the compiled product will be located at `./vendor/node-v6.8.0/node`, ready to be used.
+Then the compiled product will be located at `./vendor/node-v6.8.0/node`, ready to be distributed.
 
 ![enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee](https://github.com/enclose-io/compiler/blob/master/README.png?raw=true)

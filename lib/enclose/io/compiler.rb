@@ -24,7 +24,6 @@ module Enclose
         @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", ENV['TMPDIR'])
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
-        @memroot = File.expand_path('./node_modules', @work_dir)
       end
 
       def npm_install
@@ -70,7 +69,7 @@ module Enclose
       def inject_memfs
         target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
         FileUtils.remove_entry_secure(target) if File.exist?(target)
-        FileUtils.cp_r(@memroot, target)
+        FileUtils.cp_r(@work_dir, target)
         manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
@@ -110,8 +109,8 @@ module Enclose
       
       def mempath(path)
         path = File.expand_path(path)
-        if @memroot == path[0...(@memroot.size)]
-          return "#{MEMFS}#{path[(@memroot.size)..-1]}"
+        if @work_dir == path[0...(@work_dir.size)]
+          return "#{MEMFS}#{path[(@work_dir.size)..-1]}"
         else
           raise Error, 'Logic error in mempath'
         end

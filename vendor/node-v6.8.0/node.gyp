@@ -21,7 +21,6 @@
     'node_enable_v8_vtunejit%': 'false',
     'node_core_target_name%': 'node',
     'library_files': [
-      "<!@(node -e \"console.log(require('fs').readFileSync('enclose_io_manifest.txt', 'utf8'))\")",
       'lib/enclose_io_entrance.js',
       'lib/internal/bootstrap_node.js',
       'lib/_debug_agent.js',

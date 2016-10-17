@@ -255,8 +255,9 @@ def JS2C(source, target):
     else:
       id = s
 
-    if '.' in id:
-      id = id.split('.', 1)[0]
+    if not '__enclose_io_memfs__' in id:
+      if '.' in id:
+        id = id.split('.', 1)[0]
 
     if delay: id = id[:-6]
     if delay:
@@ -264,7 +265,11 @@ def JS2C(source, target):
     else:
       ids.append((id, len(lines)))
 
-    escaped_id = id.replace('-', '_').replace('/', '_')
+    if '__enclose_io_memfs__' in id:
+      escaped_id = re.sub('\W', '_', id)
+    else:
+      escaped_id = id.replace('-', '_').replace('/', '_')
+
     source_lines.append(SOURCE_DECLARATION % {
       'id': id,
       'escaped_id': escaped_id,

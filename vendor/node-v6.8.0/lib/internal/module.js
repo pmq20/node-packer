@@ -24,19 +24,7 @@ function makeRequireFunction() {
   }
 
   function resolve(request) {
-    var err = new Error();
-    var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
-    if (err_res) {
-      var long_path = self.require('path').resolve(err_res[1], request);
-      var short_index = long_path.indexOf('__enclose_io_memfs__');
-      if (short_index !== -1) {
-        return long_path.substring(short_index);
-      } else {
-        return Module._resolveFilename(request, self);
-      }
-    } else {
-      return Module._resolveFilename(request, self);
-    }
+    return Module._resolveFilename(request, self);
   }
 
   require.resolve = resolve;

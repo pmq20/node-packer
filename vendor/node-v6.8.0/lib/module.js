@@ -81,8 +81,12 @@ function readPackage(requestPath) {
     return packageMainCache[requestPath];
   }
 
-  const jsonPath = path.resolve(requestPath, 'package.json');
-  const json = internalModuleReadFile(path._makeLong(jsonPath));
+  const jsonPath = (-1 === requestPath.indexOf('__enclose_io_memfs__')) ? 
+                   path.resolve(requestPath, 'package.json') :
+                   path.join(requestPath, 'package.json');
+  const json = (-1 === requestPath.indexOf('__enclose_io_memfs__')) ? 
+               internalModuleReadFile(path._makeLong(jsonPath)) : 
+               process.binding('natives')[jsonPath];
 
   if (json === undefined) {
     return false;
@@ -103,10 +107,17 @@ function tryPackage(requestPath, exts, isMain) {
 
   if (!pkg) return false;
 
-  var filename = path.resolve(requestPath, pkg);
+  if (-1 === requestPath.indexOf('__enclose_io_memfs__')) {
+    var filename = path.resolve(requestPath, pkg);
+  } else {
+    var filename = path.join(requestPath, pkg);
+  }
+
   return tryFile(filename, isMain) ||
          tryExtensions(filename, exts, isMain) ||
-         tryExtensions(path.resolve(filename, 'index'), exts, isMain);
+         tryExtensions((-1 === filename.indexOf('__enclose_io_memfs__') ?
+                        path.resolve(filename, 'index') :
+                        path.join(filename, 'index')), exts, isMain);
 }
 
 // In order to minimize unnecessary lstat() calls,
@@ -122,6 +133,9 @@ delete fs.realpathCacheKey;
 // keep symlinks intact, otherwise resolve to the
 // absolute realpath.
 function tryFile(requestPath, isMain) {
+  if (-1 !== requestPath.indexOf('__enclose_io_memfs__')) {
+    return process.binding('natives').hasOwnProperty(requestPath) && requestPath;
+  }
   const rc = stat(requestPath);
   if (preserveSymlinks && !isMain) {
     return rc === 0 && path.resolve(requestPath);
@@ -168,56 +182,104 @@ Module._findPath = function(request, paths, isMain) {
   for (var i = 0; i < paths.length; i++) {
     // Don't search further if path doesn't exist
     const curPath = paths[i];
-    if (curPath && stat(curPath) < 1) continue;
-    var basePath = path.resolve(curPath, request);
-    var filename;
+    if (curPath && -1 === curPath.indexOf('__enclose_io_memfs__')) {
+      if (curPath && stat(curPath) < 1) continue;
+      var basePath = path.resolve(curPath, request);
+      var filename;
 
-    if (!trailingSlash) {
-      const rc = stat(basePath);
-      if (rc === 0) {  // File.
-        if (preserveSymlinks && !isMain) {
-          filename = path.resolve(basePath);
-        } else {
-          filename = toRealPath(basePath);
+      if (!trailingSlash) {
+        const rc = stat(basePath);
+        if (rc === 0) {  // File.
+          if (preserveSymlinks && !isMain) {
+            filename = path.resolve(basePath);
+          } else {
+            filename = toRealPath(basePath);
+          }
+        } else if (rc === 1) {  // Directory.
+          if (exts === undefined)
+            exts = Object.keys(Module._extensions);
+          filename = tryPackage(basePath, exts, isMain);
         }
-      } else if (rc === 1) {  // Directory.
+
+        if (!filename) {
+          // try it with each of the extensions
+          if (exts === undefined)
+            exts = Object.keys(Module._extensions);
+          filename = tryExtensions(basePath, exts, isMain);
+        }
+      }
+
+      if (!filename) {
         if (exts === undefined)
           exts = Object.keys(Module._extensions);
         filename = tryPackage(basePath, exts, isMain);
       }
 
       if (!filename) {
-        // try it with each of the extensions
+        // try it with each of the extensions at "index"
         if (exts === undefined)
           exts = Object.keys(Module._extensions);
-        filename = tryExtensions(basePath, exts, isMain);
-      }
-    }
-
-    if (!filename) {
-      if (exts === undefined)
-        exts = Object.keys(Module._extensions);
-      filename = tryPackage(basePath, exts, isMain);
-    }
-
-    if (!filename) {
-      // try it with each of the extensions at "index"
-      if (exts === undefined)
-        exts = Object.keys(Module._extensions);
-      filename = tryExtensions(path.resolve(basePath, 'index'), exts, isMain);
-    }
-
-    if (filename) {
-      // Warn once if '.' resolved outside the module dir
-      if (request === '.' && i > 0) {
-        warned = internalUtil.printDeprecationMessage(
-          'warning: require(\'.\') resolved outside the package ' +
-          'directory. This functionality is deprecated and will be removed ' +
-          'soon.', warned);
+        filename = tryExtensions(path.resolve(basePath, 'index'), exts, isMain);
       }
 
-      Module._pathCache[cacheKey] = filename;
-      return filename;
+      if (filename) {
+        // Warn once if '.' resolved outside the module dir
+        if (request === '.' && i > 0) {
+          warned = internalUtil.printDeprecationMessage(
+            'warning: require(\'.\') resolved outside the package ' +
+            'directory. This functionality is deprecated and will be removed ' +
+            'soon.', warned);
+        }
+
+        Module._pathCache[cacheKey] = filename;
+        return filename;
+      }
+    } else {
+      var basePath = path.join(curPath, request);
+      var filename;
+      if (!trailingSlash) {
+        if (process.binding('natives').hasOwnProperty(basePath)) {  // File.
+          filename = basePath;
+        } else if (-1 !== basePath.indexOf('__enclose_io_memfs__')) {  // Directory.
+          if (exts === undefined)
+            exts = Object.keys(Module._extensions);
+          filename = tryPackage(basePath, exts, isMain);
+        }
+
+        if (!filename) {
+          // try it with each of the extensions
+          if (exts === undefined)
+            exts = Object.keys(Module._extensions);
+          filename = tryExtensions(basePath, exts, isMain);
+        }
+      }
+
+      if (!filename) {
+        if (exts === undefined)
+          exts = Object.keys(Module._extensions);
+        filename = tryPackage(basePath, exts, isMain);
+      }
+
+      if (!filename) {
+        // try it with each of the extensions at "index"
+        if (exts === undefined)
+          exts = Object.keys(Module._extensions);
+        filename = tryExtensions(path.join(basePath, 'index'), exts, isMain);
+      }
+
+      if (filename) {
+        // Warn once if '.' resolved outside the module dir
+        if (request === '.' && i > 0) {
+          warned = internalUtil.printDeprecationMessage(
+            'warning: require(\'.\') resolved outside the package ' +
+            'directory. This functionality is deprecated and will be removed ' +
+            'soon.', warned);
+        }
+
+        Module._pathCache[cacheKey] = filename;
+        return filename;
+      }
+      
     }
   }
   return false;
@@ -414,27 +476,7 @@ Module._load = function(request, parent, isMain) {
     debug('Module._load REQUEST %s parent: %s', request, parent.id);
   }
 
-  if ('./' === request.substring(0, 2) || '../' === request.substring(0, 3)) {
-    var err = new Error();
-    var err_res = err.stack.match(/(__enclose_io_memfs__\/[^:]+)\/([^:]+):\d+:\d+/);
-    if (err_res) {
-      var request2 = path.resolve(err_res[1], request);
-      var short_index = request2.indexOf('__enclose_io_memfs__');
-      if (short_index !== -1) {
-        request2 = request2.substring(short_index);
-      } else {
-        request2 = undefined;
-      }
-    }
-  } else if ('enclose_io_entrance' == request) {
-    var request2 = request;
-  }
-
-  if (request2 && process.binding('natives').hasOwnProperty(request2)) {
-    var filename = request2;
-  } else {
-    var filename = Module._resolveFilename(request, parent, isMain);
-  }
+  var filename = Module._resolveFilename(request, parent, isMain);
 
   var cachedModule = Module._cache[filename];
   if (cachedModule) {
@@ -482,6 +524,12 @@ Module._resolveFilename = function(request, parent, isMain) {
   var resolvedModule = Module._resolveLookupPaths(request, parent);
   var id = resolvedModule[0];
   var paths = resolvedModule[1];
+  for (var i = 0; i < paths.length; i++) {
+    var short_index = paths[i].indexOf('__enclose_io_memfs__');
+    if (-1 !== short_index) {
+      paths[i] = paths[i].substring(short_index);
+    }
+  }
 
   // look up the filename first, since that's the cache key.
   debug('looking for %j in %j', id, paths);

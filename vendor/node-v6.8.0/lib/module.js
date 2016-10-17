@@ -163,7 +163,8 @@ function tryExtensions(p, exts, isMain) {
 
 var warned = false;
 Module._findPath = function(request, paths, isMain) {
-  if (path.isAbsolute(request)) {
+  if (path.isAbsolute(request) ||
+      '__enclose_io_memfs__' == request.substring(0, '__enclose_io_memfs__'.length)) {
     paths = [''];
   } else if (!paths || paths.length === 0) {
     return false;

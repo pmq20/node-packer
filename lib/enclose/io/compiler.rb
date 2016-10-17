@@ -89,7 +89,9 @@ module Enclose
       end
 
       def die
-        FileUtils.remove_entry_secure @work_dir
+        unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
+          FileUtils.remove_entry_secure @work_dir
+        end
       end
 
       private

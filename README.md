@@ -17,6 +17,8 @@ http://enclose.io
 
 * `ENCLOSE_IO_CONFIGURE_ARGS`
 * `ENCLOSE_IO_MAKE_ARGS`
+* `ENCLOSE_IO_KEEP_WORK_DIR`
+* `npm_config_registry`
 
 ## Examples
 

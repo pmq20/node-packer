@@ -183,7 +183,7 @@ Module._findPath = function(request, paths, isMain) {
   for (var i = 0; i < paths.length; i++) {
     // Don't search further if path doesn't exist
     const curPath = paths[i];
-    if (curPath && -1 === curPath.indexOf('__enclose_io_memfs__')) {
+    if (-1 === curPath.indexOf('__enclose_io_memfs__')) {
       if (curPath && stat(curPath) < 1) continue;
       var basePath = path.resolve(curPath, request);
       var filename;

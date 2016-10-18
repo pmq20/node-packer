@@ -484,9 +484,7 @@ Module._load = function(request, parent, isMain) {
     return cachedModule.exports;
   }
 
-  if (NativeModule.nonInternalExists(filename) &&
-      -1 === filename.indexOf('__enclose_io_memfs__') &&
-      'enclose_io_entrance' !== filename) {
+  if (NativeModule.nonInternalExists(filename) && -1 === filename.indexOf('__enclose_io_memfs__')) {
     debug('load native module %s', request);
     return NativeModule.require(filename);
   }

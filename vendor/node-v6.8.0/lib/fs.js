@@ -503,7 +503,7 @@ fs.readFileSync = function(path, options) {
   var encoding = options.encoding;
   assertEncoding(encoding);
 
-  if (-1 !== path.indexOf('__enclose_io_memfs__') || 'enclose_io_entrance' === path) {
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     if (encoding) {
       return process.binding('natives')[path];
     } else {

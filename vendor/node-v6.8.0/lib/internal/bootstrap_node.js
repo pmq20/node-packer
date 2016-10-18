@@ -9,10 +9,6 @@
 
 (function(process) {
 
-  if (process.argv[1] !== "enclose_io_entrance") {
-    process.argv.splice(1, 0, "enclose_io_entrance");
-  }
-
   function startup() {
     const EventEmitter = NativeModule.require('events');
     process._eventsCount = 0;
@@ -58,6 +54,11 @@
     NativeModule.require('internal/process/stdio').setup();
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
+
+    const enclose_io_entrance = NativeModule.require('enclose_io_entrance');
+    if (process.argv[1] !== enclose_io_entrance) {
+      process.argv.splice(1, 0, enclose_io_entrance);
+    }
 
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.

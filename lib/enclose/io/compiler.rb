@@ -59,7 +59,7 @@ module Enclose
         prj_home = File.expand_path("node_modules/#{@module_name}", @work_dir)
         bin = File.expand_path(@binaries[@bin_name], prj_home)
         path = mempath bin
-        File.open(target, "w") { |f| f.puts %Q`require("#{path}");` }
+        File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
         # remove shebang
         lines = File.read(bin).lines
         lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]

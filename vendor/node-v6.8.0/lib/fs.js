@@ -987,6 +987,24 @@ fs.fstatSync = function(fd) {
 
 fs.lstatSync = function(path) {
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    return new fs.Stats(
+        0,                                        // dev
+        33188,                                    // mode - regular file w/ 644
+        1,                                        // nlink - only one
+        0,                                        // uid
+        0,                                        // gid
+        0,                                        // rdev
+        0,                                        // blksize
+        0,                                        // ino
+        process.binding('natives')[path].length,  // size - real size
+        0,                                        // blocks
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+    );
+  }
   return binding.lstat(pathModule._makeLong(path));
 };
 

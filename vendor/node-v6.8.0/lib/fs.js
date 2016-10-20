@@ -597,6 +597,52 @@ function stringToFlags(flag) {
   throw new Error('Unknown file open flag: ' + flag);
 }
 
+function __enclose_io_memfs__stat(path) {
+  if (process.binding('natives')[path]) {
+    return new fs.Stats(
+        0,                                        // dev
+        33188,                                    // mode - regular file w/ 644
+        1,                                        // nlink - only one
+        0,                                        // uid
+        0,                                        // gid
+        0,                                        // rdev
+        0,                                        // blksize
+        0,                                        // ino
+        process.binding('natives')[path].length,  // size - real size
+        0,                                        // blocks
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+    );
+  } else {
+    path += '/';
+    var possibilities = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); } );
+    if (possibilities.length > 0) {
+      // is Directory
+      return new fs.Stats(
+          0,                                        // dev
+          16877,                                    // mode - directory w/ 40755
+          2 + possibilities.length,                 // nlink - 2 + num
+          0,                                        // uid
+          0,                                        // gid
+          0,                                        // rdev
+          0,                                        // blksize
+          0,                                        // ino
+          1,                                        // size - 1
+          0,                                        // blocks
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+          Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+      );
+    } else {
+      throw new Error('TODO __enclose_io_memfs__stat w/ nonexistent path')
+    }
+  }
+}
+
 // exported but hidden, only used by test/simple/test-fs-open-flags.js
 Object.defineProperty(exports, '_stringToFlags', {
   enumerable: false,
@@ -956,6 +1002,12 @@ fs.readdirSync = function(path, options) {
   if (typeof options !== 'object')
     throw new TypeError('"options" must be a string or an object');
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); }).map(
+      function(x) { return (pathModule.relative(path, x)).split('/')[0] });
+    return Array.from(new Set(ret));
+  }
   return binding.readdir(pathModule._makeLong(path), options.encoding);
 };
 
@@ -988,28 +1040,16 @@ fs.fstatSync = function(fd) {
 fs.lstatSync = function(path) {
   nullCheck(path);
   if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    return new fs.Stats(
-        0,                                        // dev
-        33188,                                    // mode - regular file w/ 644
-        1,                                        // nlink - only one
-        0,                                        // uid
-        0,                                        // gid
-        0,                                        // rdev
-        0,                                        // blksize
-        0,                                        // ino
-        process.binding('natives')[path].length,  // size - real size
-        0,                                        // blocks
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
-    );
+    return __enclose_io_memfs__stat(path);
   }
   return binding.lstat(pathModule._makeLong(path));
 };
 
 fs.statSync = function(path) {
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    return __enclose_io_memfs__stat(path);
+  }
   return binding.stat(pathModule._makeLong(path));
 };
 

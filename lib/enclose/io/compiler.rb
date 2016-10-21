@@ -16,7 +16,7 @@ module Enclose
         @module_version = argv2
         @bin_name = argv3
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
-        unless File.exists?(@vendor_dir)
+        unless File.exist?(@vendor_dir)
           list = Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
           msg = "Does not support #{argv0}, supported: #{list.join ', '}"
           raise Error, msg

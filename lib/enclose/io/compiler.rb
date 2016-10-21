@@ -16,7 +16,7 @@ module Enclose
         @module_version = argv2
         @bin_name = argv3
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
-        unless File.exists?(@vendor_dir)
+        unless File.exist?(@vendor_dir)
           list = Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
           msg = "Does not support #{argv0}, supported: #{list.join ', '}"
           raise Error, msg
@@ -83,7 +83,7 @@ module Enclose
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-            entry = "lib/#{fullpath[(fullpath.index '__enclose_io_memfs__')..-1]}"
+            entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
             f.puts entry
           end
         end

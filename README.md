@@ -1,4 +1,4 @@
-# Enclose::IO::Compiler
+# Enclose.IO Compiler
 
 Compiler of Enclose.IO which packs your Node.js app into a single executable.
 
@@ -37,6 +37,14 @@ Or install it yourself as:
 * `ENCLOSE_IO_KEEP_WORK_DIR`
 * `npm_config_registry`
 
+## Examples
+
+    enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee
+
+Then the compiled product will be located at `./vendor/node-v6.8.0/node`, ready to be distributed.
+
+![enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee](https://github.com/enclose-io/compiler/blob/master/README.png?raw=true)
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -49,10 +57,6 @@ To release a new version, update the version number in `version.rb`, and then ru
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/enclose-io/compiler.
 
-## Examples
+## License
 
-    enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee
-
-Then the compiled product will be located at `./vendor/node-v6.8.0/node`, ready to be distributed.
-
-![enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee](https://github.com/enclose-io/compiler/blob/master/README.png?raw=true)
+The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).

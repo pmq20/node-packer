@@ -24,12 +24,7 @@ E.g.:
 
     begin
       instance = Compiler.new *ARGV
-      instance.npm_install
-      instance.parse_binaries
-      instance.inject_entrance
-      instance.inject_memfs
-      instance.compile
-      instance.die
+      instance.run!
     rescue Compiler::Error => e
       STDERR.puts e.message
       exit 2

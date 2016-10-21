@@ -25,6 +25,15 @@ module Enclose
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
       end
+      
+      def run!
+        npm_install
+        parse_binaries
+        inject_entrance
+        inject_memfs
+        compile
+        die
+      end
 
       def npm_install
         chdir(@work_dir) do

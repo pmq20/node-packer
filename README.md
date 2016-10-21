@@ -1,4 +1,4 @@
-# Compiler
+# Enclose.IO Compiler
 
 Compiler of Enclose.IO which packs your Node.js app into a single executable.
 

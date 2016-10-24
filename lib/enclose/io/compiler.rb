@@ -3,6 +3,7 @@ require "enclose/io/compiler/error"
 require 'tmpdir'
 require 'fileutils'
 require 'json'
+require 'open3'
 
 module Enclose
   module IO
@@ -10,20 +11,29 @@ module Enclose
       VENDOR_DIR = File.expand_path('../../../../vendor', __FILE__)
       MEMFS = '__enclose_io_memfs__'
 
-      def initialize argv0, argv1, argv2, argv3
-        @node_version = argv0
-        @module_name = argv1
-        @module_version = argv2
-        @bin_name = argv3
+      def self.node_versions
+        Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
+      end
+
+      def initialize(argv = [], filename = nil)
+        @node_version = argv[0]
+        @module_name = argv[1]
+        @module_version = argv[2]
+        @bin_name = argv[3]
+        @filename = filename
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
         unless File.exist?(@vendor_dir)
-          list = Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
-          msg = "Does not support #{argv0}, supported: #{list.join ', '}"
+          msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
           raise Error, msg
         end
         @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", ENV['TMPDIR'])
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
+        @filename_path = File.join(@work_dir, @filename) if @filename
+      end
+
+      def filename_path
+        @filename_path
       end
       
       def run!
@@ -32,7 +42,6 @@ module Enclose
         inject_entrance
         inject_memfs
         compile
-        die
       end
 
       def npm_install
@@ -93,21 +102,25 @@ module Enclose
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+          unless Gem.win_platform?
+            raise 'Expecting .gz filename on Unix platforms' unless '.gz' == @filename_path[-3..-1]
+            run("cp out/Release/node #{Shellwords.escape @filename_path[0..-4]}")
+            run("gzip --force #{Shellwords.escape @filename_path[0..-4]}")
+          end
         end
       end
 
-      def die
-        unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
-          FileUtils.remove_entry_secure @work_dir
-        end
+      def clean_work_dir
+        FileUtils.remove_entry_secure @work_dir
       end
 
       private
 
       def run(cmd)
         STDERR.puts "$ #{cmd}"
-        STDERR.print `#{cmd}`
-        raise Error, "#{cmd} failed!" unless $?.success?
+        pid = spawn(cmd)
+        pid, status = Process.wait2(pid)
+        raise Error, "#{cmd} failed!" unless status.success?
       end
 
       def chdir(path)

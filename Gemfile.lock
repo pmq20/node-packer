@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    enclose-io-compiler (0.2.0)
+    enclose-io-compiler (0.3.0)
 
 GEM
   remote: https://rubygems.org/

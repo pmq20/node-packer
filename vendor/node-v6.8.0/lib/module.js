@@ -185,7 +185,12 @@ Module._findPath = function(request, paths, isMain) {
     const curPath = paths[i];
     if (-1 === curPath.indexOf('__enclose_io_memfs__')) {
       if (curPath && stat(curPath) < 1) continue;
-      var basePath = path.resolve(curPath, request);
+      if (-1 === request.indexOf('__enclose_io_memfs__')) {
+        var basePath = path.resolve(curPath, request);
+      } else {
+        assert('' === curPath);
+        var basePath = request;
+      }
       var filename;
 
       if (!trailingSlash) {

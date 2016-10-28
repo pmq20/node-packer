@@ -1,4 +1,5 @@
 *.gem
+.DS_Store
 
 /vendor/node-v6.8.0/config.gypi
 /vendor/node-v6.8.0/config.mk

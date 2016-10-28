@@ -41,7 +41,7 @@ module Enclose
         parse_binaries
         inject_entrance
         inject_memfs
-        compile
+        Gem.win_platform? ? compile_win : compile
       end
 
       def npm_install
@@ -98,6 +98,12 @@ module Enclose
         end
       end
 
+      def compile_win
+        chdir(@vendor_dir) do
+          run(".\\vcbuild #{ENV['ENCLOSE_VCBUILD_ARGS']}")
+        end
+      end
+
       def compile
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
@@ -109,7 +115,7 @@ module Enclose
           end
         end
       end
-
+	  
       def clean_work_dir
         FileUtils.remove_entry_secure @work_dir
       end

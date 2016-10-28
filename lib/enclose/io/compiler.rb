@@ -109,7 +109,7 @@ module Enclose
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          unless Gem.win_platform?
+          if @filename
             raise 'Expecting .gz filename on Unix platforms' unless '.gz' == @filename_path[-3..-1]
             run("cp out/Release/node #{Shellwords.escape @filename_path[0..-4]}")
             run("gzip --force #{Shellwords.escape @filename_path[0..-4]}")

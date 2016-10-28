@@ -86,7 +86,7 @@ function readPackage(requestPath) {
                    path.join(requestPath, 'package.json');
   const json = (-1 === requestPath.indexOf('__enclose_io_memfs__')) ? 
                internalModuleReadFile(path._makeLong(jsonPath)) : 
-               process.binding('natives')[jsonPath];
+               process.binding('natives').__enclose_io_memfs_get__(jsonPath);
 
   if (json === undefined) {
     return false;
@@ -134,7 +134,7 @@ delete fs.realpathCacheKey;
 // absolute realpath.
 function tryFile(requestPath, isMain) {
   if (-1 !== requestPath.indexOf('__enclose_io_memfs__')) {
-    return process.binding('natives').hasOwnProperty(requestPath) && requestPath;
+    return process.binding('natives').__enclose_io_memfs_exist__(requestPath) && requestPath;
   }
   const rc = stat(requestPath);
   if (preserveSymlinks && !isMain) {
@@ -244,7 +244,7 @@ Module._findPath = function(request, paths, isMain) {
       var basePath = path.join(curPath, request);
       var filename;
       if (!trailingSlash) {
-        if (process.binding('natives').hasOwnProperty(basePath)) {  // File.
+        if (process.binding('natives').__enclose_io_memfs_exist__(basePath)) {  // File.
           filename = basePath;
         } else if (-1 !== basePath.indexOf('__enclose_io_memfs__')) {  // Directory.
           if (exts === undefined)

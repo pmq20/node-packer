@@ -505,9 +505,9 @@ fs.readFileSync = function(path, options) {
 
   if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     if (encoding) {
-      return process.binding('natives')[path];
+      return process.binding('natives').__enclose_io_memfs_get__(path);
     } else {
-      return Buffer.from(process.binding('natives')[path]);
+      return Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path));
     }
   }
 
@@ -598,7 +598,7 @@ function stringToFlags(flag) {
 }
 
 function __enclose_io_memfs__stat(path) {
-  if (process.binding('natives')[path]) {
+  if (process.binding('natives').__enclose_io_memfs_exist__(path)) {
     return new fs.Stats(
         0,                                        // dev
         33188,                                    // mode - regular file w/ 644
@@ -608,7 +608,7 @@ function __enclose_io_memfs__stat(path) {
         0,                                        // rdev
         0,                                        // blksize
         0,                                        // ino
-        process.binding('natives')[path].length,  // size - real size
+        process.binding('natives').__enclose_io_memfs_get__(path).length,
         0,                                        // blocks
         Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
         Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
@@ -617,8 +617,7 @@ function __enclose_io_memfs__stat(path) {
     );
   } else {
     path += '/';
-    var possibilities = Object.getOwnPropertyNames(process.binding('natives')).filter(
-      function(x) { return 0 === x.lastIndexOf(path, 0); } );
+    var possibilities = process.binding('natives').__enclose_io_memfs_readdir__(path);
     if (possibilities.length > 0) {
       // is Directory
       return new fs.Stats(
@@ -1003,10 +1002,7 @@ fs.readdirSync = function(path, options) {
     throw new TypeError('"options" must be a string or an object');
   nullCheck(path);
   if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
-      function(x) { return 0 === x.lastIndexOf(path, 0); }).map(
-      function(x) { return (pathModule.relative(path, x)).split('/')[0] });
-    return Array.from(new Set(ret));
+    return process.binding('natives').__enclose_io_memfs_readdir__(path);
   }
   return binding.readdir(pathModule._makeLong(path), options.encoding);
 };

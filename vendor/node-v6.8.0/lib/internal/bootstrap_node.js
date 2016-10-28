@@ -60,6 +60,9 @@
     } else {
       process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
     }
+    if (process.platform === 'win32') {
+      process.argv[1] = process.argv[1].replace(/\\/g, '/');
+    }
 
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.

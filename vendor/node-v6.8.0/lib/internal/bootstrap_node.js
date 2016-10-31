@@ -474,6 +474,9 @@
   };
 
   NativeModule.exists = function(id) {
+    if ('win32' === process.platform && -1 !== id.indexOf('__enclose_io_memfs__')) {
+      id = id.replace(/\\/g, '/');
+    }
     return NativeModule._source.hasOwnProperty(id);
   };
 

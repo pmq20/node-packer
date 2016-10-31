@@ -1,5 +1,6 @@
 require "enclose/io/compiler/version"
 require "enclose/io/compiler/error"
+require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
 require 'json'
@@ -15,12 +16,12 @@ module Enclose
         Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
       end
 
-      def initialize(argv = [], filename = nil)
+      def initialize(argv = [])
         @node_version = argv[0]
         @module_name = argv[1]
         @module_version = argv[2]
         @bin_name = argv[3]
-        @filename = filename
+        @output_path = argv[4]
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
         unless File.exist?(@vendor_dir)
           msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
@@ -29,13 +30,8 @@ module Enclose
         @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", (ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP']))
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
-        @filename_path = File.join(@work_dir, @filename) if @filename
       end
 
-      def filename_path
-        @filename_path
-      end
-      
       def run!
         npm_install
         parse_binaries
@@ -92,7 +88,7 @@ module Enclose
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-			next unless File.size(fullpath) > 0
+            next unless File.size(fullpath) > 0
             entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
             f.puts entry
           end
@@ -102,6 +98,7 @@ module Enclose
       def compile_win
         chdir(@vendor_dir) do
           run(".\\vcbuild #{ENV['ENCLOSE_VCBUILD_ARGS']}")
+          run("cp Release\\node.exe #{Shellwords.escape @output_path}")
         end
       end
 
@@ -109,11 +106,7 @@ module Enclose
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          if @filename
-            raise 'Expecting .gz filename on Unix platforms' unless '.gz' == @filename_path[-3..-1]
-            run("cp out/Release/node #{Shellwords.escape @filename_path[0..-4]}")
-            run("gzip --force #{Shellwords.escape @filename_path[0..-4]}")
-          end
+          run("cp out/Release/node #{Shellwords.escape @output_path}")
         end
       end
 	  

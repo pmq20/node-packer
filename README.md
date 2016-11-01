@@ -28,7 +28,7 @@ Or install it yourself as:
 
 ## Usage
 
-    enclose-io-compiler [node_version] [module_name] [module_version] [bin_name]
+  enclose-io-compiler [node_version] [module_name] [module_version] [bin_name] [output_path]
 
 ## Optional Environment Variables
 
@@ -39,9 +39,9 @@ Or install it yourself as:
 
 ## Examples
 
-    enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee
+  enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v6.8.0-darwin-x64
 
-Then the compiled product will be located at `./vendor/node-v6.8.0/node`, ready to be distributed.
+Then the compiled product will be located at `/tmp/coffee-1.11.1-node-v6.8.0-darwin-x64`, ready to be distributed.
 
 ![enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee](https://github.com/enclose-io/compiler/blob/master/README.png?raw=true)
 

@@ -27,7 +27,7 @@ module Enclose
           msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
           raise Error, msg
         end
-        @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", (ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP']))
+        @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", Dir.tmpdir)
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
       end

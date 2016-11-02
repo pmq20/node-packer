@@ -3708,116 +3708,124 @@ static void ParseArgs(int* argc,
 
   unsigned int index = 1;
   bool short_circuit = false;
-//   while (index < nargs && argv[index][0] == '-' && !short_circuit) {
-//     const char* const arg = argv[index];
-//     unsigned int args_consumed = 1;
-//
-//     if (ParseDebugOpt(arg)) {
-//       // Done, consumed by ParseDebugOpt().
-//     } else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
-//       printf("%s\n", NODE_VERSION);
-//       exit(0);
-//     } else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
-//       PrintHelp();
-//       exit(0);
-//     } else if (strcmp(arg, "--eval") == 0 ||
-//                strcmp(arg, "-e") == 0 ||
-//                strcmp(arg, "--print") == 0 ||
-//                strcmp(arg, "-pe") == 0 ||
-//                strcmp(arg, "-p") == 0) {
-//       bool is_eval = strchr(arg, 'e') != nullptr;
-//       bool is_print = strchr(arg, 'p') != nullptr;
-//       print_eval = print_eval || is_print;
-//       // --eval, -e and -pe always require an argument.
-//       if (is_eval == true) {
-//         args_consumed += 1;
-//         eval_string = argv[index + 1];
-//         if (eval_string == nullptr) {
-//           fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
-//           exit(9);
-//         }
-//       } else if ((index + 1 < nargs) &&
-//                  argv[index + 1] != nullptr &&
-//                  argv[index + 1][0] != '-') {
-//         args_consumed += 1;
-//         eval_string = argv[index + 1];
-//         if (strncmp(eval_string, "\\-", 2) == 0) {
-//           // Starts with "\\-": escaped expression, drop the backslash.
-//           eval_string += 1;
-//         }
-//       }
-//     } else if (strcmp(arg, "--require") == 0 ||
-//                strcmp(arg, "-r") == 0) {
-//       const char* module = argv[index + 1];
-//       if (module == nullptr) {
-//         fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
-//         exit(9);
-//       }
-//       args_consumed += 1;
-//       local_preload_modules[preload_module_count++] = module;
-//     } else if (strcmp(arg, "--check") == 0 || strcmp(arg, "-c") == 0) {
-//       syntax_check_only = true;
-//     } else if (strcmp(arg, "--interactive") == 0 || strcmp(arg, "-i") == 0) {
-//       force_repl = true;
-//     } else if (strcmp(arg, "--no-deprecation") == 0) {
-//       no_deprecation = true;
-//     } else if (strcmp(arg, "--no-warnings") == 0) {
-//       no_process_warnings = true;
-//     } else if (strcmp(arg, "--trace-warnings") == 0) {
-//       trace_warnings = true;
-//     } else if (strcmp(arg, "--trace-deprecation") == 0) {
-//       trace_deprecation = true;
-//     } else if (strcmp(arg, "--trace-sync-io") == 0) {
-//       trace_sync_io = true;
-//     } else if (strcmp(arg, "--track-heap-objects") == 0) {
-//       track_heap_objects = true;
-//     } else if (strcmp(arg, "--throw-deprecation") == 0) {
-//       throw_deprecation = true;
-//     } else if (strncmp(arg, "--security-revert=", 18) == 0) {
-//       const char* cve = arg + 18;
-//       Revert(cve);
-//     } else if (strcmp(arg, "--preserve-symlinks") == 0) {
-//       config_preserve_symlinks = true;
-//     } else if (strcmp(arg, "--prof-process") == 0) {
-//       prof_process = true;
-//       short_circuit = true;
-//     } else if (strcmp(arg, "--zero-fill-buffers") == 0) {
-//       zero_fill_all_buffers = true;
-//     } else if (strcmp(arg, "--v8-options") == 0) {
-//       new_v8_argv[new_v8_argc] = "--help";
-//       new_v8_argc += 1;
-//     } else if (strncmp(arg, "--v8-pool-size=", 15) == 0) {
-//       v8_thread_pool_size = atoi(arg + 15);
-// #if HAVE_OPENSSL
-//     } else if (strncmp(arg, "--tls-cipher-list=", 18) == 0) {
-//       default_cipher_list = arg + 18;
-// #if NODE_FIPS_MODE
-//     } else if (strcmp(arg, "--enable-fips") == 0) {
-//       enable_fips_crypto = true;
-//     } else if (strcmp(arg, "--force-fips") == 0) {
-//       force_fips_crypto = true;
-// #endif /* NODE_FIPS_MODE */
-// #endif /* HAVE_OPENSSL */
-// #if defined(NODE_HAVE_I18N_SUPPORT)
-//     } else if (strncmp(arg, "--icu-data-dir=", 15) == 0) {
-//       icu_data_dir = arg + 15;
-// #endif
-//     } else if (strcmp(arg, "--expose-internals") == 0 ||
-//                strcmp(arg, "--expose_internals") == 0) {
-//       // consumed in js
-//     } else {
-//       // V8 option.  Pass through as-is.
-//       new_v8_argv[new_v8_argc] = arg;
-//       new_v8_argc += 1;
-//     }
-//
-//     memcpy(new_exec_argv + new_exec_argc,
-//            argv + index,
-//            args_consumed * sizeof(*argv));
-//
-//     new_exec_argc += args_consumed;
-//     index += args_consumed;
-//   }
+  if (nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__")) {
+    index = 2;
+  } else {
+    index -= 1;
+  }
+  while (index < nargs && argv[index][0] == '-' && !short_circuit) {
+    const char* const arg = argv[index];
+    unsigned int args_consumed = 1;
+
+    if (ParseDebugOpt(arg)) {
+      // Done, consumed by ParseDebugOpt().
+    } else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
+      printf("%s\n", NODE_VERSION);
+      exit(0);
+    } else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
+      PrintHelp();
+      exit(0);
+    } else if (strcmp(arg, "--eval") == 0 ||
+               strcmp(arg, "-e") == 0 ||
+               strcmp(arg, "--print") == 0 ||
+               strcmp(arg, "-pe") == 0 ||
+               strcmp(arg, "-p") == 0) {
+      bool is_eval = strchr(arg, 'e') != nullptr;
+      bool is_print = strchr(arg, 'p') != nullptr;
+      print_eval = print_eval || is_print;
+      // --eval, -e and -pe always require an argument.
+      if (is_eval == true) {
+        args_consumed += 1;
+        eval_string = argv[index + 1];
+        if (eval_string == nullptr) {
+          fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
+          exit(9);
+        }
+      } else if ((index + 1 < nargs) &&
+                 argv[index + 1] != nullptr &&
+                 argv[index + 1][0] != '-') {
+        args_consumed += 1;
+        eval_string = argv[index + 1];
+        if (strncmp(eval_string, "\\-", 2) == 0) {
+          // Starts with "\\-": escaped expression, drop the backslash.
+          eval_string += 1;
+        }
+      }
+    } else if (strcmp(arg, "--require") == 0 ||
+               strcmp(arg, "-r") == 0) {
+      const char* module = argv[index + 1];
+      if (module == nullptr) {
+        fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
+        exit(9);
+      }
+      args_consumed += 1;
+      local_preload_modules[preload_module_count++] = module;
+    } else if (strcmp(arg, "--check") == 0 || strcmp(arg, "-c") == 0) {
+      syntax_check_only = true;
+    } else if (strcmp(arg, "--interactive") == 0 || strcmp(arg, "-i") == 0) {
+      force_repl = true;
+    } else if (strcmp(arg, "--no-deprecation") == 0) {
+      no_deprecation = true;
+    } else if (strcmp(arg, "--no-warnings") == 0) {
+      no_process_warnings = true;
+    } else if (strcmp(arg, "--trace-warnings") == 0) {
+      trace_warnings = true;
+    } else if (strcmp(arg, "--trace-deprecation") == 0) {
+      trace_deprecation = true;
+    } else if (strcmp(arg, "--trace-sync-io") == 0) {
+      trace_sync_io = true;
+    } else if (strcmp(arg, "--track-heap-objects") == 0) {
+      track_heap_objects = true;
+    } else if (strcmp(arg, "--throw-deprecation") == 0) {
+      throw_deprecation = true;
+    } else if (strncmp(arg, "--security-revert=", 18) == 0) {
+      const char* cve = arg + 18;
+      Revert(cve);
+    } else if (strcmp(arg, "--preserve-symlinks") == 0) {
+      config_preserve_symlinks = true;
+    } else if (strcmp(arg, "--prof-process") == 0) {
+      prof_process = true;
+      short_circuit = true;
+    } else if (strcmp(arg, "--zero-fill-buffers") == 0) {
+      zero_fill_all_buffers = true;
+    } else if (strcmp(arg, "--v8-options") == 0) {
+      new_v8_argv[new_v8_argc] = "--help";
+      new_v8_argc += 1;
+    } else if (strncmp(arg, "--v8-pool-size=", 15) == 0) {
+      v8_thread_pool_size = atoi(arg + 15);
+#if HAVE_OPENSSL
+    } else if (strncmp(arg, "--tls-cipher-list=", 18) == 0) {
+      default_cipher_list = arg + 18;
+#if NODE_FIPS_MODE
+    } else if (strcmp(arg, "--enable-fips") == 0) {
+      enable_fips_crypto = true;
+    } else if (strcmp(arg, "--force-fips") == 0) {
+      force_fips_crypto = true;
+#endif /* NODE_FIPS_MODE */
+#endif /* HAVE_OPENSSL */
+#if defined(NODE_HAVE_I18N_SUPPORT)
+    } else if (strncmp(arg, "--icu-data-dir=", 15) == 0) {
+      icu_data_dir = arg + 15;
+#endif
+    } else if (strcmp(arg, "--expose-internals") == 0 ||
+               strcmp(arg, "--expose_internals") == 0) {
+      // consumed in js
+    } else {
+      // V8 option.  Pass through as-is.
+      new_v8_argv[new_v8_argc] = arg;
+      new_v8_argc += 1;
+    }
+
+    memcpy(new_exec_argv + new_exec_argc,
+           argv + index,
+           args_consumed * sizeof(*argv));
+
+    new_exec_argc += args_consumed;
+    index += args_consumed;
+  }
+  if (!(nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__"))) {
+    index += 1;
+  }
 
   // Copy remaining arguments.
   const unsigned int args_left = nargs - index;

@@ -98,7 +98,7 @@ module Enclose
       def compile_win
         chdir(@vendor_dir) do
           run(".\\vcbuild #{ENV['ENCLOSE_VCBUILD_ARGS']}")
-          run("cp Release\\node.exe #{Shellwords.escape @output_path}")
+          FileUtils.cp('Release\\node.exe', @output_path)
         end
       end
 
@@ -106,7 +106,7 @@ module Enclose
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          run("cp out/Release/node #{Shellwords.escape @output_path}")
+          FileUtils.cp('out/Release/node', @output_path)
         end
       end
 	  

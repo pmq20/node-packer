@@ -88,7 +88,7 @@ module Enclose
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-            next unless File.size(fullpath) > 0
+            # next unless File.size(fullpath) > 0
             entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
             f.puts entry
           end

@@ -3706,12 +3706,12 @@ static void ParseArgs(int* argc,
   new_v8_argv[0] = argv[0];
   new_argv[0] = argv[0];
 
-  unsigned int index = 1;
+  unsigned int index;
   bool short_circuit = false;
   if (nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__")) {
     index = 2;
   } else {
-    index -= 1;
+    index = 0;
   }
   while (index < nargs && argv[index][0] == '-' && !short_circuit) {
     const char* const arg = argv[index];
@@ -3823,9 +3823,7 @@ static void ParseArgs(int* argc,
     new_exec_argc += args_consumed;
     index += args_consumed;
   }
-  if (!(nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__"))) {
-    index += 1;
-  }
+  index = 1;
 
   // Copy remaining arguments.
   const unsigned int args_left = nargs - index;

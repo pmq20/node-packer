@@ -130,7 +130,9 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        // process.argv[1] = path.resolve(process.argv[1]);
+        if (-1 === process.argv[1].indexOf('__enclose_io_memfs__')) {
+          process.argv[1] = path.resolve(process.argv[1]);
+        }
 
         const Module = NativeModule.require('module');
 

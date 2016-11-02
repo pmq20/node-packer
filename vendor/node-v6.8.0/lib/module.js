@@ -463,6 +463,11 @@ Module._resolveLookupPaths = function(request, parent) {
     id = './' + id;
   }
 
+  var short_index = id.indexOf('__enclose_io_memfs__')
+  if (-1 !== short_index) {
+    id = id.substring(short_index);
+  }
+
   debug('RELATIVE: requested: %s set ID to: %s from %s', request, id,
         parent.id);
 

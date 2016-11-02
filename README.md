@@ -43,8 +43,6 @@ Or install it yourself as:
 
 Then the compiled product will be located at `/tmp/coffee-1.11.1-node-v6.8.0-darwin-x64`, ready to be distributed.
 
-![enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee](https://github.com/enclose-io/compiler/blob/master/README.png?raw=true)
-
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

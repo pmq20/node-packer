@@ -128,3 +128,9 @@
 /vendor/node-v6.8.0/test/tmp.4/
 /vendor/node-v6.8.0/tools/test.pyc
 /vendor/node-v6.8.0/tools/utils.pyc
+
+/vendor/node-v6.8.0/cctest.tap
+/vendor/node-v6.8.0/test.tap
+/vendor/node-v6.8.0/test/tmp.0/
+/vendor/node-v6.8.0/test/tmp.5/
+/vendor/node-v6.8.0/test/tmp.6/

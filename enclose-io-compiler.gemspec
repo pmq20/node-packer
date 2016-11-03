@@ -22,4 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", ">= 11.3.0"
   spec.add_development_dependency "rspec", ">= 3.5.0"
   spec.add_development_dependency "pry", ">= 0.10.4"
+  spec.add_development_dependency "codecov", '>= 0.1.6'
 end

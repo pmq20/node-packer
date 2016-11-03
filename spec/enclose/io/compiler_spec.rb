@@ -9,6 +9,6 @@ describe ::Enclose::IO::Compiler do
     argv = %w{node-v6.8.0 coffee-script 1.11.1 cake /tmp/coffee-1.11.1-node-v6.8.0-darwin-x64}
     instance = ::Enclose::IO::Compiler.new argv
     instance.run!
-    instance.test!
+    instance.test_ci!
   end
 end

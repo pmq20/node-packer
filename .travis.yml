@@ -1,5 +1,20 @@
-sudo: false
+sudo: required
+
+dist: trusty
+
 language: ruby
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
 rvm:
   - 2.3.1
-before_install: gem install bundler -v 1.13.6
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - gem install bundler -v 1.13.6

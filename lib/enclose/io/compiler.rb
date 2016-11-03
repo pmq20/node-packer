@@ -109,7 +109,18 @@ module Enclose
           FileUtils.cp('out/Release/node', @output_path)
         end
       end
-	  
+
+      def test!
+        chdir(@vendor_dir) do
+          FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
+          target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
+          File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }
+          run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
+          run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+          run("ENCLOSE_IO_USE_ORIGINAL_NODE=1 make test")
+        end
+      end
+
       def clean_work_dir
         FileUtils.remove_entry_secure @work_dir
       end

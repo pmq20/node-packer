@@ -55,10 +55,11 @@
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
 
+    var enclose_io_entrance = NativeModule.require('enclose_io_entrance');
     if ('__enclose_io_fork__' === process.argv[1]) {
       process.argv.splice(1, 1);
-    } else {
-      process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
+    } else if (enclose_io_entrance) {
+      process.argv.splice(1, 0, enclose_io_entrance);
     }
 
     // Do not initialize channel in debugger agent, it deletes env variable

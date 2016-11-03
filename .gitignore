@@ -134,3 +134,6 @@
 /vendor/node-v6.8.0/test/tmp.0/
 /vendor/node-v6.8.0/test/tmp.5/
 /vendor/node-v6.8.0/test/tmp.6/
+
+/coverage/
+

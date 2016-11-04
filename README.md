@@ -10,6 +10,13 @@ http://enclose.io
 [![codecov.io](https://codecov.io/github/enclose-io/compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/compiler?branch=master)
 [![Gem Version](https://badge.fury.io/rb/enclose-io-compiler.svg)](https://badge.fury.io/rb/enclose-io-compiler)
 
+## Supported Node.js Versions
+
+| Release Line | Supported Version | `node_version` | Based on                                          |
+|:------------:|:-----------------:|:--------------:|---------------------------------------------------|
+|      LTS     |       v6.9.1      |  `node-v6.9.1` | https://nodejs.org/dist/v6.9.1/node-v6.9.1.tar.gz |
+|    Current   |       v7.0.0      |  `node-v7.0.0` | https://nodejs.org/dist/v7.0.0/node-v7.0.0.tar.gz |
+
 ## Installation
 
 Add this line to your application's Gemfile:

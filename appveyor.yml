@@ -22,8 +22,6 @@ build_script:
     bundle -v
 
     bundle install
-
-    bundle exec certifed-update
 test_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%

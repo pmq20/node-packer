@@ -349,9 +349,10 @@ def JS2C(source, target):
 def main():
   natives = sys.argv[1]
   source_files = sys.argv[2:]
-  with open('enclose_io_manifest.txt') as f:
-    for line in f:
-      source_files.append(line.strip())
+  if os.path.isfile('enclose_io_manifest.txt'):
+    with open('enclose_io_manifest.txt') as f:
+      for line in f:
+        source_files.append(line.strip())
   JS2C(source_files, [natives])
 
 if __name__ == "__main__":

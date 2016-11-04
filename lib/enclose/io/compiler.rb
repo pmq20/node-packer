@@ -123,6 +123,7 @@ module Enclose
 
       def test!
         chdir(@vendor_dir) do
+          FileUtils.rm_f(File.expand_path('./enclose_io_manifest.txt', @vendor_dir))
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
           target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
           File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }

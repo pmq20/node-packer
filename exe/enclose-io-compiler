@@ -26,7 +26,7 @@ Available Node.js versions:
     end
 
     begin
-      instance = Compiler.new ARGV
+      instance = Compiler.new *ARGV
       instance.run!
       instance.clean_work_dir unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
     rescue Compiler::Error => e

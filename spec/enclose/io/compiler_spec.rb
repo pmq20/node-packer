@@ -14,14 +14,11 @@ describe ::Enclose::IO::Compiler do
 
   it 'builds coffee of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
-    argv = [
-      'node-v6.8.0',
-      'coffee-script',
-      '1.11.1',
-      'cake',
-      file.path
-    ]
-    instance = ::Enclose::IO::Compiler.new argv
+    instance = ::Enclose::IO::Compiler.new('node-v6.8.0',
+                                           'coffee-script',
+                                           '1.11.1',
+                                           'cake',
+                                           file.path)
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

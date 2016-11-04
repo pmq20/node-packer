@@ -16,19 +16,21 @@ module Enclose
         Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
       end
 
-      def initialize(argv = [])
-        @node_version = argv[0]
-        raise 'Must provide the node_version argument' unless @node_version
+      def initialize(node_version, module_name = nil,
+                                   module_version = nil,
+                                   bin_name = nil,
+                                   output_path = nil)
+        @node_version = node_version
+        @module_name = module_name
+        @module_version = module_version
+        @bin_name = bin_name
+        @output_path = output_path
+
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
         unless File.exist?(@vendor_dir)
-          msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
+          msg = "Does not support #{@node_version}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
           raise Error, msg
         end
-
-        @module_name = argv[1]
-        @module_version = argv[2]
-        @bin_name = argv[3]
-        @output_path = argv[4]
       end
 
       def run!

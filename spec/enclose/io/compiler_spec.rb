@@ -6,9 +6,20 @@ describe ::Enclose::IO::Compiler do
   end
   
   it 'builds coffee-script and passes all Node.js tests' do
-    argv = %w{node-v6.8.0 coffee-script 1.11.1 cake /tmp/coffee-1.11.1-node-v6.8.0-darwin-x64}
+    file = Tempfile.new('coffee-test-artifact')
+    argv = [
+      'node-v6.8.0',
+      'coffee-script',
+      '1.11.1',
+      'cake',
+      file.path
+    ]
     instance = ::Enclose::IO::Compiler.new argv
     instance.run!
+    expect(File.exist?(file.path)).to be true
+    expect(File.size(file.path)).to be >= 1_000_000
+    expect(`#{Shellwords.escape file.path} --help`).to include %q{If called without options, `coffee` will run your script.}
+    expect(`#{Shellwords.escape file.path} --eval 'console.log(((x) -> x * x)(8))'`.to_i).to be 64
     instance.test_ci!
   end
 end

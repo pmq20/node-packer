@@ -127,7 +127,7 @@ module Enclose
           target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
           File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }
           if Gem.win_platform?
-            run('call vcbuild.bat release nosign x64 noprojgen nobuild test-ci ignore-flaky')
+            run('call vcbuild.bat nosign test-ci ignore-flaky')
           else
             run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
             run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")

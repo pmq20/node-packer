@@ -96,7 +96,10 @@ module Enclose
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-            # next unless File.size(fullpath) > 0
+            if 0 == File.size(fullpath)
+              # Fix VC++ Error C2466
+              File.open(fullpath, 'w') { |f| f.puts ' ' }
+            end
             entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
             f.puts entry
           end

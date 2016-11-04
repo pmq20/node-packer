@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>URL | Node.js v6.9.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/url.html">
+</head>
+<body class="alt apidoc" id="api-section-url">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url active" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="url" class="interior">
+      <header>
+        <h1>Node.js v6.9.1 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="url.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><a href="#url_url">URL</a><ul>
+<li><a href="#url_url_strings_and_url_objects">URL Strings and URL Objects</a><ul>
+<li><a href="#url_urlobject_href">urlObject.href</a></li>
+<li><a href="#url_urlobject_protocol">urlObject.protocol</a></li>
+<li><a href="#url_urlobject_slashes">urlObject.slashes</a></li>
+<li><a href="#url_urlobject_host">urlObject.host</a></li>
+<li><a href="#url_urlobject_auth">urlObject.auth</a></li>
+<li><a href="#url_urlobject_hostname">urlObject.hostname</a></li>
+<li><a href="#url_urlobject_port">urlObject.port</a></li>
+<li><a href="#url_urlobject_pathname">urlObject.pathname</a></li>
+<li><a href="#url_urlobject_search">urlObject.search</a></li>
+<li><a href="#url_urlobject_path">urlObject.path</a></li>
+<li><a href="#url_urlobject_query">urlObject.query</a></li>
+<li><a href="#url_urlobject_hash">urlObject.hash</a></li>
+</ul>
+</li>
+<li><a href="#url_url_format_urlobject">url.format(urlObject)</a></li>
+<li><a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost">url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</a></li>
+<li><a href="#url_url_resolve_from_to">url.resolve(from, to)</a></li>
+<li><a href="#url_escaped_characters">Escaped Characters</a></li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>URL<span><a class="mark" href="#url_url" id="url_url">#</a></span></h1>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>url</code> module provides utilities for URL resolution and parsing. It can be
+accessed using:</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+</code></pre>
+<h2>URL Strings and URL Objects<span><a class="mark" href="#url_url_strings_and_url_objects" id="url_url_strings_and_url_objects">#</a></span></h2>
+<p>A URL string is a structured string containing multiple meaningful components.
+When parsed, a URL object is returned containing properties for each of these
+components.</p>
+<p>The following details each of the components of a parsed URL. The example
+<code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code> is used to
+illustrate each.</p>
+<pre><code class="lang-txt">┌─────────────────────────────────────────────────────────────────────────────┐
+│                                    href                                     │
+├──────────┬┬───────────┬─────────────────┬───────────────────────────┬───────┤
+│ protocol ││   auth    │      host       │           path            │ hash  │
+│          ││           ├──────────┬──────┼──────────┬────────────────┤       │
+│          ││           │ hostname │ port │ pathname │     search     │       │
+│          ││           │          │      │          ├─┬──────────────┤       │
+│          ││           │          │      │          │ │    query     │       │
+&quot;  http:   // user:pass @ host.com : 8080   /p/a/t/h  ?  query=string   #hash &quot;
+│          ││           │          │      │          │ │              │       │
+└──────────┴┴───────────┴──────────┴──────┴──────────┴─┴──────────────┴───────┘
+(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
+</code></pre>
+<h3>urlObject.href<span><a class="mark" href="#url_urlobject_href" id="url_urlobject_href">#</a></span></h3>
+<p>The <code>href</code> property is the full URL string that was parsed with both the
+<code>protocol</code> and <code>host</code> components converted to lower-case.</p>
+<p>For example: <code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code></p>
+<h3>urlObject.protocol<span><a class="mark" href="#url_urlobject_protocol" id="url_urlobject_protocol">#</a></span></h3>
+<p>The <code>protocol</code> property identifies the URL&#39;s lower-cased protocol scheme.</p>
+<p>For example: <code>&#39;http:&#39;</code></p>
+<h3>urlObject.slashes<span><a class="mark" href="#url_urlobject_slashes" id="url_urlobject_slashes">#</a></span></h3>
+<p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
+forward-slash characters (<code>/</code>) are required following the colon in the
+<code>protocol</code>.</p>
+<h3>urlObject.host<span><a class="mark" href="#url_urlobject_host" id="url_urlobject_host">#</a></span></h3>
+<p>The <code>host</code> property is the full lower-cased host portion of the URL, including
+the <code>port</code> if specified.</p>
+<p>For example: <code>&#39;host.com:8080&#39;</code></p>
+<h3>urlObject.auth<span><a class="mark" href="#url_urlobject_auth" id="url_urlobject_auth">#</a></span></h3>
+<p>The <code>auth</code> property is the username and password portion of the URL, also
+referred to as &quot;userinfo&quot;. This string subset follows the <code>protocol</code> and
+double slashes (if present) and precedes the <code>host</code> component, delimited by an
+ASCII &quot;at sign&quot; (<code>@</code>). The format of the string is <code>{username}[:{password}]</code>,
+with the <code>[:{password}]</code> portion being optional.</p>
+<p>For example: <code>&#39;user:pass&#39;</code></p>
+<h3>urlObject.hostname<span><a class="mark" href="#url_urlobject_hostname" id="url_urlobject_hostname">#</a></span></h3>
+<p>The <code>hostname</code> property is the lower-cased host name portion of the <code>host</code>
+component <em>without</em> the <code>port</code> included.</p>
+<p>For example: <code>&#39;host.com&#39;</code></p>
+<h3>urlObject.port<span><a class="mark" href="#url_urlobject_port" id="url_urlobject_port">#</a></span></h3>
+<p>The <code>port</code> property is the numeric port portion of the <code>host</code> component.</p>
+<p>For example: <code>&#39;8080&#39;</code></p>
+<h3>urlObject.pathname<span><a class="mark" href="#url_urlobject_pathname" id="url_urlobject_pathname">#</a></span></h3>
+<p>The <code>pathname</code> property consists of the entire path section of the URL. This
+is everything following the <code>host</code> (including the <code>port</code>) and before the start
+of the <code>query</code> or <code>hash</code> components, delimited by either the ASCII question
+mark (<code>?</code>) or hash (<code>#</code>) characters.</p>
+<p>For example <code>&#39;/p/a/t/h&#39;</code></p>
+<p>No decoding of the path string is performed.</p>
+<h3>urlObject.search<span><a class="mark" href="#url_urlobject_search" id="url_urlobject_search">#</a></span></h3>
+<p>The <code>search</code> property consists of the entire &quot;query string&quot; portion of the
+URL, including the leading ASCII question mark (<code>?</code>) character.</p>
+<p>For example: <code>&#39;?query=string&#39;</code></p>
+<p>No decoding of the query string is performed.</p>
+<h3>urlObject.path<span><a class="mark" href="#url_urlobject_path" id="url_urlobject_path">#</a></span></h3>
+<p>The <code>path</code> property is a concatenation of the <code>pathname</code> and <code>search</code>
+components.</p>
+<p>For example: <code>&#39;/p/a/t/h?query=string&#39;</code></p>
+<p>No decoding of the <code>path</code> is performed.</p>
+<h3>urlObject.query<span><a class="mark" href="#url_urlobject_query" id="url_urlobject_query">#</a></span></h3>
+<p>The <code>query</code> property is either the &quot;params&quot; portion of the query string (
+everything <em>except</em> the leading ASCII question mark (<code>?</code>), or an object
+returned by the <a href="querystring.html"><code>querystring</code></a> module&#39;s <code>parse()</code> method:</p>
+<p>For example: <code>&#39;query=string&#39;</code> or <code>{&#39;query&#39;: &#39;string&#39;}</code></p>
+<p>If returned as a string, no decoding of the query string is performed. If
+returned as an object, both keys and values are decoded.</p>
+<h3>urlObject.hash<span><a class="mark" href="#url_urlobject_hash" id="url_urlobject_hash">#</a></span></h3>
+<p>The <code>hash</code> property consists of the &quot;fragment&quot; portion of the URL including
+the leading ASCII hash (<code>#</code>) character.</p>
+<p>For example: <code>&#39;#hash&#39;</code></p>
+<h2>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><ul>
+<li><code>urlObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A URL object (as returned by <code>url.parse()</code> or
+constructed otherwise). If a string, it is converted to an object by passing
+it to <code>url.parse()</code>.</li>
+</ul>
+<p>The <code>url.format()</code> method returns a formatted URL string derived from
+<code>urlObject</code>.</p>
+<p>If <code>urlObject</code> is not an object or a string, <code>url.parse()</code> will throw a
+<a href="errors.html#errors_class_typeerror"><code>TypeError</code></a>.</p>
+<p>The formatting process operates as follows:</p>
+<ul>
+<li>A new empty string <code>result</code> is created.</li>
+<li>If <code>urlObject.protocol</code> is a string, it is appended as-is to <code>result</code>.</li>
+<li>Otherwise, if <code>urlObject.protocol</code> is not <code>undefined</code> and is not a string, an
+<a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
+<li>For all string values of <code>urlObject.protocol</code> that <em>do not end</em> with an ASCII
+colon (<code>:</code>) character, the literal string <code>:</code> will be appended to <code>result</code>.</li>
+<li>If either the <code>urlObject.slashes</code> property is true, <code>urlObject.protocol</code>
+begins with one of <code>http</code>, <code>https</code>, <code>ftp</code>, <code>gopher</code>, or <code>file</code>, or
+<code>urlObject.protocol</code> is <code>undefined</code>, the literal string <code>//</code> will be appended
+to <code>result</code>.</li>
+<li>If the value of the <code>urlObject.auth</code> property is truthy, and either
+<code>urlObject.host</code> or <code>urlObject.hostname</code> are not <code>undefined</code>, the value of
+<code>urlObject.auth</code> will be coerced into a string and appended to <code>result</code>
+ followed by the literal string <code>@</code>.</li>
+<li>If the <code>urlObject.host</code> property is <code>undefined</code> then:<ul>
+<li>If the <code>urlObject.hostname</code> is a string, it is appended to <code>result</code>.</li>
+<li>Otherwise, if <code>urlObject.hostname</code> is not <code>undefined</code> and is not a string,
+an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
+<li>If the <code>urlObject.port</code> property value is truthy, and <code>urlObject.hostname</code>
+is not <code>undefined</code>:<ul>
+<li>The literal string <code>:</code> is appended to <code>result</code>, and</li>
+<li>The value of <code>urlObject.port</code> is coerced to a string and appended to
+<code>result</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Otherwise, if the <code>urlObject.host</code> property value is truthy, the value of
+<code>urlObject.host</code> is coerced to a string and appended to <code>result</code>.</li>
+<li>If the <code>urlObject.pathname</code> property is a string that is not an empty string:<ul>
+<li>If the <code>urlObject.pathname</code> <em>does not start</em> with an ASCII forward slash
+(<code>/</code>), then the literal string &#39;/&#39; is appended to <code>result</code>.</li>
+<li>The value of <code>urlObject.pathname</code> is appended to <code>result</code>.</li>
+</ul>
+</li>
+<li>Otherwise, if <code>urlObject.pathname</code> is not <code>undefined</code> and is not a string, an
+<a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
+<li>If the <code>urlObject.search</code> property is <code>undefined</code> and if the <code>urlObject.query</code>
+property is an <code>Object</code>, the literal string <code>?</code> is appended to <code>result</code>
+followed by the output of calling the <a href="querystring.html"><code>querystring</code></a> module&#39;s <code>stringify()</code>
+method passing the value of <code>urlObject.query</code>.</li>
+<li>Otherwise, if <code>urlObject.search</code> is a string:<ul>
+<li>If the value of <code>urlObject.search</code> <em>does not start</em> with the ASCII question
+mark (<code>?</code>) character, the literal string <code>?</code> is appended to <code>result</code>.</li>
+<li>The value of <code>urlObject.search</code> is appended to <code>result</code>.</li>
+</ul>
+</li>
+<li>Otherwise, if <code>urlObject.search</code> is not <code>undefined</code> and is not a string, an
+<a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
+<li>If the <code>urlObject.hash</code> property is a string:<ul>
+<li>If the value of <code>urlObject.hash</code> <em>does not start</em> with the ASCII hash (<code>#</code>)
+character, the literal string <code>#</code> is appended to <code>result</code>.</li>
+<li>The value of <code>urlObject.hash</code> is appended to <code>result</code>.</li>
+</ul>
+</li>
+<li>Otherwise, if the <code>urlObject.hash</code> property is not <code>undefined</code> and is not a
+string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
+<li><code>result</code> is returned.</li>
+</ul>
+<h2>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><ul>
+<li><code>urlString</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The URL string to parse.</li>
+<li><code>parseQueryString</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> If <code>true</code>, the <code>query</code> property will always
+be set to an object returned by the <a href="querystring.html"><code>querystring</code></a> module&#39;s <code>parse()</code>
+method. If <code>false</code>, the <code>query</code> property on the returned URL object will be an
+unparsed, undecoded string. Defaults to <code>false</code>.</li>
+<li><code>slashesDenoteHost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> If <code>true</code>, the first token after the literal
+string <code>//</code> and preceding the next <code>/</code> will be interpreted as the <code>host</code>.
+For instance, given <code>//foo/bar</code>, the result would be
+<code>{host: &#39;foo&#39;, pathname: &#39;/bar&#39;}</code> rather than <code>{pathname: &#39;//foo/bar&#39;}</code>.
+Defaults to <code>false</code>.</li>
+</ul>
+<p>The <code>url.parse()</code> method takes a URL string, parses it, and returns a URL
+object.</p>
+<h2>url.resolve(from, to)<span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><ul>
+<li><code>from</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The Base URL being resolved against.</li>
+<li><code>to</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The HREF URL being resolved.</li>
+</ul>
+<p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a
+manner similar to that of a Web browser resolving an anchor tag HREF.</p>
+<p>For example:</p>
+<pre><code class="lang-js">url.resolve(&#39;/one/two/three&#39;, &#39;four&#39;)         // &#39;/one/two/four&#39;
+url.resolve(&#39;http://example.com/&#39;, &#39;/one&#39;)    // &#39;http://example.com/one&#39;
+url.resolve(&#39;http://example.com/one&#39;, &#39;/two&#39;) // &#39;http://example.com/two&#39;
+</code></pre>
+<h2>Escaped Characters<span><a class="mark" href="#url_escaped_characters" id="url_escaped_characters">#</a></span></h2>
+<p>URLs are only permitted to contain a certain range of characters. Spaces (<code>&#39; &#39;</code>)
+and the following characters will be automatically escaped in the
+properties of URL objects:</p>
+<pre><code class="lang-txt">&lt; &gt; &quot; ` \r \n \t { } | \ ^ &#39;
+</code></pre>
+<p>For example, the ASCII space character (<code>&#39; &#39;</code>) is encoded as <code>%20</code>. The ASCII
+forward slash (<code>/</code>) character is encoded as <code>%3C</code>.</p>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>
+

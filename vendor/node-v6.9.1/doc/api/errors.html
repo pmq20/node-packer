@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Errors | Node.js v6.9.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/errors.html">
+</head>
+<body class="alt apidoc" id="api-section-errors">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors active" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="errors" class="interior">
+      <header>
+        <h1>Node.js v6.9.1 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="errors.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><a href="#errors_errors">Errors</a><ul>
+<li><a href="#errors_error_propagation_and_interception">Error Propagation and Interception</a><ul>
+<li><a href="#errors_node_js_style_callbacks">Node.js style callbacks</a></li>
+</ul>
+</li>
+<li><a href="#errors_class_error">Class: Error</a><ul>
+<li><a href="#errors_new_error_message">new Error(message)</a></li>
+<li><a href="#errors_error_capturestacktrace_targetobject_constructoropt">Error.captureStackTrace(targetObject[, constructorOpt])</a></li>
+<li><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a><ul>
+<li><a href="#errors_error_message">error.message</a></li>
+<li><a href="#errors_error_stack">error.stack</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#errors_class_rangeerror">Class: RangeError</a></li>
+<li><a href="#errors_class_referenceerror">Class: ReferenceError</a></li>
+<li><a href="#errors_class_syntaxerror">Class: SyntaxError</a></li>
+<li><a href="#errors_class_typeerror">Class: TypeError</a></li>
+<li><a href="#errors_exceptions_vs_errors">Exceptions vs. Errors</a></li>
+<li><a href="#errors_system_errors">System Errors</a><ul>
+<li><a href="#errors_class_system_error">Class: System Error</a><ul>
+<li><a href="#errors_error_code">error.code</a></li>
+<li><a href="#errors_error_errno">error.errno</a></li>
+<li><a href="#errors_error_syscall">error.syscall</a></li>
+</ul>
+</li>
+<li><a href="#errors_common_system_errors">Common System Errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>Errors<span><a class="mark" href="#errors_errors" id="errors_errors">#</a></span></h1>
+<!--type=misc-->
+<p>Applications running in Node.js will generally experience four categories of
+errors:</p>
+<ul>
+<li>Standard JavaScript errors such as:<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError" class="type">&lt;EvalError&gt;</a> : thrown when a call to <code>eval()</code> fails.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError" class="type">&lt;SyntaxError&gt;</a> : thrown in response to improper JavaScript language
+syntax.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError" class="type">&lt;RangeError&gt;</a> : thrown when a value is not within an expected range</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError" class="type">&lt;ReferenceError&gt;</a> : thrown when using undefined variables</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError" class="type">&lt;TypeError&gt;</a> : thrown when passing arguments of the wrong type</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError" class="type">&lt;URIError&gt;</a> : thrown when a global URI handling function is misused.</li>
+</ul>
+</li>
+<li>System errors triggered by underlying operating system constraints such
+as attempting to open a file that does not exist, attempting to send data
+over a closed socket, etc;</li>
+<li>And User-specified errors triggered by application code.</li>
+<li>Assertion Errors are a special class of error that can be triggered whenever
+Node.js detects an exceptional logic violation that should never occur. These
+are raised typically by the <code>assert</code> module.</li>
+</ul>
+<p>All JavaScript and System errors raised by Node.js inherit from, or are
+instances of, the standard JavaScript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> class and are guaranteed
+to provide <em>at least</em> the properties available on that class.</p>
+<h2>Error Propagation and Interception<span><a class="mark" href="#errors_error_propagation_and_interception" id="errors_error_propagation_and_interception">#</a></span></h2>
+<!--type=misc-->
+<p>Node.js supports several mechanisms for propagating and handling errors that
+occur while an application is running. How these errors are reported and
+handled depends entirely on the type of Error and the style of the API that is
+called.</p>
+<p>All JavaScript errors are handled as exceptions that <em>immediately</em> generate
+and throw an error using the standard JavaScript <code>throw</code> mechanism. These
+are handled using the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch"><code>try / catch</code> construct</a> provided by the JavaScript
+language.</p>
+<pre><code class="lang-js">// Throws with a ReferenceError because z is undefined
+try {
+  const m = 1;
+  const n = m + z;
+} catch (err) {
+  // Handle the error here.
+}
+</code></pre>
+<p>Any use of the JavaScript <code>throw</code> mechanism will raise an exception that
+<em>must</em> be handled using <code>try / catch</code> or the Node.js process will exit
+immediately.</p>
+<p>With few exceptions, <em>Synchronous</em> APIs (any blocking method that does not
+accept a <code>callback</code> function, such as <a href="fs.html#fs_fs_readfilesync_file_options"><code>fs.readFileSync</code></a>), will use <code>throw</code>
+to report errors.</p>
+<p>Errors that occur within <em>Asynchronous APIs</em> may be reported in multiple ways:</p>
+<ul>
+<li><p>Most asynchronous methods that accept a <code>callback</code> function will accept an
+<code>Error</code> object passed as the first argument to that function. If that first
+argument is not <code>null</code> and is an instance of <code>Error</code>, then an error occurred
+that should be handled.</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+fs.readFile(&#39;a file that does not exist&#39;, (err, data) =&gt; {
+  if (err) {
+    console.error(&#39;There was an error reading the file!&#39;, err);
+    return;
+  }
+  // Otherwise handle the data
+});
+</code></pre>
+</li>
+<li><p>When an asynchronous method is called on an object that is an <code>EventEmitter</code>,
+errors can be routed to that object&#39;s <code>&#39;error&#39;</code> event.</p>
+<pre><code class="lang-js">const net = require(&#39;net&#39;);
+const connection = net.connect(&#39;localhost&#39;);
+
+// Adding an &#39;error&#39; event handler to a stream:
+connection.on(&#39;error&#39;, (err) =&gt; {
+  // If the connection is reset by the server, or if it can&#39;t
+  // connect at all, or on any sort of error encountered by
+  // the connection, the error will be sent here.
+  console.error(err);
+});
+
+connection.pipe(process.stdout);
+</code></pre>
+</li>
+<li><p>A handful of typically asynchronous methods in the Node.js API may still
+use the <code>throw</code> mechanism to raise exceptions that must be handled using
+<code>try / catch</code>. There is no comprehensive list of such methods; please
+refer to the documentation of each method to determine the appropriate
+error handling mechanism required.</p>
+</li>
+</ul>
+<p>The use of the <code>&#39;error&#39;</code> event mechanism is most common for <a href="stream.html">stream-based</a>
+and <a href="events.html#events_class_eventemitter">event emitter-based</a> APIs, which themselves represent a series of
+asynchronous operations over time (as opposed to a single operation that may
+pass or fail).</p>
+<p>For <em>all</em> <code>EventEmitter</code> objects, if an <code>&#39;error&#39;</code> event handler is not
+provided, the error will be thrown, causing the Node.js process to report an
+unhandled exception and  crash unless either: The <a href="domain.html"><code>domain</code></a> module is used
+appropriately or a handler has been registered for the
+<a href="process.html#process_event_uncaughtexception"><code>process.on(&#39;uncaughtException&#39;)</code></a> event.</p>
+<pre><code class="lang-js">const EventEmitter = require(&#39;events&#39;);
+const ee = new EventEmitter();
+
+setImmediate(() =&gt; {
+  // This will crash the process because no &#39;error&#39; event
+  // handler has been added.
+  ee.emit(&#39;error&#39;, new Error(&#39;This will crash&#39;));
+});
+</code></pre>
+<p>Errors generated in this way <em>cannot</em> be intercepted using <code>try / catch</code> as
+they are thrown <em>after</em> the calling code has already exited.</p>
+<p>Developers must refer to the documentation for each method to determine
+exactly how errors raised by those methods are propagated.</p>
+<h3>Node.js style callbacks<span><a class="mark" href="#errors_node_js_style_callbacks" id="errors_node_js_style_callbacks">#</a></span></h3>
+<!--type=misc-->
+<p>Most asynchronous methods exposed by the Node.js core API follow an idiomatic
+pattern  referred to as a &quot;Node.js style callback&quot;. With this pattern, a
+callback function is passed to the method as an argument. When the operation
+either completes or an error is raised, the callback function is called with
+the Error object (if any) passed as the first argument. If no error was raised,
+the first argument will be passed as <code>null</code>.</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+
+function nodeStyleCallback(err, data) {
+ if (err) {
+   console.error(&#39;There was an error&#39;, err);
+   return;
+ }
+ console.log(data);
+}
+
+fs.readFile(&#39;/some/file/that/does-not-exist&#39;, nodeStyleCallback);
+fs.readFile(&#39;/some/file/that/does-exist&#39;, nodeStyleCallback)
+</code></pre>
+<p>The JavaScript <code>try / catch</code> mechanism <strong>cannot</strong> be used to intercept errors
+generated by asynchronous APIs.  A common mistake for beginners is to try to
+use <code>throw</code> inside a Node.js style callback:</p>
+<pre><code class="lang-js">// THIS WILL NOT WORK:
+const fs = require(&#39;fs&#39;);
+
+try {
+  fs.readFile(&#39;/some/file/that/does-not-exist&#39;, (err, data) =&gt; {
+    // mistaken assumption: throwing here...
+    if (err) {
+      throw err;
+    }
+  });
+} catch(err) {
+  // This will not catch the throw!
+  console.log(err);
+}
+</code></pre>
+<p>This will not work because the callback function passed to <code>fs.readFile()</code> is
+called asynchronously. By the time the callback has been called, the
+surrounding code (including the <code>try { } catch(err) { }</code> block will have
+already exited. Throwing an error inside the callback <strong>can crash the Node.js
+process</strong> in most cases. If <a href="domain.html">domains</a> are enabled, or a handler has been
+registered with <code>process.on(&#39;uncaughtException&#39;)</code>, such errors can be
+intercepted.</p>
+<h2>Class: Error<span><a class="mark" href="#errors_class_error" id="errors_class_error">#</a></span></h2>
+<!--type=class-->
+<p>A generic JavaScript <code>Error</code> object that does not denote any specific
+circumstance of why the error occurred. <code>Error</code> objects capture a &quot;stack trace&quot;
+detailing the point in the code at which the <code>Error</code> was instantiated, and may
+provide a text description of the error.</p>
+<p>All errors generated by Node.js, including all System and JavaScript errors,
+will either be instances of, or inherit from, the <code>Error</code> class.</p>
+<h3>new Error(message)<span><a class="mark" href="#errors_new_error_message" id="errors_new_error_message">#</a></span></h3>
+<p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the
+provided text message. If an object is passed as <code>message</code>, the text message
+is generated by calling <code>message.toString()</code>. The <code>error.stack</code> property will
+represent the point in the code at which <code>new Error()</code> was called. Stack traces
+are dependent on <a href="https://github.com/v8/v8/wiki/Stack-Trace-API">V8&#39;s stack trace API</a>. Stack traces extend only to either
+(a) the beginning of  <em>synchronous code execution</em>, or (b) the number of frames
+given by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>
+<h3>Error.captureStackTrace(targetObject[, constructorOpt])<span><a class="mark" href="#errors_error_capturestacktrace_targetobject_constructoropt" id="errors_error_capturestacktrace_targetobject_constructoropt">#</a></span></h3>
+<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns
+a string representing the location in the code at which
+<code>Error.captureStackTrace()</code> was called.</p>
+<pre><code class="lang-js">const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack  // similar to `new Error().stack`
+</code></pre>
+<p>The first line of the trace, instead of being prefixed with <code>ErrorType:
+message</code>, will be the result of calling <code>targetObject.toString()</code>.</p>
+<p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames
+above <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the
+generated stack trace.</p>
+<p>The <code>constructorOpt</code> argument is useful for hiding implementation
+details of error generation from an end user. For instance:</p>
+<pre><code class="lang-js">function MyError() {
+  Error.captureStackTrace(this, MyError);
+}
+
+// Without passing MyError to captureStackTrace, the MyError
+// frame would show up in the .stack property. By passing
+// the constructor, we omit that frame and all frames above it.
+new MyError().stack
+</code></pre>
+<h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
+<p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames
+collected by a stack trace (whether generated by <code>new Error().stack</code> or
+<code>Error.captureStackTrace(obj)</code>).</p>
+<p>The default value is <code>10</code> but may be set to any valid JavaScript number. Changes
+will affect any stack trace captured <em>after</em> the value has been changed.</p>
+<p>If set to a non-number value, or set to a negative number, stack traces will
+not capture any frames.</p>
+<h4>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h4>
+<p>Returns the string description of error as set by calling <code>new Error(message)</code>.
+The <code>message</code> passed to the constructor will also appear in the first line of
+the stack trace of the <code>Error</code>, however changing this property after the
+<code>Error</code> object is created <em>may not</em> change the first line of the stack trace.</p>
+<pre><code class="lang-js">const err = new Error(&#39;The message&#39;);
+console.log(err.message);
+  // Prints: The message
+</code></pre>
+<h4>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h4>
+<p>Returns a string describing the point in the code at which the <code>Error</code> was
+instantiated.</p>
+<p>For example:</p>
+<pre><code class="lang-txt">Error: Things keep happening!
+   at /home/gbusey/file.js:525:2
+   at Frobnicator.refrobulate (/home/gbusey/business-logic.js:424:21)
+   at Actor.&lt;anonymous&gt; (/home/gbusey/actors.js:400:8)
+   at increaseSynergy (/home/gbusey/actors.js:701:6)
+</code></pre>
+<p>The first line is formatted as <code>&lt;error class name&gt;: &lt;error message&gt;</code>, and
+is followed by a series of stack frames (each line beginning with &quot;at &quot;).
+Each frame describes a call site within the code that lead to the error being
+generated. V8 attempts to display a name for each function (by variable name,
+function name, or object method name), but occasionally it will not be able to
+find a suitable name. If V8 cannot determine a name for the function, only
+location information will be displayed for that frame. Otherwise, the
+determined function name will be displayed with location information appended
+in parentheses.</p>
+<p>It is important to note that frames are <strong>only</strong> generated for JavaScript
+functions. If, for example, execution synchronously passes through a C++ addon
+function called <code>cheetahify</code>, which itself calls a JavaScript function, the
+frame representing the <code>cheetahify</code> call will <strong>not</strong> be present in the stack
+traces:</p>
+<pre><code class="lang-js">const cheetahify = require(&#39;./native-binding.node&#39;);
+
+function makeFaster() {
+  // cheetahify *synchronously* calls speedy.
+  cheetahify(function speedy() {
+    throw new Error(&#39;oh no!&#39;);
+  });
+}
+
+makeFaster(); // will throw:
+  // /home/gbusey/file.js:6
+  //     throw new Error(&#39;oh no!&#39;);
+  //           ^
+  // Error: oh no!
+  //     at speedy (/home/gbusey/file.js:6:11)
+  //     at makeFaster (/home/gbusey/file.js:5:3)
+  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)
+  //     at Module._compile (module.js:456:26)
+  //     at Object.Module._extensions..js (module.js:474:10)
+  //     at Module.load (module.js:356:32)
+  //     at Function.Module._load (module.js:312:12)
+  //     at Function.Module.runMain (module.js:497:10)
+  //     at startup (node.js:119:16)
+  //     at node.js:906:3
+</code></pre>
+<p>The location information will be one of:</p>
+<ul>
+<li><code>native</code>, if the frame represents a call internal to V8 (as in <code>[].forEach</code>).</li>
+<li><code>plain-filename.js:line:column</code>, if the frame represents a call internal
+ to Node.js.</li>
+<li><code>/absolute/path/to/file.js:line:column</code>, if the frame represents a call in
+a user program, or its dependencies.</li>
+</ul>
+<p>The string representing the stack trace is lazily generated when the
+<code>error.stack</code> property is <strong>accessed</strong>.</p>
+<p>The number of frames captured by the stack trace is bounded by the smaller of
+<code>Error.stackTraceLimit</code> or the number of available frames on the current event
+loop tick.</p>
+<p>System-level errors are generated as augmented <code>Error</code> instances, which are
+detailed <a href="#errors_system_errors">here</a>.</p>
+<h2>Class: RangeError<span><a class="mark" href="#errors_class_rangeerror" id="errors_class_rangeerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates that a provided argument was not within the
+set or range of acceptable values for a function; whether that is a numeric
+range, or outside the set of options for a given function parameter.</p>
+<p>For example:</p>
+<pre><code class="lang-js">require(&#39;net&#39;).connect(-1);
+  // throws RangeError, port should be &gt; 0 &amp;&amp; &lt; 65536
+</code></pre>
+<p>Node.js will generate and throw <code>RangeError</code> instances <em>immediately</em> as a form
+of argument validation.</p>
+<h2>Class: ReferenceError<span><a class="mark" href="#errors_class_referenceerror" id="errors_class_referenceerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates that an attempt is being made to access a
+variable that is not defined. Such errors commonly indicate typos in code, or
+an otherwise broken program.</p>
+<p>While client code may generate and propagate these errors, in practice, only V8
+will do so.</p>
+<pre><code class="lang-js">doesNotExist;
+  // throws ReferenceError, doesNotExist is not a variable in this program.
+</code></pre>
+<p><code>ReferenceError</code> instances will have an <code>error.arguments</code> property whose value
+is an array containing a single element: a string representing the variable
+that was not defined.</p>
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+try {
+  doesNotExist;
+} catch(err) {
+  assert(err.arguments[0], &#39;doesNotExist&#39;);
+}
+</code></pre>
+<p>Unless an application is dynamically generating and running code,
+<code>ReferenceError</code> instances should always be considered a bug in the code
+or its dependencies.</p>
+<h2>Class: SyntaxError<span><a class="mark" href="#errors_class_syntaxerror" id="errors_class_syntaxerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates that a program is not valid JavaScript.
+These errors may only be generated and propagated as a result of code
+evaluation. Code evaluation may happen as a result of <code>eval</code>, <code>Function</code>,
+<code>require</code>, or <a href="vm.html">vm</a>. These errors are almost always indicative of a broken
+program.</p>
+<pre><code class="lang-js">try {
+  require(&#39;vm&#39;).runInThisContext(&#39;binary ! isNotOk&#39;);
+} catch(err) {
+  // err will be a SyntaxError
+}
+</code></pre>
+<p><code>SyntaxError</code> instances are unrecoverable in the context that created them –
+they may only be caught by other contexts.</p>
+<h2>Class: TypeError<span><a class="mark" href="#errors_class_typeerror" id="errors_class_typeerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates that a provided argument is not an
+allowable type. For example, passing a function to a parameter which expects a
+string would be considered a TypeError.</p>
+<pre><code class="lang-js">require(&#39;url&#39;).parse(() =&gt; { });
+  // throws TypeError, since it expected a string
+</code></pre>
+<p>Node.js will generate and throw <code>TypeError</code> instances <em>immediately</em> as a form
+of argument validation.</p>
+<h2>Exceptions vs. Errors<span><a class="mark" href="#errors_exceptions_vs_errors" id="errors_exceptions_vs_errors">#</a></span></h2>
+<!--type=misc-->
+<p>A JavaScript exception is a value that is thrown as a result of an invalid
+operation or as the target of a <code>throw</code> statement. While it is not required
+that these values are instances of <code>Error</code> or classes which inherit from
+<code>Error</code>, all exceptions thrown by Node.js or the JavaScript runtime <em>will</em> be
+instances of Error.</p>
+<p>Some exceptions are <em>unrecoverable</em> at the JavaScript layer. Such exceptions
+will <em>always</em> cause the Node.js process to crash. Examples include <code>assert()</code>
+checks or <code>abort()</code> calls in the C++ layer.</p>
+<h2>System Errors<span><a class="mark" href="#errors_system_errors" id="errors_system_errors">#</a></span></h2>
+<p>System errors are generated when exceptions occur within the program&#39;s
+runtime environment. Typically, these are operational errors that occur
+when an application violates an operating system constraint such as attempting
+to read a file that does not exist or when the user does not have sufficient
+permissions.</p>
+<p>System errors are typically generated at the syscall level: an exhaustive list
+of error codes and their meanings is available by running <code>man 2 intro</code> or
+<code>man 3 errno</code> on most Unices; or <a href="http://man7.org/linux/man-pages/man3/errno.3.html">online</a>.</p>
+<p>In Node.js, system errors are represented as augmented <code>Error</code> objects with
+added properties.</p>
+<h3>Class: System Error<span><a class="mark" href="#errors_class_system_error" id="errors_class_system_error">#</a></span></h3>
+<h4>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h4>
+<h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
+<p>Returns a string representing the error code, which is always <code>E</code> followed by
+a sequence of capital letters, and may be referenced in <code>man 2 intro</code>.</p>
+<p>The properties <code>error.code</code> and <code>error.errno</code> are aliases of one another and
+return the same value.</p>
+<h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
+<p>Returns a string describing the <a href="http://man7.org/linux/man-pages/man2/syscall.2.html">syscall</a> that failed.</p>
+<h3>Common System Errors<span><a class="mark" href="#errors_common_system_errors" id="errors_common_system_errors">#</a></span></h3>
+<p>This list is <strong>not exhaustive</strong>, but enumerates many of the common system
+errors encountered when writing a Node.js program. An exhaustive list may be
+found <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.</p>
+<ul>
+<li><p><code>EACCES</code> (Permission denied): An attempt was made to access a file in a way
+forbidden by its file access permissions.</p>
+</li>
+<li><p><code>EADDRINUSE</code> (Address already in use):  An attempt to bind a server
+(<a href="net.html"><code>net</code></a>, <a href="http.html"><code>http</code></a>, or <a href="https.html"><code>https</code></a>) to a local address failed due to
+another server on the local system already occupying that address.</p>
+</li>
+<li><p><code>ECONNREFUSED</code> (Connection refused): No connection could be made because the
+target machine actively refused it. This usually results from trying to
+connect to a service that is inactive on the foreign host.</p>
+</li>
+<li><p><code>ECONNRESET</code> (Connection reset by peer): A connection was forcibly closed by
+a peer. This normally results from a loss of the connection on the remote
+socket due to a timeout or reboot. Commonly encountered via the <a href="http.html"><code>http</code></a>
+and <a href="net.html"><code>net</code></a> modules.</p>
+</li>
+<li><p><code>EEXIST</code> (File exists): An existing file was the target of an operation that
+required that the target not exist.</p>
+</li>
+<li><p><code>EISDIR</code> (Is a directory): An operation expected a file, but the given
+pathname was a directory.</p>
+</li>
+<li><p><code>EMFILE</code> (Too many open files in system): Maximum number of
+<a href="https://en.wikipedia.org/wiki/File_descriptor">file descriptors</a> allowable on the system has been reached, and
+requests for another descriptor cannot be fulfilled until at least one
+has been closed. This is encountered when opening many files at once in
+parallel, especially on systems (in particular, OS X) where there is a low
+file descriptor limit for processes. To remedy a low limit, run
+<code>ulimit -n 2048</code> in the same shell that will run the Node.js process.</p>
+</li>
+<li><p><code>ENOENT</code> (No such file or directory): Commonly raised by <a href="fs.html"><code>fs</code></a> operations
+to indicate that a component of the specified pathname does not exist -- no
+entity (file or directory) could be found by the given path.</p>
+</li>
+<li><p><code>ENOTDIR</code> (Not a directory): A component of the given pathname existed, but
+was not a directory as expected. Commonly raised by <a href="fs.html#fs_fs_readdir_path_options_callback"><code>fs.readdir</code></a>.</p>
+</li>
+<li><p><code>ENOTEMPTY</code> (Directory not empty): A directory with entries was the target
+of an operation that requires an empty directory -- usually <a href="fs.html#fs_fs_unlink_path_callback"><code>fs.unlink</code></a>.</p>
+</li>
+<li><p><code>EPERM</code> (Operation not permitted): An attempt was made to perform an
+operation that requires elevated privileges.</p>
+</li>
+<li><p><code>EPIPE</code> (Broken pipe): A write on a pipe, socket, or FIFO for which there is
+no process to read the data. Commonly encountered at the <a href="net.html"><code>net</code></a> and
+<a href="http.html"><code>http</code></a> layers, indicative that the remote side of the stream being
+written to has been closed.</p>
+</li>
+<li><p><code>ETIMEDOUT</code> (Operation timed out): A connect or send request failed because
+the connected party did not properly respond after a period of time. Usually
+encountered by <a href="http.html"><code>http</code></a> or <a href="net.html"><code>net</code></a> -- often a sign that a <code>socket.end()</code>
+was not properly called.</p>
+</li>
+</ul>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>
+

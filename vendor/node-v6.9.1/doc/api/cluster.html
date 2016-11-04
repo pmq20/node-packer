@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Cluster | Node.js v6.9.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/cluster.html">
+</head>
+<body class="alt apidoc" id="api-section-cluster">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster active" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="cluster" class="interior">
+      <header>
+        <h1>Node.js v6.9.1 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="cluster.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><a href="#cluster_cluster">Cluster</a><ul>
+<li><a href="#cluster_how_it_works">How It Works</a></li>
+<li><a href="#cluster_class_worker">Class: Worker</a><ul>
+<li><a href="#cluster_event_disconnect">Event: &#39;disconnect&#39;</a></li>
+<li><a href="#cluster_event_error">Event: &#39;error&#39;</a></li>
+<li><a href="#cluster_event_exit">Event: &#39;exit&#39;</a></li>
+<li><a href="#cluster_event_listening">Event: &#39;listening&#39;</a></li>
+<li><a href="#cluster_event_message">Event: &#39;message&#39;</a></li>
+<li><a href="#cluster_event_online">Event: &#39;online&#39;</a></li>
+<li><a href="#cluster_worker_disconnect">worker.disconnect()</a></li>
+<li><a href="#cluster_worker_exitedafterdisconnect">worker.exitedAfterDisconnect</a></li>
+<li><a href="#cluster_worker_id">worker.id</a></li>
+<li><a href="#cluster_worker_isconnected">worker.isConnected()</a></li>
+<li><a href="#cluster_worker_isdead">worker.isDead()</a></li>
+<li><a href="#cluster_worker_kill_signal_sigterm">worker.kill([signal=&#39;SIGTERM&#39;])</a></li>
+<li><a href="#cluster_worker_process">worker.process</a></li>
+<li><a href="#cluster_worker_send_message_sendhandle_callback">worker.send(message[, sendHandle][, callback])</a></li>
+<li><a href="#cluster_worker_suicide">worker.suicide</a></li>
+</ul>
+</li>
+<li><a href="#cluster_event_disconnect_1">Event: &#39;disconnect&#39;</a></li>
+<li><a href="#cluster_event_exit_1">Event: &#39;exit&#39;</a></li>
+<li><a href="#cluster_event_fork">Event: &#39;fork&#39;</a></li>
+<li><a href="#cluster_event_listening_1">Event: &#39;listening&#39;</a></li>
+<li><a href="#cluster_event_message_1">Event: &#39;message&#39;</a></li>
+<li><a href="#cluster_event_online_1">Event: &#39;online&#39;</a></li>
+<li><a href="#cluster_event_setup">Event: &#39;setup&#39;</a></li>
+<li><a href="#cluster_cluster_disconnect_callback">cluster.disconnect([callback])</a></li>
+<li><a href="#cluster_cluster_fork_env">cluster.fork([env])</a></li>
+<li><a href="#cluster_cluster_ismaster">cluster.isMaster</a></li>
+<li><a href="#cluster_cluster_isworker">cluster.isWorker</a></li>
+<li><a href="#cluster_cluster_schedulingpolicy">cluster.schedulingPolicy</a></li>
+<li><a href="#cluster_cluster_settings">cluster.settings</a></li>
+<li><a href="#cluster_cluster_setupmaster_settings">cluster.setupMaster([settings])</a></li>
+<li><a href="#cluster_cluster_worker">cluster.worker</a></li>
+<li><a href="#cluster_cluster_workers">cluster.workers</a></li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>Cluster<span><a class="mark" href="#cluster_cluster" id="cluster_cluster">#</a></span></h1>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>A single instance of Node.js runs in a single thread. To take advantage of
+multi-core systems the user will sometimes want to launch a cluster of Node.js
+processes to handle the load.</p>
+<p>The cluster module allows you to easily create child processes that
+all share server ports.</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+const http = require(&#39;http&#39;);
+const numCPUs = require(&#39;os&#39;).cpus().length;
+
+if (cluster.isMaster) {
+  // Fork workers.
+  for (var i = 0; i &lt; numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+} else {
+  // Workers can share any TCP connection
+  // In this case it is an HTTP server
+  http.createServer((req, res) =&gt; {
+    res.writeHead(200);
+    res.end(&#39;hello world\n&#39;);
+  }).listen(8000);
+}
+</code></pre>
+<p>Running Node.js will now share port 8000 between the workers:</p>
+<pre><code class="lang-txt">$ NODE_DEBUG=cluster node server.js
+23521,Master Worker 23524 online
+23521,Master Worker 23526 online
+23521,Master Worker 23523 online
+23521,Master Worker 23528 online
+</code></pre>
+<p>Please note that on Windows, it is not yet possible to set up a named pipe
+server in a worker.</p>
+<h2>How It Works<span><a class="mark" href="#cluster_how_it_works" id="cluster_how_it_works">#</a></span></h2>
+<!--type=misc-->
+<p>The worker processes are spawned using the <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a> method,
+so that they can communicate with the parent via IPC and pass server
+handles back and forth.</p>
+<p>The cluster module supports two methods of distributing incoming
+connections.</p>
+<p>The first one (and the default one on all platforms except Windows),
+is the round-robin approach, where the master process listens on a
+port, accepts new connections and distributes them across the workers
+in a round-robin fashion, with some built-in smarts to avoid
+overloading a worker process.</p>
+<p>The second approach is where the master process creates the listen
+socket and sends it to interested workers. The workers then accept
+incoming connections directly.</p>
+<p>The second approach should, in theory, give the best performance.
+In practice however, distribution tends to be very unbalanced due
+to operating system scheduler vagaries. Loads have been observed
+where over 70% of all connections ended up in just two processes,
+out of a total of eight.</p>
+<p>Because <code>server.listen()</code> hands off most of the work to the master
+process, there are three cases where the behavior between a normal
+Node.js process and a cluster worker differs:</p>
+<ol>
+<li><code>server.listen({fd: 7})</code> Because the message is passed to the master,
+file descriptor 7 <strong>in the parent</strong> will be listened on, and the
+handle passed to the worker, rather than listening to the worker&#39;s
+idea of what the number 7 file descriptor references.</li>
+<li><code>server.listen(handle)</code> Listening on handles explicitly will cause
+the worker to use the supplied handle, rather than talk to the master
+process.  If the worker already has the handle, then it&#39;s presumed
+that you know what you are doing.</li>
+<li><code>server.listen(0)</code> Normally, this will cause servers to listen on a
+random port.  However, in a cluster, each worker will receive the
+same &quot;random&quot; port each time they do <code>listen(0)</code>.  In essence, the
+port is random the first time, but predictable thereafter.  If you
+want to listen on a unique port, generate a port number based on the
+cluster worker ID.</li>
+</ol>
+<p>There is no routing logic in Node.js, or in your program, and no shared
+state between the workers.  Therefore, it is important to design your
+program such that it does not rely too heavily on in-memory data objects
+for things like sessions and login.</p>
+<p>Because workers are all separate processes, they can be killed or
+re-spawned depending on your program&#39;s needs, without affecting other
+workers.  As long as there are some workers still alive, the server will
+continue to accept connections.  If no workers are alive, existing connections
+will be dropped and new connections will be refused.  Node.js does not
+automatically manage the number of workers for you, however.  It is your
+responsibility to manage the worker pool for your application&#39;s needs.</p>
+<h2>Class: Worker<span><a class="mark" href="#cluster_class_worker" id="cluster_class_worker">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><p>A Worker object contains all public information and method about a worker.
+In the master it can be obtained using <code>cluster.workers</code>. In a worker
+it can be obtained using <code>cluster.worker</code>.</p>
+<h3>Event: &#39;disconnect&#39;<span><a class="mark" href="#cluster_event_disconnect" id="cluster_event_disconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div><p>Similar to the <code>cluster.on(&#39;disconnect&#39;)</code> event, but specific to this worker.</p>
+<pre><code class="lang-js">cluster.fork().on(&#39;disconnect&#39;, () =&gt; {
+  // Worker has disconnected
+});
+</code></pre>
+<h3>Event: &#39;error&#39;<span><a class="mark" href="#cluster_event_error" id="cluster_event_error">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.3</span>
+</div><p>This event is the same as the one provided by <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>.</p>
+<p>In a worker you can also use <code>process.on(&#39;error&#39;)</code>.</p>
+<h3>Event: &#39;exit&#39;<span><a class="mark" href="#cluster_event_exit" id="cluster_event_exit">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.11.2</span>
+</div><ul>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> the exit code, if it exited normally.</li>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> the name of the signal (eg. <code>&#39;SIGHUP&#39;</code>) that caused
+the process to be killed.</li>
+</ul>
+<p>Similar to the <code>cluster.on(&#39;exit&#39;)</code> event, but specific to this worker.</p>
+<pre><code class="lang-js">const worker = cluster.fork();
+worker.on(&#39;exit&#39;, (code, signal) =&gt; {
+  if (signal) {
+    console.log(`worker was killed by signal: ${signal}`);
+  } else if (code !== 0) {
+    console.log(`worker exited with error code: ${code}`);
+  } else {
+    console.log(&#39;worker success!&#39;);
+  }
+});
+</code></pre>
+<h3>Event: &#39;listening&#39;<span><a class="mark" href="#cluster_event_listening" id="cluster_event_listening">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Similar to the <code>cluster.on(&#39;listening&#39;)</code> event, but specific to this worker.</p>
+<pre><code class="lang-js">cluster.fork().on(&#39;listening&#39;, (address) =&gt; {
+  // Worker is listening
+});
+</code></pre>
+<p>It is not emitted in the worker.</p>
+<h3>Event: &#39;message&#39;<span><a class="mark" href="#cluster_event_message" id="cluster_event_message">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>handle</code> <span class="type">&lt;undefined&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker. In a
+worker you can also use <code>process.on(&#39;message&#39;)</code>.</p>
+<p>See <a href="process.html#process_event_message"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>
+<p>As an example, here is a cluster that keeps count of the number of requests
+in the master process using the message system:</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+const http = require(&#39;http&#39;);
+
+if (cluster.isMaster) {
+
+  // Keep track of http requests
+  var numReqs = 0;
+  setInterval(() =&gt; {
+    console.log(&#39;numReqs =&#39;, numReqs);
+  }, 1000);
+
+  // Count requests
+  function messageHandler(msg) {
+    if (msg.cmd &amp;&amp; msg.cmd == &#39;notifyRequest&#39;) {
+      numReqs += 1;
+    }
+  }
+
+  // Start workers and listen for messages containing notifyRequest
+  const numCPUs = require(&#39;os&#39;).cpus().length;
+  for (var i = 0; i &lt; numCPUs; i++) {
+    cluster.fork();
+  }
+
+  Object.keys(cluster.workers).forEach((id) =&gt; {
+    cluster.workers[id].on(&#39;message&#39;, messageHandler);
+  });
+
+} else {
+
+  // Worker processes have a http server.
+  http.Server((req, res) =&gt; {
+    res.writeHead(200);
+    res.end(&#39;hello world\n&#39;);
+
+    // notify master about the request
+    process.send({ cmd: &#39;notifyRequest&#39; });
+  }).listen(8000);
+}
+</code></pre>
+<h3>Event: &#39;online&#39;<span><a class="mark" href="#cluster_event_online" id="cluster_event_online">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><p>Similar to the <code>cluster.on(&#39;online&#39;)</code> event, but specific to this worker.</p>
+<pre><code class="lang-js">cluster.fork().on(&#39;online&#39;, () =&gt; {
+  // Worker is online
+});
+</code></pre>
+<p>It is not emitted in the worker.</p>
+<h3>worker.disconnect()<span><a class="mark" href="#cluster_worker_disconnect" id="cluster_worker_disconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div><p>In a worker, this function will close all servers, wait for the <code>&#39;close&#39;</code> event on
+those servers, and then disconnect the IPC channel.</p>
+<p>In the master, an internal message is sent to the worker causing it to call
+<code>.disconnect()</code> on itself.</p>
+<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>
+<p>Note that after a server is closed, it will no longer accept new connections,
+but connections may be accepted by any other listening worker. Existing
+connections will be allowed to close as usual. When no more connections exist,
+see <a href="net.html#net_event_close"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it to
+die gracefully.</p>
+<p>The above applies <em>only</em> to server connections, client connections are not
+automatically closed by workers, and disconnect does not wait for them to close
+before exiting.</p>
+<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,
+it is <a href="child_process.html#child_process_child_disconnect"><code>disconnect</code></a>.</p>
+<p>Because long living server connections may block workers from disconnecting, it
+may be useful to send a message, so application specific actions may be taken to
+close them. It also may be useful to implement a timeout, killing a worker if
+the <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>
+<pre><code class="lang-js">if (cluster.isMaster) {
+  var worker = cluster.fork();
+  var timeout;
+
+  worker.on(&#39;listening&#39;, (address) =&gt; {
+    worker.send(&#39;shutdown&#39;);
+    worker.disconnect();
+    timeout = setTimeout(() =&gt; {
+      worker.kill();
+    }, 2000);
+  });
+
+  worker.on(&#39;disconnect&#39;, () =&gt; {
+    clearTimeout(timeout);
+  });
+
+} else if (cluster.isWorker) {
+  const net = require(&#39;net&#39;);
+  var server = net.createServer((socket) =&gt; {
+    // connections never end
+  });
+
+  server.listen(8000);
+
+  process.on(&#39;message&#39;, (msg) =&gt; {
+    if (msg === &#39;shutdown&#39;) {
+      // initiate graceful close of any connections to server
+    }
+  });
+}
+</code></pre>
+<h3>worker.exitedAfterDisconnect<span><a class="mark" href="#cluster_worker_exitedafterdisconnect" id="cluster_worker_exitedafterdisconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v6.0.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+<p>Set by calling <code>.kill()</code> or <code>.disconnect()</code>. Until then, it is <code>undefined</code>.</p>
+<p>The boolean <code>worker.exitedAfterDisconnect</code> lets you distinguish between voluntary
+and accidental exit, the master may choose not to respawn a worker based on
+this value.</p>
+<pre><code class="lang-js">cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {
+  if (worker.exitedAfterDisconnect === true) {
+    console.log(&#39;Oh, it was just voluntary – no need to worry&#39;);
+  }
+});
+
+// kill worker
+worker.kill();
+</code></pre>
+<h3>worker.id<span><a class="mark" href="#cluster_worker_id" id="cluster_worker_id">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.8.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+</ul>
+<p>Each new worker is given its own unique id, this id is stored in the
+<code>id</code>.</p>
+<p>While a worker is alive, this is the key that indexes it in
+cluster.workers</p>
+<h3>worker.isConnected()<span><a class="mark" href="#cluster_worker_isconnected" id="cluster_worker_isconnected">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><p>This function returns <code>true</code> if the worker is connected to its master via its IPC
+channel, <code>false</code> otherwise. A worker is connected to its master after it&#39;s been
+created. It is disconnected after the <code>&#39;disconnect&#39;</code> event is emitted.</p>
+<h3>worker.isDead()<span><a class="mark" href="#cluster_worker_isdead" id="cluster_worker_isdead">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><p>This function returns <code>true</code> if the worker&#39;s process has terminated (either
+because of exiting or being signaled). Otherwise, it returns <code>false</code>.</p>
+<h3>worker.kill([signal=&#39;SIGTERM&#39;])<span><a class="mark" href="#cluster_worker_kill_signal_sigterm" id="cluster_worker_kill_signal_sigterm">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.12</span>
+</div><ul>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Name of the kill signal to send to the worker
+process.</li>
+</ul>
+<p>This function will kill the worker. In the master, it does this by disconnecting
+the <code>worker.process</code>, and once disconnected, killing with <code>signal</code>. In the
+worker, it does it by disconnecting the channel, and then exiting with code <code>0</code>.</p>
+<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>
+<p>This method is aliased as <code>worker.destroy()</code> for backwards compatibility.</p>
+<p>Note that in a worker, <code>process.kill()</code> exists, but it is not this function,
+it is <a href="process.html#process_process_kill_pid_signal"><code>kill</code></a>.</p>
+<h3>worker.process<span><a class="mark" href="#cluster_worker_process" id="cluster_worker_process">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
+</ul>
+<p>All workers are created using <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>, the returned object
+from this function is stored as <code>.process</code>. In a worker, the global <code>process</code>
+is stored.</p>
+<p>See: <a href="child_process.html#child_process_child_process_fork_modulepath_args_options">Child Process module</a></p>
+<p>Note that workers will call <code>process.exit(0)</code> if the <code>&#39;disconnect&#39;</code> event occurs
+on <code>process</code> and <code>.exitedAfterDisconnect</code> is not <code>true</code>. This protects against
+accidental disconnection.</p>
+<h3>worker.send(message[, sendHandle][, callback])<span><a class="mark" href="#cluster_worker_send_message_sendhandle_callback" id="cluster_worker_send_message_sendhandle_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>sendHandle</code> <a href="net.html#net_server_listen_handle_backlog_callback" class="type">&lt;Handle&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li>Return: Boolean</li>
+</ul>
+<p>Send a message to a worker or master, optionally with a handle.</p>
+<p>In the master this sends a message to a specific worker. It is identical to
+<a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>ChildProcess.send()</code></a>.</p>
+<p>In a worker this sends a message to the master. It is identical to
+<code>process.send()</code>.</p>
+<p>This example will echo back all messages from the master:</p>
+<pre><code class="lang-js">if (cluster.isMaster) {
+  var worker = cluster.fork();
+  worker.send(&#39;hi there&#39;);
+
+} else if (cluster.isWorker) {
+  process.on(&#39;message&#39;, (msg) =&gt; {
+    process.send(msg);
+  });
+}
+</code></pre>
+<h3>worker.suicide<span><a class="mark" href="#cluster_worker_suicide" id="cluster_worker_suicide">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+<span>Deprecated since: v6.0.0 </span>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a> instead.</pre><p>An alias to <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a>.</p>
+<p>Set by calling <code>.kill()</code> or <code>.disconnect()</code>. Until then, it is <code>undefined</code>.</p>
+<p>The boolean <code>worker.suicide</code> lets you distinguish between voluntary
+and accidental exit, the master may choose not to respawn a worker based on
+this value.</p>
+<pre><code class="lang-js">cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {
+  if (worker.suicide === true) {
+    console.log(&#39;Oh, it was just voluntary – no need to worry&#39;);
+  }
+});
+
+// kill worker
+worker.kill();
+</code></pre>
+<p>This API only exists for backwards compatibility and will be removed in the
+future.</p>
+<h2>Event: &#39;disconnect&#39;<span><a class="mark" href="#cluster_event_disconnect_1" id="cluster_event_disconnect_1">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.9</span>
+</div><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+</ul>
+<p>Emitted after the worker IPC channel has disconnected. This can occur when a
+worker exits gracefully, is killed, or is disconnected manually (such as with
+worker.disconnect()).</p>
+<p>There may be a delay between the <code>&#39;disconnect&#39;</code> and <code>&#39;exit&#39;</code> events.  These events
+can be used to detect if the process is stuck in a cleanup or if there are
+long-living connections.</p>
+<pre><code class="lang-js">cluster.on(&#39;disconnect&#39;, (worker) =&gt; {
+  console.log(`The worker #${worker.id} has disconnected`);
+});
+</code></pre>
+<h2>Event: &#39;exit&#39;<span><a class="mark" href="#cluster_event_exit_1" id="cluster_event_exit_1">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.9</span>
+</div><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> the exit code, if it exited normally.</li>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> the name of the signal (eg. <code>&#39;SIGHUP&#39;</code>) that caused
+the process to be killed.</li>
+</ul>
+<p>When any of the workers die the cluster module will emit the <code>&#39;exit&#39;</code> event.</p>
+<p>This can be used to restart the worker by calling <code>.fork()</code> again.</p>
+<pre><code class="lang-js">cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {
+  console.log(&#39;worker %d died (%s). restarting...&#39;,
+    worker.process.pid, signal || code);
+  cluster.fork();
+});
+</code></pre>
+<p>See <a href="child_process.html#child_process_event_exit">child_process event: &#39;exit&#39;</a>.</p>
+<h2>Event: &#39;fork&#39;<span><a class="mark" href="#cluster_event_fork" id="cluster_event_fork">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+</ul>
+<p>When a new worker is forked the cluster module will emit a <code>&#39;fork&#39;</code> event.
+This can be used to log worker activity, and create your own timeout.</p>
+<pre><code class="lang-js">var timeouts = [];
+function errorMsg() {
+  console.error(&#39;Something must be wrong with the connection ...&#39;);
+}
+
+cluster.on(&#39;fork&#39;, (worker) =&gt; {
+  timeouts[worker.id] = setTimeout(errorMsg, 2000);
+});
+cluster.on(&#39;listening&#39;, (worker, address) =&gt; {
+  clearTimeout(timeouts[worker.id]);
+});
+cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {
+  clearTimeout(timeouts[worker.id]);
+  errorMsg();
+});
+</code></pre>
+<h2>Event: &#39;listening&#39;<span><a class="mark" href="#cluster_event_listening_1" id="cluster_event_listening_1">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>After calling <code>listen()</code> from a worker, when the <code>&#39;listening&#39;</code> event is emitted on
+the server, a <code>&#39;listening&#39;</code> event will also be emitted on <code>cluster</code> in the master.</p>
+<p>The event handler is executed with two arguments, the <code>worker</code> contains the worker
+object and the <code>address</code> object contains the following connection properties:
+<code>address</code>, <code>port</code> and <code>addressType</code>. This is very useful if the worker is listening
+on more than one address.</p>
+<pre><code class="lang-js">cluster.on(&#39;listening&#39;, (worker, address) =&gt; {
+  console.log(
+    `A worker is now connected to ${address.address}:${address.port}`);
+});
+</code></pre>
+<p>The <code>addressType</code> is one of:</p>
+<ul>
+<li><code>4</code> (TCPv4)</li>
+<li><code>6</code> (TCPv6)</li>
+<li><code>-1</code> (unix domain socket)</li>
+<li><code>&quot;udp4&quot;</code> or <code>&quot;udp6&quot;</code> (UDP v4 or v6)</li>
+</ul>
+<h2>Event: &#39;message&#39;<span><a class="mark" href="#cluster_event_message_1" id="cluster_event_message_1">#</a></span></h2>
+<div class="signature"><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>handle</code> <span class="type">&lt;undefined&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+</div><p>Emitted when the cluster master receives a message from any worker.</p>
+<p>See <a href="child_process.html#child_process_event_message">child_process event: &#39;message&#39;</a>.</p>
+<p>Before Node.js v6.0, this event emitted only the message and the handle,
+but not the worker object, contrary to what the documentation stated.</p>
+<p>If you need to support older versions and don&#39;t need the worker object,
+you can work around the discrepancy by checking the number of arguments:</p>
+<pre><code class="lang-js">cluster.on(&#39;message&#39;, function(worker, message, handle) {
+  if (arguments.length === 2) {
+    handle = message;
+    message = worker;
+    worker = undefined;
+  }
+  // ...
+});
+</code></pre>
+<h2>Event: &#39;online&#39;<span><a class="mark" href="#cluster_event_online_1" id="cluster_event_online_1">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+</ul>
+<p>After forking a new worker, the worker should respond with an online message.
+When the master receives an online message it will emit this event.
+The difference between <code>&#39;fork&#39;</code> and <code>&#39;online&#39;</code> is that fork is emitted when the
+master forks a worker, and &#39;online&#39; is emitted when the worker is running.</p>
+<pre><code class="lang-js">cluster.on(&#39;online&#39;, (worker) =&gt; {
+  console.log(&#39;Yay, the worker responded after it was forked&#39;);
+});
+</code></pre>
+<h2>Event: &#39;setup&#39;<span><a class="mark" href="#cluster_event_setup" id="cluster_event_setup">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.1</span>
+</div><ul>
+<li><code>settings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Emitted every time <code>.setupMaster()</code> is called.</p>
+<p>The <code>settings</code> object is the <code>cluster.settings</code> object at the time
+<code>.setupMaster()</code> was called and is advisory only, since multiple calls to
+<code>.setupMaster()</code> can be made in a single tick.</p>
+<p>If accuracy is important, use <code>cluster.settings</code>.</p>
+<h2>cluster.disconnect([callback])<span><a class="mark" href="#cluster_cluster_disconnect_callback" id="cluster_cluster_disconnect_callback">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div><ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> called when all workers are disconnected and handles are
+closed</li>
+</ul>
+<p>Calls <code>.disconnect()</code> on each worker in <code>cluster.workers</code>.</p>
+<p>When they are disconnected all internal handles will be closed, allowing the
+master process to die gracefully if no other event is waiting.</p>
+<p>The method takes an optional callback argument which will be called when finished.</p>
+<p>This can only be called from the master process.</p>
+<h2>cluster.fork([env])<span><a class="mark" href="#cluster_cluster_fork_env" id="cluster_cluster_fork_env">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.6.0</span>
+</div><ul>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Key/value pairs to add to worker process environment.</li>
+<li>return <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
+</ul>
+<p>Spawn a new worker process.</p>
+<p>This can only be called from the master process.</p>
+<h2>cluster.isMaster<span><a class="mark" href="#cluster_cluster_ismaster" id="cluster_cluster_ismaster">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.8.1</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+<p>True if the process is a master. This is determined
+by the <code>process.env.NODE_UNIQUE_ID</code>. If <code>process.env.NODE_UNIQUE_ID</code> is
+undefined, then <code>isMaster</code> is <code>true</code>.</p>
+<h2>cluster.isWorker<span><a class="mark" href="#cluster_cluster_isworker" id="cluster_cluster_isworker">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.6.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+<p>True if the process is not a master (it is the negation of <code>cluster.isMaster</code>).</p>
+<h2>cluster.schedulingPolicy<span><a class="mark" href="#cluster_cluster_schedulingpolicy" id="cluster_cluster_schedulingpolicy">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.2</span>
+</div><p>The scheduling policy, either <code>cluster.SCHED_RR</code> for round-robin or
+<code>cluster.SCHED_NONE</code> to leave it to the operating system. This is a
+global setting and effectively frozen once you spawn the first worker
+or call <code>cluster.setupMaster()</code>, whatever comes first.</p>
+<p><code>SCHED_RR</code> is the default on all operating systems except Windows.
+Windows will change to <code>SCHED_RR</code> once libuv is able to effectively
+distribute IOCP handles without incurring a large performance hit.</p>
+<p><code>cluster.schedulingPolicy</code> can also be set through the
+<code>NODE_CLUSTER_SCHED_POLICY</code> environment variable. Valid
+values are <code>&quot;rr&quot;</code> and <code>&quot;none&quot;</code>.</p>
+<h2>cluster.settings<span><a class="mark" href="#cluster_cluster_settings" id="cluster_cluster_settings">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.1</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>execArgv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> list of string arguments passed to the Node.js
+executable. (Default=<code>process.execArgv</code>)</li>
+<li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> file path to worker file.  (Default=<code>process.argv[1]</code>)</li>
+<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> string arguments passed to worker.
+(Default=<code>process.argv.slice(2)</code>)</li>
+<li><code>silent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> whether or not to send output to parent&#39;s stdio.
+(Default=<code>false</code>)</li>
+<li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Configures the stdio of forked processes. Because the
+cluster module relies on IPC to function, this configuration must contain an
+<code>&#39;ipc&#39;</code> entry. When this option is provided, it overrides <code>silent</code>.</li>
+<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
+<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
+</ul>
+</li>
+</ul>
+<p>After calling <code>.setupMaster()</code> (or <code>.fork()</code>) this settings object will contain
+the settings, including the default values.</p>
+<p>This object is not supposed to be changed or set manually, by you.</p>
+<h2>cluster.setupMaster([settings])<span><a class="mark" href="#cluster_cluster_setupmaster_settings" id="cluster_cluster_setupmaster_settings">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.1</span>
+</div><ul>
+<li><code>settings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> file path to worker file.  (Default=<code>process.argv[1]</code>)</li>
+<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> string arguments passed to worker.
+(Default=<code>process.argv.slice(2)</code>)</li>
+<li><code>silent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> whether or not to send output to parent&#39;s stdio.
+(Default=<code>false</code>)</li>
+<li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Configures the stdio of forked processes. When this option
+is provided, it overrides <code>silent</code>.</li>
+</ul>
+</li>
+</ul>
+<p><code>setupMaster</code> is used to change the default &#39;fork&#39; behavior. Once called,
+the settings will be present in <code>cluster.settings</code>.</p>
+<p>Note that:</p>
+<ul>
+<li>any settings changes only affect future calls to <code>.fork()</code> and have no
+effect on workers that are already running</li>
+<li>The <em>only</em> attribute of a worker that cannot be set via <code>.setupMaster()</code> is
+the <code>env</code> passed to <code>.fork()</code></li>
+<li>the defaults above apply to the first call only, the defaults for later
+calls is the current value at the time of <code>cluster.setupMaster()</code> is called</li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+cluster.setupMaster({
+  exec: &#39;worker.js&#39;,
+  args: [&#39;--use&#39;, &#39;https&#39;],
+  silent: true
+});
+cluster.fork(); // https worker
+cluster.setupMaster({
+  exec: &#39;worker.js&#39;,
+  args: [&#39;--use&#39;, &#39;http&#39;]
+});
+cluster.fork(); // http worker
+</code></pre>
+<p>This can only be called from the master process.</p>
+<h2>cluster.worker<span><a class="mark" href="#cluster_cluster_worker" id="cluster_cluster_worker">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>A reference to the current worker object. Not available in the master process.</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+
+if (cluster.isMaster) {
+  console.log(&#39;I am master&#39;);
+  cluster.fork();
+  cluster.fork();
+} else if (cluster.isWorker) {
+  console.log(`I am worker #${cluster.worker.id}`);
+}
+</code></pre>
+<h2>cluster.workers<span><a class="mark" href="#cluster_cluster_workers" id="cluster_cluster_workers">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>A hash that stores the active worker objects, keyed by <code>id</code> field. Makes it
+easy to loop through all the workers. It is only available in the master
+process.</p>
+<p>A worker is removed from cluster.workers after the worker has disconnected <em>and</em>
+exited. The order between these two events cannot be determined in advance.
+However, it is guaranteed that the removal from the cluster.workers list happens
+before last <code>&#39;disconnect&#39;</code> or <code>&#39;exit&#39;</code> event is emitted.</p>
+<pre><code class="lang-js">// Go through all workers
+function eachWorker(callback) {
+  for (var id in cluster.workers) {
+    callback(cluster.workers[id]);
+  }
+}
+eachWorker((worker) =&gt; {
+  worker.send(&#39;big announcement to all workers&#39;);
+});
+</code></pre>
+<p>Should you wish to reference a worker over a communication channel, using
+the worker&#39;s unique id is the easiest way to find the worker.</p>
+<pre><code class="lang-js">socket.on(&#39;data&#39;, (id) =&gt; {
+  var worker = cluster.workers[id];
+});
+</code></pre>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>
+

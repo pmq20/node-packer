@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Timers | Node.js v6.9.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/timers.html">
+</head>
+<body class="alt apidoc" id="api-section-timers">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers active" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="timers" class="interior">
+      <header>
+        <h1>Node.js v6.9.1 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="timers.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><a href="#timers_timers">Timers</a><ul>
+<li><a href="#timers_class_immediate">Class: Immediate</a></li>
+<li><a href="#timers_class_timeout">Class: Timeout</a><ul>
+<li><a href="#timers_timeout_ref">timeout.ref()</a></li>
+<li><a href="#timers_timeout_unref">timeout.unref()</a></li>
+</ul>
+</li>
+<li><a href="#timers_scheduling_timers">Scheduling Timers</a><ul>
+<li><a href="#timers_setimmediate_callback_args">setImmediate(callback[, ...args])</a></li>
+<li><a href="#timers_setinterval_callback_delay_args">setInterval(callback, delay[, ...args])</a></li>
+<li><a href="#timers_settimeout_callback_delay_args">setTimeout(callback, delay[, ...args])</a></li>
+</ul>
+</li>
+<li><a href="#timers_cancelling_timers">Cancelling Timers</a><ul>
+<li><a href="#timers_clearimmediate_immediate">clearImmediate(immediate)</a></li>
+<li><a href="#timers_clearinterval_timeout">clearInterval(timeout)</a></li>
+<li><a href="#timers_cleartimeout_timeout">clearTimeout(timeout)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>Timers<span><a class="mark" href="#timers_timers" id="timers_timers">#</a></span></h1>
+<pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><p>The <code>timer</code> module exposes a global API for scheduling functions to
+be called at some future period of time. Because the timer functions are
+globals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>
+<p>The timer functions within Node.js implement a similar API as the timers API
+provided by Web Browsers but use a different internal implementation that is
+built around <a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a>.</p>
+<h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
+<p>This object is created internally and is returned from <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
+can be passed to <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
+actions.</p>
+<h2>Class: Timeout<span><a class="mark" href="#timers_class_timeout" id="timers_class_timeout">#</a></span></h2>
+<p>This object is created internally and is returned from <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> and
+<a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a>. It can be passed to <a href="timers.html#timers_cleartimeout_timeout"><code>clearTimeout()</code></a> or
+<a href="timers.html#timers_clearinterval_timeout"><code>clearInterval()</code></a> (respectively) in order to cancel the scheduled actions.</p>
+<p>By default, when a timer is scheduled using either <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> or
+<a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a>, the Node.js event loop will continue running as long as the
+timer is active. Each of the <code>Timeout</code> objects returned by these functions
+export both <code>timeout.ref()</code> and <code>timeout.unref()</code> functions that can be used to
+control this default behavior.</p>
+<h3>timeout.ref()<span><a class="mark" href="#timers_timeout_ref" id="timers_timeout_ref">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.1</span>
+</div><p>When called, requests that the Node.js event loop <em>not</em> exit so long as the
+<code>Timeout</code> is active. Calling <code>timeout.ref()</code> multiple times will have no effect.</p>
+<p><em>Note</em>: By default, all <code>Timeout</code> objects are &quot;ref&#39;d&quot;, making it normally
+unnecessary to call <code>timeout.ref()</code> unless <code>timeout.unref()</code> had been called
+previously.</p>
+<p>Returns a reference to the <code>Timeout</code>.</p>
+<h3>timeout.unref()<span><a class="mark" href="#timers_timeout_unref" id="timers_timeout_unref">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.1</span>
+</div><p>When called, the active <code>Timeout</code> object will not require the Node.js event loop
+to remain active. If there is no other activity keeping the event loop running,
+the process may exit before the <code>Timeout</code> object&#39;s callback is invoked. Calling
+<code>timeout.unref()</code> multiple times will have no effect.</p>
+<p><em>Note</em>: Calling <code>timeout.unref()</code> creates an internal timer that will wake the
+Node.js event loop. Creating too many of these can adversely impact performance
+of the Node.js application.</p>
+<p>Returns a reference to the <code>Timeout</code>.</p>
+<h2>Scheduling Timers<span><a class="mark" href="#timers_scheduling_timers" id="timers_scheduling_timers">#</a></span></h2>
+<p>A timer in Node.js is an internal construct that calls a given function after
+a certain period of time. When a timer&#39;s function is called varies depending on
+which method was used to create the timer and what other work the Node.js
+event loop is doing.</p>
+<h3>setImmediate(callback[, ...args])<span><a class="mark" href="#timers_setimmediate_callback_args" id="timers_setimmediate_callback_args">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.1</span>
+</div><ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call at the end of this turn of
+<a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
+</ul>
+<p>Schedules the &quot;immediate&quot; execution of the <code>callback</code> after I/O events&#39;
+callbacks and before timers created using <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> and
+<a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a> are triggered. Returns an <code>Immediate</code> for use with
+<a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a>.</p>
+<p>When multiple calls to <code>setImmediate()</code> are made, the <code>callback</code> functions are
+queued for execution in the order in which they are created. The entire callback
+queue is processed every event loop iteration. If an immediate timer is queued
+from inside an executing callback, that timer will not be triggered until the
+next event loop iteration.</p>
+<p>If <code>callback</code> is not a function, a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> will be thrown.</p>
+<h3>setInterval(callback, delay[, ...args])<span><a class="mark" href="#timers_setinterval_callback_delay_args" id="timers_setinterval_callback_delay_args">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.0.1</span>
+</div><ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call when the timer elapses.</li>
+<li><code>delay</code> <span class="type">&lt;number&gt;</span> The number of milliseconds to wait before calling the
+<code>callback</code>.</li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
+</ul>
+<p>Schedules repeated execution of <code>callback</code> every <code>delay</code> milliseconds.
+Returns a <code>Timeout</code> for use with <a href="timers.html#timers_clearinterval_timeout"><code>clearInterval()</code></a>.</p>
+<p>When <code>delay</code> is larger than <code>2147483647</code> or less than <code>1</code>, the <code>delay</code> will be
+set to <code>1</code>.</p>
+<p>If <code>callback</code> is not a function, a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> will be thrown.</p>
+<h3>setTimeout(callback, delay[, ...args])<span><a class="mark" href="#timers_settimeout_callback_delay_args" id="timers_settimeout_callback_delay_args">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.0.1</span>
+</div><ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call when the timer elapses.</li>
+<li><code>delay</code> <span class="type">&lt;number&gt;</span> The number of milliseconds to wait before calling the
+<code>callback</code>.</li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
+</ul>
+<p>Schedules execution of a one-time <code>callback</code> after <code>delay</code> milliseconds.
+Returns a <code>Timeout</code> for use with <a href="timers.html#timers_cleartimeout_timeout"><code>clearTimeout()</code></a>.</p>
+<p>The <code>callback</code> will likely not be invoked in precisely <code>delay</code> milliseconds.
+Node.js makes no guarantees about the exact timing of when callbacks will fire,
+nor of their ordering. The callback will be called as close as possible to the
+time specified.</p>
+<p><em>Note</em>: When <code>delay</code> is larger than <code>2147483647</code> or less than <code>1</code>, the <code>delay</code>
+will be set to <code>1</code>.</p>
+<p>If <code>callback</code> is not a function, a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> will be thrown.</p>
+<h2>Cancelling Timers<span><a class="mark" href="#timers_cancelling_timers" id="timers_cancelling_timers">#</a></span></h2>
+<p>The <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>, <a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a>, and <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> methods
+each return objects that represent the scheduled timers. These can be used to
+cancel the timer and prevent it from triggering.</p>
+<h3>clearImmediate(immediate)<span><a class="mark" href="#timers_clearimmediate_immediate" id="timers_clearimmediate_immediate">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.1</span>
+</div><ul>
+<li><code>immediate</code> <span class="type">&lt;Immediate&gt;</span> An <code>Immediate</code> object as returned by
+<a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>.</li>
+</ul>
+<p>Cancels an <code>Immediate</code> object created by <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>.</p>
+<h3>clearInterval(timeout)<span><a class="mark" href="#timers_clearinterval_timeout" id="timers_clearinterval_timeout">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.0.1</span>
+</div><ul>
+<li><code>timeout</code> <span class="type">&lt;Timeout&gt;</span> A <code>Timeout</code> object as returned by <a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a>.</li>
+</ul>
+<p>Cancels a <code>Timeout</code> object created by <a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a>.</p>
+<h3>clearTimeout(timeout)<span><a class="mark" href="#timers_cleartimeout_timeout" id="timers_cleartimeout_timeout">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.0.1</span>
+</div><ul>
+<li><code>timeout</code> <span class="type">&lt;Timeout&gt;</span> A <code>Timeout</code> object as returned by <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a>.</li>
+</ul>
+<p>Cancels a <code>Timeout</code> object created by <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a>.</p>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>
+

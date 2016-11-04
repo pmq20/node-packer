@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Path | Node.js v6.9.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/path.html">
+</head>
+<body class="alt apidoc" id="api-section-path">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path active" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="path" class="interior">
+      <header>
+        <h1>Node.js v6.9.1 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="path.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><a href="#path_path">Path</a><ul>
+<li><a href="#path_windows_vs_posix">Windows vs. POSIX</a></li>
+<li><a href="#path_path_basename_path_ext">path.basename(path[, ext])</a></li>
+<li><a href="#path_path_delimiter">path.delimiter</a></li>
+<li><a href="#path_path_dirname_path">path.dirname(path)</a></li>
+<li><a href="#path_path_extname_path">path.extname(path)</a></li>
+<li><a href="#path_path_format_pathobject">path.format(pathObject)</a></li>
+<li><a href="#path_path_isabsolute_path">path.isAbsolute(path)</a></li>
+<li><a href="#path_path_join_paths">path.join([...paths])</a></li>
+<li><a href="#path_path_normalize_path">path.normalize(path)</a></li>
+<li><a href="#path_path_parse_path">path.parse(path)</a></li>
+<li><a href="#path_path_posix">path.posix</a></li>
+<li><a href="#path_path_relative_from_to">path.relative(from, to)</a></li>
+<li><a href="#path_path_resolve_paths">path.resolve([...paths])</a></li>
+<li><a href="#path_path_sep">path.sep</a></li>
+<li><a href="#path_path_win32">path.win32</a></li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>Path<span><a class="mark" href="#path_path" id="path_path">#</a></span></h1>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>path</code> module provides utilities for working with file and directory paths.
+It can be accessed using:</p>
+<pre><code class="lang-js">const path = require(&#39;path&#39;);
+</code></pre>
+<h2>Windows vs. POSIX<span><a class="mark" href="#path_windows_vs_posix" id="path_windows_vs_posix">#</a></span></h2>
+<p>The default operation of the <code>path</code> module varies based on the operating system
+on which a Node.js application is running. Specifically, when running on a
+Windows operating system, the <code>path</code> module will assume that Windows-style
+paths are being used.</p>
+<p>For example, using the <code>path.basename()</code> function with the Windows file path
+<code>C:\temp\myfile.html</code>, will yield different results when running on POSIX than
+when run on Windows:</p>
+<p>On POSIX:</p>
+<pre><code class="lang-js">path.basename(&#39;C:\\temp\\myfile.html&#39;);
+  // returns &#39;C:\temp\myfile.html&#39;
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.basename(&#39;C:\\temp\\myfile.html&#39;);
+  // returns &#39;myfile.html&#39;
+</code></pre>
+<p>To achieve consistent results when working with Windows file paths on any
+operating system, use <a href="#path_path_win32"><code>path.win32</code></a>:</p>
+<p>On POSIX and Windows:</p>
+<pre><code class="lang-js">path.win32.basename(&#39;C:\\temp\\myfile.html&#39;);
+  // returns &#39;myfile.html&#39;
+</code></pre>
+<p>To achieve consistent results when working with POSIX file paths on any
+operating system, use <a href="#path_path_posix"><code>path.posix</code></a>:</p>
+<p>On POSIX and Windows:</p>
+<pre><code class="lang-js">path.posix.basename(&#39;/tmp/myfile.html&#39;);
+  // returns &#39;myfile.html&#39;
+</code></pre>
+<h2>path.basename(path[, ext])<span><a class="mark" href="#path_path_basename_path_ext" id="path_path_basename_path_ext">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> An optional file extension</li>
+</ul>
+<p>The <code>path.basename()</code> methods returns the last portion of a <code>path</code>, similar to
+the Unix <code>basename</code> command.</p>
+<p>For example:</p>
+<pre><code class="lang-js">path.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;)
+  // returns &#39;quux.html&#39;
+
+path.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;, &#39;.html&#39;)
+  // returns &#39;quux&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string or if <code>ext</code> is given
+and is not a string.</p>
+<h2>path.delimiter<span><a class="mark" href="#path_path_delimiter" id="path_path_delimiter">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.9.3</span>
+</div><p>Provides the platform-specific path delimiter:</p>
+<ul>
+<li><code>;</code> for Windows</li>
+<li><code>:</code> for POSIX</li>
+</ul>
+<p>For example, on POSIX:</p>
+<pre><code class="lang-js">console.log(process.env.PATH)
+// &#39;/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;
+
+process.env.PATH.split(path.delimiter)
+// returns [&#39;/usr/bin&#39;, &#39;/bin&#39;, &#39;/usr/sbin&#39;, &#39;/sbin&#39;, &#39;/usr/local/bin&#39;]
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">console.log(process.env.PATH)
+// &#39;C:\Windows\system32;C:\Windows;C:\Program Files\node\&#39;
+
+process.env.PATH.split(path.delimiter)
+// returns [&#39;C:\\Windows\\system32&#39;, &#39;C:\\Windows&#39;, &#39;C:\\Program Files\\node\\&#39;]
+</code></pre>
+<h2>path.dirname(path)<span><a class="mark" href="#path_path_dirname_path" id="path_path_dirname_path">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.16</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.dirname()</code> method returns the directory name of a <code>path</code>, similar to
+the Unix <code>dirname</code> command.</p>
+<p>For example:</p>
+<pre><code class="lang-js">path.dirname(&#39;/foo/bar/baz/asdf/quux&#39;)
+// returns &#39;/foo/bar/baz/asdf&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
+<h2>path.extname(path)<span><a class="mark" href="#path_path_extname_path" id="path_path_extname_path">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.extname()</code> method returns the extension of the <code>path</code>, from the last
+occurrence of the <code>.</code> (period) character to end of string in the last portion of
+the <code>path</code>.  If there is no <code>.</code> in the last portion of the <code>path</code>, or if the
+first character of the basename of <code>path</code> (see <code>path.basename()</code>) is <code>.</code>, then
+an empty string is returned.</p>
+<p>For example:</p>
+<pre><code class="lang-js">path.extname(&#39;index.html&#39;)
+// returns &#39;.html&#39;
+
+path.extname(&#39;index.coffee.md&#39;)
+// returns &#39;.md&#39;
+
+path.extname(&#39;index.&#39;)
+// returns &#39;.&#39;
+
+path.extname(&#39;index&#39;)
+// returns &#39;&#39;
+
+path.extname(&#39;.index&#39;)
+// returns &#39;&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
+<h2>path.format(pathObject)<span><a class="mark" href="#path_path_format_pathobject" id="path_path_format_pathobject">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.15</span>
+</div><ul>
+<li><code>pathObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>dir</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>root</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> </li>
+<li><code>base</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>The <code>path.format()</code> method returns a path string from an object. This is the
+opposite of <a href="#path_path_parse_path"><code>path.parse()</code></a>.</p>
+<p>The following process is used when constructing the path string:</p>
+<ul>
+<li><code>output</code> is set to an empty string.</li>
+<li>If <code>pathObject.dir</code> is specified, <code>pathObject.dir</code> is appended to <code>output</code>
+followed by the value of <code>path.sep</code>;</li>
+<li>Otherwise, if <code>pathObject.root</code> is specified, <code>pathObject.root</code> is appended
+to <code>output</code>.</li>
+<li>If <code>pathObject.base</code> is specified, <code>pathObject.base</code> is appended to <code>output</code>;</li>
+<li>Otherwise:<ul>
+<li>If <code>pathObject.name</code> is specified, <code>pathObject.name</code> is appended to <code>output</code></li>
+<li>If <code>pathObject.ext</code> is specified, <code>pathObject.ext</code> is appended to <code>output</code>.</li>
+</ul>
+</li>
+<li>Return <code>output</code></li>
+</ul>
+<p>For example, on POSIX:</p>
+<pre><code class="lang-js">// If `dir` and `base` are provided,
+// `${dir}${path.sep}${base}`
+// will be returned.
+path.format({
+  dir: &#39;/home/user/dir&#39;,
+  base: &#39;file.txt&#39;
+});
+// returns &#39;/home/user/dir/file.txt&#39;
+
+// `root` will be used if `dir` is not specified.
+// If only `root` is provided or `dir` is equal to `root` then the
+// platform separator will not be included.
+path.format({
+  root: &#39;/&#39;,
+  base: &#39;file.txt&#39;
+});
+// returns &#39;/file.txt&#39;
+
+// `name` + `ext` will be used if `base` is not specified.
+path.format({
+  root: &#39;/&#39;,
+  name: &#39;file&#39;,
+  ext: &#39;.txt&#39;
+});
+// returns &#39;/file.txt&#39;
+
+// `base` will be returned if `dir` or `root` are not provided.
+path.format({
+  base: &#39;file.txt&#39;
+});
+// returns &#39;file.txt&#39;
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.format({
+    root : &quot;C:\\&quot;,
+    dir : &quot;C:\\path\\dir&quot;,
+    base : &quot;file.txt&quot;,
+    ext : &quot;.txt&quot;,
+    name : &quot;file&quot;
+});
+// returns &#39;C:\\path\\dir\\file.txt&#39;
+</code></pre>
+<h2>path.isAbsolute(path)<span><a class="mark" href="#path_path_isabsolute_path" id="path_path_isabsolute_path">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.2</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.isAbsolute()</code> method determines if <code>path</code> is an absolute path.</p>
+<p>If the given <code>path</code> is a zero-length string, <code>false</code> will be returned.</p>
+<p>For example on POSIX:</p>
+<pre><code class="lang-js">path.isAbsolute(&#39;/foo/bar&#39;) // true
+path.isAbsolute(&#39;/baz/..&#39;)  // true
+path.isAbsolute(&#39;qux/&#39;)     // false
+path.isAbsolute(&#39;.&#39;)        // false
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.isAbsolute(&#39;//server&#39;)    // true
+path.isAbsolute(&#39;\\\\server&#39;)  // true
+path.isAbsolute(&#39;C:/foo/..&#39;)   // true
+path.isAbsolute(&#39;C:\\foo\\..&#39;) // true
+path.isAbsolute(&#39;bar\\baz&#39;)    // false
+path.isAbsolute(&#39;bar/baz&#39;)     // false
+path.isAbsolute(&#39;.&#39;)           // false
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
+<h2>path.join([...paths])<span><a class="mark" href="#path_path_join_paths" id="path_path_join_paths">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.16</span>
+</div><ul>
+<li><code>...paths</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A sequence of path segments</li>
+</ul>
+<p>The <code>path.join()</code> method joins all given <code>path</code> segments together using the
+platform specific separator as a delimiter, then normalizes the resulting path.</p>
+<p>Zero-length <code>path</code> segments are ignored. If the joined path string is a
+zero-length string then <code>&#39;.&#39;</code> will be returned, representing the current
+working directory.</p>
+<p>For example:</p>
+<pre><code class="lang-js">path.join(&#39;/foo&#39;, &#39;bar&#39;, &#39;baz/asdf&#39;, &#39;quux&#39;, &#39;..&#39;)
+// returns &#39;/foo/bar/baz/asdf&#39;
+
+path.join(&#39;foo&#39;, {}, &#39;bar&#39;)
+// throws TypeError: Arguments to path.join must be strings
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>
+<h2>path.normalize(path)<span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.23</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.normalize()</code> method normalizes the given <code>path</code>, resolving <code>&#39;..&#39;</code> and
+<code>&#39;.&#39;</code> segments.</p>
+<p>When multiple, sequential path segment separation characters are found (e.g.
+<code>/</code> on POSIX and <code>\</code> on Windows), they are replaced by a single instance of the
+platform specific path segment separator. Trailing separators are preserved.</p>
+<p>If the <code>path</code> is a zero-length string, <code>&#39;.&#39;</code> is returned, representing the
+current working directory.</p>
+<p>For example on POSIX:</p>
+<pre><code class="lang-js">path.normalize(&#39;/foo/bar//baz/asdf/quux/..&#39;)
+// returns &#39;/foo/bar/baz/asdf&#39;
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.normalize(&#39;C:\\temp\\\\foo\\bar\\..\\&#39;);
+// returns &#39;C:\\temp\\foo\\&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
+<h2>path.parse(path)<span><a class="mark" href="#path_path_parse_path" id="path_path_parse_path">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.15</span>
+</div><ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.parse()</code> method returns an object whose properties represent
+significant elements of the <code>path</code>.</p>
+<p>The returned object will have the following properties:</p>
+<ul>
+<li><code>root</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>dir</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>base</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>For example on POSIX:</p>
+<pre><code class="lang-js">path.parse(&#39;/home/user/dir/file.txt&#39;)
+// returns
+// {
+//    root : &quot;/&quot;,
+//    dir : &quot;/home/user/dir&quot;,
+//    base : &quot;file.txt&quot;,
+//    ext : &quot;.txt&quot;,
+//    name : &quot;file&quot;
+// }
+</code></pre>
+<pre><code class="lang-text">┌─────────────────────┬────────────┐
+│          dir        │    base    │
+├──────┬              ├──────┬─────┤
+│ root │              │ name │ ext │
+&quot;  /    home/user/dir / file  .txt &quot;
+└──────┴──────────────┴──────┴─────┘
+(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.parse(&#39;C:\\path\\dir\\file.txt&#39;)
+// returns
+// {
+//    root : &quot;C:\\&quot;,
+//    dir : &quot;C:\\path\\dir&quot;,
+//    base : &quot;file.txt&quot;,
+//    ext : &quot;.txt&quot;,
+//    name : &quot;file&quot;
+// }
+</code></pre>
+<pre><code class="lang-text">┌─────────────────────┬────────────┐
+│          dir        │    base    │
+├──────┬              ├──────┬─────┤
+│ root │              │ name │ ext │
+&quot; C:\      path\dir   \ file  .txt &quot;
+└──────┴──────────────┴──────┴─────┘
+(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
+<h2>path.posix<span><a class="mark" href="#path_path_posix" id="path_path_posix">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.15</span>
+</div><p>The <code>path.posix</code> property provides access to POSIX specific implementations
+of the <code>path</code> methods.</p>
+<h2>path.relative(from, to)<span><a class="mark" href="#path_path_relative_from_to" id="path_path_relative_from_to">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.0</span>
+</div><ul>
+<li><code>from</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>to</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>path.relative()</code> method returns the relative path from <code>from</code> to <code>to</code>.
+If <code>from</code> and <code>to</code> each resolve to the same path (after calling <code>path.resolve()</code>
+on each), a zero-length string is returned.</p>
+<p>If a zero-length string is passed as <code>from</code> or <code>to</code>, the current working
+directory will be used instead of the zero-length strings.</p>
+<p>For example on POSIX:</p>
+<pre><code class="lang-js">path.relative(&#39;/data/orandea/test/aaa&#39;, &#39;/data/orandea/impl/bbb&#39;)
+// returns &#39;../../impl/bbb&#39;
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">path.relative(&#39;C:\\orandea\\test\\aaa&#39;, &#39;C:\\orandea\\impl\\bbb&#39;)
+// returns &#39;..\\..\\impl\\bbb&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if neither <code>from</code> nor <code>to</code> is a string.</p>
+<h2>path.resolve([...paths])<span><a class="mark" href="#path_path_resolve_paths" id="path_path_resolve_paths">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.4</span>
+</div><ul>
+<li><code>...paths</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A sequence of paths or path segments</li>
+</ul>
+<p>The <code>path.resolve()</code> method resolves a sequence of paths or path segments into
+an absolute path.</p>
+<p>The given sequence of paths is processed from right to left, with each
+subsequent <code>path</code> prepended until an absolute path is constructed.
+For instance, given the sequence of path segments: <code>/foo</code>, <code>/bar</code>, <code>baz</code>,
+calling <code>path.resolve(&#39;/foo&#39;, &#39;/bar&#39;, &#39;baz&#39;)</code> would return <code>/bar/baz</code>.</p>
+<p>If after processing all given <code>path</code> segments an absolute path has not yet
+been generated, the current working directory is used.</p>
+<p>The resulting path is normalized and trailing slashes are removed unless the
+path is resolved to the root directory.</p>
+<p>Zero-length <code>path</code> segments are ignored.</p>
+<p>If no <code>path</code> segments are passed, <code>path.resolve()</code> will return the absolute path
+of the current working directory.</p>
+<p>For example:</p>
+<pre><code class="lang-js">path.resolve(&#39;/foo/bar&#39;, &#39;./baz&#39;)
+// returns &#39;/foo/bar/baz&#39;
+
+path.resolve(&#39;/foo/bar&#39;, &#39;/tmp/file/&#39;)
+// returns &#39;/tmp/file&#39;
+
+path.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.gif&#39;)
+// if the current working directory is /home/myself/node,
+// this returns &#39;/home/myself/node/wwwroot/static_files/gif/image.gif&#39;
+</code></pre>
+<p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the arguments is not a string.</p>
+<h2>path.sep<span><a class="mark" href="#path_path_sep" id="path_path_sep">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.9</span>
+</div><p>Provides the platform-specific path segment separator:</p>
+<ul>
+<li><code>\</code> on Windows</li>
+<li><code>/</code> on POSIX</li>
+</ul>
+<p>For example on POSIX:</p>
+<pre><code class="lang-js">&#39;foo/bar/baz&#39;.split(path.sep)
+// returns [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]
+</code></pre>
+<p>On Windows:</p>
+<pre><code class="lang-js">&#39;foo\\bar\\baz&#39;.split(path.sep)
+// returns [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]
+</code></pre>
+<h2>path.win32<span><a class="mark" href="#path_path_win32" id="path_path_win32">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.15</span>
+</div><p>The <code>path.win32</code> property provides access to Windows-specific implementations
+of the <code>path</code> methods.</p>
+<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>)
+characters are accepted as path delimiters; however, only the backward slash
+(<code>\</code>) will be used in return values.</p>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>
+

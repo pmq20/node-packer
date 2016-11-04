@@ -11,6 +11,7 @@ os:
 env:
   matrix:
     - ENCLOSE_IO_TEST_NODE_VERSION=node-v6.8.0
+    - ENCLOSE_IO_TEST_NODE_VERSION=node-v6.9.1
     - ENCLOSE_IO_TEST_NODE_VERSION=node-v7.0.0
 
 compiler:
@@ -23,3 +24,4 @@ rvm:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
   - gem install bundler -v 1.13.6
+

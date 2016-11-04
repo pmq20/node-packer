@@ -17,7 +17,7 @@ describe ::Enclose::IO::Compiler do
     instance = ::Enclose::IO::Compiler.new('node-v6.8.0',
                                            'coffee-script',
                                            '1.11.1',
-                                           'cake',
+                                           'coffee',
                                            file.path)
     instance.run!
     expect(File.exist?(file.path)).to be true

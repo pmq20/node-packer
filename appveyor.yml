@@ -1,6 +1,9 @@
 version: 1.0.{build}
 build_script:
 - cmd: >-
+    set PATH=C:\Ruby23\bin;%PATH%
+
+
     ruby -v
 
     gem update --system
@@ -13,4 +16,8 @@ build_script:
 
     bundle install
 test_script:
-- cmd: bundle exec rake
+- cmd: >-
+    set PATH=C:\Ruby23\bin;%PATH%
+
+
+    bundle exec rake

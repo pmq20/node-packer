@@ -3632,8 +3632,16 @@ static void ParseArgs(int* argc,
   new_v8_argv[0] = argv[0];
   new_argv[0] = argv[0];
 
-  unsigned int index = 1;
+  unsigned int index;
   bool short_circuit = false;
+  if (nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__")) {
+    index = 2;
+  } else if (NULL != getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
+    index = 1;
+  } else {
+    index = 1;
+    goto finish_the_while_loop;
+  }
   while (index < nargs && argv[index][0] == '-' && !short_circuit) {
     const char* const arg = argv[index];
     unsigned int args_consumed = 1;
@@ -3746,6 +3754,8 @@ static void ParseArgs(int* argc,
     new_exec_argc += args_consumed;
     index += args_consumed;
   }
+
+finish_the_while_loop:
 
   // Copy remaining arguments.
   const unsigned int args_left = nargs - index;

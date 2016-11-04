@@ -55,6 +55,13 @@
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
 
+    var enclose_io_entrance = NativeModule.require('enclose_io_entrance');
+    if ('__enclose_io_fork__' === process.argv[1]) {
+      process.argv.splice(1, 1);
+    } else if (enclose_io_entrance) {
+      process.argv.splice(1, 0, enclose_io_entrance);
+    }
+
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.
     if (process.argv[1] !== '--debug-agent')
@@ -124,7 +131,9 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        process.argv[1] = path.resolve(process.argv[1]);
+        if (-1 === process.argv[1].indexOf('__enclose_io_memfs__')) {
+          process.argv[1] = path.resolve(process.argv[1]);
+        }
 
         const Module = NativeModule.require('module');
 
@@ -414,6 +423,29 @@
   }
 
   NativeModule._source = process.binding('natives');
+  process.binding('natives').__enclose_io_memfs_get__ = function(path) {
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives')[path];
+  };
+  process.binding('natives').__enclose_io_memfs_exist__ = function(path) {
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives').hasOwnProperty(path);
+  };
+  process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
+    const pathModule = NativeModule.require('path');
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
+      function(x) { return (pathModule.relative(path, x)).split('/')[0] });
+    return Array.from(new Set(ret));
+  };
+  
   NativeModule._cache = {};
 
   NativeModule.require = function(id) {
@@ -445,6 +477,9 @@
   };
 
   NativeModule.exists = function(id) {
+    if ('win32' === process.platform && -1 !== id.indexOf('__enclose_io_memfs__')) {
+      id = id.replace(/\\/g, '/');
+    }
     return NativeModule._source.hasOwnProperty(id);
   };
 

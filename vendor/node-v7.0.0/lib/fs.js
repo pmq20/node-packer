@@ -463,6 +463,15 @@ function tryReadSync(fd, isUserFd, buffer, pos, len) {
 
 fs.readFileSync = function(path, options) {
   options = getOptions(options, { flag: 'r' });
+
+  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
+    if (options.encoding) {
+      return process.binding('natives').__enclose_io_memfs_get__(path);
+    } else {
+      return Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path));
+    }
+  }
+
   var isUserFd = isFd(path); // file descriptor ownership
   var fd = isUserFd ? path : fs.openSync(path, options.flag || 'r', 0o666);
 
@@ -859,6 +868,9 @@ fs.readdir = function(path, options, callback) {
 fs.readdirSync = function(path, options) {
   options = getOptions(options, {});
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    return process.binding('natives').__enclose_io_memfs_readdir__(path);
+  }
   return binding.readdir(pathModule._makeLong(path), options.encoding);
 };
 
@@ -888,13 +900,64 @@ fs.fstatSync = function(fd) {
   return binding.fstat(fd);
 };
 
+function __enclose_io_memfs__stat(path) {
+  if (process.binding('natives').__enclose_io_memfs_exist__(path)) {
+    return new fs.Stats(
+        0,                                        // dev
+        33188,                                    // mode - regular file w/ 644
+        1,                                        // nlink - only one
+        0,                                        // uid
+        0,                                        // gid
+        0,                                        // rdev
+        0,                                        // blksize
+        0,                                        // ino
+        process.binding('natives').__enclose_io_memfs_get__(path).length,
+        0,                                        // blocks
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+    );
+  } else {
+    path += '/';
+    var possibilities = process.binding('natives').__enclose_io_memfs_readdir__(path);
+    if (possibilities.length > 0) {
+      // is Directory
+      return new fs.Stats(
+          0,                                        // dev
+          16877,                                    // mode - directory w/ 40755
+          2 + possibilities.length,                 // nlink - 2 + num
+          0,                                        // uid
+          0,                                        // gid
+          0,                                        // rdev
+          0,                                        // blksize
+          0,                                        // ino
+          1,                                        // size - 1
+          0,                                        // blocks
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+          Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+          Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+      );
+    } else {
+      throw new Error('TODO __enclose_io_memfs__stat w/ nonexistent path')
+    }
+  }
+}
+
 fs.lstatSync = function(path) {
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    return __enclose_io_memfs__stat(path);
+  }
   return binding.lstat(pathModule._makeLong(path));
 };
 
 fs.statSync = function(path) {
   nullCheck(path);
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    return __enclose_io_memfs__stat(path);
+  }
   return binding.stat(pathModule._makeLong(path));
 };
 
@@ -1464,6 +1527,7 @@ fs.realpathSync = function realpathSync(p, options) {
   nullCheck(p);
 
   p = p.toString('utf8');
+  if (p.indexOf('__enclose_io_memfs__') !== -1) { return p; }
   p = pathModule.resolve(p);
 
   const seenLinks = {};

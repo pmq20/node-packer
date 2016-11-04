@@ -54,7 +54,7 @@ exports.fork = function(modulePath /*, args, options*/) {
   }
 
   options.execPath = options.execPath || process.execPath;
-
+  args.unshift('__enclose_io_fork__');
   return spawn(options.execPath, args, options);
 };
 

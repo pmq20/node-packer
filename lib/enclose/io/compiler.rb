@@ -131,7 +131,7 @@ module Enclose
           else
             run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
             run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-            run("ENCLOSE_IO_USE_ORIGINAL_NODE=1 make #{ENV['CI'] ? 'test-ci' : 'test'}")
+            run("FLAKY_TESTS_MODE=dontcare FLAKY_TESTS=dontcare ENCLOSE_IO_USE_ORIGINAL_NODE=1 make test-ci")
           end
         end
       end

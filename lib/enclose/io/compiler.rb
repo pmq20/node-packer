@@ -97,7 +97,7 @@ module Enclose
 
       def compile_win
         chdir(@vendor_dir) do
-          run(".\\vcbuild #{ENV['ENCLOSE_VCBUILD_ARGS']}")
+          run("call vcbuild.bat #{ENV['ENCLOSE_VCBUILD_ARGS']}")
           FileUtils.cp('Release\\node.exe', @output_path)
         end
       end
@@ -110,14 +110,18 @@ module Enclose
         end
       end
 
-      def test_ci!
+      def test!
         chdir(@vendor_dir) do
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
           target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
           File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          run("ENCLOSE_IO_USE_ORIGINAL_NODE=1 make test-ci")
+          if Gem.win_platform?
+            run('call vcbuild.bat release nosign x64 noprojgen nobuild test-ci ignore-flaky')
+          else
+            run("ENCLOSE_IO_USE_ORIGINAL_NODE=1 make #{ENV['CI'] ? 'test-ci' : 'test'}")
+          end
         end
       end
 

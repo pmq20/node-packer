@@ -20,6 +20,6 @@ describe ::Enclose::IO::Compiler do
     expect(File.size(file.path)).to be >= 1_000_000
     expect(`#{Shellwords.escape file.path} --help`).to include %q{If called without options, `coffee` will run your script.}
     expect(`#{Shellwords.escape file.path} --eval 'console.log(((x) -> x * x)(8))'`.to_i).to be 64
-    instance.test_ci!
+    instance.test!
   end
 end

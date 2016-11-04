@@ -1,7 +1,6 @@
 version: 1.0.{build}
 environment:
   ENCLOSE_VCBUILD_ARGS: nosign
-  ENCLOSE_IO_TEST_OpenSSL_VERIFY_NONE: 1
   matrix:
   - ENCLOSE_IO_TEST_NODE_VERSION: node-v6.8.0
   - ENCLOSE_IO_TEST_NODE_VERSION: node-v6.9.1
@@ -18,6 +17,10 @@ build_script:
     gem -v
 
     gem install bundler
+
+    gem install certified
+
+    certified-update
 
     bundle -v
 

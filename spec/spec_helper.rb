@@ -3,15 +3,8 @@ SimpleCov.start
 
 if ENV['CI']
   require 'codecov'
+  require 'certified' if Gem.win_platform?
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
-  if ENV['ENCLOSE_IO_TEST_OpenSSL_VERIFY_NONE']
-    SimpleCov.at_exit do
-      # Fix appveyor's buggy Ruby
-      STDERR.puts "OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE"
-      OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
-      SimpleCov.result.format!
-    end
-  end
 end
 
 unless ENV['ENCLOSE_IO_TEST_NODE_VERSION']

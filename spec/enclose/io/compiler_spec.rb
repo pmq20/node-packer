@@ -14,6 +14,7 @@ describe ::Enclose::IO::Compiler do
 
   it 'builds coffee of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
+    file.close
     instance = ::Enclose::IO::Compiler.new('node-v6.8.0',
                                            'coffee-script',
                                            '1.11.1',

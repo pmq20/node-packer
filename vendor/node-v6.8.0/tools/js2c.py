@@ -266,7 +266,7 @@ def JS2C(source, target):
       ids.append((id, len(lines)))
 
     if '__enclose_io_memfs__' in id:
-      escaped_id = re.sub('\W', '_', id)
+      escaped_id = re.sub('\W', '_', id.replace('/', '__'))
     else:
       escaped_id = id.replace('-', '_').replace('/', '_')
 

@@ -126,12 +126,17 @@ module Enclose
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
           target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
           File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }
+          test_env = {
+                       'FLAKY_TESTS_MODE' => 'dontcare',
+                       'FLAKY_TESTS' => 'dontcare',
+                       'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1',
+                     }
           if Gem.win_platform?
-            run('call vcbuild.bat nosign test-ci ignore-flaky')
+            run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')
           else
             run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
             run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-            run("FLAKY_TESTS_MODE=dontcare FLAKY_TESTS=dontcare ENCLOSE_IO_USE_ORIGINAL_NODE=1 make test-ci")
+            run(test_env, "make test-ci")
           end
         end
       end
@@ -142,11 +147,11 @@ module Enclose
 
       private
 
-      def run(cmd)
-        STDERR.puts "$ #{cmd}"
-        pid = spawn(cmd)
+      def run(*args)
+        STDERR.puts "-> Running #{args}"
+        pid = spawn(*args)
         pid, status = Process.wait2(pid)
-        raise Error, "#{cmd} failed!" unless status.success?
+        raise Error, "Failed running #{args}" unless status.success?
       end
 
       def chdir(path)

@@ -40,9 +40,9 @@ Or install it yourself as:
 
 ## Example
 
-    enclose-io-compiler node-v6.8.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v6.8.0-darwin-x64
+    enclose-io-compiler node-v7.0.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v7.0.0-darwin-x64
 
-Then the compiled product will be located at `/tmp/coffee-1.11.1-node-v6.8.0-darwin-x64`, ready to be distributed.
+Then the compiled product will be located at `/tmp/coffee-1.11.1-node-v7.0.0-darwin-x64`, ready to be distributed.
 
 ## Optional Environment Variables
 

@@ -1,11 +1,16 @@
-install:
-  - set PATH=C:\Ruby23\bin;%PATH%
-  - bundle install
+version: 1.0.{build}
+build_script:
+- cmd: >-
+    ruby -v
 
-before_test:
-  - ruby -v
-  - gem -v
-  - bundle -v
+    gem update --system
 
+    gem -v
+
+    gem install bundler
+
+    bundle -v
+
+    bundle install
 test_script:
-  - bundle exec rake
+- cmd: bundle exec rake

@@ -18,6 +18,13 @@ module Enclose
 
       def initialize(argv = [])
         @node_version = argv[0]
+        raise 'Must provide the node_version argument' unless @node_version
+        @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
+        unless File.exist?(@vendor_dir)
+          msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
+          raise Error, msg
+        end
+
         @module_name = argv[1]
         @module_version = argv[2]
         @bin_name = argv[3]
@@ -34,11 +41,6 @@ module Enclose
       end
 
       def prepare_vars
-        @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
-        unless File.exist?(@vendor_dir)
-          msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
-          raise Error, msg
-        end
         @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", Dir.tmpdir)
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")

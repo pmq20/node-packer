@@ -5,9 +5,11 @@ describe ::Enclose::IO::Compiler do
     expect(::Enclose::IO::Compiler::VERSION).not_to be nil
   end
 
-  it 'passes all Node.js tests' do
-    instance = ::Enclose::IO::Compiler.new
-    instance.test!
+  ::Enclose::IO::Compiler.node_versions.each do |node_version|
+    it "passes all #{node_version} tests" do
+      instance = ::Enclose::IO::Compiler.new node_version
+      instance.test!
+    end
   end
 
   it 'builds coffee of coffee-script' do

@@ -1,4 +1,6 @@
 version: 1.0.{build}
+environment:
+  ENCLOSE_VCBUILD_ARGS: nosign
 build_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%

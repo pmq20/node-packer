@@ -20,6 +20,8 @@ build_script:
 
     gem install certified
 
+    echo gem 'certified' >> Gemfile
+
     certified-update
 
     bundle -v

@@ -1,3 +1,7 @@
+if ENV['OpenSSL_VERIFY_NONE']
+  OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+end
+
 require 'simplecov'
 SimpleCov.start
 

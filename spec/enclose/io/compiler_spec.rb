@@ -5,7 +5,7 @@ describe ::Enclose::IO::Compiler do
     expect(::Enclose::IO::Compiler::VERSION).not_to be nil
   end
 
-  it "passes all Node.js tests", focus: true do
+  it "passes all Node.js tests" do
     ::Enclose::IO::Compiler.node_versions.each do |node_version|
       instance = ::Enclose::IO::Compiler.new node_version
       instance.test!

@@ -22,6 +22,18 @@ module Enclose
         @module_version = argv[2]
         @bin_name = argv[3]
         @output_path = argv[4]
+      end
+
+      def run!
+        prepare_vars
+        npm_install
+        parse_binaries
+        inject_entrance
+        inject_memfs
+        Gem.win_platform? ? compile_win : compile
+      end
+
+      def prepare_vars
         @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
         unless File.exist?(@vendor_dir)
           msg = "Does not support #{argv0}, supported: #{::Enclose::IO::Compiler.node_versions.join ', '}"
@@ -30,14 +42,6 @@ module Enclose
         @work_dir = File.expand_path("./enclose-io-compiler/#{@module_name}-#{@module_version}", Dir.tmpdir)
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
-      end
-
-      def run!
-        npm_install
-        parse_binaries
-        inject_entrance
-        inject_memfs
-        Gem.win_platform? ? compile_win : compile
       end
 
       def npm_install

@@ -6,16 +6,14 @@ describe ::Enclose::IO::Compiler do
   end
 
   it "passes all Node.js tests" do
-    ::Enclose::IO::Compiler.node_versions.each do |node_version|
-      instance = ::Enclose::IO::Compiler.new node_version
-      instance.test!
-    end
+    instance = ::Enclose::IO::Compiler.new ENV['ENCLOSE_IO_TEST_NODE_VERSION']
+    instance.test!
   end
 
   it 'builds coffee of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
     file.close
-    instance = ::Enclose::IO::Compiler.new('node-v6.8.0',
+    instance = ::Enclose::IO::Compiler.new(ENV['ENCLOSE_IO_TEST_NODE_VERSION'],
                                            'coffee-script',
                                            '1.11.1',
                                            'coffee',

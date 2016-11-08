@@ -3718,12 +3718,7 @@ static void ParseArgs(int* argc,
 
   unsigned int index = 1;
   bool short_circuit = false;
-  if (nargs >= 2 && 0 == strcmp(argv[1], "__enclose_io_fork__")) {
-    index = 2;
-  } else if (NULL != getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
-    index = 1;
-  } else {
-    index = 1;
+  if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
     goto finish_the_while_loop;
   }
   while (index < nargs && argv[index][0] == '-' && !short_circuit) {

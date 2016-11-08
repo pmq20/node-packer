@@ -54,7 +54,9 @@ module Enclose
             package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
             f.puts package
           end
-          run('npm install')
+          npm = ENV['ENCLOSE_IO_NPM'] || 'npm'
+          run("#{npm} -v")
+          run("#{npm} install #{ENV['ENCLOSE_IO_NPM_INSTALL_ARGS']}")
         end
       end
 
@@ -109,7 +111,7 @@ module Enclose
 
       def compile_win
         chdir(@vendor_dir) do
-          run("call vcbuild.bat #{ENV['ENCLOSE_VCBUILD_ARGS']}")
+          run("call vcbuild.bat #{ENV['ENCLOSE_IO_VCBUILD_ARGS']}")
           FileUtils.cp('Release\\node.exe', @output_path)
         end
       end
@@ -156,9 +158,9 @@ module Enclose
       end
 
       def chdir(path)
-        STDERR.puts "$ cd #{path}"
+        STDERR.puts "-> cd #{path}"
         Dir.chdir(path) { yield }
-        STDERR.puts "$ cd #{Dir.pwd}"
+        STDERR.puts "-> cd #{Dir.pwd}"
       end
       
       def mempath(path)

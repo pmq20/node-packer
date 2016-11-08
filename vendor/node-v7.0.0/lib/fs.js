@@ -257,6 +257,22 @@ fs.readFile = function(path, options, callback) {
   if (!nullCheck(path, callback))
     return;
 
+  // TODO what about FD?
+  // TODO what about request of nonexistent files?
+  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
+    if (options.encoding) {
+      process.nextTick(function() {
+        callback(null, process.binding('natives').__enclose_io_memfs_get__(path));
+      });
+      return;
+    } else {
+      process.nextTick(function() {
+        callback(null, Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path)));
+      });
+      return;
+    }
+  }
+
   var context = new ReadFileContext(callback, options.encoding);
   context.isUserFd = isFd(path); // file descriptor ownership
   var req = new FSReqWrap();
@@ -464,6 +480,8 @@ function tryReadSync(fd, isUserFd, buffer, pos, len) {
 fs.readFileSync = function(path, options) {
   options = getOptions(options, { flag: 'r' });
 
+  // TODO what about FD?
+  // TODO what about request of nonexistent files?
   if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
     if (options.encoding) {
       return process.binding('natives').__enclose_io_memfs_get__(path);

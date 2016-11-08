@@ -125,6 +125,7 @@ module Enclose
         chdir(@vendor_dir) do
           inject_memfs(File.expand_path('./test/fixtures', @vendor_dir))
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
+          File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts ' ' }
           test_env = {
                        'FLAKY_TESTS_MODE' => 'dontcare',
                        'FLAKY_TESTS' => 'dontcare',

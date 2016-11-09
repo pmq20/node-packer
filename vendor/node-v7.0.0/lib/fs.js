@@ -878,6 +878,12 @@ fs.readdir = function(path, options, callback) {
   callback = makeCallback(typeof options === 'function' ? options : callback);
   options = getOptions(options, {});
   if (!nullCheck(path, callback)) return;
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_readdir__(path));
+    });
+    return;
+  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.readdir(pathModule._makeLong(path), options.encoding, req);

@@ -38,7 +38,7 @@ module Enclose
         npm_install
         parse_binaries
         inject_entrance
-        inject_memfs
+        inject_memfs(@work_dir)
         Gem.win_platform? ? compile_win : compile
       end
 
@@ -88,16 +88,17 @@ module Enclose
         File.open(bin, "w") { |f| f.print lines.join }
       end
 
-      def inject_memfs
+      def inject_memfs(source)
         target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
         FileUtils.remove_entry_secure(target) if File.exist?(target)
-        FileUtils.cp_r(@work_dir, target)
+        FileUtils.cp_r(source, target)
         manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-            if 0 == File.size(fullpath)
+            if 0 == File.size(fullpath) && Gem.win_platform?
               # Fix VC++ Error C2466
+              # TODO: what about empty file semantics?
               File.open(fullpath, 'w') { |f| f.puts ' ' }
             end
             entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
@@ -123,10 +124,9 @@ module Enclose
 
       def test!
         chdir(@vendor_dir) do
-          FileUtils.rm_f(File.expand_path('./enclose_io_manifest.txt', @vendor_dir))
+          inject_memfs(File.expand_path('./test/fixtures', @vendor_dir))
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
-          target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
-          File.open(target, "w") { |f| f.puts %Q`module.exports = false;` }
+          File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts ' ' }
           test_env = {
                        'FLAKY_TESTS_MODE' => 'dontcare',
                        'FLAKY_TESTS' => 'dontcare',

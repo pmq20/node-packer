@@ -5,12 +5,12 @@ describe ::Enclose::IO::Compiler do
     expect(::Enclose::IO::Compiler::VERSION).not_to be nil
   end
 
-  it "passes all Node.js tests" do
+  it "passes all original and enclose.io-added Node.js tests" do
     instance = ::Enclose::IO::Compiler.new ENV['ENCLOSE_IO_TEST_NODE_VERSION']
     instance.test!
   end
 
-  it 'builds coffee of coffee-script' do
+  it 'builds coffee out of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
     file.close
     instance = ::Enclose::IO::Compiler.new(ENV['ENCLOSE_IO_TEST_NODE_VERSION'],

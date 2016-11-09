@@ -20,6 +20,12 @@ Available Node.js versions:
 
     }.strip
 
+    if 2 == ARGV.size && 'test' == ARGV[1]
+      instance = Compiler.new ARGV[0]
+      instance.test!
+      exit 0
+    end
+
     unless 5 == ARGV.size
       puts usage
       exit 1

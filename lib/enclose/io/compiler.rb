@@ -96,8 +96,9 @@ module Enclose
         File.open(manifest, "w") do |f|
           Dir["#{target}/**/*"].each do |fullpath|
             next unless File.file?(fullpath)
-            if 0 == File.size(fullpath)
+            if 0 == File.size(fullpath) && Gem.win_platform?
               # Fix VC++ Error C2466
+              # TODO: what about empty file semantics?
               File.open(fullpath, 'w') { |f| f.puts ' ' }
             end
             entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"

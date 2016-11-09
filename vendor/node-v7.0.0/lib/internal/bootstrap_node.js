@@ -44,7 +44,12 @@
     _process.setupSignalHandlers();
 
     if (!process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
-      process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
+      if (NativeModule.require('enclose_io_entrance')) {
+        process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
+      }
+      // Make ENCLOSE_IO_USE_ORIGINAL_NODE contagious so that
+      // subprocesses forked via child_process.fork could work correctly
+      // by using a ordinary argv[1] semantic
       process.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
     }
 

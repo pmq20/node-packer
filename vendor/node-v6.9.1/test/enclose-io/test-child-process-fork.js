@@ -4,7 +4,7 @@ var assert = require('assert');
 var fork = require('child_process').fork;
 var args = ['foo', 'bar'];
 
-var n = fork('__enclose_io_memfs__/child-process-spawn-node.js', args);
+var n = fork('/__enclose_io_memfs__/child-process-spawn-node.js', args);
 assert.deepStrictEqual(args, ['foo', 'bar']);
 
 n.on('message', function(m) {

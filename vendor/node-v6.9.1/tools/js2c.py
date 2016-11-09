@@ -255,7 +255,9 @@ def JS2C(source, target):
     else:
       id = s
 
-    if not '__enclose_io_memfs__' in id:
+    if '__enclose_io_memfs__' in id:
+      id = '/' + id
+    else:
       if '.' in id:
         id = id.split('.', 1)[0]
 

@@ -4,8 +4,8 @@ Compiler of Enclose.IO which packs your Node.js app into a single executable.
 
 http://enclose.io
 
-[![Travis CI Build Status](https://travis-ci.org/enclose-io/compiler.svg)](https://travis-ci.org/enclose-io/compiler)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu?svg=true)](https://ci.appveyor.com/project/pmq20/compiler)
+[![Travis CI Build Status](https://travis-ci.org/enclose-io/compiler.svg?branch=master)](https://travis-ci.org/enclose-io/compiler)
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/compiler)
 [![Code Climate](https://codeclimate.com/github/enclose-io/compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/compiler)
 [![codecov.io](https://codecov.io/github/enclose-io/compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/compiler?branch=master)
 [![Gem Version](https://badge.fury.io/rb/enclose-io-compiler.svg)](https://badge.fury.io/rb/enclose-io-compiler)

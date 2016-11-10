@@ -459,7 +459,7 @@
     }
     var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
       function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
-      function(x) { return (pathModule.relative(path, x)).split('/')[0] });
+      function(x) { return (pathModule.relative(path, x)).split(pathModule.sep)[0] });
     return Array.from(new Set(ret));
   };
   

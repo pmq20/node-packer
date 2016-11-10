@@ -13,7 +13,7 @@ Usage:
   enclose-io-compiler [node_version] [module_name] [module_version] [bin_name] [output_path]
 
 E.g.:
-  enclose-io-compiler node-v7.0.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v7.0.0-darwin-x64
+  enclose-io-compiler node-v7.1.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v7.1.0-darwin-x64
 
 Available Node.js versions:
   #{Compiler.node_versions.join(', ')}

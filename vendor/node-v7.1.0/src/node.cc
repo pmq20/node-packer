@@ -3630,6 +3630,9 @@ static void ParseArgs(int* argc,
 
   unsigned int index = 1;
   bool short_circuit = false;
+  if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
+    goto finish_the_while_loop;
+  }
   while (index < nargs && argv[index][0] == '-' && !short_circuit) {
     const char* const arg = argv[index];
     unsigned int args_consumed = 1;
@@ -3742,6 +3745,8 @@ static void ParseArgs(int* argc,
     new_exec_argc += args_consumed;
     index += args_consumed;
   }
+
+finish_the_while_loop:
 
   // Copy remaining arguments.
   const unsigned int args_left = nargs - index;

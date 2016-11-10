@@ -59,7 +59,6 @@ exports.fork = function(modulePath /*, args, options*/) {
   }
 
   options.execPath = options.execPath || process.execPath;
-
   return spawn(options.execPath, args, options);
 };
 

@@ -45,6 +45,16 @@
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
 
+    if (!process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
+      if (NativeModule.require('enclose_io_entrance')) {
+        process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
+      }
+      // Make ENCLOSE_IO_USE_ORIGINAL_NODE contagious so that
+      // subprocesses forked via child_process.fork could work correctly
+      // by using a ordinary argv[1] semantic
+      process.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
+    }
+
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.
     if (process.argv[1] !== '--debug-agent')
@@ -114,7 +124,9 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        process.argv[1] = path.resolve(process.argv[1]);
+        if (-1 === process.argv[1].indexOf('/__enclose_io_memfs__')) {
+          process.argv[1] = path.resolve(process.argv[1]);
+        }
 
         const Module = NativeModule.require('module');
 
@@ -440,6 +452,7 @@
   }
 
   NativeModule._source = process.binding('natives');
+
   NativeModule._cache = {};
 
   NativeModule.require = function(id) {
@@ -471,6 +484,9 @@
   };
 
   NativeModule.exists = function(id) {
+    if ('win32' === process.platform && -1 !== id.indexOf('/__enclose_io_memfs__')) {
+      id = id.replace(/\\/g, '/');
+    }
     return NativeModule._source.hasOwnProperty(id);
   };
 
@@ -530,6 +546,50 @@
 
   NativeModule.prototype.cache = function() {
     NativeModule._cache[this.id] = this;
+  };
+
+  const pathModule = NativeModule.require('path');
+  process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
+    var short_index = path.indexOf('/__enclose_io_memfs__');
+    if (-1 === short_index) {
+      throw new Error(`/__enclose_io_memfs__ not found among substrings of ${path}`);
+    } else {
+      return path.substring(short_index);
+    }
+  };
+  process.binding('natives').__enclose_io_memfs_resolve__ = function(path) {
+    if (-1 === path.indexOf('/__enclose_io_memfs__')) {
+      return pathModule.resolve(curPath, path);
+    } else {
+      return process.binding('natives').__enclose_io_memfs_short_path__(path);
+    }
+  };
+  process.binding('natives').__enclose_io_memfs_get__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives')[path];
+  };
+  process.binding('natives').__enclose_io_memfs_exist__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives').hasOwnProperty(path);
+  };
+  process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    if ('/' !== path[path.length - 1]) {
+      path += '/'
+    }
+    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
+      function(x) { return (pathModule.relative(path, x)).split(pathModule.sep)[0] });
+    return Array.from(new Set(ret));
   };
 
   startup();

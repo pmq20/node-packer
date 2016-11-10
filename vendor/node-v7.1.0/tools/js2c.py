@@ -223,11 +223,17 @@ def JS2C(source, target):
     else:
       id = s
 
-    if '.' in id:
-      id = id.split('.', 1)[0]
+    if '__enclose_io_memfs__' in id:
+      id = '/' + id
+    else:
+      if '.' in id:
+        id = id.split('.', 1)[0]
 
     name = ToCString(id)
-    escaped_id = id.replace('-', '_').replace('/', '_')
+    if '__enclose_io_memfs__' in id:
+      escaped_id = re.sub('\W', '_', id.replace('/', '__'))
+    else:
+      escaped_id = id.replace('-', '_').replace('/', '_')
     node_natives_map.append(NODE_NATIVES_MAP.format(**locals()))
     sources.append(SOURCES.format(**locals()))
 
@@ -242,6 +248,9 @@ def JS2C(source, target):
 def main():
   natives = sys.argv[1]
   source_files = sys.argv[2:]
+  with open('enclose_io_manifest.txt') as f:
+    for line in f:
+      source_files.append(line.strip())
   JS2C(source_files, [natives])
 
 if __name__ == "__main__":

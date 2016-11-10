@@ -556,7 +556,7 @@
       return path.substring(short_index);
     }
   };
-  process.binding('natives').__enclose_io_memfs_resolve__ = function(path) {
+  process.binding('natives').__enclose_io_memfs_resolve__ = function(curPath, path) {
     const pathModule = NativeModule.require('path');
     if (-1 === path.indexOf('/__enclose_io_memfs__')) {
       return pathModule.resolve(curPath, path);

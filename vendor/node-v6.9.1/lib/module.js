@@ -185,12 +185,7 @@ Module._findPath = function(request, paths, isMain) {
     const curPath = paths[i];
     if (-1 === curPath.indexOf('/__enclose_io_memfs__')) {
       if (curPath && stat(curPath) < 1) continue;
-      if (-1 === request.indexOf('/__enclose_io_memfs__')) {
-        var basePath = path.resolve(curPath, request);
-      } else {
-        assert('' === curPath);
-        var basePath = request;
-      }
+      var basePath = process.binding('natives').__enclose_io_memfs_resolve__(curPath, request);
       var filename;
 
       if (!trailingSlash) {
@@ -243,10 +238,11 @@ Module._findPath = function(request, paths, isMain) {
     } else {
       var basePath = path.join(curPath, request);
       var filename;
+      var is_dir = process.binding('natives').__enclose_io_memfs_readdir__(basePath).length > 0;
       if (!trailingSlash) {
         if (process.binding('natives').__enclose_io_memfs_exist__(basePath)) {  // File.
           filename = basePath;
-        } else if (-1 !== basePath.indexOf('/__enclose_io_memfs__')) {  // Directory.
+        } else if (is_dir) {  // Directory.
           if (exts === undefined)
             exts = Object.keys(Module._extensions);
           filename = tryPackage(basePath, exts, isMain);

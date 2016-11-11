@@ -526,11 +526,12 @@
     var short_index = path.indexOf('/__enclose_io_memfs__');
     if (-1 === short_index) {
       short_index = path.indexOf('\\__enclose_io_memfs__');
-      if (-1 === short_index) {
-        throw new Error(`slash __enclose_io_memfs__ not found among substrings of ${path}`);
-      }
     }
-    return path.substring(short_index);
+    if (-1 === short_index) {
+      return path;
+    } else {
+      return path.substring(short_index);
+    }
   };
   process.binding('natives').__enclose_io_memfs_resolve__ = function(curPath, path) {
     const pathModule = NativeModule.require('path');

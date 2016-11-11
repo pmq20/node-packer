@@ -48,8 +48,10 @@ Then the compiled product will be located at `/tmp/coffee-1.11.1-node-v7.0.0-dar
 
 * `ENCLOSE_IO_CONFIGURE_ARGS`
 * `ENCLOSE_IO_MAKE_ARGS`
-* `ENCLOSE_VCBUILD_ARGS`
+* `ENCLOSE_IO_VCBUILD_ARGS`
 * `ENCLOSE_IO_KEEP_WORK_DIR`
+* `ENCLOSE_IO_NPM`
+* `ENCLOSE_IO_NPM_INSTALL_ARGS`
 * `npm_config_registry`
 
 ## Development

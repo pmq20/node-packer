@@ -54,7 +54,9 @@ module Enclose
             package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
             f.puts package
           end
-          run('npm install')
+          npm = ENV['ENCLOSE_IO_NPM'] || 'npm'
+          run("#{npm} -v")
+          run("#{npm} install #{ENV['ENCLOSE_IO_NPM_INSTALL_ARGS']}")
         end
       end
 
@@ -109,7 +111,7 @@ module Enclose
 
       def compile_win
         chdir(@vendor_dir) do
-          run("call vcbuild.bat #{ENV['ENCLOSE_VCBUILD_ARGS']}")
+          run("call vcbuild.bat #{ENV['ENCLOSE_IO_VCBUILD_ARGS']}")
           FileUtils.cp('Release\\node.exe', @output_path)
         end
       end
@@ -126,7 +128,7 @@ module Enclose
         chdir(@vendor_dir) do
           inject_memfs(File.expand_path('./test/fixtures', @vendor_dir))
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
-          File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts ' ' }
+          File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts 'module.exports = false;' }
           test_env = {
                        'FLAKY_TESTS_MODE' => 'dontcare',
                        'FLAKY_TESTS' => 'dontcare',
@@ -156,9 +158,9 @@ module Enclose
       end
 
       def chdir(path)
-        STDERR.puts "$ cd #{path}"
+        STDERR.puts "-> cd #{path}"
         Dir.chdir(path) { yield }
-        STDERR.puts "$ cd #{Dir.pwd}"
+        STDERR.puts "-> cd #{Dir.pwd}"
       end
       
       def mempath(path)

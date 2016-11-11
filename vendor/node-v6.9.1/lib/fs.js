@@ -287,6 +287,22 @@ fs.readFile = function(path, options, callback_) {
   if (!nullCheck(path, callback))
     return;
 
+  // TODO what about FD?
+  // TODO what about request of nonexistent files?
+  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
+    if (options.encoding) {
+      process.nextTick(function() {
+        callback(null, process.binding('natives').__enclose_io_memfs_get__(path));
+      });
+      return;
+    } else {
+      process.nextTick(function() {
+        callback(null, Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path)));
+      });
+      return;
+    }
+  }
+
   var context = new ReadFileContext(callback, encoding);
   context.isUserFd = isFd(path); // file descriptor ownership
   var req = new FSReqWrap();
@@ -503,6 +519,8 @@ fs.readFileSync = function(path, options) {
   var encoding = options.encoding;
   assertEncoding(encoding);
 
+  // TODO what about FD?
+  // TODO what about request of nonexistent files?
   if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
     if (encoding) {
       return process.binding('natives').__enclose_io_memfs_get__(path);
@@ -989,6 +1007,12 @@ fs.readdir = function(path, options, callback) {
 
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_readdir__(path));
+    });
+    return;
+  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.readdir(pathModule._makeLong(path), options.encoding, req);

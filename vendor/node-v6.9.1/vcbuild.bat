@@ -57,7 +57,7 @@ if /i "%1"=="noetw"         set noetw=1&goto arg-ok
 if /i "%1"=="noperfctr"     set noperfctr=1&goto arg-ok
 if /i "%1"=="licensertf"    set licensertf=1&goto arg-ok
 if /i "%1"=="test"          set test_args=%test_args% addons doctool known_issues message parallel sequential -J&set jslint=1&set build_addons=1&goto arg-ok
-if /i "%1"=="test-ci"       set test_args=%test_args% %test_ci_args% -p tap --logfile test.tap addons doctool inspector known_issues message sequential parallel&set cctest_args=%cctest_args% --gtest_output=tap:cctest.tap&set build_addons=1&goto arg-ok
+if /i "%1"=="test-ci"       set test_args=%test_args% %test_ci_args% -p tap --logfile test.tap addons doctool inspector known_issues message sequential parallel enclose-io&set cctest_args=%cctest_args% --gtest_output=tap:cctest.tap&set build_addons=1&goto arg-ok
 if /i "%1"=="test-addons"   set test_args=%test_args% addons&set build_addons=1&goto arg-ok
 if /i "%1"=="test-simple"   set test_args=%test_args% sequential parallel -J&goto arg-ok
 if /i "%1"=="test-message"  set test_args=%test_args% message&goto arg-ok
@@ -183,7 +183,7 @@ if defined nobuild goto sign
 @rem Build the sln with msbuild.
 set "msbplatform=Win32"
 if "%target_arch%"=="x64" set "msbplatform=x64"
-msbuild node.sln /m /t:%target% /p:Configuration=%config% /p:Platform=%msbplatform% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+msbuild node.sln /m /t:%target% /p:Configuration=%config% /p:Platform=%msbplatform% /clp:NoSummary;NoItemAndPropertyList;Verbosity=quiet /nologo
 if errorlevel 1 goto exit
 if "%target%" == "Clean" goto exit
 
@@ -265,7 +265,7 @@ if not defined msi goto run
 
 :msibuild
 echo Building node-v%FULLVERSION%-%target_arch%.msi
-msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:PlatformToolset=%PLATFORM_TOOLSET% /p:GypMsvsVersion=%GYP_MSVS_VERSION% /p:Configuration=%config% /p:Platform=%target_arch% /p:NodeVersion=%NODE_VERSION% /p:FullVersion=%FULLVERSION% /p:DistTypeDir=%DISTTYPEDIR% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+msbuild "%~dp0tools\msvs\msi\nodemsi.sln" /m /t:Clean,Build /p:PlatformToolset=%PLATFORM_TOOLSET% /p:GypMsvsVersion=%GYP_MSVS_VERSION% /p:Configuration=%config% /p:Platform=%target_arch% /p:NodeVersion=%NODE_VERSION% /p:FullVersion=%FULLVERSION% /p:DistTypeDir=%DISTTYPEDIR% %noetw_msi_arg% %noperfctr_msi_arg% /clp:NoSummary;NoItemAndPropertyList;Verbosity=quiet /nologo
 if errorlevel 1 goto exit
 
 if defined nosign goto upload

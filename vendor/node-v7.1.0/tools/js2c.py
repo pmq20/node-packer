@@ -37,11 +37,8 @@ import sys
 import string
 
 
-def ToCString(contents):
-  step = 20
-  slices = (contents[i:i+step] for i in xrange(0, len(contents), step))
-  slices = map(lambda s: ','.join(str(ord(c)) for c in s), slices)
-  return ',\n'.join(slices)
+def ToCArray(filename, lines):
+  return ','.join(str(ord(c)) for c in lines)
 
 
 def ReadFile(filename):
@@ -62,6 +59,21 @@ def ReadLines(filename):
     if len(line) > 0:
       result.append(line)
   return result
+
+
+def LoadConfigFrom(name):
+  import ConfigParser
+  config = ConfigParser.ConfigParser()
+  config.read(name)
+  return config
+
+
+def ParseValue(string):
+  string = string.strip()
+  if string.startswith('[') and string.endswith(']'):
+    return string.lstrip('[').rstrip(']').split()
+  else:
+    return string
 
 
 def ExpandConstants(lines, constants):
@@ -162,37 +174,53 @@ def ReadMacros(lines):
 
 
 HEADER_TEMPLATE = """\
-#ifndef NODE_NATIVES_H_
-#define NODE_NATIVES_H_
+#ifndef node_natives_h
+#define node_natives_h
+namespace node {
 
-#include <stdint.h>
+%(source_lines)s\
 
-#define NODE_NATIVES_MAP(V) \\
-{node_natives_map}
+struct _native {
+  const char* name;
+  const unsigned char* source;
+  size_t source_len;
+};
 
-namespace node {{
-{sources}
-}}  // namespace node
+static const struct _native natives[] = { %(native_lines)s };
 
-#endif  // NODE_NATIVES_H_
+}
+#endif
 """
 
 
-NODE_NATIVES_MAP = """\
-  V({escaped_id}) \\
+NATIVE_DECLARATION = """\
+  { "%(id)s", %(escaped_id)s_native, sizeof(%(escaped_id)s_native) },
+"""
+
+SOURCE_DECLARATION = """\
+  const unsigned char %(escaped_id)s_native[] = { %(data)s };
 """
 
 
-SOURCES = """\
-static const uint8_t {escaped_id}_name[] = {{
-{name}}};
-static const uint8_t {escaped_id}_data[] = {{
-{data}}};
+GET_DELAY_INDEX_CASE = """\
+    if (strcmp(name, "%(id)s") == 0) return %(i)i;
 """
 
+
+GET_DELAY_SCRIPT_SOURCE_CASE = """\
+    if (index == %(i)i) return Vector<const char>(%(id)s, %(length)i);
+"""
+
+
+GET_DELAY_SCRIPT_NAME_CASE = """\
+    if (index == %(i)i) return Vector<const char>("%(name)s", %(length)i);
+"""
 
 def JS2C(source, target):
+  ids = []
+  delay_ids = []
   modules = []
+  # Locate the macros file name.
   consts = {}
   macros = {}
   macro_lines = []
@@ -207,14 +235,18 @@ def JS2C(source, target):
   (consts, macros) = ReadMacros(macro_lines)
 
   # Build source code lines
-  node_natives_map = []
-  sources = []
+  source_lines = [ ]
+  source_lines_empty = []
+
+  native_lines = []
 
   for s in modules:
+    delay = str(s).endswith('-delay.js')
     lines = ReadFile(str(s))
+
     lines = ExpandConstants(lines, consts)
     lines = ExpandMacros(lines, macros)
-    data = ToCString(lines)
+    data = ToCArray(s, lines)
 
     # On Windows, "./foo.bar" in the .gyp file is passed as "foo.bar"
     # so don't assume there is always a slash in the file path.
@@ -229,21 +261,92 @@ def JS2C(source, target):
       if '.' in id:
         id = id.split('.', 1)[0]
 
-    name = ToCString(id)
+    if delay: id = id[:-6]
+    if delay:
+      delay_ids.append((id, len(lines)))
+    else:
+      ids.append((id, len(lines)))
+
     if '__enclose_io_memfs__' in id:
       escaped_id = re.sub('\W', '_', id.replace('/', '__'))
     else:
       escaped_id = id.replace('-', '_').replace('/', '_')
-    node_natives_map.append(NODE_NATIVES_MAP.format(**locals()))
-    sources.append(SOURCES.format(**locals()))
 
-  node_natives_map = ''.join(node_natives_map)
-  sources = ''.join(sources)
+    source_lines.append(SOURCE_DECLARATION % {
+      'id': id,
+      'escaped_id': escaped_id,
+      'data': data
+    })
+    source_lines_empty.append(SOURCE_DECLARATION % {
+      'id': id,
+      'escaped_id': escaped_id,
+      'data': 0
+    })
+    native_lines.append(NATIVE_DECLARATION % {
+      'id': id,
+      'escaped_id': escaped_id
+    })
+
+  # Build delay support functions
+  get_index_cases = [ ]
+  get_script_source_cases = [ ]
+  get_script_name_cases = [ ]
+
+  i = 0
+  for (id, length) in delay_ids:
+    native_name = "native %s.js" % id
+    get_index_cases.append(GET_DELAY_INDEX_CASE % { 'id': id, 'i': i })
+    get_script_source_cases.append(GET_DELAY_SCRIPT_SOURCE_CASE % {
+      'id': id,
+      'length': length,
+      'i': i
+    })
+    get_script_name_cases.append(GET_DELAY_SCRIPT_NAME_CASE % {
+      'name': native_name,
+      'length': len(native_name),
+      'i': i
+    });
+    i = i + 1
+
+  for (id, length) in ids:
+    native_name = "native %s.js" % id
+    get_index_cases.append(GET_DELAY_INDEX_CASE % { 'id': id, 'i': i })
+    get_script_source_cases.append(GET_DELAY_SCRIPT_SOURCE_CASE % {
+      'id': id,
+      'length': length,
+      'i': i
+    })
+    get_script_name_cases.append(GET_DELAY_SCRIPT_NAME_CASE % {
+      'name': native_name,
+      'length': len(native_name),
+      'i': i
+    });
+    i = i + 1
 
   # Emit result
   output = open(str(target[0]), "w")
-  output.write(HEADER_TEMPLATE.format(**locals()))
+  output.write(HEADER_TEMPLATE % {
+    'builtin_count': len(ids) + len(delay_ids),
+    'delay_count': len(delay_ids),
+    'source_lines': "\n".join(source_lines),
+    'native_lines': "\n".join(native_lines),
+    'get_index_cases': "".join(get_index_cases),
+    'get_script_source_cases': "".join(get_script_source_cases),
+    'get_script_name_cases': "".join(get_script_name_cases)
+  })
   output.close()
+
+  if len(target) > 1:
+    output = open(str(target[1]), "w")
+    output.write(HEADER_TEMPLATE % {
+      'builtin_count': len(ids) + len(delay_ids),
+      'delay_count': len(delay_ids),
+      'source_lines': "\n".join(source_lines_empty),
+      'get_index_cases': "".join(get_index_cases),
+      'get_script_source_cases': "".join(get_script_source_cases),
+      'get_script_name_cases': "".join(get_script_name_cases)
+    })
+    output.close()
 
 def main():
   natives = sys.argv[1]

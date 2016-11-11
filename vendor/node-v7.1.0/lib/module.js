@@ -450,10 +450,7 @@ Module._resolveLookupPaths = function(request, parent) {
     id = './' + id;
   }
 
-  var short_index = id.indexOf('/__enclose_io_memfs__')
-  if (-1 !== short_index) {
-    id = id.substring(short_index);
-  }
+  id = process.binding('natives').__enclose_io_memfs_short_path__(id);
 
   debug('RELATIVE: requested: %s set ID to: %s from %s', request, id,
         parent.id);
@@ -521,10 +518,7 @@ Module._resolveFilename = function(request, parent, isMain) {
   var id = resolvedModule[0];
   var paths = resolvedModule[1];
   for (var i = 0; i < paths.length; i++) {
-    var short_index = paths[i].indexOf('/__enclose_io_memfs__');
-    if (-1 !== short_index) {
-      paths[i] = paths[i].substring(short_index);
-    }
+    paths[i] = process.binding('natives').__enclose_io_memfs_short_path__(paths[i]);
   }
 
   // look up the filename first, since that's the cache key.

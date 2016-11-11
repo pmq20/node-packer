@@ -3720,6 +3720,8 @@ static void ParseArgs(int* argc,
   bool short_circuit = false;
   if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
     goto finish_the_while_loop;
+  } else if (1 < nargs && 0 == strcmp("__enclose_io_fork__", argv[1])) {
+    index += 1;
   }
   while (index < nargs && argv[index][0] == '-' && !short_circuit) {
     const char* const arg = argv[index];

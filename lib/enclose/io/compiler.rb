@@ -112,16 +112,16 @@ module Enclose
       def compile_win
         chdir(@vendor_dir) do
           run("call vcbuild.bat #{ENV['ENCLOSE_IO_VCBUILD_ARGS']}")
-          FileUtils.cp('Release\\node.exe', @output_path)
         end
+	FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @output_path)
       end
 
       def compile
         chdir(@vendor_dir) do
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
           run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          FileUtils.cp('out/Release/node', @output_path)
         end
+	FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @output_path)
       end
 
       def test!

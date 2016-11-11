@@ -55,14 +55,12 @@
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
 
-    if (!process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
+    if ('__enclose_io_fork__' === process.argv[1]) {
+      process.argv.splice(1, 1);
+    } else if (!process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
       if (NativeModule.require('enclose_io_entrance')) {
         process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
       }
-      // Make ENCLOSE_IO_USE_ORIGINAL_NODE contagious so that
-      // subprocesses forked via child_process.fork could work correctly
-      // by using a ordinary argv[1] semantic
-      process.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
     }
 
     // Do not initialize channel in debugger agent, it deletes env variable

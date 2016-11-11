@@ -122,7 +122,7 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        if (-1 === process.argv[1].indexOf('__enclose_io_memfs__')) {
+        if (-1 === process.argv[1].indexOf('/__enclose_io_memfs__')) {
           process.argv[1] = path.resolve(process.argv[1]);
         }
 
@@ -415,9 +415,9 @@
 
   NativeModule._source = process.binding('natives');
   process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
-    var short_index = path.indexOf('__enclose_io_memfs__');
+    var short_index = path.indexOf('/__enclose_io_memfs__');
     if (-1 === short_index) {
-      throw new Error(`__enclose_io_memfs__ not found among substrings of ${path}`);
+      throw new Error(`/__enclose_io_memfs__ not found among substrings of ${path}`);
     } else {
       return path.substring(short_index);
     }
@@ -482,7 +482,7 @@
   };
 
   NativeModule.exists = function(id) {
-    if ('win32' === process.platform && -1 !== id.indexOf('__enclose_io_memfs__')) {
+    if ('win32' === process.platform && -1 !== id.indexOf('/__enclose_io_memfs__')) {
       id = id.replace(/\\/g, '/');
     }
     return NativeModule._source.hasOwnProperty(id);

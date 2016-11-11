@@ -10,7 +10,7 @@ module Enclose
   module IO
     class Compiler
       VENDOR_DIR = File.expand_path('../../../../vendor', __FILE__)
-      MEMFS = '__enclose_io_memfs__'
+      MEMFS = '/__enclose_io_memfs__'
 
       def self.node_versions
         Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
@@ -91,7 +91,7 @@ module Enclose
       end
 
       def inject_memfs(source)
-        target = File.expand_path("./lib/#{MEMFS}", @vendor_dir)
+        target = File.expand_path("./lib#{MEMFS}", @vendor_dir)
         FileUtils.remove_entry_secure(target) if File.exist?(target)
         FileUtils.cp_r(source, target)
         manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
@@ -103,7 +103,7 @@ module Enclose
               # TODO: what about empty file semantics?
               File.open(fullpath, 'w') { |f| f.puts ' ' }
             end
-            entry = "lib/#{fullpath[(fullpath.index MEMFS)..-1]}"
+            entry = "lib#{fullpath[(fullpath.index MEMFS)..-1]}"
             f.puts entry
           end
         end

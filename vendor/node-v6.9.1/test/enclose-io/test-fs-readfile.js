@@ -3,7 +3,7 @@ const common = require('../common');
 const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
-const fn = '__enclose_io_memfs__/x.txt';
+const fn = '/__enclose_io_memfs__/x.txt';
 
 fs.readFile(fn, function(err, data) {
   assert.ok(data);

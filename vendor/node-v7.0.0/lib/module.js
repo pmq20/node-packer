@@ -80,10 +80,10 @@ function readPackage(requestPath) {
     return packageMainCache[requestPath];
   }
 
-  const jsonPath = (-1 === requestPath.indexOf('__enclose_io_memfs__')) ? 
+  const jsonPath = (-1 === requestPath.indexOf('/__enclose_io_memfs__')) ? 
                    path.resolve(requestPath, 'package.json') :
                    path.join(requestPath, 'package.json');
-  const json = (-1 === requestPath.indexOf('__enclose_io_memfs__')) ? 
+  const json = (-1 === requestPath.indexOf('/__enclose_io_memfs__')) ? 
                internalModuleReadFile(path._makeLong(jsonPath)) : 
                process.binding('natives').__enclose_io_memfs_get__(jsonPath);
 
@@ -106,7 +106,7 @@ function tryPackage(requestPath, exts, isMain) {
 
   if (!pkg) return false;
 
-  if (-1 === requestPath.indexOf('__enclose_io_memfs__')) {
+  if (-1 === requestPath.indexOf('/__enclose_io_memfs__')) {
     var filename = path.resolve(requestPath, pkg);
   } else {
     var filename = path.join(requestPath, pkg);
@@ -114,7 +114,7 @@ function tryPackage(requestPath, exts, isMain) {
 
   return tryFile(filename, isMain) ||
          tryExtensions(filename, exts, isMain) ||
-         tryExtensions((-1 === filename.indexOf('__enclose_io_memfs__') ?
+         tryExtensions((-1 === filename.indexOf('/__enclose_io_memfs__') ?
                         path.resolve(filename, 'index') :
                         path.join(filename, 'index')), exts, isMain);
 }
@@ -132,7 +132,7 @@ delete fs.realpathCacheKey;
 // keep symlinks intact, otherwise resolve to the
 // absolute realpath.
 function tryFile(requestPath, isMain) {
-  if (-1 !== requestPath.indexOf('__enclose_io_memfs__')) {
+  if (-1 !== requestPath.indexOf('/__enclose_io_memfs__')) {
     return process.binding('natives').__enclose_io_memfs_exist__(requestPath) && requestPath;
   }
   const rc = stat(requestPath);
@@ -163,7 +163,7 @@ function tryExtensions(p, exts, isMain) {
 var warned = false;
 Module._findPath = function(request, paths, isMain) {
   if (path.isAbsolute(request) ||
-      '__enclose_io_memfs__' == request.substring(0, '__enclose_io_memfs__'.length)) {
+      '/__enclose_io_memfs__' == request.substring(0, '/__enclose_io_memfs__'.length)) {
     paths = [''];
   } else if (!paths || paths.length === 0) {
     return false;
@@ -182,9 +182,9 @@ Module._findPath = function(request, paths, isMain) {
   for (var i = 0; i < paths.length; i++) {
     // Don't search further if path doesn't exist
     const curPath = paths[i];
-    if (-1 === curPath.indexOf('__enclose_io_memfs__')) {
+    if (-1 === curPath.indexOf('/__enclose_io_memfs__')) {
       if (curPath && stat(curPath) < 1) continue;
-      if (-1 === request.indexOf('__enclose_io_memfs__')) {
+      if (-1 === request.indexOf('/__enclose_io_memfs__')) {
         var basePath = path.resolve(curPath, request);
       } else {
         assert('' === curPath);
@@ -233,7 +233,7 @@ Module._findPath = function(request, paths, isMain) {
       if (!trailingSlash) {
         if (process.binding('natives').__enclose_io_memfs_exist__(basePath)) {  // File.
           filename = basePath;
-        } else if (-1 !== basePath.indexOf('__enclose_io_memfs__')) {  // Directory.
+        } else if (-1 !== basePath.indexOf('/__enclose_io_memfs__')) {  // Directory.
           if (exts === undefined)
             exts = Object.keys(Module._extensions);
           filename = tryPackage(basePath, exts, isMain);
@@ -452,7 +452,7 @@ Module._resolveLookupPaths = function(request, parent) {
     id = './' + id;
   }
 
-  var short_index = id.indexOf('__enclose_io_memfs__')
+  var short_index = id.indexOf('/__enclose_io_memfs__')
   if (-1 !== short_index) {
     id = id.substring(short_index);
   }
@@ -483,7 +483,7 @@ Module._load = function(request, parent, isMain) {
     return cachedModule.exports;
   }
 
-  if (NativeModule.nonInternalExists(filename) && -1 === filename.indexOf('__enclose_io_memfs__')) {
+  if (NativeModule.nonInternalExists(filename) && -1 === filename.indexOf('/__enclose_io_memfs__')) {
     debug('load native module %s', request);
     return NativeModule.require(filename);
   }
@@ -523,7 +523,7 @@ Module._resolveFilename = function(request, parent, isMain) {
   var id = resolvedModule[0];
   var paths = resolvedModule[1];
   for (var i = 0; i < paths.length; i++) {
-    var short_index = paths[i].indexOf('__enclose_io_memfs__');
+    var short_index = paths[i].indexOf('/__enclose_io_memfs__');
     if (-1 !== short_index) {
       paths[i] = paths[i].substring(short_index);
     }

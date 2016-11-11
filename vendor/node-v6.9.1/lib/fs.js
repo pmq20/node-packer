@@ -289,7 +289,7 @@ fs.readFile = function(path, options, callback_) {
 
   // TODO what about FD?
   // TODO what about request of nonexistent files?
-  if ('string' === typeof(path) && -1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
     if (options.encoding) {
       process.nextTick(function() {
         callback(null, process.binding('natives').__enclose_io_memfs_get__(path));
@@ -521,7 +521,7 @@ fs.readFileSync = function(path, options) {
 
   // TODO what about FD?
   // TODO what about request of nonexistent files?
-  if ('string' === typeof(path) && -1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
     if (encoding) {
       return process.binding('natives').__enclose_io_memfs_get__(path);
     } else {
@@ -1007,7 +1007,7 @@ fs.readdir = function(path, options, callback) {
 
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
-  if (-1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     process.nextTick(function() {
       callback(null, process.binding('natives').__enclose_io_memfs_readdir__(path));
     });
@@ -1025,7 +1025,7 @@ fs.readdirSync = function(path, options) {
   if (typeof options !== 'object')
     throw new TypeError('"options" must be a string or an object');
   nullCheck(path);
-  if (-1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     return process.binding('natives').__enclose_io_memfs_readdir__(path);
   }
   return binding.readdir(pathModule._makeLong(path), options.encoding);
@@ -1059,7 +1059,7 @@ fs.fstatSync = function(fd) {
 
 fs.lstatSync = function(path) {
   nullCheck(path);
-  if (-1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     return __enclose_io_memfs_stat__(path);
   }
   return binding.lstat(pathModule._makeLong(path));
@@ -1067,7 +1067,7 @@ fs.lstatSync = function(path) {
 
 fs.statSync = function(path) {
   nullCheck(path);
-  if (-1 !== path.indexOf('/__enclose_io_memfs__')) {
+  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
     return __enclose_io_memfs_stat__(path);
   }
   return binding.stat(pathModule._makeLong(path));
@@ -1685,7 +1685,7 @@ fs.realpathSync = function realpathSync(p, options) {
   nullCheck(p);
 
   p = p.toString('utf8');
-  if (p.indexOf('/__enclose_io_memfs__') !== -1) { return p; }
+  if (p.indexOf('__enclose_io_memfs__') !== -1) { return p; }
   p = pathModule.resolve(p);
 
   const seenLinks = {};

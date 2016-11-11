@@ -426,42 +426,6 @@
   }
 
   NativeModule._source = process.binding('natives');
-  process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
-    var short_index = path.indexOf('/__enclose_io_memfs__');
-    if (-1 === short_index) {
-      throw new Error(`/__enclose_io_memfs__ not found among substrings of ${path}`);
-    } else {
-      return path.substring(short_index);
-    }
-  }
-  process.binding('natives').__enclose_io_memfs_get__ = function(path) {
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    return process.binding('natives')[path];
-  };
-  process.binding('natives').__enclose_io_memfs_exist__ = function(path) {
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    return process.binding('natives').hasOwnProperty(path);
-  };
-  process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    const pathModule = NativeModule.require('path');
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    if ('/' !== path[path.length - 1]) {
-      path += '/'
-    }
-    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
-      function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
-      function(x) { return (pathModule.relative(path, x)).split(pathModule.sep)[0] });
-    return Array.from(new Set(ret));
-  };
   
   NativeModule._cache = {};
 
@@ -556,6 +520,51 @@
 
   NativeModule.prototype.cache = function() {
     NativeModule._cache[this.id] = this;
+  };
+
+  process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
+    var short_index = path.indexOf('/__enclose_io_memfs__');
+    if (-1 === short_index) {
+      throw new Error(`/__enclose_io_memfs__ not found among substrings of ${path}`);
+    } else {
+      return path.substring(short_index);
+    }
+  }
+  process.binding('natives').__enclose_io_memfs_resolve__ = function(curPath, path) {
+    const pathModule = NativeModule.require('path');
+    if (-1 === path.indexOf('/__enclose_io_memfs__')) {
+      return pathModule.resolve(curPath, path);
+    } else {
+      return process.binding('natives').__enclose_io_memfs_short_path__(path);
+    }
+  };
+  process.binding('natives').__enclose_io_memfs_get__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives')[path];
+  };
+  process.binding('natives').__enclose_io_memfs_exist__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    return process.binding('natives').hasOwnProperty(path);
+  };
+  process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
+    const pathModule = NativeModule.require('path');
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    if ('/' !== path[path.length - 1]) {
+      path += '/'
+    }
+    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
+      function(x) { return (pathModule.relative(path, x)).split(pathModule.sep)[0] });
+    return Array.from(new Set(ret));
   };
 
   startup();

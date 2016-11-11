@@ -3,7 +3,7 @@ environment:
   ENCLOSE_IO_VCBUILD_ARGS: nosign
   matrix:
   - ENCLOSE_IO_TEST_NODE_VERSION: node-v6.9.1
-  - ENCLOSE_IO_TEST_NODE_VERSION: node-v7.0.0
+  - ENCLOSE_IO_TEST_NODE_VERSION: node-v7.1.0
 build_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%

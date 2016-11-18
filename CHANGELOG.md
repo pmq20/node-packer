@@ -3,6 +3,7 @@
 ## v0.6.0
 
 * hack spawn and spawnSync: https://github.com/enclose-io/compiler/pull/10
+* hack fs.stat, fs.watch, fs.watchFile: https://github.com/enclose-io/compiler/pull/11
 
 ## v0.5.0
 

@@ -133,7 +133,7 @@ delete fs.realpathCacheKey;
 // absolute realpath.
 function tryFile(requestPath, isMain) {
   if (-1 !== requestPath.indexOf('__enclose_io_memfs__')) {
-    return process.binding('natives').__enclose_io_memfs_exist__(requestPath) && requestPath;
+    return process.binding('natives').__enclose_io_memfs_exist_file__(requestPath) && requestPath;
   }
   const rc = stat(requestPath);
   if (preserveSymlinks && !isMain) {
@@ -229,7 +229,7 @@ Module._findPath = function(request, paths, isMain) {
 
       var is_dir = process.binding('natives').__enclose_io_memfs_readdir__(basePath).length > 0;
       if (!trailingSlash) {
-        if (process.binding('natives').__enclose_io_memfs_exist__(basePath)) {  // File.
+        if (process.binding('natives').__enclose_io_memfs_exist_file__(basePath)) { // File.
           filename = basePath;
         } else if (is_dir) {  // Directory.
           if (exts === undefined)

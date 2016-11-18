@@ -2,7 +2,7 @@
 
 ## v0.6.0
 
-(Work in Progress)
+* hack spawn and spawnSync: https://github.com/enclose-io/compiler/pull/10
 
 ## v0.5.0
 

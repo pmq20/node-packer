@@ -288,8 +288,7 @@ fs.readFile = function(path, options, callback_) {
     return;
 
   // TODO what about FD?
-  // TODO what about request of nonexistent files?
-  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
+  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
     if (options.encoding) {
       process.nextTick(function() {
         callback(null, process.binding('natives').__enclose_io_memfs_get__(path));
@@ -520,8 +519,7 @@ fs.readFileSync = function(path, options) {
   assertEncoding(encoding);
 
   // TODO what about FD?
-  // TODO what about request of nonexistent files?
-  if ('string' === typeof(path) && -1 !== path.indexOf('__enclose_io_memfs__')) {
+  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
     if (encoding) {
       return process.binding('natives').__enclose_io_memfs_get__(path);
     } else {
@@ -613,51 +611,6 @@ function stringToFlags(flag) {
   }
 
   throw new Error('Unknown file open flag: ' + flag);
-}
-
-function __enclose_io_memfs_stat__(path) {
-  if (process.binding('natives').__enclose_io_memfs_exist__(path)) {
-    return new fs.Stats(
-        0,                                        // dev
-        33188,                                    // mode - regular file w/ 644
-        1,                                        // nlink - only one
-        0,                                        // uid
-        0,                                        // gid
-        0,                                        // rdev
-        0,                                        // blksize
-        0,                                        // ino
-        process.binding('natives').__enclose_io_memfs_get__(path).length,
-        0,                                        // blocks
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
-    );
-  } else {
-    path += '/';
-    var possibilities = process.binding('natives').__enclose_io_memfs_readdir__(path);
-    if (possibilities.length > 0) {
-      // is Directory
-      return new fs.Stats(
-          0,                                        // dev
-          16877,                                    // mode - directory w/ 40755
-          2 + possibilities.length,                 // nlink - 2 + num
-          0,                                        // uid
-          0,                                        // gid
-          0,                                        // rdev
-          0,                                        // blksize
-          0,                                        // ino
-          1,                                        // size - 1
-          0,                                        // blocks
-          Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-          Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-          Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-          Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
-      );
-    } else {
-      throw new Error('TODO __enclose_io_memfs_stat__ w/ nonexistent path')
-    }
-  }
 }
 
 // exported but hidden, only used by test/simple/test-fs-open-flags.js
@@ -1040,6 +993,17 @@ fs.fstat = function(fd, callback) {
 fs.lstat = function(path, callback) {
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
+  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_stat_file__(path));
+    });
+    return;
+  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_stat_dir__(path));
+    });
+    return;
+  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.lstat(pathModule._makeLong(path), req);
@@ -1048,6 +1012,17 @@ fs.lstat = function(path, callback) {
 fs.stat = function(path, callback) {
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
+  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_stat_file__(path));
+    });
+    return;
+  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
+    process.nextTick(function() {
+      callback(null, process.binding('natives').__enclose_io_memfs_stat_dir__(path));
+    });
+    return;
+  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.stat(pathModule._makeLong(path), req);
@@ -1059,16 +1034,20 @@ fs.fstatSync = function(fd) {
 
 fs.lstatSync = function(path) {
   nullCheck(path);
-  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    return __enclose_io_memfs_stat__(path);
+  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+    return process.binding('natives').__enclose_io_memfs_stat_file__(path);
+  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
+    return process.binding('natives').__enclose_io_memfs_stat_dir__(path);
   }
   return binding.lstat(pathModule._makeLong(path));
 };
 
 fs.statSync = function(path) {
   nullCheck(path);
-  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    return __enclose_io_memfs_stat__(path);
+  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+    return process.binding('natives').__enclose_io_memfs_stat_file__(path);
+  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
+    return process.binding('natives').__enclose_io_memfs_stat_dir__(path);
   }
   return binding.stat(pathModule._makeLong(path));
 };
@@ -1524,6 +1503,10 @@ FSWatcher.prototype.close = function() {
 
 fs.watch = function(filename, options, listener) {
   nullCheck(filename);
+  
+  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+    return new FSWatcher();
+  }
 
   options = options || {};
   if (typeof options === 'function') {
@@ -1595,6 +1578,11 @@ const statWatchers = new Map();
 
 fs.watchFile = function(filename, options, listener) {
   nullCheck(filename);
+
+  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+    return new StatWatcher();
+  }
+
   filename = pathModule.resolve(filename);
   var stat;
 

@@ -1372,6 +1372,10 @@ FSWatcher.prototype.close = function() {
 
 fs.watch = function(filename, options, listener) {
   nullCheck(filename);
+  
+  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+    return new FSWatcher();
+  }
 
   if (typeof options === 'function') {
     listener = options;
@@ -1445,6 +1449,11 @@ const statWatchers = new Map();
 
 fs.watchFile = function(filename, options, listener) {
   nullCheck(filename);
+
+  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+    return new StatWatcher();
+  }
+
   filename = pathModule.resolve(filename);
   var stat;
 

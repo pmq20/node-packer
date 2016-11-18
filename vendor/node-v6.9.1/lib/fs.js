@@ -1504,7 +1504,7 @@ FSWatcher.prototype.close = function() {
 fs.watch = function(filename, options, listener) {
   nullCheck(filename);
   
-  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+  if ('string' === typeof(filename) && -1 !== filename.indexOf('__enclose_io_memfs__')) {
     return new FSWatcher();
   }
 
@@ -1579,7 +1579,7 @@ const statWatchers = new Map();
 fs.watchFile = function(filename, options, listener) {
   nullCheck(filename);
 
-  if (-1 !== filename.indexOf('__enclose_io_memfs__')) {
+  if ('string' === typeof(filename) && -1 !== filename.indexOf('__enclose_io_memfs__')) {
     return new StatWatcher();
   }
 

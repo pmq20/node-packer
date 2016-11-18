@@ -546,6 +546,45 @@
     NativeModule._cache[this.id] = this;
   };
 
+  process.binding('natives').__enclose_io_memfs_stat_file__ = function(path) {
+    const fsModule = NativeModule.require('fs');
+    return new fsModule.Stats(
+        0,                                        // dev
+        33188,                                    // mode: regular file w/ 644
+        1,                                        // nlink: only one
+        0,                                        // uid
+        0,                                        // gid
+        0,                                        // rdev
+        0,                                        // blksize
+        0,                                        // ino
+        process.binding('natives').__enclose_io_memfs_get__(path).length,
+        0,                                        // blocks
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+    );
+  }
+  process.binding('natives').__enclose_io_memfs_stat_dir__ = function(path) {
+    const fsModule = NativeModule.require('fs');
+    return new fsModule.Stats(
+        0,                                        // dev
+        16877,                                    // mode: directory w/ 40755
+        // nlink: 2 + num
+        2 + process.binding('natives').__enclose_io_memfs_readdir__(path).length,
+        0,                                        // uid
+        0,                                        // gid
+        0,                                        // rdev
+        0,                                        // blksize
+        0,                                        // ino
+        1,                                        // size - 1
+        0,                                        // blocks
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+    );
+  }
   process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
     var short_index = path.indexOf('/__enclose_io_memfs__');
     if (-1 === short_index) {
@@ -572,12 +611,24 @@
     }
     return process.binding('natives')[path];
   };
-  process.binding('natives').__enclose_io_memfs_exist__ = function(path) {
+  process.binding('natives').__enclose_io_memfs_exist_file__ = function(path) {
     path = process.binding('natives').__enclose_io_memfs_short_path__(path);
     if (process.platform === 'win32') {
       path = path.replace(/\\/g, '/');
     }
     return process.binding('natives').hasOwnProperty(path);
+  };
+  process.binding('natives').__enclose_io_memfs_exist_dir__ = function(path) {
+    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
+    if (process.platform === 'win32') {
+      path = path.replace(/\\/g, '/');
+    }
+    if ('/' !== path[path.length - 1]) {
+      path += '/';
+    }
+    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
+      function(x) { return 0 === x.lastIndexOf(path, 0); } );
+    return ret.length > 0;
   };
   process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
     const pathModule = NativeModule.require('path');
@@ -586,7 +637,7 @@
       path = path.replace(/\\/g, '/');
     }
     if ('/' !== path[path.length - 1]) {
-      path += '/'
+      path += '/';
     }
     var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
       function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(

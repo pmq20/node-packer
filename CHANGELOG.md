@@ -1,4 +1,4 @@
-# Enclose.IO Node.js Compiler Changelog
+# Node.js Compiler Changelog
 
 ## v0.7.0
 

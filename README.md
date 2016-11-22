@@ -12,10 +12,10 @@ http://enclose.io
 
 ## Supported Node.js Versions
 
-| Release Line | Supported Version | `node_version` | Based on                                          |
-|:------------:|:-----------------:|:--------------:|---------------------------------------------------|
-|      LTS     |       v6.9.1      |  `node-v6.9.1` | https://nodejs.org/dist/v6.9.1/node-v6.9.1.tar.gz |
-|    Current   |       v7.1.0      |  `node-v7.1.0` | https://nodejs.org/dist/v7.1.0/node-v7.1.0.tar.gz |
+| Release Line | Supported Version | Based on                                          |
+|:------------:|:-----------------:|---------------------------------------------------|
+|      LTS     |   `node-v6.9.1`   | https://nodejs.org/dist/v6.9.1/node-v6.9.1.tar.gz |
+|    Current   |   `node-v7.1.0`   | https://nodejs.org/dist/v7.1.0/node-v7.1.0.tar.gz |
 
 ## Installation
 

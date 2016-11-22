@@ -1,4 +1,9 @@
-# Enclose.IO Compiler Changelog
+# Enclose.IO Node.js Compiler Changelog
+
+## v0.7.0
+
+* change command name to `nodec`
+* change gem name to `node-compiler`
 
 ## v0.6.0
 

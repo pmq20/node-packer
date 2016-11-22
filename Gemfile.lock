@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    enclose-io-compiler (0.7.0)
+    enclose-io-node-compiler (0.7.0)
 
 GEM
   remote: https://rubygems.org/
@@ -48,7 +48,7 @@ PLATFORMS
 DEPENDENCIES
   bundler (>= 1.13.3)
   codecov (>= 0.1.6)
-  enclose-io-compiler!
+  enclose-io-node-compiler!
   pry (>= 0.10.4)
   rake (>= 11.3.0)
   rspec (>= 3.5.0)

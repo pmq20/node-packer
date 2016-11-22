@@ -1,16 +1,16 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'enclose/io/compiler/version'
+require 'enclose/io/node/compiler/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "enclose-io-compiler"
-  spec.version       = Enclose::IO::Compiler::VERSION
+  spec.name          = "enclose-io-node-compiler"
+  spec.version       = Enclose::IO::Node::Compiler::VERSION
   spec.authors       = ["Minqi Pan"]
   spec.email         = ["pmq2001@gmail.com"]
 
-  spec.summary       = %q{Compiler of Enclose.IO}
-  spec.description   = %q{Compiler of Enclose.IO which packs your Node.js app into a single executable.}
-  spec.homepage      = "https://github.com/enclose-io/compiler"
+  spec.summary       = %q{Node.js compiler of Enclose.IO}
+  spec.description   = %q{Node.js compiler of Enclose.IO which compiles your Node.js app into a single executable.}
+  spec.homepage      = "https://github.com/enclose-io/node-compiler"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

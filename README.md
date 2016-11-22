@@ -1,14 +1,14 @@
-# Enclose.IO Compiler
+# Enclose.IO Node.js Compiler
 
-Compiler of Enclose.IO which packs your Node.js app into a single executable.
+Node.js compiler of Enclose.IO which compiles your Node.js app into a single executable.
 
 http://enclose.io
 
-[![Travis CI Build Status](https://travis-ci.org/enclose-io/compiler.svg?branch=master)](https://travis-ci.org/enclose-io/compiler)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/compiler)
-[![Code Climate](https://codeclimate.com/github/enclose-io/compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/compiler)
-[![codecov.io](https://codecov.io/github/enclose-io/compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/compiler?branch=master)
-[![Gem Version](https://badge.fury.io/rb/enclose-io-compiler.svg)](https://badge.fury.io/rb/enclose-io-compiler)
+[![Travis CI Build Status](https://travis-ci.org/enclose-io/node-compiler.svg?branch=master)](https://travis-ci.org/enclose-io/node-compiler)
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler)
+[![Code Climate](https://codeclimate.com/github/enclose-io/node-compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/node-compiler)
+[![codecov.io](https://codecov.io/github/enclose-io/node-compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/node-compiler?branch=master)
+[![Gem Version](https://badge.fury.io/rb/enclose-io-node-compiler.svg)](https://badge.fury.io/rb/enclose-io-node-compiler)
 
 ## Supported Node.js Versions
 
@@ -22,7 +22,7 @@ http://enclose.io
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'enclose-io-compiler'
+gem 'enclose-io-node-compiler'
 ```
 
 And then execute:
@@ -31,16 +31,16 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install enclose-io-compiler
+    $ gem install enclose-io-node-compiler
 
 
 ## Usage
 
-    enclose-io-compiler [node_version] [module_name] [module_version] [bin_name] [output_path]
+    nodec [node_version] [module_name] [module_version] [bin_name] [output_path]
 
 ## Example
 
-    enclose-io-compiler node-v7.1.0 coffee-script 1.11.1 coffee coffee-1.11.1-node-v7.1.0-darwin-x64
+    nodec node-v7.1.0 coffee-script 1.11.1 coffee coffee-1.11.1-node-v7.1.0-darwin-x64
 
 Then the compiled product will be located at `./coffee-1.11.1-node-v7.1.0-darwin-x64`, ready to be distributed.
 
@@ -58,13 +58,18 @@ Then the compiled product will be located at `./coffee-1.11.1-node-v7.1.0-darwin
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. Or without installing, run `bundle exec enclose-io-compiler` from the root of your project directory.
+To install this gem onto your local machine, run `bundle exec rake install`. Or without installing, run `bundle exec nodec` from the root of your project directory.
 
 To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/enclose-io/compiler.
+Bug reports and pull requests are welcome on GitHub at https://github.com/enclose-io/node-compiler.
+
+## Contributors
+
+* [pmq20](https://github.com/pmq20) - **Minqi Pan** &lt;pmq2001@gmail.com&gt;
+* [ibigbug](https://github.com/ibigbug) - **Yuwei Ba** &lt;akabyw@gmail.com&gt;
 
 ## License
 

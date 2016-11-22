@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+require "enclose/io/node/compiler"
+
+module Enclose
+  module IO
+    module Node
+
+      usage = %Q{
+
+  nodec v#{Compiler::VERSION}
+
+  Usage:
+    nodec [node_version] [module_name] [module_version] [bin_name] [output_path]
+
+  E.g.:
+    nodec node-v7.1.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v7.1.0-darwin-x64
+
+  Available Node.js versions:
+    #{Compiler.node_versions.join(', ')}
+
+      }.strip
+
+      if 2 == ARGV.size && 'test' == ARGV[1]
+        instance = Compiler.new ARGV[0]
+        instance.test!
+        exit 0
+      end
+
+      unless 5 == ARGV.size
+        puts usage
+        exit 1
+      end
+
+      begin
+        instance = Compiler.new *ARGV
+        instance.run!
+        instance.clean_work_dir unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
+      rescue Compiler::Error => e
+        STDERR.puts e.message
+        exit 2
+      end
+      
+    end
+  end
+end

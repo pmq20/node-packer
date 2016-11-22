@@ -8,7 +8,7 @@ if ENV['CI']
 end
 
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
-require "enclose/io/compiler"
+require "enclose/io/node/compiler"
 require 'tempfile'
 require 'tmpdir'
 
@@ -19,7 +19,7 @@ RSpec.configure do |config|
         Please set ENV['ENCLOSE_IO_TEST_NODE_VERSION']
 
         Possible values:
-          #{::Enclose::IO::Compiler.node_versions.join(', ')}
+          #{::Enclose::IO::Node::Compiler.node_versions.join(', ')}
       }
       exit -1
     end

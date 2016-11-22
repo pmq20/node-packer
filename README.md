@@ -4,8 +4,8 @@ Node.js compiler of Enclose.IO which compiles your app into a single executable.
 
 http://enclose.io
 
-[![Travis CI Build Status](https://travis-ci.org/enclose-io/node-compiler.svg?branch=master)](https://travis-ci.org/enclose-io/node-compiler)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler)
+[![Linux and Mac OS X Build Status](https://travis-ci.org/enclose-io/node-compiler.svg?branch=master)](https://travis-ci.org/enclose-io/node-compiler)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/f4x3bq5hub3uu3ys/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 [![Code Climate](https://codeclimate.com/github/enclose-io/node-compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/node-compiler)
 [![codecov.io](https://codecov.io/github/enclose-io/node-compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/node-compiler?branch=master)
 [![Gem Version](https://badge.fury.io/rb/node-compiler.svg)](https://badge.fury.io/rb/node-compiler)
@@ -46,10 +46,10 @@ Then the compiled product will be located at `./coffee-1.11.1-node-v7.1.0-darwin
 
 ## Optional Environment Variables
 
+* `ENCLOSE_IO_KEEP_WORK_DIR`
 * `ENCLOSE_IO_CONFIGURE_ARGS`
 * `ENCLOSE_IO_MAKE_ARGS`
 * `ENCLOSE_IO_VCBUILD_ARGS`
-* `ENCLOSE_IO_KEEP_WORK_DIR`
 * `ENCLOSE_IO_NPM`
 * `ENCLOSE_IO_NPM_INSTALL_ARGS`
 * `npm_config_registry`

@@ -1,23 +1,23 @@
 require "spec_helper"
 
-describe ::Enclose::IO::Node::Compiler do
+describe ::Node::Compiler do
   it "has a version number" do
-    expect(::Enclose::IO::Node::Compiler::VERSION).not_to be nil
+    expect(::Node::Compiler::VERSION).not_to be nil
   end
 
   it "passes all original and enclose.io-added Node.js tests" do
-    instance = ::Enclose::IO::Node::Compiler.new ENV['ENCLOSE_IO_TEST_NODE_VERSION']
+    instance = ::Node::Compiler.new ENV['ENCLOSE_IO_TEST_NODE_VERSION']
     instance.test!
   end
 
   it 'builds coffee out of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
     file.close
-    instance = ::Enclose::IO::Node::Compiler.new(ENV['ENCLOSE_IO_TEST_NODE_VERSION'],
-                                           'coffee-script',
-                                           '1.11.1',
-                                           'coffee',
-                                           file.path)
+    instance = ::Node::Compiler.new(ENV['ENCLOSE_IO_TEST_NODE_VERSION'],
+                                        'coffee-script',
+                                        '1.11.1',
+                                        'coffee',
+                                        file.path)
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

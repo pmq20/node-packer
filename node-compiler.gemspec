@@ -4,7 +4,7 @@ require 'node/compiler/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "node-compiler"
-  spec.version       = Enclose::IO::Node::Compiler::VERSION
+  spec.version       = ::Node::Compiler::VERSION
   spec.authors       = ["Minqi Pan"]
   spec.email         = ["pmq2001@gmail.com"]
 

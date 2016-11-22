@@ -19,7 +19,7 @@ RSpec.configure do |config|
         Please set ENV['ENCLOSE_IO_TEST_NODE_VERSION']
 
         Possible values:
-          #{::Enclose::IO::Node::Compiler.node_versions.join(', ')}
+          #{::Node::Compiler.node_versions.join(', ')}
       }
       exit -1
     end

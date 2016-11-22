@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: {build}
 environment:
   ENCLOSE_IO_VCBUILD_ARGS: nosign
   matrix:
@@ -7,28 +7,16 @@ environment:
 build_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%
-
-
     ruby -v
-
     gem update --system
-
     gem -v
-
     gem install bundler
-
     gem install certified
-
     echo gem 'certified' >> Gemfile
-
     certified-update
-
     bundle -v
-
     bundle install
 test_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%
-
-
     bundle exec rake

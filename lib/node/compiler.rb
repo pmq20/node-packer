@@ -29,7 +29,7 @@ module Enclose
 
           @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
           unless File.exist?(@vendor_dir)
-            msg = "Does not support #{@node_version}, supported: #{::Enclose::IO::Node::Compiler.node_versions.join ', '}"
+            msg = "Does not support #{@node_version}, supported: #{::Node::Compiler.node_versions.join ', '}"
             raise Error, msg
           end
         end

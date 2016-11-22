@@ -13,7 +13,7 @@ module Enclose
       MEMFS = '/__enclose_io_memfs__'
 
       def self.node_versions
-        Dir[VENDOR_DIR+'/node*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
+        Dir[VENDOR_DIR+'/node-*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
       end
 
       def initialize(node_version, module_name = nil,

@@ -1,6 +1,6 @@
-# Enclose.IO Node.js Compiler
+# Node.js Compiler
 
-Node.js compiler of Enclose.IO which compiles your app into a single executable.
+the Node.js compiler of Enclose.IO which compiles your app into a single executable.
 
 http://enclose.io
 

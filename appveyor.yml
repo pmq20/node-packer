@@ -1,4 +1,4 @@
-version: {build}
+version: '{build}'
 environment:
   ENCLOSE_IO_VCBUILD_ARGS: nosign
   matrix:

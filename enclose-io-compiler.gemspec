@@ -3,13 +3,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'enclose/io/node/compiler/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "enclose-io-node-compiler"
+  spec.name          = "node-compiler"
   spec.version       = Enclose::IO::Node::Compiler::VERSION
   spec.authors       = ["Minqi Pan"]
   spec.email         = ["pmq2001@gmail.com"]
 
   spec.summary       = %q{Node.js compiler of Enclose.IO}
-  spec.description   = %q{Node.js compiler of Enclose.IO which compiles your Node.js app into a single executable.}
+  spec.description   = %q{Node.js compiler of Enclose.IO which compiles your app into a single executable.}
   spec.homepage      = "https://github.com/enclose-io/node-compiler"
   spec.license       = "MIT"
 

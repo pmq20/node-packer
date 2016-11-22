@@ -1,6 +1,6 @@
 # Enclose.IO Node.js Compiler
 
-Node.js compiler of Enclose.IO which compiles your Node.js app into a single executable.
+Node.js compiler of Enclose.IO which compiles your app into a single executable.
 
 http://enclose.io
 
@@ -8,7 +8,7 @@ http://enclose.io
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/h0j58lnfg32srtcu/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler)
 [![Code Climate](https://codeclimate.com/github/enclose-io/node-compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/node-compiler)
 [![codecov.io](https://codecov.io/github/enclose-io/node-compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/node-compiler?branch=master)
-[![Gem Version](https://badge.fury.io/rb/enclose-io-node-compiler.svg)](https://badge.fury.io/rb/enclose-io-node-compiler)
+[![Gem Version](https://badge.fury.io/rb/node-compiler.svg)](https://badge.fury.io/rb/node-compiler)
 
 ## Supported Node.js Versions
 
@@ -22,7 +22,7 @@ http://enclose.io
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'enclose-io-node-compiler'
+gem 'node-compiler'
 ```
 
 And then execute:
@@ -31,7 +31,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install enclose-io-node-compiler
+    $ gem install node-compiler
 
 
 ## Usage

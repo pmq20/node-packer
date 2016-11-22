@@ -1,5 +1,5 @@
-require "enclose/io/node/compiler/version"
-require "enclose/io/node/compiler/error"
+require "node/compiler/version"
+require "node/compiler/error"
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
@@ -10,7 +10,7 @@ module Enclose
   module IO
     module Node
       class Compiler
-        VENDOR_DIR = File.expand_path('../../../../../vendor', __FILE__)
+        VENDOR_DIR = File.expand_path('../../../vendor', __FILE__)
         MEMFS = '/__enclose_io_memfs__'
 
         def self.node_versions

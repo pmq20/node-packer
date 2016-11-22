@@ -8,7 +8,7 @@ if ENV['CI']
 end
 
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
-require "enclose/io/node/compiler"
+require "node/compiler"
 require 'tempfile'
 require 'tmpdir'
 

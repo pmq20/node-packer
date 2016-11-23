@@ -171,3 +171,18 @@ enclose_io_manifest.txt
 /vendor/node-v6.9.1/tools/test.pyc
 /vendor/node-v6.9.1/tools/utils.pyc
 
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/MSVSUtil.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/MSVSVersion.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/__init__.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/common.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/generator/__init__.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/generator/make.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/generator/ninja.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/generator/xcode.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/input.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/msvs_emulation.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/ninja_syntax.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/simple_copy.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/xcode_emulation.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/xcode_ninja.pyc
+/vendor/node-v6.9.1/tools/gyp/pylib/gyp/xcodeproj_file.pyc

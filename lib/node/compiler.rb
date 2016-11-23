@@ -112,7 +112,7 @@ module Node
       chdir(@vendor_dir) do
         run("call vcbuild.bat #{ENV['ENCLOSE_IO_VCBUILD_ARGS']}")
       end
-FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @output_path)
+      FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @output_path)
     end
 
     def compile
@@ -120,7 +120,7 @@ FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @output_path)
         run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
         run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
       end
-FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @output_path)
+      FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @output_path)
     end
 
     def test!
@@ -137,8 +137,7 @@ FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @output_path)
           run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')
         else
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
-          run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
-          run(test_env, "make test-ci")
+          run(test_env, "make test-ci #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
         end
       end
     end

@@ -137,7 +137,8 @@ module Node
           run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')
         else
           run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
-          run(test_env, "make test-ci #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+          run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+          run(test_env, "make test-ci")
         end
       end
     end

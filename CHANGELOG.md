@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v0.8.0
+
+(work in progress)
+
 ## v0.7.0
 
 * change command name to `nodec`

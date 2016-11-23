@@ -10,7 +10,7 @@ os:
 
 env:
   global:
-    - ENCLOSE_IO_MAKE_ARGS="V="
+    - ENCLOSE_IO_MAKE_ARGS="CFLAGS=-w V="
   matrix:
     - ENCLOSE_IO_TEST_NODE_VERSION=node-v6.9.1
     - ENCLOSE_IO_TEST_NODE_VERSION=node-v7.1.0

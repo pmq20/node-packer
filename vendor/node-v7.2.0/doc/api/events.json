@@ -1,0 +1,473 @@
+{
+  "source": "doc/api/events.md",
+  "modules": [
+    {
+      "textRaw": "Events",
+      "name": "Events",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "type": "module",
+      "desc": "<p>Much of the Node.js core API is built around an idiomatic asynchronous\nevent-driven architecture in which certain kinds of objects (called &quot;emitters&quot;)\nperiodically emit named events that cause Function objects (&quot;listeners&quot;) to be\ncalled.</p>\n<p>For instance: a <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a> object emits an event each time a peer\nconnects to it; a <a href=\"fs.html#fs_class_fs_readstream\"><code>fs.ReadStream</code></a> emits an event when the file is opened;\na <a href=\"stream.html\">stream</a> emits an event whenever data is available to be read.</p>\n<p>All objects that emit events are instances of the <code>EventEmitter</code> class. These\nobjects expose an <code>eventEmitter.on()</code> function that allows one or more\nfunctions to be attached to named events emitted by the object. Typically,\nevent names are camel-cased strings but any valid JavaScript property key\ncan be used.</p>\n<p>When the <code>EventEmitter</code> object emits an event, all of the functions attached\nto that specific event are called <em>synchronously</em>. Any values returned by the\ncalled listeners are <em>ignored</em> and will be discarded.</p>\n<p>The following example shows a simple <code>EventEmitter</code> instance with a single\nlistener. The <code>eventEmitter.on()</code> method is used to register listeners, while\nthe <code>eventEmitter.emit()</code> method is used to trigger the event.</p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n\nclass MyEmitter extends EventEmitter {}\n\nconst myEmitter = new MyEmitter();\nmyEmitter.on(&#39;event&#39;, () =&gt; {\n  console.log(&#39;an event occurred!&#39;);\n});\nmyEmitter.emit(&#39;event&#39;);\n</code></pre>\n",
+      "modules": [
+        {
+          "textRaw": "Passing arguments and `this` to listeners",
+          "name": "passing_arguments_and_`this`_to_listeners",
+          "desc": "<p>The <code>eventEmitter.emit()</code> method allows an arbitrary set of arguments to be\npassed to the listener functions. It is important to keep in mind that when an\nordinary listener function is called by the <code>EventEmitter</code>, the standard <code>this</code>\nkeyword is intentionally set to reference the <code>EventEmitter</code> to which the\nlistener is attached.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;event&#39;, function(a, b) {\n  console.log(a, b, this);\n  // Prints:\n  //   a b MyEmitter {\n  //     domain: null,\n  //     _events: { event: [Function] },\n  //     _eventsCount: 1,\n  //     _maxListeners: undefined }\n});\nmyEmitter.emit(&#39;event&#39;, &#39;a&#39;, &#39;b&#39;);\n</code></pre>\n<p>It is possible to use ES6 Arrow Functions as listeners, however, when doing so,\nthe <code>this</code> keyword will no longer reference the <code>EventEmitter</code> instance:</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;event&#39;, (a, b) =&gt; {\n  console.log(a, b, this);\n  // Prints: a b {}\n});\nmyEmitter.emit(&#39;event&#39;, &#39;a&#39;, &#39;b&#39;);\n</code></pre>\n",
+          "type": "module",
+          "displayName": "Passing arguments and `this` to listeners"
+        },
+        {
+          "textRaw": "Asynchronous vs. Synchronous",
+          "name": "asynchronous_vs._synchronous",
+          "desc": "<p>The <code>EventListener</code> calls all listeners synchronously in the order in which\nthey were registered. This is important to ensure the proper sequencing of\nevents and to avoid race conditions or logic errors. When appropriate,\nlistener functions can switch to an asynchronous mode of operation using\nthe <code>setImmediate()</code> or <code>process.nextTick()</code> methods:</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;event&#39;, (a, b) =&gt; {\n  setImmediate(() =&gt; {\n    console.log(&#39;this happens asynchronously&#39;);\n  });\n});\nmyEmitter.emit(&#39;event&#39;, &#39;a&#39;, &#39;b&#39;);\n</code></pre>\n",
+          "type": "module",
+          "displayName": "Asynchronous vs. Synchronous"
+        },
+        {
+          "textRaw": "Handling events only once",
+          "name": "handling_events_only_once",
+          "desc": "<p>When a listener is registered using the <code>eventEmitter.on()</code> method, that\nlistener will be invoked <em>every time</em> the named event is emitted.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nvar m = 0;\nmyEmitter.on(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 2\n</code></pre>\n<p>Using the <code>eventEmitter.once()</code> method, it is possible to register a listener\nthat is called at most once for a particular event. Once the event is emitted,\nthe listener is unregistered and <em>then</em> called.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nvar m = 0;\nmyEmitter.once(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Ignored\n</code></pre>\n",
+          "type": "module",
+          "displayName": "Handling events only once"
+        },
+        {
+          "textRaw": "Error events",
+          "name": "error_events",
+          "desc": "<p>When an error occurs within an <code>EventEmitter</code> instance, the typical action is\nfor an <code>&#39;error&#39;</code> event to be emitted. These are treated as special cases\nwithin Node.js.</p>\n<p>If an <code>EventEmitter</code> does <em>not</em> have at least one listener registered for the\n<code>&#39;error&#39;</code> event, and an <code>&#39;error&#39;</code> event is emitted, the error is thrown, a\nstack trace is printed, and the Node.js process exits.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Throws and crashes Node.js\n</code></pre>\n<p>To guard against crashing the Node.js process, a listener can be registered\non the <a href=\"process.html#process_event_uncaughtexception\"><code>process</code> object&#39;s <code>uncaughtException</code> event</a> or the <a href=\"domain.html\"><code>domain</code></a> module\ncan be used. (<em>Note, however, that the <code>domain</code> module has been deprecated</em>)</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nprocess.on(&#39;uncaughtException&#39;, (err) =&gt; {\n  console.log(&#39;whoops! there was an error&#39;);\n});\n\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n<p>As a best practice, listeners should always be added for the <code>&#39;error&#39;</code> events.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;error&#39;, (err) =&gt; {\n  console.log(&#39;whoops! there was an error&#39;);\n});\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n",
+          "type": "module",
+          "displayName": "Error events"
+        }
+      ],
+      "classes": [
+        {
+          "textRaw": "Class: EventEmitter",
+          "type": "class",
+          "name": "EventEmitter",
+          "meta": {
+            "added": [
+              "v0.1.26"
+            ]
+          },
+          "desc": "<p>The <code>EventEmitter</code> class is defined and exposed by the <code>events</code> module:</p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n</code></pre>\n<p>All EventEmitters emit the event <code>&#39;newListener&#39;</code> when new listeners are\nadded and <code>&#39;removeListener&#39;</code> when existing listeners are removed.</p>\n",
+          "events": [
+            {
+              "textRaw": "Event: 'newListener'",
+              "type": "event",
+              "name": "newListener",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "params": [],
+              "desc": "<p>The <code>EventEmitter</code> instance will emit its own <code>&#39;newListener&#39;</code> event <em>before</em>\na listener is added to its internal array of listeners.</p>\n<p>Listeners registered for the <code>&#39;newListener&#39;</code> event will be passed the event\nname and a reference to the listener being added.</p>\n<p>The fact that the event is triggered before adding the listener has a subtle\nbut important side effect: any <em>additional</em> listeners registered to the same\n<code>name</code> <em>within</em> the <code>&#39;newListener&#39;</code> callback will be inserted <em>before</em> the\nlistener that is in the process of being added.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n// Only do this once so we don&#39;t loop forever\nmyEmitter.once(&#39;newListener&#39;, (event, listener) =&gt; {\n  if (event === &#39;event&#39;) {\n    // Insert a new listener in front\n    myEmitter.on(&#39;event&#39;, () =&gt; {\n      console.log(&#39;B&#39;);\n    });\n  }\n});\nmyEmitter.on(&#39;event&#39;, () =&gt; {\n  console.log(&#39;A&#39;);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   B\n//   A\n</code></pre>\n"
+            },
+            {
+              "textRaw": "Event: 'removeListener'",
+              "type": "event",
+              "name": "removeListener",
+              "meta": {
+                "added": [
+                  "v0.9.3"
+                ]
+              },
+              "params": [],
+              "desc": "<p>The <code>&#39;removeListener&#39;</code> event is emitted <em>after</em> the <code>listener</code> is removed.</p>\n"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "EventEmitter.listenerCount(emitter, eventName)",
+              "type": "method",
+              "name": "listenerCount",
+              "meta": {
+                "added": [
+                  "v0.9.12"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`emitter.listenerCount()`][] instead.",
+              "desc": "<p>A class method that returns the number of listeners for the given <code>eventName</code>\nregistered on the given <code>emitter</code>.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;event&#39;, () =&gt; {});\nmyEmitter.on(&#39;event&#39;, () =&gt; {});\nconsole.log(EventEmitter.listenerCount(myEmitter, &#39;event&#39;));\n// Prints: 2\n</code></pre>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "emitter"
+                    },
+                    {
+                      "name": "eventName"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.addListener(eventName, listener)",
+              "type": "method",
+              "name": "addListener",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "desc": "<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.emit(eventName[, ...args])",
+              "type": "method",
+              "name": "emit",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "desc": "<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "...args",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.eventNames()",
+              "type": "method",
+              "name": "eventNames",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "desc": "<p>Returns an array listing the events for which the emitter has registered\nlisteners. The values in the array will be strings or Symbols.</p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\nconst myEE = new EventEmitter();\nmyEE.on(&#39;foo&#39;, () =&gt; {});\nmyEE.on(&#39;bar&#39;, () =&gt; {});\n\nconst sym = Symbol(&#39;symbol&#39;);\nmyEE.on(sym, () =&gt; {});\n\nconsole.log(myEE.eventNames());\n// Prints: [ &#39;foo&#39;, &#39;bar&#39;, Symbol(symbol) ]\n</code></pre>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.getMaxListeners()",
+              "type": "method",
+              "name": "getMaxListeners",
+              "meta": {
+                "added": [
+                  "v1.0.0"
+                ]
+              },
+              "desc": "<p>Returns the current max listener value for the <code>EventEmitter</code> which is either\nset by <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> or defaults to\n<a href=\"#events_eventemitter_defaultmaxlisteners\"><code>EventEmitter.defaultMaxListeners</code></a>.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.listenerCount(eventName)",
+              "type": "method",
+              "name": "listenerCount",
+              "meta": {
+                "added": [
+                  "v3.2.0"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {String|Symbol} The name of the event being listened for ",
+                      "name": "eventName",
+                      "type": "String|Symbol",
+                      "desc": "The name of the event being listened for"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns the number of listeners listening to the event named <code>eventName</code>.</p>\n"
+            },
+            {
+              "textRaw": "emitter.listeners(eventName)",
+              "type": "method",
+              "name": "listeners",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "desc": "<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>\n<pre><code class=\"lang-js\">server.on(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n});\nconsole.log(util.inspect(server.listeners(&#39;connection&#39;)));\n// Prints: [ [Function] ]\n</code></pre>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.on(eventName, listener)",
+              "type": "method",
+              "name": "on",
+              "meta": {
+                "added": [
+                  "v0.1.101"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "name": "eventName",
+                      "type": "String|Symbol",
+                      "desc": "The name of the event."
+                    },
+                    {
+                      "textRaw": "`listener` {Function} The callback function ",
+                      "name": "listener",
+                      "type": "Function",
+                      "desc": "The callback function"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Adds the <code>listener</code> function to the end of the listeners array for the\nevent named <code>eventName</code>. No checks are made to see if the <code>listener</code> has\nalready been added. Multiple calls passing the same combination of <code>eventName</code>\nand <code>listener</code> will result in the <code>listener</code> being added, and called, multiple\ntimes.</p>\n<pre><code class=\"lang-js\">server.on(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n<p>By default, event listeners are invoked in the order they are added. The\n<code>emitter.prependListener()</code> method can be used as an alternative to add the\nevent listener to the beginning of the listeners array.</p>\n<pre><code class=\"lang-js\">const myEE = new EventEmitter();\nmyEE.on(&#39;foo&#39;, () =&gt; console.log(&#39;a&#39;));\nmyEE.prependListener(&#39;foo&#39;, () =&gt; console.log(&#39;b&#39;));\nmyEE.emit(&#39;foo&#39;);\n// Prints:\n//   b\n//   a\n</code></pre>\n"
+            },
+            {
+              "textRaw": "emitter.once(eventName, listener)",
+              "type": "method",
+              "name": "once",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "name": "eventName",
+                      "type": "String|Symbol",
+                      "desc": "The name of the event."
+                    },
+                    {
+                      "textRaw": "`listener` {Function} The callback function ",
+                      "name": "listener",
+                      "type": "Function",
+                      "desc": "The callback function"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code>. The\nnext time <code>eventName</code> is triggered, this listener is removed and then invoked.</p>\n<pre><code class=\"lang-js\">server.once(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;Ah, we have our first user!&#39;);\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n<p>By default, event listeners are invoked in the order they are added. The\n<code>emitter.prependOnceListener()</code> method can be used as an alternative to add the\nevent listener to the beginning of the listeners array.</p>\n<pre><code class=\"lang-js\">const myEE = new EventEmitter();\nmyEE.once(&#39;foo&#39;, () =&gt; console.log(&#39;a&#39;));\nmyEE.prependOnceListener(&#39;foo&#39;, () =&gt; console.log(&#39;b&#39;));\nmyEE.emit(&#39;foo&#39;);\n// Prints:\n//   b\n//   a\n</code></pre>\n"
+            },
+            {
+              "textRaw": "emitter.prependListener(eventName, listener)",
+              "type": "method",
+              "name": "prependListener",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "name": "eventName",
+                      "type": "String|Symbol",
+                      "desc": "The name of the event."
+                    },
+                    {
+                      "textRaw": "`listener` {Function} The callback function ",
+                      "name": "listener",
+                      "type": "Function",
+                      "desc": "The callback function"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Adds the <code>listener</code> function to the <em>beginning</em> of the listeners array for the\nevent named <code>eventName</code>. No checks are made to see if the <code>listener</code> has\nalready been added. Multiple calls passing the same combination of <code>eventName</code>\nand <code>listener</code> will result in the <code>listener</code> being added, and called, multiple\ntimes.</p>\n<pre><code class=\"lang-js\">server.prependListener(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
+            },
+            {
+              "textRaw": "emitter.prependOnceListener(eventName, listener)",
+              "type": "method",
+              "name": "prependOnceListener",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "name": "eventName",
+                      "type": "String|Symbol",
+                      "desc": "The name of the event."
+                    },
+                    {
+                      "textRaw": "`listener` {Function} The callback function ",
+                      "name": "listener",
+                      "type": "Function",
+                      "desc": "The callback function"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code> to the\n<em>beginning</em> of the listeners array. The next time <code>eventName</code> is triggered, this\nlistener is removed, and then invoked.</p>\n<pre><code class=\"lang-js\">server.prependOnceListener(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;Ah, we have our first user!&#39;);\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
+            },
+            {
+              "textRaw": "emitter.removeAllListeners([eventName])",
+              "type": "method",
+              "name": "removeAllListeners",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "desc": "<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>\n<p>Note that it is bad practice to remove listeners added elsewhere in the code,\nparticularly when the <code>EventEmitter</code> instance was created by some other\ncomponent or module (e.g. sockets or file streams).</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "eventName",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.removeListener(eventName, listener)",
+              "type": "method",
+              "name": "removeListener",
+              "meta": {
+                "added": [
+                  "v0.1.26"
+                ]
+              },
+              "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"lang-js\">var callback = (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n};\nserver.on(&#39;connection&#39;, callback);\n// ...\nserver.removeListener(&#39;connection&#39;, callback);\n</code></pre>\n<p><code>removeListener</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Note that once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any <code>removeListener()</code>\nor <code>removeAllListeners()</code> calls <em>after</em> emitting and <em>before</em> the last listener\nfinishes execution will not remove them from <code>emit()</code> in progress. Subsequent\nevents will behave as expected.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nvar callbackA = () =&gt; {\n  console.log(&#39;A&#39;);\n  myEmitter.removeListener(&#39;event&#39;, callbackB);\n};\n\nvar callbackB = () =&gt; {\n  console.log(&#39;B&#39;);\n};\n\nmyEmitter.on(&#39;event&#39;, callbackA);\n\nmyEmitter.on(&#39;event&#39;, callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "eventName"
+                    },
+                    {
+                      "name": "listener"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "emitter.setMaxListeners(n)",
+              "type": "method",
+              "name": "setMaxListeners",
+              "meta": {
+                "added": [
+                  "v0.3.5"
+                ]
+              },
+              "desc": "<p>By default EventEmitters will print a warning if more than <code>10</code> listeners are\nadded for a particular event. This is a useful default that helps finding\nmemory leaks. Obviously, not all events should be limited to just 10 listeners.\nThe <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this\nspecific <code>EventEmitter</code> instance. The value can be set to <code>Infinity</code> (or <code>0</code>)\nto indicate an unlimited number of listeners.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "EventEmitter.defaultMaxListeners",
+              "name": "defaultMaxListeners",
+              "meta": {
+                "added": [
+                  "v0.11.2"
+                ]
+              },
+              "desc": "<p>By default, a maximum of <code>10</code> listeners can be registered for any single\nevent. This limit can be changed for individual <code>EventEmitter</code> instances\nusing the <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> method. To change the default\nfor <em>all</em> <code>EventEmitter</code> instances, the <code>EventEmitter.defaultMaxListeners</code>\nproperty can be used.</p>\n<p>Take caution when setting the <code>EventEmitter.defaultMaxListeners</code> because the\nchange effects <em>all</em> <code>EventEmitter</code> instances, including those created before\nthe change is made. However, calling <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> still has\nprecedence over <code>EventEmitter.defaultMaxListeners</code>.</p>\n<p>Note that this is not a hard limit. The <code>EventEmitter</code> instance will allow\nmore listeners to be added but will output a trace warning to stderr indicating\nthat a &quot;possible EventEmitter memory leak&quot; has been detected. For any single\n<code>EventEmitter</code>, the <code>emitter.getMaxListeners()</code> and <code>emitter.setMaxListeners()</code>\nmethods can be used to temporarily avoid this warning:</p>\n<pre><code class=\"lang-js\">emitter.setMaxListeners(emitter.getMaxListeners() + 1);\nemitter.once(&#39;event&#39;, () =&gt; {\n  // do stuff\n  emitter.setMaxListeners(Math.max(emitter.getMaxListeners() - 1, 0));\n});\n</code></pre>\n<p>The <a href=\"cli.html#cli_trace_warnings\"><code>--trace-warnings</code></a> command line flag can be used to display the\nstack trace for such warnings.</p>\n<p>The emitted warning can be inspected with <a href=\"process.html#process_event_warning\"><code>process.on(&#39;warning&#39;)</code></a> and will\nhave the additional <code>emitter</code>, <code>type</code> and <code>count</code> properties, referring to\nthe event emitter instance, the event’s name and the number of attached\nlisteners, respectively.\nIts <code>name</code> property is set to <code>&#39;MaxListenersExceededWarning&#39;</code>.</p>\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -11,15 +11,15 @@ module Node
     VENDOR_DIR = File.expand_path('../../../vendor', __FILE__)
     MEMFS = '/__enclose_io_memfs__'
 
-    def self.node_versions
-      Dir[VENDOR_DIR+'/node-*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}
+    def self.node_version
+      Dir[VENDOR_DIR+'/node-*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}.first
     end
 
-    def initialize(node_version, module_name = nil,
-                                 module_version = nil,
-                                 bin_name = nil,
-                                 output_path = nil)
-      @node_version = node_version
+    def initialize(module_name = nil,
+                   module_version = nil,
+                   bin_name = nil,
+                   output_path = nil)
+      @node_version = self.class.node_version
       @module_name = module_name
       @module_version = module_version
       @bin_name = bin_name
@@ -27,7 +27,7 @@ module Node
 
       @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
       unless File.exist?(@vendor_dir)
-        msg = "Does not support #{@node_version}, supported: #{::Node::Compiler.node_versions.join ', '}"
+        msg = "Does not support #{@node_version}, supported: #{::Node::Compiler.node_version}"
         raise Error, msg
       end
     end

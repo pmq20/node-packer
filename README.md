@@ -6,16 +6,11 @@ http://enclose.io
 
 [![Linux and Mac OS X Build Status](https://travis-ci.org/enclose-io/node-compiler.svg?branch=master)](https://travis-ci.org/enclose-io/node-compiler)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/f4x3bq5hub3uu3ys/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
-[![Code Climate](https://codeclimate.com/github/enclose-io/node-compiler/badges/gpa.svg)](https://codeclimate.com/github/enclose-io/node-compiler)
-[![codecov.io](https://codecov.io/github/enclose-io/node-compiler/coverage.svg?branch=master)](https://codecov.io/github/enclose-io/node-compiler?branch=master)
 [![Gem Version](https://badge.fury.io/rb/node-compiler.svg)](https://badge.fury.io/rb/node-compiler)
 
-## Supported Node.js Versions
+## Supported Node.js version
 
-| Release Line | Supported Version | Based on                                          |
-|:------------:|:-----------------:|---------------------------------------------------|
-|      LTS     |   `node-v6.9.1`   | https://nodejs.org/dist/v6.9.1/node-v6.9.1.tar.gz |
-|    Current   |   `node-v7.2.0`   | https://nodejs.org/dist/v7.2.0/node-v7.2.0.tar.gz |
+`node-v7.2.0` (Based on https://nodejs.org/dist/v7.2.0/node-v7.2.0.tar.gz)
 
 ## Installation
 
@@ -36,13 +31,13 @@ Or install it yourself as:
 
 ## Usage
 
-    nodec [node_version] [module_name] [module_version] [bin_name] [output_path]
+    nodec [module_name] [module_version] [bin_name] [output_path]
 
 ## Example
 
-    nodec node-v7.2.0 coffee-script 1.11.1 coffee coffee-1.11.1-node-v7.2.0-darwin-x64
+    nodec coffee-script 1.11.1 coffee coffee-1.11.1-darwin-x64
 
-Then the compiled product will be located at `./coffee-1.11.1-node-v7.2.0-darwin-x64`, ready to be distributed.
+Then the compiled product will be located at `./coffee-1.11.1-darwin-x64`, ready to be distributed.
 
 ## Optional Environment Variables
 

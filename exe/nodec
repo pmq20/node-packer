@@ -7,27 +7,22 @@ USAGE = %Q{nodec v#{::Node::Compiler::VERSION} (#{::Node::Compiler.node_version}
 usage: nodec [module_name] [module_version] [bin_name] [output_path]
 }.strip
 
-module Node
+if 2 == ARGV.size && 'test' == ARGV[1]
+  instance = ::Node::Compiler.new ARGV[0]
+  instance.test!
+  exit 0
+end
 
+unless 5 == ARGV.size
+  STDERR.puts USAGE
+  exit 1
+end
 
-  if 2 == ARGV.size && 'test' == ARGV[1]
-    instance = Compiler.new ARGV[0]
-    instance.test!
-    exit 0
-  end
-
-  unless 5 == ARGV.size
-    STDERR.puts USAGE
-    exit 1
-  end
-
-  begin
-    instance = Compiler.new *ARGV
-    instance.run!
-    instance.clean_work_dir unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
-  rescue Compiler::Error => e
-    STDERR.puts e.message
-    exit 2
-  end
-  
+begin
+  instance = ::Node::Compiler.new *ARGV
+  instance.run!
+  instance.clean_work_dir unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
+rescue ::Node::Compiler::Error => e
+  STDERR.puts e.message
+  exit 2
 end

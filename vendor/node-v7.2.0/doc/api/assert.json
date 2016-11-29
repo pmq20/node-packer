@@ -1,0 +1,385 @@
+{
+  "source": "doc/api/assert.md",
+  "modules": [
+    {
+      "textRaw": "Assert",
+      "name": "assert",
+      "stability": 3,
+      "stabilityText": "Locked",
+      "desc": "<p>The <code>assert</code> module provides a simple set of assertion tests that can be used to\ntest invariants. The module is intended for internal use by Node.js, but can be\nused in application code via <code>require(&#39;assert&#39;)</code>. However, <code>assert</code> is not a\ntesting framework, and is not intended to be used as a general purpose assertion\nlibrary.</p>\n<p>The API for the <code>assert</code> module is <a href=\"documentation.html#documentation_stability_index\">Locked</a>. This means that there will be no\nadditions or changes to any of the methods implemented and exposed by\nthe module.</p>\n",
+      "methods": [
+        {
+          "textRaw": "assert(value[, message])",
+          "type": "method",
+          "name": "assert",
+          "meta": {
+            "added": [
+              "v0.5.9"
+            ]
+          },
+          "desc": "<p>An alias of <a href=\"#assert_assert_ok_value_message\"><code>assert.ok()</code></a> .</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert(true);\n// OK\nassert(1);\n// OK\nassert(false);\n// throws &quot;AssertionError: false == true&quot;\nassert(0);\n// throws &quot;AssertionError: 0 == true&quot;\nassert(false, &#39;it\\&#39;s false&#39;);\n// throws &quot;AssertionError: it&#39;s false&quot;\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "value"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.deepEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "deepEqual",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.\nPrimitive values are compared with the equal comparison operator ( <code>==</code> ).</p>\n<p>Only enumerable &quot;own&quot; properties are considered. The <code>deepEqual()</code>\nimplementation does not test object prototypes, attached symbols, or\nnon-enumerable properties. This can lead to some potentially surprising\nresults. For example, the following example does not throw an <code>AssertionError</code>\nbecause the properties on the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object are non-enumerable:</p>\n<pre><code class=\"lang-js\">// WARNING: This does not throw an AssertionError!\nassert.deepEqual(Error(&#39;a&#39;), Error(&#39;b&#39;));\n</code></pre>\n<p>&quot;Deep&quot; equality means that the enumerable &quot;own&quot; properties of child objects\nare evaluated also:</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nconst obj1 = {\n  a : {\n    b : 1\n  }\n};\nconst obj2 = {\n  a : {\n    b : 2\n  }\n};\nconst obj3 = {\n  a : {\n    b : 1\n  }\n};\nconst obj4 = Object.create(obj1);\n\nassert.deepEqual(obj1, obj1);\n// OK, object is equal to itself\n\nassert.deepEqual(obj1, obj2);\n// AssertionError: { a: { b: 1 } } deepEqual { a: { b: 2 } }\n// values of b are different\n\nassert.deepEqual(obj1, obj3);\n// OK, objects are equal\n\nassert.deepEqual(obj1, obj4);\n// AssertionError: { a: { b: 1 } } deepEqual {}\n// Prototypes are ignored\n</code></pre>\n<p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.deepStrictEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "deepStrictEqual",
+          "meta": {
+            "added": [
+              "v1.2.0"
+            ]
+          },
+          "desc": "<p>Generally identical to <code>assert.deepEqual()</code> with two exceptions. First,\nprimitive values are compared using the strict equality operator ( <code>===</code> ).\nSecond, object comparisons include a strict equality check of their prototypes.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.deepEqual({a:1}, {a:&#39;1&#39;});\n// OK, because 1 == &#39;1&#39;\n\nassert.deepStrictEqual({a:1}, {a:&#39;1&#39;});\n// AssertionError: { a: 1 } deepStrictEqual { a: &#39;1&#39; }\n// because 1 !== &#39;1&#39; using strict equality\n</code></pre>\n<p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.doesNotThrow(block[, error][, message])",
+          "type": "method",
+          "name": "doesNotThrow",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Asserts that the function <code>block</code> does not throw an error. See\n<a href=\"#assert_assert_throws_block_error_message\"><code>assert.throws()</code></a> for more details.</p>\n<p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>block</code>\nfunction.</p>\n<p>If an error is thrown and it is the same type as that specified by the <code>error</code>\nparameter, then an <code>AssertionError</code> is thrown. If the error is of a different\ntype, or if the <code>error</code> parameter is undefined, the error is propagated back\nto the caller.</p>\n<p>The following, for instance, will throw the <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> because there is no\nmatching error type in the assertion:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  SyntaxError\n);\n</code></pre>\n<p>However, the following will result in an <code>AssertionError</code> with the message\n&#39;Got unwanted exception (TypeError)..&#39;:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError\n);\n</code></pre>\n<p>If an <code>AssertionError</code> is thrown and a value is provided for the <code>message</code>\nparameter, the value of <code>message</code> will be appended to the <code>AssertionError</code>\nmessage:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError,\n  &#39;Whoops&#39;\n);\n// Throws: AssertionError: Got unwanted exception (TypeError). Whoops\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "block"
+                },
+                {
+                  "name": "error",
+                  "optional": true
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.equal(actual, expected[, message])",
+          "type": "method",
+          "name": "equal",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters\nusing the equal comparison operator ( <code>==</code> ).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.equal(1, 1);\n// OK, 1 == 1\nassert.equal(1, &#39;1&#39;);\n// OK, 1 == &#39;1&#39;\n\nassert.equal(1, 2);\n// AssertionError: 1 == 2\nassert.equal({a: {b: 1}}, {a: {b: 1}});\n//AssertionError: { a: { b: 1 } } == { a: { b: 1 } }\n</code></pre>\n<p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.fail(actual, expected, message, operator)",
+          "type": "method",
+          "name": "fail",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as\nthe values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.\nOtherwise, the error message is the value of <code>message</code>.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.fail(1, 2, undefined, &#39;&gt;&#39;);\n// AssertionError: 1 &gt; 2\n\nassert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);\n// AssertionError: whoops\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message"
+                },
+                {
+                  "name": "operator"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.ifError(value)",
+          "type": "method",
+          "name": "ifError",
+          "meta": {
+            "added": [
+              "v0.1.97"
+            ]
+          },
+          "desc": "<p>Throws <code>value</code> if <code>value</code> is truthy. This is useful when testing the <code>error</code>\nargument in callbacks.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.ifError(0);\n// OK\nassert.ifError(1);\n// Throws 1\nassert.ifError(&#39;error&#39;);\n// Throws &#39;error&#39;\nassert.ifError(new Error());\n// Throws Error\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "value"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.notDeepEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "notDeepEqual",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests for any deep inequality. Opposite of <a href=\"#assert_assert_deepequal_actual_expected_message\"><code>assert.deepEqual()</code></a>.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nconst obj1 = {\n  a : {\n    b : 1\n  }\n};\nconst obj2 = {\n  a : {\n    b : 2\n  }\n};\nconst obj3 = {\n  a : {\n    b : 1\n  }\n};\nconst obj4 = Object.create(obj1);\n\nassert.notDeepEqual(obj1, obj1);\n// AssertionError: { a: { b: 1 } } notDeepEqual { a: { b: 1 } }\n\nassert.notDeepEqual(obj1, obj2);\n// OK, obj1 and obj2 are not deeply equal\n\nassert.notDeepEqual(obj1, obj3);\n// AssertionError: { a: { b: 1 } } notDeepEqual { a: { b: 1 } }\n\nassert.notDeepEqual(obj1, obj4);\n// OK, obj1 and obj2 are not deeply equal\n</code></pre>\n<p>If the values are deeply equal, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.notDeepStrictEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "notDeepStrictEqual",
+          "meta": {
+            "added": [
+              "v1.2.0"
+            ]
+          },
+          "desc": "<p>Tests for deep strict inequality. Opposite of <a href=\"#assert_assert_deepstrictequal_actual_expected_message\"><code>assert.deepStrictEqual()</code></a>.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.notDeepEqual({a:1}, {a:&#39;1&#39;});\n// AssertionError: { a: 1 } notDeepEqual { a: &#39;1&#39; }\n\nassert.notDeepStrictEqual({a:1}, {a:&#39;1&#39;});\n// OK\n</code></pre>\n<p>If the values are deeply and strictly equal, an <code>AssertionError</code> is thrown\nwith a <code>message</code> property set equal to the value of the <code>message</code> parameter. If\nthe <code>message</code> parameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.notEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "notEqual",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests shallow, coercive inequality with the not equal comparison operator\n( <code>!=</code> ).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.notEqual(1, 2);\n// OK\n\nassert.notEqual(1, 1);\n// AssertionError: 1 != 1\n\nassert.notEqual(1, &#39;1&#39;);\n// AssertionError: 1 != &#39;1&#39;\n</code></pre>\n<p>If the values are equal, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.notStrictEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "notStrictEqual",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests strict inequality as determined by the strict not equal operator\n( <code>!==</code> ).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.notStrictEqual(1, 2);\n// OK\n\nassert.notStrictEqual(1, 1);\n// AssertionError: 1 !== 1\n\nassert.notStrictEqual(1, &#39;1&#39;);\n// OK\n</code></pre>\n<p>If the values are strictly equal, an <code>AssertionError</code> is thrown with a\n<code>message</code> property set equal to the value of the <code>message</code> parameter. If the\n<code>message</code> parameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.ok(value[, message])",
+          "type": "method",
+          "name": "ok",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests if <code>value</code> is truthy. It is equivalent to\n<code>assert.equal(!!value, true, message)</code>.</p>\n<p>If <code>value</code> is not truthy, an <code>AssertionError</code> is thrown with a <code>message</code>\nproperty set equal to the value of the <code>message</code> parameter. If the <code>message</code>\nparameter is <code>undefined</code>, a default error message is assigned.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.ok(true);\n// OK\nassert.ok(1);\n// OK\nassert.ok(false);\n// throws &quot;AssertionError: false == true&quot;\nassert.ok(0);\n// throws &quot;AssertionError: 0 == true&quot;\nassert.ok(false, &#39;it\\&#39;s false&#39;);\n// throws &quot;AssertionError: it&#39;s false&quot;\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "value"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.strictEqual(actual, expected[, message])",
+          "type": "method",
+          "name": "strictEqual",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Tests strict equality as determined by the strict equality operator ( <code>===</code> ).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.strictEqual(1, 2);\n// AssertionError: 1 === 2\n\nassert.strictEqual(1, 1);\n// OK\n\nassert.strictEqual(1, &#39;1&#39;);\n// AssertionError: 1 === &#39;1&#39;\n</code></pre>\n<p>If the values are not strictly equal, an <code>AssertionError</code> is thrown with a\n<code>message</code> property set equal to the value of the <code>message</code> parameter. If the\n<code>message</code> parameter is undefined, a default error message is assigned.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "actual"
+                },
+                {
+                  "name": "expected"
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "assert.throws(block[, error][, message])",
+          "type": "method",
+          "name": "throws",
+          "meta": {
+            "added": [
+              "v0.1.21"
+            ]
+          },
+          "desc": "<p>Expects the function <code>block</code> to throw an error.</p>\n<p>If specified, <code>error</code> can be a constructor, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>, or validation\nfunction.</p>\n<p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if\nthe block fails to throw.</p>\n<p>Validate instanceof using constructor:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  Error\n);\n</code></pre>\n<p>Validate error message using <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  /value/\n);\n</code></pre>\n<p>Custom error validation:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  function(err) {\n    if ( (err instanceof Error) &amp;&amp; /value/.test(err) ) {\n      return true;\n    }\n  },\n  &#39;unexpected error&#39;\n);\n</code></pre>\n<p>Note that <code>error</code> can not be a string. If a string is provided as the second\nargument, then <code>error</code> is assumed to be omitted and the string will be used for\n<code>message</code> instead. This can lead to easy-to-miss mistakes:</p>\n<pre><code class=\"lang-js\">// THIS IS A MISTAKE! DO NOT DO THIS!\nassert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);\n\n// Do this instead.\nassert.throws(myFunction, /missing foo/, &#39;did not throw with expected message&#39;);\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "block"
+                },
+                {
+                  "name": "error",
+                  "optional": true
+                },
+                {
+                  "name": "message",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "Assert"
+    }
+  ]
+}

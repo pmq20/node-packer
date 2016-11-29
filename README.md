@@ -15,7 +15,7 @@ http://enclose.io
 | Release Line | Supported Version | Based on                                          |
 |:------------:|:-----------------:|---------------------------------------------------|
 |      LTS     |   `node-v6.9.1`   | https://nodejs.org/dist/v6.9.1/node-v6.9.1.tar.gz |
-|    Current   |   `node-v7.1.0`   | https://nodejs.org/dist/v7.1.0/node-v7.1.0.tar.gz |
+|    Current   |   `node-v7.2.0`   | https://nodejs.org/dist/v7.2.0/node-v7.2.0.tar.gz |
 
 ## Installation
 
@@ -40,9 +40,9 @@ Or install it yourself as:
 
 ## Example
 
-    nodec node-v7.1.0 coffee-script 1.11.1 coffee coffee-1.11.1-node-v7.1.0-darwin-x64
+    nodec node-v7.2.0 coffee-script 1.11.1 coffee coffee-1.11.1-node-v7.2.0-darwin-x64
 
-Then the compiled product will be located at `./coffee-1.11.1-node-v7.1.0-darwin-x64`, ready to be distributed.
+Then the compiled product will be located at `./coffee-1.11.1-node-v7.2.0-darwin-x64`, ready to be distributed.
 
 ## Optional Environment Variables
 

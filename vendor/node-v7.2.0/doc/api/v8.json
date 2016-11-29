@@ -1,0 +1,66 @@
+{
+  "source": "doc/api/v8.md",
+  "modules": [
+    {
+      "textRaw": "V8",
+      "name": "v8",
+      "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>\n",
+      "methods": [
+        {
+          "textRaw": "v8.getHeapStatistics()",
+          "type": "method",
+          "name": "getHeapStatistics",
+          "meta": {
+            "added": [
+              "v1.0.0"
+            ]
+          },
+          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> {number}</li>\n<li><code>total_heap_size_executable</code> {number}</li>\n<li><code>total_physical_size</code> {number}</li>\n<li><code>total_available_size</code> {number}</li>\n<li><code>used_heap_size</code> {number}</li>\n<li><code>heap_size_limit</code> {number}</li>\n<li><code>malloced_memory</code> {number}</li>\n<li><code>peak_malloced_memory</code> {number}</li>\n<li><code>does_zap_garbage</code> {number}</li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>\noption is enabled or not. This makes V8 overwrite heap garbage with a bit\npattern. The RSS footprint (resident memory set) gets bigger because it\ncontinuously touches all heap pages and that makes them less likely to get\nswapped out by the operating system.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0\n}\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
+          "textRaw": "v8.getHeapSpaceStatistics()",
+          "type": "method",
+          "name": "getHeapSpaceStatistics",
+          "meta": {
+            "added": [
+              "v6.0.0"
+            ]
+          },
+          "desc": "<p>Returns statistics about the V8 heap spaces, i.e. the segments which make up\nthe V8 heap. Neither the ordering of heap spaces, nor the availability of a\nheap space can be guaranteed as the statistics are provided via the V8\n<a href=\"https://v8docs.nodesource.com/node-5.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4\"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the\nnext.</p>\n<p>The value returned is an array of objects containing the following properties:</p>\n<ul>\n<li><code>space_name</code> {string}</li>\n<li><code>space_size</code> {number}</li>\n<li><code>space_used_size</code> {number}</li>\n<li><code>space_available_size</code> {number}</li>\n<li><code>physical_space_size</code> {number}</li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"lang-json\">[\n  {\n    &quot;space_name&quot;: &quot;new_space&quot;,\n    &quot;space_size&quot;: 2063872,\n    &quot;space_used_size&quot;: 951112,\n    &quot;space_available_size&quot;: 80824,\n    &quot;physical_space_size&quot;: 2063872\n  },\n  {\n    &quot;space_name&quot;: &quot;old_space&quot;,\n    &quot;space_size&quot;: 3090560,\n    &quot;space_used_size&quot;: 2493792,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 3090560\n  },\n  {\n    &quot;space_name&quot;: &quot;code_space&quot;,\n    &quot;space_size&quot;: 1260160,\n    &quot;space_used_size&quot;: 644256,\n    &quot;space_available_size&quot;: 960,\n    &quot;physical_space_size&quot;: 1260160\n  },\n  {\n    &quot;space_name&quot;: &quot;map_space&quot;,\n    &quot;space_size&quot;: 1094160,\n    &quot;space_used_size&quot;: 201608,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 1094160\n  },\n  {\n    &quot;space_name&quot;: &quot;large_object_space&quot;,\n    &quot;space_size&quot;: 0,\n    &quot;space_used_size&quot;: 0,\n    &quot;space_available_size&quot;: 1490980608,\n    &quot;physical_space_size&quot;: 0\n  }\n]\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
+          "textRaw": "v8.setFlagsFromString(string)",
+          "type": "method",
+          "name": "setFlagsFromString",
+          "meta": {
+            "added": [
+              "v1.0.0"
+            ]
+          },
+          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>.  An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "string"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "V8"
+    }
+  ]
+}

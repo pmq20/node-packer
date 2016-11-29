@@ -11,18 +11,3 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "node/compiler"
 require 'tempfile'
 require 'tmpdir'
-
-RSpec.configure do |config|
-  config.before(:suite) do
-    unless ENV['ENCLOSE_IO_TEST_NODE_VERSION']
-      STDERR.puts %Q{
-        Please set ENV['ENCLOSE_IO_TEST_NODE_VERSION']
-
-        Possible values:
-          #{::Node::Compiler.node_versions.join(', ')}
-      }
-      exit -1
-    end
-  end
-end
-

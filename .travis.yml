@@ -11,9 +11,6 @@ os:
 env:
   global:
     - ENCLOSE_IO_MAKE_ARGS="-j4 V="
-  matrix:
-    - ENCLOSE_IO_TEST_NODE_VERSION=node-v6.9.1
-    - ENCLOSE_IO_TEST_NODE_VERSION=node-v7.2.0
 
 compiler:
   - gcc
@@ -24,4 +21,3 @@ rvm:
 
 before_install:
   - gem install bundler -v 1.13.6
-

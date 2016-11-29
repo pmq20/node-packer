@@ -9,13 +9,13 @@ module Node
 nodec v#{Compiler::VERSION}
 
 Usage:
-  nodec [node_version] [module_name] [module_version] [bin_name] [output_path]
+  nodec [module_name] [module_version] [bin_name] [output_path]
 
 E.g.:
-  nodec node-v7.2.0 coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-node-v7.2.0-darwin-x64
+  nodec coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-darwin-x64
 
-Available Node.js versions:
-  #{Compiler.node_versions.join(', ')}
+Supported Node.js version:
+  #{Compiler.node_version}
 
   }.strip
 

@@ -10,7 +10,7 @@ http://nodec.enclose.io
 
 ## Supported Node.js version
 
-`node-v7.2.0` (Based on https://nodejs.org/dist/v7.2.0/node-v7.2.0.tar.gz)
+`node-v7.2.0`
 
 ## Installation
 

@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Minqi Pan"]
   spec.email         = ["pmq2001@gmail.com"]
 
-  spec.summary       = %q{Node.js compiler of Enclose.IO}
-  spec.description   = %q{the Node.js compiler of Enclose.IO which compiles your app into a single executable.}
+  spec.summary       = %q{Compiler for Node.js}
+  spec.description   = %q{Compiler for Node.js which compiles your app into a single executable.}
   spec.homepage      = "https://github.com/enclose-io/node-compiler"
   spec.license       = "MIT"
 

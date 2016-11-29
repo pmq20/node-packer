@@ -2,22 +2,13 @@
 
 require "node/compiler"
 
+USAGE = %Q{nodec v#{::Node::Compiler::VERSION} (#{::Node::Compiler.node_version})
+
+usage: nodec [module_name] [module_version] [bin_name] [output_path]
+}.strip
+
 module Node
 
-  usage = %Q{
-
-nodec v#{Compiler::VERSION}
-
-Usage:
-  nodec [module_name] [module_version] [bin_name] [output_path]
-
-E.g.:
-  nodec coffee-script 1.11.1 coffee /tmp/coffee-1.11.1-darwin-x64
-
-Supported Node.js version:
-  #{Compiler.node_version}
-
-  }.strip
 
   if 2 == ARGV.size && 'test' == ARGV[1]
     instance = Compiler.new ARGV[0]
@@ -26,7 +17,7 @@ Supported Node.js version:
   end
 
   unless 5 == ARGV.size
-    puts usage
+    STDERR.puts USAGE
     exit 1
   end
 

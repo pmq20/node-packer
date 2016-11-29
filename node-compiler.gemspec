@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Compiler for Node.js}
   spec.description   = %q{Compiler for Node.js which compiles your app into a single executable.}
-  spec.homepage      = "https://github.com/enclose-io/node-compiler"
+  spec.homepage      = "http://nodec.enclose.io"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

@@ -8,10 +8,6 @@ http://nodec.enclose.io
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/f4x3bq5hub3uu3ys/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 [![Gem Version](https://badge.fury.io/rb/node-compiler.svg)](https://badge.fury.io/rb/node-compiler)
 
-## Supported Node.js version
-
-[node-v7.2.0](https://nodejs.org/en/blog/release/v7.2.0/)
-
 ## Installation
 
 Add this line to your application's Gemfile:

@@ -2,7 +2,7 @@ sudo: required
 
 dist: trusty
 
-language: ruby
+language: c
 
 os:
   - linux
@@ -16,8 +16,7 @@ compiler:
   - gcc
   - clang
 
-rvm:
-  - 2.3.3
-
-before_install:
-  - gem install bundler -v 1.13.6
+script:
+  - gem install bundler --no-ri --no-rdoc
+  - bundle
+  - ENCLOSE_IO_MAKE_ARGS="-j4 V=" bundle exec rake

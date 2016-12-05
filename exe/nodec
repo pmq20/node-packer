@@ -13,7 +13,7 @@ if 2 == ARGV.size && 'test' == ARGV[1]
   exit 0
 end
 
-unless 5 == ARGV.size
+unless 4 == ARGV.size
   STDERR.puts USAGE
   exit 1
 end

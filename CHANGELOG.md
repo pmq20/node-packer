@@ -1,8 +1,7 @@
 # Node.js Compiler Changelog
 
-## v0.8.0 (WIP)
+## v0.8.0
 
-* Use SquashFS: https://github.com/enclose-io/node-compiler/pull/14
 * Upgrade to node-v7.2.0: https://github.com/enclose-io/node-compiler/pull/12
 * Remove node_version: https://github.com/enclose-io/node-compiler/pull/13
 

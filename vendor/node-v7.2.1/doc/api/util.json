@@ -1,0 +1,967 @@
+{
+  "source": "doc/api/util.md",
+  "modules": [
+    {
+      "textRaw": "util",
+      "name": "util",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>util</code> module is primarily designed to support the needs of Node.js&#39; own\ninternal APIs. However, many of the utilities are useful for application and\nmodule developers as well. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n</code></pre>\n",
+      "methods": [
+        {
+          "textRaw": "util.debuglog(section)",
+          "type": "method",
+          "name": "debuglog",
+          "meta": {
+            "added": [
+              "v0.11.3"
+            ]
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Function} The logging function ",
+                "name": "return",
+                "type": "Function",
+                "desc": "The logging function"
+              },
+              "params": [
+                {
+                  "textRaw": "`section` {String} A string identifying the portion of the application for which the `debuglog` function is being created. ",
+                  "name": "section",
+                  "type": "String",
+                  "desc": "A string identifying the portion of the application for which the `debuglog` function is being created."
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "section"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>util.debuglog()</code> method is used to create a function that conditionally\nwrites debug messages to <code>stderr</code> based on the existence of the <code>NODE_DEBUG</code>\nenvironment variable.  If the <code>section</code> name appears within the value of that\nenvironment variable, then the returned function operates similar to\n<a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a>.  If not, then the returned function is a no-op.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst debuglog = util.debuglog(&#39;foo&#39;);\n\ndebuglog(&#39;hello from foo [%d]&#39;, 123);\n</code></pre>\n<p>If this program is run with <code>NODE_DEBUG=foo</code> in the environment, then\nit will output something like:</p>\n<pre><code class=\"lang-txt\">FOO 3245: hello from foo [123]\n</code></pre>\n<p>where <code>3245</code> is the process id.  If it is not run with that\nenvironment variable set, then it will not print anything.</p>\n<p>Multiple comma-separated <code>section</code> names may be specified in the <code>NODE_DEBUG</code>\nenvironment variable. For example: <code>NODE_DEBUG=fs,net,tls</code>.</p>\n"
+        },
+        {
+          "textRaw": "util.deprecate(function, string)",
+          "type": "method",
+          "name": "deprecate",
+          "meta": {
+            "added": [
+              "v0.8.0"
+            ]
+          },
+          "desc": "<p>The <code>util.deprecate()</code> method wraps the given <code>function</code> or class in such a way that\nit is marked as deprecated.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nexports.puts = util.deprecate(function() {\n  for (var i = 0, len = arguments.length; i &lt; len; ++i) {\n    process.stdout.write(arguments[i] + &#39;\\n&#39;);\n  }\n}, &#39;util.puts: Use console.log instead&#39;);\n</code></pre>\n<p>When called, <code>util.deprecate()</code> will return a function that will emit a\n<code>DeprecationWarning</code> using the <code>process.on(&#39;warning&#39;)</code> event. By default,\nthis warning will be emitted and printed to <code>stderr</code> exactly once, the first\ntime it is called. After the warning is emitted, the wrapped <code>function</code>\nis called.</p>\n<p>If either the <code>--no-deprecation</code> or <code>--no-warnings</code> command line flags are\nused, or if the <code>process.noDeprecation</code> property is set to <code>true</code> <em>prior</em> to\nthe first deprecation warning, the <code>util.deprecate()</code> method does nothing.</p>\n<p>If the <code>--trace-deprecation</code> or <code>--trace-warnings</code> command line flags are set,\nor the <code>process.traceDeprecation</code> property is set to <code>true</code>, a warning and a\nstack trace are printed to <code>stderr</code> the first time the deprecated function is\ncalled.</p>\n<p>If the <code>--throw-deprecation</code> command line flag is set, or the\n<code>process.throwDeprecation</code> property is set to <code>true</code>, then an exception will be\nthrown when the deprecated function is called.</p>\n<p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>\nproperty take precedence over <code>--trace-deprecation</code> and\n<code>process.traceDeprecation</code>.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "function"
+                },
+                {
+                  "name": "string"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "util.format(format[, ...args])",
+          "type": "method",
+          "name": "format",
+          "meta": {
+            "added": [
+              "v0.5.3"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`format` {String} A `printf`-like format string. ",
+                  "name": "format",
+                  "type": "String",
+                  "desc": "A `printf`-like format string."
+                },
+                {
+                  "name": "...args",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "format"
+                },
+                {
+                  "name": "...args",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format.</p>\n<p>The first argument is a string containing zero or more <em>placeholder</em> tokens.\nEach placeholder token is replaced with the converted value from the\ncorresponding argument. Supported placeholders are:</p>\n<ul>\n<li><code>%s</code> - String.</li>\n<li><code>%d</code> - Number (both integer and float).</li>\n<li><code>%j</code> - JSON.  Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument\ncontains circular references.</li>\n<li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>\n</ul>\n<p>If the placeholder does not have a corresponding argument, the placeholder is\nnot replaced.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;);\n// Returns: &#39;foo:%s&#39;\n</code></pre>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the\nnumber of placeholders, the extra arguments are coerced into strings (for\nobjects and symbols, <code>util.inspect()</code> is used) then concatenated to the\nreturned string, each delimited by a space.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;); // &#39;foo:bar baz&#39;\n</code></pre>\n<p>If the first argument is not a format string then <code>util.format()</code> returns\na string that is the concatenation of all arguments separated by spaces.\nEach argument is converted to a string using <code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(1, 2, 3); // &#39;1 2 3&#39;\n</code></pre>\n"
+        },
+        {
+          "textRaw": "util.inherits(constructor, superConstructor)",
+          "type": "method",
+          "name": "inherits",
+          "meta": {
+            "added": [
+              "v0.3.0"
+            ]
+          },
+          "desc": "<p><em>Note: usage of <code>util.inherits()</code> is discouraged. Please use the ES6 <code>class</code> and\n<code>extends</code> keywords to get language level inheritance support. Also note that\nthe two styles are <a href=\"https://github.com/nodejs/node/issues/4179\">semantically incompatible</a>.</em></p>\n<ul>\n<li><code>constructor</code> {Function}</li>\n<li><code>superConstructor</code> {Function}</li>\n</ul>\n<p>Inherit the prototype methods from one <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/constructor\">constructor</a> into another.  The\nprototype of <code>constructor</code> will be set to a new object created from\n<code>superConstructor</code>.</p>\n<p>As an additional convenience, <code>superConstructor</code> will be accessible\nthrough the <code>constructor.super_</code> property.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst EventEmitter = require(&#39;events&#39;);\n\nfunction MyStream() {\n  EventEmitter.call(this);\n}\n\nutil.inherits(MyStream, EventEmitter);\n\nMyStream.prototype.write = function(data) {\n  this.emit(&#39;data&#39;, data);\n};\n\nconst stream = new MyStream();\n\nconsole.log(stream instanceof EventEmitter); // true\nconsole.log(MyStream.super_ === EventEmitter); // true\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;It works!&#39;); // Received data: &quot;It works!&quot;\n</code></pre>\n<p>ES6 example using <code>class</code> and <code>extends</code></p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n\nclass MyStream extends EventEmitter {\n  constructor() {\n    super();\n  }\n  write(data) {\n    this.emit(&#39;data&#39;, data);\n  }\n}\n\nconst stream = new MyStream();\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;With ES6&#39;);\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "constructor"
+                },
+                {
+                  "name": "superConstructor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "util.inspect(object[, options])",
+          "type": "method",
+          "name": "inspect",
+          "meta": {
+            "added": [
+              "v0.3.0"
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`object` {any} Any JavaScript primitive or Object. ",
+                  "name": "object",
+                  "type": "any",
+                  "desc": "Any JavaScript primitive or Object."
+                },
+                {
+                  "textRaw": "`options` {Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`showHidden` {boolean} If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result. Defaults to `false`. ",
+                      "name": "showHidden",
+                      "type": "boolean",
+                      "desc": "If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result. Defaults to `false`."
+                    },
+                    {
+                      "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. Defaults to `2`. To make it recurse indefinitely pass `null`. ",
+                      "name": "depth",
+                      "type": "number",
+                      "desc": "Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. Defaults to `2`. To make it recurse indefinitely pass `null`."
+                    },
+                    {
+                      "textRaw": "`colors` {boolean} If `true`, the output will be styled with ANSI color codes. Defaults to `false`. Colors are customizable, see [Customizing `util.inspect` colors][]. ",
+                      "name": "colors",
+                      "type": "boolean",
+                      "desc": "If `true`, the output will be styled with ANSI color codes. Defaults to `false`. Colors are customizable, see [Customizing `util.inspect` colors][]."
+                    },
+                    {
+                      "textRaw": "`customInspect` {boolean} If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called. Defaults to `true`. ",
+                      "name": "customInspect",
+                      "type": "boolean",
+                      "desc": "If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called. Defaults to `true`."
+                    },
+                    {
+                      "textRaw": "`showProxy` {boolean} If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. Defaults to `false`. ",
+                      "name": "showProxy",
+                      "type": "boolean",
+                      "desc": "If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. Defaults to `false`."
+                    },
+                    {
+                      "textRaw": "`maxArrayLength` {number} Specifies the maximum number of array and `TypedArray` elements to include when formatting. Defaults to `100`. Set to `null` to show all array elements. Set to `0` or negative to show no array elements. ",
+                      "name": "maxArrayLength",
+                      "type": "number",
+                      "desc": "Specifies the maximum number of array and `TypedArray` elements to include when formatting. Defaults to `100`. Set to `null` to show all array elements. Set to `0` or negative to show no array elements."
+                    },
+                    {
+                      "textRaw": "`breakLength` {number} The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. Defaults to 60 for legacy compatibility. ",
+                      "name": "breakLength",
+                      "type": "number",
+                      "desc": "The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. Defaults to 60 for legacy compatibility."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "Object",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "object"
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>util.inspect()</code> method returns a string representation of <code>object</code> that is\nprimarily useful for debugging. Additional <code>options</code> may be passed that alter\ncertain aspects of the formatted string.</p>\n<p>The following example inspects all properties of the <code>util</code> object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconsole.log(util.inspect(util, { showHidden: true, depth: null }));\n</code></pre>\n<p>Values may supply their own custom <code>inspect(depth, opts)</code> functions, when\ncalled these receive the current <code>depth</code> in the recursive inspection, as well as\nthe options object passed to <code>util.inspect()</code>.</p>\n",
+          "miscs": [
+            {
+              "textRaw": "Customizing `util.inspect` colors",
+              "name": "Customizing `util.inspect` colors",
+              "type": "misc",
+              "desc": "<p>Color output (if enabled) of <code>util.inspect</code> is customizable globally\nvia the <code>util.inspect.styles</code> and <code>util.inspect.colors</code> properties.</p>\n<p><code>util.inspect.styles</code> is a map associating a style name to a color from\n<code>util.inspect.colors</code>.</p>\n<p>The default styles and associated colors are:</p>\n<ul>\n<li><code>number</code> - <code>yellow</code></li>\n<li><code>boolean</code> - <code>yellow</code></li>\n<li><code>string</code> - <code>green</code></li>\n<li><code>date</code> - <code>magenta</code></li>\n<li><code>regexp</code> - <code>red</code></li>\n<li><code>null</code> - <code>bold</code></li>\n<li><code>undefined</code> - <code>grey</code></li>\n<li><code>special</code> - <code>cyan</code> (only applied to functions at this time)</li>\n<li><code>name</code> - (no styling)</li>\n</ul>\n<p>The predefined color codes are: <code>white</code>, <code>grey</code>, <code>black</code>, <code>blue</code>, <code>cyan</code>,\n<code>green</code>, <code>magenta</code>, <code>red</code> and <code>yellow</code>. There are also <code>bold</code>, <code>italic</code>,\n<code>underline</code> and <code>inverse</code> codes.</p>\n<p>Color styling uses ANSI control codes that may not be supported on all\nterminals.</p>\n"
+            },
+            {
+              "textRaw": "Custom inspection functions on Objects",
+              "name": "Custom inspection functions on Objects",
+              "type": "misc",
+              "desc": "<p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>\n(or, equivalently <code>inspect(depth, opts)</code>) function that <code>util.inspect()</code> will\ninvoke and use the result of when inspecting the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  inspect(depth, options) {\n    if (depth &lt; 0) {\n      return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that&#39;s the size of &quot;Box&lt; &quot;.\n    const padding = &#39; &#39;.repeat(5);\n    const inner = util.inspect(this.value, newOptions).replace(/\\n/g, &#39;\\n&#39; + padding);\n    return options.stylize(&#39;Box&#39;, &#39;special&#39;) + &#39;&lt; &#39; + inner + &#39; &gt;&#39;;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: &quot;Box&lt; true &gt;&quot;\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj[util.inspect.custom] = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n<p>A custom inspection method can alternatively be provided by exposing\nan <code>inspect(depth, opts)</code> method on the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj.inspect = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n"
+            }
+          ],
+          "modules": [
+            {
+              "textRaw": "util.inspect.defaultOptions",
+              "name": "util.inspect.defaultoptions",
+              "meta": {
+                "added": [
+                  "v6.4.0"
+                ]
+              },
+              "desc": "<p>The <code>defaultOptions</code> value allows customization of the default options used by\n<code>util.inspect</code>. This is useful for functions like <code>console.log</code> or\n<code>util.format</code> which implicitly call into <code>util.inspect</code>. It shall be set to an\nobject containing one or more valid <a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> options. Setting\noption properties directly is also supported.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst arr = Array(101);\n\nconsole.log(arr); // logs the truncated array\nutil.inspect.defaultOptions.maxArrayLength = null;\nconsole.log(arr); // logs the full array\n</code></pre>\n",
+              "type": "module",
+              "displayName": "util.inspect.defaultOptions"
+            },
+            {
+              "textRaw": "util.inspect.custom",
+              "name": "util.inspect.custom",
+              "meta": {
+                "added": [
+                  "v6.6.0"
+                ]
+              },
+              "desc": "<p>A Symbol that can be used to declare custom inspect functions, see\n<a href=\"#util_custom_inspection_functions_on_objects\">Custom inspection functions on Objects</a>.</p>\n",
+              "type": "module",
+              "displayName": "util.inspect.custom"
+            }
+          ]
+        }
+      ],
+      "modules": [
+        {
+          "textRaw": "Deprecated APIs",
+          "name": "deprecated_apis",
+          "desc": "<p>The following APIs have been deprecated and should no longer be used. Existing\napplications and modules should be updated to find alternative approaches.</p>\n",
+          "methods": [
+            {
+              "textRaw": "util.debug(string)",
+              "type": "method",
+              "name": "debug",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "deprecated": [
+                  "v0.11.3"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`console.error()`][] instead.",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`string` {String} The message to print to `stderr` ",
+                      "name": "string",
+                      "type": "String",
+                      "desc": "The message to print to `stderr`"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Deprecated predecessor of <code>console.error</code>.</p>\n"
+            },
+            {
+              "textRaw": "util.error([...strings])",
+              "type": "method",
+              "name": "error",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "deprecated": [
+                  "v0.11.3"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`console.error()`][] instead.",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`...strings` {String} The message to print to `stderr` ",
+                      "name": "...strings",
+                      "type": "String",
+                      "desc": "The message to print to `stderr`",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "...strings",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Deprecated predecessor of <code>console.error</code>.</p>\n"
+            },
+            {
+              "textRaw": "util.isArray(object)",
+              "type": "method",
+              "name": "isArray",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Internal alias for <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray\"><code>Array.isArray</code></a>.</p>\n<p>Returns <code>true</code> if the given <code>object</code> is an <code>Array</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isArray([]);\n// Returns: true\nutil.isArray(new Array);\n// Returns: true\nutil.isArray({});\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isBoolean(object)",
+              "type": "method",
+              "name": "isBoolean",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Boolean</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isBoolean(1);\n// Returns: false\nutil.isBoolean(0);\n// Returns: false\nutil.isBoolean(false);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isBuffer(object)",
+              "type": "method",
+              "name": "isBuffer",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`Buffer.isBuffer()`][] instead.",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Buffer</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isBuffer({ length: 0 });\n// Returns: false\nutil.isBuffer([]);\n// Returns: false\nutil.isBuffer(Buffer.from(&#39;hello world&#39;));\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isDate(object)",
+              "type": "method",
+              "name": "isDate",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Date</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isDate(new Date());\n// Returns: true\nutil.isDate(Date());\n// false (without &#39;new&#39; returns a String)\nutil.isDate({});\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isError(object)",
+              "type": "method",
+              "name": "isError",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isError(new Error());\n// Returns: true\nutil.isError(new TypeError());\n// Returns: true\nutil.isError({ name: &#39;Error&#39;, message: &#39;an error occurred&#39; });\n// Returns: false\n</code></pre>\n<p>Note that this method relies on <code>Object.prototype.toString()</code> behavior. It is\npossible to obtain an incorrect result when the <code>object</code> argument manipulates\n<code>@@toStringTag</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst obj = { name: &#39;Error&#39;, message: &#39;an error occurred&#39; };\n\nutil.isError(obj);\n// Returns: false\nobj[Symbol.toStringTag] = &#39;Error&#39;;\nutil.isError(obj);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isFunction(object)",
+              "type": "method",
+              "name": "isFunction",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Function</code>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction Foo() {}\nconst Bar = function() {};\n\nutil.isFunction({});\n// Returns: false\nutil.isFunction(Foo);\n// Returns: true\nutil.isFunction(Bar);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isNull(object)",
+              "type": "method",
+              "name": "isNull",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is strictly <code>null</code>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isNull(0);\n// Returns: false\nutil.isNull(undefined);\n// Returns: false\nutil.isNull(null);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isNullOrUndefined(object)",
+              "type": "method",
+              "name": "isNullOrUndefined",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is <code>null</code> or <code>undefined</code>. Otherwise,\nreturns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isNullOrUndefined(0);\n// Returns: false\nutil.isNullOrUndefined(undefined);\n// Returns: true\nutil.isNullOrUndefined(null);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isNumber(object)",
+              "type": "method",
+              "name": "isNumber",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Number</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isNumber(false);\n// Returns: false\nutil.isNumber(Infinity);\n// Returns: true\nutil.isNumber(0);\n// Returns: true\nutil.isNumber(NaN);\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isObject(object)",
+              "type": "method",
+              "name": "isObject",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is strictly an <code>Object</code> <strong>and</strong> not a\n<code>Function</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isObject(5);\n// Returns: false\nutil.isObject(null);\n// Returns: false\nutil.isObject({});\n// Returns: true\nutil.isObject(function(){});\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isPrimitive(object)",
+              "type": "method",
+              "name": "isPrimitive",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a primitive type. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isPrimitive(5);\n// Returns: true\nutil.isPrimitive(&#39;foo&#39;);\n// Returns: true\nutil.isPrimitive(false);\n// Returns: true\nutil.isPrimitive(null);\n// Returns: true\nutil.isPrimitive(undefined);\n// Returns: true\nutil.isPrimitive({});\n// Returns: false\nutil.isPrimitive(function() {});\n// Returns: false\nutil.isPrimitive(/^$/);\n// Returns: false\nutil.isPrimitive(new Date());\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isRegExp(object)",
+              "type": "method",
+              "name": "isRegExp",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>RegExp</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isRegExp(/some regexp/);\n// Returns: true\nutil.isRegExp(new RegExp(&#39;another regexp&#39;));\n// Returns: true\nutil.isRegExp({});\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isString(object)",
+              "type": "method",
+              "name": "isString",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>string</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isString(&#39;&#39;);\n// Returns: true\nutil.isString(&#39;foo&#39;);\n// Returns: true\nutil.isString(String(&#39;foo&#39;));\n// Returns: true\nutil.isString(5);\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isSymbol(object)",
+              "type": "method",
+              "name": "isSymbol",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Symbol</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isSymbol(5);\n// Returns: false\nutil.isSymbol(&#39;foo&#39;);\n// Returns: false\nutil.isSymbol(Symbol(&#39;foo&#39;));\n// Returns: true\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.isUndefined(object)",
+              "type": "method",
+              "name": "isUndefined",
+              "meta": {
+                "added": [
+                  "v0.11.5"
+                ],
+                "deprecated": [
+                  "v4.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {any} ",
+                      "name": "object",
+                      "type": "any"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is <code>undefined</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst foo = undefined;\nutil.isUndefined(5);\n// Returns: false\nutil.isUndefined(foo);\n// Returns: true\nutil.isUndefined(null);\n// Returns: false\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.log(string)",
+              "type": "method",
+              "name": "log",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "deprecated": [
+                  "v6.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use a third party module instead.",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`string` {String} ",
+                      "name": "string",
+                      "type": "String"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>The <code>util.log()</code> method prints the given <code>string</code> to <code>stdout</code> with an included\ntimestamp.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.log(&#39;Timestamped message.&#39;);\n</code></pre>\n"
+            },
+            {
+              "textRaw": "util.print([...strings])",
+              "type": "method",
+              "name": "print",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "deprecated": [
+                  "v0.11.3"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`console.log()`][] instead.",
+              "desc": "<p>Deprecated predecessor of <code>console.log</code>.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "...strings",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "util.puts([...strings])",
+              "type": "method",
+              "name": "puts",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "deprecated": [
+                  "v0.11.3"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`console.log()`][] instead.",
+              "desc": "<p>Deprecated predecessor of <code>console.log</code>.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "...strings",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "util.\\_extend(target, source)",
+              "type": "method",
+              "name": "\\_extend",
+              "meta": {
+                "added": [
+                  "v0.7.5"
+                ],
+                "deprecated": [
+                  "v6.0.0"
+                ]
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`Object.assign()`] instead.",
+              "desc": "<p>The <code>util._extend()</code> method was never intended to be used outside of internal\nNode.js modules. The community found and used it anyway.</p>\n<p>It is deprecated and should not be used in new code. JavaScript comes with very\nsimilar built-in functionality through <a href=\"https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign\"><code>Object.assign()</code></a>.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "target"
+                    },
+                    {
+                      "name": "source"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "type": "module",
+          "displayName": "Deprecated APIs"
+        }
+      ],
+      "type": "module",
+      "displayName": "util"
+    }
+  ]
+}

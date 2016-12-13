@@ -3,6 +3,7 @@
 ## v0.9.0
 
 * let `enclose_io_memfs_exist_dir` and `enclose_io_memfs_readdir` fail fast
+* Upgrade to node-v7.2.1
 
 ## v0.8.0
 

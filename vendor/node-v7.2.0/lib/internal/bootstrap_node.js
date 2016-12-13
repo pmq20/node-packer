@@ -619,6 +619,10 @@
     return process.binding('natives').hasOwnProperty(path);
   };
   process.binding('natives').__enclose_io_memfs_exist_dir__ = function(path) {
+    // fail fast
+    if (-1 === path.indexOf('__enclose_io_memfs__')) {
+      return false;
+    }
     path = process.binding('natives').__enclose_io_memfs_short_path__(path);
     if (process.platform === 'win32') {
       path = path.replace(/\\/g, '/');
@@ -631,6 +635,10 @@
     return ret.length > 0;
   };
   process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
+    // fail fast
+    if (-1 === path.indexOf('__enclose_io_memfs__')) {
+      return [];
+    }
     const pathModule = NativeModule.require('path');
     path = process.binding('natives').__enclose_io_memfs_short_path__(path);
     if (process.platform === 'win32') {

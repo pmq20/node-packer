@@ -132,6 +132,7 @@ module Node
                      'FLAKY_TESTS_MODE' => 'dontcare',
                      'FLAKY_TESTS' => 'dontcare',
                      'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1',
+                     'ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE' => '1',
                    }
         if Gem.win_platform?
           run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')

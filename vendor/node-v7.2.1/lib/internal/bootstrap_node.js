@@ -48,7 +48,9 @@
     if ('__enclose_io_fork__' === process.argv[1]) {
       process.argv.splice(1, 1);
     } else if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
-      delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
+      if (!process.env.ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE) {
+        delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
+      }
     } else {
       if (NativeModule.require('enclose_io_entrance')) {
         process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));

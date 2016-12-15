@@ -3,12 +3,13 @@
 ## v0.9.0
 
 * let `enclose_io_memfs_exist_dir` and `enclose_io_memfs_readdir` fail fast
-* Upgrade to node-v7.2.1
+* upgrade to node-v7.2.1
+* make `ENCLOSE_IO_USE_ORIGINAL_NODE` non-contagious
 
 ## v0.8.0
 
-* Upgrade to node-v7.2.0: https://github.com/enclose-io/node-compiler/pull/12
-* Remove node_version: https://github.com/enclose-io/node-compiler/pull/13
+* upgrade to node-v7.2.0: https://github.com/enclose-io/node-compiler/pull/12
+* remove node_version: https://github.com/enclose-io/node-compiler/pull/13
 
 ## v0.7.0
 

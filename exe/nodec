@@ -2,10 +2,10 @@
 
 require "node/compiler"
 
-USAGE = %Q{nodec v#{::Node::Compiler::VERSION} (#{::Node::Compiler.node_version})
+BANNER = %Q{nodec v#{::Node::Compiler::VERSION} (#{::Node::Compiler.node_version})}
+USAGE = %Q{usage: nodec [module_name] [module_version] [bin_name] [output_path]}.strip
 
-usage: nodec [module_name] [module_version] [bin_name] [output_path]
-}.strip
+STDERR.puts BANNER
 
 if 2 == ARGV.size && 'test' == ARGV[1]
   instance = ::Node::Compiler.new ARGV[0]

@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v0.9.1
+
+* print nodec version when compiling
+
 ## v0.9.0
 
 * let `enclose_io_memfs_exist_dir` and `enclose_io_memfs_readdir` fail fast

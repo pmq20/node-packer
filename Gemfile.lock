@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    node-compiler (0.9.0)
+    node-compiler (0.9.1)
 
 GEM
   remote: https://rubygems.org/

@@ -1,28 +1,86 @@
 #!/usr/bin/env ruby
 
 require "node/compiler"
+require 'optparse'
 
-BANNER = %Q{nodec v#{::Node::Compiler::VERSION} (#{::Node::Compiler.node_version})}
-USAGE = %Q{usage: nodec [module_name] [module_version] [bin_name] [output_path]}.strip
+USAGE = %Q{
+Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler::NODE_VERSION})
+Compiler for Node.js which compiles your app into a single executable.
 
-STDERR.puts BANNER
+Usage: nodec [OPTION]... [ENTRANCE]
+}.strip
 
-if 2 == ARGV.size && 'test' == ARGV[1]
-  instance = ::Node::Compiler.new ARGV[0]
-  instance.test!
-  exit 0
+EXAMPLES = %Q{
+Example 1:
+    git clone https://github.com/jashkenas/coffeescript.git
+    cd coffeescript
+    npm install
+    nodec -o coffee bin/coffee
+
+Example 2:
+    git clone https://github.com/cnodejs/nodeclub.git
+    cd nodeclub
+    npm install
+    nodec -o nodeclub app.js
+}.strip
+
+options = {}
+
+outer_opts = nil
+
+usage = lambda do |out|
+  out.puts outer_opts
+  out.puts
+  out.puts EXAMPLES
 end
 
-unless 4 == ARGV.size
-  STDERR.puts USAGE
+OptionParser.new do |opts|
+  opts.banner = USAGE
+
+  opts.on("-oFILE", "--output=FILE", "The path of the output file (default: ./a.out or ./a.exe)") do |filepath|
+    options[:output] = filepath
+  end
+
+  opts.on("-dDIR", "--tempdir=DIR", "The directory for temporary files (default: /tmp/nodec)") do |dirpath|
+    options[:tempdir] = dirpath
+  end
+
+  opts.on("--make-args=ARGS", "Extra arguments to be passed to make") do |args|
+    options[:make_args] = args
+  end
+
+  opts.on("--vcbuild-args=ARGS", "Extra arguments to be passed to vcbuild.bat") do |args|
+    options[:vcbuild_args] = args
+  end
+
+  opts.on("-v", "--version", "Prints the version of nodec and exit") do
+    puts ::Node::Compiler::VERSION
+    exit 0
+  end
+
+  opts.on("--node-version", "Prints the version of the Node.js run time and exit") do
+    puts ::Node::Compiler::NODE_VERSION
+    exit 0
+  end
+
+  opts.on("-h", "--help", "Prints this help and exit") do
+    usage.call(STDOUT)
+    exit 0
+  end
+
+  outer_opts = opts
+end.parse!
+
+entrance = ARGV[-1]
+unless entrance.kind_of?(String) && entrance.length > 0
+  usage.call(STDERR)
   exit 1
 end
 
 begin
-  instance = ::Node::Compiler.new *ARGV
+  instance = ::Node::Compiler.new entrance, options
   instance.run!
-  instance.clean_work_dir unless ENV['ENCLOSE_IO_KEEP_WORK_DIR']
 rescue ::Node::Compiler::Error => e
   STDERR.puts e.message
-  exit 2
+  exit 1
 end

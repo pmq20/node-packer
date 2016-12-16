@@ -11,91 +11,71 @@ module Node
     VENDOR_DIR = File.expand_path('../../../vendor', __FILE__)
     MEMFS = '/__enclose_io_memfs__'
 
-    def self.node_version
-      Dir[VENDOR_DIR+'/node-*'].map {|x| x.gsub(VENDOR_DIR+'/', '')}.first
+    def initialize(entrance, options = {})
+      @entrance = entrance
+      init_entrance
+
+      @options = options
+      init_options
     end
 
-    def initialize(module_name = nil,
-                   module_version = nil,
-                   bin_name = nil,
-                   output_path = nil)
-      @node_version = self.class.node_version
-      @module_name = module_name
-      @module_version = module_version
-      @bin_name = bin_name
-      @output_path = output_path
-
-      @vendor_dir = File.expand_path("./#{@node_version}", VENDOR_DIR)
-      unless File.exist?(@vendor_dir)
-        msg = "Does not support #{@node_version}, supported: #{::Node::Compiler.node_version}"
-        raise Error, msg
+    def init_entrance
+      # Important to expand_path; otherwiser the while would not be right
+      @entrance = File.expand_path(@entrance)
+      raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
+      @project_root = File.dirname(@entrance)
+      # this while has to correspond with the expand_path above
+      while !File.exist?(File.expand_path('./package.json', @project_root))
+        if '/' == @project_root
+          raise Error, "Cannot locate the root of the project. Is #{@entrance} inside a Node.js project?"
+        end
+        @project_root = File.expand_path('..', @project_root)
       end
+    end
+
+    def init_options
+      if Gem.win_platform?
+        @options[:output] ||= 'a.exe'
+      else
+        @options[:output] ||= 'a.out'
+      end
+      @options[:output] = File.expand_path(@options[:output])
+
+      @options[:tempdir] ||= '/tmp/nodec'
+      @options[:tempdir] = File.expand_path(@options[:tempdir])
+      if @options[:tempdir].include? @project_root
+        raise Error, "tempdir #{@options[:tempdir]} cannot reside inside the project root #{@project_root}."
+      end
+
+      STDERR.puts "-> FileUtils.mkdir_p(#{@options[:tempdir]})"
+      FileUtils.mkdir_p(@options[:tempdir])
+      Dir[VENDOR_DIR + '/*'].each do |dirpath|
+        target = File.join(@options[:tempdir], File.basename(dirpath))
+        unless Dir.exist?(target)
+          STDERR.puts "-> FileUtils.cp_r(#{dirpath}, #{target})"
+          FileUtils.cp_r(dirpath, target)
+        end
+      end
+      @vendor_dir = File.join(@options[:tempdir], NODE_VERSION)
     end
 
     def run!
-      prepare_vars
-      npm_install
-      parse_binaries
+      inject_memfs(@project_root)
       inject_entrance
-      inject_memfs(@work_dir)
       Gem.win_platform? ? compile_win : compile
     end
 
-    def prepare_vars
-      @work_dir = File.expand_path("./enclose-io/nodec/#{@module_name}-#{@module_version}", Dir.tmpdir)
-      FileUtils.mkdir_p(@work_dir)
-      @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
-    end
-
-    def npm_install
-      chdir(@work_dir) do
-        File.open("package.json", "w") do |f|
-          package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
-          f.puts package
-        end
-        npm = ENV['ENCLOSE_IO_NPM'] || 'npm'
-        run("#{npm} -v")
-        run("#{npm} install #{ENV['ENCLOSE_IO_NPM_INSTALL_ARGS']}")
-      end
-    end
-
-    def parse_binaries
-      unless File.exist?(@package_path)
-        raise Error, "No package.json exist at #{@package_path}."
-      end
-      @package_json = JSON.parse File.read @package_path
-      @binaries = @package_json['bin']
-      if @binaries
-        STDERR.puts "Detected binaries: #{@binaries}"
-      else
-        raise Error, "No binaries detected inside #{@package_path}."
-      end
-      if @binaries[@bin_name]
-        STDERR.puts "Using #{@bin_name} at #{@binaries[@bin_name]}"
-      else
-        raise Error, "No such binary: #{@bin_name}"
-      end
-    end
-
-    def inject_entrance
-      target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
-      prj_home = File.expand_path("node_modules/#{@module_name}", @work_dir)
-      bin = File.expand_path(@binaries[@bin_name], prj_home)
-      path = mempath bin
-      File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
-      # remove shebang
-      lines = File.read(bin).lines
-      lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]
-      File.open(bin, "w") { |f| f.print lines.join }
-    end
-
     def inject_memfs(source)
-      target = File.expand_path("./lib#{MEMFS}", @vendor_dir)
-      FileUtils.remove_entry_secure(target) if File.exist?(target)
-      FileUtils.cp_r(source, target)
+      @copydir = File.expand_path("./lib#{MEMFS}", @vendor_dir)
+      if File.exist?(@copydir)
+        STDERR.puts "-> FileUtils.remove_entry_secure(#{@copydir})"
+        FileUtils.remove_entry_secure(@copydir)
+      end
+      STDERR.puts "-> FileUtils.cp_r(#{source}, #{@copydir})"
+      FileUtils.cp_r(source, @copydir)
       manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
       File.open(manifest, "w") do |f|
-        Dir["#{target}/**/*"].each do |fullpath|
+        Dir["#{@copydir}/**/*"].each do |fullpath|
           next unless File.file?(fullpath)
           if 0 == File.size(fullpath) && Gem.win_platform?
             # Fix VC++ Error C2466
@@ -108,24 +88,37 @@ module Node
       end
     end
 
+    def inject_entrance
+      target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
+      path = mempath @entrance
+      File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
+      # remove shebang
+      lines = File.read(@entrance).lines
+      lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]
+      File.open(copypath(@entrance), "w") { |f| f.print lines.join }
+    end
+
     def compile_win
       chdir(@vendor_dir) do
-        run("call vcbuild.bat #{ENV['ENCLOSE_IO_VCBUILD_ARGS']}")
+        run("call vcbuild.bat #{@options[:vcbuild_args]}")
       end
-      FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @output_path)
+      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_dir, 'Release\\node.exe')}, #{@options[:output]})"
+      FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @options[:output])
     end
 
     def compile
       chdir(@vendor_dir) do
-        run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
-        run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+        run("./configure")
+        run("make #{@options[:make_args]}")
       end
-      FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @output_path)
+      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_dir, 'out/Release/node')}, #{@options[:output]})"
+      FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @options[:output])
     end
 
     def test!
       chdir(@vendor_dir) do
         inject_memfs(File.expand_path('./test/fixtures', @vendor_dir))
+        STDERR.puts "-> FileUtils.rm_f(#{Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node'})"
         FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
         File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts 'module.exports = false;' }
         test_env = {
@@ -137,15 +130,17 @@ module Node
         if Gem.win_platform?
           run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')
         else
-          run("./configure #{ENV['ENCLOSE_IO_CONFIGURE_ARGS']}")
-          run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+          run("./configure")
+          run("make #{@options[:make_args]}")
           run(test_env, "make test-ci")
         end
       end
     end
-
-    def clean_work_dir
-      FileUtils.remove_entry_secure @work_dir
+    
+    def debug
+      STDERR.puts "@entrance: #{@entrance}"
+      STDERR.puts "@project_root: #{@project_root}"
+      STDERR.puts "@options: #{@options}"
     end
 
     private
@@ -165,11 +160,16 @@ module Node
   
     def mempath(path)
       path = File.expand_path(path)
-      if @work_dir == path[0...(@work_dir.size)]
-        return "#{MEMFS}#{path[(@work_dir.size)..-1]}"
-      else
-        raise Error, 'Logic error in mempath'
-      end
+      raise 'Logic error in mempath' unless @project_root == path[0...(@project_root.size)]
+      "#{MEMFS}#{path[(@project_root.size)..-1]}"
+    end
+  
+    def copypath(path)
+      path = File.expand_path(path)
+      raise 'Logic error 1 in copypath' unless @project_root == path[0...(@project_root.size)]
+      ret = File.join(@copydir, path[(@project_root.size)..-1])
+      raise 'Logic error 2 in copypath' unless File.exist?(ret)
+      ret
     end
   end
 end

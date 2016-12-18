@@ -2,8 +2,8 @@
 
 ## v0.9.1
 
-* change the usage of the `nodec` command
 * add support to pack an entire Node.js project (e.g. nodeclub)
+* change the usage of the `nodec` command
 * stop polluting the vendor directory of nodec itself
 
 ## v0.9.0

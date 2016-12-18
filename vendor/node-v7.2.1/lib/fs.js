@@ -234,6 +234,12 @@ fs.exists = function(path, callback) {
   if (!nullCheck(path, cb)) return;
   var req = new FSReqWrap();
   req.oncomplete = cb;
+  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+    process.nextTick(function() {
+      callback(true);
+    });
+    return;
+  }
   binding.stat(pathModule._makeLong(path), req);
   function cb(err, stats) {
     if (callback) callback(err ? false : true);
@@ -243,6 +249,9 @@ fs.exists = function(path, callback) {
 fs.existsSync = function(path) {
   try {
     nullCheck(path);
+    if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
+      return true;
+    }
     binding.stat(pathModule._makeLong(path));
     return true;
   } catch (e) {

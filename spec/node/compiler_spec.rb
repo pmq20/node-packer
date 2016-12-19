@@ -25,7 +25,7 @@ describe ::Node::Compiler do
     npm = ::Node::Compiler::Npm.new('coffee-script', '1.11.1')
     entrance = npm.get_entrance('coffee')
 
-    instance = ::Node::Compiler.new(entrance, output: file.path, tempdir: tempdir)
+    instance = ::Node::Compiler.new(entrance, output: file.path, tempdir: tempdir, vcbuild_args: 'nosign')
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

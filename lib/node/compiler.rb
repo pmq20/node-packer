@@ -62,32 +62,9 @@ module Node
     end
 
     def run!
-      inject_memfs(@project_root)
+      @copydir = Utils.inject_memfs(@project_root, @vendor_dir)
       inject_entrance
       Gem.win_platform? ? compile_win : compile
-    end
-
-    def inject_memfs(source)
-      @copydir = File.expand_path("./lib#{MEMFS}", @vendor_dir)
-      if File.exist?(@copydir)
-        STDERR.puts "-> FileUtils.remove_entry_secure(#{@copydir})"
-        FileUtils.remove_entry_secure(@copydir)
-      end
-      STDERR.puts "-> FileUtils.cp_r(#{source}, #{@copydir})"
-      FileUtils.cp_r(source, @copydir)
-      manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
-      File.open(manifest, "w") do |f|
-        Dir["#{@copydir}/**/*"].each do |fullpath|
-          next unless File.file?(fullpath)
-          if 0 == File.size(fullpath) && Gem.win_platform?
-            # Fix VC++ Error C2466
-            # TODO: what about empty file semantics?
-            File.open(fullpath, 'w') { |f| f.puts ' ' }
-          end
-          entry = "lib#{fullpath[(fullpath.index MEMFS)..-1]}"
-          f.puts entry
-        end
-      end
     end
 
     def inject_entrance

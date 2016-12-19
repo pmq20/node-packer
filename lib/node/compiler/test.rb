@@ -20,7 +20,7 @@ module Node
       
       def run!
         Utils.chdir(@vendor_dir) do
-          inject_memfs(File.expand_path('./test/fixtures', @vendor_dir))
+          Utils.inject_memfs(File.expand_path('./test/fixtures', @vendor_dir), @vendor_dir)
           STDERR.puts "-> FileUtils.rm_f(#{Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node'})"
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
           File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir), "w") { |f| f.puts 'module.exports = false;' }
@@ -36,25 +36,6 @@ module Node
             Utils.run("./configure")
             Utils.run("make")
             Utils.run(test_env, "make test-ci")
-          end
-        end
-      end
-  
-      def inject_memfs(source)
-        target = File.expand_path("./lib#{MEMFS}", @vendor_dir)
-        FileUtils.remove_entry_secure(target) if File.exist?(target)
-        FileUtils.cp_r(source, target)
-        manifest = File.expand_path('./enclose_io_manifest.txt', @vendor_dir)
-        File.open(manifest, "w") do |f|
-          Dir["#{target}/**/*"].each do |fullpath|
-            next unless File.file?(fullpath)
-            if 0 == File.size(fullpath) && Gem.win_platform?
-              # Fix VC++ Error C2466
-              # TODO: what about empty file semantics?
-              File.open(fullpath, 'w') { |f| f.puts ' ' }
-            end
-            entry = "lib#{fullpath[(fullpath.index MEMFS)..-1]}"
-            f.puts entry
           end
         end
       end

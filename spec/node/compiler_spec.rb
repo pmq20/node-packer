@@ -5,7 +5,8 @@
 
 require "spec_helper"
 
-tempdir = File.expand_path("./enclose-io/nodec/compiler_spec", Dir.tmpdir)
+tempdir = File.expand_path("nodec/compiler_spec", Dir.tmpdir)
+FileUtils.mkdir_p(tempdir)
 
 describe ::Node::Compiler do
   it "has a version number" do

@@ -58,17 +58,17 @@ module Node
       end
 
       Utils.prepare_tempdir(@options[:tempdir])
-      @vendor_dir = File.join(@options[:tempdir], NODE_VERSION)
+      @vendor_node = File.join(@options[:tempdir], NODE_VERSION)
     end
 
     def run!
-      @copydir = Utils.inject_memfs(@project_root, @vendor_dir)
+      @copy_dir = Utils.inject_memfs(@project_root, @vendor_node)
       inject_entrance
       Gem.win_platform? ? compile_win : compile
     end
 
     def inject_entrance
-      target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
+      target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_node)
       path = mempath @entrance
       File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
       # remove shebang
@@ -78,20 +78,20 @@ module Node
     end
 
     def compile_win
-      Utils.chdir(@vendor_dir) do
+      Utils.chdir(@vendor_node) do
         Utils.run("call vcbuild.bat #{@options[:vcbuild_args]}")
       end
-      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_dir, 'Release\\node.exe')}, #{@options[:output]})"
-      FileUtils.cp(File.join(@vendor_dir, 'Release\\node.exe'), @options[:output])
+      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'Release\\node.exe')}, #{@options[:output]})"
+      FileUtils.cp(File.join(@vendor_node, 'Release\\node.exe'), @options[:output])
     end
 
     def compile
-      Utils.chdir(@vendor_dir) do
+      Utils.chdir(@vendor_node) do
         Utils.run("./configure")
         Utils.run("make #{@options[:make_args]}")
       end
-      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_dir, 'out/Release/node')}, #{@options[:output]})"
-      FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @options[:output])
+      STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'out/Release/node')}, #{@options[:output]})"
+      FileUtils.cp(File.join(@vendor_node, 'out/Release/node'), @options[:output])
     end
 
     def mempath(path)
@@ -103,7 +103,7 @@ module Node
     def copypath(path)
       path = File.expand_path(path)
       raise 'Logic error 1 in copypath' unless @project_root == path[0...(@project_root.size)]
-      ret = File.join(@copydir, path[(@project_root.size)..-1])
+      ret = File.join(@copy_dir, path[(@project_root.size)..-1])
       raise 'Logic error 2 in copypath' unless File.exist?(ret)
       ret
     end

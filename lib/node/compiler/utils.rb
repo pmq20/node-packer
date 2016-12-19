@@ -39,16 +39,16 @@ module Node
         end
 
         def inject_memfs(source, target)
-          copydir = File.expand_path("./lib#{MEMFS}", target)
-          if File.exist?(copydir)
-            STDERR.puts "-> FileUtils.remove_entry_secure(#{copydir})"
-            FileUtils.remove_entry_secure(copydir)
+          copy_dir = File.expand_path("./lib#{MEMFS}", target)
+          if File.exist?(copy_dir)
+            STDERR.puts "-> FileUtils.remove_entry_secure(#{copy_dir})"
+            FileUtils.remove_entry_secure(copy_dir)
           end
-          STDERR.puts "-> FileUtils.cp_r(#{source}, #{copydir})"
-          FileUtils.cp_r(source, copydir)
+          STDERR.puts "-> FileUtils.cp_r(#{source}, #{copy_dir})"
+          FileUtils.cp_r(source, copy_dir)
           manifest = File.expand_path('./enclose_io_manifest.txt', target)
           File.open(manifest, "w") do |f|
-            Dir["#{copydir}/**/*"].each do |fullpath|
+            Dir["#{copy_dir}/**/*"].each do |fullpath|
               next unless File.file?(fullpath)
               if 0 == File.size(fullpath) && Gem.win_platform?
                 # Fix VC++ Error C2466
@@ -59,7 +59,7 @@ module Node
               f.puts entry
             end
           end
-          return copydir
+          return copy_dir
         end
       end
     end

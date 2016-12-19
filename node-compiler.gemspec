@@ -1,6 +1,7 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'node/compiler/version'
+
+require 'node/compiler'
 
 Gem::Specification.new do |spec|
   spec.name          = "node-compiler"

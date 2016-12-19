@@ -5,6 +5,9 @@
 
 module Node
   class Compiler
-    class Error < ::RuntimeError; end
+    VERSION = '0.9.1'
+    VENDOR_DIR = File.expand_path('../../../../vendor', __FILE__)
+    NODE_VERSION = 'node-v7.2.1'
+    MEMFS = '/__enclose_io_memfs__'
   end
 end

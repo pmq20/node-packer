@@ -22,7 +22,7 @@ You might need to `sudo` if prompted with no-permission errors.
             --make-args=ARGS             Extra arguments to be passed to make
             --vcbuild-args=ARGS          Extra arguments to be passed to vcbuild.bat
         -v, --version                    Prints the version of nodec and exit
-            --node-version               Prints the version of the Node.js run time and exit
+            --node-version               Prints the version of the Node.js runtime and exit
         -h, --help                       Prints this help and exit
 
 ## Example 1
@@ -37,7 +37,7 @@ You might need to `sudo` if prompted with no-permission errors.
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     npm install
-    nodec --output=nodeclub app.js
+    nodec -o nodeclub app.js
 
 ## Development
 

@@ -42,12 +42,16 @@ end
 OptionParser.new do |opts|
   opts.banner = USAGE
 
-  opts.on("-oFILE", "--output=FILE", "The path of the output file (default: ./a.out or ./a.exe)") do |filepath|
-    options[:output] = filepath
+  opts.on("-pDIR", "--project-root=DIR", "The path to the root of the project") do |dir|
+    options[:project_root] = dir
   end
 
-  opts.on("-dDIR", "--tempdir=DIR", "The directory for temporary files (default: /tmp/nodec)") do |dirpath|
-    options[:tempdir] = dirpath
+  opts.on("-oFILE", "--output=FILE", "The path of the output file (default: ./a.out or ./a.exe)") do |file|
+    options[:output] = file
+  end
+
+  opts.on("-dDIR", "--tempdir=DIR", "The directory for temporary files (default: /tmp/nodec)") do |dir|
+    options[:tempdir] = dir
   end
 
   opts.on("--make-args=ARGS", "Extra arguments to be passed to make") do |args|
@@ -63,7 +67,7 @@ OptionParser.new do |opts|
     exit 0
   end
 
-  opts.on("--node-version", "Prints the version of the Node.js run time and exit") do
+  opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
     puts ::Node::Compiler::NODE_VERSION
     exit 0
   end

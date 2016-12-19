@@ -8,10 +8,6 @@ os:
   - linux
   - osx
 
-env:
-  global:
-    - ENCLOSE_IO_MAKE_ARGS="-j4 V="
-
 compiler:
   - gcc
   - clang
@@ -19,4 +15,4 @@ compiler:
 script:
   - gem install bundler --no-ri --no-rdoc
   - bundle
-  - ENCLOSE_IO_MAKE_ARGS="-j4 V=" bundle exec rake
+  - bundle exec rake

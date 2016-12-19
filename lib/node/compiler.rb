@@ -18,9 +18,9 @@ module Node
   class Compiler
     def initialize(entrance, options = {})
       @entrance = entrance
-      init_entrance
-
       @options = options
+
+      init_entrance
       init_options
     end
 
@@ -28,13 +28,18 @@ module Node
       # Important to expand_path; otherwiser the while would not be right
       @entrance = File.expand_path(@entrance)
       raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
-      @project_root = File.dirname(@entrance)
-      # this while has to correspond with the expand_path above
-      while !File.exist?(File.expand_path('./package.json', @project_root))
-        if '/' == @project_root
-          raise Error, "Cannot locate the root of the project. Is #{@entrance} inside a Node.js project?"
+      if @options[:project_root]
+        @project_root = File.expand_path(@options[:project_root])
+      else
+        @project_root = File.dirname(@entrance)
+        # this while has to correspond with the expand_path above
+        while !File.exist?(File.expand_path('./package.json', @project_root))
+          break if '/' == @project_root
+          @project_root = File.expand_path('..', @project_root)
         end
-        @project_root = File.expand_path('..', @project_root)
+      end
+      unless File.exist?(File.expand_path('./package.json', @project_root))
+        raise Error, "Cannot find a package.json at the project root #{@project_root}"
       end
     end
 

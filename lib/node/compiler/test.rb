@@ -33,7 +33,7 @@ module Node
             Utils.run(test_env, 'call vcbuild.bat nosign test-ci ignore-flaky')
           else
             Utils.run("./configure")
-            Utils.run("make #{ENV['ENCLOSE_IO_MAKE_ARGS']}")
+            Utils.run("make")
             Utils.run(test_env, "make test-ci")
           end
         end

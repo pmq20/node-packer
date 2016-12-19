@@ -18,13 +18,13 @@ module Node
         @work_dir = File.expand_path("./enclose-io/nodec/#{@module_name}-#{@module_version}", Dir.tmpdir)
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
-        chdir(@work_dir) do
+        Utils.chdir(@work_dir) do
           File.open("package.json", "w") do |f|
             package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
             f.puts package
           end
-          run("npm -v")
-          run("npm install")
+          Utils.run("npm -v")
+          Utils.run("npm install")
         end
       end
 
@@ -45,7 +45,7 @@ module Node
         else
           raise Error, "No such binary: #{@bin_name}"
         end
-        return File.expand_path(@binaries[@bin_name], @work_dir)
+        return File.expand_path("node_modules/#{@module_name}/#{@binaries[@bin_name]}", @work_dir)
       end
     end
   end

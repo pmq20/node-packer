@@ -25,25 +25,17 @@ module Node
           Dir.chdir(path) { yield }
           STDERR.puts "-> cd #{Dir.pwd}"
         end
-  
-        def mempath(path)
-          path = File.expand_path(path)
-          raise 'Logic error in mempath' unless @project_root == path[0...(@project_root.size)]
-          "#{MEMFS}#{path[(@project_root.size)..-1]}"
-        end
-  
-        def copypath(path)
-          path = File.expand_path(path)
-          raise 'Logic error 1 in copypath' unless @project_root == path[0...(@project_root.size)]
-          ret = File.join(@copydir, path[(@project_root.size)..-1])
-          raise 'Logic error 2 in copypath' unless File.exist?(ret)
-          ret
-        end
 
-        def debug
-          STDERR.puts "@entrance: #{@entrance}"
-          STDERR.puts "@project_root: #{@project_root}"
-          STDERR.puts "@options: #{@options}"
+        def prepare_tempdir(tempdir)
+          STDERR.puts "-> FileUtils.mkdir_p(#{tempdir})"
+          FileUtils.mkdir_p(tempdir)
+          Dir[::Node::Compiler::VENDOR_DIR + '/*'].each do |dirpath|
+            target = File.join(tempdir, File.basename(dirpath))
+            unless Dir.exist?(target)
+              STDERR.puts "-> FileUtils.cp_r(#{dirpath}, #{target})"
+              FileUtils.cp_r(dirpath, target)
+            end
+          end
         end
       end
     end

@@ -52,15 +52,7 @@ module Node
         raise Error, "tempdir #{@options[:tempdir]} cannot reside inside the project root #{@project_root}."
       end
 
-      STDERR.puts "-> FileUtils.mkdir_p(#{@options[:tempdir]})"
-      FileUtils.mkdir_p(@options[:tempdir])
-      Dir[VENDOR_DIR + '/*'].each do |dirpath|
-        target = File.join(@options[:tempdir], File.basename(dirpath))
-        unless Dir.exist?(target)
-          STDERR.puts "-> FileUtils.cp_r(#{dirpath}, #{target})"
-          FileUtils.cp_r(dirpath, target)
-        end
-      end
+      Utils.prepare_tempdir(@options[:tempdir])
       @vendor_dir = File.join(@options[:tempdir], NODE_VERSION)
     end
 
@@ -95,12 +87,12 @@ module Node
 
     def inject_entrance
       target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_dir)
-      path = Utils.mempath @entrance
+      path = mempath @entrance
       File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
       # remove shebang
       lines = File.read(@entrance).lines
       lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]
-      File.open(Utils.copypath(@entrance), "w") { |f| f.print lines.join }
+      File.open(copypath(@entrance), "w") { |f| f.print lines.join }
     end
 
     def compile_win
@@ -118,6 +110,20 @@ module Node
       end
       STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_dir, 'out/Release/node')}, #{@options[:output]})"
       FileUtils.cp(File.join(@vendor_dir, 'out/Release/node'), @options[:output])
+    end
+
+    def mempath(path)
+      path = File.expand_path(path)
+      raise 'Logic error in mempath' unless @project_root == path[0...(@project_root.size)]
+      "#{MEMFS}#{path[(@project_root.size)..-1]}"
+    end
+
+    def copypath(path)
+      path = File.expand_path(path)
+      raise 'Logic error 1 in copypath' unless @project_root == path[0...(@project_root.size)]
+      ret = File.join(@copydir, path[(@project_root.size)..-1])
+      raise 'Logic error 2 in copypath' unless File.exist?(ret)
+      ret
     end
   end
 end

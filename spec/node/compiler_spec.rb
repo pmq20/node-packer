@@ -5,13 +5,15 @@
 
 require "spec_helper"
 
+tempdir = File.expand_path("./enclose-io/nodec/compiler_spec", Dir.tmpdir)
+
 describe ::Node::Compiler do
   it "has a version number" do
     expect(::Node::Compiler::VERSION).not_to be nil
   end
 
   it "passes all original and enclose.io-added Node.js tests" do
-    x = ::Node::Compiler::Test.new
+    x = ::Node::Compiler::Test.new(tempdir)
     x.run!
   end
 
@@ -22,7 +24,7 @@ describe ::Node::Compiler do
     npm = ::Node::Compiler::Npm.new('coffee-script', '1.11.1')
     entrance = npm.get_entrance('coffee')
 
-    instance = ::Node::Compiler.new(entrance, output: file.path)
+    instance = ::Node::Compiler.new(entrance, output: file.path, tempdir: tempdir)
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

@@ -17,6 +17,7 @@ You might need to `sudo` if prompted with no-permission errors.
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]
+        -p, --project-root=DIR           The path to the root of the project
         -o, --output=FILE                The path of the output file (default: ./a.out or ./a.exe)
         -d, --tempdir=DIR                The directory for temporary files (default: /tmp/nodec)
             --make-args=ARGS             Extra arguments to be passed to make

@@ -2,11 +2,8 @@
 
 Compiler for Node.js which compiles your project into a single executable.
 
-http://nodec.enclose.io
-
-[![Linux and Mac OS X Build Status](https://travis-ci.org/enclose-io/node-compiler.svg?branch=master)](https://travis-ci.org/enclose-io/node-compiler)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/f4x3bq5hub3uu3ys/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
-[![Gem Version](https://badge.fury.io/rb/node-compiler.svg)](https://badge.fury.io/rb/node-compiler)
+[![Linux and Mac OS X Build Status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
 ## Installation
 
@@ -58,13 +55,8 @@ To release a new version, update the version number in `version.rb`, and then ru
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/enclose-io/node-compiler.
-
-## Contributors
-
-* [pmq20](https://github.com/pmq20) - **Minqi Pan** &lt;pmq2001@gmail.com&gt;
-* [ibigbug](https://github.com/ibigbug) - **Yuwei Ba** &lt;akabyw@gmail.com&gt;
+Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/node-compiler.
 
 ## License
 
-Copyright (c) 2016-2017 Node.js Compiler contributors, under terms of the [MIT License](http://opensource.org/licenses/MIT).
+Copyright (c) 2016-2017 Minqi Pan, under terms of the [MIT License](http://opensource.org/licenses/MIT).

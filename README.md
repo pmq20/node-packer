@@ -10,40 +10,35 @@ http://nodec.enclose.io
 
 ## Installation
 
-Add this line to your application's Gemfile:
+    gem install node-compiler
 
-```ruby
-gem 'node-compiler'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install node-compiler
-
+You might need to `sudo` if prompted with no-permission errors.
 
 ## Usage
 
-    nodec [module_name] [module_version] [bin_name] [output_path]
+    nodec [OPTION]... [ENTRANCE]
+        -p, --project-root=DIR           The path to the root of the project
+        -o, --output=FILE                The path of the output file (default: ./a.out or ./a.exe)
+        -d, --tempdir=DIR                The directory for temporary files (default: /tmp/nodec)
+            --make-args=ARGS             Extra arguments to be passed to make
+            --vcbuild-args=ARGS          Extra arguments to be passed to vcbuild.bat
+        -v, --version                    Prints the version of nodec and exit
+            --node-version               Prints the version of the Node.js runtime and exit
+        -h, --help                       Prints this help and exit
 
-## Example
+## Example 1
 
-    nodec coffee-script 1.11.1 coffee coffee-1.11.1-darwin-x64
+    git clone https://github.com/jashkenas/coffeescript.git
+    cd coffeescript
+    npm install
+    nodec -o coffee bin/coffee
 
-Then the compiled product will be located at `./coffee-1.11.1-darwin-x64`, ready to be distributed.
+## Example 2
 
-## Optional Environment Variables
-
-* `ENCLOSE_IO_KEEP_WORK_DIR`
-* `ENCLOSE_IO_CONFIGURE_ARGS`
-* `ENCLOSE_IO_MAKE_ARGS`
-* `ENCLOSE_IO_VCBUILD_ARGS`
-* `ENCLOSE_IO_NPM`
-* `ENCLOSE_IO_NPM_INSTALL_ARGS`
-* `npm_config_registry`
+    git clone https://github.com/cnodejs/nodeclub.git
+    cd nodeclub
+    npm install
+    nodec -o nodeclub app.js
 
 ## Development
 

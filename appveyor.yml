@@ -1,10 +1,7 @@
 version: '{build}'
-environment:
-  ENCLOSE_IO_VCBUILD_ARGS: nosign
 build_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%
-
 
     ruby -v
 
@@ -26,6 +23,5 @@ build_script:
 test_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%
-
 
     bundle exec rake

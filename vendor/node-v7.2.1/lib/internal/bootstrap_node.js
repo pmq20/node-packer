@@ -590,6 +590,8 @@
     );
   }
   process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
+    const pathModule = NativeModule.require('path');
+    path = pathModule.resolve(path);
     var short_index = path.indexOf('/__enclose_io_memfs__');
     if (-1 === short_index) {
       short_index = path.indexOf('\\__enclose_io_memfs__');

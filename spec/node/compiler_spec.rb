@@ -1,4 +1,12 @@
+# Copyright (c) 2016 Node.js Compiler contributors
+# 
+# This file is part of Node.js Compiler, distributed under the MIT License
+# For full terms see the included LICENSE file
+
 require "spec_helper"
+
+tempdir = File.expand_path("nodec/compiler_spec", Dir.tmpdir)
+FileUtils.mkdir_p(tempdir)
 
 describe ::Node::Compiler do
   it "has a version number" do
@@ -6,17 +14,18 @@ describe ::Node::Compiler do
   end
 
   it "passes all original and enclose.io-added Node.js tests" do
-    instance = ::Node::Compiler.new
-    instance.test!
+    x = ::Node::Compiler::Test.new(tempdir)
+    x.run!
   end
 
   it 'builds coffee out of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
     file.close
-    instance = ::Node::Compiler.new('coffee-script',
-                                    '1.11.1',
-                                    'coffee',
-                                    file.path)
+
+    npm = ::Node::Compiler::Npm.new('coffee-script', '1.11.1')
+    entrance = npm.get_entrance('coffee')
+
+    instance = ::Node::Compiler.new(entrance, output: file.path, tempdir: tempdir, vcbuild_args: 'nosign')
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

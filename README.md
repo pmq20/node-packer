@@ -22,8 +22,8 @@ You might need to `sudo` if prompted with no-permission errors.
         -d, --tmpdir=DIR                 Speicifies the directory for temporary files (default: /tmp/nodec)
             --make-args=ARGS             Passes extra arguments to make
             --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
-            --module-name=NAME           Compiles a npm module of the specified name
-            --module-version=VERSION     Compiles a npm module of the speificied version
+            --npm-package=NAME           Compiles the specified npm package
+            --npm-package-version=VER    Compiles a specific version of the npm package (default: latest)
         -v, --version                    Prints the version of nodec and exit
             --node-version               Prints the version of the Node.js runtime and exit
         -h, --help                       Prints this help and exit
@@ -46,7 +46,7 @@ You might need to `sudo` if prompted with no-permission errors.
 
 ### Compiling a npm module
 
-    nodec --module-name=coffee-script --module-version=1.11.1 coffee
+    nodec --npm-package=coffee-script coffee
 
 ## Development
 

@@ -32,7 +32,7 @@ Example 2: Compiling a web application
     nodec app.js
 
 Example 3: Compiling a npm module
-    nodec --module-name=coffee-script --module-version=1.11.1 coffee
+    nodec --npm-package=coffee-script coffee
 
 }.strip
 
@@ -69,12 +69,12 @@ OptionParser.new do |opts|
     options[:vcbuild_args] = args
   end
 
-  opts.on("--module-name=NAME", "Compiles a npm module of the specified name") do |name|
-    options[:module_name] = name
+  opts.on("--npm-package=NAME", "Compiles the specified npm package") do |name|
+    options[:npm_package] = name
   end
 
-  opts.on("--module-version=VERSION", "Compiles a npm module of the speificied version") do |version|
-    options[:module_version] = version
+  opts.on("--npm-package-version=VER", "Compiles a specific version of the npm package (default: latest)") do |ver|
+    options[:npm_package_version] = ver
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do

@@ -80,9 +80,9 @@ module Node
       @options[:tmpdir] ||= '/tmp/nodec'
       @options[:tmpdir] = File.expand_path(@options[:tmpdir])
       
-      if @options[:module_name]
-        @options[:module_version] ||= 'latest'
-        npm = ::Node::Compiler::Npm.new(@options[:module_name], @options[:module_version], @options[:tmpdir])
+      if @options[:npm_package]
+        @options[:npm_package_version] ||= 'latest'
+        npm = ::Node::Compiler::Npm.new(@options[:npm_package], @options[:npm_package_version], @options[:tmpdir])
         @entrance = npm.get_entrance(@entrance)
       end
     end

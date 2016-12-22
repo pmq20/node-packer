@@ -22,8 +22,8 @@ describe ::Node::Compiler do
     file = Tempfile.new('coffee-test-artifact')
     file.close
     opts = {
-      module_name: 'coffee-script',
-      module_version: '1.11.1',
+      npm_package: 'coffee-script',
+      npm_package_version: '1.11.1',
       output: file.path,
       tmpdir: tmpdir,
       vcbuild_args: 'nosign',

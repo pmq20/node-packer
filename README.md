@@ -23,7 +23,7 @@ You might need to `sudo` if prompted with no-permission errors.
             --make-args=ARGS             Passes extra arguments to make
             --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
             --npm-package=NAME           Compiles the specified npm package
-            --npm-package-version=VER    Compiles a specific version of the npm package (default: latest)
+            --npm-package-version=VER    Compiles the specified version of the npm package
         -v, --version                    Prints the version of nodec and exit
             --node-version               Prints the version of the Node.js runtime and exit
         -h, --help                       Prints this help and exit

@@ -73,7 +73,7 @@ OptionParser.new do |opts|
     options[:npm_package] = name
   end
 
-  opts.on("--npm-package-version=VER", "Compiles a specific version of the npm package") do |ver|
+  opts.on("--npm-package-version=VER", "Compiles the specified version of the npm package") do |ver|
     options[:npm_package_version] = ver
   end
 

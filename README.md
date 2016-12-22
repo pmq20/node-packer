@@ -28,21 +28,23 @@ You might need to `sudo` if prompted with no-permission errors.
             --node-version               Prints the version of the Node.js runtime and exit
         -h, --help                       Prints this help and exit
 
-## Example 1: Compiling a CLI project
+## Examples
+
+### Compiling a CLI project
 
     git clone https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     npm install
     nodec bin/coffee
 
-## Example 2: Compiling a web application
+### Compiling a web application
 
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     npm install
     nodec app.js
 
-## Example 3: Compiling a npm module
+### Compiling a npm module
 
     nodec --module-name=coffee-script --module-version=1.11.1 coffee
 

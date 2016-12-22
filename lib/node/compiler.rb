@@ -24,17 +24,17 @@ module Node
       version_info = File.read(File.join(VENDOR_DIR, 'node/src/node_version.h'))
       versions = []
       if version_info =~ /NODE_MAJOR_VERSION\s(\d+)/
-        versions << $1
+        versions << $1.dup
       else
         raise 'Cannot peek NODE_MAJOR_VERSION'
       end
       if version_info =~ /NODE_MINOR_VERSION\s(\d+)/
-        versions << $1
+        versions << $1.dup
       else
         raise 'Cannot peek NODE_MINOR_VERSION'
       end
       if version_info =~ /NODE_PATCH_VERSION\s(\d+)/
-        versions << $1
+        versions << $1.dup
       else
         raise 'Cannot peek NODE_PATCH_VERSION'
       end

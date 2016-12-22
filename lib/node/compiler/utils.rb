@@ -26,11 +26,11 @@ module Node
           STDERR.puts "-> cd #{Dir.pwd}"
         end
 
-        def prepare_tempdir(tempdir)
-          STDERR.puts "-> FileUtils.mkdir_p(#{tempdir})"
-          FileUtils.mkdir_p(tempdir)
+        def prepare_tmpdir(tmpdir)
+          STDERR.puts "-> FileUtils.mkdir_p(#{tmpdir})"
+          FileUtils.mkdir_p(tmpdir)
           Dir[::Node::Compiler::VENDOR_DIR + '/*'].each do |dirpath|
-            target = File.join(tempdir, File.basename(dirpath))
+            target = File.join(tmpdir, File.basename(dirpath))
             unless Dir.exist?(target)
               STDERR.puts "-> FileUtils.cp_r(#{dirpath}, #{target})"
               FileUtils.cp_r(dirpath, target)

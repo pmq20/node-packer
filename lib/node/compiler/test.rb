@@ -12,9 +12,9 @@ require 'open3'
 module Node
   class Compiler
     class Test
-      def initialize(tempdir, options = {})
-        Utils.prepare_tempdir(tempdir)
-        @vendor_node = File.join(tempdir, 'node')
+      def initialize(tmpdir, options = {})
+        Utils.prepare_tmpdir(tmpdir)
+        @vendor_node = File.join(tmpdir, 'node')
         @options = options
       end
       

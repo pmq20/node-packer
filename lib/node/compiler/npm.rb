@@ -12,10 +12,10 @@ require 'open3'
 module Node
   class Compiler
     class Npm
-      def initialize(module_name, module_version)
+      def initialize(module_name, module_version, tmpdir)
         @module_name = module_name
         @module_version = module_version
-        @work_dir = File.expand_path("nodec/#{@module_name}-#{@module_version}", Dir.tmpdir)
+        @work_dir = File.expand_path("#{@module_name}-#{@module_version}", tmpdir)
         FileUtils.mkdir_p(@work_dir)
         @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
         Utils.chdir(@work_dir) do

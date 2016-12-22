@@ -5,8 +5,8 @@
 
 require "spec_helper"
 
-tempdir = File.expand_path("nodec/compiler_spec", Dir.tmpdir)
-FileUtils.mkdir_p(tempdir)
+tmpdir = File.expand_path("nodec/compiler_spec", Dir.tmpdir)
+FileUtils.mkdir_p(tmpdir)
 
 describe ::Node::Compiler do
   it "has a version number" do
@@ -14,18 +14,21 @@ describe ::Node::Compiler do
   end
 
   it "passes all original and enclose.io-added Node.js tests" do
-    x = ::Node::Compiler::Test.new(tempdir)
+    x = ::Node::Compiler::Test.new(tmpdir)
     x.run!
   end
 
   it 'builds coffee out of coffee-script' do
     file = Tempfile.new('coffee-test-artifact')
     file.close
-
-    npm = ::Node::Compiler::Npm.new('coffee-script', '1.11.1')
-    entrance = npm.get_entrance('coffee')
-
-    instance = ::Node::Compiler.new(entrance, output: file.path, tempdir: tempdir, vcbuild_args: 'nosign')
+    opts = {
+      module_name: 'coffee-script',
+      module_version: '1.11.1',
+      output: file.path,
+      tmpdir: tmpdir,
+      vcbuild_args: 'nosign',
+    }
+    instance = ::Node::Compiler.new('coffee', opts)
     instance.run!
     expect(File.exist?(file.path)).to be true
     expect(File.size(file.path)).to be >= 1_000_000

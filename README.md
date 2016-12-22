@@ -1,6 +1,6 @@
 # Node.js Compiler
 
-Compiler for Node.js which compiles your app into a single executable.
+Compiler for Node.js which compiles your project into a single executable.
 
 http://nodec.enclose.io
 
@@ -17,28 +17,34 @@ You might need to `sudo` if prompted with no-permission errors.
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]
-        -p, --project-root=DIR           The path to the root of the project
-        -o, --output=FILE                The path of the output file (default: ./a.out or ./a.exe)
-        -d, --tempdir=DIR                The directory for temporary files (default: /tmp/nodec)
-            --make-args=ARGS             Extra arguments to be passed to make
-            --vcbuild-args=ARGS          Extra arguments to be passed to vcbuild.bat
+        -p, --project-root=DIR           Speicifies the path to the root of the project
+        -o, --output=FILE                Speicifies the path of the output file (default: ./a.out or ./a.exe)
+        -d, --tmpdir=DIR                Speicifies the directory for temporary files (default: /tmp/nodec)
+            --make-args=ARGS             Passes extra arguments to make
+            --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
+            --module-name=NAME           Compiles a npm module of the specified name
+            --module-version=VERSION     Compiles a npm module of the speificied version
         -v, --version                    Prints the version of nodec and exit
             --node-version               Prints the version of the Node.js runtime and exit
         -h, --help                       Prints this help and exit
 
-## Example 1
+## Example 1: Compiling a CLI project
 
     git clone https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     npm install
-    nodec -o coffee bin/coffee
+    nodec bin/coffee
 
-## Example 2
+## Example 2: Compiling a web application
 
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     npm install
-    nodec -o nodeclub app.js
+    nodec app.js
+
+## Example 3: Compiling a npm module
+
+    nodec --module-name=coffee-script --module-version=1.11.1 coffee
 
 ## Development
 

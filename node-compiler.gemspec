@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["pmq2001@gmail.com"]
 
   spec.summary       = %q{Compiler for Node.js}
-  spec.description   = %q{Compiler for Node.js which compiles your app into a single executable.}
+  spec.description   = %q{Compiler for Node.js which compiles your project into a single executable.}
   spec.homepage      = "http://nodec.enclose.io"
   spec.license       = "MIT"
 

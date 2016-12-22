@@ -42,11 +42,12 @@ module Node
     end
     
     def initialize(entrance, options = {})
-      @entrance = entrance
       @options = options
+      @entrance = entrance
 
-      init_entrance
       init_options
+      init_entrance
+      init_tmpdir
     end
 
     def init_entrance
@@ -76,14 +77,23 @@ module Node
       end
       @options[:output] = File.expand_path(@options[:output])
 
-      @options[:tempdir] ||= '/tmp/nodec'
-      @options[:tempdir] = File.expand_path(@options[:tempdir])
-      if @options[:tempdir].include? @project_root
-        raise Error, "tempdir #{@options[:tempdir]} cannot reside inside the project root #{@project_root}."
+      @options[:tmpdir] ||= '/tmp/nodec'
+      @options[:tmpdir] = File.expand_path(@options[:tmpdir])
+      
+      if @options[:module_name]
+        @options[:module_version] ||= 'latest'
+        npm = ::Node::Compiler::Npm.new(@options[:module_name], @options[:module_version], @options[:tmpdir])
+        @entrance = npm.get_entrance(@entrance)
+      end
+    end
+
+    def init_tmpdir
+      if @options[:tmpdir].include? @project_root
+        raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside the project root #{@project_root}."
       end
 
-      Utils.prepare_tempdir(@options[:tempdir])
-      @vendor_node = File.join(@options[:tempdir], 'node')
+      Utils.prepare_tmpdir(@options[:tmpdir])
+      @vendor_node = File.join(@options[:tmpdir], 'node')
     end
 
     def run!

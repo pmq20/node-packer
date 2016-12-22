@@ -19,7 +19,7 @@ You might need to `sudo` if prompted with no-permission errors.
     nodec [OPTION]... [ENTRANCE]
         -p, --project-root=DIR           Speicifies the path to the root of the project
         -o, --output=FILE                Speicifies the path of the output file (default: ./a.out or ./a.exe)
-        -d, --tmpdir=DIR                 Speicifies the directory for temporary files (default: /tmp/nodec)
+        -d, --tmpdir=DIR                 Speicifies the directory for temporary files
             --make-args=ARGS             Passes extra arguments to make
             --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
             --npm-package=NAME           Compiles the specified npm package

@@ -57,7 +57,7 @@ OptionParser.new do |opts|
     options[:output] = file
   end
 
-  opts.on("-dDIR", "--tmpdir=DIR", "Speicifies the directory for temporary files (default: /tmp/nodec)") do |dir|
+  opts.on("-dDIR", "--tmpdir=DIR", "Speicifies the directory for temporary files") do |dir|
     options[:tmpdir] = dir
   end
 

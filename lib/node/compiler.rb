@@ -77,7 +77,7 @@ module Node
       end
       @options[:output] = File.expand_path(@options[:output])
 
-      @options[:tmpdir] ||= '/tmp/nodec'
+      @options[:tmpdir] ||= File.expand_path("nodec", Dir.tmpdir)
       @options[:tmpdir] = File.expand_path(@options[:tmpdir])
       
       if @options[:npm_package]

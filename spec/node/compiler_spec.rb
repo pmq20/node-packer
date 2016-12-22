@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Node.js Compiler contributors
+# Copyright (c) 2016-2017 Node.js Compiler contributors
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -13,7 +13,7 @@ describe ::Node::Compiler do
     expect(::Node::Compiler::VERSION).not_to be nil
   end
 
-  it "passes all original and enclose.io-added Node.js tests" do
+  it "passes all original and our tests" do
     x = ::Node::Compiler::Test.new(tmpdir)
     x.run!
   end

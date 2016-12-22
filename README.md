@@ -44,7 +44,7 @@ You might need to `sudo` if prompted with no-permission errors.
     npm install
     nodec app.js
 
-### Compiling a npm module
+### Compiling a npm package
 
     nodec --npm-package=coffee-script coffee
 
@@ -67,4 +67,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/enclos
 
 ## License
 
-Copyright (c) 2016 Node.js Compiler contributors, under terms of the [MIT License](http://opensource.org/licenses/MIT).
+Copyright (c) 2016-2017 Node.js Compiler contributors, under terms of the [MIT License](http://opensource.org/licenses/MIT).

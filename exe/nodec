@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2016 Node.js Compiler contributors
+# Copyright (c) 2016-2017 Node.js Compiler contributors
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -31,7 +31,7 @@ Example 2: Compiling a web application
     npm install
     nodec app.js
 
-Example 3: Compiling a npm module
+Example 3: Compiling a npm package
     nodec --npm-package=coffee-script coffee
 
 }.strip
@@ -73,7 +73,7 @@ OptionParser.new do |opts|
     options[:npm_package] = name
   end
 
-  opts.on("--npm-package-version=VER", "Compiles a specific version of the npm package (default: latest)") do |ver|
+  opts.on("--npm-package-version=VER", "Compiles a specific version of the npm package") do |ver|
     options[:npm_package_version] = ver
   end
 

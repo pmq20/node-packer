@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Node.js Compiler contributors
+# Copyright (c) 2016-2017 Node.js Compiler contributors
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -26,17 +26,17 @@ module Node
       if version_info =~ /NODE_MAJOR_VERSION\s(\d+)/
         versions << $1
       else
-        raise 'Cannot peek node version'
+        raise 'Cannot peek NODE_MAJOR_VERSION'
       end
       if version_info =~ /NODE_MINOR_VERSION\s(\d+)/
         versions << $1
       else
-        raise 'Cannot peek node version'
+        raise 'Cannot peek NODE_MINOR_VERSION'
       end
       if version_info =~ /NODE_PATCH_VERSION\s(\d+)/
         versions << $1
       else
-        raise 'Cannot peek node version'
+        raise 'Cannot peek NODE_PATCH_VERSION'
       end
       versions.join('.')
     end

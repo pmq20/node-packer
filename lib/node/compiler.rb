@@ -16,6 +16,31 @@ require 'open3'
 
 module Node
   class Compiler
+    def self.node_version
+      @node_version ||= peek_node_version
+    end
+    
+    def self.peek_node_version
+      version_info = File.read(File.join(VENDOR_DIR, 'node/src/node_version.h'))
+      versions = []
+      if version_info =~ /NODE_MAJOR_VERSION\s(\d+)/
+        versions << $1
+      else
+        raise 'Cannot peek node version'
+      end
+      if version_info =~ /NODE_MINOR_VERSION\s(\d+)/
+        versions << $1
+      else
+        raise 'Cannot peek node version'
+      end
+      if version_info =~ /NODE_PATCH_VERSION\s(\d+)/
+        versions << $1
+      else
+        raise 'Cannot peek node version'
+      end
+      versions.join('.')
+    end
+    
     def initialize(entrance, options = {})
       @entrance = entrance
       @options = options
@@ -58,7 +83,7 @@ module Node
       end
 
       Utils.prepare_tempdir(@options[:tempdir])
-      @vendor_node = File.join(@options[:tempdir], NODE_VERSION)
+      @vendor_node = File.join(@options[:tempdir], 'node')
     end
 
     def run!

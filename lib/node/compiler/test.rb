@@ -14,7 +14,7 @@ module Node
     class Test
       def initialize(tempdir, options = {})
         Utils.prepare_tempdir(tempdir)
-        @vendor_node = File.join(tempdir, NODE_VERSION)
+        @vendor_node = File.join(tempdir, 'node')
         @options = options
       end
       

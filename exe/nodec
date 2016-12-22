@@ -9,7 +9,7 @@ require "node/compiler"
 require 'optparse'
 
 USAGE = %Q{
-Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler::NODE_VERSION})
+Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler.node_version})
 Compiler for Node.js which compiles your app into a single executable.
 
 Usage: nodec [OPTION]... [ENTRANCE]
@@ -68,7 +68,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
-    puts ::Node::Compiler::NODE_VERSION
+    puts ::Node::Compiler.node_version
     exit 0
   end
 

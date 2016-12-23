@@ -2,6 +2,8 @@
 
 ## v0.9.1
 
+[zh] 本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，而不污染编译器自身的资源目录，这使得下一步实现编译器自举成为可能。最后将运行时引擎版本升级到了 7.3.0。
+
 * add support to pack an entire Node.js project (e.g. nodeclub)
 * change the usage of the `nodec` command
 * stop polluting the vendor directory of nodec itself

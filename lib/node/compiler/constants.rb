@@ -5,7 +5,7 @@
 
 module Node
   class Compiler
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     VENDOR_DIR = File.expand_path('../../../../vendor', __FILE__)
     MEMFS = '/__enclose_io_memfs__'
   end

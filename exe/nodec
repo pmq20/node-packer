@@ -29,6 +29,7 @@ Example 2: Compiling a web application
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     npm install
+    cp config.default.js config.js
     nodec app.js
 
 Example 3: Compiling a npm package

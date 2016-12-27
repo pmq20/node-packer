@@ -39,6 +39,7 @@ You might need to `sudo` if prompted with no-permission errors.
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     npm install
+    cp config.default.js config.js
     nodec app.js
 
 ### Compiling a npm package

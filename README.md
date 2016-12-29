@@ -31,14 +31,12 @@ You might need to `sudo` if prompted with no-permission errors.
 
     git clone https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    npm install
     nodec bin/coffee
 
 ### Compiling a web application
 
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    npm install
     cp config.default.js config.js
     nodec app.js
 

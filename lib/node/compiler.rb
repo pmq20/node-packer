@@ -97,6 +97,9 @@ module Node
     end
 
     def run!
+      Utils.chdir(@project_root) do
+        Utils.run("npm install")
+      end
       @copy_dir = Utils.inject_memfs(@project_root, @vendor_node)
       inject_entrance
       Gem.win_platform? ? compile_win : compile

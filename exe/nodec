@@ -33,6 +33,8 @@ Example 2: Compiling a web application
 Example 3: Compiling a npm package
     nodec --npm-package=coffee-script coffee
 
+Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/node-compiler
+
 }.strip
 
 options = {}

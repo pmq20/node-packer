@@ -58,4 +58,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/
 
 ## License
 
-Copyright (c) 2016-2017 Minqi Pan, under terms of the [MIT License](http://opensource.org/licenses/MIT).
+Copyright (c) 2016-2017 **Minqi Pan** &lt;pmq2001@gmail.com&gt;, under terms of the [MIT License](http://opensource.org/licenses/MIT).

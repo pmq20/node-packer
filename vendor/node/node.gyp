@@ -133,11 +133,15 @@
       ],
 
       'include_dirs': [
+        'enclose_io',
+        'squash_include',
         'src',
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
+
+      'libraries': [ '../enclose_io/enclose_io_memfs.o', '../enclose_io/enclose_io_intercept.o', '../libsquash.a' ],
 
       'sources': [
         'src/debug-agent.cc',
@@ -865,8 +869,11 @@
     {
       'target_name': 'cctest',
       'type': 'executable',
-      'dependencies': [ 'deps/gtest/gtest.gyp:gtest' ],
+      'libraries': [ '../enclose_io/enclose_io_memfs.o', '../enclose_io/enclose_io_intercept.o', '../libsquash.a' ],
+      'dependencies': [ 'deps/gtest/gtest.gyp:gtest', 'deps/zlib/zlib.gyp:zlib' ],
       'include_dirs': [
+        'enclose_io',
+        'squash_include',
         'src',
         'deps/v8/include'
       ],
@@ -879,6 +886,7 @@
         'GTEST_DONT_DEFINE_ASSERT_LT=1',
         'GTEST_DONT_DEFINE_ASSERT_NE=1',
         'NODE_WANT_INTERNALS=1',
+        'HACK_GTEST_FOR_ENCLOSE_IO=1',
       ],
       'sources': [
         'test/cctest/util.cc',

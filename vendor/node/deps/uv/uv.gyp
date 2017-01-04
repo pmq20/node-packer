@@ -44,6 +44,8 @@
       'target_name': 'libuv',
       'type': '<(uv_library)',
       'include_dirs': [
+        '../../enclose_io',
+        '../../squash_include',
         'include',
         'src/',
       ],

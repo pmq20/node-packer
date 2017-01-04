@@ -8,6 +8,7 @@
 
 #ifndef ENCLOSE_IO_INTERCEPT_H_1B3D379C
 #define ENCLOSE_IO_INTERCEPT_H_1B3D379C
+#ifndef __cplusplus
 
 #define ENCLOSE_IO_PP_NARG(...) \
     ENCLOSE_IO_PP_NARG_(__VA_ARGS__,ENCLOSE_IO_PP_RSEQ_N())
@@ -84,4 +85,5 @@ void enclose_io_rewinddir(DIR *dirp);
 #define dirfd(x)	enclose_io_dirfd((x))
 int enclose_io_dirfd(DIR *dirp);
 
+#endif
 #endif

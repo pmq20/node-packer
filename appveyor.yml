@@ -3,6 +3,12 @@ build_script:
 - cmd: >-
     set PATH=C:\Ruby23\bin;%PATH%
 
+    node -v
+
+    npm install npm@latest -g
+
+    npm -v
+
     ruby -v
 
     gem update --system

@@ -221,9 +221,10 @@ module Node
           f.puts '#include "enclose_io_common.h"'
           f.puts '#include "enclose_io_intercept.h"'
           f.puts ''
+          chr_type = Gem.win_platform? ? 'wchar_t' : 'char'
           f.puts %Q!
 #define ENCLOSE_IO_ENTRANCE do { \\\n\
-		new_argv = (char **)malloc( (argc + 1 + 1) * sizeof(char *)); \\\n\
+		new_argv = (#{chr_type} **)malloc( (argc + 1) * sizeof(#{chr_type} *)); \\\n\
 		assert(new_argv); \\\n\
 		new_argv[0] = argv[0]; \\\n\
 		new_argv[1] = #{mempath(@entrance).inspect}; \\\n\
@@ -231,7 +232,19 @@ module Node
 			new_argv[2 + i - 1] = argv[i]; \\\n\
 		} \\\n\
 		new_argc = argc + 1; \\\n\
-		new_argv[new_argc] = ""; \\\n\
+		/* argv memory should be adjacent. */ \\\n\
+		size_t total_argv_size = 0; \\\n\
+		for (size_t i = 0; i < new_argc; ++i) { \\\n\
+			total_argv_size += strlen(new_argv[i]) + 1; \\\n\
+		} \\\n\
+		argv_memory = (#{chr_type} *)malloc( (total_argv_size) * sizeof(#{chr_type})); \\\n\
+		assert(argv_memory); \\\n\
+		for (size_t i = 0; i < new_argc; ++i) { \\\n\
+			memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1); \\\n\
+			new_argv[i] = argv_memory; \\\n\
+			argv_memory += strlen(new_argv[i]) + 1; \\\n\
+		} \\\n\
+		assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
 	} while(0)
           !.strip
           f.puts '#endif'

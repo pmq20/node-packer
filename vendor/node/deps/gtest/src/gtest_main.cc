@@ -49,6 +49,5 @@ GTEST_API_ int main(int argc, char **argv) {
   ret = RUN_ALL_TESTS();
 
   sqfs_destroy(enclose_io_fs);
-  free(enclose_io_fs);
   return ret;
 }

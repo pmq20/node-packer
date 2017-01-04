@@ -18,6 +18,7 @@ int wmain(int argc, wchar_t *wargv[]) {
   enclose_io_ret = sqfs_open_image(enclose_io_fs, enclose_io_memfs, 0);
   assert(SQFS_OK == enclose_io_ret);
   
+  wchar_t *argv_memory = NULL;
   int new_argc = argc;
   wchar_t **new_argv = wargv;
   if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
@@ -68,7 +69,6 @@ int wmain(int argc, wchar_t *wargv[]) {
   ret = node::Start(new_argc, argv);
 
   sqfs_destroy(enclose_io_fs);
-  free(enclose_io_fs);
   return ret;
 }
 #else
@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
   enclose_io_ret = sqfs_open_image(enclose_io_fs, enclose_io_memfs, 0);
   assert(SQFS_OK == enclose_io_ret);
 
+  char *argv_memory = NULL;
   int new_argc = argc;
   char **new_argv = argv;
   if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
@@ -95,7 +96,6 @@ int main(int argc, char *argv[]) {
   ret = node::Start(new_argc, new_argv);
 
   sqfs_destroy(enclose_io_fs);
-  free(enclose_io_fs);
   return ret;
 }
 #endif

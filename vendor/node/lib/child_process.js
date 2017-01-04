@@ -59,7 +59,7 @@ exports.fork = function(modulePath /*, args, options*/) {
   }
 
   options.execPath = options.execPath || process.execPath;
-  args.unshift('__enclose_io_fork__');
+
   return spawn(options.execPath, args, options);
 };
 
@@ -384,15 +384,6 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
 
   debug('spawn', opts.args, options);
 
-  if (opts.file === process.execPath ||
-      -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
-
   child.spawn({
     file: opts.file,
     args: opts.args,
@@ -422,15 +413,6 @@ function lookupSignal(signal) {
 
 function spawnSync(/*file, args, options*/) {
   var opts = normalizeSpawnArguments.apply(null, arguments);
-
-  if (opts.file === process.execPath ||
-      -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
 
   var options = opts.options;
 

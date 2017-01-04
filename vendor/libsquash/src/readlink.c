@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2016-2017 Minqi Pan and Shengyuan Liu
+ * Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
+ *                         Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file

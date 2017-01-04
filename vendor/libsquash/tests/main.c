@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2016-2017 Minqi Pan and Shengyuan Liu
+ * Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
+ *                         Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
  */
 
 #include "squash.h"
-#include "fixture.h"
-
+#include <stdint.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+extern const uint8_t libsquash_fixture[];
 
 static void expect(short condition, const char *reason)
 {

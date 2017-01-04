@@ -21,7 +21,14 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
+ *                         Shengyuan Liu <sounder.liu@gmail.com>
+ *
+ * This file is part of libsquash, distributed under the MIT License
+ * For full terms see the included LICENSE file
  */
+
 #ifndef SQFS_SQUASH_H
 #define SQFS_SQUASH_H
 

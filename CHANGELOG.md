@@ -2,7 +2,9 @@
 
 ## v0.9.2
 
-(work in progress)
+[zh] 启用 SquashFS 与 libsquash。
+
+[en] Use SquashFS and libsquash.
 
 ## v0.9.1
 

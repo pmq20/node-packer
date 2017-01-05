@@ -2,14 +2,16 @@
 
 Compiler for Node.js that compiles your Node.js application into a single executable.
 
-[![Travis CI](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
-[![Appveyor CI](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
+[![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
-## Installation
+## Download
 
-    gem install node-compiler
-
-You might need to `sudo` if prompted with no-permission errors.
+|  Platform  | Download                                              |
+|:----------:|-------------------------------------------------------|
+|  Mac OS X  |                                                       |
+|    Linux   |                                                       |
+|   Windows  |                                                       |
 
 ## Usage
 
@@ -28,24 +30,16 @@ You might need to `sudo` if prompted with no-permission errors.
 
 ### Compiling a command-line application
 
-    git clone https://github.com/jashkenas/coffeescript.git
+    git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
 
 ### Compiling a web application
 
-    git clone https://github.com/cnodejs/nodeclub.git
+    git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     cp config.default.js config.js
     nodec app.js
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. Or without installing, run `bundle exec nodec` from the root of your project directory.
-
-To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 

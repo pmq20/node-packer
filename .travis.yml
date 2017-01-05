@@ -1,7 +1,3 @@
-sudo: required
-
-dist: trusty
-
 language: c
 
 os:
@@ -11,8 +7,3 @@ os:
 compiler:
   - gcc
   - clang
-
-script:
-  - gem install bundler --no-ri --no-rdoc
-  - bundle
-  - bundle exec rake

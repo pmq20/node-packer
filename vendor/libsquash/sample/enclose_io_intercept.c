@@ -105,8 +105,7 @@ int enclose_io_lstat(const char *path, struct stat *buf)
 int enclose_io_fstat(int fildes, struct stat *buf)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		*buf = SQUASH_VFD_FILE(fildes)->st;
-		return 0;
+		return squash_fstat(fildes, buf);
 	} else {
 		return fstat(fildes, buf);
 	}

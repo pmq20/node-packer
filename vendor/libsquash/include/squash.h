@@ -80,7 +80,7 @@ int squash_lstat(sqfs *fs, const char *path, struct stat *buf);
  * Obtains the same information as squash_stat()
  * about an open file known by the virtual file descriptor vfd.
  */
-int squash_fstat(sqfs *fs, int vfd, struct stat *buf);
+int squash_fstat(int vfd, struct stat *buf);
 
 /*
  * Opens the file name specified by path of fs for reading.

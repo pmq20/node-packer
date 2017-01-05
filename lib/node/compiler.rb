@@ -6,7 +6,6 @@
 require "node/compiler/constants"
 require "node/compiler/error"
 require "node/compiler/utils"
-require "node/compiler/test"
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'

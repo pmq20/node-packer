@@ -11,7 +11,7 @@ require 'optparse'
 USAGE = %Q{
 
 Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler.node_version})
-Compiler for Node.js which compiles your application into a single executable.
+Compiler for Node.js that compiles your Node.js application into a single executable.
 
 Usage:
   nodec [OPTION]... [ENTRANCE]

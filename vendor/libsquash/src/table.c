@@ -39,8 +39,10 @@ sqfs_err sqfs_table_init(sqfs_table *table, sqfs_fd_t fd, sqfs_off_t start, size
 		return SQFS_OK;
 	
 	nblocks = sqfs_divceil(each * count, SQUASHFS_METADATA_SIZE);
-	bread = nblocks * sizeof(uint64_t);
-	
+
+	//unused
+	//bread = nblocks * sizeof(uint64_t);
+
 	table->each = each;
 	table->blocks = (uint64_t *)(fd + start);
 	

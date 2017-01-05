@@ -278,7 +278,10 @@ sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,
 	sqfs_err err;
 	sqfs_name buf;
 	sqfs_dir_entry entry;
-	
+
+	memset(&buf, 0, sizeof(sqfs_name));
+	memset(&entry, 0, sizeof(sqfs_dir_entry));
+
 	*found = false;
 	sqfs_dentry_init(&entry, buf);
 	

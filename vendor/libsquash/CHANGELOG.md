@@ -4,16 +4,16 @@
 
 Implemented the following dirent APIs.
 
-- squash_opendir(error, fs, filename)
-- squash_closedir(error, dirp)
-- squash_readdir(error, dirp)
+- squash_opendir(fs, filename)
+- squash_closedir(dirp)
+- squash_readdir(dirp)
 - squash_telldir(dirp)
 - squash_seekdir(dirp, loc)
 - squash_rewinddir(dirp)
-- squash_dirfd(error, dirp)
-- squash_lstat(error, fs, path, buf)
-- squash_readlink(error, fs, path, buf, bufsize)
-- squash_scandir(error, fs, dirname, namelist, select, compar)
+- squash_dirfd(dirp)
+- squash_lstat(fs, path, buf)
+- squash_readlink(fs, path, buf, bufsize)
+- squash_scandir(fs, dirname, namelist, select, compar)
 
 ## v0.2.0
 
@@ -21,12 +21,12 @@ Implemented the following dirent APIs.
 
 [en] Implemented the virutal file descriptors and the following new API's:
 
-- squash_stat(error, fs, path, buf)
-- squash_fstat(error, fs, vfd, buf)
-- squash_open(error, fs, path)
-- squash_close(error, vfd)
-- squash_read(error, vfd, buf, nbyte)
-- squash_lseek(error, vfd, offset, whence)
+- squash_stat(fs, path, buf)
+- squash_fstat(vfd, buf)
+- squash_open(fs, path)
+- squash_close(vfd)
+- squash_read(vfd, buf, nbyte)
+- squash_lseek(vfd, offset, whence)
 
 ## v0.1.0
 

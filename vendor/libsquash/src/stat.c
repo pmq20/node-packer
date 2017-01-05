@@ -35,19 +35,19 @@ int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 
 	if(S_ISLNK(node.base.mode)){
 
-		char buf[SQUASHFS_PATH_LEN];//is enough for path?
+		char buflink[SQUASHFS_PATH_LEN];//is enough for path?
 
-		ssize_t linklength = squash_readlink(fs, path, buf, sizeof(buf));
+		ssize_t linklength = squash_readlink(fs, path, buflink, sizeof(buflink));
 
 		if(linklength > 0){
-			if(buf[0] == '/'){//is Absolute Path
+			if(buflink[0] == '/'){//is Absolute Path
 				//find node from /
 				error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 				if (SQFS_OK != error)	{
 					return -1;
 				}
 
-				error = sqfs_lookup_path(fs, &node, buf, &found);
+				error = sqfs_lookup_path(fs, &node, buflink, &found);
 				if (SQFS_OK != error)	{
 					return -1;
 				}
@@ -62,7 +62,7 @@ int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 				char newpath[SQUASHFS_PATH_LEN];
 
 				memcpy(newpath, path, pos + 2);
-				memcpy(newpath + pos + 2, buf, linklength);
+				memcpy(newpath + pos + 2, buflink, linklength);
 				newpath[pos + 2 + linklength] = '\0';
 				//find node from /
 				error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
@@ -70,7 +70,7 @@ int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 					return -1;
 				}
 
-				error = sqfs_lookup_path(fs, &node, buf, &found);
+				error = sqfs_lookup_path(fs, &node, buflink, &found);
 				if (SQFS_OK != error)	{
 					return -1;
 				}
@@ -120,7 +120,7 @@ int squash_lstat(sqfs *fs, const char *path, struct stat *buf)
 	return 0;
 }
 
-int squash_fstat(sqfs *fs, int vfd, struct stat *buf)
+int squash_fstat(int vfd, struct stat *buf)
 {
 	if (!SQUASH_VALID_VFD(vfd))
 	{

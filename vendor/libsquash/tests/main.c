@@ -180,7 +180,7 @@ static void test_stat()
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
 	fd = squash_open(&fs, "/bombing");
-	ret = squash_fstat(&fs, fd, &st);
+	ret = squash_fstat(fd, &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
 	squash_close(fd);

@@ -49,7 +49,7 @@ Acts like `squash_stat()` except in the case where the named file is a symbolic 
 `squash_lstat()` returns information about the link,
 while `squash_stat()` returns information about the file the link references.
 
-### `squash_fstat(fs, vfd, buf)`
+### `squash_fstat(vfd, buf)`
 
 Obtains the same information as `squash_stat()`
 about an open file known by the virtual file descriptor `vfd`.

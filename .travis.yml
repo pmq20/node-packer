@@ -6,12 +6,19 @@ os:
   - linux
   - osx
 
+env:
+  matrix:
+    - NODEC_TEST=coffeescript
+    - NODEC_TEST=nodeclub
+
+addons:
+  apt:
+    packages:
+      - cmake
+      - squashfs-tools
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
+
 script:
-  - echo Compiling a command-line application
-  - git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-  - cd coffeescript
-  - ../bin/nodec bin/coffee
-  - echo Compiling a web application
-  - git clone --depth 1 https://github.com/cnodejs/nodeclub.git
-  - cd nodeclub
-  - ../bin/nodec app.js
+  - /bin/sh -x tests/test-$NODEC_TEST

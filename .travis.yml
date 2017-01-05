@@ -6,9 +6,13 @@ os:
   - linux
   - osx
 
-compiler:
-  - gcc
-  - clang
-
 script:
-  - echo todo
+  - echo Compiling a command-line application
+  - git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+  - cd coffeescript
+  - nodec bin/coffee
+  - echo Compiling a web application
+  - git clone --depth 1 https://github.com/cnodejs/nodeclub.git
+  - cd nodeclub
+  - cp config.default.js config.js
+  - nodec app.js

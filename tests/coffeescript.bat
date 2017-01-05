@@ -1,0 +1,3 @@
+git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+cd coffeescript
+..\bin\nodec bin\coffee

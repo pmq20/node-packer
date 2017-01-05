@@ -1,8 +1,6 @@
 version: 1.0.{build}
 build: off
 test_script:
-- cmd: >-
-
-    call tests\coffeescript
-
-    call tests\nodeclub
+- ps: |
+    tests\coffeescript.bat
+    tests\nodeclub.bat

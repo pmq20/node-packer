@@ -38,7 +38,6 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    cp config.default.js config.js
     nodec app.js
 
 ## Contributing

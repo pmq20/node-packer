@@ -31,7 +31,6 @@ Examples:
   Compiling a web application:
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    cp config.default.js config.js
     nodec app.js
 
 Bug reports and pull requests are welcome on GitHub at

@@ -2,5 +2,7 @@ version: 1.0.{build}
 build: off
 test_script:
 - cmd: >-
-    call tests/test-coffeescript
-    call tests/test-nodeclub
+
+    call tests/coffeescript
+
+    call tests/nodeclub

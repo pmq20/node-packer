@@ -22,4 +22,4 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
 
 script:
-  - /bin/sh -x tests/test-$NODEC_TEST
+  - /bin/sh -x tests/$NODEC_TEST

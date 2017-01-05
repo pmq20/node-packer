@@ -1,4 +1,6 @@
-language: c
+language: node_js
+
+node_js: 7.4.0
 
 os:
   - linux
@@ -7,3 +9,6 @@ os:
 compiler:
   - gcc
   - clang
+
+script:
+  - echo todo

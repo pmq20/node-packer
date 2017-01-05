@@ -3,6 +3,6 @@ build: off
 test_script:
 - cmd: >-
 
-    call tests/coffeescript
+    call tests\coffeescript
 
-    call tests/nodeclub
+    call tests\nodeclub

@@ -12,27 +12,21 @@
 /**
  *
  */
-ssize_t squash_readlink(sqfs_err *error, sqfs *fs, const char *path, char *buf, size_t bufsize)
+ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize)
 {
-	if(!error)
-		return -1;
-
-	if(!buf || !path || !fs){
-		*error = SQFS_NULLPTR;
-		return -1;
-	}
-
+	sqfs_err error;
+	assert(buf && path && fs);
 
 	sqfs_inode node;
 	memset(&node, 0, sizeof(sqfs_inode));
 
 	bool found = false;
 
-	*error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
-	if(SQFS_OK != *error)
+	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
+	if(SQFS_OK != error)
 		return -1;
-	*error = sqfs_lookup_path(fs, &node, path, &found);
-	if(SQFS_OK != *error)
+	error = sqfs_lookup_path(fs, &node, path, &found);
+	if(SQFS_OK != error)
 		return -1;
 
 	if(found){
@@ -44,19 +38,19 @@ ssize_t squash_readlink(sqfs_err *error, sqfs *fs, const char *path, char *buf, 
 
 		want = node.xtra.symlink_size;
 
-		if (want > bufsize - 1){
-			*error = SQFS_ERR;
-			return -1;//bufsize is too small
+		if (want > bufsize - 1) {
+			errno = ENAMETOOLONG;
+			return -1; //bufsize is too small
 		}
 		cur = node.next;
-		*error = sqfs_md_read(fs, &cur, buf, want);
-		if(SQFS_OK != *error)
+		error = sqfs_md_read(fs, &cur, buf, want);
+		if(SQFS_OK != error)
 			return -1;
 		buf[want] = '\0';
 		return want;
 	}
 	else{
-		*error = SQFS_NOENT;
+		errno = ENOENT;
 		return -1;
 	}
 }

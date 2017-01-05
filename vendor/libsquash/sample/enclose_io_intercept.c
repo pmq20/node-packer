@@ -23,9 +23,8 @@ int enclose_io_chdir(const char *path)
 {
 	int ret;
 	if (IS_ENCLOSE_IO_PATH(path)) {
-		sqfs_err enclose_io_ret;
 		struct stat st;
-		ret = squash_stat(&enclose_io_ret, enclose_io_fs, path, &st);
+		ret = squash_stat(enclose_io_fs, path, &st);
 		if (0 == ret && S_ISDIR(st.st_mode)) {
 			size_t memcpy_len = strlen(path);
 			if (SQUASHFS_NAME_LEN - 1 < memcpy_len){
@@ -82,12 +81,10 @@ char *enclose_io_getwd(char *buf)
 int enclose_io_stat(const char *path, struct stat *buf)
 {
 	if (enclose_io_cwd_inside && '/' != *path) {
-		sqfs_err enclose_io_ret;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-		return squash_stat(&enclose_io_ret, enclose_io_fs, enclose_io_expanded_name, buf);
+		return squash_stat(enclose_io_fs, enclose_io_expanded_name, buf);
 	} else if (IS_ENCLOSE_IO_PATH(path)) {
-		sqfs_err enclose_io_ret;
-		return squash_stat(&enclose_io_ret, enclose_io_fs, path, buf);
+		return squash_stat(enclose_io_fs, path, buf);
 	} else {
 		return stat(path, buf);
 	}
@@ -96,12 +93,10 @@ int enclose_io_stat(const char *path, struct stat *buf)
 int enclose_io_lstat(const char *path, struct stat *buf)
 {
 	if (enclose_io_cwd_inside && '/' != *path) {
-		sqfs_err enclose_io_ret;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-		return squash_lstat(&enclose_io_ret, enclose_io_fs, enclose_io_expanded_name, buf);
+		return squash_lstat(enclose_io_fs, enclose_io_expanded_name, buf);
 	} else if (IS_ENCLOSE_IO_PATH(path)) {
-		sqfs_err enclose_io_ret;
-		return squash_lstat(&enclose_io_ret, enclose_io_fs, path, buf);
+		return squash_lstat(enclose_io_fs, path, buf);
 	} else {
 		return lstat(path, buf);
 	}
@@ -120,12 +115,10 @@ int enclose_io_fstat(int fildes, struct stat *buf)
 int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 {
 	if (enclose_io_cwd_inside && '/' != *pathname) {
-		sqfs_err enclose_io_ret;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
-		return squash_open(&enclose_io_ret, enclose_io_fs, enclose_io_expanded_name);
+		return squash_open(enclose_io_fs, enclose_io_expanded_name);
 	} else if (IS_ENCLOSE_IO_PATH(pathname)) {
-		sqfs_err enclose_io_ret;
-		return squash_open(&enclose_io_ret, enclose_io_fs, pathname);
+		return squash_open(enclose_io_fs, pathname);
 	} else {
 		if (2 == nargs) {
 			return open(pathname, flags);
@@ -142,8 +135,7 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 int enclose_io_close(int fildes)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		sqfs_err enclose_io_ret;
-		return squash_close(&enclose_io_ret, fildes);
+		return squash_close(fildes);
 	} else {
 		return close(fildes);
 	}
@@ -152,8 +144,7 @@ int enclose_io_close(int fildes)
 ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		sqfs_err enclose_io_ret;
-		return squash_read(&enclose_io_ret, fildes, buf, nbyte);
+		return squash_read(fildes, buf, nbyte);
 	} else {
 		return read(fildes, buf, nbyte);
 	}
@@ -162,8 +153,7 @@ ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 off_t enclose_io_lseek(int fildes, off_t offset, int whence)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		sqfs_err enclose_io_ret;
-		return squash_lseek(&enclose_io_ret, fildes, offset, whence);
+		return squash_lseek(fildes, offset, whence);
 	} else {
 		return lseek(fildes, offset, whence);
 	}
@@ -172,12 +162,10 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence)
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 {
 	if (enclose_io_cwd_inside && '/' != *path) {
-		sqfs_err enclose_io_ret;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-		return squash_readlink(&enclose_io_ret, enclose_io_fs, path, buf, bufsize);
+		return squash_readlink(enclose_io_fs, enclose_io_expanded_name, buf, bufsize);
 	} else if (IS_ENCLOSE_IO_PATH(path)) {
-		sqfs_err enclose_io_ret;
-		return squash_readlink(&enclose_io_ret, enclose_io_fs, path, buf, bufsize);
+		return squash_readlink(enclose_io_fs, path, buf, bufsize);
 	} else {
 		return readlink(path, buf, bufsize);
 	}
@@ -186,12 +174,10 @@ ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 DIR * enclose_io_opendir(const char *filename)
 {
 	if (enclose_io_cwd_inside && '/' != *filename) {
-		sqfs_err enclose_io_ret;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(filename);
-		return (DIR *)squash_opendir(&enclose_io_ret, enclose_io_fs, enclose_io_expanded_name);
+		return (DIR *)squash_opendir(enclose_io_fs, enclose_io_expanded_name);
 	} else if (IS_ENCLOSE_IO_PATH(filename)) {
-		sqfs_err enclose_io_ret;
-		return (DIR *)squash_opendir(&enclose_io_ret, enclose_io_fs, filename);
+		return (DIR *)squash_opendir(enclose_io_fs, filename);
 	} else {
 		return opendir(filename);
 	}
@@ -200,8 +186,7 @@ DIR * enclose_io_opendir(const char *filename)
 int enclose_io_closedir(DIR *dirp)
 {
 	if (SQUASH_VALID_DIR(dirp)) {
-		sqfs_err enclose_io_ret;
-		return squash_closedir(&enclose_io_ret, (SQUASH_DIR *)dirp);
+		return squash_closedir((SQUASH_DIR *)dirp);
 	} else {
 		return closedir(dirp);
 	}
@@ -210,8 +195,7 @@ int enclose_io_closedir(DIR *dirp)
 struct dirent * enclose_io_readdir(DIR *dirp)
 {
 	if (SQUASH_VALID_DIR(dirp)) {
-		sqfs_err enclose_io_ret;
-		return squash_readdir(&enclose_io_ret, (SQUASH_DIR *)dirp);
+		return squash_readdir((SQUASH_DIR *)dirp);
 	} else {
 		return readdir(dirp);
 	}
@@ -247,9 +231,22 @@ void enclose_io_rewinddir(DIR *dirp)
 int enclose_io_dirfd(DIR *dirp)
 {
 	if (SQUASH_VALID_DIR(dirp)) {
-		sqfs_err enclose_io_ret;
-		return squash_dirfd(&enclose_io_ret, (SQUASH_DIR *)dirp);
+		return squash_dirfd((SQUASH_DIR *)dirp);
 	} else {
 		return dirfd(dirp);
+	}
+}
+
+int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
+	int (*select)(const struct dirent *),
+	int (*compar)(const struct dirent **, const struct dirent **))
+{
+	if (enclose_io_cwd_inside && '/' != *dirname) {
+		ENCLOSE_IO_GEN_EXPANDED_NAME(dirname);
+		return squash_scandir(enclose_io_fs, enclose_io_expanded_name, namelist, select, compar);
+	} else if (IS_ENCLOSE_IO_PATH(dirname)) {
+		return squash_scandir(enclose_io_fs, dirname, namelist, select, compar);
+	} else {
+		return scandir(dirname, namelist, select, compar);
 	}
 }

@@ -13,9 +13,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int squash_open(sqfs_err *error, sqfs *fs, const char *path)
+int squash_open(sqfs *fs, const char *path)
 {
-	*error = SQFS_OK;
+	sqfs_err error;
 	struct squash_file *file = malloc(sizeof(struct squash_file));
 	bool found;
 	int fd;
@@ -23,26 +23,26 @@ int squash_open(sqfs_err *error, sqfs *fs, const char *path)
 	// try locating the file and fetching its stat
 	if (NULL == file)
 	{
-		*error = SQFS_NOMEM;
+		errno = ENOMEM;
 		return -1;
 	}
-	*error = sqfs_inode_get(fs, &file->node, sqfs_inode_root(fs));
-	if (SQFS_OK != *error)
+	error = sqfs_inode_get(fs, &file->node, sqfs_inode_root(fs));
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
-	*error = sqfs_lookup_path(fs, &file->node, path, &found);
-	if (SQFS_OK != *error)
+	error = sqfs_lookup_path(fs, &file->node, path, &found);
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
 	if (!found)
 	{
-		*error = SQFS_NOENT;
+		errno = ENOENT;
 		goto failure;
 	}
-	*error = sqfs_stat(fs, &file->node, &file->st);
-	if (SQFS_OK != *error)
+	error = sqfs_stat(fs, &file->node, &file->st);
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
@@ -52,11 +52,25 @@ int squash_open(sqfs_err *error, sqfs *fs, const char *path)
 	// get a dummy fd from the system
 	fd = dup(0);
 	// make sure that our global fd table is large enough
-	*error = squash_fdtable_realloc(fd + 1);
-	if (SQFS_OK != *error)
+	size_t nr = fd + 1;
+	if (squash_global_fdtable.nr < nr)
 	{
-		goto failure;
+		// we secretly extend the requested size
+		// in order to minimize the number of realloc calls
+		nr *= 10;
+		squash_global_fdtable.fds = realloc(squash_global_fdtable.fds,
+						nr * sizeof(struct squash_file *));
+		if (NULL == squash_global_fdtable.fds)
+		{
+			errno = ENOMEM;
+			goto failure;
+		}
+		memset(squash_global_fdtable.fds + squash_global_fdtable.nr,
+			0,
+			(nr - squash_global_fdtable.nr) * sizeof(struct squash_file *));
+		squash_global_fdtable.nr = nr;
 	}
+
 	// insert the fd into the global fd table
 	squash_global_fdtable.fds[fd] = file;
 	return fd;
@@ -66,12 +80,11 @@ failure:
 	return -1;
 }
 
-int squash_close(sqfs_err *error, int vfd)
+int squash_close(int vfd)
 {
-	*error = SQFS_OK;
 	if (!SQUASH_VALID_VFD(vfd))
 	{
-		*error = SQFS_INVALFD;
+		errno = EBADF;
 		return -1;
 	}
 	close(vfd);
@@ -80,18 +93,18 @@ int squash_close(sqfs_err *error, int vfd)
 	return 0;
 }
 
-ssize_t squash_read(sqfs_err *error, int vfd, void *buf, sqfs_off_t nbyte)
+ssize_t squash_read(int vfd, void *buf, sqfs_off_t nbyte)
 {
-	*error = SQFS_OK;
+	sqfs_err error;
 	if (!SQUASH_VALID_VFD(vfd))
 	{
-		*error = SQFS_INVALFD;
+		errno = EBADF;
 		return -1;
 	}
 	struct squash_file *file = squash_global_fdtable.fds[vfd];
 
-	*error = sqfs_read_range(file->fs, &file->node, file->pos, &nbyte, buf);
-	if (SQFS_OK != *error)
+	error = sqfs_read_range(file->fs, &file->node, file->pos, &nbyte, buf);
+	if (SQFS_OK != error)
 	{
 		return -1;
 	}
@@ -99,12 +112,11 @@ ssize_t squash_read(sqfs_err *error, int vfd, void *buf, sqfs_off_t nbyte)
 	return nbyte;
 }
 
-off_t squash_lseek(sqfs_err *error, int vfd, off_t offset, int whence)
+off_t squash_lseek(int vfd, off_t offset, int whence)
 {
-	*error = SQFS_OK;
 	if (!SQUASH_VALID_VFD(vfd))
 	{
-		*error = SQFS_INVALFD;
+		errno = EBADF;
 		return -1;
 	}
 	struct squash_file *file = squash_global_fdtable.fds[vfd];
@@ -118,10 +130,7 @@ off_t squash_lseek(sqfs_err *error, int vfd, off_t offset, int whence)
 	}
 	else if (SQUASH_SEEK_END == whence)
 	{
-		if (!S_ISREG(file->node.base.mode)) {
-			*error = SQFS_ERR;
-			return -1;
-		}
+		assert(S_ISREG(file->node.base.mode));
 		file->pos = file->node.xtra.reg.file_size;
 	}
 	return file->pos;

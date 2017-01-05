@@ -156,7 +156,6 @@ static void test_stat()
 {
 	sqfs fs;
 	struct stat st;
-	sqfs_err error;
 	int ret;
 	int fd;
 
@@ -166,33 +165,33 @@ static void test_stat()
 	sqfs_open_image(&fs, libsquash_fixture, 0);
 	
 	// stat "/"
-	ret = squash_stat(&error, &fs, "/", &st);
+	ret = squash_stat(&fs, "/", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISDIR(st.st_mode), "/ is a dir");
-	ret = squash_lstat(&error, &fs, "/", &st);
+	ret = squash_lstat(&fs, "/", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISDIR(st.st_mode), "/ is a dir");
 	
 	// stat "/bombing"
-	ret = squash_stat(&error, &fs, "/bombing", &st);
+	ret = squash_stat(&fs, "/bombing", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
-	ret = squash_lstat(&error, &fs, "/bombing", &st);
+	ret = squash_lstat(&fs, "/bombing", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
-	fd = squash_open(&error, &fs, "/bombing");
-	ret = squash_fstat(&error, &fs, fd, &st);
+	fd = squash_open(&fs, "/bombing");
+	ret = squash_fstat(&fs, fd, &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
-	squash_close(&error, fd);
+	squash_close(fd);
 	
 	//stat /dir/something4
-	ret = squash_lstat(&error, &fs, "/dir1/something4", &st);
+	ret = squash_lstat(&fs, "/dir1/something4", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISLNK(st.st_mode), "/dir1/something4 is a symbolic link file");
 
 	//stat /dir/something4
-	ret = squash_stat(&error, &fs, "/dir1/something4", &st);
+	ret = squash_stat(&fs, "/dir1/something4", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISDIR(st.st_mode), "/dir1/something4 is a symbolic link file and references is a dir");
 
@@ -207,7 +206,6 @@ static void test_virtual_fd()
 {
 	int fd, fd2, fd3, fd4;
 	sqfs fs;
-	sqfs_err error;
 	int ret;
 	ssize_t ssize;
 	char buffer[1024];
@@ -220,14 +218,14 @@ static void test_virtual_fd()
 	sqfs_open_image(&fs, libsquash_fixture, 0);
 
 	// open "/bombing"
-	fd = squash_open(&error, &fs, "/bombing");
+	fd = squash_open(&fs, "/bombing");
 	expect(fd > 0, "successfully got a fd");
-	fd2 = squash_open(&error, &fs, "/bombing");
+	fd2 = squash_open(&fs, "/bombing");
 	expect(fd2 > 0, "successfully got yet another fd");
 	expect(fd2 != fd, "it is indeed another fd");
-	fd3 = squash_open(&error, &fs, "/shen/me/gui");
+	fd3 = squash_open(&fs, "/shen/me/gui");
 	expect(-1 == fd3, "on failure returns -1");
-	expect(SQFS_NOENT == error, "no such file");
+	expect(ENOENT == errno, "no such file");
 	expect(SQUASH_VALID_VFD(fd), "fd is ours");
 	expect(SQUASH_VALID_VFD(fd2), "fd2 is also ours");
 	expect(!SQUASH_VALID_VFD(0), "0 is not ours");
@@ -237,39 +235,39 @@ static void test_virtual_fd()
 	// read on and on
 	file = SQUASH_VFD_FILE(fd);
 	offset = file->node.xtra.reg.file_size;
-	ssize = squash_read(&error, fd, buffer, 1024);
+	ssize = squash_read(fd, buffer, 1024);
 	expect(offset == ssize, "When successful it returns the number of bytes actually read");
 	expect(buffer == strstr(buffer, "Botroseya Church bombing"), "read some content of the file");
-	ssize = squash_read(&error, fd, buffer, 1024);
+	ssize = squash_read(fd, buffer, 1024);
 	expect(0 == ssize, "upon reading end-of-file, zero is returned");
-	fd4 = squash_open(&error, &fs, "/");
-	ssize = squash_read(&error, fd4, buffer, 1024);
+	fd4 = squash_open(&fs, "/");
+	ssize = squash_read(fd4, buffer, 1024);
 	expect(-1 == ssize, "not something we can read");
 
 	// read with lseek
-	ret = squash_lseek(&error, fd, 3, SQUASH_SEEK_SET);
+	ret = squash_lseek(fd, 3, SQUASH_SEEK_SET);
 	expect(3 == ret, "Upon successful completion, it returns the resulting offset location as measured in bytes from the beginning of the file.");
-	ssize = squash_read(&error, fd, buffer, 1024);
+	ssize = squash_read(fd, buffer, 1024);
 	expect(offset - 3 == ssize, "When successful it returns the number of bytes actually read");
 	expect(buffer != strstr(buffer, "Botroseya Church bombing"), "read some content of the file");
 	expect(buffer == strstr(buffer, "roseya Church bombing"), "read some content of the file");
-	ssize = squash_read(&error, fd2, buffer, 100);
-	ret = squash_lseek(&error, fd2, 10, SQUASH_SEEK_CUR);
+	ssize = squash_read(fd2, buffer, 100);
+	ret = squash_lseek(fd2, 10, SQUASH_SEEK_CUR);
 	expect(110 == ret, " the offset is set to its current location plus offset bytes");
-	ssize = squash_read(&error, fd2, buffer, 100);
+	ssize = squash_read(fd2, buffer, 100);
 	expect(buffer == strstr(buffer, "s at St. Peter"), "read from offset 110");
-	ret = squash_lseek(&error, fd2, 0, SQUASH_SEEK_END);
-	ssize = squash_read(&error, fd2, buffer, 1024);
+	ret = squash_lseek(fd2, 0, SQUASH_SEEK_END);
+	ssize = squash_read(fd2, buffer, 1024);
 	expect(0 == ssize, "upon reading end-of-file, zero is returned");
 
 	// various close
-	ret = squash_close(&error, fd);
+	ret = squash_close(fd);
 	expect(0 == ret, "RIP: fd");
-	ret = squash_close(&error, fd2);
+	ret = squash_close(fd2);
 	expect(0 == ret, "RIP: fd2");
-	ret = squash_close(&error, 0);
+	ret = squash_close(0);
 	expect(-1 == ret, "cannot close something we do not own");
-	expect(SQFS_INVALFD == error, "invalid vfd is the reason");
+	expect(EBADF == errno, "invalid vfd is the reason");
 	expect(!SQUASH_VALID_VFD(fd), "fd is no longer ours");
 	expect(!SQUASH_VALID_VFD(fd2), "fd2 is no longer ours");
 
@@ -301,7 +299,6 @@ static void test_dirent()
 	fflush(stderr);
 
 	sqfs fs;
-	sqfs_err error;
 	int ret;
 	int fd;
 	SQUASH_DIR *dir;
@@ -310,62 +307,62 @@ static void test_dirent()
 	memset(&fs, 0, sizeof(sqfs));
 	sqfs_open_image(&fs, libsquash_fixture, 0);
 	
-	dir = squash_opendir(&error, &fs, "/dir1-what-the-f");
+	dir = squash_opendir(&fs, "/dir1-what-the-f");
 	expect(NULL == dir, "on error NULL is returned");
-	dir = squash_opendir(&error, &fs, "/dir1");
+	dir = squash_opendir(&fs, "/dir1");
 	expect(NULL != dir, "returns a pointer to be used to identify the dir stream");
 	expect(SQUASH_VALID_DIR(dir), "got a valid SQUASH_DIR");
-	fd = squash_dirfd(&error, dir);
+	fd = squash_dirfd(dir);
 	expect(fd > 0, "returns a vfs associated with the named diretory stream");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "returns a pointer to the next directory entry");
 	expect(0 == strcmp(".0.0.4@something4", mydirent->d_name), "got .0.0.4@something4");
 #ifndef __linux__
 	expect(strlen(".0.0.4@something4") == mydirent->d_namlen, "got a str len");
 #endif
 	expect(DT_DIR == mydirent->d_type, "this ia dir");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "returns a pointer to the next directory entry");
 	expect(0 == strcmp(".bin", mydirent->d_name), "got a .bin");
 #ifndef __linux__
 	expect(strlen(".bin") == mydirent->d_namlen, "got a str len");
 #endif
 	expect(DT_DIR == mydirent->d_type, "this a dir");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "got another entry");
 	expect(0 == strcmp("@minqi", mydirent->d_name), "got a @minqi");
 #ifndef __linux__
 	expect(strlen("@minqi") == mydirent->d_namlen, "got a str len");
 #endif
 	expect(DT_DIR == mydirent->d_type, "got yet another dir");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "got another entry");
 	expect(0 == strcmp("something4", mydirent->d_name), "this is named something4");
 #ifndef __linux__
 	expect(strlen("something4") == mydirent->d_namlen, "got a strlen");
 #endif
 	expect(DT_LNK == mydirent->d_type, "so this one is a link");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL == mydirent, "finally reaching an EOF");
 	long pos = squash_telldir(dir);
 	squash_rewinddir(dir);
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "starting all over again");
 	expect(0 == strcmp(".0.0.4@something4", mydirent->d_name), "got .0.0.4@something4");
 	squash_seekdir(dir, pos);
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL == mydirent, "back to before");
-	ret = squash_closedir(&error, dir);
+	ret = squash_closedir(dir);
 	expect(0 == ret, "returns 0 on success");
 
-	dir = squash_opendir(&error, &fs, "/dir1/.bin");
+	dir = squash_opendir(&fs, "/dir1/.bin");
 	expect(NULL != dir, "returns a pointer to be used to identify the dir stream");
-	mydirent = squash_readdir(&error, dir);
+	mydirent = squash_readdir(dir);
 	expect(NULL == mydirent, "oops empty dir");
 
 	struct dirent **namelist = 0;
 
-	int numEntries = squash_scandir(&error, &fs, "/dir1", &namelist, filter_scandir, alphasort);
+	int numEntries = squash_scandir(&fs, "/dir1", &namelist, filter_scandir, alphasort);
 
 	expect(2 == numEntries, "scandir_filter is happy");
 
@@ -392,7 +389,7 @@ static void test_dirent()
 
 
 	namelist = 0;
-	numEntries = squash_scandir(&error, &fs, "/", &namelist, NULL, reverse_alpha_compar);
+	numEntries = squash_scandir(&fs, "/", &namelist, NULL, reverse_alpha_compar);
 	expect(2 == numEntries, "scandir_alphasort is happy");
 
 
@@ -428,7 +425,6 @@ static void test_squash_readlink()
 
 	sqfs_inode root, node;
 	sqfs fs;
-	sqfs_err error;
 	int ret;
 	int fd;
 	bool found = false;
@@ -442,28 +438,21 @@ static void test_squash_readlink()
 	sqfs_open_image(&fs, libsquash_fixture, 0);
 
 	ssize_t  readsize = 0;
-	readsize = squash_readlink(&error, &fs, "/dir1/something4" ,(char *)&name, name_size);
-	expect(SQFS_OK == error, "squash_readlink is happy");
+	readsize = squash_readlink(&fs, "/dir1/something4" ,(char *)&name, name_size);
 	char content[] = ".0.0.4@something4";
 	expect(0 == strcmp(name, content), "something4 links to .0.0.4@something4");
 	expect(strlen(content) == readsize, "squash_readlink return value is happy");
 
-	readsize = squash_readlink(0, &fs, "/dir1/something4" ,(char *)&name, name_size);
-	expect(-1 == readsize, "squash_readlink ‘error’ is null");
-
 	char smallbuf[2] = {0,0};
-	readsize = squash_readlink(&error, &fs, "/dir1/something4" ,smallbuf, 2);
+	readsize = squash_readlink(&fs, "/dir1/something4" ,smallbuf, 2);
 	expect(-1 == readsize, "squash_readlink ‘buf’ is too small ret val");
-	expect(SQFS_ERR == error, "squash_readlink ‘buf’ is too small");
+	expect(ENAMETOOLONG == errno, "squash_readlink ‘buf’ is too small");
 
-	readsize = squash_readlink(&error, &fs, "/dir1/something123456" ,smallbuf, 2);
+	readsize = squash_readlink(&fs, "/dir1/something123456" ,smallbuf, 2);
 	expect(-1 == readsize, "squash_readlink no such file ret val");
-	expect(SQFS_NOENT == error, "squash_readlink no such file error");
+	expect(ENOENT == errno, "squash_readlink no such file error");
 	fprintf(stderr, "\n");
 	fflush(stderr);
-
-
-
 }
 
 int main(int argc, char const *argv[])

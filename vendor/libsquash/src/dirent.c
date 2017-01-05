@@ -13,30 +13,14 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-sqfs_err squash_dir_realloc(SQUASH_DIR *dir, size_t nr)
+SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 {
-	if (dir->nr >= nr)
-	{
-		return SQFS_OK;
-	}
-	nr *= 10; // we internally extend the requested size to minimize the number of realloc calls
-	dir->entries = realloc(dir->entries, nr * sizeof(*dir->entries));
-	if (NULL == dir->entries)
-	{
-		return SQFS_NOMEM;
-	}
-	dir->nr = nr;
-	return SQFS_OK;
-}
-
-SQUASH_DIR *squash_opendir(sqfs_err *error, sqfs *fs, const char *filename)
-{
-	*error = SQFS_OK;
+	sqfs_err error;
 	bool found;
 	SQUASH_DIR *dir = malloc(sizeof(SQUASH_DIR));
 	if (NULL == dir)
 	{
-		*error = SQFS_NOMEM;
+		errno = ENOMEM;
 		return NULL;
 	}
 	memcpy(dir->magic, SQUASH_DIR_MAGIC, SQUASH_DIR_MAGIC_LEN);
@@ -44,29 +28,29 @@ SQUASH_DIR *squash_opendir(sqfs_err *error, sqfs *fs, const char *filename)
 	dir->fs = fs;
 	dir->entries = NULL;
 	dir->nr = 0;
-	dir->fd = squash_open(error, fs, filename);
+	dir->fd = squash_open(fs, filename);
 	dir->actual_nr = dir->loc = 0;
 	if (-1 == dir->fd)
 	{
 		goto failure;
 	}
-	*error = sqfs_inode_get(fs, &dir->node, sqfs_inode_root(fs));
-	if (SQFS_OK != *error)
+	error = sqfs_inode_get(fs, &dir->node, sqfs_inode_root(fs));
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
-	*error = sqfs_lookup_path(fs, &dir->node, filename, &found);
-	if (SQFS_OK != *error)
+	error = sqfs_lookup_path(fs, &dir->node, filename, &found);
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
 	if (!found)
 	{
-		*error = SQFS_NOENT;
+		errno = ENOENT;
 		goto failure;
 	}
-	*error = sqfs_dir_open(fs, &dir->node, &dir->dir, 0);
-	if (SQFS_OK != *error)
+	error = sqfs_dir_open(fs, &dir->node, &dir->dir, 0);
+	if (SQFS_OK != error)
 	{
 		goto failure;
 	}
@@ -76,11 +60,10 @@ failure:
 	return NULL;
 }
 
-int squash_closedir(sqfs_err *error, SQUASH_DIR *dirp)
+int squash_closedir(SQUASH_DIR *dirp)
 {
-	*error = SQFS_OK;
 	assert(-1 != dirp->fd);
-	int ret = squash_close(error, dirp->fd);
+	int ret = squash_close(dirp->fd);
 	if (0 != ret)
 	{
 		return -1;
@@ -90,10 +73,23 @@ int squash_closedir(sqfs_err *error, SQUASH_DIR *dirp)
 	return 0;
 }
 
-struct dirent * squash_readdir(sqfs_err *error, SQUASH_DIR *dirp)
+struct dirent * squash_readdir(SQUASH_DIR *dirp)
 {
-	*error = SQFS_OK;
-	squash_dir_realloc(dirp, dirp->loc + 1);
+	sqfs_err error;
+	size_t nr = dirp->loc + 1;
+	if (dirp->nr < nr) {
+		// we secretly extend the requested size
+		// in order to minimize the number of realloc calls
+		nr *= 10;
+		dirp->entries = realloc(dirp->entries, nr * sizeof(*dirp->entries));
+		if (NULL == dirp->entries)
+		{
+			errno = ENOMEM;
+			return NULL;
+		}
+		dirp->nr = nr;
+	}
+
 	while (dirp->actual_nr < dirp->loc + 1)
 	{
 		sqfs_dentry_init(&dirp->entries[dirp->actual_nr].entry,
@@ -102,8 +98,8 @@ struct dirent * squash_readdir(sqfs_err *error, SQUASH_DIR *dirp)
 			dirp->fs,
 			&dirp->dir,
 			&dirp->entries[dirp->actual_nr].entry,
-			error);
-		if (SQFS_OK != *error)
+			&error);
+		if (SQFS_OK != error)
 		{
 			return NULL;
 		}
@@ -192,13 +188,7 @@ void squash_rewinddir(SQUASH_DIR *dirp)
 	dirp->loc = 0;
 }
 
-int squash_dirfd(sqfs_err *error, SQUASH_DIR *dirp)
+int squash_dirfd(SQUASH_DIR *dirp)
 {
-	*error = SQFS_OK;
-	if (-1 == dirp->fd)
-	{
-		*error = SQFS_ERR;
-		return -1;
-	}
 	return dirp->fd;
 }

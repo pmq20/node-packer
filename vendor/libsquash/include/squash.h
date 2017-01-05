@@ -34,6 +34,8 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
+#include <assert.h>
 
 #include "squash/dir.h"
 #include "squash/file.h"
@@ -52,6 +54,8 @@
 #define SQUASH_VFD_FILE(vfd) (squash_global_fdtable.fds[(vfd)])
 #define SQUASH_VALID_DIR(dir) (0 == strncmp(SQUASH_DIR_MAGIC, (char *)((dir)), SQUASH_DIR_MAGIC_LEN))
 
+extern sqfs_err squash_errno;
+
 sqfs_err squash_start();
 sqfs_err squash_halt();
 
@@ -63,20 +67,20 @@ sqfs_err squash_halt();
  * Otherwise, a value of -1 is returned and
  * error is set to the reason of the error.
  */
-int squash_stat(sqfs_err *error, sqfs *fs, const char *path, struct stat *buf);
+int squash_stat(sqfs *fs, const char *path, struct stat *buf);
 
 /*
  * Acts like squash_stat() except in the case where the named file
  * is a symbolic link; squash_lstat() returns information about the link,
  * while squash_stat() returns information about the file the link references.
  */
-int squash_lstat(sqfs_err *error, sqfs *fs, const char *path, struct stat *buf);
+int squash_lstat(sqfs *fs, const char *path, struct stat *buf);
 
 /*
  * Obtains the same information as squash_stat()
  * about an open file known by the virtual file descriptor vfd.
  */
-int squash_fstat(sqfs_err *error, sqfs *fs, int vfd, struct stat *buf);
+int squash_fstat(sqfs *fs, int vfd, struct stat *buf);
 
 /*
  * Opens the file name specified by path of fs for reading.
@@ -87,7 +91,7 @@ int squash_fstat(sqfs_err *error, sqfs *fs, int vfd, struct stat *buf);
  * is set to the beginning of the file.
  * The returned vfd should later be closed by squash_close().
  */
-int squash_open(sqfs_err *error, sqfs *fs, const char *path);
+int squash_open(sqfs *fs, const char *path);
 
 /*
  * Deletes a vfd(virtual file descriptor) from
@@ -96,7 +100,7 @@ int squash_open(sqfs_err *error, sqfs *fs, const char *path);
  * Otherwise, a value of -1 is returned and error is set to
  * the reason of the error.
  */
-int squash_close(sqfs_err *error, int vfd);
+int squash_close(int vfd);
 
 /*
  * Attempts to read nbyte bytes of data from the object
@@ -110,7 +114,7 @@ int squash_close(sqfs_err *error, int vfd);
  * Otherwise, a value of -1 is returned and error is set to
  * the reason of the error.
  */
-ssize_t squash_read(sqfs_err *error, int vfd, void *buf, sqfs_off_t nbyte);
+ssize_t squash_read(int vfd, void *buf, sqfs_off_t nbyte);
 
 /*
  * Repositions the offset of vfs to the argument offset,
@@ -128,7 +132,7 @@ ssize_t squash_read(sqfs_err *error, int vfd, void *buf, sqfs_off_t nbyte);
  * Otherwise, a value of -1 is returned and
  * error is set to the reason of the error.
  */
-off_t squash_lseek(sqfs_err *error, int vfd, off_t offset, int whence);
+off_t squash_lseek(int vfd, off_t offset, int whence);
 
 /*
  * Places the contents of the symbolic link path of a SquashFS fs
@@ -137,7 +141,7 @@ off_t squash_lseek(sqfs_err *error, int vfd, off_t offset, int whence);
  * If it succeeds the call returns the count of characters placed in the buffer;
  * otherwise -1 is returned and error is set to the reason of the error.
  */
-ssize_t squash_readlink(sqfs_err *error, sqfs *fs, const char *path, char *buf, size_t bufsize);
+ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize);
 
 /*
  * Opens the directory named by filename of a SquashFS fs,
@@ -148,7 +152,7 @@ ssize_t squash_readlink(sqfs_err *error, sqfs *fs, const char *path, char *buf, 
  * and sets error to the reason of the error.
  * The returned resource should later be closed by squash_closedir().
  */
-SQUASH_DIR * squash_opendir(sqfs_err *error, sqfs *fs, const char *filename);
+SQUASH_DIR * squash_opendir(sqfs *fs, const char *filename);
 
 /*
  * Closes the named directory stream and
@@ -156,14 +160,14 @@ SQUASH_DIR * squash_opendir(sqfs_err *error, sqfs *fs, const char *filename);
  * returning 0 on success.
  * On failure, -1 is returned and error is set to the reason of the error.
  */
-int squash_closedir(sqfs_err *error, SQUASH_DIR *dirp);
+int squash_closedir(SQUASH_DIR *dirp);
 
 /*
  * Returns a pointer to the next directory entry.
  * It returns NULL upon reaching the end of the directory or on error. 
  * In the event of an error, error is set to the reason of the error.
  */
-struct dirent * squash_readdir(sqfs_err *error, SQUASH_DIR *dirp);
+struct dirent * squash_readdir(SQUASH_DIR *dirp);
 
 /*
  * Returns the current location associated with the named directory stream.
@@ -189,7 +193,7 @@ void squash_rewinddir(SQUASH_DIR *dirp);
  * associated with the named directory stream.
  * On failure, -1 is returned and error is set to the reason of the error.
  */
-int squash_dirfd(sqfs_err *error, SQUASH_DIR *dirp);
+int squash_dirfd(SQUASH_DIR *dirp);
 
 /*
  * Reads the directory dirname of a SquashFS fs and
@@ -210,7 +214,7 @@ int squash_dirfd(sqfs_err *error, SQUASH_DIR *dirp);
  * which is passed to qsort to sort the completed array.
  * If this pointer is NULL, then the array is not sorted.
  */
-int squash_scandir(sqfs_err *error, sqfs *fs, const char *dirname, struct dirent ***namelist,
+int squash_scandir(sqfs *fs, const char *dirname, struct dirent ***namelist,
 	int (*select)(const struct dirent *),
 	int (*compar)(const struct dirent **, const struct dirent **));
 

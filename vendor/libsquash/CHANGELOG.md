@@ -11,9 +11,6 @@ Implemented the following dirent APIs.
 - squash_seekdir(dirp, loc)
 - squash_rewinddir(dirp)
 - squash_dirfd(error, dirp)
-
-work in progress @sounder:
-
 - squash_lstat(error, fs, path, buf)
 - squash_readlink(error, fs, path, buf, bufsize)
 - squash_scandir(error, fs, dirname, namelist, select, compar)

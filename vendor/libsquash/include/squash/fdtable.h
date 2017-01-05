@@ -25,6 +25,4 @@ struct squash_fdtable {
 
 extern struct squash_fdtable squash_global_fdtable;
 
-sqfs_err squash_fdtable_realloc(size_t nr);
-
 #endif /* end of include guard: FDTABLE_H_60F13289 */

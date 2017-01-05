@@ -85,5 +85,10 @@ void enclose_io_rewinddir(DIR *dirp);
 #define dirfd(x)	enclose_io_dirfd((x))
 int enclose_io_dirfd(DIR *dirp);
 
+#define scandir(x, y, z, d)	enclose_io_scandir((x), (y), (z), (d))
+int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
+	int (*select)(const struct dirent *),
+	int (*compar)(const struct dirent **, const struct dirent **));
+
 #endif
 #endif

@@ -33,6 +33,4 @@ typedef struct {
 	long loc;	/* offset in current buffer */
 } SQUASH_DIR;
 
-sqfs_err squash_dir_realloc(SQUASH_DIR *dir, size_t nr);
-
 #endif /* end of include guard: DIRENT_H_245C4278 */

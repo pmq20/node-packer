@@ -1,6 +1,7 @@
 language: node_js
 
 node_js: 7.4.0
+rvm: 2.4.0
 
 os:
   - linux

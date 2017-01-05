@@ -79,6 +79,10 @@ OptionParser.new do |opts|
     options[:npm_package_version] = ver
   end
 
+  opts.on("--npm-path=FILE", "Speifices the path of npm") do |file|
+    options[:npm_path] = file
+  end
+
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
     puts ::Node::Compiler::VERSION
     exit 0

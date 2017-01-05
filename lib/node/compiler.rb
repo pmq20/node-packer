@@ -71,6 +71,7 @@ module Node
     end
 
     def init_options
+      options[:npm_path] ||= 'npm'
       if Gem.win_platform?
         @options[:output] ||= 'a.exe'
       else
@@ -164,7 +165,7 @@ module Node
 
       FileUtils.cp_r(@project_root, @work_dir_inner)
       Utils.chdir(@work_dir_inner) do
-        Utils.run("npm install")
+        Utils.run("#{Shellwords.escape options[:npm_path]} install")
         STDERR.puts `git status`
         STDERR.puts "-> FileUtils.rm_rf('.git')"
         FileUtils.rm_rf('.git')

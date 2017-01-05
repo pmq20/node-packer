@@ -8,8 +8,6 @@
 #include "squash.h"
 #include <stdlib.h>
 
-struct squash_fdtable squash_global_fdtable;
-
 sqfs_err squash_start()
 {
 	squash_global_fdtable.nr = 0;

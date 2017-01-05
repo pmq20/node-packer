@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+struct squash_fdtable squash_global_fdtable;
+
 int squash_open(sqfs *fs, const char *path)
 {
 	sqfs_err error;

@@ -1,7 +1,6 @@
 language: node_js
 
 node_js: 7.4.0
-rvm: 2.4.0
 
 os:
   - linux
@@ -18,8 +17,8 @@ addons:
       - cmake
       - squashfs-tools
 
-install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
+install: if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
 
-script:
-  - /bin/sh -x tests/$NODEC_TEST
+before_script: rvm use 2.4.0
+
+script: /bin/sh -x tests/$NODEC_TEST

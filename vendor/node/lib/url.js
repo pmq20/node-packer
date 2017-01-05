@@ -17,6 +17,9 @@ exports.resolve = urlResolve;
 exports.resolveObject = urlResolveObject;
 exports.format = urlFormat;
 exports.URL = internalUrl.URL;
+exports.originFor = internalUrl.originFor;
+exports.domainToASCII = internalUrl.domainToASCII;
+exports.domainToUnicode = internalUrl.domainToUnicode;
 
 
 exports.Url = Url;
@@ -381,9 +384,9 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
   }
 
   var firstIdx = (questionIdx !== -1 &&
-                  (hashIdx === -1 || questionIdx < hashIdx)
-                  ? questionIdx
-                  : hashIdx);
+                  (hashIdx === -1 || questionIdx < hashIdx) ?
+                  questionIdx :
+                  hashIdx);
   if (firstIdx === -1) {
     if (rest.length > 0)
       this.pathname = rest;

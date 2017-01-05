@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Executing JavaScript | Node.js v7.3.0 Documentation</title>
+  <title>Executing JavaScript | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -301,8 +301,22 @@ that sandbox</a> so that it can be used in calls to
 <a href="#vm_vm_runincontext_code_contextifiedsandbox_options"><code>vm.runInContext()</code></a> or <a href="#vm_script_runincontext_contextifiedsandbox_options"><code>script.runInContext()</code></a>. Inside such scripts,
 the <code>sandbox</code> object will be the global object, retaining all of its existing
 properties but also having the built-in objects and functions any standard
-<a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module, <code>sandbox</code> will
-remain unchanged.</p>
+<a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module, global variables
+will remain unchanged.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+var globalVar = 3;
+
+const sandbox = { globalVar: 1 };
+vm.createContext(sandbox);
+
+vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);
+
+console.log(util.inspect(sandbox)); // 2
+
+console.log(util.inspect(globalVar)); // 3
+</code></pre>
 <p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty
 <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> sandbox object will be returned.</p>
 <p>The <code>vm.createContext()</code> method is primarily useful for creating a single

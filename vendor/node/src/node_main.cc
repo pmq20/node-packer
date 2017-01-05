@@ -10,7 +10,6 @@ sqfs *enclose_io_fs;
 #include <WinError.h>
 
 int wmain(int argc, wchar_t *wargv[]) {
-  int ret;
   sqfs_err enclose_io_ret;
   enclose_io_fs = (sqfs *)malloc(sizeof(sqfs));
   assert(NULL != enclose_io_fs);
@@ -66,15 +65,11 @@ int wmain(int argc, wchar_t *wargv[]) {
   }
   argv[new_argc] = nullptr;
   // Now that conversion is done, we can finally start.
-  ret = node::Start(new_argc, argv);
-
-  sqfs_destroy(enclose_io_fs);
-  return ret;
+  return node::Start(new_argc, argv);
 }
 #else
 // UNIX
 int main(int argc, char *argv[]) {
-  int ret;
   sqfs_err enclose_io_ret;
   enclose_io_fs = (sqfs *)malloc(sizeof(sqfs));
   assert(NULL != enclose_io_fs);
@@ -93,9 +88,6 @@ int main(int argc, char *argv[]) {
   // calls elsewhere in the program (e.g., any logging from V8.)
   setvbuf(stdout, nullptr, _IONBF, 0);
   setvbuf(stderr, nullptr, _IONBF, 0);
-  ret = node::Start(new_argc, new_argv);
-
-  sqfs_destroy(enclose_io_fs);
-  return ret;
+  return node::Start(new_argc, new_argv);
 }
 #endif

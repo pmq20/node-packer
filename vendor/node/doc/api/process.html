@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>process | Node.js v7.3.0 Documentation</title>
+  <title>process | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -1445,7 +1445,9 @@ process has been running.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.versions</code> property returns an object listing the version strings of
-Node.js and its dependencies.</p>
+Node.js and its dependencies. In addition, <code>process.versions.modules</code> indicates
+the current ABI version, which is increased whenever a C++ API changes. Node.js
+will refuse to load native modules built for an older <code>modules</code> value.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate output similar to:</p>

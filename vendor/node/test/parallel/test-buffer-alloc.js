@@ -775,9 +775,9 @@ Buffer.from(Buffer.allocUnsafe(0), 0, 0);
   assert.strictEqual(string, '{"type":"Buffer","data":[116,101,115,116]}');
 
   assert.deepStrictEqual(buffer, JSON.parse(string, (key, value) => {
-    return value && value.type === 'Buffer'
-      ? Buffer.from(value.data)
-      : value;
+    return value && value.type === 'Buffer' ?
+      Buffer.from(value.data) :
+      value;
   }));
 }
 
@@ -990,7 +990,7 @@ assert.throws(() => Buffer.from('', 'buffer'), TypeError);
 {
   let a = [0];
   for (let i = 0; i < 7; ++i) a = a.concat(a);
-  a = a.map((_, i) => {return i;});
+  a = a.map((_, i) => { return i; });
   const b = Buffer.from(a);
   const c = Buffer.from(b);
   assert.strictEqual(b.length, a.length);

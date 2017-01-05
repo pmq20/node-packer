@@ -440,10 +440,12 @@ occurs, the `callback` *may or may not* be called with the error as its
 first argument. To reliably detect write errors, add a listener for the
 `'error'` event.
 
-The return value indicates whether the written `chunk` was buffered internally
-and the buffer has exceeded the `highWaterMark` configured when the stream was
-created. If `false` is returned, further attempts to write data to the stream
-should be paused until the [`'drain'`][] event is emitted.
+The return value is `true` if the internal buffer does not exceed
+`highWaterMark` configured when the stream was created after admitting `chunk`.
+If `false` is returned, further attempts to write data to the stream should
+stop until the [`'drain'`][] event is emitted. However, the `false` return
+value is only advisory and the writable stream will unconditionally accept and
+buffer `chunk` even if it has not not been allowed to drain.
 
 A Writable stream in object mode will always ignore the `encoding` argument.
 
@@ -1271,8 +1273,8 @@ If the `decodeStrings` property is set in the constructor options, then
 indicate the character encoding of the string. This is to support
 implementations that have an optimized handling for certain string
 data encodings. If the `decodeStrings` property is explicitly set to `false`,
-the `encoding` argument can be safely ignored, and `chunk` will always be a
-`Buffer`.
+the `encoding` argument can be safely ignored, and `chunk` will remain the same
+object that is passed to `.write()`.
 
 The `writable._write()` method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
@@ -1501,9 +1503,9 @@ Implementers, and only from within the `readable._read()` method.
 It is recommended that errors occurring during the processing of the
 `readable._read()` method are emitted using the `'error'` event rather than
 being thrown. Throwing an Error from within `readable._read()` can result in
-expected and inconsistent behavior depending on whether the stream is operating
-in flowing or paused mode. Using the `'error'` event ensures consistent and
-predictable handling of errors.
+unexpected and inconsistent behavior depending on whether the stream is
+operating in flowing or paused mode. Using the `'error'` event ensures
+consistent and predictable handling of errors.
 
 ```js
 const Readable = require('stream').Readable;

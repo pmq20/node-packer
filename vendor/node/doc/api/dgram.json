@@ -64,8 +64,8 @@
                   "v0.1.99"
                 ]
               },
-              "params": [],
-              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>. The\n<code>msg</code> argument is a <a href=\"buffer.html\"><code>Buffer</code></a> and <code>rinfo</code> is an object with the sender&#39;s\naddress information provided by the <code>address</code>, <code>family</code> and <code>port</code> properties:</p>\n<pre><code class=\"lang-js\">socket.on(&#39;message&#39;, (msg, rinfo) =&gt; {\n  console.log(&#39;Received %d bytes from %s:%d\\n&#39;,\n              msg.length, rinfo.address, rinfo.port);\n});\n</code></pre>\n"
+              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} - The message</li>\n<li><code>rinfo</code> {Object} - Remote address information<ul>\n<li><code>address</code> {String} The sender address</li>\n<li><code>family</code> {String} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>\n<li><code>port</code> {Number} The sender port</li>\n<li><code>size</code> {Number} The message size</li>\n</ul>\n</li>\n</ul>\n",
+              "params": []
             }
           ],
           "methods": [

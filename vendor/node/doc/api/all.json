@@ -1913,7 +1913,7 @@
                   "v0.2.0"
                 ]
               },
-              "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
+              "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies. In addition, <code>process.versions.modules</code> indicates\nthe current ABI version, which is increased whenever a C++ API changes. Node.js\nwill refuse to load native modules built for an older <code>modules</code> value.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
             }
           ]
         }
@@ -1928,7 +1928,7 @@
             ]
           },
           "type": "var",
-          "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The name of the directory that the currently executing script resides in.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__dirname);\n// Prints: /Users/mjr\n</code></pre>\n<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>For instance, given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of\n<code>a</code> and there is a directory structure of:</p>\n<ul>\n<li><code>/Users/mjr/app/a.js</code></li>\n<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>\n</ul>\n<p>References to <code>__dirname</code> within <code>b.js</code> will return\n<code>/Users/mjr/app/node_modules/b</code> while references to <code>__dirname</code> within <code>a.js</code>\nwill return <code>/Users/mjr/app</code>.</p>\n"
+          "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The directory name of the current module. This the same as the\n<a href=\"path.html#path_path_dirname_path\"><code>path.dirname()</code></a> of the <a href=\"#globals_filename\"><code>__filename</code></a>.</p>\n<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__dirname);\n// Prints: /Users/mjr\nconsole.log(path.dirname(__filename));\n// Prints: /Users/mjr\n</code></pre>\n"
         },
         {
           "textRaw": "\\_\\_filename",
@@ -1939,7 +1939,7 @@
             ]
           },
           "type": "var",
-          "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The filename of the code being executed.  This is the resolved absolute path\nof this code file.  For a main program this is not necessarily the same\nfilename used in the command line.  The value inside a module is the path\nto that module file.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__filename);\n// Prints: /Users/mjr/example.js\n</code></pre>\n<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>\n"
+          "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The file name of the current module. This is the resolved absolute path of the\ncurrent module file.</p>\n<p>For a main program this is not necessarily the same as the file name used in the\ncommand line.</p>\n<p>See <a href=\"#globals_dirname\"><code>__dirname</code></a> for the directory name of the current module.</p>\n<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>Examples:</p>\n<p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__filename);\n// Prints: /Users/mjr/example.js\nconsole.log(__dirname);\n// Prints: /Users/mjr\n</code></pre>\n<p>Given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of\n<code>a</code> and there is a directory structure of:</p>\n<ul>\n<li><code>/Users/mjr/app/a.js</code></li>\n<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>\n</ul>\n<p>References to <code>__filename</code> within <code>b.js</code> will return\n<code>/Users/mjr/app/node_modules/b/b.js</code> while references to <code>__filename</code> within\n<code>a.js</code> will return <code>/Users/mjr/app/a.js</code>.</p>\n"
         },
         {
           "textRaw": "exports",
@@ -6382,7 +6382,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Spawns a shell then executes the <code>command</code> within that shell, buffering any\ngenerated output.</p>\n<pre><code class=\"lang-js\">const exec = require(&#39;child_process&#39;).exec;\nexec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {\n  if (error) {\n    console.error(`exec error: ${error}`);\n    return;\n  }\n  console.log(`stdout: ${stdout}`);\n  console.log(`stderr: ${stderr}`);\n});\n</code></pre>\n<p>If a <code>callback</code> function is provided, it is called with the arguments\n<code>(error, stdout, stderr)</code>. On success, <code>error</code> will be <code>null</code>.  On error,\n<code>error</code> will be an instance of <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. The <code>error.code</code> property will be\nthe exit code of the child process while <code>error.signal</code> will be set to the\nsignal that terminated the process. Any exit code other than <code>0</code> is considered\nto be an error.</p>\n<p>The <code>stdout</code> and <code>stderr</code> arguments passed to the callback will contain the\nstdout and stderr output of the child process. By default, Node.js will decode\nthe output as UTF-8 and pass strings to the callback. The <code>encoding</code> option\ncan be used to specify the character encoding used to decode the stdout and\nstderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an unrecognized character\nencoding, <code>Buffer</code> objects will be passed to the callback instead.</p>\n<p>The <code>options</code> argument may be passed as the second argument to customize how\nthe process is spawned. The default options are:</p>\n<pre><code class=\"lang-js\">{\n  encoding: &#39;utf8&#39;,\n  timeout: 0,\n  maxBuffer: 200*1024,\n  killSignal: &#39;SIGTERM&#39;,\n  cwd: null,\n  env: null\n}\n</code></pre>\n<p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the the signal\nidentified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the\nchild runs longer than <code>timeout</code> milliseconds.</p>\n<p><em>Note: Unlike the exec(3) POSIX system call, <code>child_process.exec()</code> does not\nreplace the existing process and uses a shell to execute the command.</em></p>\n"
+              "desc": "<p>Spawns a shell then executes the <code>command</code> within that shell, buffering any\ngenerated output.</p>\n<p><strong>Note: Never pass unsanitised user input to this function. Any input\ncontaining shell metacharacters may be used to trigger arbitrary command\nexecution.</strong></p>\n<pre><code class=\"lang-js\">const exec = require(&#39;child_process&#39;).exec;\nexec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {\n  if (error) {\n    console.error(`exec error: ${error}`);\n    return;\n  }\n  console.log(`stdout: ${stdout}`);\n  console.log(`stderr: ${stderr}`);\n});\n</code></pre>\n<p>If a <code>callback</code> function is provided, it is called with the arguments\n<code>(error, stdout, stderr)</code>. On success, <code>error</code> will be <code>null</code>.  On error,\n<code>error</code> will be an instance of <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. The <code>error.code</code> property will be\nthe exit code of the child process while <code>error.signal</code> will be set to the\nsignal that terminated the process. Any exit code other than <code>0</code> is considered\nto be an error.</p>\n<p>The <code>stdout</code> and <code>stderr</code> arguments passed to the callback will contain the\nstdout and stderr output of the child process. By default, Node.js will decode\nthe output as UTF-8 and pass strings to the callback. The <code>encoding</code> option\ncan be used to specify the character encoding used to decode the stdout and\nstderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an unrecognized character\nencoding, <code>Buffer</code> objects will be passed to the callback instead.</p>\n<p>The <code>options</code> argument may be passed as the second argument to customize how\nthe process is spawned. The default options are:</p>\n<pre><code class=\"lang-js\">{\n  encoding: &#39;utf8&#39;,\n  timeout: 0,\n  maxBuffer: 200*1024,\n  killSignal: &#39;SIGTERM&#39;,\n  cwd: null,\n  env: null\n}\n</code></pre>\n<p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the the signal\nidentified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the\nchild runs longer than <code>timeout</code> milliseconds.</p>\n<p><em>Note: Unlike the exec(3) POSIX system call, <code>child_process.exec()</code> does not\nreplace the existing process and uses a shell to execute the command.</em></p>\n"
             },
             {
               "textRaw": "child_process.execFile(file[, args][, options][, callback])",
@@ -6638,7 +6638,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {ChildProcess} ",
+                    "textRaw": "Returns: {ChildProcess} ",
                     "name": "return",
                     "type": "ChildProcess"
                   },
@@ -6730,7 +6730,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>child_process.spawn()</code> method spawns a new process using the given\n<code>command</code>, with command line arguments in <code>args</code>. If omitted, <code>args</code> defaults\nto an empty array.</p>\n<p>A third argument may be used to specify additional options, with these defaults:</p>\n<pre><code class=\"lang-js\">{\n  cwd: undefined,\n  env: process.env\n}\n</code></pre>\n<p>Use <code>cwd</code> to specify the working directory from which the process is spawned.\nIf not given, the default is to inherit the current working directory.</p>\n<p>Use <code>env</code> to specify environment variables that will be visible to the new\nprocess, the default is <a href=\"process.html#process_process_env\"><code>process.env</code></a>.</p>\n<p>Example of running <code>ls -lh /usr</code>, capturing <code>stdout</code>, <code>stderr</code>, and the\nexit code:</p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst ls = spawn(&#39;ls&#39;, [&#39;-lh&#39;, &#39;/usr&#39;]);\n\nls.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stdout: ${data}`);\n});\n\nls.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stderr: ${data}`);\n});\n\nls.on(&#39;close&#39;, (code) =&gt; {\n  console.log(`child process exited with code ${code}`);\n});\n</code></pre>\n<p>Example: A very elaborate way to run <code>ps ax | grep ssh</code></p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst ps = spawn(&#39;ps&#39;, [&#39;ax&#39;]);\nconst grep = spawn(&#39;grep&#39;, [&#39;ssh&#39;]);\n\nps.stdout.on(&#39;data&#39;, (data) =&gt; {\n  grep.stdin.write(data);\n});\n\nps.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`ps stderr: ${data}`);\n});\n\nps.on(&#39;close&#39;, (code) =&gt; {\n  if (code !== 0) {\n    console.log(`ps process exited with code ${code}`);\n  }\n  grep.stdin.end();\n});\n\ngrep.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`${data}`);\n});\n\ngrep.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`grep stderr: ${data}`);\n});\n\ngrep.on(&#39;close&#39;, (code) =&gt; {\n  if (code !== 0) {\n    console.log(`grep process exited with code ${code}`);\n  }\n});\n</code></pre>\n<p>Example of checking for failed exec:</p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst child = spawn(&#39;bad_command&#39;);\n\nchild.on(&#39;error&#39;, (err) =&gt; {\n  console.log(&#39;Failed to start child process.&#39;);\n});\n</code></pre>\n<p><em>Note: Certain platforms (OS X, Linux) will use the value of <code>argv[0]</code> for the\nprocess title while others (Windows, SunOS) will use <code>command</code>.</em></p>\n<p><em>Note: Node.js currently overwrites <code>argv[0]</code> with <code>process.execPath</code> on\nstartup, so <code>process.argv[0]</code> in a Node.js child process will not match the\n<code>argv0</code> parameter passed to <code>spawn</code> from the parent, retrieve it with the\n<code>process.argv0</code> property instead.</em></p>\n",
+              "desc": "<p>The <code>child_process.spawn()</code> method spawns a new process using the given\n<code>command</code>, with command line arguments in <code>args</code>. If omitted, <code>args</code> defaults\nto an empty array.</p>\n<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to\nthis function. Any input containing shell metacharacters may be used to\ntrigger arbitrary command execution.</strong></p>\n<p>A third argument may be used to specify additional options, with these defaults:</p>\n<pre><code class=\"lang-js\">{\n  cwd: undefined,\n  env: process.env\n}\n</code></pre>\n<p>Use <code>cwd</code> to specify the working directory from which the process is spawned.\nIf not given, the default is to inherit the current working directory.</p>\n<p>Use <code>env</code> to specify environment variables that will be visible to the new\nprocess, the default is <a href=\"process.html#process_process_env\"><code>process.env</code></a>.</p>\n<p>Example of running <code>ls -lh /usr</code>, capturing <code>stdout</code>, <code>stderr</code>, and the\nexit code:</p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst ls = spawn(&#39;ls&#39;, [&#39;-lh&#39;, &#39;/usr&#39;]);\n\nls.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stdout: ${data}`);\n});\n\nls.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stderr: ${data}`);\n});\n\nls.on(&#39;close&#39;, (code) =&gt; {\n  console.log(`child process exited with code ${code}`);\n});\n</code></pre>\n<p>Example: A very elaborate way to run <code>ps ax | grep ssh</code></p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst ps = spawn(&#39;ps&#39;, [&#39;ax&#39;]);\nconst grep = spawn(&#39;grep&#39;, [&#39;ssh&#39;]);\n\nps.stdout.on(&#39;data&#39;, (data) =&gt; {\n  grep.stdin.write(data);\n});\n\nps.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`ps stderr: ${data}`);\n});\n\nps.on(&#39;close&#39;, (code) =&gt; {\n  if (code !== 0) {\n    console.log(`ps process exited with code ${code}`);\n  }\n  grep.stdin.end();\n});\n\ngrep.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`${data}`);\n});\n\ngrep.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`grep stderr: ${data}`);\n});\n\ngrep.on(&#39;close&#39;, (code) =&gt; {\n  if (code !== 0) {\n    console.log(`grep process exited with code ${code}`);\n  }\n});\n</code></pre>\n<p>Example of checking for failed exec:</p>\n<pre><code class=\"lang-js\">const spawn = require(&#39;child_process&#39;).spawn;\nconst child = spawn(&#39;bad_command&#39;);\n\nchild.on(&#39;error&#39;, (err) =&gt; {\n  console.log(&#39;Failed to start child process.&#39;);\n});\n</code></pre>\n<p><em>Note: Certain platforms (OS X, Linux) will use the value of <code>argv[0]</code> for the\nprocess title while others (Windows, SunOS) will use <code>command</code>.</em></p>\n<p><em>Note: Node.js currently overwrites <code>argv[0]</code> with <code>process.execPath</code> on\nstartup, so <code>process.argv[0]</code> in a Node.js child process will not match the\n<code>argv0</code> parameter passed to <code>spawn</code> from the parent, retrieve it with the\n<code>process.argv0</code> property instead.</em></p>\n",
               "properties": [
                 {
                   "textRaw": "options.detached",
@@ -6775,7 +6775,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Buffer|String} The stdout from the command ",
+                    "textRaw": "Returns: {Buffer|String} The stdout from the command ",
                     "name": "return",
                     "type": "Buffer|String",
                     "desc": "The stdout from the command"
@@ -6908,7 +6908,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Buffer|String} The stdout from the command ",
+                    "textRaw": "Returns: {Buffer|String} The stdout from the command ",
                     "name": "return",
                     "type": "Buffer|String",
                     "desc": "The stdout from the command"
@@ -7022,7 +7022,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>child_process.execSync()</code> method is generally identical to\n<a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> with the exception that the method will not return until\nthe child process has fully closed. When a timeout has been encountered and\n<code>killSignal</code> is sent, the method won&#39;t return until the process has completely\nexited. <em>Note that if  the child process intercepts and handles the <code>SIGTERM</code>\nsignal and doesn&#39;t exit, the parent process will wait until the child\nprocess has exited.</em></p>\n<p>If the process times out, or has a non-zero exit code, this method <strong><em>will</em></strong>\nthrow.  The <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object will contain the entire result from\n<a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a></p>\n"
+              "desc": "<p>The <code>child_process.execSync()</code> method is generally identical to\n<a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> with the exception that the method will not return until\nthe child process has fully closed. When a timeout has been encountered and\n<code>killSignal</code> is sent, the method won&#39;t return until the process has completely\nexited. <em>Note that if  the child process intercepts and handles the <code>SIGTERM</code>\nsignal and doesn&#39;t exit, the parent process will wait until the child\nprocess has exited.</em></p>\n<p>If the process times out, or has a non-zero exit code, this method <strong><em>will</em></strong>\nthrow.  The <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object will contain the entire result from\n<a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a></p>\n<p><strong>Note: Never pass unsanitised user input to this function. Any input\ncontaining shell metacharacters may be used to trigger arbitrary command\nexecution.</strong></p>\n"
             },
             {
               "textRaw": "child_process.spawnSync(command[, args][, options])",
@@ -7036,7 +7036,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Object} ",
+                    "textRaw": "Returns: {Object} ",
                     "options": [
                       {
                         "textRaw": "`pid` {Number} Pid of the child process ",
@@ -7197,7 +7197,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>child_process.spawnSync()</code> method is generally identical to\n<a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> with the exception that the function will not return\nuntil the child process has fully closed. When a timeout has been encountered\nand <code>killSignal</code> is sent, the method won&#39;t return until the process has\ncompletely exited. Note that if the process intercepts and handles the\n<code>SIGTERM</code> signal and doesn&#39;t exit, the parent process will wait until the child\nprocess has exited.</p>\n"
+              "desc": "<p>The <code>child_process.spawnSync()</code> method is generally identical to\n<a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> with the exception that the function will not return\nuntil the child process has fully closed. When a timeout has been encountered\nand <code>killSignal</code> is sent, the method won&#39;t return until the process has\ncompletely exited. Note that if the process intercepts and handles the\n<code>SIGTERM</code> signal and doesn&#39;t exit, the parent process will wait until the child\nprocess has exited.</p>\n<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to\nthis function. Any input containing shell metacharacters may be used to\ntrigger arbitrary command execution.</strong></p>\n"
             }
           ],
           "type": "module",
@@ -7484,7 +7484,7 @@
       "name": "cluster",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>A single instance of Node.js runs in a single thread. To take advantage of\nmulti-core systems the user will sometimes want to launch a cluster of Node.js\nprocesses to handle the load.</p>\n<p>The cluster module allows you to easily create child processes that\nall share server ports.</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\nconst numCPUs = require(&#39;os&#39;).cpus().length;\n\nif (cluster.isMaster) {\n  // Fork workers.\n  for (var i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n    console.log(`worker ${worker.process.pid} died`);\n  });\n} else {\n  // Workers can share any TCP connection\n  // In this case it is an HTTP server\n  http.createServer((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n  }).listen(8000);\n}\n</code></pre>\n<p>Running Node.js will now share port 8000 between the workers:</p>\n<pre><code class=\"lang-txt\">$ NODE_DEBUG=cluster node server.js\n23521,Master Worker 23524 online\n23521,Master Worker 23526 online\n23521,Master Worker 23523 online\n23521,Master Worker 23528 online\n</code></pre>\n<p>Please note that on Windows, it is not yet possible to set up a named pipe\nserver in a worker.</p>\n",
+      "desc": "<p>A single instance of Node.js runs in a single thread. To take advantage of\nmulti-core systems the user will sometimes want to launch a cluster of Node.js\nprocesses to handle the load.</p>\n<p>The cluster module allows you to easily create child processes that\nall share server ports.</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\nconst numCPUs = require(&#39;os&#39;).cpus().length;\n\nif (cluster.isMaster) {\n  console.log(`Master ${process.pid} is running`);\n\n  // Fork workers.\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n    console.log(`worker ${worker.process.pid} died`);\n  });\n} else {\n  // Workers can share any TCP connection\n  // In this case it is an HTTP server\n  http.createServer((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n  }).listen(8000);\n\n  console.log(`Worker ${process.pid} started`);\n}\n</code></pre>\n<p>Running Node.js will now share port 8000 between the workers:</p>\n<pre><code class=\"lang-txt\">$ node server.js\nMaster 3596 is running\nWorker 4324 started\nWorker 4520 started\nWorker 6056 started\nWorker 5644 started\n</code></pre>\n<p>Please note that on Windows, it is not yet possible to set up a named pipe\nserver in a worker.</p>\n",
       "miscs": [
         {
           "textRaw": "How It Works",
@@ -7563,7 +7563,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker. In a\nworker you can also use <code>process.on(&#39;message&#39;)</code>.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>As an example, here is a cluster that keeps count of the number of requests\nin the master process using the message system:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  var numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(&#39;numReqs =&#39;, numReqs);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd == &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (var i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  Object.keys(cluster.workers).forEach((id) =&gt; {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  });\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
+              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker. In a\nworker you can also use <code>process.on(&#39;message&#39;)</code>.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>As an example, here is a cluster that keeps count of the number of requests\nin the master process using the message system:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  let numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(`numReqs = ${numReqs}`);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  for (const id in cluster.workers) {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  }\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
             },
             {
               "textRaw": "Event: 'online'",
@@ -7602,7 +7602,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>In a worker, this function will close all servers, wait for the <code>&#39;close&#39;</code> event on\nthose servers, and then disconnect the IPC channel.</p>\n<p>In the master, an internal message is sent to the worker causing it to call\n<code>.disconnect()</code> on itself.</p>\n<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>\n<p>Note that after a server is closed, it will no longer accept new connections,\nbut connections may be accepted by any other listening worker. Existing\nconnections will be allowed to close as usual. When no more connections exist,\nsee <a href=\"net.html#net_event_close\"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it to\ndie gracefully.</p>\n<p>The above applies <em>only</em> to server connections, client connections are not\nautomatically closed by workers, and disconnect does not wait for them to close\nbefore exiting.</p>\n<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,\nit is <a href=\"child_process.html#child_process_child_disconnect\"><code>disconnect</code></a>.</p>\n<p>Because long living server connections may block workers from disconnecting, it\nmay be useful to send a message, so application specific actions may be taken to\nclose them. It also may be useful to implement a timeout, killing a worker if\nthe <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  var worker = cluster.fork();\n  var timeout;\n\n  worker.on(&#39;listening&#39;, (address) =&gt; {\n    worker.send(&#39;shutdown&#39;);\n    worker.disconnect();\n    timeout = setTimeout(() =&gt; {\n      worker.kill();\n    }, 2000);\n  });\n\n  worker.on(&#39;disconnect&#39;, () =&gt; {\n    clearTimeout(timeout);\n  });\n\n} else if (cluster.isWorker) {\n  const net = require(&#39;net&#39;);\n  var server = net.createServer((socket) =&gt; {\n    // connections never end\n  });\n\n  server.listen(8000);\n\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    if (msg === &#39;shutdown&#39;) {\n      // initiate graceful close of any connections to server\n    }\n  });\n}\n</code></pre>\n"
+              "desc": "<p>In a worker, this function will close all servers, wait for the <code>&#39;close&#39;</code> event on\nthose servers, and then disconnect the IPC channel.</p>\n<p>In the master, an internal message is sent to the worker causing it to call\n<code>.disconnect()</code> on itself.</p>\n<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>\n<p>Note that after a server is closed, it will no longer accept new connections,\nbut connections may be accepted by any other listening worker. Existing\nconnections will be allowed to close as usual. When no more connections exist,\nsee <a href=\"net.html#net_event_close\"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it to\ndie gracefully.</p>\n<p>The above applies <em>only</em> to server connections, client connections are not\nautomatically closed by workers, and disconnect does not wait for them to close\nbefore exiting.</p>\n<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,\nit is <a href=\"child_process.html#child_process_child_disconnect\"><code>disconnect</code></a>.</p>\n<p>Because long living server connections may block workers from disconnecting, it\nmay be useful to send a message, so application specific actions may be taken to\nclose them. It also may be useful to implement a timeout, killing a worker if\nthe <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  let timeout;\n\n  worker.on(&#39;listening&#39;, (address) =&gt; {\n    worker.send(&#39;shutdown&#39;);\n    worker.disconnect();\n    timeout = setTimeout(() =&gt; {\n      worker.kill();\n    }, 2000);\n  });\n\n  worker.on(&#39;disconnect&#39;, () =&gt; {\n    clearTimeout(timeout);\n  });\n\n} else if (cluster.isWorker) {\n  const net = require(&#39;net&#39;);\n  const server = net.createServer((socket) =&gt; {\n    // connections never end\n  });\n\n  server.listen(8000);\n\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    if (msg === &#39;shutdown&#39;) {\n      // initiate graceful close of any connections to server\n    }\n  });\n}\n</code></pre>\n"
             },
             {
               "textRaw": "worker.isConnected()",
@@ -7722,7 +7722,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Send a message to a worker or master, optionally with a handle.</p>\n<p>In the master this sends a message to a specific worker. It is identical to\n<a href=\"child_process.html#child_process_child_send_message_sendhandle_options_callback\"><code>ChildProcess.send()</code></a>.</p>\n<p>In a worker this sends a message to the master. It is identical to\n<code>process.send()</code>.</p>\n<p>This example will echo back all messages from the master:</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  var worker = cluster.fork();\n  worker.send(&#39;hi there&#39;);\n\n} else if (cluster.isWorker) {\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    process.send(msg);\n  });\n}\n</code></pre>\n"
+              "desc": "<p>Send a message to a worker or master, optionally with a handle.</p>\n<p>In the master this sends a message to a specific worker. It is identical to\n<a href=\"child_process.html#child_process_child_send_message_sendhandle_options_callback\"><code>ChildProcess.send()</code></a>.</p>\n<p>In a worker this sends a message to the master. It is identical to\n<code>process.send()</code>.</p>\n<p>This example will echo back all messages from the master:</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  worker.send(&#39;hi there&#39;);\n\n} else if (cluster.isWorker) {\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    process.send(msg);\n  });\n}\n</code></pre>\n"
             }
           ],
           "properties": [
@@ -7812,7 +7812,7 @@
             ]
           },
           "params": [],
-          "desc": "<p>When a new worker is forked the cluster module will emit a <code>&#39;fork&#39;</code> event.\nThis can be used to log worker activity, and create your own timeout.</p>\n<pre><code class=\"lang-js\">var timeouts = [];\nfunction errorMsg() {\n  console.error(&#39;Something must be wrong with the connection ...&#39;);\n}\n\ncluster.on(&#39;fork&#39;, (worker) =&gt; {\n  timeouts[worker.id] = setTimeout(errorMsg, 2000);\n});\ncluster.on(&#39;listening&#39;, (worker, address) =&gt; {\n  clearTimeout(timeouts[worker.id]);\n});\ncluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n  clearTimeout(timeouts[worker.id]);\n  errorMsg();\n});\n</code></pre>\n"
+          "desc": "<p>When a new worker is forked the cluster module will emit a <code>&#39;fork&#39;</code> event.\nThis can be used to log worker activity, and create your own timeout.</p>\n<pre><code class=\"lang-js\">const timeouts = [];\nfunction errorMsg() {\n  console.error(&#39;Something must be wrong with the connection ...&#39;);\n}\n\ncluster.on(&#39;fork&#39;, (worker) =&gt; {\n  timeouts[worker.id] = setTimeout(errorMsg, 2000);\n});\ncluster.on(&#39;listening&#39;, (worker, address) =&gt; {\n  clearTimeout(timeouts[worker.id]);\n});\ncluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n  clearTimeout(timeouts[worker.id]);\n  errorMsg();\n});\n</code></pre>\n"
         },
         {
           "textRaw": "Event: 'listening'",
@@ -7831,7 +7831,7 @@
           "type": "event",
           "name": "message",
           "params": [],
-          "desc": "<p>Emitted when the cluster master receives a message from any worker.</p>\n<p>See <a href=\"child_process.html#child_process_event_message\">child_process event: &#39;message&#39;</a>.</p>\n<p>Before Node.js v6.0, this event emitted only the message and the handle,\nbut not the worker object, contrary to what the documentation stated.</p>\n<p>If you need to support older versions and don&#39;t need the worker object,\nyou can work around the discrepancy by checking the number of arguments:</p>\n<pre><code class=\"lang-js\">cluster.on(&#39;message&#39;, function(worker, message, handle) {\n  if (arguments.length === 2) {\n    handle = message;\n    message = worker;\n    worker = undefined;\n  }\n  // ...\n});\n</code></pre>\n"
+          "desc": "<p>Emitted when the cluster master receives a message from any worker.</p>\n<p>See <a href=\"child_process.html#child_process_event_message\">child_process event: &#39;message&#39;</a>.</p>\n<p>Before Node.js v6.0, this event emitted only the message and the handle,\nbut not the worker object, contrary to what the documentation stated.</p>\n<p>If you need to support older versions and don&#39;t need the worker object,\nyou can work around the discrepancy by checking the number of arguments:</p>\n<pre><code class=\"lang-js\">cluster.on(&#39;message&#39;, (worker, message, handle) =&gt; {\n  if (arguments.length === 2) {\n    handle = message;\n    message = worker;\n    worker = undefined;\n  }\n  // ...\n});\n</code></pre>\n"
         },
         {
           "textRaw": "Event: 'online'",
@@ -8101,7 +8101,7 @@
               "v0.7.0"
             ]
           },
-          "desc": "<p>A hash that stores the active worker objects, keyed by <code>id</code> field. Makes it\neasy to loop through all the workers. It is only available in the master\nprocess.</p>\n<p>A worker is removed from cluster.workers after the worker has disconnected <em>and</em>\nexited. The order between these two events cannot be determined in advance.\nHowever, it is guaranteed that the removal from the cluster.workers list happens\nbefore last <code>&#39;disconnect&#39;</code> or <code>&#39;exit&#39;</code> event is emitted.</p>\n<pre><code class=\"lang-js\">// Go through all workers\nfunction eachWorker(callback) {\n  for (var id in cluster.workers) {\n    callback(cluster.workers[id]);\n  }\n}\neachWorker((worker) =&gt; {\n  worker.send(&#39;big announcement to all workers&#39;);\n});\n</code></pre>\n<p>Should you wish to reference a worker over a communication channel, using\nthe worker&#39;s unique id is the easiest way to find the worker.</p>\n<pre><code class=\"lang-js\">socket.on(&#39;data&#39;, (id) =&gt; {\n  var worker = cluster.workers[id];\n});\n</code></pre>\n<!-- [end-include:cluster.md] -->\n<!-- [start-include:cli.md] -->\n"
+          "desc": "<p>A hash that stores the active worker objects, keyed by <code>id</code> field. Makes it\neasy to loop through all the workers. It is only available in the master\nprocess.</p>\n<p>A worker is removed from cluster.workers after the worker has disconnected <em>and</em>\nexited. The order between these two events cannot be determined in advance.\nHowever, it is guaranteed that the removal from the cluster.workers list happens\nbefore last <code>&#39;disconnect&#39;</code> or <code>&#39;exit&#39;</code> event is emitted.</p>\n<pre><code class=\"lang-js\">// Go through all workers\nfunction eachWorker(callback) {\n  for (const id in cluster.workers) {\n    callback(cluster.workers[id]);\n  }\n}\neachWorker((worker) =&gt; {\n  worker.send(&#39;big announcement to all workers&#39;);\n});\n</code></pre>\n<p>Should you wish to reference a worker over a communication channel, using\nthe worker&#39;s unique id is the easiest way to find the worker.</p>\n<pre><code class=\"lang-js\">socket.on(&#39;data&#39;, (id) =&gt; {\n  const worker = cluster.workers[id];\n});\n</code></pre>\n<!-- [end-include:cluster.md] -->\n<!-- [start-include:cli.md] -->\n"
         }
       ],
       "type": "module",
@@ -8138,7 +8138,7 @@
                   "v0.1.101"
                 ]
               },
-              "desc": "<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,\nan <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted\nusing <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> and used as the error message.</p>\n<pre><code class=\"lang-js\">console.assert(true, &#39;does nothing&#39;);\n// OK\nconsole.assert(false, &#39;Whoops %s&#39;, &#39;didn\\&#39;t work&#39;);\n// AssertionError: Whoops didn&#39;t work\n</code></pre>\n<p><em>Note: the <code>console.assert()</code> method is implemented differently in Node.js\nthan the <code>console.assert()</code> method <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/console/assert\">available in browsers</a>.</em></p>\n<p>Specifically, in browsers, calling <code>console.assert()</code> with a falsy\nassertion will cause the <code>message</code> to be printed to the console without\ninterrupting execution of subsequent code. In Node.js, however, a falsy\nassertion will cause an <code>AssertionError</code> to be thrown.</p>\n<p>Functionality approximating that implemented by browsers can be implemented\nby extending Node.js&#39; <code>console</code> and overriding the <code>console.assert()</code> method.</p>\n<p>In the following example, a simple module is created that extends and overrides\nthe default behavior of <code>console</code> in Node.js.</p>\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\n\n// Creates a simple extension of console with a\n// new impl for assert without monkey-patching.\nconst myConsole = Object.setPrototypeOf({\n  assert(assertion, message, ...args) {\n    try {\n      console.assert(assertion, message, ...args);\n    } catch (err) {\n      console.error(err.stack);\n    }\n  }\n}, console);\n\nmodule.exports = myConsole;\n</code></pre>\n<p>This can then be used as a direct replacement for the built in console:</p>\n<pre><code class=\"lang-js\">const console = require(&#39;./myConsole&#39;);\nconsole.assert(false, &#39;this message will print, but no error thrown&#39;);\nconsole.log(&#39;this will also print&#39;);\n</code></pre>\n",
+              "desc": "<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,\nan <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted\nusing <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> and used as the error message.</p>\n<pre><code class=\"lang-js\">console.assert(true, &#39;does nothing&#39;);\n// OK\nconsole.assert(false, &#39;Whoops %s&#39;, &#39;didn\\&#39;t work&#39;);\n// AssertionError: Whoops didn&#39;t work\n</code></pre>\n<p><em>Note: the <code>console.assert()</code> method is implemented differently in Node.js\nthan the <code>console.assert()</code> method <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/console/assert\">available in browsers</a>.</em></p>\n<p>Specifically, in browsers, calling <code>console.assert()</code> with a falsy\nassertion will cause the <code>message</code> to be printed to the console without\ninterrupting execution of subsequent code. In Node.js, however, a falsy\nassertion will cause an <code>AssertionError</code> to be thrown.</p>\n<p>Functionality approximating that implemented by browsers can be implemented\nby extending Node.js&#39; <code>console</code> and overriding the <code>console.assert()</code> method.</p>\n<p>In the following example, a simple module is created that extends and overrides\nthe default behavior of <code>console</code> in Node.js.</p>\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\n\n// Creates a simple extension of console with a\n// new impl for assert without monkey-patching.\nconst myConsole = Object.create(console, {\n  assert: {\n    value: function assert(assertion, message, ...args) {\n      try {\n        console.assert(assertion, message, ...args);\n      } catch (err) {\n        console.error(err.stack);\n      }\n    },\n    configurable: true,\n    enumerable: true,\n    writable: true,\n  },\n});\n\nmodule.exports = myConsole;\n</code></pre>\n<p>This can then be used as a direct replacement for the built in console:</p>\n<pre><code class=\"lang-js\">const console = require(&#39;./myConsole&#39;);\nconsole.assert(false, &#39;this message will print, but no error thrown&#39;);\nconsole.log(&#39;this will also print&#39;);\n</code></pre>\n",
               "signatures": [
                 {
                   "params": [
@@ -8240,7 +8240,7 @@
                   "v0.1.100"
                 ]
               },
-              "desc": "<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the\nfirst used as the primary message and all additional used as substitution\nvalues similar to printf(3) (the arguments are all passed to\n<a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a>).</p>\n<pre><code class=\"lang-js\">var count = 5;\nconsole.log(&#39;count: %d&#39;, count);\n// Prints: count: 5, to stdout\nconsole.log(&#39;count:&#39;, count);\n// Prints: count: 5, to stdout\n</code></pre>\n<p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then\n<a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> is called on each argument and the resulting string\nvalues are concatenated. See <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> for more information.</p>\n",
+              "desc": "<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the\nfirst used as the primary message and all additional used as substitution\nvalues similar to printf(3) (the arguments are all passed to\n<a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a>).</p>\n<pre><code class=\"lang-js\">const count = 5;\nconsole.log(&#39;count: %d&#39;, count);\n// Prints: count: 5, to stdout\nconsole.log(&#39;count:&#39;, count);\n// Prints: count: 5, to stdout\n</code></pre>\n<p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then\n<a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> is called on each argument and the resulting string\nvalues are concatenated. See <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> for more information.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -8285,7 +8285,7 @@
                   "v0.1.104"
                 ]
               },
-              "desc": "<p>Stops a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a> and\nprints the result to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;100-elements&#39;);\nfor (var i = 0; i &lt; 100; i++) {\n  ;\n}\nconsole.timeEnd(&#39;100-elements&#39;);\n// prints 100-elements: 225.438ms\n</code></pre>\n<p><em>Note: As of Node.js v6.0.0, <code>console.timeEnd()</code> deletes the timer to avoid\nleaking it. On older versions, the timer persisted. This allowed\n<code>console.timeEnd()</code> to be called multiple times for the same label. This\nfunctionality was unintended and is no longer supported.</em></p>\n",
+              "desc": "<p>Stops a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a> and\nprints the result to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;100-elements&#39;);\nfor (let i = 0; i &lt; 100; i++) {\n  ;\n}\nconsole.timeEnd(&#39;100-elements&#39;);\n// prints 100-elements: 225.438ms\n</code></pre>\n<p><em>Note: As of Node.js v6.0.0, <code>console.timeEnd()</code> deletes the timer to avoid\nleaking it. On older versions, the timer persisted. This allowed\n<code>console.timeEnd()</code> to be called multiple times for the same label. This\nfunctionality was unintended and is no longer supported.</em></p>\n",
               "signatures": [
                 {
                   "params": [
@@ -8357,7 +8357,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>Creates a new <code>Console</code> by passing one or two writable stream instances.\n<code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>\nis used for warning or error output. If <code>stderr</code> isn&#39;t passed, warning and error\noutput will be sent to <code>stdout</code>.</p>\n<pre><code class=\"lang-js\">const output = fs.createWriteStream(&#39;./stdout.log&#39;);\nconst errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);\n// custom simple logger\nconst logger = new Console(output, errorOutput);\n// use it like console\nvar count = 5;\nlogger.log(&#39;count: %d&#39;, count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"lang-js\">new Console(process.stdout, process.stderr);\n</code></pre>\n"
+              "desc": "<p>Creates a new <code>Console</code> by passing one or two writable stream instances.\n<code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>\nis used for warning or error output. If <code>stderr</code> isn&#39;t passed, warning and error\noutput will be sent to <code>stdout</code>.</p>\n<pre><code class=\"lang-js\">const output = fs.createWriteStream(&#39;./stdout.log&#39;);\nconst errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);\n// custom simple logger\nconst logger = new Console(output, errorOutput);\n// use it like console\nconst count = 5;\nlogger.log(&#39;count: %d&#39;, count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"lang-js\">new Console(process.stdout, process.stderr);\n</code></pre>\n"
             }
           ]
         }
@@ -10077,8 +10077,8 @@
                   "v0.1.99"
                 ]
               },
-              "params": [],
-              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>. The\n<code>msg</code> argument is a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a> and <code>rinfo</code> is an object with the sender&#39;s\naddress information provided by the <code>address</code>, <code>family</code> and <code>port</code> properties:</p>\n<pre><code class=\"lang-js\">socket.on(&#39;message&#39;, (msg, rinfo) =&gt; {\n  console.log(&#39;Received %d bytes from %s:%d\\n&#39;,\n              msg.length, rinfo.address, rinfo.port);\n});\n</code></pre>\n"
+              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} - The message</li>\n<li><code>rinfo</code> {Object} - Remote address information<ul>\n<li><code>address</code> {String} The sender address</li>\n<li><code>family</code> {String} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>\n<li><code>port</code> {Number} The sender port</li>\n<li><code>size</code> {Number} The message size</li>\n</ul>\n</li>\n</ul>\n",
+              "params": []
             }
           ],
           "methods": [
@@ -11127,7 +11127,7 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "return: {Domain} ",
+                "textRaw": "Returns: {Domain} ",
                 "name": "return",
                 "type": "Domain"
               },
@@ -11238,7 +11238,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Function} The bound function ",
+                    "textRaw": "Returns: {Function} The bound function ",
                     "name": "return",
                     "type": "Function",
                     "desc": "The bound function"
@@ -11269,7 +11269,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Function} The intercepted function ",
+                    "textRaw": "Returns: {Function} The intercepted function ",
                     "name": "return",
                     "type": "Function",
                     "desc": "The intercepted function"
@@ -13951,9 +13951,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer} ",
+                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -14340,9 +14340,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer} ",
+                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -15263,9 +15263,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer} ",
+                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer"
+                  "type": "Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -15404,9 +15404,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`options` {Object | String} ",
@@ -15480,9 +15480,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`options` {Object | String} ",
@@ -15547,9 +15547,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer} ",
+                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer"
+                  "type": "Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -17832,7 +17832,7 @@
           "textRaw": "Loading from `node_modules` Folders",
           "name": "Loading from `node_modules` Folders",
           "type": "misc",
-          "desc": "<p>If the module identifier passed to <code>require()</code> is not a native module,\nand does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or <code>&#39;./&#39;</code>, then Node.js starts at the\nparent directory of the current module, and adds <code>/node_modules</code>, and\nattempts to load the module from that location. Node will not append\n<code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>\n<p>If it is not found there, then it moves to the parent directory, and so\non, until the root of the file system is reached.</p>\n<p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called\n<code>require(&#39;bar.js&#39;)</code>, then Node.js would look in the following locations, in\nthis order:</p>\n<ul>\n<li><code>/home/ry/projects/node_modules/bar.js</code></li>\n<li><code>/home/ry/node_modules/bar.js</code></li>\n<li><code>/home/node_modules/bar.js</code></li>\n<li><code>/node_modules/bar.js</code></li>\n</ul>\n<p>This allows programs to localize their dependencies, so that they do not\nclash.</p>\n<p>You can require specific files or sub modules distributed with a module by\nincluding a path suffix after the module name. For instance\n<code>require(&#39;example-module/path/to/file&#39;)</code> would resolve <code>path/to/file</code>\nrelative to where <code>example-module</code> is located. The suffixed path follows the\nsame module resolution semantics.</p>\n"
+          "desc": "<p>If the module identifier passed to <code>require()</code> is not a\n<a href=\"#modules_core_modules\">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or\n<code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and\nadds <code>/node_modules</code>, and attempts to load the module from that location. Node\nwill not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>\n<p>If it is not found there, then it moves to the parent directory, and so\non, until the root of the file system is reached.</p>\n<p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called\n<code>require(&#39;bar.js&#39;)</code>, then Node.js would look in the following locations, in\nthis order:</p>\n<ul>\n<li><code>/home/ry/projects/node_modules/bar.js</code></li>\n<li><code>/home/ry/node_modules/bar.js</code></li>\n<li><code>/home/node_modules/bar.js</code></li>\n<li><code>/node_modules/bar.js</code></li>\n</ul>\n<p>This allows programs to localize their dependencies, so that they do not\nclash.</p>\n<p>You can require specific files or sub modules distributed with a module by\nincluding a path suffix after the module name. For instance\n<code>require(&#39;example-module/path/to/file&#39;)</code> would resolve <code>path/to/file</code>\nrelative to where <code>example-module</code> is located. The suffixed path follows the\nsame module resolution semantics.</p>\n"
         },
         {
           "textRaw": "Loading from the global folders",
@@ -21123,14 +21123,14 @@
                 {
                   "textRaw": "JavaScript Expressions",
                   "name": "javascript_expressions",
-                  "desc": "<p>The default evaluator supports direct evaluation of JavaScript expressions:</p>\n<pre><code class=\"lang-js\">&gt; 1 + 1\n2\n&gt; var m = 2\nundefined\n&gt; m + 1\n3\n</code></pre>\n<p>Unless otherwise scoped within blocks (e.g. <code>{ ... }</code>) or functions, variables\ndeclared either implicitly or using the <code>var</code> keyword are declared at the\n<code>global</code> scope.</p>\n",
+                  "desc": "<p>The default evaluator supports direct evaluation of JavaScript expressions:</p>\n<pre><code class=\"lang-js\">&gt; 1 + 1\n2\n&gt; const m = 2\nundefined\n&gt; m + 1\n3\n</code></pre>\n<p>Unless otherwise scoped within blocks or functions, variables declared\neither implicitly or using the <code>const</code>, <code>let</code>, or <code>var</code> keywords\nare declared at the global scope.</p>\n",
                   "type": "module",
                   "displayName": "JavaScript Expressions"
                 },
                 {
                   "textRaw": "Global and Local Scope",
                   "name": "global_and_local_scope",
-                  "desc": "<p>The default evaluator provides access to any variables that exist in the global\nscope. It is possible to expose a variable to the REPL explicitly by assigning\nit to the <code>context</code> object associated with each <code>REPLServer</code>.  For example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nvar msg = &#39;message&#39;;\n\nrepl.start(&#39;&gt; &#39;).context.m = msg;\n</code></pre>\n<p>Properties in the <code>context</code> object appear as local within the REPL:</p>\n<pre><code class=\"lang-js\">$ node repl_test.js\n&gt; m\n&#39;message&#39;\n</code></pre>\n<p>It is important to note that context properties are <em>not</em> read-only by default.\nTo specify read-only globals, context properties must be defined using\n<code>Object.defineProperty()</code>:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nvar msg = &#39;message&#39;;\n\nconst r = repl.start(&#39;&gt; &#39;);\nObject.defineProperty(r.context, &#39;m&#39;, {\n  configurable: false,\n  enumerable: true,\n  value: msg\n});\n</code></pre>\n",
+                  "desc": "<p>The default evaluator provides access to any variables that exist in the global\nscope. It is possible to expose a variable to the REPL explicitly by assigning\nit to the <code>context</code> object associated with each <code>REPLServer</code>.  For example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nconst msg = &#39;message&#39;;\n\nrepl.start(&#39;&gt; &#39;).context.m = msg;\n</code></pre>\n<p>Properties in the <code>context</code> object appear as local within the REPL:</p>\n<pre><code class=\"lang-js\">$ node repl_test.js\n&gt; m\n&#39;message&#39;\n</code></pre>\n<p>It is important to note that context properties are <em>not</em> read-only by default.\nTo specify read-only globals, context properties must be defined using\n<code>Object.defineProperty()</code>:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nconst msg = &#39;message&#39;;\n\nconst r = repl.start(&#39;&gt; &#39;);\nObject.defineProperty(r.context, &#39;m&#39;, {\n  configurable: false,\n  enumerable: true,\n  value: msg\n});\n</code></pre>\n",
                   "type": "module",
                   "displayName": "Global and Local Scope"
                 },
@@ -21144,7 +21144,7 @@
                 {
                   "textRaw": "Assignment of the `_` (underscore) variable",
                   "name": "assignment_of_the_`_`_(underscore)_variable",
-                  "desc": "<p>The default evaluator will, by default, assign the result of the most recently\nevaluated expression to the special variable <code>_</code> (underscore).</p>\n<pre><code class=\"lang-js\">&gt; [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n[ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n&gt; _.length\n3\n&gt; _ += 1\n4\n</code></pre>\n<p>Explicitly setting <code>_</code> to a value will disable this behavior.</p>\n",
+                  "desc": "<p>The default evaluator will, by default, assign the result of the most recently\nevaluated expression to the special variable <code>_</code> (underscore).\nExplicitly setting <code>_</code> to a value will disable this behavior.</p>\n<pre><code class=\"lang-js\">&gt; [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n[ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n&gt; _.length\n3\n&gt; _ += 1\nExpression assignment to _ now disabled.\n4\n&gt; 1 + 1\n2\n&gt; _\n4\n</code></pre>\n",
                   "type": "module",
                   "displayName": "Assignment of the `_` (underscore) variable"
                 }
@@ -21160,7 +21160,7 @@
                 {
                   "textRaw": "Recoverable Errors",
                   "name": "recoverable_errors",
-                  "desc": "<p>As a user is typing input into the REPL prompt, pressing the <code>&lt;enter&gt;</code> key will\nsend the current line of input to the <code>eval</code> function. In order to support\nmulti-line input, the eval function can return an instance of <code>repl.Recoverable</code>\nto the provided callback function:</p>\n<pre><code class=\"lang-js\">function eval(cmd, context, filename, callback) {\n  var result;\n  try {\n    result = vm.runInThisContext(cmd);\n  } catch (e) {\n    if (isRecoverableError(e)) {\n      return callback(new repl.Recoverable(e));\n    }\n  }\n  callback(null, result);\n}\n\nfunction isRecoverableError(error) {\n  if (error.name === &#39;SyntaxError&#39;) {\n    return /^(Unexpected end of input|Unexpected token)/.test(error.message);\n  }\n  return false;\n}\n</code></pre>\n",
+                  "desc": "<p>As a user is typing input into the REPL prompt, pressing the <code>&lt;enter&gt;</code> key will\nsend the current line of input to the <code>eval</code> function. In order to support\nmulti-line input, the eval function can return an instance of <code>repl.Recoverable</code>\nto the provided callback function:</p>\n<pre><code class=\"lang-js\">function myEval(cmd, context, filename, callback) {\n  let result;\n  try {\n    result = vm.runInThisContext(cmd);\n  } catch (e) {\n    if (isRecoverableError(e)) {\n      return callback(new repl.Recoverable(e));\n    }\n  }\n  callback(null, result);\n}\n\nfunction isRecoverableError(error) {\n  if (error.name === &#39;SyntaxError&#39;) {\n    return /^(Unexpected end of input|Unexpected token)/.test(error.message);\n  }\n  return false;\n}\n</code></pre>\n",
                   "type": "module",
                   "displayName": "Recoverable Errors"
                 }
@@ -21171,7 +21171,7 @@
             {
               "textRaw": "Customizing REPL Output",
               "name": "customizing_repl_output",
-              "desc": "<p>By default, <code>repl.REPLServer</code> instances format output using the\n<a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> method before writing the output to the provided Writable\nstream (<code>process.stdout</code> by default). The <code>useColors</code> boolean option can be\nspecified at construction to instruct the default writer to use ANSI style\ncodes to colorize the output from the <code>util.inspect()</code> method.</p>\n<p>It is possible to fully customize the output of a <code>repl.REPLServer</code> instance\nby passing a new function in using the <code>writer</code> option on construction. The\nfollowing example, for instance, simply converts any input text to upper case:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nconst r = repl.start({prompt: &#39;&gt;&#39;, eval: myEval, writer: myWriter});\n\nfunction myEval(cmd, context, filename, callback) {\n  callback(null,cmd);\n}\n\nfunction myWriter(output) {\n  return output.toUpperCase();\n}\n</code></pre>\n",
+              "desc": "<p>By default, <code>repl.REPLServer</code> instances format output using the\n<a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> method before writing the output to the provided Writable\nstream (<code>process.stdout</code> by default). The <code>useColors</code> boolean option can be\nspecified at construction to instruct the default writer to use ANSI style\ncodes to colorize the output from the <code>util.inspect()</code> method.</p>\n<p>It is possible to fully customize the output of a <code>repl.REPLServer</code> instance\nby passing a new function in using the <code>writer</code> option on construction. The\nfollowing example, for instance, simply converts any input text to upper case:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nconst r = repl.start({prompt: &#39;&gt; &#39;, eval: myEval, writer: myWriter});\n\nfunction myEval(cmd, context, filename, callback) {\n  callback(null, cmd);\n}\n\nfunction myWriter(output) {\n  return output.toUpperCase();\n}\n</code></pre>\n",
               "type": "module",
               "displayName": "Customizing REPL Output"
             }
@@ -21182,7 +21182,7 @@
         {
           "textRaw": "The Node.js REPL",
           "name": "the_node.js_repl",
-          "desc": "<p>Node.js itself uses the <code>repl</code> module to provide its own interactive interface\nfor executing JavaScript. This can be used by executing the Node.js binary\nwithout passing any arguments (or by passing the <code>-i</code> argument):</p>\n<pre><code class=\"lang-js\">$ node\n&gt; a = [1, 2, 3];\n[ 1, 2, 3 ]\n&gt; a.forEach((v) =&gt; {\n...   console.log(v);\n...   });\n1\n2\n3\n</code></pre>\n",
+          "desc": "<p>Node.js itself uses the <code>repl</code> module to provide its own interactive interface\nfor executing JavaScript. This can be used by executing the Node.js binary\nwithout passing any arguments (or by passing the <code>-i</code> argument):</p>\n<pre><code class=\"lang-js\">$ node\n&gt; const a = [1, 2, 3];\n[ 1, 2, 3 ]\n&gt; a.forEach((v) =&gt; {\n...   console.log(v);\n...   });\n1\n2\n3\n</code></pre>\n",
           "modules": [
             {
               "textRaw": "Environment Variable Options",
@@ -21227,7 +21227,7 @@
             {
               "textRaw": "Starting multiple REPL instances against a single running instance",
               "name": "starting_multiple_repl_instances_against_a_single_running_instance",
-              "desc": "<p>It is possible to create and run multiple REPL instances against a single\nrunning instance of Node.js that share a single <code>global</code> object but have\nseparate I/O interfaces.</p>\n<p>The following example, for instance, provides separate REPLs on <code>stdin</code>, a Unix\nsocket, and a TCP socket:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst repl = require(&#39;repl&#39;);\nvar connections = 0;\n\nrepl.start({\n  prompt: &#39;Node.js via stdin&gt; &#39;,\n  input: process.stdin,\n  output: process.stdout\n});\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via Unix socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(&#39;/tmp/node-repl-sock&#39;);\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via TCP socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(5001);\n</code></pre>\n<p>Running this application from the command line will start a REPL on stdin.\nOther REPL clients may connect through the Unix socket or TCP socket. <code>telnet</code>,\nfor instance, is useful for connecting to TCP sockets, while <code>socat</code> can be used\nto connect to both Unix and TCP sockets.</p>\n<p>By starting a REPL from a Unix socket-based server instead of stdin, it is\npossible to connect to a long-running Node.js process without restarting it.</p>\n<p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over\na <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href=\"https://gist.github.com/2209310\">https://gist.github.com/2209310</a></p>\n<p>For an example of running a REPL instance over curl(1),\nsee: <a href=\"https://gist.github.com/2053342\">https://gist.github.com/2053342</a></p>\n<!-- [end-include:repl.md] -->\n<!-- [start-include:stream.md] -->\n",
+              "desc": "<p>It is possible to create and run multiple REPL instances against a single\nrunning instance of Node.js that share a single <code>global</code> object but have\nseparate I/O interfaces.</p>\n<p>The following example, for instance, provides separate REPLs on <code>stdin</code>, a Unix\nsocket, and a TCP socket:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst repl = require(&#39;repl&#39;);\nlet connections = 0;\n\nrepl.start({\n  prompt: &#39;Node.js via stdin&gt; &#39;,\n  input: process.stdin,\n  output: process.stdout\n});\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via Unix socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(&#39;/tmp/node-repl-sock&#39;);\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via TCP socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(5001);\n</code></pre>\n<p>Running this application from the command line will start a REPL on stdin.\nOther REPL clients may connect through the Unix socket or TCP socket. <code>telnet</code>,\nfor instance, is useful for connecting to TCP sockets, while <code>socat</code> can be used\nto connect to both Unix and TCP sockets.</p>\n<p>By starting a REPL from a Unix socket-based server instead of stdin, it is\npossible to connect to a long-running Node.js process without restarting it.</p>\n<p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over\na <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href=\"https://gist.github.com/2209310\">https://gist.github.com/2209310</a></p>\n<p>For an example of running a REPL instance over <a href=\"https://curl.haxx.se/docs/manpage.html\">curl(1)</a>,\nsee: <a href=\"https://gist.github.com/2053342\">https://gist.github.com/2053342</a></p>\n<!-- [end-include:repl.md] -->\n<!-- [start-include:stream.md] -->\n",
               "type": "module",
               "displayName": "Starting multiple REPL instances against a single running instance"
             }
@@ -21269,7 +21269,7 @@
                   "v0.11.0"
                 ]
               },
-              "desc": "<p>The <code>&#39;reset&#39;</code> event is emitted when the REPL&#39;s context is reset. This occurs\nwhenever the <code>.clear</code> command is received as input <em>unless</em> the REPL is using\nthe default evaluator and the <code>repl.REPLServer</code> instance was created with the\n<code>useGlobal</code> option set to <code>true</code>. The listener callback will be called with a\nreference to the <code>context</code> object as the only argument.</p>\n<p>This can be used primarily to re-initialize REPL context to some pre-defined\nstate as illustrated in the following simple example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nfunction initializeContext(context) {\n  context.m = &#39;test&#39;;\n}\n\nvar r = repl.start({prompt: &#39;&gt;&#39;});\ninitializeContext(r.context);\n\nr.on(&#39;reset&#39;, initializeContext);\n</code></pre>\n<p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then\nreset to its initial value using the <code>.clear</code> command:</p>\n<pre><code class=\"lang-js\">$ ./node example.js\n&gt;m\n&#39;test&#39;\n&gt;m = 1\n1\n&gt;m\n1\n&gt;.clear\nClearing context...\n&gt;m\n&#39;test&#39;\n&gt;\n</code></pre>\n",
+              "desc": "<p>The <code>&#39;reset&#39;</code> event is emitted when the REPL&#39;s context is reset. This occurs\nwhenever the <code>.clear</code> command is received as input <em>unless</em> the REPL is using\nthe default evaluator and the <code>repl.REPLServer</code> instance was created with the\n<code>useGlobal</code> option set to <code>true</code>. The listener callback will be called with a\nreference to the <code>context</code> object as the only argument.</p>\n<p>This can be used primarily to re-initialize REPL context to some pre-defined\nstate as illustrated in the following simple example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nfunction initializeContext(context) {\n  context.m = &#39;test&#39;;\n}\n\nconst r = repl.start({prompt: &#39;&gt; &#39;});\ninitializeContext(r.context);\n\nr.on(&#39;reset&#39;, initializeContext);\n</code></pre>\n<p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then\nreset to its initial value using the <code>.clear</code> command:</p>\n<pre><code class=\"lang-js\">$ ./node example.js\n&gt; m\n&#39;test&#39;\n&gt; m = 1\n1\n&gt; m\n1\n&gt; .clear\nClearing context...\n&gt; m\n&#39;test&#39;\n&gt;\n</code></pre>\n",
               "params": []
             }
           ],
@@ -21311,7 +21311,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>replServer.defineCommand()</code> method is used to add new <code>.</code>-prefixed commands\nto the REPL instance. Such commands are invoked by typing a <code>.</code> followed by the\n<code>keyword</code>. The <code>cmd</code> is either a Function or an object with the following\nproperties:</p>\n<ul>\n<li><code>help</code> {String} Help text to be displayed when <code>.help</code> is entered (Optional).</li>\n<li><code>action</code> {Function} The function to execute, optionally accepting a single\nstring argument.</li>\n</ul>\n<p>The following example shows two new commands added to the REPL instance:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nvar replServer = repl.start({prompt: &#39;&gt; &#39;});\nreplServer.defineCommand(&#39;sayhello&#39;, {\n  help: &#39;Say hello&#39;,\n  action: function(name) {\n    this.lineParser.reset();\n    this.bufferedCommand = &#39;&#39;;\n    console.log(`Hello, ${name}!`);\n    this.displayPrompt();\n  }\n});\nreplServer.defineCommand(&#39;saybye&#39;, function() {\n  console.log(&#39;Goodbye!&#39;);\n  this.close();\n});\n</code></pre>\n<p>The new commands can then be used from within the REPL instance:</p>\n<pre><code class=\"lang-txt\">&gt; .sayhello Node.js User\nHello, Node.js User!\n&gt; .saybye\nGoodbye!\n</code></pre>\n"
+              "desc": "<p>The <code>replServer.defineCommand()</code> method is used to add new <code>.</code>-prefixed commands\nto the REPL instance. Such commands are invoked by typing a <code>.</code> followed by the\n<code>keyword</code>. The <code>cmd</code> is either a Function or an object with the following\nproperties:</p>\n<ul>\n<li><code>help</code> {String} Help text to be displayed when <code>.help</code> is entered (Optional).</li>\n<li><code>action</code> {Function} The function to execute, optionally accepting a single\nstring argument.</li>\n</ul>\n<p>The following example shows two new commands added to the REPL instance:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nconst replServer = repl.start({prompt: &#39;&gt; &#39;});\nreplServer.defineCommand(&#39;sayhello&#39;, {\n  help: &#39;Say hello&#39;,\n  action(name) {\n    this.lineParser.reset();\n    this.bufferedCommand = &#39;&#39;;\n    console.log(`Hello, ${name}!`);\n    this.displayPrompt();\n  }\n});\nreplServer.defineCommand(&#39;saybye&#39;, () =&gt; {\n  console.log(&#39;Goodbye!&#39;);\n  this.close();\n});\n</code></pre>\n<p>The new commands can then be used from within the REPL instance:</p>\n<pre><code class=\"lang-txt\">&gt; .sayhello Node.js User\nHello, Node.js User!\n&gt; .saybye\nGoodbye!\n</code></pre>\n"
             },
             {
               "textRaw": "replServer.displayPrompt([preserveCursor])",
@@ -21361,13 +21361,13 @@
             {
               "params": [
                 {
-                  "textRaw": "`options` {Object} ",
+                  "textRaw": "`options` {Object | String} ",
                   "options": [
                     {
-                      "textRaw": "`prompt` {String} The input prompt to display. Defaults to `> `. ",
+                      "textRaw": "`prompt` {String} The input prompt to display. Defaults to `> ` (with a trailing space). ",
                       "name": "prompt",
                       "type": "String",
-                      "desc": "The input prompt to display. Defaults to `> `."
+                      "desc": "The input prompt to display. Defaults to `> ` (with a trailing space)."
                     },
                     {
                       "textRaw": "`input` {Readable} The Readable stream from which REPL input will be read. Defaults to `process.stdin`. ",
@@ -21452,7 +21452,7 @@
                     }
                   ],
                   "name": "options",
-                  "type": "Object",
+                  "type": "Object | String",
                   "optional": true
                 }
               ]
@@ -21784,7 +21784,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>&#39;error&#39;</code> event.</p>\n<p>The return value indicates whether the written <code>chunk</code> was buffered internally\nand the buffer has exceeded the <code>highWaterMark</code> configured when the stream was\ncreated. If <code>false</code> is returned, further attempts to write data to the stream\nshould be paused until the <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event is emitted.</p>\n<p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>\n"
+                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>&#39;error&#39;</code> event.</p>\n<p>The return value is <code>true</code> if the internal buffer does not exceed\n<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.\nIf <code>false</code> is returned, further attempts to write data to the stream should\nstop until the <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event is emitted. However, the <code>false</code> return\nvalue is only advisory and the writable stream will unconditionally accept and\nbuffer <code>chunk</code> even if it has not not been allowed to drain.</p>\n<p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>\n"
                     }
                   ]
                 }
@@ -22319,7 +22319,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>All Writable stream implementations must provide a\n<a href=\"#stream_writable_write_chunk_encoding_callback_1\"><code>writable._write()</code></a> method to send data to the underlying\nresource.</p>\n<p><em>Note</em>: <a href=\"#stream_class_stream_transform\">Transform</a> streams provide their own implementation of the\n<a href=\"#stream_writable_write_chunk_encoding_callback_1\"><code>writable._write()</code></a>.</p>\n<p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It\nshould be implemented by child classes, and called only by the internal Writable\nclass methods only.</p>\n<p>The <code>callback</code> method must be called to signal either that the write completed\nsuccessfully or failed with an error. The first argument passed to the\n<code>callback</code> must be the <code>Error</code> object if the call failed or <code>null</code> if the\nwrite succeeded.</p>\n<p>It is important to note that all calls to <code>writable.write()</code> that occur between\nthe time <code>writable._write()</code> is called and the <code>callback</code> is called will cause\nthe written data to be buffered. Once the <code>callback</code> is invoked, the stream will\nemit a <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event. If a stream implementation is capable of processing\nmultiple chunks of data at once, the <code>writable._writev()</code> method should be\nimplemented.</p>\n<p>If the <code>decodeStrings</code> property is set in the constructor options, then\n<code>chunk</code> may be a string rather than a Buffer, and <code>encoding</code> will\nindicate the character encoding of the string. This is to support\nimplementations that have an optimized handling for certain string\ndata encodings. If the <code>decodeStrings</code> property is explicitly set to <code>false</code>,\nthe <code>encoding</code> argument can be safely ignored, and <code>chunk</code> will always be a\n<code>Buffer</code>.</p>\n<p>The <code>writable._write()</code> method is prefixed with an underscore because it is\ninternal to the class that defines it, and should never be called directly by\nuser programs.</p>\n"
+                  "desc": "<p>All Writable stream implementations must provide a\n<a href=\"#stream_writable_write_chunk_encoding_callback_1\"><code>writable._write()</code></a> method to send data to the underlying\nresource.</p>\n<p><em>Note</em>: <a href=\"#stream_class_stream_transform\">Transform</a> streams provide their own implementation of the\n<a href=\"#stream_writable_write_chunk_encoding_callback_1\"><code>writable._write()</code></a>.</p>\n<p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It\nshould be implemented by child classes, and called only by the internal Writable\nclass methods only.</p>\n<p>The <code>callback</code> method must be called to signal either that the write completed\nsuccessfully or failed with an error. The first argument passed to the\n<code>callback</code> must be the <code>Error</code> object if the call failed or <code>null</code> if the\nwrite succeeded.</p>\n<p>It is important to note that all calls to <code>writable.write()</code> that occur between\nthe time <code>writable._write()</code> is called and the <code>callback</code> is called will cause\nthe written data to be buffered. Once the <code>callback</code> is invoked, the stream will\nemit a <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event. If a stream implementation is capable of processing\nmultiple chunks of data at once, the <code>writable._writev()</code> method should be\nimplemented.</p>\n<p>If the <code>decodeStrings</code> property is set in the constructor options, then\n<code>chunk</code> may be a string rather than a Buffer, and <code>encoding</code> will\nindicate the character encoding of the string. This is to support\nimplementations that have an optimized handling for certain string\ndata encodings. If the <code>decodeStrings</code> property is explicitly set to <code>false</code>,\nthe <code>encoding</code> argument can be safely ignored, and <code>chunk</code> will remain the same\nobject that is passed to <code>.write()</code>.</p>\n<p>The <code>writable._write()</code> method is prefixed with an underscore because it is\ninternal to the class that defines it, and should never be called directly by\nuser programs.</p>\n"
                 },
                 {
                   "textRaw": "writable.\\_writev(chunks, callback)",
@@ -22504,7 +22504,7 @@
                 {
                   "textRaw": "Errors While Reading",
                   "name": "errors_while_reading",
-                  "desc": "<p>It is recommended that errors occurring during the processing of the\n<code>readable._read()</code> method are emitted using the <code>&#39;error&#39;</code> event rather than\nbeing thrown. Throwing an Error from within <code>readable._read()</code> can result in\nexpected and inconsistent behavior depending on whether the stream is operating\nin flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures consistent and\npredictable handling of errors.</p>\n<pre><code class=\"lang-js\">const Readable = require(&#39;stream&#39;).Readable;\n\nconst myReadable = new Readable({\n  read(size) {\n    if (checkSomeErrorCondition()) {\n      process.nextTick(() =&gt; this.emit(&#39;error&#39;, err));\n      return;\n    }\n    // do some work\n  }\n});\n</code></pre>\n",
+                  "desc": "<p>It is recommended that errors occurring during the processing of the\n<code>readable._read()</code> method are emitted using the <code>&#39;error&#39;</code> event rather than\nbeing thrown. Throwing an Error from within <code>readable._read()</code> can result in\nunexpected and inconsistent behavior depending on whether the stream is\noperating in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures\nconsistent and predictable handling of errors.</p>\n<pre><code class=\"lang-js\">const Readable = require(&#39;stream&#39;).Readable;\n\nconst myReadable = new Readable({\n  read(size) {\n    if (checkSomeErrorCondition()) {\n      process.nextTick(() =&gt; this.emit(&#39;error&#39;, err));\n      return;\n    }\n    // do some work\n  }\n});\n</code></pre>\n",
                   "type": "module",
                   "displayName": "Errors While Reading"
                 }
@@ -24401,10 +24401,10 @@
                       "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information. *Note*: [`tls.createServer()`][] sets the default value to `true`, other APIs that create secure contexts leave it unset."
                     },
                     {
-                      "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to `prime256v1` (NIST P-256). Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
+                      "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
                       "name": "ecdhCurve",
                       "type": "string",
-                      "desc": "A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to `prime256v1` (NIST P-256). Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
+                      "desc": "A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
                     },
                     {
                       "textRaw": "`dhparam` {string|Buffer} Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available. ",
@@ -24555,6 +24555,13 @@
               "params": []
             }
           ]
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "tls.DEFAULT_ECDH_CURVE",
+          "name": "DEFAULT_ECDH_CURVE",
+          "desc": "<p>The default curve name to use for ECDH key agreement in a tls server. The\ndefault value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href=\"https://www.rfc-editor.org/rfc/rfc4492.txt\">RFC 4492</a> and\n<a href=\"http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf\">FIPS.186-4</a> for more details.</p>\n"
         }
       ],
       "type": "module",
@@ -26274,7 +26281,7 @@
               ]
             }
           ],
-          "desc": "<p>If given a <code>sandbox</code> object, the <code>vm.createContext()</code> method will <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">prepare\nthat sandbox</a> so that it can be used in calls to\n<a href=\"#vm_vm_runincontext_code_contextifiedsandbox_options\"><code>vm.runInContext()</code></a> or <a href=\"#vm_script_runincontext_contextifiedsandbox_options\"><code>script.runInContext()</code></a>. Inside such scripts,\nthe <code>sandbox</code> object will be the global object, retaining all of its existing\nproperties but also having the built-in objects and functions any standard\n<a href=\"https://es5.github.io/#x15.1\">global object</a> has. Outside of scripts run by the vm module, <code>sandbox</code> will\nremain unchanged.</p>\n<p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty\n<a href=\"#vm_what_does_it_mean_to_contextify_an_object\">contextified</a> sandbox object will be returned.</p>\n<p>The <code>vm.createContext()</code> method is primarily useful for creating a single\nsandbox that can be used to run multiple scripts. For instance, if emulating a\nweb browser, the method can be used to create a single sandbox representing a\nwindow&#39;s global object, then run all <code>&lt;script&gt;</code> tags together within the context\nof that sandbox.</p>\n"
+          "desc": "<p>If given a <code>sandbox</code> object, the <code>vm.createContext()</code> method will <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">prepare\nthat sandbox</a> so that it can be used in calls to\n<a href=\"#vm_vm_runincontext_code_contextifiedsandbox_options\"><code>vm.runInContext()</code></a> or <a href=\"#vm_script_runincontext_contextifiedsandbox_options\"><code>script.runInContext()</code></a>. Inside such scripts,\nthe <code>sandbox</code> object will be the global object, retaining all of its existing\nproperties but also having the built-in objects and functions any standard\n<a href=\"https://es5.github.io/#x15.1\">global object</a> has. Outside of scripts run by the vm module, global variables\nwill remain unchanged.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nvar globalVar = 3;\n\nconst sandbox = { globalVar: 1 };\nvm.createContext(sandbox);\n\nvm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);\n\nconsole.log(util.inspect(sandbox)); // 2\n\nconsole.log(util.inspect(globalVar)); // 3\n</code></pre>\n<p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty\n<a href=\"#vm_what_does_it_mean_to_contextify_an_object\">contextified</a> sandbox object will be returned.</p>\n<p>The <code>vm.createContext()</code> method is primarily useful for creating a single\nsandbox that can be used to run multiple scripts. For instance, if emulating a\nweb browser, the method can be used to create a single sandbox representing a\nwindow&#39;s global object, then run all <code>&lt;script&gt;</code> tags together within the context\nof that sandbox.</p>\n"
         },
         {
           "textRaw": "vm.isContext(sandbox)",
@@ -28733,7 +28740,7 @@
               "v0.2.0"
             ]
           },
-          "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
+          "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies. In addition, <code>process.versions.modules</code> indicates\nthe current ABI version, which is increased whenever a C++ API changes. Node.js\nwill refuse to load native modules built for an older <code>modules</code> value.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
         }
       ]
     }
@@ -28748,7 +28755,7 @@
         ]
       },
       "type": "var",
-      "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The name of the directory that the currently executing script resides in.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__dirname);\n// Prints: /Users/mjr\n</code></pre>\n<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>For instance, given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of\n<code>a</code> and there is a directory structure of:</p>\n<ul>\n<li><code>/Users/mjr/app/a.js</code></li>\n<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>\n</ul>\n<p>References to <code>__dirname</code> within <code>b.js</code> will return\n<code>/Users/mjr/app/node_modules/b</code> while references to <code>__dirname</code> within <code>a.js</code>\nwill return <code>/Users/mjr/app</code>.</p>\n"
+      "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The directory name of the current module. This the same as the\n<a href=\"path.html#path_path_dirname_path\"><code>path.dirname()</code></a> of the <a href=\"#globals_filename\"><code>__filename</code></a>.</p>\n<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__dirname);\n// Prints: /Users/mjr\nconsole.log(path.dirname(__filename));\n// Prints: /Users/mjr\n</code></pre>\n"
     },
     {
       "textRaw": "\\_\\_filename",
@@ -28759,7 +28766,7 @@
         ]
       },
       "type": "var",
-      "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The filename of the code being executed.  This is the resolved absolute path\nof this code file.  For a main program this is not necessarily the same\nfilename used in the command line.  The value inside a module is the path\nto that module file.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__filename);\n// Prints: /Users/mjr/example.js\n</code></pre>\n<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>\n"
+      "desc": "<ul>\n<li>{String}</li>\n</ul>\n<p>The file name of the current module. This is the resolved absolute path of the\ncurrent module file.</p>\n<p>For a main program this is not necessarily the same as the file name used in the\ncommand line.</p>\n<p>See <a href=\"#globals_dirname\"><code>__dirname</code></a> for the directory name of the current module.</p>\n<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>\n<p>Examples:</p>\n<p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__filename);\n// Prints: /Users/mjr/example.js\nconsole.log(__dirname);\n// Prints: /Users/mjr\n</code></pre>\n<p>Given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of\n<code>a</code> and there is a directory structure of:</p>\n<ul>\n<li><code>/Users/mjr/app/a.js</code></li>\n<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>\n</ul>\n<p>References to <code>__filename</code> within <code>b.js</code> will return\n<code>/Users/mjr/app/node_modules/b/b.js</code> while references to <code>__filename</code> within\n<code>a.js</code> will return <code>/Users/mjr/app/a.js</code>.</p>\n"
     },
     {
       "textRaw": "exports",

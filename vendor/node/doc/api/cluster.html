@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cluster | Node.js v7.3.0 Documentation</title>
+  <title>Cluster | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="cluster" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -140,8 +140,10 @@ const http = require(&#39;http&#39;);
 const numCPUs = require(&#39;os&#39;).cpus().length;
 
 if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
   // Fork workers.
-  for (var i = 0; i &lt; numCPUs; i++) {
+  for (let i = 0; i &lt; numCPUs; i++) {
     cluster.fork();
   }
 
@@ -155,14 +157,17 @@ if (cluster.isMaster) {
     res.writeHead(200);
     res.end(&#39;hello world\n&#39;);
   }).listen(8000);
+
+  console.log(`Worker ${process.pid} started`);
 }
 </code></pre>
 <p>Running Node.js will now share port 8000 between the workers:</p>
-<pre><code class="lang-txt">$ NODE_DEBUG=cluster node server.js
-23521,Master Worker 23524 online
-23521,Master Worker 23526 online
-23521,Master Worker 23523 online
-23521,Master Worker 23528 online
+<pre><code class="lang-txt">$ node server.js
+Master 3596 is running
+Worker 4324 started
+Worker 4520 started
+Worker 6056 started
+Worker 5644 started
 </code></pre>
 <p>Please note that on Windows, it is not yet possible to set up a named pipe
 server in a worker.</p>
@@ -285,27 +290,27 @@ const http = require(&#39;http&#39;);
 if (cluster.isMaster) {
 
   // Keep track of http requests
-  var numReqs = 0;
+  let numReqs = 0;
   setInterval(() =&gt; {
-    console.log(&#39;numReqs =&#39;, numReqs);
+    console.log(`numReqs = ${numReqs}`);
   }, 1000);
 
   // Count requests
   function messageHandler(msg) {
-    if (msg.cmd &amp;&amp; msg.cmd == &#39;notifyRequest&#39;) {
+    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {
       numReqs += 1;
     }
   }
 
   // Start workers and listen for messages containing notifyRequest
   const numCPUs = require(&#39;os&#39;).cpus().length;
-  for (var i = 0; i &lt; numCPUs; i++) {
+  for (let i = 0; i &lt; numCPUs; i++) {
     cluster.fork();
   }
 
-  Object.keys(cluster.workers).forEach((id) =&gt; {
+  for (const id in cluster.workers) {
     cluster.workers[id].on(&#39;message&#39;, messageHandler);
-  });
+  }
 
 } else {
 
@@ -354,8 +359,8 @@ may be useful to send a message, so application specific actions may be taken to
 close them. It also may be useful to implement a timeout, killing a worker if
 the <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>
 <pre><code class="lang-js">if (cluster.isMaster) {
-  var worker = cluster.fork();
-  var timeout;
+  const worker = cluster.fork();
+  let timeout;
 
   worker.on(&#39;listening&#39;, (address) =&gt; {
     worker.send(&#39;shutdown&#39;);
@@ -371,7 +376,7 @@ the <code>&#39;disconnect&#39;</code> event has not been emitted after some time
 
 } else if (cluster.isWorker) {
   const net = require(&#39;net&#39;);
-  var server = net.createServer((socket) =&gt; {
+  const server = net.createServer((socket) =&gt; {
     // connections never end
   });
 
@@ -467,7 +472,7 @@ accidental disconnection.</p>
 <code>process.send()</code>.</p>
 <p>This example will echo back all messages from the master:</p>
 <pre><code class="lang-js">if (cluster.isMaster) {
-  var worker = cluster.fork();
+  const worker = cluster.fork();
   worker.send(&#39;hi there&#39;);
 
 } else if (cluster.isWorker) {
@@ -538,7 +543,7 @@ the process to be killed.</li>
 </ul>
 <p>When a new worker is forked the cluster module will emit a <code>&#39;fork&#39;</code> event.
 This can be used to log worker activity, and create your own timeout.</p>
-<pre><code class="lang-js">var timeouts = [];
+<pre><code class="lang-js">const timeouts = [];
 function errorMsg() {
   console.error(&#39;Something must be wrong with the connection ...&#39;);
 }
@@ -591,7 +596,7 @@ on more than one address.</p>
 but not the worker object, contrary to what the documentation stated.</p>
 <p>If you need to support older versions and don&#39;t need the worker object,
 you can work around the discrepancy by checking the number of arguments:</p>
-<pre><code class="lang-js">cluster.on(&#39;message&#39;, function(worker, message, handle) {
+<pre><code class="lang-js">cluster.on(&#39;message&#39;, (worker, message, handle) =&gt; {
   if (arguments.length === 2) {
     handle = message;
     message = worker;
@@ -771,7 +776,7 @@ However, it is guaranteed that the removal from the cluster.workers list happens
 before last <code>&#39;disconnect&#39;</code> or <code>&#39;exit&#39;</code> event is emitted.</p>
 <pre><code class="lang-js">// Go through all workers
 function eachWorker(callback) {
-  for (var id in cluster.workers) {
+  for (const id in cluster.workers) {
     callback(cluster.workers[id]);
   }
 }
@@ -782,7 +787,7 @@ eachWorker((worker) =&gt; {
 <p>Should you wish to reference a worker over a communication channel, using
 the worker&#39;s unique id is the easiest way to find the worker.</p>
 <pre><code class="lang-js">socket.on(&#39;data&#39;, (id) =&gt; {
-  var worker = cluster.workers[id];
+  const worker = cluster.workers[id];
 });
 </code></pre>
 

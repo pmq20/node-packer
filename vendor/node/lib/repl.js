@@ -433,13 +433,12 @@ function REPLServer(prompt,
   self.lines.level = [];
 
   // Figure out which "complete" function to use.
-  self.completer = (typeof options.completer === 'function')
-    ? options.completer
-    : completer;
+  self.completer = (typeof options.completer === 'function') ?
+    options.completer : completer;
 
   function completer(text, cb) {
-    complete.call(self, text, self.editorMode
-      ? self.completeOnEditorMode(cb) : cb);
+    complete.call(self, text, self.editorMode ?
+      self.completeOnEditorMode(cb) : cb);
   }
 
   Interface.call(this, {
@@ -795,7 +794,7 @@ ArrayStream.prototype.writable = true;
 ArrayStream.prototype.resume = function() {};
 ArrayStream.prototype.write = function() {};
 
-const requireRE = /\brequire\s*\(['"](([\w./-]+\/)?([\w./-]*))/;
+const requireRE = /\brequire\s*\(['"](([\w@./-]+\/)?([\w@./-]*))/;
 const simpleExpressionRE =
     /(([a-zA-Z_$](?:\w|\$)*)\.)*([a-zA-Z_$](?:\w|\$)*)\.?$/;
 

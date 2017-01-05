@@ -149,6 +149,10 @@ added: v0.1.90
 Spawns a shell then executes the `command` within that shell, buffering any
 generated output.
 
+**Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.**
+
 ```js
 const exec = require('child_process').exec;
 exec('cat *.js bad_file | wc -l', (error, stdout, stderr) => {
@@ -318,11 +322,15 @@ added: v0.1.90
     `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be
     specified as a string. The shell should understand the `-c` switch on UNIX,
     or `/d /s /c` on Windows. Defaults to `false` (no shell).
-* return: {ChildProcess}
+* Returns: {ChildProcess}
 
 The `child_process.spawn()` method spawns a new process using the given
 `command`, with command line arguments in `args`. If omitted, `args` defaults
 to an empty array.
+
+**Note: If the `shell` option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.**
 
 A third argument may be used to specify additional options, with these defaults:
 
@@ -588,7 +596,7 @@ added: v0.11.12
   * [`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on
     stdout or stderr - if exceeded child process is killed
   * `encoding` {String} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`)
-* return: {Buffer|String} The stdout from the command
+* Returns: {Buffer|String} The stdout from the command
 
 The `child_process.execFileSync()` method is generally identical to
 [`child_process.execFile()`][] with the exception that the method will not return
@@ -631,7 +639,7 @@ added: v0.11.12
     stdout or stderr - if exceeded child process is killed
   * `encoding` {String} The encoding used for all stdio inputs and outputs.
     (Default: `'buffer'`)
-* return: {Buffer|String} The stdout from the command
+* Returns: {Buffer|String} The stdout from the command
 
 The `child_process.execSync()` method is generally identical to
 [`child_process.exec()`][] with the exception that the method will not return until
@@ -644,6 +652,10 @@ process has exited.*
 If the process times out, or has a non-zero exit code, this method ***will***
 throw.  The [`Error`][] object will contain the entire result from
 [`child_process.spawnSync()`][]
+
+**Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.**
 
 ### child_process.spawnSync(command[, args][, options])
 <!-- YAML
@@ -673,7 +685,7 @@ added: v0.11.12
     `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be
     specified as a string. The shell should understand the `-c` switch on UNIX,
     or `/d /s /c` on Windows. Defaults to `false` (no shell).
-* return: {Object}
+* Returns: {Object}
   * `pid` {Number} Pid of the child process
   * `output` {Array} Array of results from stdio output
   * `stdout` {Buffer|String} The contents of `output[1]`
@@ -689,6 +701,10 @@ and `killSignal` is sent, the method won't return until the process has
 completely exited. Note that if the process intercepts and handles the
 `SIGTERM` signal and doesn't exit, the parent process will wait until the child
 process has exited.
+
+**Note: If the `shell` option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.**
 
 ## Class: ChildProcess
 <!-- YAML

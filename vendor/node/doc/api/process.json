@@ -1139,7 +1139,7 @@
               "v0.2.0"
             ]
           },
-          "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
+          "desc": "<p>The <code>process.versions</code> property returns an object listing the version strings of\nNode.js and its dependencies. In addition, <code>process.versions.modules</code> indicates\nthe current ABI version, which is increased whenever a C++ API changes. Node.js\nwill refuse to load native modules built for an older <code>modules</code> value.</p>\n<pre><code class=\"lang-js\">console.log(process.versions);\n</code></pre>\n<p>Will generate output similar to:</p>\n<pre><code class=\"lang-js\">{\n  http_parser: &#39;2.3.0&#39;,\n  node: &#39;1.1.1&#39;,\n  v8: &#39;4.1.0.14&#39;,\n  uv: &#39;1.3.0&#39;,\n  zlib: &#39;1.2.8&#39;,\n  ares: &#39;1.10.0-DEV&#39;,\n  modules: &#39;43&#39;,\n  icu: &#39;55.1&#39;,\n  openssl: &#39;1.0.1k&#39;,\n  unicode: &#39;8.0&#39;,\n  cldr: &#39;29.0&#39;,\n  tz: &#39;2016b&#39; }\n</code></pre>\n"
         }
       ]
     }

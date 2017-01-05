@@ -1250,10 +1250,10 @@
                       "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information. *Note*: [`tls.createServer()`][] sets the default value to `true`, other APIs that create secure contexts leave it unset."
                     },
                     {
-                      "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to `prime256v1` (NIST P-256). Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
+                      "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
                       "name": "ecdhCurve",
                       "type": "string",
-                      "desc": "A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to `prime256v1` (NIST P-256). Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
+                      "desc": "A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
                     },
                     {
                       "textRaw": "`dhparam` {string|Buffer} Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available. ",
@@ -1404,6 +1404,13 @@
               "params": []
             }
           ]
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "tls.DEFAULT_ECDH_CURVE",
+          "name": "DEFAULT_ECDH_CURVE",
+          "desc": "<p>The default curve name to use for ECDH key agreement in a tls server. The\ndefault value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href=\"https://www.rfc-editor.org/rfc/rfc4492.txt\">RFC 4492</a> and\n<a href=\"http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf\">FIPS.186-4</a> for more details.</p>\n"
         }
       ],
       "type": "module",

@@ -7,6 +7,8 @@ const util = require('util');
 const internalUtil = require('internal/util');
 const Buffer = require('buffer').Buffer;
 const common = require('_http_common');
+const checkIsHttpToken = common._checkIsHttpToken;
+const checkInvalidHeaderChar = common._checkInvalidHeaderChar;
 
 const CRLF = common.CRLF;
 const trfrEncChunkExpression = common.chunkExpression;
@@ -207,23 +209,31 @@ function _storeHeader(firstLine, headers) {
     messageHeader: firstLine
   };
 
-  if (headers) {
-    var keys = Object.keys(headers);
-    var isArray = Array.isArray(headers);
-    var field, value;
+  var i;
+  var j;
+  var field;
+  var value;
+  if (headers instanceof Array) {
+    for (i = 0; i < headers.length; ++i) {
+      field = headers[i][0];
+      value = headers[i][1];
 
-    for (var i = 0, l = keys.length; i < l; i++) {
-      var key = keys[i];
-      if (isArray) {
-        field = headers[key][0];
-        value = headers[key][1];
+      if (value instanceof Array) {
+        for (j = 0; j < value.length; j++) {
+          storeHeader(this, state, field, value[j]);
+        }
       } else {
-        field = key;
-        value = headers[key];
+        storeHeader(this, state, field, value);
       }
+    }
+  } else if (headers) {
+    var keys = Object.keys(headers);
+    for (i = 0; i < keys.length; ++i) {
+      field = keys[i];
+      value = headers[field];
 
-      if (Array.isArray(value)) {
-        for (var j = 0; j < value.length; j++) {
+      if (value instanceof Array) {
+        for (j = 0; j < value.length; j++) {
           storeHeader(this, state, field, value[j]);
         }
       } else {
@@ -237,7 +247,7 @@ function _storeHeader(firstLine, headers) {
     this.upgrading = true;
 
   // Date header
-  if (this.sendDate === true && state.sentDateHeader === false) {
+  if (this.sendDate && !state.sentDateHeader) {
     state.messageHeader += 'Date: ' + utcDate() + CRLF;
   }
 
@@ -253,8 +263,7 @@ function _storeHeader(firstLine, headers) {
   // of creating security liabilities, so suppress the zero chunk and force
   // the connection to close.
   var statusCode = this.statusCode;
-  if ((statusCode === 204 || statusCode === 304) &&
-      this.chunkedEncoding === true) {
+  if ((statusCode === 204 || statusCode === 304) && this.chunkedEncoding) {
     debug(statusCode + ' response should not use chunked encoding,' +
           ' closing connection.');
     this.chunkedEncoding = false;
@@ -265,7 +274,7 @@ function _storeHeader(firstLine, headers) {
   if (this._removedHeader.connection) {
     this._last = true;
     this.shouldKeepAlive = false;
-  } else if (state.sentConnectionHeader === false) {
+  } else if (!state.sentConnectionHeader) {
     var shouldSendKeepAlive = this.shouldKeepAlive &&
         (state.sentContentLengthHeader ||
          this.useChunkedEncodingByDefault ||
@@ -278,8 +287,7 @@ function _storeHeader(firstLine, headers) {
     }
   }
 
-  if (state.sentContentLengthHeader === false &&
-      state.sentTransferEncodingHeader === false) {
+  if (!state.sentContentLengthHeader && !state.sentTransferEncodingHeader) {
     if (!this._hasBody) {
       // Make sure we don't end the 0\r\n\r\n at the end of the message.
       this.chunkedEncoding = false;
@@ -312,11 +320,11 @@ function _storeHeader(firstLine, headers) {
 }
 
 function storeHeader(self, state, field, value) {
-  if (!common._checkIsHttpToken(field)) {
+  if (!checkIsHttpToken(field)) {
     throw new TypeError(
       'Header name must be a valid HTTP Token ["' + field + '"]');
   }
-  if (common._checkInvalidHeaderChar(value) === true) {
+  if (checkInvalidHeaderChar(value)) {
     debug('Header "%s" contains invalid characters', field);
     throw new TypeError('The header content contains invalid characters');
   }
@@ -350,14 +358,14 @@ function storeHeader(self, state, field, value) {
 
 
 OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
-  if (!common._checkIsHttpToken(name))
+  if (!checkIsHttpToken(name))
     throw new TypeError(
       'Header name must be a valid HTTP Token ["' + name + '"]');
   if (value === undefined)
     throw new Error('"value" required in setHeader("' + name + '", value)');
   if (this._header)
     throw new Error('Can\'t set headers after they are sent.');
-  if (common._checkInvalidHeaderChar(value) === true) {
+  if (checkInvalidHeaderChar(value)) {
     debug('Header "%s" contains invalid characters', name);
     throw new TypeError('The header content contains invalid characters');
   }
@@ -380,8 +388,7 @@ OutgoingMessage.prototype.getHeader = function getHeader(name) {
 
   if (!this._headers) return;
 
-  var key = name.toLowerCase();
-  return this._headers[key];
+  return this._headers[name.toLowerCase()];
 };
 
 
@@ -531,11 +538,11 @@ OutgoingMessage.prototype.addTrailers = function addTrailers(headers) {
       field = key;
       value = headers[key];
     }
-    if (!common._checkIsHttpToken(field)) {
+    if (!checkIsHttpToken(field)) {
       throw new TypeError(
         'Trailer name must be a valid HTTP Token ["' + field + '"]');
     }
-    if (common._checkInvalidHeaderChar(value) === true) {
+    if (checkInvalidHeaderChar(value)) {
       debug('Trailer "%s" contains invalid characters', field);
       throw new TypeError('The trailer content contains invalid characters');
     }
@@ -546,6 +553,9 @@ OutgoingMessage.prototype.addTrailers = function addTrailers(headers) {
 
 const crlf_buf = Buffer.from('\r\n');
 
+function onFinish(outmsg) {
+  outmsg.emit('finish');
+}
 
 OutgoingMessage.prototype.end = function end(data, encoding, callback) {
   if (typeof data === 'function') {
@@ -585,7 +595,6 @@ OutgoingMessage.prototype.end = function end(data, encoding, callback) {
   if (this.connection && data)
     this.connection.cork();
 
-  var ret;
   if (data) {
     // Normal body write.
     this.write(data, encoding);
@@ -594,10 +603,9 @@ OutgoingMessage.prototype.end = function end(data, encoding, callback) {
   if (typeof callback === 'function')
     this.once('finish', callback);
 
-  const finish = () => {
-    this.emit('finish');
-  };
+  var finish = onFinish.bind(undefined, this);
 
+  var ret;
   if (this._hasBody && this.chunkedEncoding) {
     ret = this._send('0\r\n' + this._trailer + '\r\n', 'latin1', finish);
   } else {
@@ -677,8 +685,7 @@ OutgoingMessage.prototype._flushOutput = function _flushOutput(socket) {
   var outputCallbacks = this.outputCallbacks;
   socket.cork();
   for (var i = 0; i < outputLength; i++) {
-    ret = socket.write(output[i], outputEncodings[i],
-                       outputCallbacks[i]);
+    ret = socket.write(output[i], outputEncodings[i], outputCallbacks[i]);
   }
   socket.uncork();
 

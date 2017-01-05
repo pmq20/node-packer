@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Child Process | Node.js v7.3.0 Documentation</title>
+  <title>Child Process | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -271,6 +271,9 @@ stdout or stderr - if exceeded child process is killed (Default: <code>200*1024<
 </ul>
 <p>Spawns a shell then executes the <code>command</code> within that shell, buffering any
 generated output.</p>
+<p><strong>Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.</strong></p>
 <pre><code class="lang-js">const exec = require(&#39;child_process&#39;).exec;
 exec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {
   if (error) {
@@ -426,11 +429,14 @@ specified as a string. The shell should understand the <code>-c</code> switch on
 or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
-<li>return: <a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
+<li>Returns: <a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
 </ul>
 <p>The <code>child_process.spawn()</code> method spawns a new process using the given
 <code>command</code>, with command line arguments in <code>args</code>. If omitted, <code>args</code> defaults
 to an empty array.</p>
+<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.</strong></p>
 <p>A third argument may be used to specify additional options, with these defaults:</p>
 <pre><code class="lang-js">{
   cwd: undefined,
@@ -659,7 +665,7 @@ stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs. (Default: <code>&#39;buffer&#39;</code>)</li>
 </ul>
 </li>
-<li>return: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
 </ul>
 <p>The <code>child_process.execFileSync()</code> method is generally identical to
 <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> with the exception that the method will not return
@@ -705,7 +711,7 @@ stdout or stderr - if exceeded child process is killed</li>
 (Default: <code>&#39;buffer&#39;</code>)</li>
 </ul>
 </li>
-<li>return: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
 </ul>
 <p>The <code>child_process.execSync()</code> method is generally identical to
 <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> with the exception that the method will not return until
@@ -717,6 +723,9 @@ process has exited.</em></p>
 <p>If the process times out, or has a non-zero exit code, this method <strong><em>will</em></strong>
 throw.  The <a href="errors.html#errors_class_error"><code>Error</code></a> object will contain the entire result from
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a></p>
+<p><strong>Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.</strong></p>
 <h3>child_process.spawnSync(command[, args][, options])<span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
@@ -748,7 +757,7 @@ specified as a string. The shell should understand the <code>-c</code> switch on
 or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>pid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Pid of the child process</li>
 <li><code>output</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Array of results from stdio output</li>
 <li><code>stdout</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The contents of <code>output[1]</code></li>
@@ -766,6 +775,9 @@ and <code>killSignal</code> is sent, the method won&#39;t return until the proce
 completely exited. Note that if the process intercepts and handles the
 <code>SIGTERM</code> signal and doesn&#39;t exit, the parent process will wait until the child
 process has exited.</p>
+<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.</strong></p>
 <h2>Class: ChildProcess<span><a class="mark" href="#child_process_class_childprocess" id="child_process_class_childprocess">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.2.0</span>

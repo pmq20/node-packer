@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Modules | Node.js v7.3.0 Documentation</title>
+  <title>Modules | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -393,11 +393,11 @@ example, then <code>require(&#39;./some-library&#39;)</code> would attempt to lo
 </ul>
 <h2>Loading from <code>node_modules</code> Folders<span><a class="mark" href="#modules_loading_from_node_modules_folders" id="modules_loading_from_node_modules_folders">#</a></span></h2>
 <!--type=misc-->
-<p>If the module identifier passed to <code>require()</code> is not a native module,
-and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or <code>&#39;./&#39;</code>, then Node.js starts at the
-parent directory of the current module, and adds <code>/node_modules</code>, and
-attempts to load the module from that location. Node will not append
-<code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
+<p>If the module identifier passed to <code>require()</code> is not a
+<a href="#modules_core_modules">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or
+<code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and
+adds <code>/node_modules</code>, and attempts to load the module from that location. Node
+will not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
 <p>If it is not found there, then it moves to the parent directory, and so
 on, until the root of the file system is reached.</p>
 <p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called

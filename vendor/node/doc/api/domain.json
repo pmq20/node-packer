@@ -41,7 +41,7 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "return: {Domain} ",
+                "textRaw": "Returns: {Domain} ",
                 "name": "return",
                 "type": "Domain"
               },
@@ -152,7 +152,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Function} The bound function ",
+                    "textRaw": "Returns: {Function} The bound function ",
                     "name": "return",
                     "type": "Function",
                     "desc": "The bound function"
@@ -183,7 +183,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "return: {Function} The intercepted function ",
+                    "textRaw": "Returns: {Function} The intercepted function ",
                     "name": "return",
                     "type": "Function",
                     "desc": "The intercepted function"

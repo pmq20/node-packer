@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Domain | Node.js v7.3.0 Documentation</title>
+  <title>Domain | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -341,7 +341,7 @@ serverDomain.run(() =&gt; {
 </code></pre>
 <h2>domain.create()<span><a class="mark" href="#domain_domain_create" id="domain_domain_create">#</a></span></h2>
 <div class="signature"><ul>
-<li>return: <span class="type">&lt;Domain&gt;</span></li>
+<li>Returns: <span class="type">&lt;Domain&gt;</span></li>
 </ul>
 </div><p>Returns a new Domain object.</p>
 <h2>Class: Domain<span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
@@ -407,7 +407,7 @@ specified emitter.</p>
 <h3>domain.bind(callback)<span><a class="mark" href="#domain_domain_bind_callback" id="domain_domain_bind_callback">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
 </ul>
 </div><p>The returned function will be a wrapper around the supplied callback
 function.  When the returned function is called, any errors that are
@@ -431,7 +431,7 @@ d.on(&#39;error&#39;, (er) =&gt; {
 <h3>domain.intercept(callback)<span><a class="mark" href="#domain_domain_intercept_callback" id="domain_domain_intercept_callback">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
 </ul>
 </div><p>This method is almost identical to <a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a>.  However, in
 addition to catching thrown errors, it will also intercept <a href="errors.html#errors_class_error"><code>Error</code></a>

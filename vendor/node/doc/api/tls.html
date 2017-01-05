@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TLS (SSL) | Node.js v7.3.0 Documentation</title>
+  <title>TLS (SSL) | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -138,6 +138,7 @@
 <li><span class="stability_undefined"><a href="#tls_tls_createsecurecontext_options">tls.createSecureContext(options)</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tls_createserver_options_secureconnectionlistener">tls.createServer([options][, secureConnectionListener])</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tls_getciphers">tls.getCiphers()</a></span></li>
+<li><span class="stability_undefined"><a href="#tls_tls_default_ecdh_curve">tls.DEFAULT_ECDH_CURVE</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_deprecated_apis">Deprecated APIs</a></span><ul>
 <li><span class="stability_0"><a href="#tls_class_cryptostream">Class: CryptoStream</a></span><ul>
 <li><span class="stability_undefined"><a href="#tls_cryptostream_byteswritten">cryptoStream.bytesWritten</a></span></li>
@@ -898,10 +899,10 @@ preferences instead of the client&#39;s. When <code>true</code>, causes
 <em>Note</em>: <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a> sets the default value to <code>true</code>, other
 APIs that create secure contexts leave it unset.</li>
 <li><code>ecdhCurve</code> <span class="type">&lt;string&gt;</span> A string describing a named curve to use for ECDH key
-agreement or <code>false</code> to disable ECDH. Defaults to <code>prime256v1</code> (NIST P-256).
-Use <a href="crypto.html#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On
-recent releases, <code>openssl ecparam -list_curves</code> will also display the name
-and description of each available elliptic curve.</li>
+agreement or <code>false</code> to disable ECDH. Defaults to
+<a href="#tls_tls_default_ecdh_curve"><code>tls.DEFAULT_ECDH_CURVE</code></a>.  Use <a href="crypto.html#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list
+of available curve names. On recent releases, <code>openssl ecparam -list_curves</code>
+will also display the name and description of each available elliptic curve.</li>
 <li><code>dhparam</code> <span class="type">&lt;string&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> Diffie Hellman parameters, required for
 <a href="#tls_perfect_forward_secrecy">Perfect Forward Secrecy</a>. Use <code>openssl dhparam</code> to create the parameters.
 The key length must be greater than or equal to 1024 bits, otherwise an
@@ -1032,6 +1033,10 @@ server.listen(8000, () =&gt; {
 <p>For example:</p>
 <pre><code class="lang-js">console.log(tls.getCiphers()); // [&#39;AES128-SHA&#39;, &#39;AES256-SHA&#39;, ...]
 </code></pre>
+<h2>tls.DEFAULT_ECDH_CURVE<span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
+<p>The default curve name to use for ECDH key agreement in a tls server. The
+default value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href="https://www.rfc-editor.org/rfc/rfc4492.txt">RFC 4492</a> and
+<a href="http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">FIPS.186-4</a> for more details.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#tls_deprecated_apis" id="tls_deprecated_apis">#</a></span></h2>
 <h3>Class: CryptoStream<span><a class="mark" href="#tls_class_cryptostream" id="tls_class_cryptostream">#</a></span></h3>
 <div class="api_metadata">

@@ -141,7 +141,11 @@
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
 
-      'libraries': [ '../enclose_io/enclose_io_memfs.o', '../enclose_io/enclose_io_intercept.o', '../libsquash.a' ],
+      'libraries': [
+          '../enclose_io/enclose_io_memfs.o',
+          '../enclose_io/enclose_io_intercept.o',
+          '../libsquash.a'
+      ],
 
       'sources': [
         'src/debug-agent.cc',
@@ -322,8 +326,10 @@
           'sources': [
             'src/inspector_agent.cc',
             'src/inspector_socket.cc',
-            'src/inspector_socket.h',
+            'src/inspector_socket_server.cc',
             'src/inspector_agent.h',
+            'src/inspector_socket.h',
+            'src/inspector_socket_server.h',
           ],
           'dependencies': [
             'deps/v8_inspector/src/inspector/inspector.gyp:standalone_inspector',
@@ -869,13 +875,11 @@
     {
       'target_name': 'cctest',
       'type': 'executable',
-      'libraries': [ '../enclose_io/enclose_io_memfs.o', '../enclose_io/enclose_io_intercept.o', '../libsquash.a' ],
-      'dependencies': [ 'deps/gtest/gtest.gyp:gtest', 'deps/zlib/zlib.gyp:zlib' ],
+      'dependencies': [ 'deps/gtest/gtest.gyp:gtest' ],
       'include_dirs': [
-        'enclose_io',
-        'squash_include',
         'src',
-        'deps/v8/include'
+        'deps/v8/include',
+        '<(SHARED_INTERMEDIATE_DIR)'
       ],
       'defines': [
         # gtest's ASSERT macros conflict with our own.
@@ -886,7 +890,6 @@
         'GTEST_DONT_DEFINE_ASSERT_LT=1',
         'GTEST_DONT_DEFINE_ASSERT_NE=1',
         'NODE_WANT_INTERNALS=1',
-        'HACK_GTEST_FOR_ENCLOSE_IO=1',
       ],
       'sources': [
         'test/cctest/util.cc',
@@ -894,9 +897,21 @@
 
       'conditions': [
         ['v8_inspector=="true"', {
+          'defines': [
+            'HAVE_INSPECTOR=1',
+          ],
+          'dependencies': [
+            'deps/zlib/zlib.gyp:zlib',
+            'v8_inspector_compress_protocol_json#host'
+          ],
+          'include_dirs': [
+            '<(SHARED_INTERMEDIATE_DIR)'
+          ],
           'sources': [
             'src/inspector_socket.cc',
-            'test/cctest/test_inspector_socket.cc'
+            'src/inspector_socket_server.cc',
+            'test/cctest/test_inspector_socket.cc',
+            'test/cctest/test_inspector_socket_server.cc'
           ],
           'conditions': [
             [ 'node_shared_openssl=="false"', {
@@ -944,6 +959,16 @@
             }, {
               'type': 'executable',
             }],
+            ['target_arch=="ppc64"', {
+              'ldflags': [
+                '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread/ppc64'
+              ],
+            }],
+            ['target_arch=="ppc"', {
+              'ldflags': [
+                '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread'
+              ],
+            }]
           ],
           'dependencies': ['<(node_core_target_name)', 'node_exp'],
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>UDP / Datagram Sockets | Node.js v7.3.0 Documentation</title>
+  <title>UDP / Datagram Sockets | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -171,19 +171,18 @@ datagram messages. This occurs as soon as UDP sockets are created.</p>
 <h3>Event: &#39;message&#39;<span><a class="mark" href="#dgram_event_message" id="dgram_event_message">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
-</div><ul>
+</div><p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.
+The event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>
+<ul>
 <li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> - The message</li>
-<li><code>rinfo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Remote address information</li>
+<li><code>rinfo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Remote address information<ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The sender address</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The sender port</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The message size</li>
 </ul>
-<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.
-The event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>. The
-<code>msg</code> argument is a <a href="buffer.html"><code>Buffer</code></a> and <code>rinfo</code> is an object with the sender&#39;s
-address information provided by the <code>address</code>, <code>family</code> and <code>port</code> properties:</p>
-<pre><code class="lang-js">socket.on(&#39;message&#39;, (msg, rinfo) =&gt; {
-  console.log(&#39;Received %d bytes from %s:%d\n&#39;,
-              msg.length, rinfo.address, rinfo.port);
-});
-</code></pre>
+</li>
+</ul>
 <h3>socket.addMembership(multicastAddress[, multicastInterface])<span><a class="mark" href="#dgram_socket_addmembership_multicastaddress_multicastinterface" id="dgram_socket_addmembership_multicastaddress_multicastinterface">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>

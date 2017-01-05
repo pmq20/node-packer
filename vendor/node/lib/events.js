@@ -283,17 +283,20 @@ EventEmitter.prototype.prependListener =
       return _addListener(this, type, listener, true);
     };
 
-function _onceWrap(target, type, listener) {
-  var fired = false;
-  function g() {
-    target.removeListener(type, g);
-    if (!fired) {
-      fired = true;
-      listener.apply(target, arguments);
-    }
+function onceWrapper() {
+  this.target.removeListener(this.type, this.wrapFn);
+  if (!this.fired) {
+    this.fired = true;
+    this.listener.apply(this.target, arguments);
   }
-  g.listener = listener;
-  return g;
+}
+
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target, type, listener };
+  var wrapped = onceWrapper.bind(state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
 }
 
 EventEmitter.prototype.once = function once(type, listener) {
@@ -474,9 +477,9 @@ function spliceOne(list, index) {
   list.pop();
 }
 
-function arrayClone(arr, i) {
-  var copy = new Array(i);
-  while (i--)
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
     copy[i] = arr[i];
   return copy;
 }

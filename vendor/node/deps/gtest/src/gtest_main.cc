@@ -27,27 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-extern "C" {
-#include "enclose_io.h"
-}
-sqfs *enclose_io_fs;
-
 #include <stdio.h>
 
 #include "gtest/gtest.h"
 
 GTEST_API_ int main(int argc, char **argv) {
-  int ret;
-  sqfs_err enclose_io_ret;
-  enclose_io_fs = (sqfs *)malloc(sizeof(sqfs));
-  assert(NULL != enclose_io_fs);
-  memset(enclose_io_fs, 0, sizeof(sqfs));
-  enclose_io_ret = sqfs_open_image(enclose_io_fs, enclose_io_memfs, 0);
-  assert(SQFS_OK == enclose_io_ret);
-
   testing::InitGoogleTest(&argc, argv);
-  ret = RUN_ALL_TESTS();
-
-  sqfs_destroy(enclose_io_fs);
-  return ret;
+  return RUN_ALL_TESTS();
 }

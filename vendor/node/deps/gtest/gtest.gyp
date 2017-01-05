@@ -7,7 +7,7 @@
       'direct_dependent_settings': {
         'include_dirs': ['include'],
       },
-      'include_dirs': ['../../enclose_io', '../../squash_include', '.', 'include'],
+      'include_dirs': ['.', 'include'],
       'sources': [
         'src/gtest-death-test.cc',
         'src/gtest-filepath.cc',

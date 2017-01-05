@@ -2144,9 +2144,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer} ",
+                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -2533,9 +2533,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer} ",
+                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -3456,9 +3456,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer} ",
+                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer"
+                  "type": "Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",
@@ -3597,9 +3597,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`options` {Object | String} ",
@@ -3673,9 +3673,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "String | Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`options` {Object | String} ",
@@ -3740,9 +3740,9 @@
                   "type": "Integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer} ",
+                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer"
+                  "type": "Buffer | Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {Integer} ",

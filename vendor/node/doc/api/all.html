@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v7.3.0 Documentation</title>
+  <title>About this Documentation | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -1379,6 +1379,7 @@
 <li><span class="stability_undefined"><a href="#tls_tls_createsecurecontext_options">tls.createSecureContext(options)</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tls_createserver_options_secureconnectionlistener">tls.createServer([options][, secureConnectionListener])</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tls_getciphers">tls.getCiphers()</a></span></li>
+<li><span class="stability_undefined"><a href="#tls_tls_default_ecdh_curve">tls.DEFAULT_ECDH_CURVE</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_deprecated_apis">Deprecated APIs</a></span><ul>
 <li><span class="stability_0"><a href="#tls_class_cryptostream">Class: CryptoStream</a></span><ul>
 <li><span class="stability_undefined"><a href="#tls_cryptostream_byteswritten">cryptoStream.bytesWritten</a></span></li>
@@ -5068,6 +5069,9 @@ stdout or stderr - if exceeded child process is killed (Default: <code>200*1024<
 </ul>
 <p>Spawns a shell then executes the <code>command</code> within that shell, buffering any
 generated output.</p>
+<p><strong>Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.</strong></p>
 <pre><code class="lang-js">const exec = require(&#39;child_process&#39;).exec;
 exec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {
   if (error) {
@@ -5223,11 +5227,14 @@ specified as a string. The shell should understand the <code>-c</code> switch on
 or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
-<li>return: <a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
+<li>Returns: <a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
 </ul>
 <p>The <code>child_process.spawn()</code> method spawns a new process using the given
 <code>command</code>, with command line arguments in <code>args</code>. If omitted, <code>args</code> defaults
 to an empty array.</p>
+<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.</strong></p>
 <p>A third argument may be used to specify additional options, with these defaults:</p>
 <pre><code class="lang-js">{
   cwd: undefined,
@@ -5456,7 +5463,7 @@ stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs. (Default: <code>&#39;buffer&#39;</code>)</li>
 </ul>
 </li>
-<li>return: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
 </ul>
 <p>The <code>child_process.execFileSync()</code> method is generally identical to
 <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> with the exception that the method will not return
@@ -5502,7 +5509,7 @@ stdout or stderr - if exceeded child process is killed</li>
 (Default: <code>&#39;buffer&#39;</code>)</li>
 </ul>
 </li>
-<li>return: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The stdout from the command</li>
 </ul>
 <p>The <code>child_process.execSync()</code> method is generally identical to
 <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> with the exception that the method will not return until
@@ -5514,6 +5521,9 @@ process has exited.</em></p>
 <p>If the process times out, or has a non-zero exit code, this method <strong><em>will</em></strong>
 throw.  The <a href="errors.html#errors_class_error"><code>Error</code></a> object will contain the entire result from
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a></p>
+<p><strong>Note: Never pass unsanitised user input to this function. Any input
+containing shell metacharacters may be used to trigger arbitrary command
+execution.</strong></p>
 <h3>child_process.spawnSync(command[, args][, options])<span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
@@ -5545,7 +5555,7 @@ specified as a string. The shell should understand the <code>-c</code> switch on
 or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>pid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Pid of the child process</li>
 <li><code>output</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Array of results from stdio output</li>
 <li><code>stdout</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The contents of <code>output[1]</code></li>
@@ -5563,6 +5573,9 @@ and <code>killSignal</code> is sent, the method won&#39;t return until the proce
 completely exited. Note that if the process intercepts and handles the
 <code>SIGTERM</code> signal and doesn&#39;t exit, the parent process will wait until the child
 process has exited.</p>
+<p><strong>Note: If the <code>shell</code> option is enabled, do not pass unsanitised user input to
+this function. Any input containing shell metacharacters may be used to
+trigger arbitrary command execution.</strong></p>
 <h2>Class: ChildProcess<span><a class="mark" href="#child_process_class_childprocess" id="child_process_class_childprocess">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.2.0</span>
@@ -5942,8 +5955,10 @@ const http = require(&#39;http&#39;);
 const numCPUs = require(&#39;os&#39;).cpus().length;
 
 if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
   // Fork workers.
-  for (var i = 0; i &lt; numCPUs; i++) {
+  for (let i = 0; i &lt; numCPUs; i++) {
     cluster.fork();
   }
 
@@ -5957,14 +5972,17 @@ if (cluster.isMaster) {
     res.writeHead(200);
     res.end(&#39;hello world\n&#39;);
   }).listen(8000);
+
+  console.log(`Worker ${process.pid} started`);
 }
 </code></pre>
 <p>Running Node.js will now share port 8000 between the workers:</p>
-<pre><code class="lang-txt">$ NODE_DEBUG=cluster node server.js
-23521,Master Worker 23524 online
-23521,Master Worker 23526 online
-23521,Master Worker 23523 online
-23521,Master Worker 23528 online
+<pre><code class="lang-txt">$ node server.js
+Master 3596 is running
+Worker 4324 started
+Worker 4520 started
+Worker 6056 started
+Worker 5644 started
 </code></pre>
 <p>Please note that on Windows, it is not yet possible to set up a named pipe
 server in a worker.</p>
@@ -6087,27 +6105,27 @@ const http = require(&#39;http&#39;);
 if (cluster.isMaster) {
 
   // Keep track of http requests
-  var numReqs = 0;
+  let numReqs = 0;
   setInterval(() =&gt; {
-    console.log(&#39;numReqs =&#39;, numReqs);
+    console.log(`numReqs = ${numReqs}`);
   }, 1000);
 
   // Count requests
   function messageHandler(msg) {
-    if (msg.cmd &amp;&amp; msg.cmd == &#39;notifyRequest&#39;) {
+    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {
       numReqs += 1;
     }
   }
 
   // Start workers and listen for messages containing notifyRequest
   const numCPUs = require(&#39;os&#39;).cpus().length;
-  for (var i = 0; i &lt; numCPUs; i++) {
+  for (let i = 0; i &lt; numCPUs; i++) {
     cluster.fork();
   }
 
-  Object.keys(cluster.workers).forEach((id) =&gt; {
+  for (const id in cluster.workers) {
     cluster.workers[id].on(&#39;message&#39;, messageHandler);
-  });
+  }
 
 } else {
 
@@ -6156,8 +6174,8 @@ may be useful to send a message, so application specific actions may be taken to
 close them. It also may be useful to implement a timeout, killing a worker if
 the <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>
 <pre><code class="lang-js">if (cluster.isMaster) {
-  var worker = cluster.fork();
-  var timeout;
+  const worker = cluster.fork();
+  let timeout;
 
   worker.on(&#39;listening&#39;, (address) =&gt; {
     worker.send(&#39;shutdown&#39;);
@@ -6173,7 +6191,7 @@ the <code>&#39;disconnect&#39;</code> event has not been emitted after some time
 
 } else if (cluster.isWorker) {
   const net = require(&#39;net&#39;);
-  var server = net.createServer((socket) =&gt; {
+  const server = net.createServer((socket) =&gt; {
     // connections never end
   });
 
@@ -6269,7 +6287,7 @@ accidental disconnection.</p>
 <code>process.send()</code>.</p>
 <p>This example will echo back all messages from the master:</p>
 <pre><code class="lang-js">if (cluster.isMaster) {
-  var worker = cluster.fork();
+  const worker = cluster.fork();
   worker.send(&#39;hi there&#39;);
 
 } else if (cluster.isWorker) {
@@ -6340,7 +6358,7 @@ the process to be killed.</li>
 </ul>
 <p>When a new worker is forked the cluster module will emit a <code>&#39;fork&#39;</code> event.
 This can be used to log worker activity, and create your own timeout.</p>
-<pre><code class="lang-js">var timeouts = [];
+<pre><code class="lang-js">const timeouts = [];
 function errorMsg() {
   console.error(&#39;Something must be wrong with the connection ...&#39;);
 }
@@ -6393,7 +6411,7 @@ on more than one address.</p>
 but not the worker object, contrary to what the documentation stated.</p>
 <p>If you need to support older versions and don&#39;t need the worker object,
 you can work around the discrepancy by checking the number of arguments:</p>
-<pre><code class="lang-js">cluster.on(&#39;message&#39;, function(worker, message, handle) {
+<pre><code class="lang-js">cluster.on(&#39;message&#39;, (worker, message, handle) =&gt; {
   if (arguments.length === 2) {
     handle = message;
     message = worker;
@@ -6573,7 +6591,7 @@ However, it is guaranteed that the removal from the cluster.workers list happens
 before last <code>&#39;disconnect&#39;</code> or <code>&#39;exit&#39;</code> event is emitted.</p>
 <pre><code class="lang-js">// Go through all workers
 function eachWorker(callback) {
-  for (var id in cluster.workers) {
+  for (const id in cluster.workers) {
     callback(cluster.workers[id]);
   }
 }
@@ -6584,7 +6602,7 @@ eachWorker((worker) =&gt; {
 <p>Should you wish to reference a worker over a communication channel, using
 the worker&#39;s unique id is the easiest way to find the worker.</p>
 <pre><code class="lang-js">socket.on(&#39;data&#39;, (id) =&gt; {
-  var worker = cluster.workers[id];
+  const worker = cluster.workers[id];
 });
 </code></pre>
 <!-- [end-include:cluster.md] -->
@@ -6850,7 +6868,7 @@ const errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);
 // custom simple logger
 const logger = new Console(output, errorOutput);
 // use it like console
-var count = 5;
+const count = 5;
 logger.log(&#39;count: %d&#39;, count);
 // in stdout.log: count 5
 </code></pre>
@@ -6883,15 +6901,20 @@ the default behavior of <code>console</code> in Node.js.</p>
 
 // Creates a simple extension of console with a
 // new impl for assert without monkey-patching.
-const myConsole = Object.setPrototypeOf({
-  assert(assertion, message, ...args) {
-    try {
-      console.assert(assertion, message, ...args);
-    } catch (err) {
-      console.error(err.stack);
-    }
-  }
-}, console);
+const myConsole = Object.create(console, {
+  assert: {
+    value: function assert(assertion, message, ...args) {
+      try {
+        console.assert(assertion, message, ...args);
+      } catch (err) {
+        console.error(err.stack);
+      }
+    },
+    configurable: true,
+    enumerable: true,
+    writable: true,
+  },
+});
 
 module.exports = myConsole;
 </code></pre>
@@ -6947,7 +6970,7 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 first used as the primary message and all additional used as substitution
 values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
-<pre><code class="lang-js">var count = 5;
+<pre><code class="lang-js">const count = 5;
 console.log(&#39;count: %d&#39;, count);
 // Prints: count: 5, to stdout
 console.log(&#39;count:&#39;, count);
@@ -6969,7 +6992,7 @@ milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-mil
 </div><p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>
 <pre><code class="lang-js">console.time(&#39;100-elements&#39;);
-for (var i = 0; i &lt; 100; i++) {
+for (let i = 0; i &lt; 100; i++) {
   ;
 }
 console.timeEnd(&#39;100-elements&#39;);
@@ -8744,19 +8767,18 @@ datagram messages. This occurs as soon as UDP sockets are created.</p>
 <h3>Event: &#39;message&#39;<span><a class="mark" href="#dgram_event_message" id="dgram_event_message">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
-</div><ul>
+</div><p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.
+The event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>
+<ul>
 <li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> - The message</li>
-<li><code>rinfo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Remote address information</li>
+<li><code>rinfo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Remote address information<ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The sender address</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The sender port</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The message size</li>
 </ul>
-<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.
-The event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>. The
-<code>msg</code> argument is a <a href="buffer.html#buffer_buffer"><code>Buffer</code></a> and <code>rinfo</code> is an object with the sender&#39;s
-address information provided by the <code>address</code>, <code>family</code> and <code>port</code> properties:</p>
-<pre><code class="lang-js">socket.on(&#39;message&#39;, (msg, rinfo) =&gt; {
-  console.log(&#39;Received %d bytes from %s:%d\n&#39;,
-              msg.length, rinfo.address, rinfo.port);
-});
-</code></pre>
+</li>
+</ul>
 <h3>socket.addMembership(multicastAddress[, multicastInterface])<span><a class="mark" href="#dgram_socket_addmembership_multicastaddress_multicastinterface" id="dgram_socket_addmembership_multicastaddress_multicastinterface">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
@@ -9660,7 +9682,7 @@ serverDomain.run(() =&gt; {
 </code></pre>
 <h2>domain.create()<span><a class="mark" href="#domain_domain_create" id="domain_domain_create">#</a></span></h2>
 <div class="signature"><ul>
-<li>return: <span class="type">&lt;Domain&gt;</span></li>
+<li>Returns: <span class="type">&lt;Domain&gt;</span></li>
 </ul>
 </div><p>Returns a new Domain object.</p>
 <h2>Class: Domain<span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
@@ -9726,7 +9748,7 @@ specified emitter.</p>
 <h3>domain.bind(callback)<span><a class="mark" href="#domain_domain_bind_callback" id="domain_domain_bind_callback">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
 </ul>
 </div><p>The returned function will be a wrapper around the supplied callback
 function.  When the returned function is called, any errors that are
@@ -9750,7 +9772,7 @@ d.on(&#39;error&#39;, (er) =&gt; {
 <h3>domain.intercept(callback)<span><a class="mark" href="#domain_domain_intercept_callback" id="domain_domain_intercept_callback">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>return: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
 </ul>
 </div><p>This method is almost identical to <a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a>.  However, in
 addition to catching thrown errors, it will also intercept <a href="errors.html#errors_class_error"><code>Error</code></a>
@@ -11700,7 +11722,7 @@ descriptor.</p>
 <span>Added in: v0.0.2</span>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
-<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -11825,7 +11847,7 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <span>Added in: v0.1.21</span>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
-<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -12149,7 +12171,7 @@ you need to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>
 <span>Added in: v0.0.2</span>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -12201,7 +12223,7 @@ the end of the file.</p>
 <span>Added in: v0.1.29</span>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> default = <code>0o666</code></li>
@@ -12234,7 +12256,7 @@ automatically.</em></p>
 <span>Added in: v0.1.29</span>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> default = <code>0o666</code></li>
@@ -12248,7 +12270,7 @@ automatically.</em></p>
 <span>Added in: v0.1.21</span>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -12497,21 +12519,15 @@ also globally accessible.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-<p>The name of the directory that the currently executing script resides in.</p>
+<p>The directory name of the current module. This the same as the
+<a href="path.html#path_path_dirname_path"><code>path.dirname()</code></a> of the <a href="#globals_filename"><code>__filename</code></a>.</p>
+<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>
 <p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>
 <pre><code class="lang-js">console.log(__dirname);
 // Prints: /Users/mjr
+console.log(path.dirname(__filename));
+// Prints: /Users/mjr
 </code></pre>
-<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>
-<p>For instance, given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of
-<code>a</code> and there is a directory structure of:</p>
-<ul>
-<li><code>/Users/mjr/app/a.js</code></li>
-<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>
-</ul>
-<p>References to <code>__dirname</code> within <code>b.js</code> will return
-<code>/Users/mjr/app/node_modules/b</code> while references to <code>__dirname</code> within <code>a.js</code>
-will return <code>/Users/mjr/app</code>.</p>
 <h2>__filename<span><a class="mark" href="#globals_filename" id="globals_filename">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.0.1</span>
@@ -12519,15 +12535,28 @@ will return <code>/Users/mjr/app</code>.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-<p>The filename of the code being executed.  This is the resolved absolute path
-of this code file.  For a main program this is not necessarily the same
-filename used in the command line.  The value inside a module is the path
-to that module file.</p>
-<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>
+<p>The file name of the current module. This is the resolved absolute path of the
+current module file.</p>
+<p>For a main program this is not necessarily the same as the file name used in the
+command line.</p>
+<p>See <a href="#globals_dirname"><code>__dirname</code></a> for the directory name of the current module.</p>
+<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>
+<p>Examples:</p>
+<p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>
 <pre><code class="lang-js">console.log(__filename);
 // Prints: /Users/mjr/example.js
+console.log(__dirname);
+// Prints: /Users/mjr
 </code></pre>
-<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>
+<p>Given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of
+<code>a</code> and there is a directory structure of:</p>
+<ul>
+<li><code>/Users/mjr/app/a.js</code></li>
+<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>
+</ul>
+<p>References to <code>__filename</code> within <code>b.js</code> will return
+<code>/Users/mjr/app/node_modules/b/b.js</code> while references to <code>__filename</code> within
+<code>a.js</code> will return <code>/Users/mjr/app/a.js</code>.</p>
 <h2>clearImmediate(immediateObject)<span><a class="mark" href="#globals_clearimmediate_immediateobject" id="globals_clearimmediate_immediateobject">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
@@ -14415,11 +14444,11 @@ example, then <code>require(&#39;./some-library&#39;)</code> would attempt to lo
 </ul>
 <h2>Loading from <code>node_modules</code> Folders<span><a class="mark" href="#modules_loading_from_node_modules_folders" id="modules_loading_from_node_modules_folders">#</a></span></h2>
 <!--type=misc-->
-<p>If the module identifier passed to <code>require()</code> is not a native module,
-and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or <code>&#39;./&#39;</code>, then Node.js starts at the
-parent directory of the current module, and adds <code>/node_modules</code>, and
-attempts to load the module from that location. Node will not append
-<code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
+<p>If the module identifier passed to <code>require()</code> is not a
+<a href="#modules_core_modules">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or
+<code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and
+adds <code>/node_modules</code>, and attempts to load the module from that location. Node
+will not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
 <p>If it is not found there, then it moves to the parent directory, and so
 on, until the root of the file system is reached.</p>
 <p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called
@@ -18039,7 +18068,9 @@ process has been running.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.versions</code> property returns an object listing the version strings of
-Node.js and its dependencies.</p>
+Node.js and its dependencies. In addition, <code>process.versions.modules</code> indicates
+the current ABI version, which is increased whenever a C++ API changes. Node.js
+will refuse to load native modules built for an older <code>modules</code> value.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate output similar to:</p>
@@ -18771,20 +18802,20 @@ evaluation function when the <code>repl.REPLServer</code> instance is created.</
 <p>The default evaluator supports direct evaluation of JavaScript expressions:</p>
 <pre><code class="lang-js">&gt; 1 + 1
 2
-&gt; var m = 2
+&gt; const m = 2
 undefined
 &gt; m + 1
 3
 </code></pre>
-<p>Unless otherwise scoped within blocks (e.g. <code>{ ... }</code>) or functions, variables
-declared either implicitly or using the <code>var</code> keyword are declared at the
-<code>global</code> scope.</p>
+<p>Unless otherwise scoped within blocks or functions, variables declared
+either implicitly or using the <code>const</code>, <code>let</code>, or <code>var</code> keywords
+are declared at the global scope.</p>
 <h4>Global and Local Scope<span><a class="mark" href="#repl_global_and_local_scope" id="repl_global_and_local_scope">#</a></span></h4>
 <p>The default evaluator provides access to any variables that exist in the global
 scope. It is possible to expose a variable to the REPL explicitly by assigning
 it to the <code>context</code> object associated with each <code>REPLServer</code>.  For example:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
-var msg = &#39;message&#39;;
+const msg = &#39;message&#39;;
 
 repl.start(&#39;&gt; &#39;).context.m = msg;
 </code></pre>
@@ -18797,7 +18828,7 @@ repl.start(&#39;&gt; &#39;).context.m = msg;
 To specify read-only globals, context properties must be defined using
 <code>Object.defineProperty()</code>:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
-var msg = &#39;message&#39;;
+const msg = &#39;message&#39;;
 
 const r = repl.start(&#39;&gt; &#39;);
 Object.defineProperty(r.context, &#39;m&#39;, {
@@ -18815,15 +18846,20 @@ global or scoped variable, the input <code>fs</code> will be evaluated on-demand
 </code></pre>
 <h4>Assignment of the <code>_</code> (underscore) variable<span><a class="mark" href="#repl_assignment_of_the_underscore_variable" id="repl_assignment_of_the_underscore_variable">#</a></span></h4>
 <p>The default evaluator will, by default, assign the result of the most recently
-evaluated expression to the special variable <code>_</code> (underscore).</p>
+evaluated expression to the special variable <code>_</code> (underscore).
+Explicitly setting <code>_</code> to a value will disable this behavior.</p>
 <pre><code class="lang-js">&gt; [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]
 [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]
 &gt; _.length
 3
 &gt; _ += 1
+Expression assignment to _ now disabled.
+4
+&gt; 1 + 1
+2
+&gt; _
 4
 </code></pre>
-<p>Explicitly setting <code>_</code> to a value will disable this behavior.</p>
 <h3>Custom Evaluation Functions<span><a class="mark" href="#repl_custom_evaluation_functions" id="repl_custom_evaluation_functions">#</a></span></h3>
 <p>When a new <code>repl.REPLServer</code> is created, a custom evaluation function may be
 provided. This can be used, for instance, to implement fully customized REPL
@@ -18846,8 +18882,8 @@ repl.start({prompt: &#39;&gt; &#39;, eval: myEval});
 send the current line of input to the <code>eval</code> function. In order to support
 multi-line input, the eval function can return an instance of <code>repl.Recoverable</code>
 to the provided callback function:</p>
-<pre><code class="lang-js">function eval(cmd, context, filename, callback) {
-  var result;
+<pre><code class="lang-js">function myEval(cmd, context, filename, callback) {
+  let result;
   try {
     result = vm.runInThisContext(cmd);
   } catch (e) {
@@ -18876,10 +18912,10 @@ by passing a new function in using the <code>writer</code> option on constructio
 following example, for instance, simply converts any input text to upper case:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
 
-const r = repl.start({prompt: &#39;&gt;&#39;, eval: myEval, writer: myWriter});
+const r = repl.start({prompt: &#39;&gt; &#39;, eval: myEval, writer: myWriter});
 
 function myEval(cmd, context, filename, callback) {
-  callback(null,cmd);
+  callback(null, cmd);
 }
 
 function myWriter(output) {
@@ -18920,7 +18956,7 @@ function initializeContext(context) {
   context.m = &#39;test&#39;;
 }
 
-var r = repl.start({prompt: &#39;&gt;&#39;});
+const r = repl.start({prompt: &#39;&gt; &#39;});
 initializeContext(r.context);
 
 r.on(&#39;reset&#39;, initializeContext);
@@ -18928,15 +18964,15 @@ r.on(&#39;reset&#39;, initializeContext);
 <p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then
 reset to its initial value using the <code>.clear</code> command:</p>
 <pre><code class="lang-js">$ ./node example.js
-&gt;m
+&gt; m
 &#39;test&#39;
-&gt;m = 1
+&gt; m = 1
 1
-&gt;m
+&gt; m
 1
-&gt;.clear
+&gt; .clear
 Clearing context...
-&gt;m
+&gt; m
 &#39;test&#39;
 &gt;
 </code></pre>
@@ -18959,17 +18995,17 @@ string argument.</li>
 <p>The following example shows two new commands added to the REPL instance:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
 
-var replServer = repl.start({prompt: &#39;&gt; &#39;});
+const replServer = repl.start({prompt: &#39;&gt; &#39;});
 replServer.defineCommand(&#39;sayhello&#39;, {
   help: &#39;Say hello&#39;,
-  action: function(name) {
+  action(name) {
     this.lineParser.reset();
     this.bufferedCommand = &#39;&#39;;
     console.log(`Hello, ${name}!`);
     this.displayPrompt();
   }
 });
-replServer.defineCommand(&#39;saybye&#39;, function() {
+replServer.defineCommand(&#39;saybye&#39;, () =&gt; {
   console.log(&#39;Goodbye!&#39;);
   this.close();
 });
@@ -18999,8 +19035,9 @@ within the action function for commands registered using the
 <div class="api_metadata">
 <span>Added in: v0.1.91</span>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
+<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>
+(with a trailing space).</li>
 <li><code>input</code> <span class="type">&lt;Readable&gt;</span> The Readable stream from which REPL input will be read.
 Defaults to <code>process.stdin</code>.</li>
 <li><code>output</code> <span class="type">&lt;Writable&gt;</span> The Writable stream to which REPL output will be
@@ -19049,7 +19086,7 @@ with a custom <code>eval</code> function. Defaults to <code>false</code>.</li>
 for executing JavaScript. This can be used by executing the Node.js binary
 without passing any arguments (or by passing the <code>-i</code> argument):</p>
 <pre><code class="lang-js">$ node
-&gt; a = [1, 2, 3];
+&gt; const a = [1, 2, 3];
 [ 1, 2, 3 ]
 &gt; a.forEach((v) =&gt; {
 ...   console.log(v);
@@ -19103,7 +19140,7 @@ separate I/O interfaces.</p>
 socket, and a TCP socket:</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
 const repl = require(&#39;repl&#39;);
-var connections = 0;
+let connections = 0;
 
 repl.start({
   prompt: &#39;Node.js via stdin&gt; &#39;,
@@ -19141,7 +19178,7 @@ to connect to both Unix and TCP sockets.</p>
 possible to connect to a long-running Node.js process without restarting it.</p>
 <p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over
 a <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href="https://gist.github.com/2209310">https://gist.github.com/2209310</a></p>
-<p>For an example of running a REPL instance over <a href="http://man7.org/linux/man-pages/man1/curl.1.html">curl(1)</a>,
+<p>For an example of running a REPL instance over <a href="https://curl.haxx.se/docs/manpage.html">curl(1)</a>,
 see: <a href="https://gist.github.com/2053342">https://gist.github.com/2053342</a></p>
 <!-- [end-include:repl.md] -->
 <!-- [start-include:stream.md] -->
@@ -19494,10 +19531,12 @@ supplied <code>callback</code> once the data has been fully handled. If an error
 occurs, the <code>callback</code> <em>may or may not</em> be called with the error as its
 first argument. To reliably detect write errors, add a listener for the
 <code>&#39;error&#39;</code> event.</p>
-<p>The return value indicates whether the written <code>chunk</code> was buffered internally
-and the buffer has exceeded the <code>highWaterMark</code> configured when the stream was
-created. If <code>false</code> is returned, further attempts to write data to the stream
-should be paused until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted.</p>
+<p>The return value is <code>true</code> if the internal buffer does not exceed
+<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.
+If <code>false</code> is returned, further attempts to write data to the stream should
+stop until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted. However, the <code>false</code> return
+value is only advisory and the writable stream will unconditionally accept and
+buffer <code>chunk</code> even if it has not not been allowed to drain.</p>
 <p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>
 <h3>Readable Streams<span><a class="mark" href="#stream_readable_streams" id="stream_readable_streams">#</a></span></h3>
 <p>Readable streams are an abstraction for a <em>source</em> from which data is
@@ -20171,8 +20210,8 @@ implemented.</p>
 indicate the character encoding of the string. This is to support
 implementations that have an optimized handling for certain string
 data encodings. If the <code>decodeStrings</code> property is explicitly set to <code>false</code>,
-the <code>encoding</code> argument can be safely ignored, and <code>chunk</code> will always be a
-<code>Buffer</code>.</p>
+the <code>encoding</code> argument can be safely ignored, and <code>chunk</code> will remain the same
+object that is passed to <code>.write()</code>.</p>
 <p>The <code>writable._write()</code> method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
 user programs.</p>
@@ -20365,9 +20404,9 @@ Implementers, and only from within the <code>readable._read()</code> method.</p>
 <p>It is recommended that errors occurring during the processing of the
 <code>readable._read()</code> method are emitted using the <code>&#39;error&#39;</code> event rather than
 being thrown. Throwing an Error from within <code>readable._read()</code> can result in
-expected and inconsistent behavior depending on whether the stream is operating
-in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures consistent and
-predictable handling of errors.</p>
+unexpected and inconsistent behavior depending on whether the stream is
+operating in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures
+consistent and predictable handling of errors.</p>
 <pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
 
 const myReadable = new Readable({
@@ -21674,10 +21713,10 @@ preferences instead of the client&#39;s. When <code>true</code>, causes
 <em>Note</em>: <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a> sets the default value to <code>true</code>, other
 APIs that create secure contexts leave it unset.</li>
 <li><code>ecdhCurve</code> <span class="type">&lt;string&gt;</span> A string describing a named curve to use for ECDH key
-agreement or <code>false</code> to disable ECDH. Defaults to <code>prime256v1</code> (NIST P-256).
-Use <a href="crypto.html#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On
-recent releases, <code>openssl ecparam -list_curves</code> will also display the name
-and description of each available elliptic curve.</li>
+agreement or <code>false</code> to disable ECDH. Defaults to
+<a href="#tls_tls_default_ecdh_curve"><code>tls.DEFAULT_ECDH_CURVE</code></a>.  Use <a href="crypto.html#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list
+of available curve names. On recent releases, <code>openssl ecparam -list_curves</code>
+will also display the name and description of each available elliptic curve.</li>
 <li><code>dhparam</code> <span class="type">&lt;string&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> Diffie Hellman parameters, required for
 <a href="#tls_perfect_forward_secrecy">Perfect Forward Secrecy</a>. Use <code>openssl dhparam</code> to create the parameters.
 The key length must be greater than or equal to 1024 bits, otherwise an
@@ -21808,6 +21847,10 @@ server.listen(8000, () =&gt; {
 <p>For example:</p>
 <pre><code class="lang-js">console.log(tls.getCiphers()); // [&#39;AES128-SHA&#39;, &#39;AES256-SHA&#39;, ...]
 </code></pre>
+<h2>tls.DEFAULT_ECDH_CURVE<span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
+<p>The default curve name to use for ECDH key agreement in a tls server. The
+default value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href="https://www.rfc-editor.org/rfc/rfc4492.txt">RFC 4492</a> and
+<a href="http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">FIPS.186-4</a> for more details.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#tls_deprecated_apis" id="tls_deprecated_apis">#</a></span></h2>
 <h3>Class: CryptoStream<span><a class="mark" href="#tls_class_cryptostream" id="tls_class_cryptostream">#</a></span></h3>
 <div class="api_metadata">
@@ -23120,8 +23163,22 @@ that sandbox</a> so that it can be used in calls to
 <a href="#vm_vm_runincontext_code_contextifiedsandbox_options"><code>vm.runInContext()</code></a> or <a href="#vm_script_runincontext_contextifiedsandbox_options"><code>script.runInContext()</code></a>. Inside such scripts,
 the <code>sandbox</code> object will be the global object, retaining all of its existing
 properties but also having the built-in objects and functions any standard
-<a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module, <code>sandbox</code> will
-remain unchanged.</p>
+<a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module, global variables
+will remain unchanged.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+var globalVar = 3;
+
+const sandbox = { globalVar: 1 };
+vm.createContext(sandbox);
+
+vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);
+
+console.log(util.inspect(sandbox)); // 2
+
+console.log(util.inspect(globalVar)); // 3
+</code></pre>
 <p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty
 <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> sandbox object will be returned.</p>
 <p>The <code>vm.createContext()</code> method is primarily useful for creating a single

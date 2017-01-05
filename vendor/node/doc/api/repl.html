@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>REPL | Node.js v7.3.0 Documentation</title>
+  <title>REPL | Node.js v7.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="repl" class="interior">
       <header>
-        <h1>Node.js v7.3.0 Documentation</h1>
+        <h1>Node.js v7.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -191,20 +191,20 @@ evaluation function when the <code>repl.REPLServer</code> instance is created.</
 <p>The default evaluator supports direct evaluation of JavaScript expressions:</p>
 <pre><code class="lang-js">&gt; 1 + 1
 2
-&gt; var m = 2
+&gt; const m = 2
 undefined
 &gt; m + 1
 3
 </code></pre>
-<p>Unless otherwise scoped within blocks (e.g. <code>{ ... }</code>) or functions, variables
-declared either implicitly or using the <code>var</code> keyword are declared at the
-<code>global</code> scope.</p>
+<p>Unless otherwise scoped within blocks or functions, variables declared
+either implicitly or using the <code>const</code>, <code>let</code>, or <code>var</code> keywords
+are declared at the global scope.</p>
 <h4>Global and Local Scope<span><a class="mark" href="#repl_global_and_local_scope" id="repl_global_and_local_scope">#</a></span></h4>
 <p>The default evaluator provides access to any variables that exist in the global
 scope. It is possible to expose a variable to the REPL explicitly by assigning
 it to the <code>context</code> object associated with each <code>REPLServer</code>.  For example:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
-var msg = &#39;message&#39;;
+const msg = &#39;message&#39;;
 
 repl.start(&#39;&gt; &#39;).context.m = msg;
 </code></pre>
@@ -217,7 +217,7 @@ repl.start(&#39;&gt; &#39;).context.m = msg;
 To specify read-only globals, context properties must be defined using
 <code>Object.defineProperty()</code>:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
-var msg = &#39;message&#39;;
+const msg = &#39;message&#39;;
 
 const r = repl.start(&#39;&gt; &#39;);
 Object.defineProperty(r.context, &#39;m&#39;, {
@@ -235,15 +235,20 @@ global or scoped variable, the input <code>fs</code> will be evaluated on-demand
 </code></pre>
 <h4>Assignment of the <code>_</code> (underscore) variable<span><a class="mark" href="#repl_assignment_of_the_underscore_variable" id="repl_assignment_of_the_underscore_variable">#</a></span></h4>
 <p>The default evaluator will, by default, assign the result of the most recently
-evaluated expression to the special variable <code>_</code> (underscore).</p>
+evaluated expression to the special variable <code>_</code> (underscore).
+Explicitly setting <code>_</code> to a value will disable this behavior.</p>
 <pre><code class="lang-js">&gt; [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]
 [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]
 &gt; _.length
 3
 &gt; _ += 1
+Expression assignment to _ now disabled.
+4
+&gt; 1 + 1
+2
+&gt; _
 4
 </code></pre>
-<p>Explicitly setting <code>_</code> to a value will disable this behavior.</p>
 <h3>Custom Evaluation Functions<span><a class="mark" href="#repl_custom_evaluation_functions" id="repl_custom_evaluation_functions">#</a></span></h3>
 <p>When a new <code>repl.REPLServer</code> is created, a custom evaluation function may be
 provided. This can be used, for instance, to implement fully customized REPL
@@ -266,8 +271,8 @@ repl.start({prompt: &#39;&gt; &#39;, eval: myEval});
 send the current line of input to the <code>eval</code> function. In order to support
 multi-line input, the eval function can return an instance of <code>repl.Recoverable</code>
 to the provided callback function:</p>
-<pre><code class="lang-js">function eval(cmd, context, filename, callback) {
-  var result;
+<pre><code class="lang-js">function myEval(cmd, context, filename, callback) {
+  let result;
   try {
     result = vm.runInThisContext(cmd);
   } catch (e) {
@@ -296,10 +301,10 @@ by passing a new function in using the <code>writer</code> option on constructio
 following example, for instance, simply converts any input text to upper case:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
 
-const r = repl.start({prompt: &#39;&gt;&#39;, eval: myEval, writer: myWriter});
+const r = repl.start({prompt: &#39;&gt; &#39;, eval: myEval, writer: myWriter});
 
 function myEval(cmd, context, filename, callback) {
-  callback(null,cmd);
+  callback(null, cmd);
 }
 
 function myWriter(output) {
@@ -340,7 +345,7 @@ function initializeContext(context) {
   context.m = &#39;test&#39;;
 }
 
-var r = repl.start({prompt: &#39;&gt;&#39;});
+const r = repl.start({prompt: &#39;&gt; &#39;});
 initializeContext(r.context);
 
 r.on(&#39;reset&#39;, initializeContext);
@@ -348,15 +353,15 @@ r.on(&#39;reset&#39;, initializeContext);
 <p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then
 reset to its initial value using the <code>.clear</code> command:</p>
 <pre><code class="lang-js">$ ./node example.js
-&gt;m
+&gt; m
 &#39;test&#39;
-&gt;m = 1
+&gt; m = 1
 1
-&gt;m
+&gt; m
 1
-&gt;.clear
+&gt; .clear
 Clearing context...
-&gt;m
+&gt; m
 &#39;test&#39;
 &gt;
 </code></pre>
@@ -379,17 +384,17 @@ string argument.</li>
 <p>The following example shows two new commands added to the REPL instance:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
 
-var replServer = repl.start({prompt: &#39;&gt; &#39;});
+const replServer = repl.start({prompt: &#39;&gt; &#39;});
 replServer.defineCommand(&#39;sayhello&#39;, {
   help: &#39;Say hello&#39;,
-  action: function(name) {
+  action(name) {
     this.lineParser.reset();
     this.bufferedCommand = &#39;&#39;;
     console.log(`Hello, ${name}!`);
     this.displayPrompt();
   }
 });
-replServer.defineCommand(&#39;saybye&#39;, function() {
+replServer.defineCommand(&#39;saybye&#39;, () =&gt; {
   console.log(&#39;Goodbye!&#39;);
   this.close();
 });
@@ -419,8 +424,9 @@ within the action function for commands registered using the
 <div class="api_metadata">
 <span>Added in: v0.1.91</span>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
+<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>
+(with a trailing space).</li>
 <li><code>input</code> <span class="type">&lt;Readable&gt;</span> The Readable stream from which REPL input will be read.
 Defaults to <code>process.stdin</code>.</li>
 <li><code>output</code> <span class="type">&lt;Writable&gt;</span> The Writable stream to which REPL output will be
@@ -469,7 +475,7 @@ with a custom <code>eval</code> function. Defaults to <code>false</code>.</li>
 for executing JavaScript. This can be used by executing the Node.js binary
 without passing any arguments (or by passing the <code>-i</code> argument):</p>
 <pre><code class="lang-js">$ node
-&gt; a = [1, 2, 3];
+&gt; const a = [1, 2, 3];
 [ 1, 2, 3 ]
 &gt; a.forEach((v) =&gt; {
 ...   console.log(v);
@@ -523,7 +529,7 @@ separate I/O interfaces.</p>
 socket, and a TCP socket:</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
 const repl = require(&#39;repl&#39;);
-var connections = 0;
+let connections = 0;
 
 repl.start({
   prompt: &#39;Node.js via stdin&gt; &#39;,
@@ -561,7 +567,7 @@ to connect to both Unix and TCP sockets.</p>
 possible to connect to a long-running Node.js process without restarting it.</p>
 <p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over
 a <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href="https://gist.github.com/2209310">https://gist.github.com/2209310</a></p>
-<p>For an example of running a REPL instance over <a href="http://man7.org/linux/man-pages/man1/curl.1.html">curl(1)</a>,
+<p>For an example of running a REPL instance over <a href="https://curl.haxx.se/docs/manpage.html">curl(1)</a>,
 see: <a href="https://gist.github.com/2053342">https://gist.github.com/2053342</a></p>
 
       </div>

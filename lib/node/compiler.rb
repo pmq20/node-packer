@@ -49,6 +49,12 @@ module Node
       init_entrance
       init_tmpdir
       init_libsquash
+
+      if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
+        @extra_cc_arg = '-mmacosx-version-min=10.7'
+      else
+        @extra_cc_arg = ''
+      end
     end
 
     def init_entrance
@@ -116,8 +122,8 @@ module Node
     
     def compile_libsquash
       Utils.chdir(@vendor_squash_build_dir) do
-        Utils.run({'MACOSX_DEPLOYMENT_TARGET' => '10.7'}, "cmake -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
-        Utils.run({'MACOSX_DEPLOYMENT_TARGET' => '10.7'}, "cmake --build .")
+        Utils.run("cmake -DCMAKE_C_FLAGS=#{Shellwords.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
+        Utils.run("cmake --build .")
         Utils.remove_dynamic_libs(@vendor_squash_build_dir)
         Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
       end
@@ -165,7 +171,7 @@ module Node
 
       FileUtils.cp_r(@project_root, @work_dir_inner)
       Utils.chdir(@work_dir_inner) do
-        Utils.run("#{Shellwords.escape options[:npm_path]} install")
+        Utils.run("#{Shellwords.escape @options[:npm_path]} install")
         STDERR.puts `git status`
         STDERR.puts "-> FileUtils.rm_rf('.git')"
         FileUtils.rm_rf('.git')
@@ -200,14 +206,9 @@ module Node
           f.puts ''
         end
         # TODO slow operation
-        if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
-          extra_cc_arg = '-mmacosx-version-min=10.7'
-        else
-          extra_cc_arg = ''
-        end
-        Utils.run("cc #{extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
+        Utils.run("cc #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
         raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
-        Utils.run("cc #{extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
+        Utils.run("cc #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
         raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
       end
     end

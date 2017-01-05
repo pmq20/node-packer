@@ -42,6 +42,8 @@ class Compiler
     @options = options
     @entrance = entrance
 
+    check_base_ruby_version!
+
     init_options
     init_entrance
     init_tmpdir
@@ -51,6 +53,16 @@ class Compiler
       @extra_cc_arg = '-mmacosx-version-min=10.7'
     else
       @extra_cc_arg = ''
+    end
+  end
+
+  def check_base_ruby_version!
+    expectation = "ruby 2.4.0"
+    got = `ruby -v`
+    unless got.include?(expectation)
+      msg  = "Please make sure to have installed the correct version of ruby in your environment\n"
+      msg += "Expecting #{expectation}; yet got #{got}"
+      raise Error, msg
     end
   end
 

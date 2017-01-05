@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Minqi Pan
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -13,7 +13,7 @@ describe ::Node::Compiler do
     expect(::Node::Compiler::VERSION).not_to be nil
   end
 
-  it "passes all original and our tests" do
+  it "passes all Node.js tests" do
     x = ::Node::Compiler::Test.new(tmpdir)
     x.run!
   end

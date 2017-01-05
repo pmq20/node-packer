@@ -1,0 +1,16 @@
+language: c
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
+script:
+  - cmake --version
+  - mkdir build && cd build
+  - cmake -DBUILD_TESTS=ON .. || exit $?
+  - cmake --build . || exit $?
+  - ctest --verbose || exit $?

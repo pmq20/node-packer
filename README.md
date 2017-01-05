@@ -2,8 +2,8 @@
 
 Compiler for Node.js which compiles your project into a single executable.
 
-[![Linux and Mac OS X Build Status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
+[![Travis CI](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
 ## Installation
 
@@ -58,4 +58,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/
 
 ## License
 
-Copyright (c) 2016-2017 Minqi Pan, under terms of the [MIT License](http://opensource.org/licenses/MIT).
+Copyright (c) 2016-2017 **Minqi Pan** &lt;pmq2001@gmail.com&gt;, under terms of the [MIT License](http://opensource.org/licenses/MIT).

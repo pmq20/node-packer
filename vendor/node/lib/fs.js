@@ -234,12 +234,6 @@ fs.exists = function(path, callback) {
   if (!nullCheck(path, cb)) return;
   var req = new FSReqWrap();
   req.oncomplete = cb;
-  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    process.nextTick(function() {
-      callback(true);
-    });
-    return;
-  }
   binding.stat(pathModule._makeLong(path), req);
   function cb(err, stats) {
     if (callback) callback(err ? false : true);
@@ -249,9 +243,6 @@ fs.exists = function(path, callback) {
 fs.existsSync = function(path) {
   try {
     nullCheck(path);
-    if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-      return true;
-    }
     binding.stat(pathModule._makeLong(path));
     return true;
   } catch (e) {
@@ -265,21 +256,6 @@ fs.readFile = function(path, options, callback) {
 
   if (!nullCheck(path, callback))
     return;
-
-  // TODO what about FD?
-  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    if (options.encoding) {
-      process.nextTick(function() {
-        callback(null, process.binding('natives').__enclose_io_memfs_get__(path));
-      });
-      return;
-    } else {
-      process.nextTick(function() {
-        callback(null, Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path)));
-      });
-      return;
-    }
-  }
 
   var context = new ReadFileContext(callback, options.encoding);
   context.isUserFd = isFd(path); // file descriptor ownership
@@ -487,16 +463,6 @@ function tryReadSync(fd, isUserFd, buffer, pos, len) {
 
 fs.readFileSync = function(path, options) {
   options = getOptions(options, { flag: 'r' });
-
-  // TODO what about FD?
-  if ('string' === typeof(path) && process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    if (options.encoding) {
-      return process.binding('natives').__enclose_io_memfs_get__(path);
-    } else {
-      return Buffer.from(process.binding('natives').__enclose_io_memfs_get__(path));
-    }
-  }
-
   var isUserFd = isFd(path); // file descriptor ownership
   var fd = isUserFd ? path : fs.openSync(path, options.flag || 'r', 0o666);
 
@@ -893,12 +859,6 @@ fs.readdir = function(path, options, callback) {
   callback = makeCallback(typeof options === 'function' ? options : callback);
   options = getOptions(options, {});
   if (!nullCheck(path, callback)) return;
-  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    process.nextTick(function() {
-      callback(null, process.binding('natives').__enclose_io_memfs_readdir__(path));
-    });
-    return;
-  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.readdir(pathModule._makeLong(path), options.encoding, req);
@@ -907,9 +867,6 @@ fs.readdir = function(path, options, callback) {
 fs.readdirSync = function(path, options) {
   options = getOptions(options, {});
   nullCheck(path);
-  if (-1 !== path.indexOf('__enclose_io_memfs__')) {
-    return process.binding('natives').__enclose_io_memfs_readdir__(path);
-  }
   return binding.readdir(pathModule._makeLong(path), options.encoding);
 };
 
@@ -922,17 +879,6 @@ fs.fstat = function(fd, callback) {
 fs.lstat = function(path, callback) {
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
-  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    process.nextTick(function() {
-      callback(null, process.binding('natives').__enclose_io_memfs_stat_file__(path));
-    });
-    return;
-  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
-    process.nextTick(function() {
-      callback(null, process.binding('natives').__enclose_io_memfs_stat_dir__(path));
-    });
-    return;
-  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.lstat(pathModule._makeLong(path), req);
@@ -941,17 +887,6 @@ fs.lstat = function(path, callback) {
 fs.stat = function(path, callback) {
   callback = makeCallback(callback);
   if (!nullCheck(path, callback)) return;
-  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    process.nextTick(function() {
-      callback(null, process.binding('natives').__enclose_io_memfs_stat_file__(path));
-    });
-    return;
-  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
-    process.nextTick(function() {
-      callback(null, process.binding('natives').__enclose_io_memfs_stat_dir__(path));
-    });
-    return;
-  }
   var req = new FSReqWrap();
   req.oncomplete = callback;
   binding.stat(pathModule._makeLong(path), req);
@@ -963,21 +898,11 @@ fs.fstatSync = function(fd) {
 
 fs.lstatSync = function(path) {
   nullCheck(path);
-  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    return process.binding('natives').__enclose_io_memfs_stat_file__(path);
-  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
-    return process.binding('natives').__enclose_io_memfs_stat_dir__(path);
-  }
   return binding.lstat(pathModule._makeLong(path));
 };
 
 fs.statSync = function(path) {
   nullCheck(path);
-  if (process.binding('natives').__enclose_io_memfs_exist_file__(path)) {
-    return process.binding('natives').__enclose_io_memfs_stat_file__(path);
-  } else if (process.binding('natives').__enclose_io_memfs_exist_dir__(path)) {
-    return process.binding('natives').__enclose_io_memfs_stat_dir__(path);
-  }
   return binding.stat(pathModule._makeLong(path));
 };
 
@@ -1389,10 +1314,6 @@ FSWatcher.prototype.close = function() {
 
 fs.watch = function(filename, options, listener) {
   nullCheck(filename);
-  
-  if ('string' === typeof(filename) && -1 !== filename.indexOf('__enclose_io_memfs__')) {
-    return new FSWatcher();
-  }
 
   if (typeof options === 'function') {
     listener = options;
@@ -1466,11 +1387,6 @@ const statWatchers = new Map();
 
 fs.watchFile = function(filename, options, listener) {
   nullCheck(filename);
-
-  if ('string' === typeof(filename) && -1 !== filename.indexOf('__enclose_io_memfs__')) {
-    return new StatWatcher();
-  }
-
   filename = pathModule.resolve(filename);
   var stat;
 
@@ -1552,7 +1468,6 @@ fs.realpathSync = function realpathSync(p, options) {
   nullCheck(p);
 
   p = p.toString('utf8');
-  if (p.indexOf('__enclose_io_memfs__') !== -1) { return p; }
   p = pathModule.resolve(p);
 
   const seenLinks = {};

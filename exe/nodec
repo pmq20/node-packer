@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2016-2017 Minqi Pan
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -77,6 +77,10 @@ OptionParser.new do |opts|
 
   opts.on("--npm-package-version=VER", "Compiles the specified version of the npm package") do |ver|
     options[:npm_package_version] = ver
+  end
+
+  opts.on("--npm-path=FILE", "Speifices the path of npm") do |file|
+    options[:npm_path] = file
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do

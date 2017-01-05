@@ -200,7 +200,7 @@ test-all-valgrind: test-build
 	$(PYTHON) tools/test.py --mode=debug,release --valgrind
 
 CI_NATIVE_SUITES := addons
-CI_JS_SUITES := doctool inspector known_issues message parallel pseudo-tty sequential enclose-io
+CI_JS_SUITES := doctool inspector known_issues message parallel pseudo-tty sequential
 
 # Build and test addons without building anything else
 test-ci-native: LOGLEVEL := info

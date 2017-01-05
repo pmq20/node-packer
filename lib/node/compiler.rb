@@ -71,7 +71,7 @@ module Node
     end
 
     def init_options
-      options[:npm_path] ||= 'npm'
+      @options[:npm_path] ||= 'npm'
       if Gem.win_platform?
         @options[:output] ||= 'a.exe'
       else

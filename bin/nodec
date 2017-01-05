@@ -5,12 +5,14 @@
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
 
-require "node/compiler"
+$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+
+require "compiler"
 require 'optparse'
 
 USAGE = %Q{
 
-Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler.node_version})
+Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_version})
 Compiler for Node.js that compiles your Node.js application into a single executable.
 
 Usage:
@@ -75,12 +77,12 @@ OptionParser.new do |opts|
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
-    puts ::Node::Compiler::VERSION
+    puts ::Compiler::VERSION
     exit 0
   end
 
   opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
-    puts ::Node::Compiler.node_version
+    puts ::Compiler.node_version
     exit 0
   end
 
@@ -99,9 +101,9 @@ unless entrance.kind_of?(String) && entrance.length > 0
 end
 
 begin
-  instance = ::Node::Compiler.new entrance, options
+  instance = ::Compiler.new entrance, options
   instance.run!
-rescue ::Node::Compiler::Error => e
+rescue ::Compiler::Error => e
   STDERR.puts e.message
   exit 1
 end

@@ -19,6 +19,8 @@ addons:
 
 install: if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
 
-before_script: rvm use 2.4.0
+before_script:
+  - rvm install ruby-2.4.0
+  - rvm use 2.4.0
 
 script: /bin/sh -x tests/$NODEC_TEST

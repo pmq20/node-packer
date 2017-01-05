@@ -1,21 +1,20 @@
-version: '{build}'
+version: 1.0.{build}
+build: off
 test_script:
 - cmd: >-
-
-    set PATH=C:\Ruby24\bin;%PATH%
-
     echo Compiling a command-line application
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
 
     cd coffeescript
 
-    nodec bin/coffee
-    
+    ../bin/nodec bin/coffee
+
+
     echo Compiling a web application
 
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
 
     cd nodeclub
 
-    nodec app.js
+    ../bin/nodec app.js

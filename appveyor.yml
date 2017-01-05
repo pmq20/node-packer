@@ -2,6 +2,10 @@ version: 1.0.{build}
 build: off
 test_script:
 - cmd: >-
+    dir C:\
+
+    set PATH=C:\Ruby24\bin;%PATH%
+
     tests\coffeescript.bat
 
     tests\nodeclub.bat

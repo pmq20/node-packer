@@ -45,18 +45,6 @@
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
 
-    if ('__enclose_io_fork__' === process.argv[1]) {
-      process.argv.splice(1, 1);
-    } else if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
-      if (!process.env.ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE) {
-        delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
-      }
-    } else {
-      if (NativeModule.require('enclose_io_entrance')) {
-        process.argv.splice(1, 0, NativeModule.require('enclose_io_entrance'));
-      }
-    }
-
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.
     if (process.argv[1] !== '--debug-agent')
@@ -126,9 +114,7 @@
       } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
-        if (-1 === process.argv[1].indexOf('__enclose_io_memfs__')) {
-          process.argv[1] = path.resolve(process.argv[1]);
-        }
+        process.argv[1] = path.resolve(process.argv[1]);
 
         const Module = NativeModule.require('module');
 
@@ -454,7 +440,6 @@
   }
 
   NativeModule._source = process.binding('natives');
-
   NativeModule._cache = {};
 
   NativeModule.require = function(id) {
@@ -486,9 +471,6 @@
   };
 
   NativeModule.exists = function(id) {
-    if ('win32' === process.platform && -1 !== id.indexOf('__enclose_io_memfs__')) {
-      id = id.replace(/\\/g, '/');
-    }
     return NativeModule._source.hasOwnProperty(id);
   };
 
@@ -548,115 +530,6 @@
 
   NativeModule.prototype.cache = function() {
     NativeModule._cache[this.id] = this;
-  };
-
-  process.binding('natives').__enclose_io_memfs_stat_file__ = function(path) {
-    const fsModule = NativeModule.require('fs');
-    return new fsModule.Stats(
-        0,                                        // dev
-        33188,                                    // mode: regular file w/ 644
-        1,                                        // nlink: only one
-        0,                                        // uid
-        0,                                        // gid
-        0,                                        // rdev
-        0,                                        // blksize
-        0,                                        // ino
-        process.binding('natives').__enclose_io_memfs_get__(path).length,
-        0,                                        // blocks
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
-    );
-  }
-  process.binding('natives').__enclose_io_memfs_stat_dir__ = function(path) {
-    const fsModule = NativeModule.require('fs');
-    return new fsModule.Stats(
-        0,                                        // dev
-        16877,                                    // mode: directory w/ 40755
-        // nlink: 2 + num
-        2 + process.binding('natives').__enclose_io_memfs_readdir__(path).length,
-        0,                                        // uid
-        0,                                        // gid
-        0,                                        // rdev
-        0,                                        // blksize
-        0,                                        // ino
-        1,                                        // size - 1
-        0,                                        // blocks
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-        Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-        Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
-    );
-  }
-  process.binding('natives').__enclose_io_memfs_short_path__ = function(path) {
-    const pathModule = NativeModule.require('path');
-    path = pathModule.resolve(path);
-    var short_index = path.indexOf('/__enclose_io_memfs__');
-    if (-1 === short_index) {
-      short_index = path.indexOf('\\__enclose_io_memfs__');
-    }
-    if (-1 === short_index) {
-      return path;
-    } else {
-      return path.substring(short_index);
-    }
-  };
-  process.binding('natives').__enclose_io_memfs_resolve__ = function(curPath, path) {
-    const pathModule = NativeModule.require('path');
-    if (-1 === path.indexOf('__enclose_io_memfs__')) {
-      return pathModule.resolve(curPath, path);
-    } else {
-      return process.binding('natives').__enclose_io_memfs_short_path__(path);
-    }
-  };
-  process.binding('natives').__enclose_io_memfs_get__ = function(path) {
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    return process.binding('natives')[path];
-  };
-  process.binding('natives').__enclose_io_memfs_exist_file__ = function(path) {
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    return process.binding('natives').hasOwnProperty(path);
-  };
-  process.binding('natives').__enclose_io_memfs_exist_dir__ = function(path) {
-    // fail fast
-    if (-1 === path.indexOf('__enclose_io_memfs__')) {
-      return false;
-    }
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    if ('/' !== path[path.length - 1]) {
-      path += '/';
-    }
-    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
-      function(x) { return 0 === x.lastIndexOf(path, 0); } );
-    return ret.length > 0;
-  };
-  process.binding('natives').__enclose_io_memfs_readdir__ = function(path) {
-    // fail fast
-    if (-1 === path.indexOf('__enclose_io_memfs__')) {
-      return [];
-    }
-    const pathModule = NativeModule.require('path');
-    path = process.binding('natives').__enclose_io_memfs_short_path__(path);
-    if (process.platform === 'win32') {
-      path = path.replace(/\\/g, '/');
-    }
-    if ('/' !== path[path.length - 1]) {
-      path += '/';
-    }
-    var ret = Object.getOwnPropertyNames(process.binding('natives')).filter(
-      function(x) { return 0 === x.lastIndexOf(path, 0); } ).map(
-      function(x) { return (pathModule.relative(path, x)).split(pathModule.sep)[0] });
-    return Array.from(new Set(ret));
   };
 
   startup();

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Minqi Pan
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -20,7 +20,6 @@ module Node
       
       def run!
         Utils.chdir(@vendor_node) do
-          Utils.inject_memfs(File.expand_path('./test/fixtures', @vendor_node), @vendor_node)
           STDERR.puts "-> FileUtils.rm_f(#{Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node'})"
           FileUtils.rm_f(Gem.win_platform? ? 'Release\\node.exe' : 'out/Release/node')
           File.open(File.expand_path('./lib/enclose_io_entrance.js', @vendor_node), "w") { |f| f.puts 'module.exports = false;' }

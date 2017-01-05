@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Minqi Pan
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -19,7 +19,7 @@ module Node
     def self.node_version
       @node_version ||= peek_node_version
     end
-    
+
     def self.peek_node_version
       version_info = File.read(File.join(VENDOR_DIR, 'node/src/node_version.h'))
       versions = []
@@ -40,7 +40,7 @@ module Node
       end
       versions.join('.')
     end
-    
+
     def initialize(entrance, options = {})
       @options = options
       @entrance = entrance
@@ -48,6 +48,7 @@ module Node
       init_options
       init_entrance
       init_tmpdir
+      init_libsquash
     end
 
     def init_entrance
@@ -70,6 +71,7 @@ module Node
     end
 
     def init_options
+      options[:npm_path] ||= 'npm'
       if Gem.win_platform?
         @options[:output] ||= 'a.exe'
       else
@@ -94,25 +96,162 @@ module Node
 
       Utils.prepare_tmpdir(@options[:tmpdir])
       @vendor_node = File.join(@options[:tmpdir], 'node')
+      @vendor_node_zlib = File.join(@vendor_node, 'deps', 'zlib')
+      @vendor_node_uv = File.join(@vendor_node, 'deps', 'uv')
+      @vendor_node_src = File.join(@vendor_node, 'src')
+      @vendor_node_enclose_io = File.join(@vendor_node, 'enclose_io')
+      @vendor_node_squash_include = File.join(@vendor_node, 'squash_include')
+    end
+    
+    def init_libsquash
+      @vendor_squash_dir = File.join @options[:tmpdir], 'libsquash'
+      raise "#{@vendor_squash_dir} does not exist" unless Dir.exist?(@vendor_squash_dir)
+      @vendor_squash_include_dir = File.join(@vendor_squash_dir, 'include')
+      @vendor_squash_build_dir = File.join(@vendor_squash_dir, 'build')
+      @vendor_squash_sample_dir = File.join(@vendor_squash_dir, 'sample')
+      STDERR.puts "-> FileUtils.mkdir_p #{@vendor_squash_build_dir}"
+      FileUtils.mkdir_p(@vendor_squash_build_dir)
+      raise "#{@vendor_squash_build_dir} does not exist" unless Dir.exist?(@vendor_squash_build_dir)
+    end
+    
+    def compile_libsquash
+      Utils.chdir(@vendor_squash_build_dir) do
+        Utils.run({'MACOSX_DEPLOYMENT_TARGET' => '10.7'}, "cmake -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
+        Utils.run({'MACOSX_DEPLOYMENT_TARGET' => '10.7'}, "cmake --build .")
+        Utils.remove_dynamic_libs(@vendor_squash_build_dir)
+        Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
+      end
+    end
+
+    def prepared?
+      ret = false
+      Utils.chdir(@vendor_node) do
+        if Gem.win_platform?
+          ret = %w{
+            libsquash.lib
+          }.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
+        else
+          ret = %w{
+            libsquash.a
+          }.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
+        end
+      end
+      ret
+    end
+
+    def prepare!
+      compile_libsquash
     end
 
     def run!
-      Utils.chdir(@project_root) do
-        Utils.run("npm install")
-      end
-      @copy_dir = Utils.inject_memfs(@project_root, @vendor_node)
-      inject_entrance
+      prepare! unless prepared?
+      raise 'Unable to prepare' unless prepared?
+      npm_deploy
+      make_enclose_io_memfs
+      make_enclose_io_vars
       Gem.win_platform? ? compile_win : compile
     end
 
-    def inject_entrance
-      target = File.expand_path('./lib/enclose_io_entrance.js', @vendor_node)
-      path = mempath @entrance
-      File.open(target, "w") { |f| f.puts %Q`module.exports = "#{path}";` }
-      # remove shebang
-      lines = File.read(@entrance).lines
-      lines[0] = "// #{lines[0]}" if '#!' == lines[0][0..1]
-      File.open(copypath(@entrance), "w") { |f| f.print lines.join }
+    def npm_deploy
+      @work_dir = File.join(@options[:tmpdir], '__work_dir__')
+      STDERR.puts "-> FileUtils.rm_rf(#{@work_dir})"
+      FileUtils.rm_rf(@work_dir)
+      STDERR.puts "-> FileUtils.mkdir_p #{@work_dir}"
+      FileUtils.mkdir_p(@work_dir)
+
+      @work_dir_inner = File.join(@work_dir, '__enclose_io_memfs__')
+      STDERR.puts "-> FileUtils.mkdir_p #{@work_dir_inner}"
+      FileUtils.mkdir_p(@work_dir_inner)
+
+      FileUtils.cp_r(@project_root, @work_dir_inner)
+      Utils.chdir(@work_dir_inner) do
+        Utils.run("#{Shellwords.escape options[:npm_path]} install")
+        STDERR.puts `git status`
+        STDERR.puts "-> FileUtils.rm_rf('.git')"
+        FileUtils.rm_rf('.git')
+      end
+    end
+
+    def make_enclose_io_memfs
+      STDERR.puts "-> FileUtils.cp_r(#{@vendor_squash_sample_dir}, #{@vendor_node_enclose_io})"
+      FileUtils.cp_r(@vendor_squash_sample_dir, @vendor_node_enclose_io)
+
+      STDERR.puts "-> FileUtils.cp_r(#{@vendor_squash_include_dir}, #{@vendor_node_squash_include})"
+      FileUtils.cp_r(@vendor_squash_include_dir, @vendor_node_squash_include)
+
+      Utils.chdir(@vendor_node) do
+        Utils.run("mksquashfs -version")
+        Utils.run("mksquashfs #{Shellwords.escape @work_dir} enclose_io/enclose_io_memfs.squashfs")
+        bytes = IO.binread('enclose_io/enclose_io_memfs.squashfs').bytes
+        # TODO slow operation
+        # remember to change vendor/libsquash/sample/enclose_io_memfs.c as well
+        File.open("enclose_io/enclose_io_memfs.c", "w") do |f|
+          f.puts '#include <stdint.h>'
+          f.puts '#include <stddef.h>'
+          f.puts ''
+          f.puts "const uint8_t enclose_io_memfs[#{bytes.size}] = { #{bytes[0]}"
+          i = 1
+          while i < bytes.size
+            f.print ','
+            f.puts bytes[(i)..(i + 100)].join(',')
+            i += 101
+          end
+          f.puts '};'
+          f.puts ''
+        end
+        # TODO slow operation
+        if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
+          extra_cc_arg = '-mmacosx-version-min=10.7'
+        else
+          extra_cc_arg = ''
+        end
+        Utils.run("cc #{extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
+        raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
+        Utils.run("cc #{extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
+        raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
+      end
+    end
+    
+    def make_enclose_io_vars
+      Utils.chdir(@vendor_node) do
+        File.open("enclose_io/enclose_io.h", "w") do |f|
+          # remember to change vendor/libsquash/sample/enclose_io.h as well
+          f.puts '#ifndef ENCLOSE_IO_H_999BC1DA'
+          f.puts '#define ENCLOSE_IO_H_999BC1DA'
+          f.puts ''
+          f.puts '#include "enclose_io_common.h"'
+          f.puts '#include "enclose_io_intercept.h"'
+          f.puts ''
+          chr_type = Gem.win_platform? ? 'wchar_t' : 'char'
+          f.puts %Q!
+#define ENCLOSE_IO_ENTRANCE do { \\\n\
+		new_argv = (#{chr_type} **)malloc( (argc + 1) * sizeof(#{chr_type} *)); \\\n\
+		assert(new_argv); \\\n\
+		new_argv[0] = argv[0]; \\\n\
+		new_argv[1] = #{mempath(@entrance).inspect}; \\\n\
+		for (size_t i = 1; i < argc; ++i) { \\\n\
+			new_argv[2 + i - 1] = argv[i]; \\\n\
+		} \\\n\
+		new_argc = argc + 1; \\\n\
+		/* argv memory should be adjacent. */ \\\n\
+		size_t total_argv_size = 0; \\\n\
+		for (size_t i = 0; i < new_argc; ++i) { \\\n\
+			total_argv_size += strlen(new_argv[i]) + 1; \\\n\
+		} \\\n\
+		argv_memory = (#{chr_type} *)malloc( (total_argv_size) * sizeof(#{chr_type})); \\\n\
+		assert(argv_memory); \\\n\
+		for (size_t i = 0; i < new_argc; ++i) { \\\n\
+			memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1); \\\n\
+			new_argv[i] = argv_memory; \\\n\
+			argv_memory += strlen(new_argv[i]) + 1; \\\n\
+		} \\\n\
+		assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
+	} while(0)
+          !.strip
+          f.puts '#endif'
+          f.puts ''
+        end
+      end
     end
 
     def compile_win

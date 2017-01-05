@@ -2,7 +2,7 @@
 
 ## v0.9.2
 
-(work in progress)
+* use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14
 
 ## v0.9.1
 

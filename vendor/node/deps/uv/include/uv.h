@@ -25,6 +25,8 @@
 #define UV_H
 #ifdef __cplusplus
 extern "C" {
+#else
+#include "enclose_io.h"
 #endif
 
 #ifdef _WIN32

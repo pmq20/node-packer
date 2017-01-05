@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Minqi Pan
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -37,29 +37,23 @@ module Node
             end
           end
         end
-
-        def inject_memfs(source, target)
-          copy_dir = File.expand_path("./lib#{MEMFS}", target)
-          if File.exist?(copy_dir)
-            STDERR.puts "-> FileUtils.remove_entry_secure(#{copy_dir})"
-            FileUtils.remove_entry_secure(copy_dir)
-          end
-          STDERR.puts "-> FileUtils.cp_r(#{source}, #{copy_dir})"
-          FileUtils.cp_r(source, copy_dir)
-          manifest = File.expand_path('./enclose_io_manifest.txt', target)
-          File.open(manifest, "w") do |f|
-            Dir["#{copy_dir}/**/*"].each do |fullpath|
-              next unless File.file?(fullpath)
-              if 0 == File.size(fullpath) && Gem.win_platform?
-                # Fix VC++ Error C2466
-                # TODO: what about empty file semantics?
-                File.open(fullpath, 'w') { |f| f.puts ' ' }
-              end
-              entry = "lib#{fullpath[(fullpath.index MEMFS)..-1]}"
-              f.puts entry
+        
+        def remove_dynamic_libs(path)
+          ['dll', 'dylib', 'so'].each do |extname|
+            Dir["#{path}/**/*.#{extname}"].each do |x|
+              STDERR.puts "-> FileUtils.rm_f #{x}"
+              FileUtils.rm_f(x)
             end
           end
-          return copy_dir
+        end
+
+        def copy_static_libs(path, target)
+          ['lib', 'a'].each do |extname|
+            Dir["#{path}/*.#{extname}"].each do |x|
+              STDERR.puts "-> FileUtils.cp #{x}, #{target}"
+              FileUtils.cp(x, target)
+            end
+          end
         end
       end
     end

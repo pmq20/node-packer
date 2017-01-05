@@ -11,27 +11,26 @@ require 'optparse'
 USAGE = %Q{
 
 Node.js Compiler (nodec) v#{::Node::Compiler::VERSION} (runtime #{::Node::Compiler.node_version})
-Compiler for Node.js which compiles your project into a single executable.
+Compiler for Node.js which compiles your application into a single executable.
 
-Usage: nodec [OPTION]... [ENTRANCE]
+Usage:
+  nodec [OPTION]... [ENTRANCE]
 
 }.strip
 
 EXAMPLES = %Q{
 
-Example 1: Compiling a CLI project
+Examples:
+  Compiling a command-line application:
     git clone https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
 
-Example 2: Compiling a web application
+  Compiling a web application:
     git clone https://github.com/cnodejs/nodeclub.git
     cd nodeclub
     cp config.default.js config.js
     nodec app.js
-
-Example 3: Compiling a npm package
-    nodec --npm-package=coffee-script coffee
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler
@@ -51,8 +50,8 @@ end
 OptionParser.new do |opts|
   opts.banner = USAGE
 
-  opts.on("-pDIR", "--project-root=DIR", "Speicifies the path to the root of the project") do |dir|
-    options[:project_root] = dir
+  opts.on("-rDIR", "--root=DIR", "Speicifies the path to the root of the application") do |dir|
+    options[:root] = dir
   end
 
   opts.on("-oFILE", "--output=FILE", "Speicifies the path of the output file") do |file|
@@ -71,16 +70,8 @@ OptionParser.new do |opts|
     options[:vcbuild_args] = args
   end
 
-  opts.on("--npm-package=NAME", "Compiles the specified npm package") do |name|
-    options[:npm_package] = name
-  end
-
-  opts.on("--npm-package-version=VER", "Compiles the specified version of the npm package") do |ver|
-    options[:npm_package_version] = ver
-  end
-
-  opts.on("--npm-path=FILE", "Speifices the path of npm") do |file|
-    options[:npm_path] = file
+  opts.on("--npm=FILE", "Speifices the path of npm") do |file|
+    options[:npm] = file
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do

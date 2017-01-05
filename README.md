@@ -1,6 +1,6 @@
 # Node.js Compiler
 
-Compiler for Node.js which compiles your project into a single executable.
+Compiler for Node.js which compiles your application into a single executable.
 
 [![Travis CI](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
@@ -14,21 +14,19 @@ You might need to `sudo` if prompted with no-permission errors.
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]
-        -p, --project-root=DIR           Speicifies the path to the root of the project
-        -o, --output=FILE                Speicifies the path of the output file
-        -d, --tmpdir=DIR                 Speicifies the directory for temporary files
-            --make-args=ARGS             Passes extra arguments to make
-            --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
-            --npm-package=NAME           Compiles the specified npm package
-            --npm-package-version=VER    Compiles the specified version of the npm package
-            --npm-path=FILE              Speifices the path of npm
-        -v, --version                    Prints the version of nodec and exit
-            --node-version               Prints the version of the Node.js runtime and exit
-        -h, --help                       Prints this help and exit
+      -r, --root=DIR                   Speicifies the path to the root of the application
+      -o, --output=FILE                Speicifies the path of the output file
+      -d, --tmpdir=DIR                 Speicifies the directory for temporary files
+          --make-args=ARGS             Passes extra arguments to make
+          --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
+          --npm=FILE                   Speifices the path of npm
+      -v, --version                    Prints the version of nodec and exit
+          --node-version               Prints the version of the Node.js runtime and exit
+      -h, --help                       Prints this help and exit
 
 ## Examples
 
-### Compiling a CLI project
+### Compiling a command-line application
 
     git clone https://github.com/jashkenas/coffeescript.git
     cd coffeescript
@@ -40,10 +38,6 @@ You might need to `sudo` if prompted with no-permission errors.
     cd nodeclub
     cp config.default.js config.js
     nodec app.js
-
-### Compiling a npm package
-
-    nodec --npm-package=coffee-script coffee
 
 ## Development
 

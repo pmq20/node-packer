@@ -7,7 +7,6 @@ require "node/compiler/constants"
 require "node/compiler/error"
 require "node/compiler/utils"
 require "node/compiler/test"
-require "node/compiler/npm"
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
@@ -61,23 +60,23 @@ module Node
       # Important to expand_path; otherwiser the while would not be right
       @entrance = File.expand_path(@entrance)
       raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
-      if @options[:project_root]
-        @project_root = File.expand_path(@options[:project_root])
+      if @options[:root]
+        @root = File.expand_path(@options[:root])
       else
-        @project_root = File.dirname(@entrance)
+        @root = File.dirname(@entrance)
         # this while has to correspond with the expand_path above
-        while !File.exist?(File.expand_path('./package.json', @project_root))
-          break if '/' == @project_root
-          @project_root = File.expand_path('..', @project_root)
+        while !File.exist?(File.expand_path('./package.json', @root))
+          break if '/' == @root
+          @root = File.expand_path('..', @root)
         end
       end
-      unless File.exist?(File.expand_path('./package.json', @project_root))
-        raise Error, "Cannot find a package.json at the project root #{@project_root}"
+      unless File.exist?(File.expand_path('./package.json', @root))
+        raise Error, "Cannot find a package.json inside #{@root}"
       end
     end
 
     def init_options
-      @options[:npm_path] ||= 'npm'
+      @options[:npm] ||= 'npm'
       if Gem.win_platform?
         @options[:output] ||= 'a.exe'
       else
@@ -87,17 +86,11 @@ module Node
 
       @options[:tmpdir] ||= File.expand_path("nodec", Dir.tmpdir)
       @options[:tmpdir] = File.expand_path(@options[:tmpdir])
-      
-      if @options[:npm_package]
-        @options[:npm_package_version] ||= 'latest'
-        npm = ::Node::Compiler::Npm.new(@options[:npm_package], @options[:npm_package_version], @options[:tmpdir])
-        @entrance = npm.get_entrance(@entrance)
-      end
     end
 
     def init_tmpdir
-      if @options[:tmpdir].include? @project_root
-        raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside the project root #{@project_root}."
+      if @options[:tmpdir].include? @root
+        raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
       end
 
       Utils.prepare_tmpdir(@options[:tmpdir])
@@ -152,13 +145,13 @@ module Node
     def run!
       prepare! unless prepared?
       raise 'Unable to prepare' unless prepared?
-      npm_deploy
+      npm_install
       make_enclose_io_memfs
       make_enclose_io_vars
       Gem.win_platform? ? compile_win : compile
     end
 
-    def npm_deploy
+    def npm_install
       @work_dir = File.join(@options[:tmpdir], '__work_dir__')
       STDERR.puts "-> FileUtils.rm_rf(#{@work_dir})"
       FileUtils.rm_rf(@work_dir)
@@ -169,9 +162,9 @@ module Node
       STDERR.puts "-> FileUtils.mkdir_p #{@work_dir_inner}"
       FileUtils.mkdir_p(@work_dir_inner)
 
-      FileUtils.cp_r(@project_root, @work_dir_inner)
+      FileUtils.cp_r(@root, @work_dir_inner)
       Utils.chdir(@work_dir_inner) do
-        Utils.run("#{Shellwords.escape @options[:npm_path]} install")
+        Utils.run("#{Shellwords.escape @options[:npm]} install")
         STDERR.puts `git status`
         STDERR.puts "-> FileUtils.rm_rf('.git')"
         FileUtils.rm_rf('.git')
@@ -274,14 +267,14 @@ module Node
 
     def mempath(path)
       path = File.expand_path(path)
-      raise 'Logic error in mempath' unless @project_root == path[0...(@project_root.size)]
-      "#{MEMFS}#{path[(@project_root.size)..-1]}"
+      raise 'Logic error in mempath' unless @root == path[0...(@root.size)]
+      "#{MEMFS}#{path[(@root.size)..-1]}"
     end
 
     def copypath(path)
       path = File.expand_path(path)
-      raise 'Logic error 1 in copypath' unless @project_root == path[0...(@project_root.size)]
-      ret = File.join(@copy_dir, path[(@project_root.size)..-1])
+      raise 'Logic error 1 in copypath' unless @root == path[0...(@root.size)]
+      ret = File.join(@copy_dir, path[(@root.size)..-1])
       raise 'Logic error 2 in copypath' unless File.exist?(ret)
       ret
     end

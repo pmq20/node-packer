@@ -5,12 +5,9 @@
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
 
-CMD = %q{
-  git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-  cd coffeescript
-  ruby ../bin/nodec bin/coffee
-}
-
-pid = spawn(CMD)
+puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
+raise 'git failed' unless $?.success?
+Dir.chdir('coffeescript')
+pid = spawn('ruby ../bin/nodec bin/coffee')
 pid, status = Process.wait2(pid)
-raise "Failed running #{CMD}" unless status.success?
+raise "Failed running nodec" unless status.success?

@@ -15,5 +15,7 @@ build: off
 
 test_script:
   - ps: |
+
       ruby tests/coffeescript
+
       ruby tests/nodeclub

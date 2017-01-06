@@ -944,7 +944,7 @@
   #       }],
   #     ]
   #   }
-  # ], # end targets
+  ], # end targets
 
   'conditions': [
     ['OS=="aix"', {

@@ -27,5 +27,9 @@ install:
 before_script:
   - rvm install ruby-2.4.0
   - rvm use ruby-2.4.0
+  - cmake --version
+  - ruby --version
+  - node --version
+  - npm --version
 
 script: tests/$NODEC_TEST

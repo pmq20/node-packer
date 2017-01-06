@@ -14,7 +14,17 @@ environment:
 build: off
 
 test_script:
-- cmd: |
+- ps: |
+    Start-FileDownload http://www.enclose.io/rb240-win32.zip -FileName 
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("ruby240_win32.zip", "C:\projects\node-compiler")
+
+    set PATH=C:\projects\node-compiler\usr\bin;%PATH%
+
+    ruby --version
+
     cmake --version
 
     ruby tests/coffeescript

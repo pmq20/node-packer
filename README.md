@@ -7,11 +7,11 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
 ## Download
 
-|  Platform  | x86 | x64 |
-|:----------:|-----|-----|
-|  Mac OS X  |     |     |
-|    Linux   |     |     |
-|   Windows  |     |     |
+| Operating System | Architecture | Link |
+|:----------------:|--------------|------|
+|     Mac OS X     |     x86-64   |      |
+|       Linux      |     x86-64   |      |
+|      Windows     |     x86      |      |
 
 ## Usage
 

@@ -1,15 +1,10 @@
 version: '{build}'
 
 environment:
-  matrix:
-    - GENERATOR: "Visual Studio 14 2015"
-      ARCH: 32
-      PlatformToolset: v140
-      Platform: x86
-    - GENERATOR: "Visual Studio 14 2015 Win64"
-      ARCH: 64
-      PlatformToolset: v140
-      Platform: x64
+  GENERATOR: "Visual Studio 14 2015"
+  ARCH: 32
+  PlatformToolset: v140
+  Platform: x86
 
 build: off
 
@@ -21,7 +16,7 @@ test_script:
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
 
-    set PATH=C:\projects\node-compiler\usr\bin;$env:Path
+    $env:Path = "C:\projects\node-compiler\usr\bin;" + $env:Path;
 
     ruby --version
 

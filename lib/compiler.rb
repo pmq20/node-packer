@@ -137,19 +137,17 @@ class Compiler
   end
 
   def prepared?
-    ret = false
     Utils.chdir(@vendor_node) do
-      if Gem.win_platform?
-        ret = %w{
-          libsquash.lib
-        }.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
-      else
-        ret = %w{
+      if Gem.win_platform? && File.exists?('libsquash.a')
+        STDERR.puts "-> FileUtils.mv('squash.lib', 'libsquash.a')"
+        FileUtils.mv('squash.lib', 'libsquash.a')
+      end
+      return (
+        %w{
           libsquash.a
         }.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
-      end
+      )
     end
-    ret
   end
 
   def prepare!

@@ -22,9 +22,10 @@ addons:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 
 before_script:
   - rvm install ruby-2.4.0
   - rvm use ruby-2.4.0
 
-script: /bin/sh -x tests/$NODEC_TEST
+script: tests/$NODEC_TEST

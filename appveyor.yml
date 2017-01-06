@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: '{build}'
 
 environment:
   matrix:
@@ -11,11 +11,10 @@ environment:
       PlatformToolset: v140
       Platform: x64
 
-build: off
+build_script:
+- ps: |
+    cmake --version
 
-test_script:
-  - ps: |
+    ruby tests/coffeescript
 
-      ruby tests/coffeescript
-
-      ruby tests/nodeclub
+    ruby tests/nodeclub

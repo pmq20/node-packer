@@ -14,10 +14,12 @@ env:
 addons:
   apt:
     packages:
-      - cmake
       - squashfs-tools
+      - gcc-4.8
+      - g++-4.8
 
-install: if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
 
 before_script:
   - rvm install ruby-2.4.0

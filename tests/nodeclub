@@ -1,5 +1,16 @@
-#!/bin/sh -x
+#!/usr/bin/env ruby
 
-git clone --depth 1 https://github.com/cnodejs/nodeclub.git
-cd nodeclub
-../bin/nodec app.js
+# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
+# 
+# This file is part of Node.js Compiler, distributed under the MIT License
+# For full terms see the included LICENSE file
+
+CMD = %q{
+  git clone --depth 1 https://github.com/cnodejs/nodeclub.git
+  cd nodeclub
+  ruby ../bin/nodec app.js
+}
+
+pid = spawn(CMD)
+pid, status = Process.wait2(pid)
+raise Error, "Failed running #{CMD}" unless status.success?

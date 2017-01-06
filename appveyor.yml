@@ -1,11 +1,8 @@
 version: 1.0.{build}
 build: off
 test_script:
-- cmd: >-
-    dir C:\
-
-    set PATH=C:\Ruby24\bin;%PATH%
-
-    tests\coffeescript.bat
-
-    tests\nodeclub.bat
+- ps: |
+    $ErrorActionPreference="Stop"
+    # Start-FileDownload ... -FileName ruby.exe
+    ruby tests/coffeescript
+    ruby tests/nodeclub

@@ -7,7 +7,7 @@ environment:
   Platform: x86
 
 build_script:
-  - ps: |
+- ps: |
     $ErrorActionPreference="Stop"
 
     Start-FileDownload http://www.enclose.io/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
@@ -17,7 +17,7 @@ build_script:
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
 
 test_script:
-  - cmd: |
+- cmd: |
     set PATH=C:\projects\node-compiler\usr\bin;%PATH%
 
     ruby tests/coffeescript

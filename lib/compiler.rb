@@ -125,10 +125,14 @@ class Compiler
   
   def compile_libsquash
     Utils.chdir(@vendor_squash_build_dir) do
-      Utils.run("cmake -DCMAKE_C_FLAGS=#{Shellwords.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
-      Utils.run("cmake --build .")
+      Utils.run("cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=#{Shellwords.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
+      Utils.run("cmake --build . --config Release")
       Utils.remove_dynamic_libs(@vendor_squash_build_dir)
-      Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
+      if Gem.win_platform?
+        Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Release'), @vendor_node)
+      else
+        Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
+      end
     end
   end
 

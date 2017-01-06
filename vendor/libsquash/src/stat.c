@@ -7,10 +7,7 @@
  */
 
 #include "squash.h"
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/stat.h>
+
 
 int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 {

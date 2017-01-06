@@ -10,7 +10,7 @@ build_script:
 - ps: |
     $ErrorActionPreference="Stop"
 
-    Start-FileDownload http://www.enclose.io/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
+    Start-FileDownload https://github.com/pmq20/rubyinstaller/files/689117/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 

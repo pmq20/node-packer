@@ -8,9 +8,7 @@
 
 #include "squash.h"
 #include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/stat.h>
+
 #include <assert.h>
 
 SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
@@ -29,7 +27,8 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	dir->entries = NULL;
 	dir->nr = 0;
 	dir->fd = squash_open(fs, filename);
-	dir->actual_nr = dir->loc = 0;
+	dir->actual_nr = 0;
+	dir->loc = 0;
 	if (-1 == dir->fd)
 	{
 		goto failure;

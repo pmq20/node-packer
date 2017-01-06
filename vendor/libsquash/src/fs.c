@@ -25,11 +25,11 @@
 #include "squash/fs.h"
 
 #include "squash/file.h"
-#include "squash/nonstd.h"
+
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+
 
 
 #define DATA_CACHED_BLKS 1

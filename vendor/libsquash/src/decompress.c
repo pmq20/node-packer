@@ -23,13 +23,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "squash/decompress.h"
-
 #include "squash/squashfs_fs.h"
 
-#include <string.h>
-
 #include <zlib.h>
-
 #include <assert.h>
 
 static sqfs_err sqfs_decompressor_zlib(void *in, size_t insz,

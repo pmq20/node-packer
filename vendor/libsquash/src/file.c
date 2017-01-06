@@ -25,11 +25,9 @@
 #include "squash/file.h"
 
 #include "squash/fs.h"
-#include "squash/table.h"
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 
 sqfs_err sqfs_frag_entry(sqfs *fs, struct squashfs_fragment_entry *frag,
 		uint32_t idx) {

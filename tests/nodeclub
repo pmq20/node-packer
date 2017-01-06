@@ -13,4 +13,4 @@ CMD = %q{
 
 pid = spawn(CMD)
 pid, status = Process.wait2(pid)
-raise Error, "Failed running #{CMD}" unless status.success?
+raise "Failed running #{CMD}" unless status.success?

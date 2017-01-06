@@ -12,7 +12,7 @@ environment:
       Platform: x64
 
 build_script:
-- ps: |
+- cmd: |
     cmake --version
 
     ruby tests/coffeescript

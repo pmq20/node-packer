@@ -11,7 +11,9 @@ environment:
       PlatformToolset: v140
       Platform: x64
 
-build_script:
+build: off
+
+test_script:
 - cmd: |
     cmake --version
 

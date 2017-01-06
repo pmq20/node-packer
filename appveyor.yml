@@ -1,8 +1,19 @@
 version: 1.0.{build}
+
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 14 2015"
+      ARCH: 32
+      PlatformToolset: v140
+      Platform: x86
+    - GENERATOR: "Visual Studio 14 2015 Win64"
+      ARCH: 64
+      PlatformToolset: v140
+      Platform: x64
+
 build: off
+
 test_script:
-- ps: |
-    $ErrorActionPreference="Stop"
-    # Start-FileDownload ... -FileName ruby.exe
-    ruby tests/coffeescript
-    ruby tests/nodeclub
+  - ps: |
+      ruby tests/coffeescript
+      ruby tests/nodeclub

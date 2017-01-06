@@ -13,6 +13,8 @@ env:
 
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - squashfs-tools
       - gcc-4.8

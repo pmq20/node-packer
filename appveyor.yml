@@ -15,11 +15,19 @@ build: off
 
 test_script:
 - ps: |
-    Start-FileDownload http://www.enclose.io/rb240-win32.zip -FileName rb240-win32.zip
+    dir
+
+    Start-FileDownload http://www.enclose.io/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
+
+    dir
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+    dir
+
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
+
+    dir
 
     set PATH=C:\projects\node-compiler\usr\bin;%PATH%
 

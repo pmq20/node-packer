@@ -1,13 +1,10 @@
-version: '{build}'
+gversion: '{build}'
 
 environment:
   GENERATOR: "Visual Studio 14 2015"
   ARCH: 32
   PlatformToolset: v140
   Platform: x86
-
-install:
-  - ps: Install-Product node 7.4.0 x86
 
 build_script:
 - ps: |
@@ -17,11 +14,15 @@ build_script:
 
     Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
 
+    Start-FileDownload https://github.com/pmq20/node/releases/download/node740-win32/node740-win32.zip -FileName C:\projects\node-compiler\node740-win32.zip
+
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\sqfs43-win32.zip", "C:\projects\node-compiler\usr\bin")
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\node740-win32.zip", "C:\projects\node-compiler\usr\bin")
 
 test_script:
 - cmd: |

@@ -220,8 +220,6 @@ class Compiler
         Utils.run("cl")
         Utils.run("cl -c enclose_io\\enclose_io_memfs.c")
         raise 'failed to compile enclose_io\\enclose_io_memfs.c' unless File.exist?('enclose_io_memfs.obj')
-        Utils.run("cl -Ienclose_io -Isquash_include -c enclose_io\\enclose_io_intercept.c")
-        raise 'failed to compile enclose_io\\enclose_io_intercept.c' unless File.exist?('enclose_io_intercept.obj')
       else
         Utils.run("cc #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
         raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')

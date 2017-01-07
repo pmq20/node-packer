@@ -1,8 +1,5 @@
 version: '{build}'
 
-environment:
-  ARCH: 32
-
 build_script:
 - ps: |
     $ErrorActionPreference="Stop"

@@ -17,13 +17,16 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/param.h>
-#include <sys/uio.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
 #include <stdarg.h>
 #include <assert.h>
+
+#ifndef _WIN32
+#include <sys/param.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <dirent.h>
+#endif
 
 extern const uint8_t enclose_io_memfs[];
 extern sqfs *enclose_io_fs;

@@ -217,6 +217,7 @@ class Compiler
       end
       # TODO slow operation
       if Gem.win_platform?
+        Utils.run("cl")
         Utils.run("cl -c enclose_io\\enclose_io_memfs.c")
         raise 'failed to compile enclose_io\\enclose_io_memfs.c' unless File.exist?('enclose_io_memfs.obj')
         Utils.run("cl -Ienclose_io -Isquash_include -c enclose_io\\enclose_io_intercept.c")

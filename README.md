@@ -8,7 +8,7 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 ## Download
 
 | Operating System | Architecture | Link |
-|:----------------:|--------------|------|
+|:----------------:|:------------:|------|
 |     Mac OS X     |     x86-64   |      |
 |       Linux      |     x86-64   |      |
 |      Windows     |     x86      |      |

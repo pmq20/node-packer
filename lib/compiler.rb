@@ -196,6 +196,8 @@ class Compiler
     FileUtils.cp_r(@vendor_squash_include_dir, @vendor_node_squash_include)
 
     Utils.chdir(@vendor_node) do
+      FileUtils.rm_f('enclose_io/enclose_io_memfs.squashfs')
+      FileUtils.rm_f('enclose_io/enclose_io_memfs.c')
       Utils.run("mksquashfs -version")
       Utils.run("mksquashfs #{Shellwords.escape @work_dir} enclose_io/enclose_io_memfs.squashfs")
       bytes = IO.binread('enclose_io/enclose_io_memfs.squashfs').bytes
@@ -239,32 +241,59 @@ class Compiler
         f.puts '#include "enclose_io_common.h"'
         f.puts '#include "enclose_io_intercept.h"'
         f.puts ''
-        chr_type = Gem.win_platform? ? 'wchar_t' : 'char'
-        f.puts %Q!
-#define ENCLOSE_IO_ENTRANCE do { \\\n\
-	new_argv = (#{chr_type} **)malloc( (argc + 1) * sizeof(#{chr_type} *)); \\\n\
-	assert(new_argv); \\\n\
-	new_argv[0] = argv[0]; \\\n\
-	new_argv[1] = #{mempath(@entrance).inspect}; \\\n\
-	for (size_t i = 1; i < argc; ++i) { \\\n\
-		new_argv[2 + i - 1] = argv[i]; \\\n\
-	} \\\n\
-	new_argc = argc + 1; \\\n\
-	/* argv memory should be adjacent. */ \\\n\
-	size_t total_argv_size = 0; \\\n\
-	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-		total_argv_size += strlen(new_argv[i]) + 1; \\\n\
-	} \\\n\
-	argv_memory = (#{chr_type} *)malloc( (total_argv_size) * sizeof(#{chr_type})); \\\n\
-	assert(argv_memory); \\\n\
-	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-		memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1); \\\n\
-		new_argv[i] = argv_memory; \\\n\
-		argv_memory += strlen(new_argv[i]) + 1; \\\n\
-	} \\\n\
-	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
-} while(0)
-        !.strip
+        if Gem.win_platform?
+          f.puts %Q!
+  #define ENCLOSE_IO_ENTRANCE do { \\\n\
+  	new_argv = (wchar_t **)malloc( (argc + 1) * sizeof(wchar_t *)); \\\n\
+  	assert(new_argv); \\\n\
+  	new_argv[0] = wargv[0]; \\\n\
+  	new_argv[1] = L#{mempath(@entrance).inspect}; \\\n\
+  	for (size_t i = 1; i < argc; ++i) { \\\n\
+  		new_argv[2 + i - 1] = wargv[i]; \\\n\
+  	} \\\n\
+  	new_argc = argc + 1; \\\n\
+  	/* argv memory should be adjacent. */ \\\n\
+  	size_t total_argv_size = 0; \\\n\
+  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
+  		total_argv_size += wcslen(new_argv[i]) + 1; \\\n\
+  	} \\\n\
+  	argv_memory = (wchar_t *)malloc( (total_argv_size) * sizeof(wchar_t)); \\\n\
+  	assert(argv_memory); \\\n\
+  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
+  		memcpy(argv_memory, new_argv[i], (wcslen(new_argv[i]) + 1) * sizeof(wchar_t)); \\\n\
+  		new_argv[i] = argv_memory; \\\n\
+  		argv_memory += (wcslen(new_argv[i]) + 1) * sizeof(wchar_t); \\\n\
+  	} \\\n\
+  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
+  } while(0)
+          !.strip
+        else
+          f.puts %Q!
+  #define ENCLOSE_IO_ENTRANCE do { \\\n\
+  	new_argv = (char **)malloc( (argc + 1) * sizeof(char *)); \\\n\
+  	assert(new_argv); \\\n\
+  	new_argv[0] = argv[0]; \\\n\
+  	new_argv[1] = #{mempath(@entrance).inspect}; \\\n\
+  	for (size_t i = 1; i < argc; ++i) { \\\n\
+  		new_argv[2 + i - 1] = argv[i]; \\\n\
+  	} \\\n\
+  	new_argc = argc + 1; \\\n\
+  	/* argv memory should be adjacent. */ \\\n\
+  	size_t total_argv_size = 0; \\\n\
+  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
+  		total_argv_size += strlen(new_argv[i]) + 1; \\\n\
+  	} \\\n\
+  	argv_memory = (char *)malloc( (total_argv_size) * sizeof(char)); \\\n\
+  	assert(argv_memory); \\\n\
+  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
+  		memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1); \\\n\
+  		new_argv[i] = argv_memory; \\\n\
+  		argv_memory += strlen(new_argv[i]) + 1; \\\n\
+  	} \\\n\
+  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
+  } while(0)
+          !.strip
+        end
         f.puts '#endif'
         f.puts ''
       end

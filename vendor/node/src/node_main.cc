@@ -1,9 +1,22 @@
+#include "node.h"
+
+#define WINDOWS_H_A80B5674
+typedef unsigned short sqfs_mode_t;
+typedef uint32_t sqfs_id_t;
+typedef DWORD64 sqfs_off_t;
+struct dirent
+{
+	long d_namlen;
+	ino_t d_ino;
+	char *d_name;
+	char *d_altname; /* short name */
+	short d_altlen;
+	uint8_t d_type;
+};
 extern "C" {
 #include "enclose_io.h"
 }
 sqfs *enclose_io_fs;
-
-#include "node.h"
 
 #ifdef _WIN32
 #include <VersionHelpers.h>

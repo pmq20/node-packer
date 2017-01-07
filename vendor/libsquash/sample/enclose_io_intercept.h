@@ -93,3 +93,4 @@ int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
 
 #endif
 #endif
+#endif

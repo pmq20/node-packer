@@ -32,13 +32,13 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    nodec --make-args=-j4 bin/coffee
+    nodec bin/coffee
 
 ### Compiling a web application
 
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    nodec --make-args=-j4 app.js
+    nodec app.js
 
 ## Contributing
 

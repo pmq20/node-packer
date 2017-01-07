@@ -26,12 +26,12 @@ Examples:
   Compiling a command-line application:
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    nodec --make-args=-j4 bin/coffee
+    nodec bin/coffee
 
   Compiling a web application:
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    nodec --make-args=-j4 app.js
+    nodec app.js
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler

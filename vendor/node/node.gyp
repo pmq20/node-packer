@@ -142,10 +142,10 @@
       ],
 
       'libraries': [
-          '../enclose_io/enclose_io_memfs.o',
-          '../enclose_io/enclose_io_intercept.o',
-          '../libsquash.a',
-          '../libzlib.a'
+          'enclose_io/enclose_io_memfs.o',
+          'enclose_io/enclose_io_intercept.o',
+          'libsquash.a',
+          'libzlib.a'
       ],
 
       'sources': [

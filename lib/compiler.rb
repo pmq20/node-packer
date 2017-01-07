@@ -137,14 +137,16 @@ class Compiler
   end
 
   def prepared?
-    Utils.chdir(@vendor_node) do
-      if Gem.win_platform?
-        deps = ['squash.lib']
-      else
-        deps = ['libsquash.a']
-      end
+    if Gem.win_platform?
+      deps = ['squash.lib']
+    else
+      deps = ['libsquash.a']
     end
-    deps.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
+    ret = nil
+    Utils.chdir(@vendor_node) do
+      ret = deps.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
+    end
+    ret
   end
 
   def prepare!

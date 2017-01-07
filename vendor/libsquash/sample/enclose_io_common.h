@@ -17,7 +17,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -26,6 +25,7 @@
 
 #ifdef _WIN32
 #else
+#include <sys/uio.h>
 #include <sys/param.h>
 #endif
 

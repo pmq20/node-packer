@@ -138,7 +138,7 @@ class Compiler
 
   def prepared?
     Utils.chdir(@vendor_node) do
-      if Gem.win_platform? && File.exists?('libsquash.a')
+      if Gem.win_platform? && File.exists?('squash.lib')
         STDERR.puts "-> FileUtils.mv('squash.lib', 'libsquash.a')"
         FileUtils.mv('squash.lib', 'libsquash.a')
       end

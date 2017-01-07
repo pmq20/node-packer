@@ -1,10 +1,7 @@
 version: '{build}'
 
 environment:
-  GENERATOR: "Visual Studio 14 2015"
   ARCH: 32
-  PlatformToolset: v140
-  Platform: x86
 
 build_script:
 - ps: |

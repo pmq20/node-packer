@@ -49,6 +49,12 @@ class Compiler
     init_tmpdir
     init_libsquash
 
+    if Gem.win_platform?
+      @cc_compiler = 'cl'
+    else
+      @cc_compiler = 'cc'
+    end
+
     if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
       @extra_cc_arg = '-mmacosx-version-min=10.7'
     else
@@ -211,9 +217,9 @@ class Compiler
         f.puts ''
       end
       # TODO slow operation
-      Utils.run("cc #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
+      Utils.run("#{@cc_compiler} #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
       raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
-      Utils.run("cc #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
+      Utils.run("#{@cc_compiler} #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
       raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
     end
   end

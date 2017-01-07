@@ -159,7 +159,13 @@ class Compiler
     npm_install
     make_enclose_io_memfs
     make_enclose_io_vars
-    Gem.win_platform? ? compile_win : compile
+    if Gem.win_platform?
+      compile_win
+    elsif RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
+      compile_mac
+    else
+      compile_linux
+    end
   end
 
   def npm_install
@@ -274,9 +280,20 @@ class Compiler
     FileUtils.cp(File.join(@vendor_node, 'Release\\node.exe'), @options[:output])
   end
 
-  def compile
+  def compile_mac
     Utils.chdir(@vendor_node) do
       Utils.run("./configure")
+      File.symlink('out/Release/libzlib.a', 'libzlib.a')
+      Utils.run("make #{@options[:make_args]}")
+    end
+    STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'out/Release/node')}, #{@options[:output]})"
+    FileUtils.cp(File.join(@vendor_node, 'out/Release/node'), @options[:output])
+  end
+
+  def compile_linux
+    Utils.chdir(@vendor_node) do
+      Utils.run("./configure")
+      File.symlink('out/Release/obj.target/deps/zlib/libzlib.a', 'libzlib.a')
       Utils.run("make #{@options[:make_args]}")
     end
     STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'out/Release/node')}, #{@options[:output]})"

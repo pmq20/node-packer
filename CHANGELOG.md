@@ -4,16 +4,22 @@
 
 use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14
 
+中文注解：接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，而且是根据访问需求在内存中进行部分解压，
+用户完全无感知，试验发现把 nodec 自身编译好之后可执行文件大小仅比 node 大 9 MB，这在分发产品时是非常优雅的；
+且支持多种数据结构，如符号链；且由于良好的数据结构设计，能解决之前目录遍历慢的问题；
+而且可以最大限度地减小对 node.js 代码的侵入性，因为 libsquash 的 API 跟系统调用风格一致，
+直接通过宏就可以统一改掉 libuv 中所有对文件系统的访问。
+
 ## v0.9.1
-
-[zh] 本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，而不污染编译器自身的资源目录，这使得下一步实现编译器自举成为可能。最后将运行时引擎版本升级到了 7.3.0。
-
-[en] See below.
 
 * add support to pack an entire Node.js project (e.g. nodeclub)
 * change the usage of the `nodec` command
 * stop polluting the vendor directory of nodec itself
 * upgrade to node-v7.3.0
+
+中文注解：本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
+亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，而不污染编译器自身的资源目录，
+这使得下一步实现编译器自举成为可能。最后将运行时引擎版本升级到了 7.3.0。
 
 ## v0.9.0
 

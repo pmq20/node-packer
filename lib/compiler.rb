@@ -311,6 +311,9 @@ class Compiler
   def compile_mac
     Utils.chdir(@vendor_node) do
       Utils.run("./configure")
+      STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
+      FileUtils.rm_f('libzlib.a')
+      STDERR.puts "-> File.symlink('out/Release/libzlib.a', 'libzlib.a')"
       File.symlink('out/Release/libzlib.a', 'libzlib.a')
       Utils.run("make #{@options[:make_args]}")
     end
@@ -321,6 +324,9 @@ class Compiler
   def compile_linux
     Utils.chdir(@vendor_node) do
       Utils.run("./configure")
+      STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
+      FileUtils.rm_f('libzlib.a')
+      STDERR.puts "-> File.symlink('out/Release/obj.target/deps/zlib/libzlib.a', 'libzlib.a')"
       File.symlink('out/Release/obj.target/deps/zlib/libzlib.a', 'libzlib.a')
       Utils.run("make #{@options[:make_args]}")
     end

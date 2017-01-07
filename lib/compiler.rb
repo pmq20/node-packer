@@ -49,12 +49,6 @@ class Compiler
     init_tmpdir
     init_libsquash
 
-    if Gem.win_platform?
-      @cc_compiler = 'cl'
-    else
-      @cc_compiler = 'cc'
-    end
-
     if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
       @extra_cc_arg = '-mmacosx-version-min=10.7'
     else
@@ -144,16 +138,13 @@ class Compiler
 
   def prepared?
     Utils.chdir(@vendor_node) do
-      if Gem.win_platform? && File.exists?('squash.lib')
-        STDERR.puts "-> FileUtils.mv('squash.lib', 'libsquash.a')"
-        FileUtils.mv('squash.lib', 'libsquash.a')
+      if Gem.win_platform?
+        deps = ['squash.lib']
+      else
+        deps = ['libsquash.a']
       end
-      return (
-        %w{
-          libsquash.a
-        }.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
-      )
     end
+    deps.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
   end
 
   def prepare!
@@ -217,10 +208,17 @@ class Compiler
         f.puts ''
       end
       # TODO slow operation
-      Utils.run("#{@cc_compiler} #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
-      raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
-      Utils.run("#{@cc_compiler} #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
-      raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
+      if Gem.win_platform?
+        Utils.run("cl -c enclose_io\\enclose_io_memfs.c")
+        raise 'failed to compile enclose_io\\enclose_io_memfs.c' unless File.exist?('enclose_io_memfs.obj')
+        Utils.run("cl -Ienclose_io -Isquash_include -c enclose_io\\enclose_io_intercept.c")
+        raise 'failed to compile enclose_io\\enclose_io_intercept.c' unless File.exist?('enclose_io_intercept.obj')
+      else
+        Utils.run("cc #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
+        raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
+        Utils.run("cc #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
+        raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
+      end
     end
   end
   

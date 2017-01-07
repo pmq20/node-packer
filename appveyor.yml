@@ -6,6 +6,9 @@ environment:
   PlatformToolset: v140
   Platform: x86
 
+install:
+  - ps: Install-Product node 7.4.0
+
 build_script:
 - ps: |
     $ErrorActionPreference="Stop"

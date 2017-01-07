@@ -28,5 +28,5 @@ before_script:
   - npm --version
 
 script:
-  - tests/coffeescript
-  - tests/nodeclub
+  - ruby tests/coffeescript
+  - ruby tests/nodeclub

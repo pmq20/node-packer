@@ -10,4 +10,4 @@ raise 'git failed' unless $?.success?
 Dir.chdir('nodeclub')
 pid = spawn('ruby ../bin/nodec --make-args=-j4 app.js')
 pid, status = Process.wait2(pid)
-raise "Failed running nodec" unless status.success?
+raise "Failed running nodec app.js" unless status.success?

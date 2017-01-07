@@ -22,11 +22,14 @@
 #include <assert.h>
 
 #ifdef _WIN32
-#include <io.h>
+#include <direct.h>
+#include <wchar.h>
+#include <Windows.h>
 #else
-#include <sys/uio.h>
 #include <sys/param.h>
+#include <sys/uio.h>
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 extern const uint8_t enclose_io_memfs[];

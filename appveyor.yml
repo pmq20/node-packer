@@ -1,4 +1,4 @@
-gversion: '{build}'
+version: '{build}'
 
 environment:
   GENERATOR: "Visual Studio 14 2015"

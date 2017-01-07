@@ -11,7 +11,7 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 |:----------------:|:------------:|------|
 |     Mac OS X     |     x86-64   |      |
 |       Linux      |     x86-64   |      |
-|      Windows     |     x86      |      |
+|      Windows     |      x86     |      |
 
 ## Usage
 
@@ -32,13 +32,13 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    nodec bin/coffee
+    nodec --make-args=-j4 bin/coffee
 
 ### Compiling a web application
 
     git clone --depth 1 https://github.com/cnodejs/nodeclub.git
     cd nodeclub
-    nodec app.js
+    nodec --make-args=-j4 app.js
 
 ## Contributing
 

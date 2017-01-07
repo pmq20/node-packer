@@ -8,6 +8,6 @@
 puts `git clone --depth 1 https://github.com/cnodejs/nodeclub.git`
 raise 'git failed' unless $?.success?
 Dir.chdir('nodeclub')
-pid = spawn('ruby ../bin/nodec app.js')
+pid = spawn('ruby ../bin/nodec --make-args=-j4 app.js')
 pid, status = Process.wait2(pid)
 raise "Failed running nodec" unless status.success?

@@ -8,6 +8,6 @@
 puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
 raise 'git failed' unless $?.success?
 Dir.chdir('coffeescript')
-pid = spawn('ruby ../bin/nodec bin/coffee')
+pid = spawn('ruby ../bin/nodec --make-args=-j4 bin/coffee')
 pid, status = Process.wait2(pid)
 raise "Failed running nodec" unless status.success?

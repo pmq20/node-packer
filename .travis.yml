@@ -6,11 +6,6 @@ os:
   - linux
   - osx
 
-env:
-  matrix:
-    - NODEC_TEST=coffeescript
-    - NODEC_TEST=nodeclub
-
 addons:
   apt:
     sources:
@@ -32,4 +27,6 @@ before_script:
   - node --version
   - npm --version
 
-script: tests/$NODEC_TEST
+script:
+  - tests/coffeescript
+  - tests/nodeclub

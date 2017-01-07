@@ -9,6 +9,7 @@
 #ifndef ENCLOSE_IO_INTERCEPT_H_1B3D379C
 #define ENCLOSE_IO_INTERCEPT_H_1B3D379C
 #ifndef __cplusplus
+#ifndef _WIN32
 
 #define ENCLOSE_IO_PP_NARG(...) \
     ENCLOSE_IO_PP_NARG_(__VA_ARGS__,ENCLOSE_IO_PP_RSEQ_N())

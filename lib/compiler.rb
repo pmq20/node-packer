@@ -129,7 +129,9 @@ class Compiler
       Utils.run("cmake --build . --config Release")
       Utils.remove_dynamic_libs(@vendor_squash_build_dir)
       if Gem.win_platform?
+        Utils.copy_static_libs(File.join(@vendor_squash_build_dir), @vendor_node)
         Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Release'), @vendor_node)
+        Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Debug'), @vendor_node)
       else
         Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
       end

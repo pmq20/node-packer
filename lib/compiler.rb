@@ -125,7 +125,7 @@ class Compiler
   
   def compile_libsquash
     Utils.chdir(@vendor_squash_build_dir) do
-      Utils.run("cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=#{Shellwords.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Shellwords.escape @vendor_node_zlib} ..")
+      Utils.run("cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=#{Utils.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Utils.escape @vendor_node_zlib} ..")
       Utils.run("cmake --build . --config Release")
       Utils.remove_dynamic_libs(@vendor_squash_build_dir)
       if Gem.win_platform?
@@ -181,7 +181,7 @@ class Compiler
 
     FileUtils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
-      Utils.run("#{Shellwords.escape @options[:npm]} install")
+      Utils.run("#{Utils.escape @options[:npm]} install")
       STDERR.puts `git status`
       STDERR.puts "-> FileUtils.rm_rf('.git')"
       FileUtils.rm_rf('.git')
@@ -199,7 +199,7 @@ class Compiler
       FileUtils.rm_f('enclose_io/enclose_io_memfs.squashfs')
       FileUtils.rm_f('enclose_io/enclose_io_memfs.c')
       Utils.run("mksquashfs -version")
-      Utils.run("mksquashfs #{Shellwords.escape @work_dir} enclose_io/enclose_io_memfs.squashfs")
+      Utils.run("mksquashfs #{Utils.escape @work_dir} enclose_io/enclose_io_memfs.squashfs")
       bytes = IO.binread('enclose_io/enclose_io_memfs.squashfs').bytes
       # TODO slow operation
       # remember to change vendor/libsquash/sample/enclose_io_memfs.c as well

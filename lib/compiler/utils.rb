@@ -11,6 +11,17 @@ require 'open3'
 
 class Compiler
   module Utils
+    def self.escape(arg)
+      if Gem.win_platform?
+        if arg.include?('"')
+          raise NotImplementedError
+        end
+        %Q{"#{arg}"}
+      else
+        Shellwords.escape(arg)
+      end
+    end
+    
     def self.run(*args)
       STDERR.puts "-> Running #{args}"
       pid = spawn(*args)

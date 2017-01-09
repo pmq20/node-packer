@@ -141,13 +141,6 @@
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
 
-      'libraries': [
-          'enclose_io/enclose_io_memfs.o',
-          'enclose_io/enclose_io_intercept.o',
-          'libsquash.a',
-          'libzlib.a'
-      ],
-
       'sources': [
         'src/debug-agent.cc',
         'src/async-wrap.cc',
@@ -249,6 +242,21 @@
 
 
       'conditions': [
+        [ 'OS=="win"', {
+            'libraries': [
+                '<(SHARED_INTERMEDIATE_DIR)/../../../enclose_io_memfs.obj',
+                '<(SHARED_INTERMEDIATE_DIR)/../../../squash.lib',
+                '<(SHARED_INTERMEDIATE_DIR)/../../lib/zlib.lib'
+            ]
+          }, {
+            'libraries': [
+                'enclose_io/enclose_io_memfs.o',
+                'enclose_io/enclose_io_intercept.o',
+                'libsquash.a',
+                'libzlib.a'
+            ]
+          }
+        ],
         [ 'node_shared=="false"', {
           'msvs_settings': {
             'VCManifestTool': {

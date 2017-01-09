@@ -296,7 +296,7 @@ class Compiler
   		new_argv[i] = argv_memory; \\\n\
   		argv_memory += strlen(new_argv[i]) + 1; \\\n\
   	} \\\n\
-  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
+  	#{Gem.win_platform? ? '' : 'assert(argv_memory - new_argv[0] == total_argv_size);'} \\\n\
   } while(0)
           !.strip
         end

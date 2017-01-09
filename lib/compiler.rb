@@ -87,6 +87,7 @@ class Compiler
 
   def init_options
     @options[:npm] ||= 'npm'
+    @options[:make_args] ||= '-j4'
     if Gem.win_platform?
       @options[:output] ||= 'a.exe'
     else

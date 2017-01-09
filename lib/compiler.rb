@@ -179,15 +179,18 @@ class Compiler
     FileUtils.mkdir_p(@work_dir)
 
     @work_dir_inner = File.join(@work_dir, '__enclose_io_memfs__')
-    STDERR.puts "-> FileUtils.mkdir_p #{@work_dir_inner}"
-    FileUtils.mkdir_p(@work_dir_inner)
 
     FileUtils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
       Utils.run("#{Utils.escape @options[:npm]} install")
-      STDERR.puts `git status`
-      STDERR.puts "-> FileUtils.rm_rf('.git')"
-      FileUtils.rm_rf('.git')
+    end
+
+    Utils.chdir(@work_dir_inner) do
+      if Dir.exist?('.git')
+        STDERR.puts `git status`
+        STDERR.puts "-> FileUtils.rm_rf('.git')"
+        FileUtils.rm_rf('.git')
+      end
     end
   end
 

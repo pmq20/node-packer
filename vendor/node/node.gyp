@@ -251,10 +251,10 @@
             ]
           }, {
             'libraries': [
-                '<(SHARED_INTERMEDIATE_DIR)/../../../enclose_io/enclose_io_memfs.o',
-                '<(SHARED_INTERMEDIATE_DIR)/../../../enclose_io/enclose_io_intercept.o',
-                '<(SHARED_INTERMEDIATE_DIR)/../../../libsquash.a',
-                '<(SHARED_INTERMEDIATE_DIR)/../../../libzlib.a'
+                '../enclose_io/enclose_io_memfs.o',
+                '../enclose_io/enclose_io_intercept.o',
+                '../libsquash.a',
+                '../libzlib.a'
             ]
           }
         ],

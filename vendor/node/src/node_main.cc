@@ -1,5 +1,6 @@
 #include "node.h"
 
+#ifdef _WIN32
 #define WINDOWS_H_A80B5674
 typedef unsigned short sqfs_mode_t;
 typedef uint32_t sqfs_id_t;
@@ -13,6 +14,7 @@ struct dirent
 	short d_altlen;
 	uint8_t d_type;
 };
+#endif
 extern "C" {
 #include "enclose_io.h"
 }

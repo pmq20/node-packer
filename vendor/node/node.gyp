@@ -246,7 +246,8 @@
             'libraries': [
                 '<(SHARED_INTERMEDIATE_DIR)/../../../enclose_io_memfs.obj',
                 '<(SHARED_INTERMEDIATE_DIR)/../../../squash.lib',
-                '<(SHARED_INTERMEDIATE_DIR)/../../lib/zlib.lib'
+                '<(SHARED_INTERMEDIATE_DIR)/../../lib/zlib.lib',
+                'msvcrt.lib'
             ]
           }, {
             'libraries': [

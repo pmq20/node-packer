@@ -13,7 +13,10 @@ pid, status = Process.wait2(pid)
 raise "Failed running nodec for coffeescript" unless status.success?
 
 raise unless File.exist?('coffee')
-raise unless File.size('coffee') >= 1_000_000
+raise unless File.size('coffee') >= 10_000_000
+
 File.chmod(0777, 'coffee')
-expect(`coffee --help`).to include %q{If called without options, `coffee` will run your script.}
-expect(`coffee --eval "console.log(((x) -> x * x)(8))"`.to_i).to be 64
+raise unless `coffee --help`.include?(%q{If called without options, `coffee` will run your script.})
+raise unless $?.success?
+raise unless 64 == `coffee --eval "console.log(((x) -> x * x)(8))"`.to_i
+raise unless $?.success?

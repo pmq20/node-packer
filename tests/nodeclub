@@ -13,4 +13,4 @@ pid, status = Process.wait2(pid)
 raise "Failed running nodec for nodeclub" unless status.success?
 
 raise unless File.exist?('nodeclub')
-raise unless File.size('nodeclub') >= 1_000_000
+raise unless File.size('nodeclub') >= 10_000_000

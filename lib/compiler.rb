@@ -304,7 +304,7 @@ class Compiler
 
   def compile_win
     Utils.chdir(@vendor_node) do
-      Utils.run("call vcbuild.bat #{@options[:vcbuild_args]}")
+      Utils.run("call vcbuild.bat debug nosign #{@options[:vcbuild_args]}")
     end
     STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'Release\\node.exe')}, #{@options[:output]})"
     FileUtils.cp(File.join(@vendor_node, 'Release\\node.exe'), @options[:output])

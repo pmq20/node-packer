@@ -5,7 +5,15 @@
 typedef unsigned short sqfs_mode_t;
 typedef uint32_t sqfs_id_t;
 typedef DWORD64 sqfs_off_t;
-typedef dirent uv_dirent_t;
+struct dirent
+{
+	long d_namlen;
+	ino_t d_ino;
+	char *d_name;
+	char *d_altname; /* short name */
+	short d_altlen;
+	uint8_t d_type;
+};
 #endif
 extern "C" {
 #include "enclose_io.h"

@@ -30,5 +30,5 @@ before_script:
   - npm --version
 
 script:
-  - ruby tests/coffeescript
-  - ruby tests/nodeclub
+  - ruby tests/coffeescript || exit $?
+  - ruby tests/nodeclub || exit $?

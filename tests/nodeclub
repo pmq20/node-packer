@@ -8,9 +8,13 @@
 puts `git clone --depth 1 https://github.com/cnodejs/nodeclub.git`
 raise 'git failed' unless $?.success?
 Dir.chdir('nodeclub')
-pid = spawn('ruby ../bin/nodec -o nodeclub app.js')
+
+outfile = Gem.win_platform? ? 'nodeclub.exe' : 'nodeclub'
+outpath = File.expand_path(outfile, Dir.pwd)
+
+pid = spawn("ruby ../bin/nodec --vcbuild-args=nosign -o #{outfile} app.js")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for nodeclub" unless status.success?
 
-raise unless File.exist?('nodeclub')
-raise unless File.size('nodeclub') >= 10_000_000
+raise unless File.exist?(outpath)
+raise unless File.size(outpath) >= 10_000_000

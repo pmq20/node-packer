@@ -75,6 +75,10 @@ OptionParser.new do |opts|
     options[:npm] = file
   end
 
+  opts.on("--debug", "Enable debug mode") do
+    options[:debug] = true
+  end
+
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
     puts ::Compiler::VERSION
     exit 0

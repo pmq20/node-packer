@@ -12,7 +12,7 @@ Dir.chdir('coffeescript')
 outfile = Gem.win_platform? ? 'coffee.exe' : 'coffee'
 outpath = File.expand_path(outfile, Dir.pwd)
 
-pid = spawn("ruby ../bin/nodec --vcbuild-args=nosign -o #{outfile} bin/coffee")
+pid = spawn("ruby ../bin/nodec -o #{outfile} bin/coffee")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for coffeescript" unless status.success?
 

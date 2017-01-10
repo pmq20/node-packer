@@ -270,7 +270,6 @@ class Compiler
   		new_argv[i] = argv_memory; \\\n\
   		argv_memory += (wcslen(new_argv[i]) + 1) * sizeof(wchar_t); \\\n\
   	} \\\n\
-  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
   } while(0)
           !.strip
         else
@@ -296,7 +295,7 @@ class Compiler
   		new_argv[i] = argv_memory; \\\n\
   		argv_memory += strlen(new_argv[i]) + 1; \\\n\
   	} \\\n\
-  	#{Gem.win_platform? ? '' : 'assert(argv_memory - new_argv[0] == total_argv_size);'} \\\n\
+  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
   } while(0)
           !.strip
         end

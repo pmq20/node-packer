@@ -6,13 +6,14 @@
 # For full terms see the included LICENSE file
 
 require 'shellwords'
+require 'fileutils'
 
 puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
 raise 'git failed' unless $?.success?
 Dir.chdir('coffeescript')
 
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
-Utils.rm_f(outpath)
+FileUtils.rm_f(outpath)
 
 pid = spawn("ruby ../bin/nodec bin/coffee")
 pid, status = Process.wait2(pid)

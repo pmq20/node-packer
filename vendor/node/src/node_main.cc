@@ -16,7 +16,7 @@ struct dirent
 };
 #endif
 extern "C" {
-#include "enclose_io.h"
+  #include "enclose_io.h"
 }
 sqfs *enclose_io_fs;
 
@@ -32,11 +32,17 @@ int wmain(int argc, wchar_t *wargv[]) {
   enclose_io_ret = sqfs_open_image(enclose_io_fs, enclose_io_memfs, 0);
   assert(SQFS_OK == enclose_io_ret);
   
-  wchar_t *argv_memory = NULL;
   int new_argc = argc;
   wchar_t **new_argv = wargv;
   if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
-    ENCLOSE_IO_ENTRANCE;
+    new_argv = (wchar_t **)malloc( (argc + 1) * sizeof(wchar_t *));
+    assert(new_argv);
+    new_argv[0] = wargv[0];
+    new_argv[1] = ENCLOSE_IO_ENTRANCE;
+    for (size_t i = 1; i < argc; ++i) {
+    	new_argv[2 + i - 1] = wargv[i];
+    }
+    new_argc = argc + 1;
   }
 
   if (!IsWindows7OrGreater()) {
@@ -96,7 +102,27 @@ int main(int argc, char *argv[]) {
   int new_argc = argc;
   char **new_argv = argv;
   if (NULL == getenv("ENCLOSE_IO_USE_ORIGINAL_NODE")) {
-    ENCLOSE_IO_ENTRANCE;
+    new_argv = (char **)malloc( (argc + 1) * sizeof(char *));
+    assert(new_argv);
+    new_argv[0] = argv[0];
+    new_argv[1] = ENCLOSE_IO_ENTRANCE;
+    for (size_t i = 1; i < argc; ++i) {
+    	new_argv[2 + i - 1] = argv[i];
+    }
+    new_argc = argc + 1;
+    /* argv memory should be adjacent. */
+    size_t total_argv_size = 0;
+    for (size_t i = 0; i < new_argc; ++i) {
+    	total_argv_size += strlen(new_argv[i]) + 1;
+    }
+    argv_memory = (char *)malloc( (total_argv_size) * sizeof(char));
+    assert(argv_memory);
+    for (size_t i = 0; i < new_argc; ++i) {
+    	memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1);
+    	new_argv[i] = argv_memory;
+    	argv_memory += strlen(new_argv[i]) + 1;
+    }
+    assert(argv_memory - new_argv[0] == total_argv_size);
   }
 
   // Disable stdio buffering, it interacts poorly with printf()

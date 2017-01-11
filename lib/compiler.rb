@@ -240,7 +240,7 @@ class Compiler
       end
     end
   end
-  
+
   def make_enclose_io_vars
     Utils.chdir(@vendor_node) do
       File.open("enclose_io/enclose_io.h", "w") do |f|
@@ -252,56 +252,9 @@ class Compiler
         f.puts '#include "enclose_io_intercept.h"'
         f.puts ''
         if Gem.win_platform?
-          f.puts %Q!
-  #define ENCLOSE_IO_ENTRANCE do { \\\n\
-  	new_argv = (wchar_t **)malloc( (argc + 1) * sizeof(wchar_t *)); \\\n\
-  	assert(new_argv); \\\n\
-  	new_argv[0] = wargv[0]; \\\n\
-  	new_argv[1] = L#{mempath(@entrance).inspect}; \\\n\
-  	for (size_t i = 1; i < argc; ++i) { \\\n\
-  		new_argv[2 + i - 1] = wargv[i]; \\\n\
-  	} \\\n\
-  	new_argc = argc + 1; \\\n\
-  	/* argv memory should be adjacent. */ \\\n\
-  	size_t total_argv_size = 0; \\\n\
-  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-  		total_argv_size += wcslen(new_argv[i]) + 1; \\\n\
-  	} \\\n\
-  	argv_memory = (wchar_t *)malloc( (total_argv_size) * sizeof(wchar_t)); \\\n\
-  	assert(argv_memory); \\\n\
-  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-  		memcpy(argv_memory, new_argv[i], (wcslen(new_argv[i]) + 1) * sizeof(wchar_t)); \\\n\
-  		new_argv[i] = argv_memory; \\\n\
-  		argv_memory += (wcslen(new_argv[i]) + 1) * sizeof(wchar_t); \\\n\
-  	} \\\n\
-  } while(0)
-          !.strip
+          f.puts "#define ENCLOSE_IO_ENTRANCE L#{mempath(@entrance).inspect}"
         else
-          f.puts %Q!
-  #define ENCLOSE_IO_ENTRANCE do { \\\n\
-  	new_argv = (char **)malloc( (argc + 1) * sizeof(char *)); \\\n\
-  	assert(new_argv); \\\n\
-  	new_argv[0] = argv[0]; \\\n\
-  	new_argv[1] = #{mempath(@entrance).inspect}; \\\n\
-  	for (size_t i = 1; i < argc; ++i) { \\\n\
-  		new_argv[2 + i - 1] = argv[i]; \\\n\
-  	} \\\n\
-  	new_argc = argc + 1; \\\n\
-  	/* argv memory should be adjacent. */ \\\n\
-  	size_t total_argv_size = 0; \\\n\
-  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-  		total_argv_size += strlen(new_argv[i]) + 1; \\\n\
-  	} \\\n\
-  	argv_memory = (char *)malloc( (total_argv_size) * sizeof(char)); \\\n\
-  	assert(argv_memory); \\\n\
-  	for (size_t i = 0; i < new_argc; ++i) { \\\n\
-  		memcpy(argv_memory, new_argv[i], strlen(new_argv[i]) + 1); \\\n\
-  		new_argv[i] = argv_memory; \\\n\
-  		argv_memory += strlen(new_argv[i]) + 1; \\\n\
-  	} \\\n\
-  	assert(argv_memory - new_argv[0] == total_argv_size); \\\n\
-  } while(0)
-          !.strip
+          f.puts "#define ENCLOSE_IO_ENTRANCE #{mempath(@entrance).inspect}"
         end
         f.puts '#endif'
         f.puts ''

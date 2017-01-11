@@ -15,7 +15,7 @@ Dir.chdir('cnpmjs.org')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec bin/nodejsctl")
+pid = spawn("ruby ../bin/nodec dispatch.js")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for nodeclub" unless status.success?
 

@@ -12,7 +12,4 @@
 #include "enclose_io_common.h"
 #include "enclose_io_intercept.h"
 
-#define ENCLOSE_IO_ENTRANCE do { \
-	} while(0)
-
 #endif

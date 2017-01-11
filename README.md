@@ -39,7 +39,7 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
     git clone --depth 1 https://github.com/cnpm/cnpmjs.org
     cd cnpmjs.org
-    nodec bin/nodejsctl
+    nodec dispatch.js
 
 ## Contributing
 

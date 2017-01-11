@@ -83,8 +83,15 @@ void enclose_io_seekdir(DIR *dirp, long loc);
 #define rewinddir(x)	enclose_io_rewinddir((x))
 void enclose_io_rewinddir(DIR *dirp);
 
-#define dirfd(x)	enclose_io_dirfd((x))
-int enclose_io_dirfd(DIR *dirp);
+// WARNING: cannot define dirfd
+// ../enclose_io/enclose_io_intercept.h:86:9: warning: 'dirfd' macro redefined [-Wmacro-redefined]
+// #define dirfd(x)        enclose_io_dirfd((x))
+//         ^
+// /usr/include/dirent.h:133:9: note: previous definition is here
+// #define dirfd(dirp) ({                         \
+//         ^
+// #define dirfd(x)	enclose_io_dirfd((x))
+// int enclose_io_dirfd(DIR *dirp);
 
 #define scandir(x, y, z, d)	enclose_io_scandir((x), (y), (z), (d))
 int enclose_io_scandir(const char *dirname, struct dirent ***namelist,

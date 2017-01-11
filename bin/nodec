@@ -31,7 +31,7 @@ Examples:
   Compiling a web application:
     git clone --depth 1 https://github.com/cnpm/cnpmjs.org
     cd cnpmjs.org
-    nodec bin/nodejsctl
+    nodec dispatch.js
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler

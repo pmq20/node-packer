@@ -8,10 +8,29 @@
 
 #include "squash.h"
 
+ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufsize)
+{
+	sqfs_err error;
+	size_t want = 0;
+	sqfs_md_cursor cur;
+	
+	if (!S_ISLNK(node->base.mode))
+		return SQFS_ERR;
+	
+	want = node->xtra.symlink_size;
+	
+	if (want > bufsize - 1) {
+		errno = ENAMETOOLONG;
+		return -1; //bufsize is too small
+	}
+	cur = node->next;
+	error = sqfs_md_read(fs, &cur, buf, want);
+	if(SQFS_OK != error)
+		return -1;
+	buf[want] = '\0';
+	return want;
+}
 
-/**
- *
- */
 ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize)
 {
 	sqfs_err error;
@@ -29,27 +48,9 @@ ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize)
 	if(SQFS_OK != error)
 		return -1;
 
-	if(found){
-		size_t want = 0;
-		sqfs_md_cursor cur;
-
-		if (!S_ISLNK(node.base.mode))
-			return SQFS_ERR;
-
-		want = node.xtra.symlink_size;
-
-		if (want > bufsize - 1) {
-			errno = ENAMETOOLONG;
-			return -1; //bufsize is too small
-		}
-		cur = node.next;
-		error = sqfs_md_read(fs, &cur, buf, want);
-		if(SQFS_OK != error)
-			return -1;
-		buf[want] = '\0';
-		return want;
-	}
-	else{
+	if (found) {
+		return squash_readlink_inode(fs, &node, buf, bufsize);
+	} else {
 		errno = ENOENT;
 		return -1;
 	}

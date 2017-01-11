@@ -8,79 +8,26 @@
 
 #include "squash.h"
 
-
 int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 {
 	sqfs_err error;
 	sqfs_inode node;
 	bool found;
-
+	
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
-	if (SQFS_OK != error)	{
+	if (SQFS_OK != error) {
 		return -1;
 	}
-
-	error = sqfs_lookup_path(fs, &node, path, &found);
-	if (SQFS_OK != error)	{
+	error = sqfs_lookup_path_inner(fs, &node, path, &found, true);
+	if (SQFS_OK != error) {
 		return -1;
 	}
-
-	if (!found)	{
+	if (!found) {
 		errno = ENOENT;
 		return -1;
 	}
-
-	if(S_ISLNK(node.base.mode)){
-
-		char buflink[SQUASHFS_PATH_LEN];//is enough for path?
-
-		ssize_t linklength = squash_readlink(fs, path, buflink, sizeof(buflink));
-
-		if(linklength > 0){
-			if(buflink[0] == '/'){//is Absolute Path
-				//find node from /
-				error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
-				if (SQFS_OK != error)	{
-					return -1;
-				}
-
-				error = sqfs_lookup_path(fs, &node, buflink, &found);
-				if (SQFS_OK != error)	{
-					return -1;
-				}
-			}
-			else{//is Relative Path
-				size_t pos = strlen(path) - 1;
-				//find the last /  "/a/b/cb"
-				while(path[pos--] != '/'){
-					//pos--;
-				}
-
-				char newpath[SQUASHFS_PATH_LEN];
-
-				memcpy(newpath, path, pos + 2);
-				memcpy(newpath + pos + 2, buflink, linklength);
-				newpath[pos + 2 + linklength] = '\0';
-				//find node from /
-				error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
-				if (SQFS_OK != error)	{
-					return -1;
-				}
-
-				error = sqfs_lookup_path(fs, &node, buflink, &found);
-				if (SQFS_OK != error)	{
-					return -1;
-				}
-			}
-		}
-		else{
-			return -1;
-		}
-	}
-
 	error = sqfs_stat(fs, &node, buf);
-	if (SQFS_OK != error)
-	{
+	if (SQFS_OK != error) {
 		return -1;
 	}
 
@@ -94,23 +41,19 @@ int squash_lstat(sqfs *fs, const char *path, struct stat *buf)
 	bool found;
 
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
-	if (SQFS_OK != error)
-	{
+	if (SQFS_OK != error) {
 		return -1;
 	}
 	error = sqfs_lookup_path(fs, &node, path, &found);
-	if (SQFS_OK != error)
-	{
+	if (SQFS_OK != error) {
 		return -1;
 	}
-	if (!found)
-	{
+	if (!found) {
 		errno = ENOENT;
 		return -1;
 	}
 	error = sqfs_stat(fs, &node, buf);
-	if (SQFS_OK != error)
-	{
+	if (SQFS_OK != error) {
 		return -1;
 	}
 

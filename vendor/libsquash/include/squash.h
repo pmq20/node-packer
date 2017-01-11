@@ -58,6 +58,8 @@ extern sqfs_err squash_errno;
 
 sqfs_err squash_start();
 sqfs_err squash_halt();
+ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufsize);
+sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node);
 
 /*
  * Obtains information about the file pointed to by path of a SquashFS fs.

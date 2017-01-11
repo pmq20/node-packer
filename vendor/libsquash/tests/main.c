@@ -423,11 +423,7 @@ static void test_squash_readlink()
 	fprintf(stderr, "Testing squash_readlink...\n");
 	fflush(stderr);
 
-	sqfs_inode root, node;
 	sqfs fs;
-	int ret;
-	int fd;
-	bool found = false;
 
 	sqfs_name name;
 	size_t name_size = sizeof(name);
@@ -451,6 +447,32 @@ static void test_squash_readlink()
 	readsize = squash_readlink(&fs, "/dir1/something123456" ,smallbuf, 2);
 	expect(-1 == readsize, "squash_readlink no such file ret val");
 	expect(ENOENT == errno, "squash_readlink no such file error");
+
+	fprintf(stderr, "\n");
+	fflush(stderr);
+}
+
+static void test_open_read_with_links()
+{
+	sqfs fs;
+	int fd;
+        char buf[1024];
+	ssize_t x;
+
+	fprintf(stderr, "Testing open & read with links\n");
+	fflush(stderr);
+	memset(&fs, 0, sizeof(sqfs));
+	sqfs_open_image(&fs, libsquash_fixture, 0);
+	
+	fd = squash_open(&fs, "/dir1/something4/Egyptian");
+	expect(fd > 0, "successfully got a fd");
+
+	x = squash_read(fd, buf, 1024);
+	expect(551 == x, "we can read 551");
+	buf[x+1] = '\0';
+	expect(buf == strstr(buf, "Abdel Fattah el-Sisi, the Egyptian President"), "read some content of the file");
+	expect(0 == strcmp(buf + 501, "to Greece and arrived in Cairo that evening.[18]\n\n"), "read some content of the file");
+
 	fprintf(stderr, "\n");
 	fflush(stderr);
 }
@@ -464,6 +486,7 @@ int main(int argc, char const *argv[])
 	test_virtual_fd();
 	test_dirent();
 	test_squash_readlink();
+	test_open_read_with_links();
 
 	squash_halt();
 	return 0;

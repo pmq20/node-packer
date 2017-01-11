@@ -22,6 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "squash.h"
+
 #include "squash/dir.h"
 
 #include "squash/fs.h"
@@ -246,9 +248,9 @@ sqfs_err sqfs_dir_lookup(sqfs *fs, sqfs_inode *inode,
 	sqfs_err err;
 	sqfs_dir dir;
 	sqfs_dir_ff_name_t arg;
-	
+
 	*found = false;
-	
+
 	if ((err = sqfs_dir_open(fs, inode, &dir, 0)))
 		return err;
 	
@@ -271,11 +273,54 @@ sqfs_err sqfs_dir_lookup(sqfs *fs, sqfs_inode *inode,
 	return err;
 }
 
+sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node)
+{
+	sqfs_err error;
+	bool found;
+	char buflink[SQUASHFS_PATH_LEN]; // is enough for path?
+	ssize_t linklength = squash_readlink_inode(fs, node, buflink, sizeof(buflink));
+	if (linklength > 0) {
+		if (buflink[0] == '/') { // is Absolute Path
+			// find node from /
+			error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
+			if (SQFS_OK != error) {
+				return error;
+			}
+			error = sqfs_lookup_path(fs, node, buflink, &found);
+			if (SQFS_OK != error) {
+				return error;
+			}
+		} else { // is Relative Path
+			size_t pos = strlen(path) - 1;
+			// find the last /  "/a/b/cb"
+			while (path[pos--] != '/') {}
 
-sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,
-		bool *found) {
+			char newpath[SQUASHFS_PATH_LEN];
+			memcpy(newpath, path, pos + 2);
+			memcpy(newpath + pos + 2, buflink, linklength);
+			newpath[pos + 2 + linklength] = '\0';
+			//find node from /
+			error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
+			if (SQFS_OK != error) {
+				return error;
+			}
+			error = sqfs_lookup_path(fs, node, newpath, &found);
+			if (SQFS_OK != error) {
+				return error;
+			}
+		}
+	} else {
+		return SQFS_ERR;
+	}
+
+	return SQFS_OK;
+}
+
+sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *path,
+		bool *found, bool follow_link) {
 	sqfs_err err;
 	sqfs_name buf;
+	sqfs_name name_here;
 	sqfs_dir_entry entry;
 
 	memset(&buf, 0, sizeof(sqfs_name));
@@ -284,6 +329,7 @@ sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,
 	*found = false;
 	sqfs_dentry_init(&entry, buf);
 	
+	const char* path0 = path;
 	while (*path) {
 		const char *name;
 		size_t size;
@@ -307,8 +353,26 @@ sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,
 		
 		if ((err = sqfs_inode_get(fs, inode, sqfs_dentry_inode(&entry))))
 			return err;
+
+		if (follow_link && S_ISLNK(inode->base.mode)) {
+			size_t size_here = path - path0;
+			if (size_here > SQUASHFS_NAME_LEN) {
+				size_here = SQUASHFS_NAME_LEN;
+			}
+			memcpy(name_here, path0, size_here);
+			name_here[size_here] = '\0';
+			err = squash_follow_link(fs, name_here, inode);
+			if (SQFS_OK != err) {
+				return err;
+			}
+		}
 	}
 	
 	*found = true;
 	return SQFS_OK;
+}
+
+sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,
+		bool *found) {
+	return sqfs_lookup_path_inner(fs, inode, path, found, false);
 }

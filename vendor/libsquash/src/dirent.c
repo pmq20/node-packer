@@ -38,7 +38,7 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	{
 		goto failure;
 	}
-	error = sqfs_lookup_path(fs, &dir->node, filename, &found);
+	error = sqfs_lookup_path_inner(fs, &dir->node, filename, &found, true);
 	if (SQFS_OK != error)
 	{
 		goto failure;

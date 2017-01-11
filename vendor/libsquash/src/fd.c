@@ -30,7 +30,7 @@ int squash_open(sqfs *fs, const char *path)
 	{
 		goto failure;
 	}
-	error = sqfs_lookup_path(fs, &file->node, path, &found);
+	error = sqfs_lookup_path_inner(fs, &file->node, path, &found, true);
 	if (SQFS_OK != error)
 	{
 		goto failure;

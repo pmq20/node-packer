@@ -5,6 +5,8 @@
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
 
+require 'shellwords'
+
 puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
 raise 'git failed' unless $?.success?
 Dir.chdir('coffeescript')

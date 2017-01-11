@@ -127,13 +127,16 @@ class Compiler
   
   def compile_libsquash
     Utils.chdir(@vendor_squash_build_dir) do
-      Utils.run("cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=#{Utils.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Utils.escape @vendor_node_zlib} ..")
-      Utils.run("cmake --build . --config Release")
+      Utils.run("cmake -DCMAKE_BUILD_TYPE=#{@options[:debug] ? 'Debug' : 'Release'} -DCMAKE_C_FLAGS=#{Utils.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Utils.escape @vendor_node_zlib} ..")
+      Utils.run("cmake --build . --config #{@options[:debug] ? 'Debug' : 'Release'}")
       Utils.remove_dynamic_libs(@vendor_squash_build_dir)
       if Gem.win_platform?
         Utils.copy_static_libs(File.join(@vendor_squash_build_dir), @vendor_node)
-        Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Release'), @vendor_node)
-        Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Debug'), @vendor_node)
+        if @options[:debug]
+          Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Debug'), @vendor_node)
+        else
+          Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Release'), @vendor_node)
+        end
       else
         Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
       end
@@ -308,36 +311,41 @@ class Compiler
 
   def compile_win
     Utils.chdir(@vendor_node) do
-      Utils.run("call vcbuild.bat #{@options[:vcbuild_args]}")
+      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
-    STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'Release\\node.exe')}, #{@options[:output]})"
-    FileUtils.cp(File.join(@vendor_node, 'Release\\node.exe'), @options[:output])
+    src = File.join(@vendor_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
+    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
+    FileUtils.cp(src, @options[:output])
   end
 
   def compile_mac
     Utils.chdir(@vendor_node) do
-      Utils.run("./configure")
+      Utils.run("./configure #{@options[:debug] ? '--debug' : ''} #{@options[:debug] && RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i ? '--xcode' : ''}")
       STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
       FileUtils.rm_f('libzlib.a')
-      STDERR.puts "-> File.symlink('out/Release/libzlib.a', 'libzlib.a')"
-      File.symlink('out/Release/libzlib.a', 'libzlib.a')
+      src = "out/#{@options[:debug] ? 'Debug' : 'Release'}/libzlib.a"
+      STDERR.puts "-> File.symlink(#{src}, 'libzlib.a')"
+      File.symlink(src, 'libzlib.a')
       Utils.run("make #{@options[:make_args]}")
     end
-    STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'out/Release/node')}, #{@options[:output]})"
-    FileUtils.cp(File.join(@vendor_node, 'out/Release/node'), @options[:output])
+    src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
+    FileUtils.cp(src, @options[:output])
   end
 
   def compile_linux
     Utils.chdir(@vendor_node) do
-      Utils.run("./configure")
+      Utils.run("./configure #{@options[:debug] ? '--debug' : ''} #{@options[:debug] && RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i ? '--xcode' : ''}")
       STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
       FileUtils.rm_f('libzlib.a')
-      STDERR.puts "-> File.symlink('out/Release/obj.target/deps/zlib/libzlib.a', 'libzlib.a')"
-      File.symlink('out/Release/obj.target/deps/zlib/libzlib.a', 'libzlib.a')
+      src = "out/#{@options[:debug] ? 'Debug' : 'Release'}/obj.target/deps/zlib/libzlib.a"
+      STDERR.puts "-> File.symlink(src, 'libzlib.a')"
+      File.symlink(src, 'libzlib.a')
       Utils.run("make #{@options[:make_args]}")
     end
-    STDERR.puts "-> FileUtils.cp(#{File.join(@vendor_node, 'out/Release/node')}, #{@options[:output]})"
-    FileUtils.cp(File.join(@vendor_node, 'out/Release/node'), @options[:output])
+    src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
+    FileUtils.cp(src, @options[:output])
   end
 
   def mempath(path)

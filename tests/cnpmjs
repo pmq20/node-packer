@@ -7,16 +7,23 @@
 
 require 'shellwords'
 
-puts `git clone --depth 1 https://github.com/cnodejs/nodeclub.git`
+puts `git clone --depth 1 https://github.com/cnpm/cnpmjs.org`
 raise 'git failed' unless $?.success?
-Dir.chdir('nodeclub')
+Dir.chdir('cnpmjs.org')
 
-outfile = Gem.win_platform? ? 'nodeclub.exe' : 'nodeclub'
-outpath = File.expand_path(outfile, Dir.pwd)
+outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
+Utils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec -o #{outfile} app.js")
+pid = spawn("ruby ../bin/nodec bin/nodejsctl")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for nodeclub" unless status.success?
 
 raise unless File.exist?(outpath)
 raise unless File.size(outpath) >= 10_000_000
+
+if Gem.win_platform?
+  outpath = %Q{"#{outpath}"}
+else
+  File.chmod(0777, outpath)
+  outpath = Shellwords.escape(outpath)
+end

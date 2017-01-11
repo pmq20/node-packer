@@ -12,7 +12,7 @@ use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-c
 
 ## v0.9.1
 
-* add support to pack an entire Node.js project (e.g. nodeclub)
+* add support to pack an entire Node.js project (e.g. cnpmjs.org)
 * change the usage of the `nodec` command
 * stop polluting the vendor directory of nodec itself
 * upgrade to node-v7.3.0

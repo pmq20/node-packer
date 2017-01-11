@@ -31,4 +31,4 @@ before_script:
 
 script:
   - ruby tests/coffeescript || exit $?
-  - ruby tests/nodeclub || exit $?
+  - ruby tests/cnpmjs || exit $?

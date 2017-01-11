@@ -16,7 +16,7 @@ Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_vers
 Compiler for Node.js that compiles your Node.js application into a single executable.
 
 Usage:
-  nodec [OPTION]... [ENTRANCE]
+  nodec [...OPTIONS..] ENTRANCE
 
 }.strip
 
@@ -26,12 +26,12 @@ Examples:
   Compiling a command-line application:
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    nodec -o coffee bin/coffee
+    nodec bin/coffee
 
   Compiling a web application:
-    git clone --depth 1 https://github.com/cnodejs/nodeclub.git
-    cd nodeclub
-    nodec -o nodeclub app.js
+    git clone --depth 1 https://github.com/cnpm/cnpmjs.org
+    cd cnpmjs.org
+    nodec bin/nodejsctl
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler

@@ -15,13 +15,14 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
 ## Usage
 
-    nodec [OPTION]... [ENTRANCE]
+    nodec [...OPTIONS..] ENTRANCE
       -r, --root=DIR                   Speicifies the path to the root of the application
       -o, --output=FILE                Speicifies the path of the output file
       -d, --tmpdir=DIR                 Speicifies the directory for temporary files
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
           --npm=FILE                   Speifices the path of npm
+          --debug                      Enable debug mode
       -v, --version                    Prints the version of nodec and exit
           --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
@@ -32,13 +33,13 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
-    nodec -o coffee bin/coffee
+    nodec bin/coffee
 
 ### Compiling a web application
 
-    git clone --depth 1 https://github.com/cnodejs/nodeclub.git
-    cd nodeclub
-    nodec -o nodeclub app.js
+    git clone --depth 1 https://github.com/cnpm/cnpmjs.org
+    cd cnpmjs.org
+    nodec bin/nodejsctl
 
 ## Contributing
 

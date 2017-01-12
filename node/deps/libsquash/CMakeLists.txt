@@ -1,3 +1,9 @@
+# Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+#                    Shengyuan Liu <sounder.liu@gmail.com>
+# 
+# This file is part of libsquash, distributed under the MIT License
+# For full terms see the included LICENSE file
+
 PROJECT(libsquash C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 

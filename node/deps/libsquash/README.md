@@ -19,7 +19,9 @@ libsquash operations. The vfd is a non-negative integer that lives together with
 other ordinary file descriptors of the process.
 1. Added new API's that mirror the calling style of common system calls;
 also added is a sample on how to use libsquash in an unobtrusive way by utilizing those API's.
-1. Made it compile on 3 platforms simultanesly: Windows, Mac OS X and Linux. Added CMake so that Xcode and Vistual Studio Projects could be easily generated.
+1. Made it compile on 3 platforms simultanesly: Windows, Mac OS X and Linux.
+1. Added [CMake](https://cmake.org/) so that Xcode and Vistual Studio Projects could be easily generated.
+1. Added [GYP](https://gyp.gsrc.io/) so that GYP-based project could easily integrate with libsquash.
 1. Added tests for both the old and new API's of the library.
 
 ## Building
@@ -172,4 +174,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/
 
 Copyright (c) 2012 **Dave Vasilevsky** &lt;dave@vasilevsky.ca&gt;, **Phillip Lougher** &lt;phillip@squashfs.org.uk&gt;.
 
-Copyright (c) 2016-2017 **Minqi Pan** &lt;pmq2001@gmail.com&gt;, **Shengyuan Liu** &lt;sounder.liu@gmail.com&gt;.
+Copyright (c) 2017 **Minqi Pan** &lt;pmq2001@gmail.com&gt;, **Shengyuan Liu** &lt;sounder.liu@gmail.com&gt;.

@@ -1,9 +1,2 @@
 /coffeescript/
 /cnpmjs.org/
-
-*~
-*.gem
-.DS_Store
-a.out
-a.exe
-*.tar.gz

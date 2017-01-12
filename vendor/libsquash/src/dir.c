@@ -277,41 +277,68 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node)
 {
 	sqfs_err error;
 	bool found;
-	char buflink[SQUASHFS_PATH_LEN]; // is enough for path?
-	ssize_t linklength = squash_readlink_inode(fs, node, buflink, sizeof(buflink));
-	if (linklength > 0) {
-		if (buflink[0] == '/') { // is Absolute Path
-			// find node from /
-			error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
-			if (SQFS_OK != error) {
-				return error;
-			}
-			error = sqfs_lookup_path(fs, node, buflink, &found);
-			if (SQFS_OK != error) {
-				return error;
-			}
-		} else { // is Relative Path
-			size_t pos = strlen(path) - 1;
-			// find the last /  "/a/b/cb"
-			while (path[pos--] != '/') {}
+	__le32 nodelist[SQUASHFS_MAX_LINK_LEVEL] = {0};
+	memset(nodelist, 0, sizeof(nodelist));
+	char basepath[SQUASHFS_PATH_LEN];
+	char newpath[SQUASHFS_PATH_LEN];
+	strcpy(basepath, path);
+	int inode_num = 0;
+	do{
+		char buflink[SQUASHFS_PATH_LEN]; // is enough for path?
+		ssize_t linklength = squash_readlink_inode(fs, node, buflink, sizeof(buflink));
+		if (linklength > 0) {
+			if (buflink[0] == '/') { // is Absolute Path
+				// find node from /
+				error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
+				if (SQFS_OK != error) {
+					return error;
+				}
+				error = sqfs_lookup_path(fs, node, buflink, &found);
+				if (SQFS_OK != error) {
+					return error;
+				}
+			} else { // is Relative Path
+				size_t pos = strlen(basepath) - 1;
+				// find the last /  "/a/b/cb"
+				while (basepath[pos--] != '/') {}
 
-			char newpath[SQUASHFS_PATH_LEN];
-			memcpy(newpath, path, pos + 2);
-			memcpy(newpath + pos + 2, buflink, linklength);
-			newpath[pos + 2 + linklength] = '\0';
-			//find node from /
-			error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
-			if (SQFS_OK != error) {
-				return error;
+
+				memcpy(newpath, basepath, pos + 2);
+				memcpy(newpath + pos + 2, buflink, linklength);
+				newpath[pos + 2 + linklength] = '\0';
+				//find node from /
+				error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
+				if (SQFS_OK != error) {
+					return error;
+				}
+				error = sqfs_lookup_path(fs, node, newpath, &found);
+				if (SQFS_OK != error) {
+					return error;
+				}
 			}
-			error = sqfs_lookup_path(fs, node, newpath, &found);
-			if (SQFS_OK != error) {
-				return error;
+			//check if symbol link list has circle
+			int i = 0;
+			for(;i < inode_num; i++)
+			{
+				if(node->base.inode_number == nodelist[i]){
+					errno = ELOOP;
+					return SQFS_ERR;
+				}
 			}
+
+			nodelist[inode_num++] = node->base.inode_number;
+			if(inode_num > SQUASHFS_MAX_LINK_LEVEL){
+				errno = ELOOP;
+				return SQFS_ERR;
+			}
+			strcpy(basepath, newpath);
+
+		} else {
+			return SQFS_ERR;
 		}
-	} else {
-		return SQFS_ERR;
-	}
+
+
+	}while(S_ISLNK(node->base.mode));
 
 	return SQFS_OK;
 }

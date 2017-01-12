@@ -62,7 +62,7 @@
 /* Max length of filename (not 255) */
 #define SQUASHFS_NAME_LEN		256
 #define SQUASHFS_PATH_LEN		2048
-
+#define SQUASHFS_MAX_LINK_LEVEL	32
 #define SQUASHFS_INVALID_FRAG		(0xffffffffU)
 #define SQUASHFS_INVALID_XATTR		(0xffffffffU)
 #define SQUASHFS_INVALID_BLK		((int64_t)-1)

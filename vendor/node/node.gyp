@@ -133,8 +133,6 @@
       ],
 
       'include_dirs': [
-        'enclose_io',
-        'squash_include',
         'src',
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
@@ -242,22 +240,6 @@
 
 
       'conditions': [
-        [ 'OS=="win"', {
-            'libraries': [
-                '<(SHARED_INTERMEDIATE_DIR)/../../../enclose_io_memfs.obj',
-                '<(SHARED_INTERMEDIATE_DIR)/../../../squash.lib',
-                '<(SHARED_INTERMEDIATE_DIR)/../../lib/zlib.lib',
-                'msvcrt.lib'
-            ]
-          }, {
-            'libraries': [
-                '../enclose_io/enclose_io_memfs.o',
-                '../enclose_io/enclose_io_intercept.o',
-                '../libsquash.a',
-                '../libzlib.a'
-            ]
-          }
-        ],
         [ 'node_shared=="false"', {
           'msvs_settings': {
             'VCManifestTool': {
@@ -882,78 +864,78 @@
         } ],
       ]
     },
-  #   {
-  #     'target_name': 'cctest',
-  #     'type': 'executable',
-  #     'dependencies': [ 'deps/gtest/gtest.gyp:gtest' ],
-  #     'include_dirs': [
-  #       'src',
-  #       'deps/v8/include',
-  #       '<(SHARED_INTERMEDIATE_DIR)'
-  #     ],
-  #     'defines': [
-  #       # gtest's ASSERT macros conflict with our own.
-  #       'GTEST_DONT_DEFINE_ASSERT_EQ=1',
-  #       'GTEST_DONT_DEFINE_ASSERT_GE=1',
-  #       'GTEST_DONT_DEFINE_ASSERT_GT=1',
-  #       'GTEST_DONT_DEFINE_ASSERT_LE=1',
-  #       'GTEST_DONT_DEFINE_ASSERT_LT=1',
-  #       'GTEST_DONT_DEFINE_ASSERT_NE=1',
-  #       'NODE_WANT_INTERNALS=1',
-  #     ],
-  #     'sources': [
-  #       'test/cctest/util.cc',
-  #     ],
-  #
-  #     'conditions': [
-  #       ['v8_inspector=="true"', {
-  #         'defines': [
-  #           'HAVE_INSPECTOR=1',
-  #         ],
-  #         'dependencies': [
-  #           'deps/zlib/zlib.gyp:zlib',
-  #           'v8_inspector_compress_protocol_json#host'
-  #         ],
-  #         'include_dirs': [
-  #           '<(SHARED_INTERMEDIATE_DIR)'
-  #         ],
-  #         'sources': [
-  #           'src/inspector_socket.cc',
-  #           'src/inspector_socket_server.cc',
-  #           'test/cctest/test_inspector_socket.cc',
-  #           'test/cctest/test_inspector_socket_server.cc'
-  #         ],
-  #         'conditions': [
-  #           [ 'node_shared_openssl=="false"', {
-  #             'dependencies': [
-  #               'deps/openssl/openssl.gyp:openssl'
-  #             ]
-  #           }],
-  #           [ 'node_shared_http_parser=="false"', {
-  #             'dependencies': [
-  #               'deps/http_parser/http_parser.gyp:http_parser'
-  #             ]
-  #           }],
-  #           [ 'node_shared_libuv=="false"', {
-  #             'dependencies': [
-  #               'deps/uv/uv.gyp:libuv'
-  #             ]
-  #           }]
-  #         ]
-  #       }],
-  #       [ 'node_use_v8_platform=="true"', {
-  #         'dependencies': [
-  #           'deps/v8/src/v8.gyp:v8_libplatform',
-  #         ],
-  #       }],
-  #       [ 'node_use_bundled_v8=="true"', {
-  #         'dependencies': [
-  #           'deps/v8/src/v8.gyp:v8',
-  #           'deps/v8/src/v8.gyp:v8_libplatform'
-  #         ],
-  #       }],
-  #     ]
-  #   }
+    {
+      'target_name': 'cctest',
+      'type': 'executable',
+      'dependencies': [ 'deps/gtest/gtest.gyp:gtest' ],
+      'include_dirs': [
+        'src',
+        'deps/v8/include',
+        '<(SHARED_INTERMEDIATE_DIR)'
+      ],
+      'defines': [
+        # gtest's ASSERT macros conflict with our own.
+        'GTEST_DONT_DEFINE_ASSERT_EQ=1',
+        'GTEST_DONT_DEFINE_ASSERT_GE=1',
+        'GTEST_DONT_DEFINE_ASSERT_GT=1',
+        'GTEST_DONT_DEFINE_ASSERT_LE=1',
+        'GTEST_DONT_DEFINE_ASSERT_LT=1',
+        'GTEST_DONT_DEFINE_ASSERT_NE=1',
+        'NODE_WANT_INTERNALS=1',
+      ],
+      'sources': [
+        'test/cctest/util.cc',
+      ],
+
+      'conditions': [
+        ['v8_inspector=="true"', {
+          'defines': [
+            'HAVE_INSPECTOR=1',
+          ],
+          'dependencies': [
+            'deps/zlib/zlib.gyp:zlib',
+            'v8_inspector_compress_protocol_json#host'
+          ],
+          'include_dirs': [
+            '<(SHARED_INTERMEDIATE_DIR)'
+          ],
+          'sources': [
+            'src/inspector_socket.cc',
+            'src/inspector_socket_server.cc',
+            'test/cctest/test_inspector_socket.cc',
+            'test/cctest/test_inspector_socket_server.cc'
+          ],
+          'conditions': [
+            [ 'node_shared_openssl=="false"', {
+              'dependencies': [
+                'deps/openssl/openssl.gyp:openssl'
+              ]
+            }],
+            [ 'node_shared_http_parser=="false"', {
+              'dependencies': [
+                'deps/http_parser/http_parser.gyp:http_parser'
+              ]
+            }],
+            [ 'node_shared_libuv=="false"', {
+              'dependencies': [
+                'deps/uv/uv.gyp:libuv'
+              ]
+            }]
+          ]
+        }],
+        [ 'node_use_v8_platform=="true"', {
+          'dependencies': [
+            'deps/v8/src/v8.gyp:v8_libplatform',
+          ],
+        }],
+        [ 'node_use_bundled_v8=="true"', {
+          'dependencies': [
+            'deps/v8/src/v8.gyp:v8',
+            'deps/v8/src/v8.gyp:v8_libplatform'
+          ],
+        }],
+      ]
+    }
   ], # end targets
 
   'conditions': [

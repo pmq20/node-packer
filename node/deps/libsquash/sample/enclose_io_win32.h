@@ -6,11 +6,11 @@
  * For full terms see the included LICENSE file
  */
 
-#ifndef ENCLOSE_IO_H_999BC1DA
-#define ENCLOSE_IO_H_999BC1DA
+#ifndef ENCLOSE_IO_WIN32_H_9A3D18C6
+#define ENCLOSE_IO_WIN32_H_9A3D18C6
+#ifndef __cplusplus
+#ifdef _WIN32
 
-#include "enclose_io_common.h"
-#include "enclose_io_win32.h"
-#include "enclose_io_unix.h"
-
+#endif
+#endif
 #endif

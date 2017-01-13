@@ -7,7 +7,7 @@
 {
   'targets': [
     {
-      'target_name': 'libsquash',
+      'target_name': 'enclose_io_libsquash',
       'type': 'static_library',
       'sources': [
         'include/squash.h',
@@ -47,9 +47,17 @@
         'src/table.c',
         'src/traverse.c',
         'src/util.c',
+        'sample/enclose_io.h',
+        'sample/enclose_io_common.h',
+        'sample/enclose_io_unix.h',
+        'sample/enclose_io_win32.h',
+        'sample/enclose_io_memfs.c',
+        'sample/enclose_io_unix.c',
+        'sample/enclose_io_win32.c',
       ],
       'include_dirs': [
         'include',
+        'sample',
       ],
     },
   ],

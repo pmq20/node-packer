@@ -130,7 +130,7 @@
 
       'dependencies': [
         'node_js2c#host',
-        'deps/libsquash/libsquash.gyp:libsquash'
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash'
       ],
 
       'include_dirs': [
@@ -138,15 +138,11 @@
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
         'deps/libsquash/include',
+        'deps/libsquash/sample',
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
 
       'sources': [
-        'src/enclose_io.h',
-        'src/enclose_io_common.h',
-        'src/enclose_io_intercept.c',
-        'src/enclose_io_intercept.h',
-        'src/enclose_io_memfs.c',
         'src/debug-agent.cc',
         'src/async-wrap.cc',
         'src/env.cc',

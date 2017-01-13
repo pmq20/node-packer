@@ -30,6 +30,9 @@
 
 extern const uint8_t enclose_io_memfs[];
 extern sqfs *enclose_io_fs;
+extern int enclose_io_cwd_inside;
+extern sqfs_name enclose_io_cwd;
+extern size_t enclose_io_cwd_len;
 
 #define IS_ENCLOSE_IO_PATH(pathname) (0 == strncmp((pathname), "/__enclose_io_memfs__", 21))
 

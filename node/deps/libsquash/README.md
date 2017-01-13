@@ -21,7 +21,6 @@ other ordinary file descriptors of the process.
 also added is a sample on how to use libsquash in an unobtrusive way by utilizing those API's.
 1. Made it compile on 3 platforms simultanesly: Windows, Mac OS X and Linux.
 1. Added [CMake](https://cmake.org/) so that Xcode and Vistual Studio Projects could be easily generated.
-1. Added [GYP](https://gyp.gsrc.io/) so that GYP-based project could easily integrate with libsquash.
 1. Added tests for both the old and new API's of the library.
 
 ## Building

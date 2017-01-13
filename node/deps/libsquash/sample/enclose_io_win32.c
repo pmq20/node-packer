@@ -6,10 +6,6 @@
  * For full terms see the included LICENSE file
  */
 
-#ifndef ENCLOSE_IO_H_999BC1DA
-#define ENCLOSE_IO_H_999BC1DA
-
 #include "enclose_io_common.h"
-#include "enclose_io_intercept.h"
-
+#ifdef _WIN32
 #endif

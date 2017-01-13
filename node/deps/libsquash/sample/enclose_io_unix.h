@@ -6,8 +6,8 @@
  * For full terms see the included LICENSE file
  */
 
-#ifndef ENCLOSE_IO_INTERCEPT_H_1B3D379C
-#define ENCLOSE_IO_INTERCEPT_H_1B3D379C
+#ifndef ENCLOSE_IO_UNIX_H_E0229A03
+#define ENCLOSE_IO_UNIX_H_E0229A03
 #ifndef __cplusplus
 #ifndef _WIN32
 

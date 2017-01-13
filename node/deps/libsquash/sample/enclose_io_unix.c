@@ -7,11 +7,7 @@
  */
 
 #include "enclose_io_common.h"
-
-int enclose_io_cwd_inside;
-sqfs_name enclose_io_cwd;
-size_t enclose_io_cwd_len;
-
+#ifndef _WIN32
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	sqfs_name enclose_io_expanded_name; \
 						memcpy(enclose_io_expanded_name, enclose_io_cwd, enclose_io_cwd_len); \
 						size_t memcpy_len = strlen(path); \
@@ -249,3 +245,4 @@ int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
 		return scandir(dirname, namelist, select, compar);
 	}
 }
+#endif

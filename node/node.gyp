@@ -870,7 +870,10 @@
     {
       'target_name': 'cctest',
       'type': 'executable',
-      'dependencies': [ 'deps/gtest/gtest.gyp:gtest' ],
+      'dependencies': [
+          'deps/gtest/gtest.gyp:gtest',
+          'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
+      ],
       'include_dirs': [
         'src',
         'deps/v8/include',

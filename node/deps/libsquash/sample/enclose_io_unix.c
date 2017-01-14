@@ -7,7 +7,7 @@
  */
 
 #include "enclose_io_common.h"
-#ifndef _WIN32
+
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	sqfs_name enclose_io_expanded_name; \
 						memcpy(enclose_io_expanded_name, enclose_io_cwd, enclose_io_cwd_len); \
 						size_t memcpy_len = strlen(path); \
@@ -15,6 +15,7 @@
 						memcpy(&enclose_io_expanded_name[enclose_io_cwd_len], (path), memcpy_len); \
 						enclose_io_expanded_name[enclose_io_cwd_len + memcpy_len] = '\0'
 
+#ifndef _WIN32
 int enclose_io_chdir(const char *path)
 {
 	int ret;

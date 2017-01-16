@@ -51,6 +51,7 @@
         'sample/enclose_io_common.h',
         'sample/enclose_io_unix.h',
         'sample/enclose_io_win32.h',
+        'sample/enclose_io_winapi.h',
         'sample/enclose_io_memfs.c',
         'sample/enclose_io_unix.c',
         'sample/enclose_io_win32.c',

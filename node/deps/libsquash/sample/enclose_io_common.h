@@ -92,6 +92,7 @@ extern const uint8_t enclose_io_memfs[];
 			for (enclose_io_i = enclose_io_converted; *enclose_io_i; enclose_io_i++) { \
 				if ('\\' == *enclose_io_i) { *enclose_io_i = '/'; } \
 			}
+
 #define ENCLOSE_IO_SET_LAST_ERROR do { \
 			if (ENOMEM == errno) { \
 				SetLastError(ERROR_NOT_ENOUGH_MEMORY); \
@@ -107,6 +108,9 @@ extern const uint8_t enclose_io_memfs[];
 		} while (0)
 
 #ifdef _WIN32
+
+#include "enclose_io_winapi.h"
+
 HANDLE
 EncloseIOCreateFileW(
 	LPCWSTR lpFileName,
@@ -117,6 +121,27 @@ EncloseIOCreateFileW(
 	DWORD dwFlagsAndAttributes,
 	HANDLE hTemplateFile
 );
+
+NTSTATUS
+EncloseIOpNtQueryDirectoryFile(
+	HANDLE FileHandle,
+	HANDLE Event,
+	PIO_APC_ROUTINE ApcRoutine,
+	PVOID ApcContext,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FileInformation,
+	ULONG Length,
+	FILE_INFORMATION_CLASS FileInformationClass,
+	BOOLEAN ReturnSingleEntry,
+	PUNICODE_STRING FileName,
+	BOOLEAN RestartScan
+);
+
+BOOL
+EncloseIOCloseHandle(
+	HANDLE hObject
+);
+
 #else
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);

@@ -61,7 +61,7 @@ DIR * enclose_io_opendir(const char *filename)
 
 int enclose_io_closedir(DIR *dirp)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_closedir((SQUASH_DIR *)dirp);
 	}
 	else {
@@ -71,7 +71,7 @@ int enclose_io_closedir(DIR *dirp)
 
 struct dirent * enclose_io_readdir(DIR *dirp)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_readdir((SQUASH_DIR *)dirp);
 	}
 	else {
@@ -81,7 +81,7 @@ struct dirent * enclose_io_readdir(DIR *dirp)
 
 long enclose_io_telldir(DIR *dirp)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_telldir((SQUASH_DIR *)dirp);
 	}
 	else {
@@ -91,7 +91,7 @@ long enclose_io_telldir(DIR *dirp)
 
 void enclose_io_seekdir(DIR *dirp, long loc)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_seekdir((SQUASH_DIR *)dirp, loc);
 	}
 	else {
@@ -101,7 +101,7 @@ void enclose_io_seekdir(DIR *dirp, long loc)
 
 void enclose_io_rewinddir(DIR *dirp)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_rewinddir((SQUASH_DIR *)dirp);
 	}
 	else {
@@ -111,7 +111,7 @@ void enclose_io_rewinddir(DIR *dirp)
 
 int enclose_io_dirfd(DIR *dirp)
 {
-	if (squash_valid_dir(dirp)) {
+	if (squash_find_entry(dirp)) {
 		return squash_dirfd((SQUASH_DIR *)dirp);
 	}
 	else {

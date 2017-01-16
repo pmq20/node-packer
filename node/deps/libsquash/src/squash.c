@@ -20,3 +20,14 @@ sqfs_err squash_halt()
 	free(squash_global_fdtable.fds);
 	return SQFS_OK;
 }
+
+struct squash_file * squash_find_entry(void *ptr)
+{
+	size_t i;
+	for (i = 0; i <= squash_global_fdtable.last; ++i) {
+		if (squash_global_fdtable.fds[i] && ptr == squash_global_fdtable.fds[i]->payload) {
+			return squash_global_fdtable.fds[i];
+		}
+	}
+	return NULL;
+}

@@ -12,6 +12,8 @@
 #ifdef _WIN32
 
 #define CreateFileW(...) EncloseIOCreateFileW(__VA_ARGS__)
+#define pNtQueryDirectoryFile(...) EncloseIOpNtQueryDirectoryFile(__VA_ARGS__)
+#define CloseHandle(...) EncloseIOCloseHandle(__VA_ARGS__)
 
 #endif //_WIN32
 #endif //!__cplusplus

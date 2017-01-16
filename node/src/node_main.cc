@@ -1,21 +1,6 @@
 #include "node.h"
 
 // ======= [Enclose.io Hack start] =========
-#ifdef _WIN32
-#define WINDOWS_H_A80B5674
-typedef unsigned short sqfs_mode_t;
-typedef uint32_t sqfs_id_t;
-typedef DWORD64 sqfs_off_t;
-struct dirent
-{
-  long d_namlen;
-  ino_t d_ino;
-  char *d_name;
-  char *d_altname;
-  short d_altlen;
-  uint8_t d_type;
-};
-#endif
 extern "C" {
   #include "enclose_io.h"
 }

@@ -58,6 +58,7 @@
       'include_dirs': [
         'include',
         'sample',
+        '../zlib',
       ],
     },
   ],

@@ -27,12 +27,6 @@
 extern "C" {
 #endif
 
-// ======= [Enclose.io Hack start] =========
-#ifndef __cplusplus
-#include "enclose_io.h"
-#endif
-// ======= [Enclose.io Hack end] =========
-
 #ifdef _WIN32
   /* Windows - set up dll import/export decorators. */
 # if defined(BUILDING_UV_SHARED)
@@ -1500,4 +1494,11 @@ struct uv_loop_s {
 #ifdef __cplusplus
 }
 #endif
+
+// ======= [Enclose.io Hack start] =========
+#ifndef __cplusplus
+#include "enclose_io.h"
+#endif
+// ======= [Enclose.io Hack end] =========
+
 #endif /* UV_H */

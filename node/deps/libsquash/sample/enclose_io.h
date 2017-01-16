@@ -16,12 +16,12 @@ typedef uint32_t sqfs_id_t;
 typedef DWORD64 sqfs_off_t;
 struct dirent
 {
-  long d_namlen;
-  ino_t d_ino;
-  char *d_name;
-  char *d_altname;
-  short d_altlen;
-  uint8_t d_type;
+	long d_namlen;
+	ino_t d_ino;
+	char *d_name;
+	char *d_altname;
+	short d_altlen;
+	uint8_t d_type;
 };
 #endif
 

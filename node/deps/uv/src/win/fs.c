@@ -37,6 +37,11 @@
 
 #include <wincrypt.h>
 
+// ======= [Enclose.io Hack start] =========
+#ifndef __cplusplus
+#include "enclose_io.h"
+#endif
+// ======= [Enclose.io Hack end] =========
 
 #define UV_FS_FREE_PATHS         0x0002
 #define UV_FS_FREE_PTR           0x0008

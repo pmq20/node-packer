@@ -11,6 +11,8 @@
 #ifndef __cplusplus
 #ifdef _WIN32
 
-#endif
-#endif
+#define CreateFileW(...) EncloseIOCreateFileW(__VA_ARGS__)
+
+#endif //_WIN32
+#endif //!__cplusplus
 #endif

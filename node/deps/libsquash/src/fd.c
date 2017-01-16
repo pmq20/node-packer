@@ -72,6 +72,7 @@ int squash_open(sqfs *fs, const char *path)
 
 	// insert the fd into the global fd table
 	squash_global_fdtable.fds[fd] = file;
+	squash_global_fdtable.last = fd;
 	return fd;
 
 failure:
@@ -89,6 +90,10 @@ int squash_close(int vfd)
 	close(vfd);
 	free(squash_global_fdtable.fds[vfd]);
 	squash_global_fdtable.fds[vfd] = NULL;
+	while (vfd >= 0 && NULL == squash_global_fdtable.fds[vfd]) {
+		vfd -= 1;
+	}
+	squash_global_fdtable.last = vfd;
 	return 0;
 }
 

@@ -339,7 +339,7 @@ static void test_dirent()
 	expect(NULL == dir, "on error NULL is returned");
 	dir = squash_opendir(&fs, "/dir1");
 	expect(NULL != dir, "returns a pointer to be used to identify the dir stream");
-	expect(SQUASH_VALID_DIR(dir), "got a valid SQUASH_DIR");
+	expect(squash_valid_dir(dir), "got a valid SQUASH_DIR");
 	fd = squash_dirfd(dir);
 	expect(fd > 0, "returns a vfs associated with the named diretory stream");
 	mydirent = squash_readdir(dir);

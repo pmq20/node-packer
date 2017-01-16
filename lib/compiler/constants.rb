@@ -5,6 +5,7 @@
 
 class Compiler
   VERSION = '0.9.2'
-  VENDOR_DIR = File.expand_path('../../../vendor', __FILE__)
+  PRJ_ROOT = File.expand_path('../../..', __FILE__)
+  VENDOR_DIR = File.expand_path('vendor', PRJ_ROOT)
   MEMFS = '/__enclose_io_memfs__'
 end

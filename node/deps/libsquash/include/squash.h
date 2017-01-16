@@ -52,7 +52,6 @@
 
 #define SQUASH_VALID_VFD(vfd) ((vfd) < squash_global_fdtable.nr && NULL != squash_global_fdtable.fds[(vfd)])
 #define SQUASH_VFD_FILE(vfd) (squash_global_fdtable.fds[(vfd)])
-#define SQUASH_VALID_DIR(dir) (0 == strncmp(SQUASH_DIR_MAGIC, (char *)((dir)), SQUASH_DIR_MAGIC_LEN))
 
 extern sqfs_err squash_errno;
 
@@ -60,6 +59,7 @@ sqfs_err squash_start();
 sqfs_err squash_halt();
 ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufsize);
 sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node);
+bool squash_valid_dir(void *dirp);
 
 /*
  * Obtains information about the file pointed to by path of a SquashFS fs.

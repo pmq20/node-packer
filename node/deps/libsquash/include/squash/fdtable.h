@@ -16,11 +16,13 @@ struct squash_file {
 	sqfs_inode node;
 	struct stat st;
 	uint64_t pos;
+	void *payload;
 };
 
 struct squash_fdtable {
 	size_t nr;
 	struct squash_file **fds;
+	size_t last; // last used index
 };
 
 extern struct squash_fdtable squash_global_fdtable;

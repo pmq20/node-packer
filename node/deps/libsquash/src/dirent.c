@@ -27,12 +27,13 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	dir->entries = NULL;
 	dir->nr = 0;
 	dir->fd = squash_open(fs, filename);
-	dir->actual_nr = 0;
-	dir->loc = 0;
 	if (-1 == dir->fd)
 	{
 		goto failure;
 	}
+	squash_global_fdtable.fds[dir->fd]->payload = (void *)dir;
+	dir->actual_nr = 0;
+	dir->loc = 0;
 	error = sqfs_inode_get(fs, &dir->node, sqfs_inode_root(fs));
 	if (SQFS_OK != error)
 	{
@@ -190,4 +191,15 @@ void squash_rewinddir(SQUASH_DIR *dirp)
 int squash_dirfd(SQUASH_DIR *dirp)
 {
 	return dirp->fd;
+}
+
+bool squash_valid_dir(void *dirp)
+{
+	size_t i;
+	for (i = 0; i <= squash_global_fdtable.last; ++i) {
+		if (squash_global_fdtable.fds[i] && dirp == squash_global_fdtable.fds[i]->payload) {
+			return true;
+		}
+	}
+	return false;
 }

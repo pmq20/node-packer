@@ -47,13 +47,6 @@ class Compiler
     init_options
     init_entrance
     init_tmpdir
-    init_libsquash
-
-    if RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i
-      @extra_cc_arg = '-mmacosx-version-min=10.7'
-    else
-      @extra_cc_arg = ''
-    end
   end
 
   def check_base_ruby_version!
@@ -67,7 +60,7 @@ class Compiler
   end
 
   def init_entrance
-    # Important to expand_path; otherwiser the while would not be right
+    # Important to expand_path; otherwiser the while would be erroneous
     @entrance = File.expand_path(@entrance)
     raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
     if @options[:root]
@@ -107,62 +100,9 @@ class Compiler
 
     Utils.prepare_tmpdir(@options[:tmpdir])
     @vendor_node = File.join(@options[:tmpdir], 'node')
-    @vendor_node_zlib = File.join(@vendor_node, 'deps', 'zlib')
-    @vendor_node_uv = File.join(@vendor_node, 'deps', 'uv')
-    @vendor_node_src = File.join(@vendor_node, 'src')
-    @vendor_node_enclose_io = File.join(@vendor_node, 'enclose_io')
-    @vendor_node_squash_include = File.join(@vendor_node, 'squash_include')
-  end
-  
-  def init_libsquash
-    @vendor_squash_dir = File.join @options[:tmpdir], 'libsquash'
-    raise "#{@vendor_squash_dir} does not exist" unless Dir.exist?(@vendor_squash_dir)
-    @vendor_squash_include_dir = File.join(@vendor_squash_dir, 'include')
-    @vendor_squash_build_dir = File.join(@vendor_squash_dir, 'build')
-    @vendor_squash_sample_dir = File.join(@vendor_squash_dir, 'sample')
-    STDERR.puts "-> FileUtils.mkdir_p #{@vendor_squash_build_dir}"
-    FileUtils.mkdir_p(@vendor_squash_build_dir)
-    raise "#{@vendor_squash_build_dir} does not exist" unless Dir.exist?(@vendor_squash_build_dir)
-  end
-  
-  def compile_libsquash
-    Utils.chdir(@vendor_squash_build_dir) do
-      Utils.run("cmake -DCMAKE_BUILD_TYPE=#{@options[:debug] ? 'Debug' : 'Release'} -DCMAKE_C_FLAGS=#{Utils.escape @extra_cc_arg} -DZLIB_INCLUDE_DIR:PATH=#{Utils.escape @vendor_node_zlib} ..")
-      Utils.run("cmake --build . --config #{@options[:debug] ? 'Debug' : 'Release'}")
-      Utils.remove_dynamic_libs(@vendor_squash_build_dir)
-      if Gem.win_platform?
-        Utils.copy_static_libs(File.join(@vendor_squash_build_dir), @vendor_node)
-        if @options[:debug]
-          Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Debug'), @vendor_node)
-        else
-          Utils.copy_static_libs(File.join(@vendor_squash_build_dir, 'Release'), @vendor_node)
-        end
-      else
-        Utils.copy_static_libs(@vendor_squash_build_dir, @vendor_node)
-      end
-    end
-  end
-
-  def prepared?
-    if Gem.win_platform?
-      deps = ['squash.lib']
-    else
-      deps = ['libsquash.a']
-    end
-    ret = nil
-    Utils.chdir(@vendor_node) do
-      ret = deps.map { |x| File.exist?(x) }.reduce(true) { |m,o| m && o }
-    end
-    ret
-  end
-
-  def prepare!
-    compile_libsquash
   end
 
   def run!
-    prepare! unless prepared?
-    raise 'Unable to prepare' unless prepared?
     npm_install
     make_enclose_io_memfs
     make_enclose_io_vars
@@ -199,20 +139,13 @@ class Compiler
   end
 
   def make_enclose_io_memfs
-    STDERR.puts "-> FileUtils.cp_r(#{@vendor_squash_sample_dir}, #{@vendor_node_enclose_io})"
-    FileUtils.cp_r(@vendor_squash_sample_dir, @vendor_node_enclose_io)
-
-    STDERR.puts "-> FileUtils.cp_r(#{@vendor_squash_include_dir}, #{@vendor_node_squash_include})"
-    FileUtils.cp_r(@vendor_squash_include_dir, @vendor_node_squash_include)
-
     Utils.chdir(@vendor_node) do
-      FileUtils.rm_f('enclose_io/enclose_io_memfs.squashfs')
-      FileUtils.rm_f('enclose_io/enclose_io_memfs.c')
+      FileUtils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
+      FileUtils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
       Utils.run("mksquashfs -version")
-      Utils.run("mksquashfs #{Utils.escape @work_dir} enclose_io/enclose_io_memfs.squashfs")
-      bytes = IO.binread('enclose_io/enclose_io_memfs.squashfs').bytes
-      # TODO slow operation
-      # remember to change vendor/libsquash/sample/enclose_io_memfs.c as well
+      Utils.run("mksquashfs #{Utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
+      bytes = IO.binread('deps/libsquash/sample/enclose_io_memfs.squashfs').bytes
+      # remember to change libsquash's sample/enclose_io_memfs.c as well
       File.open("enclose_io/enclose_io_memfs.c", "w") do |f|
         f.puts '#include <stdint.h>'
         f.puts '#include <stddef.h>'
@@ -227,30 +160,20 @@ class Compiler
         f.puts '};'
         f.puts ''
       end
-      # TODO slow operation
-      if Gem.win_platform?
-        Utils.run("cl")
-        Utils.run("cl -c enclose_io\\enclose_io_memfs.c")
-        raise 'failed to compile enclose_io\\enclose_io_memfs.c' unless File.exist?('enclose_io_memfs.obj')
-      else
-        Utils.run("cc #{@extra_cc_arg} -c enclose_io/enclose_io_memfs.c -o enclose_io/enclose_io_memfs.o")
-        raise 'failed to compile enclose_io/enclose_io_memfs.c' unless File.exist?('enclose_io/enclose_io_memfs.o')
-        Utils.run("cc #{@extra_cc_arg} -Ienclose_io -Isquash_include -c enclose_io/enclose_io_intercept.c -o enclose_io/enclose_io_intercept.o")
-        raise 'failed to compile enclose_io/enclose_io_intercept.c' unless File.exist?('enclose_io/enclose_io_intercept.o')
-      end
     end
   end
 
   def make_enclose_io_vars
     Utils.chdir(@vendor_node) do
-      File.open("enclose_io/enclose_io.h", "w") do |f|
-        # remember to change vendor/libsquash/sample/enclose_io.h as well
+      File.open("deps/libsquash/sample/enclose_io.h", "w") do |f|
+        # remember to change libsquash's sample/enclose_io.h as well
         f.puts '#ifndef ENCLOSE_IO_H_999BC1DA'
         f.puts '#define ENCLOSE_IO_H_999BC1DA'
         f.puts ''
+        f.puts '#include "enclose_io_prelude.h"'
         f.puts '#include "enclose_io_common.h"'
-        f.puts '#include "enclose_io_intercept.h"'
-        f.puts ''
+        f.puts '#include "enclose_io_win32.h"'
+        f.puts '#include "enclose_io_unix.h"'
         if Gem.win_platform?
           f.puts "#define ENCLOSE_IO_ENTRANCE L#{mempath(@entrance).inspect}"
         else
@@ -273,12 +196,7 @@ class Compiler
 
   def compile_mac
     Utils.chdir(@vendor_node) do
-      Utils.run("./configure #{@options[:debug] ? '--debug' : ''} #{@options[:debug] && RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i ? '--xcode' : ''}")
-      STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
-      FileUtils.rm_f('libzlib.a')
-      src = "out/#{@options[:debug] ? 'Debug' : 'Release'}/libzlib.a"
-      STDERR.puts "-> File.symlink(#{src}, 'libzlib.a')"
-      File.symlink(src, 'libzlib.a')
+      Utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
       Utils.run("make #{@options[:make_args]}")
     end
     src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
@@ -288,12 +206,7 @@ class Compiler
 
   def compile_linux
     Utils.chdir(@vendor_node) do
-      Utils.run("./configure #{@options[:debug] ? '--debug' : ''} #{@options[:debug] && RbConfig::CONFIG['host_os'] =~ /darwin|mac os/i ? '--xcode' : ''}")
-      STDERR.puts "-> FileUtils.rm_f('libzlib.a')"
-      FileUtils.rm_f('libzlib.a')
-      src = "out/#{@options[:debug] ? 'Debug' : 'Release'}/obj.target/deps/zlib/libzlib.a"
-      STDERR.puts "-> File.symlink(src, 'libzlib.a')"
-      File.symlink(src, 'libzlib.a')
+      Utils.run("./configure #{@options[:debug] ? '--debug' : ''}")
       Utils.run("make #{@options[:make_args]}")
     end
     src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")

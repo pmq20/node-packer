@@ -171,6 +171,31 @@ EncloseIOCloseHandle(
 	HANDLE hObject
 );
 
+NTSTATUS
+EncloseIOpNtQueryInformationFile(
+	HANDLE FileHandle,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FileInformation,
+	ULONG Length,
+	FILE_INFORMATION_CLASS FileInformationClass);
+
+NTSTATUS
+EncloseIOpNtQueryVolumeInformationFile(
+	HANDLE FileHandle,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FsInformation,
+	ULONG Length,
+	FS_INFORMATION_CLASS FsInformationClass);
+
+BOOL
+EncloseIOReadFile(
+	HANDLE       hFile,
+	LPVOID       lpBuffer,
+	DWORD        nNumberOfBytesToRead,
+	LPDWORD      lpNumberOfBytesRead,
+	LPOVERLAPPED lpOverlapped
+);
+
 #else
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);

@@ -97,9 +97,11 @@ class Compiler
     if @options[:tmpdir].include? @root
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
-
     Utils.prepare_tmpdir(@options[:tmpdir])
-    @vendor_node = File.join(@options[:tmpdir], 'node')
+    @tmpdir_node = File.join(@options[:tmpdir], 'node')
+    unless Dir.exits?(@tmpdir_node)
+      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node)
+    end
   end
 
   def run!
@@ -117,14 +119,12 @@ class Compiler
 
   def npm_install
     @work_dir = File.join(@options[:tmpdir], '__work_dir__')
-    STDERR.puts "-> FileUtils.rm_rf(#{@work_dir})"
-    FileUtils.rm_rf(@work_dir)
-    STDERR.puts "-> FileUtils.mkdir_p #{@work_dir}"
-    FileUtils.mkdir_p(@work_dir)
+    Utils.rm_rf(@work_dir)
+    Utils.mkdir_p(@work_dir)
 
     @work_dir_inner = File.join(@work_dir, '__enclose_io_memfs__')
 
-    FileUtils.cp_r(@root, @work_dir_inner)
+    Utils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
       Utils.run("#{Utils.escape @options[:npm]} install")
     end
@@ -132,16 +132,15 @@ class Compiler
     Utils.chdir(@work_dir_inner) do
       if Dir.exist?('.git')
         STDERR.puts `git status`
-        STDERR.puts "-> FileUtils.rm_rf('.git')"
-        FileUtils.rm_rf('.git')
+        Utils.rm_rf('.git')
       end
     end
   end
 
   def make_enclose_io_memfs
-    Utils.chdir(@vendor_node) do
-      FileUtils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
-      FileUtils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
+    Utils.chdir(@tmpdir_node) do
+      Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
+      Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
       Utils.run("mksquashfs -version")
       Utils.run("mksquashfs #{Utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
       bytes = IO.binread('deps/libsquash/sample/enclose_io_memfs.squashfs').bytes
@@ -164,7 +163,7 @@ class Compiler
   end
 
   def make_enclose_io_vars
-    Utils.chdir(@vendor_node) do
+    Utils.chdir(@tmpdir_node) do
       File.open("deps/libsquash/sample/enclose_io.h", "w") do |f|
         # remember to change libsquash's sample/enclose_io.h as well
         f.puts '#ifndef ENCLOSE_IO_H_999BC1DA'
@@ -186,32 +185,29 @@ class Compiler
   end
 
   def compile_win
-    Utils.chdir(@vendor_node) do
+    Utils.chdir(@tmpdir_node) do
       Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
-    src = File.join(@vendor_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
-    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
-    FileUtils.cp(src, @options[:output])
+    src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
+    Utils.cp(src, @options[:output])
   end
 
   def compile_mac
-    Utils.chdir(@vendor_node) do
+    Utils.chdir(@tmpdir_node) do
       Utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
       Utils.run("make #{@options[:make_args]}")
     end
-    src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
-    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
-    FileUtils.cp(src, @options[:output])
+    src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+    Utils.cp(src, @options[:output])
   end
 
   def compile_linux
-    Utils.chdir(@vendor_node) do
+    Utils.chdir(@tmpdir_node) do
       Utils.run("./configure #{@options[:debug] ? '--debug' : ''}")
       Utils.run("make #{@options[:make_args]}")
     end
-    src = File.join(@vendor_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
-    STDERR.puts "-> FileUtils.cp(#{src}, #{@options[:output]})"
-    FileUtils.cp(src, @options[:output])
+    src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+    Utils.cp(src, @options[:output])
   end
 
   def mempath(path)

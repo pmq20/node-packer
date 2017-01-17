@@ -277,61 +277,51 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node)
 {
 	sqfs_err error;
 	bool found;
-	__le32 nodelist[SQUASHFS_MAX_LINK_LEVEL] = {0};
-	memset(nodelist, 0, sizeof(nodelist));
-	char basepath[SQUASHFS_PATH_LEN];
-	char newpath[SQUASHFS_PATH_LEN];
-	strcpy(basepath, path);
+
+	char base_path[SQUASHFS_PATH_LEN];
+	char new_path[SQUASHFS_PATH_LEN];
+	strcpy(base_path, path);
 	int inode_num = 0;
 	do{
-		char buflink[SQUASHFS_PATH_LEN]; // is enough for path?
-		ssize_t linklength = squash_readlink_inode(fs, node, buflink, sizeof(buflink));
-		if (linklength > 0) {
-			if (buflink[0] == '/') { // is Absolute Path
+		char buf_link[SQUASHFS_PATH_LEN]; // is enough for path?
+		ssize_t link_length = squash_readlink_inode(fs, node, buf_link, sizeof(buf_link));
+		if (link_length > 0) {
+			if (buf_link[0] == '/') { // is Absolute Path
 				// find node from /
 				error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
 				if (SQFS_OK != error) {
 					return error;
 				}
-				error = sqfs_lookup_path(fs, node, buflink, &found);
+				error = sqfs_lookup_path(fs, node, buf_link, &found);
 				if (SQFS_OK != error) {
 					return error;
 				}
 			} else { // is Relative Path
-				size_t pos = strlen(basepath) - 1;
+				size_t pos = strlen(base_path) - 1;
 				// find the last /  "/a/b/cb"
-				while (basepath[pos--] != '/') {}
+				while (base_path[pos--] != '/') {}
 
 
-				memcpy(newpath, basepath, pos + 2);
-				memcpy(newpath + pos + 2, buflink, linklength);
-				newpath[pos + 2 + linklength] = '\0';
+				memcpy(new_path, base_path, pos + 2);
+				memcpy(new_path + pos + 2, buf_link, link_length);
+				new_path[pos + 2 + link_length] = '\0';
 				//find node from /
 				error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
 				if (SQFS_OK != error) {
 					return error;
 				}
-				error = sqfs_lookup_path(fs, node, newpath, &found);
+				error = sqfs_lookup_path(fs, node, new_path, &found);
 				if (SQFS_OK != error) {
 					return error;
 				}
 			}
-			//check if symbol link list has circle
-			int i = 0;
-			for(;i < inode_num; i++)
-			{
-				if(node->base.inode_number == nodelist[i]){
-					errno = ELOOP;
-					return SQFS_ERR;
-				}
-			}
 
-			nodelist[inode_num++] = node->base.inode_number;
+			inode_num++;
 			if(inode_num > SQUASHFS_MAX_LINK_LEVEL){
 				errno = ELOOP;
 				return SQFS_ERR;
 			}
-			strcpy(basepath, newpath);
+			strcpy(base_path, new_path);
 
 		} else {
 			return SQFS_ERR;

@@ -10,6 +10,152 @@
 
 #ifdef _WIN32
 
+int enclose_io_wopen(int nargs, const wchar_t *pathname, int flags, ...)
+{
+	if (enclose_io_cwd[0] && W_IS_ENCLOSE_IO_RELATIVE(pathname)) {
+		W_ENCLOSE_IO_PATH_CONVERT(pathname);
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+		return squash_open(enclose_io_fs, enclose_io_expanded);
+	} else if (W_IS_ENCLOSE_IO_PATH(pathname)) {
+		W_ENCLOSE_IO_PATH_CONVERT(pathname);
+		return squash_open(enclose_io_fs, enclose_io_converted);
+	} else {
+		if (2 == nargs) {
+			return _wopen(pathname, flags);
+		} else {
+			assert(3 == nargs);
+			va_list args;
+			va_start(args, flags);
+			int mode = va_arg(args, int);
+			va_end(args);
+			return _wopen(pathname, flags, mode);
+		}
+	}
+}
+
+int enclose_io_open_osfhandle(intptr_t osfhandle, int flags)
+{
+	struct squash_file *entry = squash_find_entry((void *)osfhandle);
+	if (entry) {
+		return entry->fd;
+	} else {
+		return _open_osfhandle(osfhandle, flags);
+	}
+}
+
+intptr_t enclose_io_get_osfhandle(int fd)
+{
+	if (SQUASH_VALID_VFD(fd)) {
+		return (intptr_t)(squash_global_fdtable.fds[fd]->payload);
+	}
+	else {
+		return _get_osfhandle(fd);
+	}
+}
+
+int enclose_io_wchdir(const wchar_t *path)
+{
+	if (W_IS_ENCLOSE_IO_PATH(path)) {
+		W_ENCLOSE_IO_PATH_CONVERT(path);
+		return enclose_io_chdir_helper(enclose_io_converted);
+	} else {
+		int ret = _wchdir(path);
+		if (0 == ret) {
+			enclose_io_cwd[0] = '\0';
+		}
+		return ret;
+	}
+}
+
+wchar_t *enclose_io_wgetcwd(wchar_t *buf, size_t size)
+{
+	if (enclose_io_cwd[0]) {
+		wchar_t tempbuf[256 + 1];
+		size_t retlen = mbstowcs(tempbuf, enclose_io_cwd, 256);
+		if (-1 == retlen) {
+			return NULL;
+		}
+		if (NULL == buf) {
+			buf = malloc((retlen + 1) * sizeof(wchar_t));
+			if (NULL == buf) {
+				errno = ENOMEM;
+				return NULL;
+			}
+		} else {
+			if (size - 1 < retlen) {
+				retlen = size - 1;
+			}
+		}
+		memcpy(buf, tempbuf, retlen * sizeof(wchar_t));
+		buf[retlen] = L'\0';
+		return buf;
+	} else {
+		return _wgetcwd(buf, size);
+	}
+}
+
+int enclose_io_fstati64(int fildes, struct _stati64 *buf)
+{
+	if (SQUASH_VALID_VFD(fildes)) {
+		if (NULL == buf) {
+			return -1;
+		}
+		struct stat st = SQUASH_VFD_FILE(fildes)->st;
+		buf->st_dev = st.st_dev;
+		buf->st_ino = st.st_ino;
+		buf->st_mode = st.st_mode;
+		buf->st_nlink = st.st_nlink;
+		buf->st_uid = st.st_uid;
+		buf->st_gid = st.st_gid;
+		buf->st_rdev = st.st_rdev;
+		buf->st_size = st.st_size;
+		buf->st_atime = st.st_atime;
+		buf->st_mtime = st.st_mtime;
+		buf->st_ctime = st.st_ctime;
+		return 0;
+	} else {
+		return _fstati64(fildes, buf);
+	}
+}
+
+__int64 enclose_io_lseeki64(int fildes, __int64 offset, int whence)
+{
+	if (SQUASH_VALID_VFD(fildes)) {
+		return squash_lseek(fildes, offset, whence);
+	} else {
+		return _lseeki64(fildes, offset, whence);
+	}
+}
+
+static HANDLE EncloseIOCreateFileWHelper(char * incoming)
+{
+	int ret;
+	struct stat buf;
+	ret = squash_stat(enclose_io_fs, incoming, &buf);
+	if (-1 == ret) {
+		ENCLOSE_IO_SET_LAST_ERROR;
+		return INVALID_HANDLE_VALUE;
+	}
+	if (S_ISDIR(buf.st_mode)) {
+		SQUASH_DIR *handle = squash_opendir(enclose_io_fs, incoming);
+		assert(NULL != handle);
+		return (void *)handle;
+	}
+	else {
+		ret = squash_open(enclose_io_fs, incoming);
+		assert(ret >= 0);
+		// TODO free it
+		int *handle = (int *)malloc(sizeof(int));
+		if (NULL == handle) {
+			SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+			return INVALID_HANDLE_VALUE;
+		}
+		*handle = ret;
+		squash_global_fdtable.fds[*handle]->payload = (void *)handle;
+		return (void *)handle;
+	}
+}
+
 HANDLE
 EncloseIOCreateFileW(
 	LPCWSTR lpFileName,
@@ -21,31 +167,13 @@ EncloseIOCreateFileW(
 	HANDLE hTemplateFile
 )
 {
-	if (W_IS_ENCLOSE_IO_PATH(lpFileName)) {
+	if (enclose_io_cwd[0] && W_IS_ENCLOSE_IO_RELATIVE(lpFileName)) {
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
-		int ret;
-		struct stat buf;
-		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
-		if (-1 == ret) {
-			goto error;
-		}
-		if (S_ISDIR(buf.st_mode)) {
-			SQUASH_DIR *handle = squash_opendir(enclose_io_fs, enclose_io_converted);
-			assert(NULL != handle);
-			return (void *)handle;
-		} else {
-			ret = squash_open(enclose_io_fs, enclose_io_converted);
-			assert(ret >= 0);
-			// TODO free it
-			int *handle = (int *)malloc(sizeof(int));
-			if (NULL == handle) {
-				SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-				return INVALID_HANDLE_VALUE;
-			}
-			*handle = ret;
-			squash_global_fdtable.fds[*handle]->payload = (void *)handle;
-			return (void *)handle;
-		}
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+		return EncloseIOCreateFileWHelper(enclose_io_expanded);
+	} else if (W_IS_ENCLOSE_IO_PATH(lpFileName)) {
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		return EncloseIOCreateFileWHelper(enclose_io_converted);
 	} else {
 		return CreateFileW(
 			lpFileName,
@@ -57,9 +185,6 @@ EncloseIOCreateFileW(
 			hTemplateFile
 		);
 	}
-error:
-	ENCLOSE_IO_SET_LAST_ERROR;
-	return INVALID_HANDLE_VALUE;
 }
 
 NTSTATUS

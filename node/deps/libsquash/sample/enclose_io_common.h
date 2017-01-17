@@ -67,6 +67,16 @@ extern const uint8_t enclose_io_memfs[];
 			) \
 		)
 
+#define W_IS_ENCLOSE_IO_RELATIVE(pathname) ( \
+			(L'\\' != (pathname)[0]) && \
+			(wcsnlen(pathname, 4) < 4 || 0 != wcsncmp((pathname), L"\\\\?\\", 4)) && \
+			( \
+				wcsnlen(pathname, 7) < 7 || !( \
+				0 == wcsncmp((pathname), L"\\\\?\\", 4) && \
+				0 == wcsncmp((pathname) + 5, L":\\", 2) )\
+			) \
+		)
+
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	\
 			sqfs_name enclose_io_expanded; \
 			size_t enclose_io_cwd_len = strlen(enclose_io_cwd); \
@@ -107,9 +117,28 @@ extern const uint8_t enclose_io_memfs[];
 			} \
 		} while (0)
 
+int enclose_io_chdir_helper(const char *path);
+int enclose_io_chdir(const char *path);
+char *enclose_io_getcwd(char *buf, size_t size);
+char *enclose_io_getwd(char *buf);
+int enclose_io_stat(const char *path, struct stat *buf);
+int enclose_io_fstat(int fildes, struct stat *buf);
+int enclose_io_open(int nargs, const char *pathname, int flags, ...);
+int enclose_io_close(int fildes);
+ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte);
+off_t enclose_io_lseek(int fildes, off_t offset, int whence);
+
 #ifdef _WIN32
 
 #include "enclose_io_winapi.h"
+
+int enclose_io_wopen(int nargs, const wchar_t *pathname, int flags, ...);
+int enclose_io_open_osfhandle(intptr_t osfhandle, int flags);
+intptr_t enclose_io_get_osfhandle(int fd);
+int enclose_io_wchdir(const wchar_t *path);
+wchar_t *enclose_io_wgetcwd(wchar_t *buf, size_t size);
+int enclose_io_fstati64(int fildes, struct _stati64 *buf);
+__int64 enclose_io_lseeki64(int fildes, __int64 offset, int whence);
 
 HANDLE
 EncloseIOCreateFileW(
@@ -156,15 +185,5 @@ int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
 	int(*select)(const struct dirent *),
 	int(*compar)(const struct dirent **, const struct dirent **));
 #endif // !_WIN32
-
-int enclose_io_chdir(const char *path);
-char *enclose_io_getcwd(char *buf, size_t size);
-char *enclose_io_getwd(char *buf);
-int enclose_io_stat(const char *path, struct stat *buf);
-int enclose_io_fstat(int fildes, struct stat *buf);
-int enclose_io_open(int nargs, const char *pathname, int flags, ...);
-int enclose_io_close(int fildes);
-ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte);
-off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #endif

@@ -24,7 +24,7 @@ sqfs_err squash_halt()
 struct squash_file * squash_find_entry(void *ptr)
 {
 	size_t i;
-	for (i = 0; i <= squash_global_fdtable.last; ++i) {
+	for (i = 0; i < squash_global_fdtable.end; ++i) {
 		if (squash_global_fdtable.fds[i] && ptr == squash_global_fdtable.fds[i]->payload) {
 			return squash_global_fdtable.fds[i];
 		}

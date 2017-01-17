@@ -136,29 +136,33 @@ int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
 }
 #endif // !_WIN32
 
+int enclose_io_chdir_helper(const char *path)
+{
+	struct stat st;
+	int ret = squash_stat(enclose_io_fs, path, &st);
+	if (0 == ret && S_ISDIR(st.st_mode)) {
+		size_t memcpy_len = strlen(path);
+		if (SQUASHFS_NAME_LEN - 1 < memcpy_len) {
+			memcpy_len = SQUASHFS_NAME_LEN - 1;
+		}
+		memcpy(enclose_io_cwd, path, memcpy_len);
+		while ('/' == enclose_io_cwd[memcpy_len - 1]) {
+			memcpy_len--;
+		}
+		enclose_io_cwd[memcpy_len] = '/';
+		enclose_io_cwd[memcpy_len + 1] = '\0';
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
 int enclose_io_chdir(const char *path)
 {
-	int ret;
 	if (IS_ENCLOSE_IO_PATH(path)) {
-		struct stat st;
-		ret = squash_stat(enclose_io_fs, path, &st);
-		if (0 == ret && S_ISDIR(st.st_mode)) {
-			size_t memcpy_len = strlen(path);
-			if (SQUASHFS_NAME_LEN - 1 < memcpy_len){
-				memcpy_len = SQUASHFS_NAME_LEN - 1;
-			}
-			memcpy(enclose_io_cwd, path, memcpy_len);
-			while ('/' == enclose_io_cwd[memcpy_len - 1]) {
-				memcpy_len--;
-			}
-			enclose_io_cwd[memcpy_len] = '/';
-			enclose_io_cwd[memcpy_len + 1] = '\0';
-			return 0;
-		} else {
-			return -1;
-		}
+		return enclose_io_chdir_helper(path);
 	} else {
-		ret = chdir(path);
+		int ret = chdir(path);
 		if (0 == ret) {
 			enclose_io_cwd[0] = '\0';
 		}
@@ -173,6 +177,7 @@ char *enclose_io_getcwd(char *buf, size_t size)
 		if (NULL == buf) {
 			buf = malloc((memcpy_len + 1) * sizeof(char));
 			if (NULL == buf) {
+				errno = ENOMEM;
 				return NULL;
 			}
 		} else {

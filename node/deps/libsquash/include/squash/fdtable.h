@@ -12,6 +12,7 @@
 #include "squash/common.h"
 
 struct squash_file {
+	int fd;
 	sqfs *fs;
 	sqfs_inode node;
 	struct stat st;
@@ -22,7 +23,7 @@ struct squash_file {
 struct squash_fdtable {
 	size_t nr;
 	struct squash_file **fds;
-	size_t last; // last used index
+	size_t end;
 };
 
 extern struct squash_fdtable squash_global_fdtable;

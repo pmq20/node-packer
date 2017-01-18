@@ -41,7 +41,6 @@
         'src/private.c',
         'src/readlink.c',
         'src/scandir.c',
-        'src/squash.c',
         'src/stack.c',
         'src/stat.c',
         'src/table.c',

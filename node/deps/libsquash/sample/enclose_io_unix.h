@@ -16,7 +16,7 @@
 #define fstat(...)	enclose_io_fstat(__VA_ARGS__)
 #define open(...)	enclose_io_open(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
 #define close(...)	enclose_io_close(__VA_ARGS__)
-#define read(...)	enclose_io_read((__VA_ARGS__)
+#define read(...)	enclose_io_read(__VA_ARGS__)
 #define lseek(...)	enclose_io_lseek(__VA_ARGS__)
 
 #ifndef _WIN32

@@ -140,3 +140,27 @@ off_t squash_lseek(int vfd, off_t offset, int whence)
 	}
 	return file->pos;
 }
+
+sqfs_err squash_start()
+{
+	squash_global_fdtable.nr = 0;
+	squash_global_fdtable.fds = NULL;
+	return SQFS_OK;
+}
+
+sqfs_err squash_halt()
+{
+	free(squash_global_fdtable.fds);
+	return SQFS_OK;
+}
+
+struct squash_file * squash_find_entry(void *ptr)
+{
+	size_t i;
+	for (i = 0; i < squash_global_fdtable.end; ++i) {
+		if (squash_global_fdtable.fds[i] && ptr == squash_global_fdtable.fds[i]->payload) {
+			return squash_global_fdtable.fds[i];
+		}
+	}
+	return NULL;
+}

@@ -99,7 +99,7 @@ class Compiler
     end
     Utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], 'node')
-    unless Dir.exits?(@tmpdir_node)
+    unless Dir.exist?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node)
     end
   end
@@ -145,7 +145,7 @@ class Compiler
       Utils.run("mksquashfs #{Utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
       bytes = IO.binread('deps/libsquash/sample/enclose_io_memfs.squashfs').bytes
       # remember to change libsquash's sample/enclose_io_memfs.c as well
-      File.open("enclose_io/enclose_io_memfs.c", "w") do |f|
+      File.open("deps/libsquash/sample/enclose_io_memfs.c", "w") do |f|
         f.puts '#include <stdint.h>'
         f.puts '#include <stddef.h>'
         f.puts ''

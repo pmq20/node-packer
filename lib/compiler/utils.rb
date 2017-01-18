@@ -59,16 +59,6 @@ class Compiler
       STDERR.puts "-> mkdir -p #{x}"
       FileUtils.mkdir_p(x)
     end
-
-    def self.prepare_tmpdir(tmpdir)
-      Utils.mkdir_p(tmpdir)
-      Dir[VENDOR_DIR + '/*'].each do |dirpath|
-        target = File.join(tmpdir, File.basename(dirpath))
-        unless Dir.exist?(target)
-          Utils.cp_r(dirpath, target)
-        end
-      end
-    end
     
     def self.remove_dynamic_libs(path)
       ['dll', 'dylib', 'so'].each do |extname|

@@ -97,7 +97,7 @@ class Compiler
     if @options[:tmpdir].include? @root
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
-    Utils.prepare_tmpdir(@options[:tmpdir])
+    Utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], 'node')
     unless Dir.exits?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node)

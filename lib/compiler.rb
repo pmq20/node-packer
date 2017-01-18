@@ -148,8 +148,8 @@ class Compiler
       File.open("deps/libsquash/sample/enclose_io_memfs.c", "w") do |f|
         f.puts '#include <stdint.h>'
         f.puts '#include <stddef.h>'
-	f.puts '#include "squash.h"'
-	f.puts 'sqfs *enclose_io_fs;'
+        f.puts '#include "squash.h"'
+        f.puts 'sqfs *enclose_io_fs;'
         f.puts "const uint8_t enclose_io_memfs[#{bytes.size}] = { #{bytes[0]}"
         i = 1
         while i < bytes.size

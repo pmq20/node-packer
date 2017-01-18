@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2016-2017 Minqi Pan <pmq2001@gmail.com>
+# Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
 # 
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
@@ -8,8 +8,10 @@
 require 'shellwords'
 require 'fileutils'
 
-puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
-raise 'git failed' unless $?.success?
+unless Dir.exist?('coffeescript')
+  puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
+  raise 'git failed' unless $?.success?
+end
 Dir.chdir('coffeescript')
 
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)

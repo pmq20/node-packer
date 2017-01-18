@@ -877,6 +877,7 @@
       'include_dirs': [
         'src',
         'deps/v8/include',
+        'deps/libsquash/include',
         '<(SHARED_INTERMEDIATE_DIR)'
       ],
       'defines': [

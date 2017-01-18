@@ -4,7 +4,6 @@
 extern "C" {
   #include "enclose_io.h"
 }
-sqfs *enclose_io_fs;
 // ======= [Enclose.io Hack end] =========
 
 #ifdef _WIN32

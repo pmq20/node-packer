@@ -13,6 +13,7 @@
 #define mode_t unsigned int
 #endif
 
+sqfs *enclose_io_fs;
 sqfs_name enclose_io_cwd;
 
 #ifndef _WIN32

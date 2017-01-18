@@ -8,8 +8,10 @@
 require 'shellwords'
 require 'fileutils'
 
-puts `git clone --depth 1 https://github.com/cnpm/cnpmjs.org`
-raise 'git failed' unless $?.success?
+unless Dir.exist?('cnpmjs.org')
+  puts `git clone --depth 1 https://github.com/cnpm/cnpmjs.org`
+  raise 'git failed' unless $?.success?
+end
 Dir.chdir('cnpmjs.org')
 
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)

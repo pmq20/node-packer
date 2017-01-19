@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v0.9.3
+
+work in progress
+
 ## v0.9.2
 
 - use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14

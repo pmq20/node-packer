@@ -10,7 +10,7 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 | Operating System | Architecture | Link                                                              |
 |:----------------:|:------------:|-------------------------------------------------------------------|
 |     Mac OS X     |     x86-64   | http://www.enclose.io/pmq20/node-compiler/v0.9.2/darwin/x64/nodec |
-|       Linux      |     x86-64   |                                                                   |
+|       Linux      |     x86-64   | http://www.enclose.io/pmq20/node-compiler/v0.9.2/linux/x64/nodec  |
 |      Windows     |      x86     |                                                                   |
 
 ## Usage

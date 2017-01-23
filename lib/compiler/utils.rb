@@ -6,7 +6,6 @@
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
-require 'json'
 require 'open3'
 
 class Compiler

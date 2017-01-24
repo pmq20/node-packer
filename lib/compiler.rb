@@ -99,7 +99,7 @@ class Compiler
     Utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], 'node')
     unless Dir.exist?(@tmpdir_node)
-      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node)
+      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
     end
   end
 

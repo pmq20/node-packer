@@ -39,9 +39,9 @@ class Compiler
       FileUtils.cp(x, y)
     end
     
-    def self.cp_r(x, y)
+    def self.cp_r(x, y, options = {})
       STDERR.puts "-> cp -r #{x.inspect} #{y.inspect}"
-      FileUtils.cp_r(x, y)
+      FileUtils.cp_r(x, y, options)
     end
 
     def self.rm_f(x)

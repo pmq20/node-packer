@@ -7,6 +7,7 @@ os:
   - osx
 
 addons:
+  artifacts: true
   apt:
     sources:
       - ubuntu-toolchain-r-test

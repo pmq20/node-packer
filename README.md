@@ -40,7 +40,3 @@ Compiler for Node.js that compiles your Node.js application into a single execut
     git clone --depth 1 https://github.com/cnpm/cnpmjs.org
     cd cnpmjs.org
     nodec dispatch.js
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/node-compiler.

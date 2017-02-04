@@ -44,7 +44,3 @@ Compiler for Node.js that compiles your Node.js application into a single execut
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/pmq20/node-compiler.
-
-## License
-
-Copyright (c) 2017 **Minqi Pan** &lt;pmq2001@gmail.com&gt;, under terms of the [MIT License](http://opensource.org/licenses/MIT).

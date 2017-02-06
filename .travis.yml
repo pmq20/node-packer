@@ -18,7 +18,7 @@ addons:
       - g++-4.8
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install squashfs autoconf automake libtool apple-gcc42 libyaml libxslt libksba openssl; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 
 before_script:

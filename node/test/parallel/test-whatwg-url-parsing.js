@@ -1,10 +1,11 @@
 'use strict';
 
 const common = require('../common');
+const util = require('util');
 
 if (!common.hasIntl) {
   // A handful of the tests fail when ICU is not included.
-  common.skip('missing Intl... skipping test');
+  common.skip('missing Intl');
   return;
 }
 
@@ -13,17 +14,30 @@ const path = require('path');
 const assert = require('assert');
 const tests = require(path.join(common.fixturesDir, 'url-tests.json'));
 
+function verifyURL(url, test) {
+  if (test.href) assert.strictEqual(url.href, test.href);
+  if (test.origin) assert.strictEqual(url.origin, test.origin);
+  if (test.protocol) assert.strictEqual(url.protocol, test.protocol);
+  if (test.username) assert.strictEqual(url.username, test.username);
+  if (test.password) assert.strictEqual(url.password, test.password);
+  if (test.hostname) assert.strictEqual(url.hostname, test.hostname);
+  if (test.host) assert.strictEqual(url.host, test.host);
+  if (test.port !== undefined) assert.strictEqual(url.port, test.port);
+  if (test.pathname) assert.strictEqual(url.pathname, test.pathname);
+  if (test.search) assert.strictEqual(url.search, test.search);
+  if (test.hash) assert.strictEqual(url.hash, test.hash);
+}
+
 for (const test of tests) {
   if (typeof test === 'string')
     continue;
 
   if (test.failure) {
-    assert.throws(() => new URL(test.input, test.base), /Invalid URL/);
+    assert.throws(() => new URL(test.input, test.base),
+                  /^TypeError: Invalid URL$/);
   } else {
-    assert.doesNotThrow(() => {
-      const url = new URL(test.input, test.base);
-      assert.strictEqual(url.href, test.href);
-    });
+    const url = new URL(test.input, test.base);
+    verifyURL(url, test);
   }
 }
 
@@ -115,18 +129,10 @@ const additional_tests = [
   }
 ];
 
-additional_tests.forEach((test) => {
-  const u = new URL(test.url);
-  if (test.protocol) assert.strictEqual(test.protocol, u.protocol);
-  if (test.username) assert.strictEqual(test.username, u.username);
-  if (test.password) assert.strictEqual(test.password, u.password);
-  if (test.hostname) assert.strictEqual(test.hostname, u.hostname);
-  if (test.host) assert.strictEqual(test.host, u.host);
-  if (test.port !== undefined) assert.strictEqual(test.port, u.port);
-  if (test.pathname) assert.strictEqual(test.pathname, u.pathname);
-  if (test.search) assert.strictEqual(test.search, u.search);
-  if (test.hash) assert.strictEqual(test.hash, u.hash);
-});
+for (const test of additional_tests) {
+  const url = new URL(test.url);
+  verifyURL(url, test);
+}
 
 // test inspect
 const allTests = additional_tests.slice();
@@ -139,8 +145,8 @@ for (const test of allTests) {
   const url = test.url ? new URL(test.url) : new URL(test.input, test.base);
 
   for (const showHidden of [true, false]) {
-    const res = url.inspect(null, {
-      showHidden: showHidden
+    const res = util.inspect(url, {
+      showHidden
     });
 
     const lines = res.split('\n');

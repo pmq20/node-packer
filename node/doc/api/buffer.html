@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v7.4.0 Documentation</title>
+  <title>Buffer | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -473,15 +473,16 @@ console.log(buf2.toString());
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use
 <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>
 instead.</pre><ul>
-<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> The <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> or
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a></li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start copying from <code>arrayBuffer</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to copy from <code>arrayBuffer</code>.
+<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
-<p>When passed a reference to the <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance,
-the newly created <code>Buffer</code> will share the same allocated memory as the
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
+<p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
+memory. For example, when passed a reference to the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance, the newly created <code>Buffer</code> will share the same
+allocated memory as the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
 <p>The optional <code>byteOffset</code> and <code>length</code> arguments specify a memory range within
 the <code>arrayBuffer</code> that will be shared by the <code>Buffer</code>.</p>
 <p>Example:</p>
@@ -764,15 +765,16 @@ const buf = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> The <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> or
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a></li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start copying from <code>arrayBuffer</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to copy from <code>arrayBuffer</code>.
+<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
-<p>When passed a reference to the <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance,
-the newly created <code>Buffer</code> will share the same allocated memory as the
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
+<p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
+memory. For example, when passed a reference to the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance, the newly created <code>Buffer</code> will share the same
+allocated memory as the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const arr = new Uint16Array(2);
 
@@ -1002,7 +1004,7 @@ console.log(buf.toString());
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> of <code>[index, byte]</code> pairs from the contents of
 <code>buf</code>.</p>
@@ -1118,6 +1120,26 @@ console.log(utf16Buffer.indexOf(&#39;\u03a3&#39;, 0, &#39;ucs2&#39;));
 // Prints: 6
 console.log(utf16Buffer.indexOf(&#39;\u03a3&#39;, -4, &#39;ucs2&#39;));
 </code></pre>
+<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a
+<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,
+an integer between 0 and 255.</p>
+<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments
+that coerce to <code>NaN</code> or 0, like <code>{}</code>, <code>[]</code>, <code>null</code> or <code>undefined</code>, will search
+the whole buffer. This behavior matches <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf"><code>String#indexOf()</code></a>.</p>
+<pre><code class="lang-js">const b = Buffer.from(&#39;abcdef&#39;);
+
+// Passing a value that&#39;s a number, but not a valid byte
+// Prints: 2, equivalent to searching for 99 or &#39;c&#39;
+console.log(b.indexOf(99.9));
+console.log(b.indexOf(256 + 99));
+
+// Passing a byteOffset that coerces to NaN or 0
+// Prints: 1, searching the whole buffer
+console.log(b.indexOf(&#39;b&#39;, undefined));
+console.log(b.indexOf(&#39;b&#39;, {}));
+console.log(b.indexOf(&#39;b&#39;, null));
+console.log(b.indexOf(&#39;b&#39;, []));
+</code></pre>
 <h3>buf.includes(value[, byteOffset][, encoding])<span><a class="mark" href="#buffer_buf_includes_value_byteoffset_encoding" id="buffer_buf_includes_value_byteoffset_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.3.0</span>
@@ -1158,7 +1180,7 @@ console.log(buf.includes(&#39;this&#39;, 4));
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> of <code>buf</code> keys (indices).</p>
 <p>Example:</p>
@@ -1222,6 +1244,29 @@ console.log(utf16Buffer.lastIndexOf(&#39;\u03a3&#39;, undefined, &#39;ucs2&#39;)
 
 // Prints: 4
 console.log(utf16Buffer.lastIndexOf(&#39;\u03a3&#39;, -5, &#39;ucs2&#39;));
+</code></pre>
+<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a
+<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,
+an integer between 0 and 255.</p>
+<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments
+that coerce to <code>NaN</code>, like <code>{}</code> or <code>undefined</code>, will search the whole buffer.
+This behavior matches <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf"><code>String#lastIndexOf()</code></a>.</p>
+<pre><code class="lang-js">const b = Buffer.from(&#39;abcdef&#39;);
+
+// Passing a value that&#39;s a number, but not a valid byte
+// Prints: 2, equivalent to searching for 99 or &#39;c&#39;
+console.log(b.lastIndexOf(99.9));
+console.log(b.lastIndexOf(256 + 99));
+
+// Passing a byteOffset that coerces to NaN
+// Prints: 1, searching the whole buffer
+console.log(b.lastIndexOf(&#39;b&#39;, undefined));
+console.log(b.lastIndexOf(&#39;b&#39;, {}));
+
+// Passing a byteOffset that coerces to 0
+// Prints: -1, equivalent to passing 0
+console.log(b.lastIndexOf(&#39;b&#39;, null));
+console.log(b.lastIndexOf(&#39;b&#39;, []));
 </code></pre>
 <h3>buf.length<span><a class="mark" href="#buffer_buf_length" id="buffer_buf_length">#</a></span></h3>
 <div class="api_metadata">
@@ -1724,7 +1769,7 @@ console.log(copy);
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> for <code>buf</code> values (bytes). This function is
 called automatically when a <code>Buffer</code> is used in a <code>for..of</code> statement.</p>
@@ -2160,6 +2205,7 @@ console.log(buf);
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

@@ -67,7 +67,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with Deflate.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflate\">Deflate</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -105,7 +105,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with Deflate.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflate\">Deflate</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -129,7 +129,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with DeflateRaw.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -167,7 +167,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with DeflateRaw.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -191,7 +191,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Gunzip.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -229,7 +229,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Gunzip.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -253,7 +253,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with Gzip.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gzip\">Gzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -291,7 +291,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Compress a Buffer or string with Gzip.</p>\n",
+              "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gzip\">Gzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -315,7 +315,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Inflate.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflate\">Inflate</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -353,7 +353,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Inflate.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflate\">Inflate</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -377,7 +377,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with InflateRaw.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -415,7 +415,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with InflateRaw.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -439,7 +439,7 @@
                   "v0.6.0"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Unzip.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_unzip\">Unzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -477,7 +477,7 @@
                   "v0.11.12"
                 ]
               },
-              "desc": "<p>Decompress a Buffer or string with Unzip.</p>\n",
+              "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_unzip\">Unzip</a>.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -662,6 +662,11 @@
         {
           "textRaw": "zlib.constants",
           "name": "constants",
+          "meta": {
+            "added": [
+              "v7.0.0"
+            ]
+          },
           "desc": "<p>Provides an object enumerating Zlib-related constants.</p>\n"
         }
       ],

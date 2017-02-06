@@ -17,7 +17,7 @@ exports.resolve = urlResolve;
 exports.resolveObject = urlResolveObject;
 exports.format = urlFormat;
 exports.URL = internalUrl.URL;
-exports.originFor = internalUrl.originFor;
+exports.URLSearchParams = internalUrl.URLSearchParams;
 exports.domainToASCII = internalUrl.domainToASCII;
 exports.domainToUnicode = internalUrl.domainToUnicode;
 

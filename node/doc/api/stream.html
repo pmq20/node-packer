@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.4.0 Documentation</title>
+  <title>Stream | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -537,12 +537,44 @@ supplied <code>callback</code> once the data has been fully handled. If an error
 occurs, the <code>callback</code> <em>may or may not</em> be called with the error as its
 first argument. To reliably detect write errors, add a listener for the
 <code>&#39;error&#39;</code> event.</p>
-<p>The return value is <code>true</code> if the internal buffer does not exceed
+<p>The return value is <code>true</code> if the internal buffer is less than the
 <code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.
 If <code>false</code> is returned, further attempts to write data to the stream should
-stop until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted. However, the <code>false</code> return
-value is only advisory and the writable stream will unconditionally accept and
-buffer <code>chunk</code> even if it has not not been allowed to drain.</p>
+stop until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted.</p>
+<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and
+return false. Once all currently buffered chunks are drained (accepted for
+delivery by the operating system), the <code>&#39;drain&#39;</code> event will be emitted.
+It is recommended that once write() returns false, no more chunks be written
+until the <code>&#39;drain&#39;</code> event is emitted. While calling <code>write()</code> on a stream that
+is not draining is allowed, Node.js will buffer all written chunks until
+maximum memory usage occurs, at which point it will abort unconditionally.
+Even before it aborts, high memory usage will cause poor garbage collector
+performance and high RSS (which is not typically released back to the system,
+even after the memory is no longer required). Since TCP sockets may never
+drain if the remote peer does not read the data, writing a socket that is
+not draining may lead to a remotely exploitable vulnerability.</p>
+<p>Writing data while the stream is not draining is particularly
+problematic for a <a href="#stream_class_stream_transform">Transform</a>, because the <code>Transform</code> streams are paused
+by default until they are piped or an <code>&#39;data&#39;</code> or <code>&#39;readable&#39;</code> event handler
+is added.</p>
+<p>If the data to be written can be generated or fetched on demand, it is
+recommended to encapsulate the logic into a <a href="#stream_class_stream_readable">Readable</a> and use
+<a href="#stream_readable_pipe_destination_options"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is
+possible to respect backpressure and avoid memory issues using the
+the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event:</p>
+<pre><code class="lang-js">function write (data, cb) {
+  if (!stream.write(data)) {
+    stream.once(&#39;drain&#39;, cb)
+  } else {
+    process.nextTick(cb)
+  }
+}
+
+// Wait for cb to be called before doing any other write.
+write(&#39;hello&#39;, () =&gt; {
+  console.log(&#39;write completed, do more writes now&#39;)
+})
+</code></pre>
 <p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>
 <h3>Readable Streams<span><a class="mark" href="#stream_readable_streams" id="stream_readable_streams">#</a></span></h3>
 <p>Readable streams are an abstraction for a <em>source</em> from which data is
@@ -1243,7 +1275,7 @@ user programs.</p>
 <code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking
 the callback and passing the error as the first argument. This will cause an
 <code>&#39;error&#39;</code> event to be emitted by the Writable. Throwing an Error from within
-<code>writable._write()</code> can result in expected and inconsistent behavior depending
+<code>writable._write()</code> can result in unexpected and inconsistent behavior depending
 on how the stream is being used.  Using the callback ensures consistent and
 predictable handling of errors.</p>
 <pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
@@ -1800,6 +1832,7 @@ readable buffer so there is nothing for a user to consume.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

@@ -22,7 +22,7 @@ assert.doesNotThrow(function() {
 });
 
 // an Object with a custom .inspect() function
-const custom_inspect = { foo: 'bar', inspect: () => { return 'inspect'; } };
+const custom_inspect = { foo: 'bar', inspect: () => 'inspect' };
 
 const stdout_write = global.process.stdout.write;
 const stderr_write = global.process.stderr.write;
@@ -115,7 +115,7 @@ assert.strictEqual("{ foo: 'bar', inspect: [Function: inspect] }\n",
                    strings.shift());
 assert.strictEqual("{ foo: 'bar', inspect: [Function: inspect] }\n",
                    strings.shift());
-assert.notEqual(-1, strings.shift().indexOf('foo: [Object]'));
+assert.ok(strings.shift().includes('foo: [Object]'));
 assert.strictEqual(-1, strings.shift().indexOf('baz'));
 assert.ok(/^label: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^__proto__: \d+\.\d{3}ms$/.test(strings.shift().trim()));
@@ -130,7 +130,7 @@ assert.strictEqual(errStrings.length, 0);
 
 assert.throws(() => {
   console.assert(false, 'should throw');
-}, /should throw/);
+}, /^AssertionError: should throw$/);
 
 assert.doesNotThrow(() => {
   console.assert(true, 'this should not throw');

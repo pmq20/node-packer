@@ -93,7 +93,7 @@
             ]
           },
           "type": "var",
-          "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>In each module, the <code>module</code> free variable is a reference to the object\nrepresenting the current module.  For convenience, <code>module.exports</code> is\nalso accessible via the <code>exports</code> module-global. <code>module</code> isn&#39;t actually\na global but rather local to each module.</p>\n",
+          "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>In each module, the <code>module</code> free variable is a reference to the object\nrepresenting the current module.  For convenience, <code>module.exports</code> is\nalso accessible via the <code>exports</code> module-global. <code>module</code> is not actually\na global but rather local to each module.</p>\n",
           "properties": [
             {
               "textRaw": "`children` {Array} ",

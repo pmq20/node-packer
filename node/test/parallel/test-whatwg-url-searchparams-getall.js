@@ -2,14 +2,9 @@
 
 require('../common');
 const assert = require('assert');
-const URL = require('url').URL;
+const URLSearchParams = require('url').URLSearchParams;
 
-const m = new URL('http://example.org');
-let params = m.searchParams;
-
-// Until we export URLSearchParams
-const URLSearchParams = params.constructor;
-
+let params;
 let matches;
 
 // getAll() basics
@@ -41,3 +36,10 @@ assert(matches && matches.length == 1,
        'Search params object has values for name "a"');
 assert.deepStrictEqual(matches, ['one'],
                        'Search params object has expected name "a" values');
+
+assert.throws(() => {
+  params.getAll.call(undefined);
+}, /^TypeError: Value of `this` is not a URLSearchParams$/);
+assert.throws(() => {
+  params.getAll();
+}, /^TypeError: "name" argument must be specified$/);

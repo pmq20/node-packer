@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v7.4.0 Documentation</title>
+  <title>About this Documentation | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -338,7 +338,9 @@
 <li><span class="stability_undefined"><a href="#cli_enable_fips"><code>--enable-fips</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_force_fips"><code>--force-fips</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_openssl_config_file"><code>--openssl-config=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_use_openssl_ca_use_bundled_ca"><code>--use-openssl-ca</code>, <code>--use-bundled-ca</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli"><code>--</code></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#cli_environment_variables">Environment Variables</a></span><ul>
@@ -346,10 +348,13 @@
 <li><span class="stability_undefined"><a href="#cli_node_path_path"><code>NODE_PATH=path[:…]</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_disable_colors_1"><code>NODE_DISABLE_COLORS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_icu_data_file"><code>NODE_ICU_DATA=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_node_no_warnings_1"><code>NODE_NO_WARNINGS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_preserve_symlinks_1"><code>NODE_PRESERVE_SYMLINKS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_tty_unsafe_async_1"><code>NODE_TTY_UNSAFE_ASYNC=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_extra_ca_certs_file"><code>NODE_EXTRA_CA_CERTS=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_ssl_cert_file_file"><code>SSL_CERT_FILE=file</code></a></span></li>
 </ul>
 </li>
 </ul>
@@ -1429,6 +1434,45 @@
 <li><span class="stability_undefined"><a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost">url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</a></span></li>
 <li><span class="stability_undefined"><a href="#url_url_resolve_from_to">url.resolve(from, to)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_escaped_characters">Escaped Characters</a></span></li>
+<li><span class="stability_1"><a href="#url_the_whatwg_url_api">The WHATWG URL API</a></span><ul>
+<li><span class="stability_undefined"><a href="#url_class_url">Class: URL</a></span><ul>
+<li><span class="stability_undefined"><a href="#url_constructor_new_url_input_base">Constructor: new URL(input[, base])</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_hash">url.hash</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_host">url.host</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_hostname">url.hostname</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_href">url.href</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_origin">url.origin</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_password">url.password</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_pathname">url.pathname</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_port">url.port</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_protocol">url.protocol</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_search">url.search</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_searchparams">url.searchParams</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_username">url.username</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_tostring">url.toString()</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#url_class_urlsearchparams">Class: URLSearchParams</a></span><ul>
+<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams_init">Constructor: new URLSearchParams([init])</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_append_name_value">urlSearchParams.append(name, value)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_delete_name">urlSearchParams.delete(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_entries">urlSearchParams.entries()</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_foreach_fn">urlSearchParams.forEach(fn)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_get_name">urlSearchParams.get(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_getall_name">urlSearchParams.getAll(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_has_name">urlSearchParams.has(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_keys">urlSearchParams.keys()</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_set_name_value">urlSearchParams.set(name, value)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_tostring">urlSearchParams.toString()</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_values">urlSearchParams.values()</a></span></li>
+<li><span class="stability_undefined"><a href="#url_urlsearchparams_iterator">urlSearchParams[\@\@iterator]()</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToAscii(domain)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_require_url_domaintounicode_domain">require(&#39;url&#39;).domainToUnicode(domain)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_percent_encoding_in_the_whatwg_url_standard">Percent-Encoding in the WHATWG URL Standard</a></span></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><span class="stability_2"><a href="#util_util">util</a></span><ul>
@@ -3251,15 +3295,16 @@ console.log(buf2.toString());
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use
 <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>
 instead.</pre><ul>
-<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> The <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> or
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a></li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start copying from <code>arrayBuffer</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to copy from <code>arrayBuffer</code>.
+<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
-<p>When passed a reference to the <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance,
-the newly created <code>Buffer</code> will share the same allocated memory as the
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
+<p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
+memory. For example, when passed a reference to the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance, the newly created <code>Buffer</code> will share the same
+allocated memory as the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
 <p>The optional <code>byteOffset</code> and <code>length</code> arguments specify a memory range within
 the <code>arrayBuffer</code> that will be shared by the <code>Buffer</code>.</p>
 <p>Example:</p>
@@ -3542,15 +3587,16 @@ const buf = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> The <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> or
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a></li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start copying from <code>arrayBuffer</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to copy from <code>arrayBuffer</code>.
+<li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
-<p>When passed a reference to the <code>.buffer</code> property of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance,
-the newly created <code>Buffer</code> will share the same allocated memory as the
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
+<p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
+memory. For example, when passed a reference to the <code>.buffer</code> property of a
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> instance, the newly created <code>Buffer</code> will share the same
+allocated memory as the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const arr = new Uint16Array(2);
 
@@ -3780,7 +3826,7 @@ console.log(buf.toString());
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> of <code>[index, byte]</code> pairs from the contents of
 <code>buf</code>.</p>
@@ -3896,6 +3942,26 @@ console.log(utf16Buffer.indexOf(&#39;\u03a3&#39;, 0, &#39;ucs2&#39;));
 // Prints: 6
 console.log(utf16Buffer.indexOf(&#39;\u03a3&#39;, -4, &#39;ucs2&#39;));
 </code></pre>
+<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a
+<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,
+an integer between 0 and 255.</p>
+<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments
+that coerce to <code>NaN</code> or 0, like <code>{}</code>, <code>[]</code>, <code>null</code> or <code>undefined</code>, will search
+the whole buffer. This behavior matches <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf"><code>String#indexOf()</code></a>.</p>
+<pre><code class="lang-js">const b = Buffer.from(&#39;abcdef&#39;);
+
+// Passing a value that&#39;s a number, but not a valid byte
+// Prints: 2, equivalent to searching for 99 or &#39;c&#39;
+console.log(b.indexOf(99.9));
+console.log(b.indexOf(256 + 99));
+
+// Passing a byteOffset that coerces to NaN or 0
+// Prints: 1, searching the whole buffer
+console.log(b.indexOf(&#39;b&#39;, undefined));
+console.log(b.indexOf(&#39;b&#39;, {}));
+console.log(b.indexOf(&#39;b&#39;, null));
+console.log(b.indexOf(&#39;b&#39;, []));
+</code></pre>
 <h3>buf.includes(value[, byteOffset][, encoding])<span><a class="mark" href="#buffer_buf_includes_value_byteoffset_encoding" id="buffer_buf_includes_value_byteoffset_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.3.0</span>
@@ -3936,7 +4002,7 @@ console.log(buf.includes(&#39;this&#39;, 4));
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> of <code>buf</code> keys (indices).</p>
 <p>Example:</p>
@@ -4000,6 +4066,29 @@ console.log(utf16Buffer.lastIndexOf(&#39;\u03a3&#39;, undefined, &#39;ucs2&#39;)
 
 // Prints: 4
 console.log(utf16Buffer.lastIndexOf(&#39;\u03a3&#39;, -5, &#39;ucs2&#39;));
+</code></pre>
+<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a
+<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,
+an integer between 0 and 255.</p>
+<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments
+that coerce to <code>NaN</code>, like <code>{}</code> or <code>undefined</code>, will search the whole buffer.
+This behavior matches <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf"><code>String#lastIndexOf()</code></a>.</p>
+<pre><code class="lang-js">const b = Buffer.from(&#39;abcdef&#39;);
+
+// Passing a value that&#39;s a number, but not a valid byte
+// Prints: 2, equivalent to searching for 99 or &#39;c&#39;
+console.log(b.lastIndexOf(99.9));
+console.log(b.lastIndexOf(256 + 99));
+
+// Passing a byteOffset that coerces to NaN
+// Prints: 1, searching the whole buffer
+console.log(b.lastIndexOf(&#39;b&#39;, undefined));
+console.log(b.lastIndexOf(&#39;b&#39;, {}));
+
+// Passing a byteOffset that coerces to 0
+// Prints: -1, equivalent to passing 0
+console.log(b.lastIndexOf(&#39;b&#39;, null));
+console.log(b.lastIndexOf(&#39;b&#39;, []));
 </code></pre>
 <h3>buf.length<span><a class="mark" href="#buffer_buf_length" id="buffer_buf_length">#</a></span></h3>
 <div class="api_metadata">
@@ -4502,7 +4591,7 @@ console.log(copy);
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
 </div><ul>
-<li>Returns: <span class="type">&lt;Iterator&gt;</span></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 <p>Creates and returns an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">iterator</a> for <code>buf</code> values (bytes). This function is
 called automatically when a <code>Buffer</code> is used in a <code>for..of</code> statement.</p>
@@ -5010,11 +5099,11 @@ const spawn = require(&#39;child_process&#39;).spawn;
 const bat = spawn(&#39;cmd.exe&#39;, [&#39;/c&#39;, &#39;my.bat&#39;]);
 
 bat.stdout.on(&#39;data&#39;, (data) =&gt; {
-  console.log(data);
+  console.log(data.toString());
 });
 
 bat.stderr.on(&#39;data&#39;, (data) =&gt; {
-  console.log(data);
+  console.log(data.toString());
 });
 
 bat.on(&#39;exit&#39;, (code) =&gt; {
@@ -5032,7 +5121,7 @@ exec(&#39;my.bat&#39;, (err, stdout, stderr) =&gt; {
 });
 
 // Script with spaces in the filename:
-const bat = spawn(&#39;&quot;my script.cmd&quot;&#39;, [&#39;a&#39;, &#39;b&#39;], { shell:true });
+const bat = spawn(&#39;&quot;my script.cmd&quot;&#39;, [&#39;a&#39;, &#39;b&#39;], { shell: true });
 // or:
 exec(&#39;&quot;my script.cmd&quot; a b&#39;, (err, stdout, stderr) =&gt; {
   // ...
@@ -5054,7 +5143,7 @@ exec(&#39;&quot;my script.cmd&quot; a b&#39;, (err, stdout, stderr) =&gt; {
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> (Default: <code>0</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed (Default: <code>200*1024</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 </ul>
@@ -5123,7 +5212,7 @@ replace the existing process and uses a shell to execute the command.</em></p>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> (Default: <code>0</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed (Default: <code>200*1024</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 </ul>
@@ -5283,7 +5372,7 @@ ps.on(&#39;close&#39;, (code) =&gt; {
 });
 
 grep.stdout.on(&#39;data&#39;, (data) =&gt; {
-  console.log(`${data}`);
+  console.log(data.toString());
 });
 
 grep.stderr.on(&#39;data&#39;, (data) =&gt; {
@@ -5349,8 +5438,8 @@ const out = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 const err = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 
 const child = spawn(&#39;prg&#39;, [], {
- detached: true,
- stdio: [ &#39;ignore&#39;, out, err ]
+  detached: true,
+  stdio: [ &#39;ignore&#39;, out, err ]
 });
 
 child.unref();
@@ -5456,8 +5545,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs. (Default: <code>&#39;buffer&#39;</code>)</li>
@@ -5501,8 +5590,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs.
@@ -5543,8 +5632,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs.
@@ -5710,7 +5799,7 @@ as in this example:</p>
 <pre><code class="lang-js">&#39;use strict&#39;;
 const spawn = require(&#39;child_process&#39;).spawn;
 
-let child = spawn(&#39;sh&#39;, [&#39;-c&#39;,
+const child = spawn(&#39;sh&#39;, [&#39;-c&#39;,
   `node -e &quot;setInterval(() =&gt; {
       console.log(process.pid, &#39;is alive&#39;)
     }, 500);&quot;`
@@ -5906,21 +5995,21 @@ const fs = require(&#39;fs&#39;);
 const child_process = require(&#39;child_process&#39;);
 
 const child = child_process.spawn(&#39;ls&#39;, {
-    stdio: [
-      0, // Use parents stdin for child
-      &#39;pipe&#39;, // Pipe child&#39;s stdout to parent
-      fs.openSync(&#39;err.out&#39;, &#39;w&#39;) // Direct child&#39;s stderr to a file
-    ]
+  stdio: [
+    0, // Use parent&#39;s stdin for child
+    &#39;pipe&#39;, // Pipe child&#39;s stdout to parent
+    fs.openSync(&#39;err.out&#39;, &#39;w&#39;) // Direct child&#39;s stderr to a file
+  ]
 });
 
-assert.equal(child.stdio[0], null);
-assert.equal(child.stdio[0], child.stdin);
+assert.strictEqual(child.stdio[0], null);
+assert.strictEqual(child.stdio[0], child.stdin);
 
 assert(child.stdout);
-assert.equal(child.stdio[1], child.stdout);
+assert.strictEqual(child.stdio[1], child.stdout);
 
-assert.equal(child.stdio[2], null);
-assert.equal(child.stdio[2], child.stderr);
+assert.strictEqual(child.stdio[2], null);
+assert.strictEqual(child.stdio[2], child.stderr);
 </code></pre>
 <h3>child.stdout<span><a class="mark" href="#child_process_child_stdout" id="child_process_child_stdout">#</a></span></h3>
 <div class="api_metadata">
@@ -6613,7 +6702,7 @@ the worker&#39;s unique id is the easiest way to find the worker.</p>
 debugging, multiple ways to execute scripts, and other helpful runtime options.</p>
 <p>To view this documentation as a manual page in your terminal, run <code>man node</code>.</p>
 <h2>Synopsis<span><a class="mark" href="#cli_synopsis" id="cli_synopsis">#</a></span></h2>
-<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [arguments]</code></p>
+<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [--] [arguments]</code></p>
 <p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>
 <p><code>node --v8-options</code></p>
 <p>Execute without arguments to start the <a href="repl.html">REPL</a>.</p>
@@ -6719,7 +6808,7 @@ times, causing an exception to be thrown).</p>
 </div><p>Track heap object allocations for heap snapshots.</p>
 <h3><code>--prof-process</code><span><a class="mark" href="#cli_prof_process" id="cli_prof_process">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v6.0.0</span>
+<span>Added in: v5.2.0</span>
 </div><p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>
 <h3><code>--v8-options</code><span><a class="mark" href="#cli_v8_options" id="cli_v8_options">#</a></span></h3>
 <div class="api_metadata">
@@ -6749,10 +6838,29 @@ with crypto support. (Default))</p>
 </div><p>Load an OpenSSL configuration file on startup. Among other uses, this can be
 used to enable FIPS-compliant crypto if Node.js is built with
 <code>./configure --openssl-fips</code>.</p>
+<h3><code>--use-openssl-ca</code>, <code>--use-bundled-ca</code><span><a class="mark" href="#cli_use_openssl_ca_use_bundled_ca" id="cli_use_openssl_ca_use_bundled_ca">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by
+current NodeJS version. The default store is selectable at build-time.</p>
+<p>Using OpenSSL store allows for external modifications of the store. For most
+Linux and BSD distributions, this store is maintained by the distribution
+maintainers and system administrators. OpenSSL CA store location is dependent on
+configuration of the OpenSSL library but this can be altered at runtime using
+environmental variables.</p>
+<p>The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store
+that is fixed at release time. It is identical on all supported platforms.</p>
+<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>
 <h3><code>--icu-data-dir=file</code><span><a class="mark" href="#cli_icu_data_dir_file" id="cli_icu_data_dir_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><p>Specify ICU data load path. (overrides <code>NODE_ICU_DATA</code>)</p>
+<h3><code>--</code><span><a class="mark" href="#cli" id="cli">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>Indicate the end of node options. Pass the rest of the arguments to the script.
+If no script filename or eval/print script is supplied prior to this, then
+the next argument will be used as a script filename.</p>
 <h2>Environment Variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
 <h3><code>NODE_DEBUG=module[,…]</code><span><a class="mark" href="#cli_node_debug_module" id="cli_node_debug_module">#</a></span></h3>
 <div class="api_metadata">
@@ -6772,6 +6880,10 @@ used to enable FIPS-compliant crypto if Node.js is built with
 <span>Added in: v0.11.15</span>
 </div><p>Data path for ICU (Intl object) data. Will extend linked-in data when compiled
 with small-icu support.</p>
+<h3><code>NODE_NO_WARNINGS=1</code><span><a class="mark" href="#cli_node_no_warnings_1" id="cli_node_no_warnings_1">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>When set to <code>1</code>, process warnings are silenced.</p>
 <h3><code>NODE_PRESERVE_SYMLINKS=1</code><span><a class="mark" href="#cli_node_preserve_symlinks_1" id="cli_node_preserve_symlinks_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.1.0</span>
@@ -6785,19 +6897,33 @@ resolving and caching modules.</p>
 to an empty string (<code>&quot;&quot;</code> or <code>&quot; &quot;</code>) disables persistent REPL history.</p>
 <h3><code>NODE_TTY_UNSAFE_ASYNC=1</code><span><a class="mark" href="#cli_node_tty_unsafe_async_1" id="cli_node_tty_unsafe_async_1">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: 6.4.0</span>
+<span>Added in: v6.4.0</span>
 </div><p>When set to <code>1</code>, writes to <code>stdout</code> and <code>stderr</code> will be non-blocking and
 asynchronous when outputting to a TTY on platforms which support async stdio.
 Setting this will void any guarantee that stdio will not be interleaved or
 dropped at program exit. <strong>Use of this mode is not recommended.</strong></p>
 <h3><code>NODE_EXTRA_CA_CERTS=file</code><span><a class="mark" href="#cli_node_extra_ca_certs_file" id="cli_node_extra_ca_certs_file">#</a></span></h3>
-<p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the
+<div class="api_metadata">
+<span>Added in: v7.3.0</span>
+</div><p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the
 extra certificates in <code>file</code>. The file should consist of one or more trusted
 certificates in PEM format. A message will be emitted (once) with
 <a href="process.html#process_process_emitwarning_warning_name_ctor"><code>process.emitWarning()</code></a> if the file is missing or
 misformatted, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
+<h3><code>SSL_CERT_DIR=dir</code><span><a class="mark" href="#cli_ssl_cert_dir_dir" id="cli_ssl_cert_dir_dir">#</a></span></h3>
+<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory
+containing trusted certificates.</p>
+<p>Note: Be aware that unless the child environment is explicitly set, this
+evironment variable will be inherited by any child processes, and if they use
+OpenSSL, it may cause them to trust the same CAs as node.</p>
+<h3><code>SSL_CERT_FILE=file</code><span><a class="mark" href="#cli_ssl_cert_file_file" id="cli_ssl_cert_file_file">#</a></span></h3>
+<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file
+containing trusted certificates.</p>
+<p>Note: Be aware that unless the child environment is explicitly set, this
+evironment variable will be inherited by any child processes, and if they use
+OpenSSL, it may cause them to trust the same CAs as node.</p>
 <!-- [end-include:cli.md] -->
 <!-- [start-include:console.md] -->
 <h1>Console<span><a class="mark" href="#console_console" id="console_console">#</a></span></h1>
@@ -6861,7 +6987,7 @@ const Console = console.Console;
 <h3>new Console(stdout[, stderr])<span><a class="mark" href="#console_new_console_stdout_stderr" id="console_new_console_stdout_stderr">#</a></span></h3>
 <p>Creates a new <code>Console</code> by passing one or two writable stream instances.
 <code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>
-is used for warning or error output. If <code>stderr</code> isn&#39;t passed, warning and error
+is used for warning or error output. If <code>stderr</code> is not passed, warning and error
 output will be sent to <code>stdout</code>.</p>
 <pre><code class="lang-js">const output = fs.createWriteStream(&#39;./stdout.log&#39;);
 const errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);
@@ -7045,7 +7171,7 @@ console.log(hash);
 <p>It is possible for Node.js to be built without including support for the
 <code>crypto</code> module. In such cases, calling <code>require(&#39;crypto&#39;)</code> will result in an
 error being thrown.</p>
-<pre><code class="lang-js">var crypto;
+<pre><code class="lang-js">let crypto;
 try {
   crypto = require(&#39;crypto&#39;);
 } catch (err) {
@@ -7122,9 +7248,9 @@ directly using the <code>new</code> keyword.</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);
 
-var encrypted = &#39;&#39;;
+let encrypted = &#39;&#39;;
 cipher.on(&#39;readable&#39;, () =&gt; {
-  var data = cipher.read();
+  const data = cipher.read();
   if (data)
     encrypted += data.toString(&#39;hex&#39;);
 });
@@ -7150,7 +7276,7 @@ input.pipe(cipher).pipe(output);
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);
 
-var encrypted = cipher.update(&#39;some clear text data&#39;, &#39;utf8&#39;, &#39;hex&#39;);
+let encrypted = cipher.update(&#39;some clear text data&#39;, &#39;utf8&#39;, &#39;hex&#39;);
 encrypted += cipher.final(&#39;hex&#39;);
 console.log(encrypted);
 // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504
@@ -7224,9 +7350,9 @@ directly using the <code>new</code> keyword.</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);
 
-var decrypted = &#39;&#39;;
+let decrypted = &#39;&#39;;
 decipher.on(&#39;readable&#39;, () =&gt; {
-  var data = decipher.read();
+  const data = decipher.read();
   if (data)
     decrypted += data.toString(&#39;utf8&#39;);
 });
@@ -7235,7 +7361,7 @@ decipher.on(&#39;end&#39;, () =&gt; {
   // Prints: some clear text data
 });
 
-var encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;
+const encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;
 decipher.write(encrypted, &#39;hex&#39;);
 decipher.end();
 </code></pre>
@@ -7253,8 +7379,8 @@ input.pipe(decipher).pipe(output);
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);
 
-var encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;
-var decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);
+const encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;
+let decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);
 decrypted += decipher.final(&#39;utf8&#39;);
 console.log(decrypted);
 // Prints: some clear text data
@@ -7322,18 +7448,18 @@ const assert = require(&#39;assert&#39;);
 
 // Generate Alice&#39;s keys...
 const alice = crypto.createDiffieHellman(2048);
-const alice_key = alice.generateKeys();
+const aliceKey = alice.generateKeys();
 
 // Generate Bob&#39;s keys...
 const bob = crypto.createDiffieHellman(alice.getPrime(), alice.getGenerator());
-const bob_key = bob.generateKeys();
+const bobKey = bob.generateKeys();
 
 // Exchange and generate the secret...
-const alice_secret = alice.computeSecret(bob_key);
-const bob_secret = bob.computeSecret(alice_key);
+const aliceSecret = alice.computeSecret(bobKey);
+const bobSecret = bob.computeSecret(aliceKey);
 
 // OK
-assert.equal(alice_secret.toString(&#39;hex&#39;), bob_secret.toString(&#39;hex&#39;));
+assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;hex&#39;));
 </code></pre>
 <h3>diffieHellman.computeSecret(other_public_key[, input_encoding][, output_encoding])<span><a class="mark" href="#crypto_diffiehellman_computesecret_other_public_key_input_encoding_output_encoding" id="crypto_diffiehellman_computesecret_other_public_key_input_encoding_output_encoding">#</a></span></h3>
 <div class="api_metadata">
@@ -7417,17 +7543,17 @@ const assert = require(&#39;assert&#39;);
 
 // Generate Alice&#39;s keys...
 const alice = crypto.createECDH(&#39;secp521r1&#39;);
-const alice_key = alice.generateKeys();
+const aliceKey = alice.generateKeys();
 
 // Generate Bob&#39;s keys...
 const bob = crypto.createECDH(&#39;secp521r1&#39;);
-const bob_key = bob.generateKeys();
+const bobKey = bob.generateKeys();
 
 // Exchange and generate the secret...
-const alice_secret = alice.computeSecret(bob_key);
-const bob_secret = bob.computeSecret(alice_key);
+const aliceSecret = alice.computeSecret(bobKey);
+const bobSecret = bob.computeSecret(aliceKey);
 
-assert(alice_secret, bob_secret);
+assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;hex&#39;));
   // OK
 </code></pre>
 <h3>ecdh.computeSecret(other_public_key[, input_encoding][, output_encoding])<span><a class="mark" href="#crypto_ecdh_computesecret_other_public_key_input_encoding_output_encoding" id="crypto_ecdh_computesecret_other_public_key_input_encoding_output_encoding">#</a></span></h3>
@@ -7505,13 +7631,14 @@ alice.setPrivateKey(
 );
 
 // Bob uses a newly generated cryptographically strong
-// pseudorandom key pair bob.generateKeys();
+// pseudorandom key pair
+bob.generateKeys();
 
-const alice_secret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);
-const bob_secret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);
+const aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);
+const bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);
 
-// alice_secret and bob_secret should be the same shared secret value
-console.log(alice_secret === bob_secret);
+// aliceSecret and bobSecret should be the same shared secret value
+console.log(aliceSecret === bobSecret);
 </code></pre>
 <h2>Class: Hash<span><a class="mark" href="#crypto_class_hash" id="crypto_class_hash">#</a></span></h2>
 <div class="api_metadata">
@@ -7531,7 +7658,7 @@ objects are not to be created directly using the <code>new</code> keyword.</p>
 const hash = crypto.createHash(&#39;sha256&#39;);
 
 hash.on(&#39;readable&#39;, () =&gt; {
-  var data = hash.read();
+  const data = hash.read();
   if (data)
     console.log(data.toString(&#39;hex&#39;));
     // Prints:
@@ -7594,7 +7721,7 @@ objects are not to be created directly using the <code>new</code> keyword.</p>
 const hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);
 
 hmac.on(&#39;readable&#39;, () =&gt; {
-  var data = hmac.read();
+  const data = hmac.read();
   if (data)
     console.log(data.toString(&#39;hex&#39;));
     // Prints:
@@ -7658,8 +7785,8 @@ const sign = crypto.createSign(&#39;RSA-SHA256&#39;);
 sign.write(&#39;some data to sign&#39;);
 sign.end();
 
-const private_key = getPrivateKeySomehow();
-console.log(sign.sign(private_key, &#39;hex&#39;));
+const privateKey = getPrivateKeySomehow();
+console.log(sign.sign(privateKey, &#39;hex&#39;));
 // Prints: the calculated signature
 </code></pre>
 <p>Example: Using the <a href="#crypto_sign_update_data_input_encoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_private_key_output_format"><code>sign.sign()</code></a> methods:</p>
@@ -7668,8 +7795,8 @@ const sign = crypto.createSign(&#39;RSA-SHA256&#39;);
 
 sign.update(&#39;some data to sign&#39;);
 
-const private_key = getPrivateKeySomehow();
-console.log(sign.sign(private_key, &#39;hex&#39;));
+const privateKey = getPrivateKeySomehow();
+console.log(sign.sign(privateKey, &#39;hex&#39;));
 // Prints: the calculated signature
 </code></pre>
 <p>A <code>Sign</code> instance can also be created by just passing in the digest
@@ -7682,13 +7809,14 @@ const sign = crypto.createSign(&#39;sha256&#39;);
 
 sign.update(&#39;some data to sign&#39;);
 
-const private_key = &#39;-----BEGIN EC PRIVATE KEY-----\n&#39; +
-        &#39;MHcCAQEEIF+jnWY1D5kbVYDNvxxo/Y+ku2uJPDwS0r/VuPZQrjjVoAoGCCqGSM49\n&#39; +
-        &#39;AwEHoUQDQgAEurOxfSxmqIRYzJVagdZfMMSjRNNhB8i3mXyIMq704m2m52FdfKZ2\n&#39; +
-        &#39;pQhByd5eyj3lgZ7m7jbchtdgyOF8Io/1ng==\n&#39; +
-        &#39;-----END EC PRIVATE KEY-----\n&#39;;
+const privateKey =
+`-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIF+jnWY1D5kbVYDNvxxo/Y+ku2uJPDwS0r/VuPZQrjjVoAoGCCqGSM49
+AwEHoUQDQgAEurOxfSxmqIRYzJVagdZfMMSjRNNhB8i3mXyIMq704m2m52FdfKZ2
+pQhByd5eyj3lgZ7m7jbchtdgyOF8Io/1ng==
+-----END EC PRIVATE KEY-----`;
 
-console.log(sign.sign(private_key).toString(&#39;hex&#39;));
+console.log(sign.sign(privateKey).toString(&#39;hex&#39;));
 </code></pre>
 <h3>sign.sign(private_key[, output_format])<span><a class="mark" href="#crypto_sign_sign_private_key_output_format" id="crypto_sign_sign_private_key_output_format">#</a></span></h3>
 <div class="api_metadata">
@@ -7727,7 +7855,7 @@ supplied signature, or</li>
 <li>Using the <a href="#crypto_verifier_update_data_input_encoding"><code>verify.update()</code></a> and <a href="#crypto_verifier_verify_object_signature_signature_format"><code>verify.verify()</code></a> methods to verify
 the signature.</li>
 </ul>
-<p>The [<code>crypto.createVerify()</code>][] method is used to create <code>Verify</code> instances.
+<p>The <a href="#crypto_crypto_createverify_algorithm"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.
 <code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>
 <p>Example: Using <code>Verify</code> objects as streams:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
@@ -7736,9 +7864,9 @@ const verify = crypto.createVerify(&#39;RSA-SHA256&#39;);
 verify.write(&#39;some data to sign&#39;);
 verify.end();
 
-const public_key = getPublicKeySomehow();
+const publicKey = getPublicKeySomehow();
 const signature = getSignatureToVerify();
-console.log(verify.verify(public_key, signature));
+console.log(verify.verify(publicKey, signature));
 // Prints: true or false
 </code></pre>
 <p>Example: Using the <a href="#crypto_verifier_update_data_input_encoding"><code>verify.update()</code></a> and <a href="#crypto_verifier_verify_object_signature_signature_format"><code>verify.verify()</code></a> methods:</p>
@@ -7747,9 +7875,9 @@ const verify = crypto.createVerify(&#39;RSA-SHA256&#39;);
 
 verify.update(&#39;some data to sign&#39;);
 
-const public_key = getPublicKeySomehow();
+const publicKey = getPublicKeySomehow();
 const signature = getSignatureToVerify();
-console.log(verify.verify(public_key, signature));
+console.log(verify.verify(publicKey, signature));
 // Prints: true or false
 </code></pre>
 <h3>verifier.update(data[, input_encoding])<span><a class="mark" href="#crypto_verifier_update_data_input_encoding" id="crypto_verifier_update_data_input_encoding">#</a></span></h3>
@@ -7911,7 +8039,7 @@ const hash = crypto.createHash(&#39;sha256&#39;);
 
 const input = fs.createReadStream(filename);
 input.on(&#39;readable&#39;, () =&gt; {
-  var data = input.read();
+  const data = input.read();
   if (data)
     hash.update(data);
   else {
@@ -7937,7 +8065,7 @@ const hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);
 
 const input = fs.createReadStream(filename);
 input.on(&#39;readable&#39;, () =&gt; {
-  var data = input.read();
+  const data = input.read();
   if (data)
     hmac.update(data);
   else {
@@ -7971,7 +8099,7 @@ console.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]
 </div><p>Returns an array with the names of the supported elliptic curves.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const curves = crypto.getCurves();
-console.log(curves); // [&#39;secp256k1&#39;, &#39;secp384r1&#39;, ...]
+console.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]
 </code></pre>
 <h3>crypto.getDiffieHellman(group_name)<span><a class="mark" href="#crypto_crypto_getdiffiehellman_group_name" id="crypto_crypto_getdiffiehellman_group_name">#</a></span></h3>
 <div class="api_metadata">
@@ -7994,11 +8122,11 @@ const bob = crypto.getDiffieHellman(&#39;modp14&#39;);
 alice.generateKeys();
 bob.generateKeys();
 
-const alice_secret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);
-const bob_secret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);
+const aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);
+const bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);
 
-/* alice_secret and bob_secret should be the same */
-console.log(alice_secret == bob_secret);
+/* aliceSecret and bobSecret should be the same */
+console.log(aliceSecret === bobSecret);
 </code></pre>
 <h3>crypto.getHashes()<span><a class="mark" href="#crypto_crypto_gethashes" id="crypto_crypto_gethashes">#</a></span></h3>
 <div class="api_metadata">
@@ -8007,7 +8135,7 @@ console.log(alice_secret == bob_secret);
 such as <code>RSA-SHA256</code>.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const hashes = crypto.getHashes();
-console.log(hashes); // [&#39;sha&#39;, &#39;sha1&#39;, &#39;sha1WithRSAEncryption&#39;, ...]
+console.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, ...]
 </code></pre>
 <h3>crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)<span><a class="mark" href="#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback" id="crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback">#</a></span></h3>
 <div class="api_metadata">
@@ -8029,7 +8157,7 @@ salts are random and their lengths are greater than 16 bytes. See
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 crypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;, (err, key) =&gt; {
   if (err) throw err;
-  console.log(key.toString(&#39;hex&#39;));  // &#39;c5e478d...1469e50&#39;
+  console.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;
 });
 </code></pre>
 <p>An array of supported digest functions can be retrieved using
@@ -8052,7 +8180,7 @@ salts are random and their lengths are greater than 16 bytes. See
 <p>Example:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;);
-console.log(key.toString(&#39;hex&#39;));  // &#39;c5e478d...1469e50&#39;
+console.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;
 </code></pre>
 <p>An array of supported digest functions can be retrieved using
 <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a>.</p>
@@ -8642,7 +8770,7 @@ script.js</li>
 on line 1</li>
 </ul>
 </div><p>It is also possible to set a breakpoint in a file (module) that
-isn&#39;t loaded yet:</p>
+is not loaded yet:</p>
 <pre><code class="lang-txt">$ node debug test/fixtures/break-in-module/main.js
 &lt; debugger listening on port 5858
 connecting to port 5858... ok
@@ -8806,12 +8934,13 @@ properties.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> with no parameters, Optional. Called when
 binding is complete.</li>
 </ul>
-<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram messages on a
-named <code>port</code> and optional <code>address</code>. If <code>port</code> is not specified, the operating
-system will attempt to bind to a random port. If <code>address</code> is not specified,
-the operating system will attempt to listen on all addresses.  Once binding is
-complete, a <code>&#39;listening&#39;</code> event is emitted and the optional <code>callback</code> function
-is called.</p>
+<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram
+messages on a named <code>port</code> and optional <code>address</code>. If <code>port</code> is not
+specified or is <code>0</code>, the operating system will attempt to bind to a
+random port. If <code>address</code> is not specified, the operating system will
+attempt to listen on all addresses.  Once binding is complete, a
+<code>&#39;listening&#39;</code> event is emitted and the optional <code>callback</code> function is
+called.</p>
 <p>Note that specifying both a <code>&#39;listening&#39;</code> event listener and passing a
 <code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very
 useful.</p>
@@ -8845,26 +8974,34 @@ server.bind(41234);
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Required. Supports the following properties:<ul>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Required.</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Optional.</li>
 <li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional.</li>
 <li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> - Optional.</li>
 </ul>
 </li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> - Optional.</li>
 </ul>
-<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram messages on a
-named <code>port</code> and optional <code>address</code> that are passed as properties of an
-<code>options</code> object passed as the first argument. If <code>port</code> is not specified, the
-operating system will attempt to bind to a random port. If <code>address</code> is not
-specified, the operating system will attempt to listen on all addresses.  Once
-binding is complete, a <code>&#39;listening&#39;</code> event is emitted and the optional
-<code>callback</code> function is called.</p>
+<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram
+messages on a named <code>port</code> and optional <code>address</code> that are passed as
+properties of an <code>options</code> object passed as the first argument. If
+<code>port</code> is not specified or is <code>0</code>, the operating system will attempt
+to bind to a random port. If <code>address</code> is not specified, the operating
+system will attempt to listen on all addresses.  Once binding is
+complete, a <code>&#39;listening&#39;</code> event is emitted and the optional <code>callback</code>
+function is called.</p>
+<p>Note that specifying both a <code>&#39;listening&#39;</code> event listener and passing a
+<code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very
+useful.</p>
 <p>The <code>options</code> object may contain an additional <code>exclusive</code> property that is
 use when using <code>dgram.Socket</code> objects with the <a href="cluster.html"><code>cluster</code></a> module. When
 <code>exclusive</code> is set to <code>false</code> (the default), cluster workers will use the same
 underlying socket handle allowing connection handling duties to be shared.
 When <code>exclusive</code> is <code>true</code>, however, the handle is not shared and attempted
 port sharing results in an error.</p>
+<p>A bound datagram socket keeps the Node.js process running to receive
+datagram messages.</p>
+<p>If binding fails, an <code>&#39;error&#39;</code> event is generated. In rare case (e.g.
+attempting to bind with a closed socket), an <a href="errors.html#errors_class_error"><code>Error</code></a> may be thrown.</p>
 <p>An example socket listening on an exclusive port is shown below.</p>
 <pre><code class="lang-js">socket.bind({
   address: &#39;localhost&#39;,
@@ -9154,7 +9291,7 @@ an integer, then it must be <code>4</code> or <code>6</code>.</p>
 <code>4</code> or <code>6</code>. If not provided, both IP v4 and v6 addresses are accepted.</li>
 <li><code>hints</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - If present, it should be one or more of the supported
 <code>getaddrinfo</code> flags. If <code>hints</code> is not provided, then no flags are passed to
-<code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by logically
+<code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by bitwise
 <code>OR</code>ing their values.
 See <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a> for more information on supported
 flags.</li>
@@ -9596,7 +9733,7 @@ if (cluster.isMaster) {
   server.listen(PORT);
 }
 
-// This part isn&#39;t important.  Just an example routing thing.
+// This part is not important.  Just an example routing thing.
 // You&#39;d put your fancy application logic here.
 function handleRequest(req, res) {
   switch(req.url) {
@@ -12178,7 +12315,8 @@ you need to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>
-<p><code>offset</code> and <code>length</code> determine the part of the buffer to be written.</p>
+<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is
+an integer specifying the number of bytes to write.</p>
 <p><code>position</code> refers to the offset from the beginning of the file where this data
 should be written. If <code>typeof position !== &#39;number&#39;</code>, the data will be written
 at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
@@ -12521,7 +12659,7 @@ also globally accessible.</p>
 </ul>
 <p>The directory name of the current module. This the same as the
 <a href="path.html#path_path_dirname_path"><code>path.dirname()</code></a> of the <a href="#globals_filename"><code>__filename</code></a>.</p>
-<p><code>__dirname</code> isn&#39;t actually a global but rather local to each module.</p>
+<p><code>__dirname</code> is not actually a global but rather local to each module.</p>
 <p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>
 <pre><code class="lang-js">console.log(__dirname);
 // Prints: /Users/mjr
@@ -12540,7 +12678,7 @@ current module file.</p>
 <p>For a main program this is not necessarily the same as the file name used in the
 command line.</p>
 <p>See <a href="#globals_dirname"><code>__dirname</code></a> for the directory name of the current module.</p>
-<p><code>__filename</code> isn&#39;t actually a global but rather local to each module.</p>
+<p><code>__filename</code> is not actually a global but rather local to each module.</p>
 <p>Examples:</p>
 <p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>
 <pre><code class="lang-js">console.log(__filename);
@@ -12587,7 +12725,7 @@ console.log(__dirname);
 <p>A reference to the <code>module.exports</code> that is shorter to type.
 See <a href="modules.html">module system documentation</a> for details on when to use <code>exports</code> and
 when to use <code>module.exports</code>.</p>
-<p><code>exports</code> isn&#39;t actually a global but rather local to each module.</p>
+<p><code>exports</code> is not actually a global but rather local to each module.</p>
 <p>See the <a href="modules.html">module system documentation</a> for more information.</p>
 <h2>global<span><a class="mark" href="#globals_global" id="globals_global">#</a></span></h2>
 <div class="api_metadata">
@@ -12610,7 +12748,7 @@ scope; <code>var something</code> inside an Node.js module will be local to that
 <p>A reference to the current module. In particular
 <code>module.exports</code> is used for defining what a module exports and makes
 available through <code>require()</code>.</p>
-<p><code>module</code> isn&#39;t actually a global but rather local to each module.</p>
+<p><code>module</code> is not actually a global but rather local to each module.</p>
 <p>See the <a href="modules.html">module system documentation</a> for more information.</p>
 <h2>process<span><a class="mark" href="#globals_process" id="globals_process">#</a></span></h2>
 <div class="api_metadata">
@@ -12627,7 +12765,7 @@ available through <code>require()</code>.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
-<p>To require modules. See the <a href="modules.html#modules_modules">Modules</a> section.  <code>require</code> isn&#39;t actually a
+<p>To require modules. See the <a href="modules.html#modules_modules">Modules</a> section.  <code>require</code> is not actually a
 global but rather local to each module.</p>
 <h3>require.cache<span><a class="mark" href="#globals_require_cache" id="globals_require_cache">#</a></span></h3>
 <div class="api_metadata">
@@ -12719,23 +12857,28 @@ list like the following:</p>
 <h2>Class: http.Agent<span><a class="mark" href="#http_class_http_agent" id="http_class_http_agent">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
-</div><p>The HTTP Agent is used for pooling sockets used in HTTP client
-requests.</p>
-<p>The HTTP Agent also defaults client requests to using
-<code>Connection: keep-alive</code>. If no pending HTTP requests are waiting on a
-socket to become free the socket is closed. This means that Node.js&#39;s
-pool has the benefit of keep-alive when under load but still does not
-require developers to manually close the HTTP clients using
-KeepAlive.</p>
-<p>If you opt into using HTTP KeepAlive, you can create an Agent object
-with that flag set to <code>true</code>.  (See the <a href="#http_new_agent_options">constructor options</a>.)
-Then, the Agent will keep unused sockets in a pool for later use.  They
-will be explicitly marked so as to not keep the Node.js process running.
-However, it is still a good idea to explicitly <a href="#net_socket_destroy_exception"><code>destroy()</code></a> KeepAlive
-agents when they are no longer in use, so that the Sockets will be shut
-down.</p>
-<p>Sockets are removed from the agent&#39;s pool when the socket emits either
-a <code>&#39;close&#39;</code> event or a special <code>&#39;agentRemove&#39;</code> event. This means that if
+</div><p>An <code>Agent</code> is responsible for managing connection persistence
+and reuse for HTTP clients. It maintains a queue of pending requests
+for a given host and port, reusing a single socket connection for each
+until the queue is empty, at which time the socket is either destroyed
+or put into a pool where it is kept to be used again for requests to the
+same host and port. Whether it is destroyed or pooled depends on the
+<code>keepAlive</code> <a href="#http_new_agent_options">option</a>.</p>
+<p>Pooled connections have TCP Keep-Alive enabled for them, but servers may
+still close idle connections, in which case they will be removed from the
+pool and a new connection will be made when a new HTTP request is made for
+that host and port. Servers may also refuse to allow multiple requests
+over the same connection, in which case the connection will have to be
+remade for every request and cannot be pooled. The <code>Agent</code> will still make
+the requests to that server, but each one will occur over a new connection.</p>
+<p>When a connection is closed by the client or the server, it is removed
+from the pool. Any unused sockets in the pool will be unrefed so as not
+to keep the Node.js process running when there are no outstanding requests.
+(see <a href="net.html#net_socket_unref">socket.unref()</a>).</p>
+<p>It is good practice, to <a href="#net_socket_destroy_exception"><code>destroy()</code></a> an <code>Agent</code> instance when it is no
+longer in use, because unused sockets consume OS resources.</p>
+<p>Sockets are removed from an agent&#39;s pool when the socket emits either
+a <code>&#39;close&#39;</code> event or an <code>&#39;agentRemove&#39;</code> event. This means that if
 you intend to keep one HTTP request open for a long time and don&#39;t
 want it to stay in the pool you can do something along the lines of:</p>
 <pre><code class="lang-js">http.get(options, (res) =&gt; {
@@ -12744,8 +12887,11 @@ want it to stay in the pool you can do something along the lines of:</p>
   socket.emit(&#39;agentRemove&#39;);
 });
 </code></pre>
-<p>Alternatively, you could just opt out of pooling entirely using
-<code>agent:false</code>:</p>
+<p>You may also use an agent for an individual request. By providing
+<code>{agent: false}</code> as an option to the <code>http.get()</code> or <code>http.request()</code>
+functions, a one-time use <code>Agent</code> with default options will be used
+for the client connection.</p>
+<p><code>agent:false</code>:</p>
 <pre><code class="lang-js">http.get({
   hostname: &#39;localhost&#39;,
   port: 80,
@@ -12761,11 +12907,13 @@ want it to stay in the pool you can do something along the lines of:</p>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Set of configurable options to set on the agent.
 Can have the following fields:<ul>
-<li><code>keepAlive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Keep sockets around in a pool to be used by
-other requests in the future. Default = <code>false</code></li>
-<li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> When using HTTP KeepAlive, how often
-to send TCP KeepAlive packets over sockets being kept alive.
-Default = <code>1000</code>.  Only relevant if <code>keepAlive</code> is set to <code>true</code>.</li>
+<li><code>keepAlive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Keep sockets around even when there are no
+outstanding requests, so they can be used for future requests without
+having to reestablish a TCP connection. Default = <code>false</code></li>
+<li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> When using the <code>keepAlive</code> option, specifies
+the <a href="#net_socket_setkeepalive_enable_initialdelay">initial delay</a>
+for TCP Keep-Alive packets. Ignored when the
+<code>keepAlive</code> option is <code>false</code> or <code>undefined</code>. Default = <code>1000</code>.</li>
 <li><code>maxSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Maximum number of sockets to allow per
 host.  Default = <code>Infinity</code>.</li>
 <li><code>maxFreeSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Maximum number of sockets to leave open
@@ -12776,7 +12924,7 @@ Default = <code>256</code>.</li>
 </ul>
 <p>The default <a href="#http_http_globalagent"><code>http.globalAgent</code></a> that is used by <a href="http.html#http_http_request_options_callback"><code>http.request()</code></a> has all
 of these values set to their respective defaults.</p>
-<p>To configure any of them, you must create your own <a href="http.html#http_class_http_agent"><code>http.Agent</code></a> object.</p>
+<p>To configure any of them, you must create your own <a href="http.html#http_class_http_agent"><code>http.Agent</code></a> instance.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 var keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
@@ -12793,7 +12941,7 @@ http.request(options, onResponseCallback);
 </ul>
 <p>Produces a socket/stream to be used for HTTP requests.</p>
 <p>By default, this function is the same as <a href="net.html#net_net_createconnection_options_connectlistener"><code>net.createConnection()</code></a>. However,
-custom Agents may override this method in case greater flexibility is desired.</p>
+custom agents may override this method in case greater flexibility is desired.</p>
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
@@ -12802,7 +12950,7 @@ socket/stream from this function, or by passing the socket/stream to <code>callb
 <span>Added in: v0.11.4</span>
 </div><p>Destroy any sockets that are currently in use by the agent.</p>
 <p>It is usually not necessary to do this.  However, if you are using an
-agent with KeepAlive enabled, then it is best to explicitly shut down
+agent with <code>keepAlive</code> enabled, then it is best to explicitly shut down
 the agent when you know that it will no longer be used.  Otherwise,
 sockets may hang open for quite a long time before the server
 terminates them.</p>
@@ -12813,7 +12961,7 @@ terminates them.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>An object which contains arrays of sockets currently awaiting use by
-the Agent when HTTP KeepAlive is used.  Do not modify.</p>
+the agent when <code>keepAlive</code> is enabled.  Do not modify.</p>
 <h3>agent.getName(options)<span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
@@ -12828,8 +12976,8 @@ when issuing the request</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
 <p>Get a unique name for a set of request options, to determine whether a
-connection can be reused.  In the http agent, this returns
-<code>host:port:localAddress</code>.  In the https agent, the name includes the
+connection can be reused.  For an HTTP agent, this returns
+<code>host:port:localAddress</code>.  For an HTTPS agent, the name includes the
 CA, cert, ciphers, and other HTTPS/TLS-specific options that determine
 socket reusability.</p>
 <h3>agent.maxFreeSockets<span><a class="mark" href="#http_agent_maxfreesockets" id="http_agent_maxfreesockets">#</a></span></h3>
@@ -12838,7 +12986,7 @@ socket reusability.</p>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
 </ul>
-<p>By default set to 256.  For Agents supporting HTTP KeepAlive, this
+<p>By default set to 256.  For agents with <code>keepAlive</code> enabled, this
 sets the maximum number of sockets that will be left open in the free
 state.</p>
 <h3>agent.maxSockets<span><a class="mark" href="#http_agent_maxsockets" id="http_agent_maxsockets">#</a></span></h3>
@@ -12865,7 +13013,7 @@ sockets. Do not modify.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>An object which contains arrays of sockets currently in use by the
-Agent.  Do not modify.</p>
+agent.  Do not modify.</p>
 <h2>Class: http.ClientRequest<span><a class="mark" href="#http_class_http_clientrequest" id="http_class_http_clientrequest">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
@@ -12911,7 +13059,7 @@ socket has closed.</p>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this
-event isn&#39;t being listened for, clients receiving a <code>CONNECT</code> method will have
+event is not being listened for, clients receiving a <code>CONNECT</code> method will have
 their connections closed.</p>
 <p>A client and server pair that shows you how to listen for the <code>&#39;connect&#39;</code> event:</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
@@ -12997,7 +13145,7 @@ once.</p>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Emitted each time a server responds to a request with an upgrade. If this
-event isn&#39;t being listened for, clients receiving an upgrade header will have
+event is not being listened for, clients receiving an upgrade header will have
 their connections closed.</p>
 <p>A client server pair that show you how to listen for the <code>&#39;upgrade&#39;</code> event.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
@@ -13067,7 +13215,7 @@ is finished.</p>
 call <code>request.end()</code> or write the first chunk of request data.  It then tries
 hard to pack the request headers and data into a single TCP packet.</p>
 <p>That&#39;s usually what you want (it saves a TCP round-trip) but not when the first
-data isn&#39;t sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass
+data is not sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass
 the optimization and kickstart the request.</p>
 <h3>request.setNoDelay([noDelay])<span><a class="mark" href="#http_request_setnodelay_nodelay" id="http_request_setnodelay_nodelay">#</a></span></h3>
 <div class="api_metadata">
@@ -13126,7 +13274,7 @@ is flushed.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time a request with an HTTP <code>Expect: 100-continue</code> is received.
-If this event isn&#39;t listened for, the server will automatically respond
+If this event is not listened for, the server will automatically respond
 with a <code>100 Continue</code> as appropriate.</p>
 <p>Handling this event involves calling <a href="#http_response_writecontinue"><code>response.writeContinue()</code></a> if the client
 should continue to send the request body, or generating an appropriate HTTP
@@ -13142,7 +13290,7 @@ not be emitted.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time a request with an HTTP <code>Expect</code> header is received, where the
-value is not <code>100-continue</code>. If this event isn&#39;t listened for, the server will
+value is not <code>100-continue</code>. If this event is not listened for, the server will
 automatically respond with a <code>417 Expectation Failed</code> as appropriate.</p>
 <p>Note that when this event is emitted and handled, the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event will
 not be emitted.</p>
@@ -13186,8 +13334,8 @@ the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event</li>
 <li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a> Network socket between the server and client</li>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The first packet of the tunneling stream (may be empty)</li>
 </ul>
-<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event isn&#39;t
-listened for, then clients requesting a <code>CONNECT</code> method will have their
+<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event is
+not listened for, then clients requesting a <code>CONNECT</code> method will have their
 connections closed.</p>
 <p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>
 event listener, meaning you will need to bind to it in order to handle data
@@ -13211,7 +13359,7 @@ accessed at <code>request.connection</code>.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time there is a request. Note that there may be multiple requests
-per connection (in the case of keep-alive connections).</p>
+per connection (in the case of HTTP Keep-Alive connections).</p>
 <h3>Event: &#39;upgrade&#39;<span><a class="mark" href="#http_event_upgrade_1" id="http_event_upgrade_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
@@ -13221,7 +13369,7 @@ the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event</li>
 <li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a> Network socket between the server and client</li>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The first packet of the upgraded stream (may be empty)</li>
 </ul>
-<p>Emitted each time a client requests an HTTP upgrade. If this event isn&#39;t
+<p>Emitted each time a client requests an HTTP upgrade. If this event is not
 listened for, then clients requesting an upgrade will have their connections
 closed.</p>
 <p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>
@@ -13405,9 +13553,8 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-<p>Reads out a header that&#39;s already been queued but not sent to the client.  Note
-that the name is case insensitive.  This can only be called before headers get
-implicitly flushed.</p>
+<p>Reads out a header that&#39;s already been queued but not sent to the client.
+Note that the name is case insensitive.</p>
 <p>Example:</p>
 <pre><code class="lang-js">var contentType = response.getHeader(&#39;content-type&#39;);
 </code></pre>
@@ -13851,7 +13998,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 </div><ul>
 <li><a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a></li>
 </ul>
-<p>Global instance of Agent which is used as the default for all HTTP client
+<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
 <h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -13861,7 +14008,7 @@ requests.</p>
 <li><code>protocol</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Protocol to use. Defaults to <code>&#39;http:&#39;</code>.</li>
 <li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A domain name or IP address of the server to issue the
 request to. Defaults to <code>&#39;localhost&#39;</code>.</li>
-<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Alias for <code>host</code>. To support <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>,
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Alias for <code>host</code>. To support <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>,
 <code>hostname</code> is preferred over <code>host</code>.</li>
 <li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> IP address family to use when resolving <code>host</code> and
 <code>hostname</code>. Valid values are <code>4</code> or <code>6</code>. When unspecified, both IP v4 and
@@ -13879,17 +14026,15 @@ rejected but that may change in the future.</li>
 <li><code>headers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object containing request headers.</li>
 <li><code>auth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Basic authentication i.e. <code>&#39;user:password&#39;</code> to compute an
 Authorization header.</li>
-<li><code>agent</code> <a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Controls <a href="#https_class_https_agent"><code>Agent</code></a> behavior. When an Agent
-is used request will default to <code>Connection: keep-alive</code>. Possible values:<ul>
+<li><code>agent</code> <a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Controls <a href="#https_class_https_agent"><code>Agent</code></a> behavior. Possible values:<ul>
 <li><code>undefined</code> (default): use <a href="#http_http_globalagent"><code>http.globalAgent</code></a> for this host and port.</li>
 <li><code>Agent</code> object: explicitly use the passed in <code>Agent</code>.</li>
-<li><code>false</code>: opts out of connection pooling with an Agent, defaults request to
-<code>Connection: close</code>.</li>
+<li><code>false</code>: causes a new <code>Agent</code> with default values to be used.</li>
 </ul>
 </li>
 <li><code>createConnection</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A function that produces a socket/stream to
 use for the request when the <code>agent</code> option is not used. This can be used to
-avoid creating a custom Agent class just to override the default
+avoid creating a custom <code>Agent</code> class just to override the default
 <code>createConnection</code> function. See <a href="#http_agent_createconnection_options_callback"><code>agent.createConnection()</code></a> for more
 details.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a>: A number specifying the socket timeout in milliseconds.
@@ -13902,7 +14047,7 @@ This will set the timeout before the socket is connected.</li>
 <p>Node.js maintains several connections per server to make HTTP requests.
 This function allows one to transparently issue requests.</p>
 <p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is
-automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
+automatically parsed with <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
 <p>The optional <code>callback</code> parameter will be added as a one time listener for
 the <a href="#http_event_response"><code>&#39;response&#39;</code></a> event.</p>
 <p><code>http.request()</code> returns an instance of the <a href="#http_class_http_clientrequest"><code>http.ClientRequest</code></a>
@@ -13956,7 +14101,7 @@ are registered the error will be thrown.</p>
 <li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to
 the server should be persisted until the next request.</p>
 </li>
-<li><p>Sending a &#39;Content-length&#39; header will disable the default chunked encoding.</p>
+<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>
 </li>
 <li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.
 Usually, when sending &#39;Expect: 100-continue&#39;, you should both set a timeout
@@ -14037,7 +14182,7 @@ https.createServer(options, (req, res) =&gt; {
 <span>Added in: v0.3.6</span>
 </div><p>Like <a href="http.html#http_http_get_options_callback"><code>http.get()</code></a> but for HTTPS.</p>
 <p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is
-automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
+automatically parsed with <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const https = require(&#39;https&#39;);
 
@@ -14062,7 +14207,7 @@ https.get(&#39;https://encrypted.google.com/&#39;, (res) =&gt; {
 <span>Added in: v0.3.6</span>
 </div><p>Makes a request to a secure web server.</p>
 <p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is
-automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
+automatically parsed with <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
 <p>All options from <a href="http.html#http_http_request_options_callback"><code>http.request()</code></a> are valid.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const https = require(&#39;https&#39;);
@@ -14523,7 +14668,7 @@ module&#39;s absolute filename and directory path.</li>
 </ul>
 <p>In each module, the <code>module</code> free variable is a reference to the object
 representing the current module.  For convenience, <code>module.exports</code> is
-also accessible via the <code>exports</code> module-global. <code>module</code> isn&#39;t actually
+also accessible via the <code>exports</code> module-global. <code>module</code> is not actually
 a global but rather local to each module.</p>
 <h3>module.children<span><a class="mark" href="#modules_module_children" id="modules_module_children">#</a></span></h3>
 <div class="api_metadata">
@@ -15312,17 +15457,22 @@ It can be accessed using:</p>
 <h2>os.arch()<span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
-</div><p>The <code>os.arch()</code> method returns a string identifying the operating system CPU
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>The <code>os.arch()</code> method returns a string identifying the operating system CPU
 architecture <em>for which the Node.js binary was compiled</em>.</p>
 <p>The current possible values are: <code>&#39;arm&#39;</code>, <code>&#39;arm64&#39;</code>, <code>&#39;ia32&#39;</code>, <code>&#39;mips&#39;</code>,
 <code>&#39;mipsel&#39;</code>, <code>&#39;ppc&#39;</code>, <code>&#39;ppc64&#39;</code>, <code>&#39;s390&#39;</code>, <code>&#39;s390x&#39;</code>, <code>&#39;x32&#39;</code>, <code>&#39;x64&#39;</code>,  and
 <code>&#39;x86&#39;</code>.</p>
 <p>Equivalent to <a href="process.html#process_process_arch"><code>process.arch</code></a>.</p>
 <h2>os.constants<span><a class="mark" href="#os_os_constants" id="os_os_constants">#</a></span></h2>
-<div class="signature"><ul>
+<div class="api_metadata">
+<span>Added in: v6.3.0</span>
+</div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
-</div><p>Returns an object containing commonly used operating system specific constants
+<p>Returns an object containing commonly used operating system specific constants
 for error codes, process signals, and so on. The specific constants currently
 defined are described in <a href="#os_os_constants">OS Constants</a>.</p>
 <h2>os.cpus()<span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
@@ -16803,7 +16953,7 @@ there is no work scheduled, but a listener registered on the <code>&#39;beforeEx
 event can make asynchronous calls, and thereby cause the Node.js process to
 continue.</p>
 <p>The listener callback function is invoked with the value of
-<a href="#processexitcode-1"><code>process.exitCode</code></a> passed as the only argument.</p>
+<a href="#process_process_exitcode"><code>process.exitCode</code></a> passed as the only argument.</p>
 <p>The <code>&#39;beforeExit&#39;</code> event is <em>not</em> emitted for conditions causing explicit
 termination, such as calling <a href="#process_process_exit_code"><code>process.exit()</code></a> or uncaught exceptions.</p>
 <p>The <code>&#39;beforeExit&#39;</code> should <em>not</em> be used as an alternative to the <code>&#39;exit&#39;</code> event
@@ -16826,7 +16976,7 @@ result of either:</p>
 <p>There is no way to prevent the exiting of the event loop at this point, and once
 all <code>&#39;exit&#39;</code> listeners have finished running the Node.js process will terminate.</p>
 <p>The listener callback function is invoked with the exit code specified either
-by the <a href="#processexitcode-1"><code>process.exitCode</code></a> property, or the <code>exitCode</code> argument passed to the
+by the <a href="#process_process_exitcode"><code>process.exitCode</code></a> property, or the <code>exitCode</code> argument passed to the
 <a href="#process_process_exit_code"><code>process.exit()</code></a> method, as the only argument.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.on(&#39;exit&#39;, (code) =&gt; {
@@ -18068,9 +18218,9 @@ process has been running.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.versions</code> property returns an object listing the version strings of
-Node.js and its dependencies. In addition, <code>process.versions.modules</code> indicates
-the current ABI version, which is increased whenever a C++ API changes. Node.js
-will refuse to load native modules built for an older <code>modules</code> value.</p>
+Node.js and its dependencies. <code>process.versions.modules</code> indicates the current
+ABI version, which is increased whenever a C++ API changes. Node.js will refuse
+to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate output similar to:</p>
@@ -18144,7 +18294,7 @@ userland-provided <a href="https://mths.be/punycode">Punycode.js</a> module inst
 can be accessed using:</p>
 <pre><code class="lang-js">const punycode = require(&#39;punycode&#39;);
 </code></pre>
-<p><a href="https://tools.ietf.org/html/rfc3492">Punycode</a> is a character encoding scheme defined by RFC 3492 that is
+<p><a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> is a character encoding scheme defined by RFC 3492 that is
 primarily intended for use in Internationalized Domain Names. Because host
 names in URLs are limited to ASCII characters only, Domain Names that contain
 non-ASCII characters must be converted into ASCII using the Punycode scheme.
@@ -18162,7 +18312,7 @@ the module must be directed to the <a href="https://mths.be/punycode">Punycode.j
 </div><ul>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-<p>The <code>punycode.decode()</code> method converts a <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only
+<p>The <code>punycode.decode()</code> method converts a <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> string of ASCII-only
 characters to the equivalent string of Unicode codepoints.</p>
 <pre><code class="lang-js">punycode.decode(&#39;maana-pta&#39;); // &#39;mañana&#39;
 punycode.decode(&#39;--dqo34k&#39;); // &#39;☃-⌘&#39;
@@ -18174,7 +18324,7 @@ punycode.decode(&#39;--dqo34k&#39;); // &#39;☃-⌘&#39;
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
 <p>The <code>punycode.encode()</code> method converts a string of Unicode codepoints to a
-<a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only characters.</p>
+<a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> string of ASCII-only characters.</p>
 <pre><code class="lang-js">punycode.encode(&#39;mañana&#39;); // &#39;maana-pta&#39;
 punycode.encode(&#39;☃-⌘&#39;); // &#39;--dqo34k&#39;
 </code></pre>
@@ -18185,7 +18335,7 @@ punycode.encode(&#39;☃-⌘&#39;); // &#39;--dqo34k&#39;
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
 <p>The <code>punycode.toASCII()</code> method converts a Unicode string representing an
-Internationalized Domain Name to <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>. Only the non-ASCII parts of the
+Internationalized Domain Name to <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>. Only the non-ASCII parts of the
 domain name will be converted. Calling <code>punycode.toASCII()</code> on a string that
 already only contains ASCII characters will have no effect.</p>
 <pre><code class="lang-js">// encode domain names
@@ -18200,7 +18350,7 @@ punycode.toASCII(&#39;example.com&#39;); // &#39;example.com&#39;
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
 <p>The <code>punycode.toUnicode()</code> method converts a string representing a domain name
-containing <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> encoded characters into Unicode. Only the <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>
+containing <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> encoded characters into Unicode. Only the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
 encoded parts of the domain name are be converted.</p>
 <pre><code class="lang-js">// decode domain names
 punycode.toUnicode(&#39;xn--maana-pta.com&#39;); // &#39;mañana.com&#39;
@@ -19081,6 +19231,12 @@ with a custom <code>eval</code> function. Defaults to <code>false</code>.</li>
 </li>
 </ul>
 <p>The <code>repl.start()</code> method creates and starts a <code>repl.REPLServer</code> instance.</p>
+<p>If <code>options</code> is a string, then it specifies the input prompt:</p>
+<pre><code class="lang-js">const repl = require(&#39;repl&#39;);
+
+// a Unix style prompt
+repl.start(&#39;$ &#39;);
+</code></pre>
 <h2>The Node.js REPL<span><a class="mark" href="#repl_the_node_js_repl" id="repl_the_node_js_repl">#</a></span></h2>
 <p>Node.js itself uses the <code>repl</code> module to provide its own interactive interface
 for executing JavaScript. This can be used by executing the Node.js binary
@@ -19531,12 +19687,44 @@ supplied <code>callback</code> once the data has been fully handled. If an error
 occurs, the <code>callback</code> <em>may or may not</em> be called with the error as its
 first argument. To reliably detect write errors, add a listener for the
 <code>&#39;error&#39;</code> event.</p>
-<p>The return value is <code>true</code> if the internal buffer does not exceed
+<p>The return value is <code>true</code> if the internal buffer is less than the
 <code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.
 If <code>false</code> is returned, further attempts to write data to the stream should
-stop until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted. However, the <code>false</code> return
-value is only advisory and the writable stream will unconditionally accept and
-buffer <code>chunk</code> even if it has not not been allowed to drain.</p>
+stop until the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event is emitted.</p>
+<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and
+return false. Once all currently buffered chunks are drained (accepted for
+delivery by the operating system), the <code>&#39;drain&#39;</code> event will be emitted.
+It is recommended that once write() returns false, no more chunks be written
+until the <code>&#39;drain&#39;</code> event is emitted. While calling <code>write()</code> on a stream that
+is not draining is allowed, Node.js will buffer all written chunks until
+maximum memory usage occurs, at which point it will abort unconditionally.
+Even before it aborts, high memory usage will cause poor garbage collector
+performance and high RSS (which is not typically released back to the system,
+even after the memory is no longer required). Since TCP sockets may never
+drain if the remote peer does not read the data, writing a socket that is
+not draining may lead to a remotely exploitable vulnerability.</p>
+<p>Writing data while the stream is not draining is particularly
+problematic for a <a href="#stream_class_stream_transform">Transform</a>, because the <code>Transform</code> streams are paused
+by default until they are piped or an <code>&#39;data&#39;</code> or <code>&#39;readable&#39;</code> event handler
+is added.</p>
+<p>If the data to be written can be generated or fetched on demand, it is
+recommended to encapsulate the logic into a <a href="#stream_class_stream_readable">Readable</a> and use
+<a href="#stream_readable_pipe_destination_options"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is
+possible to respect backpressure and avoid memory issues using the
+the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event:</p>
+<pre><code class="lang-js">function write (data, cb) {
+  if (!stream.write(data)) {
+    stream.once(&#39;drain&#39;, cb)
+  } else {
+    process.nextTick(cb)
+  }
+}
+
+// Wait for cb to be called before doing any other write.
+write(&#39;hello&#39;, () =&gt; {
+  console.log(&#39;write completed, do more writes now&#39;)
+})
+</code></pre>
 <p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>
 <h3>Readable Streams<span><a class="mark" href="#stream_readable_streams" id="stream_readable_streams">#</a></span></h3>
 <p>Readable streams are an abstraction for a <em>source</em> from which data is
@@ -20237,7 +20425,7 @@ user programs.</p>
 <code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking
 the callback and passing the error as the first argument. This will cause an
 <code>&#39;error&#39;</code> event to be emitted by the Writable. Throwing an Error from within
-<code>writable._write()</code> can result in expected and inconsistent behavior depending
+<code>writable._write()</code> can result in unexpected and inconsistent behavior depending
 on how the stream is being used.  Using the callback ensures consistent and
 predictable handling of errors.</p>
 <pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
@@ -21347,16 +21535,11 @@ extension will be added to the client hello and an <code>&#39;OCSPResponse&#39;<
 will be emitted on the socket before establishing a secure communication</li>
 <li><code>secureContext</code>: Optional TLS context object created with
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. If a <code>secureContext</code> is <em>not</em> provided, one
-will be created by passing the entire <code>options</code> object to
-<code>tls.createSecureContext()</code>. <em>Note</em>: In effect, all
-<a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> options can be provided, but they will be
-<em>completely ignored</em> unless the <code>secureContext</code> option is missing.</li>
-<li>...: Optional <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> options can be provided, see
-the <code>secureContext</code> option for more information.
-Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</li>
+will be created by calling <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> with no options.</li>
 </ul>
 </li>
 </ul>
+<p>Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</p>
 <h3>Event: &#39;OCSPResponse&#39;<span><a class="mark" href="#tls_event_ocspresponse" id="tls_event_ocspresponse">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.13</span>
@@ -21425,12 +21608,14 @@ if called on a server socket. The supported types are <code>&#39;DH&#39;</code> 
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div><ul>
-<li><code>detailed</code> <span class="type">&lt;boolean&gt;</span> Specify <code>true</code> to request that the full certificate
-chain with the <code>issuer</code> property be returned; <code>false</code> to return only the
-top certificate without the <code>issuer</code> property.</li>
+<li><code>detailed</code> <span class="type">&lt;boolean&gt;</span> Include the full certificate chain if <code>true</code>, otherwise
+include just the peer&#39;s certificate.</li>
 </ul>
 <p>Returns an object representing the peer&#39;s certificate. The returned object has
 some properties corresponding to the fields of the certificate.</p>
+<p>If the full certificate chain was requested, each certificate will include a
+<code>issuerCertificate</code> property containing an object representing its issuer&#39;s
+certificate.</p>
 <p>For example:</p>
 <pre><code class="lang-text">{ subject:
    { C: &#39;UK&#39;,
@@ -21439,23 +21624,22 @@ some properties corresponding to the fields of the certificate.</p>
      O: &#39;node.js&#39;,
      OU: &#39;Test TLS Certificate&#39;,
      CN: &#39;localhost&#39; },
-  issuerInfo:
+  issuer:
    { C: &#39;UK&#39;,
      ST: &#39;Acknack Ltd&#39;,
      L: &#39;Rhys Jones&#39;,
      O: &#39;node.js&#39;,
      OU: &#39;Test TLS Certificate&#39;,
      CN: &#39;localhost&#39; },
-  issuer:
-   { ... another certificate ... },
+  issuerCertificate:
+   { ... another certificate, possibly with a .issuerCertificate ... },
   raw: &lt; RAW DER buffer &gt;,
   valid_from: &#39;Nov 11 09:52:22 2009 GMT&#39;,
   valid_to: &#39;Nov  6 09:52:22 2029 GMT&#39;,
   fingerprint: &#39;2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF&#39;,
   serialNumber: &#39;B9B0D332A1AA5635&#39; }
 </code></pre>
-<p>If the peer does not provide a certificate, <code>null</code> or an empty object will be
-returned.</p>
+<p>If the peer does not provide a certificate, an empty object will be returned.</p>
 <h3>tlsSocket.getProtocol()<span><a class="mark" href="#tls_tlssocket_getprotocol" id="tls_tlssocket_getprotocol">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.7.0</span>
@@ -21698,10 +21882,21 @@ see <code>ca</code>).  When providing multiple cert chains, they do not have to 
 the same order as their private keys in <code>key</code>. If the intermediate
 certificates are not provided, the peer will not be able to validate the
 certificate, and the handshake will fail.</li>
-<li><code>ca</code><span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optional CA certificates to trust.
-Default is the well-known CAs from Mozilla. When connecting to peers that
-use certificates issued privately, or self-signed, the private root CA or
-self-signed certificate must be provided to verify the peer.</li>
+<li><code>ca</code> <span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optionally override the trusted CA
+certificates. Default is to trust the well-known CAs curated by Mozilla.
+Mozilla&#39;s CAs are completely replaced when CAs are explicitly specified
+using this option. The value can be a string or Buffer, or an Array of
+strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs
+concatenated together. The peer&#39;s certificate must be chainable to a CA
+trusted by the server for the connection to be authenticated.  When using
+certificates that are not chainable to a well-known CA, the certificate&#39;s CA
+must be explicitly specified as a trusted or the connection will fail to
+authenticate.
+If the peer uses a certificate that doesn&#39;t match or chain to one of the
+default CAs, use the <code>ca</code> option to provide a CA certificate that the peer&#39;s
+certificate can match or chain to.
+For self-signed certificates, the certificate is its own CA, and must be
+provided.</li>
 <li><code>crl</code> <span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optional PEM formatted
 CRLs (Certificate Revocation Lists).</li>
 <li><code>ciphers</code> <span class="type">&lt;string&gt;</span> Optional cipher suite specification, replacing the
@@ -21848,7 +22043,9 @@ server.listen(8000, () =&gt; {
 <pre><code class="lang-js">console.log(tls.getCiphers()); // [&#39;AES128-SHA&#39;, &#39;AES256-SHA&#39;, ...]
 </code></pre>
 <h2>tls.DEFAULT_ECDH_CURVE<span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
-<p>The default curve name to use for ECDH key agreement in a tls server. The
+<div class="api_metadata">
+<span>Added in: v0.11.13</span>
+</div><p>The default curve name to use for ECDH key agreement in a tls server. The
 default value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href="https://www.rfc-editor.org/rfc/rfc4492.txt">RFC 4492</a> and
 <a href="http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">FIPS.186-4</a> for more details.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#tls_deprecated_apis" id="tls_deprecated_apis">#</a></span></h2>
@@ -22212,6 +22409,351 @@ properties of URL objects:</p>
 </code></pre>
 <p>For example, the ASCII space character (<code>&#39; &#39;</code>) is encoded as <code>%20</code>. The ASCII
 forward slash (<code>/</code>) character is encoded as <code>%3C</code>.</p>
+<h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
+<pre class="api_stability api_stability_1">Stability: 1 - Experimental</pre><p>The <code>url</code> module provides an <em>experimental</em> implementation of the
+<a href="https://url.spec.whatwg.org/">WHATWG URL Standard</a> as an alternative to the existing <code>url.parse()</code> API.</p>
+<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+const myURL = new URL(&#39;https://example.org/foo&#39;);
+
+console.log(myURL.href);     // https://example.org/foo
+console.log(myURL.protocol); // https:
+console.log(myURL.hostname); // example.org
+console.log(myURL.pathname); // /foo
+</code></pre>
+<p><em>Note</em>: Using the <code>delete</code> keyword (e.g. <code>delete myURL.protocol</code>,
+<code>delete myURL.pathname</code>, etc) has no effect but will still return <code>true</code>.</p>
+<h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+<h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The input URL to parse</li>
+<li><code>base</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <span class="type">&lt;URL&gt;</span> The base URL to resolve against if the <code>input</code> is not
+absolute.</li>
+</ul>
+</div><p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If
+<code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);
+  // https://example.org/foo
+</code></pre>
+<p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note
+that an effort will be made to coerce the given values into strings. For
+instance:</p>
+<pre><code class="lang-js">const myURL = new URL({toString: () =&gt; &#39;https://example.org/&#39;});
+  // https://example.org/
+</code></pre>
+<p>Unicode characters appearing within the hostname of <code>input</code> will be
+automatically converted to ASCII using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://你好你好&#39;);
+  // https://xn--6qqa088eba
+</code></pre>
+<p>Additional <a href="https://url.spec.whatwg.org/#example-url-parsing">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>
+<h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
+<p>Gets and sets the fragment portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo#bar&#39;);
+console.log(myURL.hash);
+  // Prints #bar
+
+myURL.hash = &#39;baz&#39;;
+console.log(myURL.href);
+  // Prints https://example.org/foo#baz
+</code></pre>
+<p>Invalid URL characters included in the value assigned to the <code>hash</code> property
+are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of
+which characters to percent-encode may vary somewhat from what the
+<a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
+<h4>url.host<span><a class="mark" href="#url_url_host" id="url_url_host">#</a></span></h4>
+<p>Gets and sets the host portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:81/foo&#39;);
+console.log(myURL.host);
+  // Prints example.org:81
+
+myURL.host = &#39;example.com:82&#39;;
+console.log(myURL.href);
+  // Prints https://example.com:82/foo
+</code></pre>
+<p>Invalid host values assigned to the <code>host</code> property are ignored.</p>
+<h4>url.hostname<span><a class="mark" href="#url_url_hostname" id="url_url_hostname">#</a></span></h4>
+<p>Gets and sets the hostname portion of the URL. The key difference between
+<code>url.host</code> and <code>url.hostname</code> is that <code>url.hostname</code> does <em>not</em> include the
+port.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:81/foo&#39;);
+console.log(myURL.hostname);
+  // Prints example.org
+
+myURL.hostname = &#39;example.com:82&#39;;
+console.log(myURL.href);
+  // Prints https://example.com:81/foo
+</code></pre>
+<p>Invalid hostname values assigned to the <code>hostname</code> property are ignored.</p>
+<h4>url.href<span><a class="mark" href="#url_url_href" id="url_url_href">#</a></span></h4>
+<p>Gets and sets the serialized URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo&#39;);
+console.log(myURL.href);
+  // Prints https://example.org/foo
+
+myURL.href = &#39;https://example.com/bar&#39;
+  // Prints https://example.com/bar
+</code></pre>
+<p>Setting the value of the <code>href</code> property to a new value is equivalent to
+creating a new <code>URL</code> object using <code>new URL(value)</code>. Each of the <code>URL</code> object&#39;s
+properties will be modified.</p>
+<p>If the value assigned to the <code>href</code> property is not a valid URL, a <code>TypeError</code>
+will be thrown.</p>
+<h4>url.origin<span><a class="mark" href="#url_url_origin" id="url_url_origin">#</a></span></h4>
+<p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that
+may be contained within the hostname will be encoded as-is without <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
+encoding.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
+console.log(myURL.origin);
+  // Prints https://example.org
+</code></pre>
+<pre><code class="lang-js">const idnURL = new URL(&#39;https://你好你好&#39;);
+console.log(idnURL.origin);
+  // Prints https://你好你好
+
+console.log(idnURL.hostname);
+  // Prints xn--6qqa088eba
+</code></pre>
+<h4>url.password<span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
+<p>Gets and sets the password portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
+console.log(myURL.password);
+  // Prints xyz
+
+myURL.password = &#39;123&#39;;
+console.log(myURL.href);
+  // Prints https://abc:123@example.com
+</code></pre>
+<p>Invalid URL characters included in the value assigned to the <code>password</code> property
+are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of
+which characters to percent-encode may vary somewhat from what the
+<a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
+<h4>url.pathname<span><a class="mark" href="#url_url_pathname" id="url_url_pathname">#</a></span></h4>
+<p>Gets and sets the path portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/abc/xyz?123&#39;);
+console.log(myURL.pathname);
+  // Prints /abc/xyz
+
+myURL.pathname = &#39;/abcdef&#39;;
+console.log(myURL.href);
+  // Prints https://example.org/abcdef?123
+</code></pre>
+<p>Invalid URL characters included in the value assigned to the <code>pathname</code>
+property are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the
+selection of which characters to percent-encode may vary somewhat from what the
+<a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
+<h4>url.port<span><a class="mark" href="#url_url_port" id="url_url_port">#</a></span></h4>
+<p>Gets and sets the port portion of the URL. When getting the port, the value
+is returned as a String.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:8888&#39;);
+console.log(myURL.port);
+  // Prints 8888
+
+myURL.port = 1234;
+console.log(myURL.href);
+  // Prints https://example.org:1234
+</code></pre>
+<p>The port value may be set as either a number or as a String containing a number
+in the range <code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port
+of the <code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming
+the empty string (<code>&#39;&#39;</code>).</p>
+<p>Invalid URL port values assigned to the <code>port</code> property are ignored.</p>
+<h4>url.protocol<span><a class="mark" href="#url_url_protocol" id="url_url_protocol">#</a></span></h4>
+<p>Gets and sets the protocol portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org&#39;);
+console.log(myURL.protocol);
+  // Prints http:
+
+myURL.protocol = &#39;ftp&#39;;
+console.log(myURL.href);
+  // Prints ftp://example.org
+</code></pre>
+<p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>
+<h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
+<p>Gets and sets the serialized query portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/abc?123&#39;);
+console.log(myURL.search);
+  // Prints ?123
+
+myURL.search = &#39;abc=xyz&#39;;
+console.log(myURL.href);
+  // Prints https://example.org/abc?abc=xyz
+</code></pre>
+<p>Any invalid URL characters appearing in the value assigned the <code>search</code>
+property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the
+selection of which characters to percent-encode may vary somewhat from what the
+<a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
+<h4>url.searchParams<span><a class="mark" href="#url_url_searchparams" id="url_url_searchparams">#</a></span></h4>
+<p>Gets a <a href="#url_class_urlsearchparams"><code>URLSearchParams</code></a> object representing the
+query parameters of the URL.</p>
+<h4>url.username<span><a class="mark" href="#url_url_username" id="url_url_username">#</a></span></h4>
+<p>Gets and sets the username portion of the URL.</p>
+<pre><code class="lang-js">const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
+console.log(myURL.username);
+  // Prints abc
+
+myURL.username = &#39;123&#39;;
+console.log(myURL.href);
+  // Prints https://123:xyz@example.com
+</code></pre>
+<p>Any invalid URL characters appearing in the value assigned the <code>username</code>
+property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the
+selection of which characters to percent-encode may vary somewhat from what the
+<a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
+<h4>url.toString()<span><a class="mark" href="#url_url_tostring" id="url_url_tostring">#</a></span></h4>
+<p>The <code>toString()</code> method on the <code>URL</code> object returns the serialized URL. The
+value returned is equivalent to that of <code>url.href</code>.</p>
+<h3>Class: URLSearchParams<span><a class="mark" href="#url_class_urlsearchparams" id="url_class_urlsearchparams">#</a></span></h3>
+<p>The <code>URLSearchParams</code> object provides read and write access to the query of a
+<code>URL</code>.</p>
+<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+const myURL = new URL(&#39;https://example.org/?abc=123&#39;);
+console.log(myURL.searchParams.get(&#39;abc&#39;));
+  // Prints 123
+
+myURL.searchParams.append(&#39;abc&#39;, &#39;xyz&#39;);
+console.log(myURL.href);
+  // Prints https://example.org/?abc=123&amp;abc=xyz
+
+myURL.searchParams.delete(&#39;abc&#39;);
+myURL.searchParams.set(&#39;a&#39;, &#39;b&#39;);
+console.log(myURL.href);
+  // Prints https://example.org/?a=b
+</code></pre>
+<h4>Constructor: new URLSearchParams([init])<span><a class="mark" href="#url_constructor_new_urlsearchparams_init" id="url_constructor_new_urlsearchparams_init">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>init</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The URL query</li>
+</ul>
+</div><h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Append a new name-value pair to the query string.</p>
+<h4>urlSearchParams.delete(name)<span><a class="mark" href="#url_urlsearchparams_delete_name" id="url_urlsearchparams_delete_name">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Remove all name-value pairs whose name is <code>name</code>.</p>
+<h4>urlSearchParams.entries()<span><a class="mark" href="#url_urlsearchparams_entries" id="url_urlsearchparams_entries">#</a></span></h4>
+<div class="signature"><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+</ul>
+</div><p>Returns an ES6 Iterator over each of the name-value pairs in the query.
+Each item of the iterator is a JavaScript Array. The first item of the Array
+is the <code>name</code>, the second item of the Array is the <code>value</code>.</p>
+<p>Alias for <code>urlSearchParams\[\@\@iterator\]()</code>.</p>
+<h4>urlSearchParams.forEach(fn)<span><a class="mark" href="#url_urlsearchparams_foreach_fn" id="url_urlsearchparams_foreach_fn">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Function invoked for each name-value pair in the query.</li>
+</ul>
+</div><p>Iterates over each name-value pair in the query and invokes the given function.</p>
+<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+const myURL = new URL(&#39;https://example.org/?a=b&amp;c=d&#39;);
+myURL.searchParams.forEach((value, name) =&gt; {
+  console.log(name, value);
+});
+</code></pre>
+<h4>urlSearchParams.get(name)<span><a class="mark" href="#url_urlsearchparams_get_name" id="url_urlsearchparams_get_name">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> or <code>null</code> if there is no name-value pair with the given
+<code>name</code>.</li>
+</ul>
+</div><p>Returns the value of the first name-value pair whose name is <code>name</code>.</p>
+<h4>urlSearchParams.getAll(name)<span><a class="mark" href="#url_urlsearchparams_getall_name" id="url_urlsearchparams_getall_name">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+</div><p>Returns the values of all name-value pairs whose name is <code>name</code>.</p>
+<h4>urlSearchParams.has(name)<span><a class="mark" href="#url_urlsearchparams_has_name" id="url_urlsearchparams_has_name">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+</div><p>Returns <code>true</code> if there is at least one name-value pair whose name is <code>name</code>.</p>
+<h4>urlSearchParams.keys()<span><a class="mark" href="#url_urlsearchparams_keys" id="url_urlsearchparams_keys">#</a></span></h4>
+<div class="signature"><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+</ul>
+</div><p>Returns an ES6 Iterator over the names of each name-value pair.</p>
+<h4>urlSearchParams.set(name, value)<span><a class="mark" href="#url_urlsearchparams_set_name_value" id="url_urlsearchparams_set_name_value">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Remove any existing name-value pairs whose name is <code>name</code> and append a new
+name-value pair.</p>
+<h4>urlSearchParams.toString()<span><a class="mark" href="#url_urlsearchparams_tostring" id="url_urlsearchparams_tostring">#</a></span></h4>
+<div class="signature"><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Returns the search parameters serialized as a URL-encoded string.</p>
+<h4>urlSearchParams.values()<span><a class="mark" href="#url_urlsearchparams_values" id="url_urlsearchparams_values">#</a></span></h4>
+<div class="signature"><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+</ul>
+</div><p>Returns an ES6 Iterator over the values of each name-value pair.</p>
+<h4>urlSearchParams[\@\@iterator]()<span><a class="mark" href="#url_urlsearchparams_iterator" id="url_urlsearchparams_iterator">#</a></span></h4>
+<div class="signature"><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+</ul>
+</div><p>Returns an ES6 Iterator over each of the name-value pairs in the query string.
+Each item of the iterator is a JavaScript Array. The first item of the Array
+is the <code>name</code>, the second item of the Array is the <code>value</code>.</p>
+<p>Alias for <code>urlSearchParams.entries()</code>.</p>
+<h3>require(&#39;url&#39;).domainToAscii(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>.</p>
+<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToAscii()</code> method is introduced as part of
+the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
+<h3>require(&#39;url&#39;).domainToUnicode(domain)<span><a class="mark" href="#url_require_url_domaintounicode_domain" id="url_require_url_domaintounicode_domain">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Returns the Unicode serialization of the <code>domain</code>.</p>
+<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the
+the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
+<p><a id="whatwg-percent-encoding"></a></p>
+<h3>Percent-Encoding in the WHATWG URL Standard<span><a class="mark" href="#url_percent_encoding_in_the_whatwg_url_standard" id="url_percent_encoding_in_the_whatwg_url_standard">#</a></span></h3>
+<p>URLs are permitted to only contain a certain range of characters. Any character
+falling outside of that range must be encoded. How such characters are encoded,
+and which characters to encode depends entirely on where the character is
+located within the structure of the URL. The WHATWG URL Standard uses a more
+selective and fine grained approach to selecting encoded characters than that
+used by the older <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods.</p>
+<p>The WHATWG algorithm defines three &quot;encoding sets&quot; that describe ranges of
+characters that must be percent-encoded:</p>
+<ul>
+<li><p>The <em>simple encode set</em> includes code points in range U+0000 to U+001F
+(inclusive) and all code points greater than U+007E.</p>
+</li>
+<li><p>The <em>default encode set</em> includes the <em>simple encode set</em> and code points
+U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060, U+007B, and U+007D.</p>
+</li>
+<li><p>The <em>userinfo encode set</em> includes the <em>default encode set</em> and code points
+U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D, U+005E, and
+U+007C.</p>
+</li>
+</ul>
+<p>The <em>simple encode set</em> is used primary for URL fragments and certain specific
+conditions for the path. The <em>userinfo encode set</em> is used specifically for
+username and passwords encoded within the URL. The <em>default encode set</em> is used
+for all other cases.</p>
+<p>When non-ASCII characters appear within a hostname, the hostname is encoded
+using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
+<em>both</em> Punycode encoded and percent-encoded characters. For example:</p>
+<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+const myURL = new URL(&#39;https://%CF%80.com/foo&#39;);
+console.log(myURL.href);
+  // Prints https://xn--1xa.com/foo
+console.log(myURL.origin);
+  // Prints https://π.com
+</code></pre>
 <!-- [end-include:url.md] -->
 <!-- [start-include:util.md] -->
 <h1>util<span><a class="mark" href="#util_util" id="util_util">#</a></span></h1>
@@ -23363,9 +23905,9 @@ let code =
 
  vm.runInThisContext(code)(require);
 </code></pre>
-<p><em>Note</em>: The <code>require()</code> in the above case shares the state with context it is
-passed from. This may introduce risks when untrusted code is executed, e.g.
-altering objects from the calling thread&#39;s context in unwanted ways.</p>
+<p><em>Note</em>: The <code>require()</code> in the above case shares the state with the context it
+is passed from. This may introduce risks when untrusted code is executed, e.g.
+altering objects in the context in unwanted ways.</p>
 <h2>What does it mean to &quot;contextify&quot; an object?<span><a class="mark" href="#vm_what_does_it_mean_to_contextify_an_object" id="vm_what_does_it_mean_to_contextify_an_object">#</a></span></h2>
 <p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.
 According to the <a href="https://developers.google.com/v8/embed#contexts">V8 Embedder&#39;s Guide</a>:</p>
@@ -23684,7 +24226,9 @@ Only applicable to deflate algorithm.</p>
 </div><p>Reset the compressor/decompressor to factory defaults. Only applicable to
 the inflate and deflate algorithms.</p>
 <h2>zlib.constants<span><a class="mark" href="#zlib_zlib_constants" id="zlib_zlib_constants">#</a></span></h2>
-<p>Provides an object enumerating Zlib-related constants.</p>
+<div class="api_metadata">
+<span>Added in: v7.0.0</span>
+</div><p>Provides an object enumerating Zlib-related constants.</p>
 <h2>zlib.createDeflate(<a href="#zlib_class_options">options</a>)<span><a class="mark" href="#zlib_zlib_createdeflate_options" id="zlib_zlib_createdeflate_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
@@ -23726,49 +24270,49 @@ without a callback.</p>
 </div><h3>zlib.deflateSync(buf[, options])<span><a class="mark" href="#zlib_zlib_deflatesync_buf_options" id="zlib_zlib_deflatesync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Compress a Buffer or string with Deflate.</p>
+</div><p>Compress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_deflate">Deflate</a>.</p>
 <h3>zlib.deflateRaw(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_deflateraw_buf_options_callback" id="zlib_zlib_deflateraw_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.deflateRawSync(buf[, options])<span><a class="mark" href="#zlib_zlib_deflaterawsync_buf_options" id="zlib_zlib_deflaterawsync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Compress a Buffer or string with DeflateRaw.</p>
+</div><p>Compress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_deflateraw">DeflateRaw</a>.</p>
 <h3>zlib.gunzip(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_gunzip_buf_options_callback" id="zlib_zlib_gunzip_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.gunzipSync(buf[, options])<span><a class="mark" href="#zlib_zlib_gunzipsync_buf_options" id="zlib_zlib_gunzipsync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Decompress a Buffer or string with Gunzip.</p>
+</div><p>Decompress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_gunzip">Gunzip</a>.</p>
 <h3>zlib.gzip(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_gzip_buf_options_callback" id="zlib_zlib_gzip_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.gzipSync(buf[, options])<span><a class="mark" href="#zlib_zlib_gzipsync_buf_options" id="zlib_zlib_gzipsync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Compress a Buffer or string with Gzip.</p>
+</div><p>Compress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_gzip">Gzip</a>.</p>
 <h3>zlib.inflate(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_inflate_buf_options_callback" id="zlib_zlib_inflate_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.inflateSync(buf[, options])<span><a class="mark" href="#zlib_zlib_inflatesync_buf_options" id="zlib_zlib_inflatesync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Decompress a Buffer or string with Inflate.</p>
+</div><p>Decompress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_inflate">Inflate</a>.</p>
 <h3>zlib.inflateRaw(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_inflateraw_buf_options_callback" id="zlib_zlib_inflateraw_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.inflateRawSync(buf[, options])<span><a class="mark" href="#zlib_zlib_inflaterawsync_buf_options" id="zlib_zlib_inflaterawsync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Decompress a Buffer or string with InflateRaw.</p>
+</div><p>Decompress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_inflateraw">InflateRaw</a>.</p>
 <h3>zlib.unzip(buf[, options], callback)<span><a class="mark" href="#zlib_zlib_unzip_buf_options_callback" id="zlib_zlib_unzip_buf_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div><h3>zlib.unzipSync(buf[, options])<span><a class="mark" href="#zlib_zlib_unzipsync_buf_options" id="zlib_zlib_unzipsync_buf_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.12</span>
-</div><p>Decompress a Buffer or string with Unzip.</p>
+</div><p>Decompress a <a href="buffer.html">Buffer</a> or string with <a href="#zlib_class_zlib_unzip">Unzip</a>.</p>
 <!-- [end-include:zlib.md] -->
 
       </div>
@@ -23777,6 +24321,7 @@ without a callback.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

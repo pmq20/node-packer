@@ -2,13 +2,9 @@
 
 require('../common');
 const assert = require('assert');
-const URL = require('url').URL;
+const URLSearchParams = require('url').URLSearchParams;
 
-const m = new URL('http://example.org');
-let params = m.searchParams;
-
-// Until we export URLSearchParams
-const URLSearchParams = params.constructor;
+let params;
 
 // Serialize space
 // querystring does not currently handle spaces intelligently
@@ -114,3 +110,6 @@ assert.strictEqual(params + '', 'a%F0%9F%92%A9b=c');
 // The lone '=' _does_ survive the roundtrip.
 params = new URLSearchParams('a=&a=b');
 assert.strictEqual(params.toString(), 'a=&a=b');
+assert.throws(() => {
+  params.toString.call(undefined);
+}, /^TypeError: Value of `this` is not a URLSearchParams$/);

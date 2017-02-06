@@ -96,50 +96,50 @@ using v8::Value;
 namespace url {
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
-  static int ToUnicode(std::string* input, std::string* output) {
+  static bool ToUnicode(std::string* input, std::string* output) {
     MaybeStackBuffer<char> buf;
     if (i18n::ToUnicode(&buf, input->c_str(), input->length()) < 0)
-      return -1;
+      return false;
     output->assign(*buf, buf.length());
-    return 0;
+    return true;
   }
 
-  static int ToASCII(std::string* input, std::string* output) {
+  static bool ToASCII(std::string* input, std::string* output) {
     MaybeStackBuffer<char> buf;
     if (i18n::ToASCII(&buf, input->c_str(), input->length()) < 0)
-      return -1;
+      return false;
     output->assign(*buf, buf.length());
-    return 0;
+    return true;
   }
 
   // Unfortunately there's not really a better way to do this.
   // Iterate through each encoded codepoint and verify that
   // it is a valid unicode codepoint.
-  static int IsValidUTF8(std::string* input) {
+  static bool IsValidUTF8(std::string* input) {
     const char* p = input->c_str();
     int32_t len = input->length();
     for (int32_t i = 0; i < len;) {
       UChar32 c;
       U8_NEXT_UNSAFE(p, i, c);
       if (!U_IS_UNICODE_CHAR(c))
-        return -1;
+        return false;
     }
-    return 0;
+    return true;
   }
 #else
   // Intentional non-ops if ICU is not present.
-  static int ToUnicode(std::string* input, std::string* output) {
-    output->reserve(input->length());
-    *output = input->c_str();
+  static bool ToUnicode(std::string* input, std::string* output) {
+    *output = *input;
+    return true;
   }
 
-  static int ToASCII(std::string* input, std::string* output) {
-    output->reserve(input->length());
-    *output = input->c_str();
+  static bool ToASCII(std::string* input, std::string* output) {
+    *output = *input;
+    return true;
   }
 
-  static int IsValidUTF8(std::string* input) {
-    return 0;
+  static bool IsValidUTF8(std::string* input) {
+    return true;
   }
 #endif
 
@@ -381,11 +381,11 @@ namespace url {
     // If there are any invalid UTF8 byte sequences, we have to fail.
     // Unfortunately this means iterating through the string and checking
     // each decoded codepoint.
-    if (IsValidUTF8(&decoded) < 0)
+    if (!IsValidUTF8(&decoded))
       goto end;
 
     // Then we have to punycode toASCII
-    if (ToASCII(&decoded, &decoded) < 0)
+    if (!ToASCII(&decoded, &decoded))
       goto end;
 
     // If any of the following characters are still present, we have to fail
@@ -405,7 +405,7 @@ namespace url {
       goto end;
 
     // If the unicode flag is set, run the result through punycode ToUnicode
-    if (unicode && ToUnicode(&decoded, &decoded) < 0)
+    if (unicode && !ToUnicode(&decoded, &decoded))
       goto end;
 
     // It's not an IPv4 or IPv6 address, it must be a domain
@@ -499,17 +499,17 @@ namespace url {
     return host->type;
   }
 
-  static int ParseHost(std::string* input,
-                       std::string* output,
-                       bool unicode = false) {
+  static bool ParseHost(std::string* input,
+                        std::string* output,
+                        bool unicode = false) {
     if (input->length() == 0)
-      return 0;
+      return true;
     url_host host{{""}, HOST_TYPE_DOMAIN};
     ParseHost(&host, input->c_str(), input->length(), unicode);
     if (host.type == HOST_TYPE_FAILED)
-      return -1;
+      return false;
     WriteHost(&host, output);
-    return 0;
+    return true;
   }
 
   static inline void Copy(Isolate* isolate,
@@ -636,8 +636,8 @@ namespace url {
                     const char* input,
                     const size_t len,
                     enum url_parse_state override,
-                    Local<Object> base_obj,
-                    Local<Object> context_obj,
+                    Local<Value> base_obj,
+                    Local<Value> context_obj,
                     Local<Function> cb) {
     Isolate* isolate = env->isolate();
     Local<Context> context = env->context();
@@ -654,9 +654,9 @@ namespace url {
     struct url_data base;
     struct url_data url;
     if (context_obj->IsObject())
-      HarvestContext(env, &url, context_obj);
+      HarvestContext(env, &url, context_obj.As<Object>());
     if (has_base)
-      HarvestBase(env, &base, base_obj);
+      HarvestBase(env, &base, base_obj.As<Object>());
 
     std::string buffer;
     url.scheme.reserve(len);
@@ -996,7 +996,7 @@ namespace url {
             if (special && buffer.size() == 0)
               URL_FAILED()
             SET_HAVE_HOST()
-            if (ParseHost(&buffer, &url.host) < 0)
+            if (!ParseHost(&buffer, &url.host))
               URL_FAILED()
             buffer.clear();
             state = kPort;
@@ -1011,7 +1011,7 @@ namespace url {
             if (special && buffer.size() == 0)
               URL_FAILED()
             SET_HAVE_HOST()
-            if (ParseHost(&buffer, &url.host) < 0)
+            if (!ParseHost(&buffer, &url.host))
               URL_FAILED()
             buffer.clear();
             state = kPathStart;
@@ -1161,7 +1161,7 @@ namespace url {
             } else {
               if (buffer != "localhost") {
                 SET_HAVE_HOST()
-                if (ParseHost(&buffer, &url.host) < 0)
+                if (!ParseHost(&buffer, &url.host))
                   URL_FAILED()
               }
               buffer.clear();
@@ -1214,12 +1214,7 @@ namespace url {
               state = kFragment;
             }
           } else {
-            if (ch == '%' && p[1] == '2' && TO_LOWER(p[2]) == 'e') {
-              buffer += '.';
-              p += 2;
-            } else {
-              AppendOrEscape(&buffer, ch, DefaultEncodeSet);
-            }
+            AppendOrEscape(&buffer, ch, DefaultEncodeSet);
           }
           break;
         case kCannotBeBase:
@@ -1326,8 +1321,8 @@ namespace url {
     Parse(env, args.This(),
           *input, input.length(),
           override,
-          args[2].As<Object>(),
-          args[3].As<Object>(),
+          args[2],
+          args[3],
           args[4].As<Function>());
   }
 

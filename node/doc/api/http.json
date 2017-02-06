@@ -17,7 +17,7 @@
               "v0.3.4"
             ]
           },
-          "desc": "<p>The HTTP Agent is used for pooling sockets used in HTTP client\nrequests.</p>\n<p>The HTTP Agent also defaults client requests to using\n<code>Connection: keep-alive</code>. If no pending HTTP requests are waiting on a\nsocket to become free the socket is closed. This means that Node.js&#39;s\npool has the benefit of keep-alive when under load but still does not\nrequire developers to manually close the HTTP clients using\nKeepAlive.</p>\n<p>If you opt into using HTTP KeepAlive, you can create an Agent object\nwith that flag set to <code>true</code>.  (See the <a href=\"#http_new_agent_options\">constructor options</a>.)\nThen, the Agent will keep unused sockets in a pool for later use.  They\nwill be explicitly marked so as to not keep the Node.js process running.\nHowever, it is still a good idea to explicitly <a href=\"#http_agent_destroy\"><code>destroy()</code></a> KeepAlive\nagents when they are no longer in use, so that the Sockets will be shut\ndown.</p>\n<p>Sockets are removed from the agent&#39;s pool when the socket emits either\na <code>&#39;close&#39;</code> event or a special <code>&#39;agentRemove&#39;</code> event. This means that if\nyou intend to keep one HTTP request open for a long time and don&#39;t\nwant it to stay in the pool you can do something along the lines of:</p>\n<pre><code class=\"lang-js\">http.get(options, (res) =&gt; {\n  // Do stuff\n}).on(&#39;socket&#39;, (socket) =&gt; {\n  socket.emit(&#39;agentRemove&#39;);\n});\n</code></pre>\n<p>Alternatively, you could just opt out of pooling entirely using\n<code>agent:false</code>:</p>\n<pre><code class=\"lang-js\">http.get({\n  hostname: &#39;localhost&#39;,\n  port: 80,\n  path: &#39;/&#39;,\n  agent: false  // create a new agent just for this one request\n}, (res) =&gt; {\n  // Do stuff with response\n});\n</code></pre>\n",
+          "desc": "<p>An <code>Agent</code> is responsible for managing connection persistence\nand reuse for HTTP clients. It maintains a queue of pending requests\nfor a given host and port, reusing a single socket connection for each\nuntil the queue is empty, at which time the socket is either destroyed\nor put into a pool where it is kept to be used again for requests to the\nsame host and port. Whether it is destroyed or pooled depends on the\n<code>keepAlive</code> <a href=\"#http_new_agent_options\">option</a>.</p>\n<p>Pooled connections have TCP Keep-Alive enabled for them, but servers may\nstill close idle connections, in which case they will be removed from the\npool and a new connection will be made when a new HTTP request is made for\nthat host and port. Servers may also refuse to allow multiple requests\nover the same connection, in which case the connection will have to be\nremade for every request and cannot be pooled. The <code>Agent</code> will still make\nthe requests to that server, but each one will occur over a new connection.</p>\n<p>When a connection is closed by the client or the server, it is removed\nfrom the pool. Any unused sockets in the pool will be unrefed so as not\nto keep the Node.js process running when there are no outstanding requests.\n(see <a href=\"net.html#net_socket_unref\">socket.unref()</a>).</p>\n<p>It is good practice, to <a href=\"#http_agent_destroy\"><code>destroy()</code></a> an <code>Agent</code> instance when it is no\nlonger in use, because unused sockets consume OS resources.</p>\n<p>Sockets are removed from an agent&#39;s pool when the socket emits either\na <code>&#39;close&#39;</code> event or an <code>&#39;agentRemove&#39;</code> event. This means that if\nyou intend to keep one HTTP request open for a long time and don&#39;t\nwant it to stay in the pool you can do something along the lines of:</p>\n<pre><code class=\"lang-js\">http.get(options, (res) =&gt; {\n  // Do stuff\n}).on(&#39;socket&#39;, (socket) =&gt; {\n  socket.emit(&#39;agentRemove&#39;);\n});\n</code></pre>\n<p>You may also use an agent for an individual request. By providing\n<code>{agent: false}</code> as an option to the <code>http.get()</code> or <code>http.request()</code>\nfunctions, a one-time use <code>Agent</code> with default options will be used\nfor the client connection.</p>\n<p><code>agent:false</code>:</p>\n<pre><code class=\"lang-js\">http.get({\n  hostname: &#39;localhost&#39;,\n  port: 80,\n  path: &#39;/&#39;,\n  agent: false  // create a new agent just for this one request\n}, (res) =&gt; {\n  // Do stuff with response\n});\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "agent.createConnection(options[, callback])",
@@ -63,7 +63,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Produces a socket/stream to be used for HTTP requests.</p>\n<p>By default, this function is the same as <a href=\"net.html#net_net_createconnection_options_connectlistener\"><code>net.createConnection()</code></a>. However,\ncustom Agents may override this method in case greater flexibility is desired.</p>\n<p>A socket/stream can be supplied in one of two ways: by returning the\nsocket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>\n<p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>\n"
+              "desc": "<p>Produces a socket/stream to be used for HTTP requests.</p>\n<p>By default, this function is the same as <a href=\"net.html#net_net_createconnection_options_connectlistener\"><code>net.createConnection()</code></a>. However,\ncustom agents may override this method in case greater flexibility is desired.</p>\n<p>A socket/stream can be supplied in one of two ways: by returning the\nsocket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>\n<p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>\n"
             },
             {
               "textRaw": "agent.destroy()",
@@ -74,7 +74,7 @@
                   "v0.11.4"
                 ]
               },
-              "desc": "<p>Destroy any sockets that are currently in use by the agent.</p>\n<p>It is usually not necessary to do this.  However, if you are using an\nagent with KeepAlive enabled, then it is best to explicitly shut down\nthe agent when you know that it will no longer be used.  Otherwise,\nsockets may hang open for quite a long time before the server\nterminates them.</p>\n",
+              "desc": "<p>Destroy any sockets that are currently in use by the agent.</p>\n<p>It is usually not necessary to do this.  However, if you are using an\nagent with <code>keepAlive</code> enabled, then it is best to explicitly shut down\nthe agent when you know that it will no longer be used.  Otherwise,\nsockets may hang open for quite a long time before the server\nterminates them.</p>\n",
               "signatures": [
                 {
                   "params": []
@@ -134,7 +134,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Get a unique name for a set of request options, to determine whether a\nconnection can be reused.  In the http agent, this returns\n<code>host:port:localAddress</code>.  In the https agent, the name includes the\nCA, cert, ciphers, and other HTTPS/TLS-specific options that determine\nsocket reusability.</p>\n"
+              "desc": "<p>Get a unique name for a set of request options, to determine whether a\nconnection can be reused.  For an HTTP agent, this returns\n<code>host:port:localAddress</code>.  For an HTTPS agent, the name includes the\nCA, cert, ciphers, and other HTTPS/TLS-specific options that determine\nsocket reusability.</p>\n"
             }
           ],
           "properties": [
@@ -147,7 +147,7 @@
                   "v0.11.4"
                 ]
               },
-              "desc": "<p>An object which contains arrays of sockets currently awaiting use by\nthe Agent when HTTP KeepAlive is used.  Do not modify.</p>\n"
+              "desc": "<p>An object which contains arrays of sockets currently awaiting use by\nthe agent when <code>keepAlive</code> is enabled.  Do not modify.</p>\n"
             },
             {
               "textRaw": "`maxFreeSockets` {Number} ",
@@ -158,7 +158,7 @@
                   "v0.11.7"
                 ]
               },
-              "desc": "<p>By default set to 256.  For Agents supporting HTTP KeepAlive, this\nsets the maximum number of sockets that will be left open in the free\nstate.</p>\n"
+              "desc": "<p>By default set to 256.  For agents with <code>keepAlive</code> enabled, this\nsets the maximum number of sockets that will be left open in the free\nstate.</p>\n"
             },
             {
               "textRaw": "`maxSockets` {Number} ",
@@ -191,7 +191,7 @@
                   "v0.3.6"
                 ]
               },
-              "desc": "<p>An object which contains arrays of sockets currently in use by the\nAgent.  Do not modify.</p>\n"
+              "desc": "<p>An object which contains arrays of sockets currently in use by the\nagent.  Do not modify.</p>\n"
             }
           ],
           "signatures": [
@@ -201,16 +201,16 @@
                   "textRaw": "`options` {Object} Set of configurable options to set on the agent. Can have the following fields: ",
                   "options": [
                     {
-                      "textRaw": "`keepAlive` {Boolean} Keep sockets around in a pool to be used by other requests in the future. Default = `false` ",
+                      "textRaw": "`keepAlive` {Boolean} Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Default = `false` ",
                       "name": "keepAlive",
                       "type": "Boolean",
-                      "desc": "Keep sockets around in a pool to be used by other requests in the future. Default = `false`"
+                      "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Default = `false`"
                     },
                     {
-                      "textRaw": "`keepAliveMsecs` {Integer} When using HTTP KeepAlive, how often to send TCP KeepAlive packets over sockets being kept alive. Default = `1000`.  Only relevant if `keepAlive` is set to `true`. ",
+                      "textRaw": "`keepAliveMsecs` {Integer} When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`. ",
                       "name": "keepAliveMsecs",
                       "type": "Integer",
-                      "desc": "When using HTTP KeepAlive, how often to send TCP KeepAlive packets over sockets being kept alive. Default = `1000`.  Only relevant if `keepAlive` is set to `true`."
+                      "desc": "When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`."
                     },
                     {
                       "textRaw": "`maxSockets` {Number} Maximum number of sockets to allow per host.  Default = `Infinity`. ",
@@ -231,7 +231,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, you must create your own <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> object.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
+              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, you must create your own <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
             },
             {
               "params": [
@@ -240,7 +240,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, you must create your own <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> object.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
+              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, you must create your own <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
             }
           ]
         },
@@ -289,7 +289,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this\nevent isn&#39;t being listened for, clients receiving a <code>CONNECT</code> method will have\ntheir connections closed.</p>\n<p>A client and server pair that shows you how to listen for the <code>&#39;connect&#39;</code> event:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst net = require(&#39;net&#39;);\nconst url = require(&#39;url&#39;);\n\n// Create an HTTP tunneling proxy\nvar proxy = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nproxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {\n  // connect to an origin server\n  var srvUrl = url.parse(`http://${req.url}`);\n  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {\n    cltSocket.write(&#39;HTTP/1.1 200 Connection Established\\r\\n&#39; +\n                    &#39;Proxy-agent: Node.js-Proxy\\r\\n&#39; +\n                    &#39;\\r\\n&#39;);\n    srvSocket.write(head);\n    srvSocket.pipe(cltSocket);\n    cltSocket.pipe(srvSocket);\n  });\n});\n\n// now that proxy is running\nproxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request to a tunneling proxy\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    method: &#39;CONNECT&#39;,\n    path: &#39;www.google.com:80&#39;\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;connect&#39;, (res, socket, head) =&gt; {\n    console.log(&#39;got connected!&#39;);\n\n    // make a request over an HTTP tunnel\n    socket.write(&#39;GET / HTTP/1.1\\r\\n&#39; +\n                 &#39;Host: www.google.com:80\\r\\n&#39; +\n                 &#39;Connection: close\\r\\n&#39; +\n                 &#39;\\r\\n&#39;);\n    socket.on(&#39;data&#39;, (chunk) =&gt; {\n      console.log(chunk.toString());\n    });\n    socket.on(&#39;end&#39;, () =&gt; {\n      proxy.close();\n    });\n  });\n});\n</code></pre>\n"
+              "desc": "<p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this\nevent is not being listened for, clients receiving a <code>CONNECT</code> method will have\ntheir connections closed.</p>\n<p>A client and server pair that shows you how to listen for the <code>&#39;connect&#39;</code> event:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst net = require(&#39;net&#39;);\nconst url = require(&#39;url&#39;);\n\n// Create an HTTP tunneling proxy\nvar proxy = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nproxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {\n  // connect to an origin server\n  var srvUrl = url.parse(`http://${req.url}`);\n  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {\n    cltSocket.write(&#39;HTTP/1.1 200 Connection Established\\r\\n&#39; +\n                    &#39;Proxy-agent: Node.js-Proxy\\r\\n&#39; +\n                    &#39;\\r\\n&#39;);\n    srvSocket.write(head);\n    srvSocket.pipe(cltSocket);\n    cltSocket.pipe(srvSocket);\n  });\n});\n\n// now that proxy is running\nproxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request to a tunneling proxy\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    method: &#39;CONNECT&#39;,\n    path: &#39;www.google.com:80&#39;\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;connect&#39;, (res, socket, head) =&gt; {\n    console.log(&#39;got connected!&#39;);\n\n    // make a request over an HTTP tunnel\n    socket.write(&#39;GET / HTTP/1.1\\r\\n&#39; +\n                 &#39;Host: www.google.com:80\\r\\n&#39; +\n                 &#39;Connection: close\\r\\n&#39; +\n                 &#39;\\r\\n&#39;);\n    socket.on(&#39;data&#39;, (chunk) =&gt; {\n      console.log(chunk.toString());\n    });\n    socket.on(&#39;end&#39;, () =&gt; {\n      proxy.close();\n    });\n  });\n});\n</code></pre>\n"
             },
             {
               "textRaw": "Event: 'continue'",
@@ -337,7 +337,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a server responds to a request with an upgrade. If this\nevent isn&#39;t being listened for, clients receiving an upgrade header will have\ntheir connections closed.</p>\n<p>A client server pair that show you how to listen for the <code>&#39;upgrade&#39;</code> event.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\n// Create an HTTP server\nvar srv = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nsrv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {\n  socket.write(&#39;HTTP/1.1 101 Web Socket Protocol Handshake\\r\\n&#39; +\n               &#39;Upgrade: WebSocket\\r\\n&#39; +\n               &#39;Connection: Upgrade\\r\\n&#39; +\n               &#39;\\r\\n&#39;);\n\n  socket.pipe(socket); // echo back\n});\n\n// now that server is running\nsrv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    headers: {\n      &#39;Connection&#39;: &#39;Upgrade&#39;,\n      &#39;Upgrade&#39;: &#39;websocket&#39;\n    }\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {\n    console.log(&#39;got upgraded!&#39;);\n    socket.end();\n    process.exit(0);\n  });\n});\n</code></pre>\n"
+              "desc": "<p>Emitted each time a server responds to a request with an upgrade. If this\nevent is not being listened for, clients receiving an upgrade header will have\ntheir connections closed.</p>\n<p>A client server pair that show you how to listen for the <code>&#39;upgrade&#39;</code> event.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\n// Create an HTTP server\nvar srv = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nsrv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {\n  socket.write(&#39;HTTP/1.1 101 Web Socket Protocol Handshake\\r\\n&#39; +\n               &#39;Upgrade: WebSocket\\r\\n&#39; +\n               &#39;Connection: Upgrade\\r\\n&#39; +\n               &#39;\\r\\n&#39;);\n\n  socket.pipe(socket); // echo back\n});\n\n// now that server is running\nsrv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    headers: {\n      &#39;Connection&#39;: &#39;Upgrade&#39;,\n      &#39;Upgrade&#39;: &#39;websocket&#39;\n    }\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {\n    console.log(&#39;got upgraded!&#39;);\n    socket.end();\n    process.exit(0);\n  });\n});\n</code></pre>\n"
             }
           ],
           "methods": [
@@ -417,7 +417,7 @@
                   "v1.6.0"
                 ]
               },
-              "desc": "<p>Flush the request headers.</p>\n<p>For efficiency reasons, Node.js normally buffers the request headers until you\ncall <code>request.end()</code> or write the first chunk of request data.  It then tries\nhard to pack the request headers and data into a single TCP packet.</p>\n<p>That&#39;s usually what you want (it saves a TCP round-trip) but not when the first\ndata isn&#39;t sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass\nthe optimization and kickstart the request.</p>\n",
+              "desc": "<p>Flush the request headers.</p>\n<p>For efficiency reasons, Node.js normally buffers the request headers until you\ncall <code>request.end()</code> or write the first chunk of request data.  It then tries\nhard to pack the request headers and data into a single TCP packet.</p>\n<p>That&#39;s usually what you want (it saves a TCP round-trip) but not when the first\ndata is not sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass\nthe optimization and kickstart the request.</p>\n",
               "signatures": [
                 {
                   "params": []
@@ -609,7 +609,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a request with an HTTP <code>Expect: 100-continue</code> is received.\nIf this event isn&#39;t listened for, the server will automatically respond\nwith a <code>100 Continue</code> as appropriate.</p>\n<p>Handling this event involves calling <a href=\"#http_response_writecontinue\"><code>response.writeContinue()</code></a> if the client\nshould continue to send the request body, or generating an appropriate HTTP\nresponse (e.g. 400 Bad Request) if the client should not continue to send the\nrequest body.</p>\n<p>Note that when this event is emitted and handled, the <a href=\"#http_event_request\"><code>&#39;request&#39;</code></a> event will\nnot be emitted.</p>\n"
+              "desc": "<p>Emitted each time a request with an HTTP <code>Expect: 100-continue</code> is received.\nIf this event is not listened for, the server will automatically respond\nwith a <code>100 Continue</code> as appropriate.</p>\n<p>Handling this event involves calling <a href=\"#http_response_writecontinue\"><code>response.writeContinue()</code></a> if the client\nshould continue to send the request body, or generating an appropriate HTTP\nresponse (e.g. 400 Bad Request) if the client should not continue to send the\nrequest body.</p>\n<p>Note that when this event is emitted and handled, the <a href=\"#http_event_request\"><code>&#39;request&#39;</code></a> event will\nnot be emitted.</p>\n"
             },
             {
               "textRaw": "Event: 'checkExpectation'",
@@ -621,7 +621,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a request with an HTTP <code>Expect</code> header is received, where the\nvalue is not <code>100-continue</code>. If this event isn&#39;t listened for, the server will\nautomatically respond with a <code>417 Expectation Failed</code> as appropriate.</p>\n<p>Note that when this event is emitted and handled, the <a href=\"#http_event_request\"><code>&#39;request&#39;</code></a> event will\nnot be emitted.</p>\n"
+              "desc": "<p>Emitted each time a request with an HTTP <code>Expect</code> header is received, where the\nvalue is not <code>100-continue</code>. If this event is not listened for, the server will\nautomatically respond with a <code>417 Expectation Failed</code> as appropriate.</p>\n<p>Note that when this event is emitted and handled, the <a href=\"#http_event_request\"><code>&#39;request&#39;</code></a> event will\nnot be emitted.</p>\n"
             },
             {
               "textRaw": "Event: 'clientError'",
@@ -657,7 +657,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event isn&#39;t\nlistened for, then clients requesting a <code>CONNECT</code> method will have their\nconnections closed.</p>\n<p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>\nevent listener, meaning you will need to bind to it in order to handle data\nsent to the server on that socket.</p>\n"
+              "desc": "<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event is\nnot listened for, then clients requesting a <code>CONNECT</code> method will have their\nconnections closed.</p>\n<p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>\nevent listener, meaning you will need to bind to it in order to handle data\nsent to the server on that socket.</p>\n"
             },
             {
               "textRaw": "Event: 'connection'",
@@ -681,7 +681,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time there is a request. Note that there may be multiple requests\nper connection (in the case of keep-alive connections).</p>\n"
+              "desc": "<p>Emitted each time there is a request. Note that there may be multiple requests\nper connection (in the case of HTTP Keep-Alive connections).</p>\n"
             },
             {
               "textRaw": "Event: 'upgrade'",
@@ -693,7 +693,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>Emitted each time a client requests an HTTP upgrade. If this event isn&#39;t\nlistened for, then clients requesting an upgrade will have their connections\nclosed.</p>\n<p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>\nevent listener, meaning you will need to bind to it in order to handle data\nsent to the server on that socket.</p>\n"
+              "desc": "<p>Emitted each time a client requests an HTTP upgrade. If this event is not\nlistened for, then clients requesting an upgrade will have their connections\nclosed.</p>\n<p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>\nevent listener, meaning you will need to bind to it in order to handle data\nsent to the server on that socket.</p>\n"
             }
           ],
           "methods": [
@@ -1091,7 +1091,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Reads out a header that&#39;s already been queued but not sent to the client.  Note\nthat the name is case insensitive.  This can only be called before headers get\nimplicitly flushed.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var contentType = response.getHeader(&#39;content-type&#39;);\n</code></pre>\n"
+              "desc": "<p>Reads out a header that&#39;s already been queued but not sent to the client.\nNote that the name is case insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var contentType = response.getHeader(&#39;content-type&#39;);\n</code></pre>\n"
             },
             {
               "textRaw": "response.removeHeader(name)",
@@ -1626,7 +1626,7 @@
               "v0.5.9"
             ]
           },
-          "desc": "<p>Global instance of Agent which is used as the default for all HTTP client\nrequests.</p>\n"
+          "desc": "<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client\nrequests.</p>\n"
         }
       ],
       "methods": [
@@ -1795,7 +1795,7 @@
                       "desc": "Basic authentication i.e. `'user:password'` to compute an Authorization header."
                     },
                     {
-                      "textRaw": "`agent` {http.Agent|Boolean} Controls [`Agent`][] behavior. When an Agent is used request will default to `Connection: keep-alive`. Possible values: ",
+                      "textRaw": "`agent` {http.Agent|Boolean} Controls [`Agent`][] behavior. Possible values: ",
                       "options": [
                         {
                           "textRaw": "`undefined` (default): use [`http.globalAgent`][] for this host and port. ",
@@ -1809,20 +1809,20 @@
                           "desc": "object: explicitly use the passed in `Agent`."
                         },
                         {
-                          "textRaw": "`false`: opts out of connection pooling with an Agent, defaults request to `Connection: close`. ",
+                          "textRaw": "`false`: causes a new `Agent` with default values to be used. ",
                           "name": "false",
-                          "desc": "opts out of connection pooling with an Agent, defaults request to `Connection: close`."
+                          "desc": "causes a new `Agent` with default values to be used."
                         }
                       ],
                       "name": "agent",
                       "type": "http.Agent|Boolean",
-                      "desc": "Controls [`Agent`][] behavior. When an Agent is used request will default to `Connection: keep-alive`. Possible values:"
+                      "desc": "Controls [`Agent`][] behavior. Possible values:"
                     },
                     {
-                      "textRaw": "`createConnection` {Function} A function that produces a socket/stream to use for the request when the `agent` option is not used. This can be used to avoid creating a custom Agent class just to override the default `createConnection` function. See [`agent.createConnection()`][] for more details. ",
+                      "textRaw": "`createConnection` {Function} A function that produces a socket/stream to use for the request when the `agent` option is not used. This can be used to avoid creating a custom `Agent` class just to override the default `createConnection` function. See [`agent.createConnection()`][] for more details. ",
                       "name": "createConnection",
                       "type": "Function",
-                      "desc": "A function that produces a socket/stream to use for the request when the `agent` option is not used. This can be used to avoid creating a custom Agent class just to override the default `createConnection` function. See [`agent.createConnection()`][] for more details."
+                      "desc": "A function that produces a socket/stream to use for the request when the `agent` option is not used. This can be used to avoid creating a custom `Agent` class just to override the default `createConnection` function. See [`agent.createConnection()`][] for more details."
                     },
                     {
                       "textRaw": "`timeout` {Integer}: A number specifying the socket timeout in milliseconds. This will set the timeout before the socket is connected. ",
@@ -1854,7 +1854,7 @@
               ]
             }
           ],
-          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var postData = querystring.stringify({\n  &#39;msg&#39; : &#39;Hello World!&#39;\n});\n\nvar options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nvar req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.log(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify that you&#39;re done with the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, you should both set a timeout\nand listen for the <code>&#39;continue&#39;</code> event. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n"
+          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var postData = querystring.stringify({\n  &#39;msg&#39; : &#39;Hello World!&#39;\n});\n\nvar options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nvar req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.log(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify that you&#39;re done with the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, you should both set a timeout\nand listen for the <code>&#39;continue&#39;</code> event. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n"
         }
       ],
       "type": "module",

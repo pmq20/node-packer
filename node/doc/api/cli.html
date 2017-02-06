@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Command Line Options | Node.js v7.4.0 Documentation</title>
+  <title>Command Line Options | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -111,7 +111,9 @@
 <li><span class="stability_undefined"><a href="#cli_enable_fips"><code>--enable-fips</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_force_fips"><code>--force-fips</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_openssl_config_file"><code>--openssl-config=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_use_openssl_ca_use_bundled_ca"><code>--use-openssl-ca</code>, <code>--use-bundled-ca</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli"><code>--</code></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#cli_environment_variables">Environment Variables</a></span><ul>
@@ -119,10 +121,13 @@
 <li><span class="stability_undefined"><a href="#cli_node_path_path"><code>NODE_PATH=path[:…]</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_disable_colors_1"><code>NODE_DISABLE_COLORS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_icu_data_file"><code>NODE_ICU_DATA=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_node_no_warnings_1"><code>NODE_NO_WARNINGS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_preserve_symlinks_1"><code>NODE_PRESERVE_SYMLINKS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_tty_unsafe_async_1"><code>NODE_TTY_UNSAFE_ASYNC=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_extra_ca_certs_file"><code>NODE_EXTRA_CA_CERTS=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_ssl_cert_file_file"><code>SSL_CERT_FILE=file</code></a></span></li>
 </ul>
 </li>
 </ul>
@@ -138,7 +143,7 @@
 debugging, multiple ways to execute scripts, and other helpful runtime options.</p>
 <p>To view this documentation as a manual page in your terminal, run <code>man node</code>.</p>
 <h2>Synopsis<span><a class="mark" href="#cli_synopsis" id="cli_synopsis">#</a></span></h2>
-<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [arguments]</code></p>
+<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [--] [arguments]</code></p>
 <p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>
 <p><code>node --v8-options</code></p>
 <p>Execute without arguments to start the <a href="repl.html">REPL</a>.</p>
@@ -244,7 +249,7 @@ times, causing an exception to be thrown).</p>
 </div><p>Track heap object allocations for heap snapshots.</p>
 <h3><code>--prof-process</code><span><a class="mark" href="#cli_prof_process" id="cli_prof_process">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v6.0.0</span>
+<span>Added in: v5.2.0</span>
 </div><p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>
 <h3><code>--v8-options</code><span><a class="mark" href="#cli_v8_options" id="cli_v8_options">#</a></span></h3>
 <div class="api_metadata">
@@ -274,10 +279,29 @@ with crypto support. (Default))</p>
 </div><p>Load an OpenSSL configuration file on startup. Among other uses, this can be
 used to enable FIPS-compliant crypto if Node.js is built with
 <code>./configure --openssl-fips</code>.</p>
+<h3><code>--use-openssl-ca</code>, <code>--use-bundled-ca</code><span><a class="mark" href="#cli_use_openssl_ca_use_bundled_ca" id="cli_use_openssl_ca_use_bundled_ca">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by
+current NodeJS version. The default store is selectable at build-time.</p>
+<p>Using OpenSSL store allows for external modifications of the store. For most
+Linux and BSD distributions, this store is maintained by the distribution
+maintainers and system administrators. OpenSSL CA store location is dependent on
+configuration of the OpenSSL library but this can be altered at runtime using
+environmental variables.</p>
+<p>The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store
+that is fixed at release time. It is identical on all supported platforms.</p>
+<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>
 <h3><code>--icu-data-dir=file</code><span><a class="mark" href="#cli_icu_data_dir_file" id="cli_icu_data_dir_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><p>Specify ICU data load path. (overrides <code>NODE_ICU_DATA</code>)</p>
+<h3><code>--</code><span><a class="mark" href="#cli" id="cli">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>Indicate the end of node options. Pass the rest of the arguments to the script.
+If no script filename or eval/print script is supplied prior to this, then
+the next argument will be used as a script filename.</p>
 <h2>Environment Variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
 <h3><code>NODE_DEBUG=module[,…]</code><span><a class="mark" href="#cli_node_debug_module" id="cli_node_debug_module">#</a></span></h3>
 <div class="api_metadata">
@@ -297,6 +321,10 @@ used to enable FIPS-compliant crypto if Node.js is built with
 <span>Added in: v0.11.15</span>
 </div><p>Data path for ICU (Intl object) data. Will extend linked-in data when compiled
 with small-icu support.</p>
+<h3><code>NODE_NO_WARNINGS=1</code><span><a class="mark" href="#cli_node_no_warnings_1" id="cli_node_no_warnings_1">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>When set to <code>1</code>, process warnings are silenced.</p>
 <h3><code>NODE_PRESERVE_SYMLINKS=1</code><span><a class="mark" href="#cli_node_preserve_symlinks_1" id="cli_node_preserve_symlinks_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.1.0</span>
@@ -310,19 +338,33 @@ resolving and caching modules.</p>
 to an empty string (<code>&quot;&quot;</code> or <code>&quot; &quot;</code>) disables persistent REPL history.</p>
 <h3><code>NODE_TTY_UNSAFE_ASYNC=1</code><span><a class="mark" href="#cli_node_tty_unsafe_async_1" id="cli_node_tty_unsafe_async_1">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: 6.4.0</span>
+<span>Added in: v6.4.0</span>
 </div><p>When set to <code>1</code>, writes to <code>stdout</code> and <code>stderr</code> will be non-blocking and
 asynchronous when outputting to a TTY on platforms which support async stdio.
 Setting this will void any guarantee that stdio will not be interleaved or
 dropped at program exit. <strong>Use of this mode is not recommended.</strong></p>
 <h3><code>NODE_EXTRA_CA_CERTS=file</code><span><a class="mark" href="#cli_node_extra_ca_certs_file" id="cli_node_extra_ca_certs_file">#</a></span></h3>
-<p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the
+<div class="api_metadata">
+<span>Added in: v7.3.0</span>
+</div><p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the
 extra certificates in <code>file</code>. The file should consist of one or more trusted
 certificates in PEM format. A message will be emitted (once) with
 <a href="process.html#process_process_emitwarning_warning_name_ctor"><code>process.emitWarning()</code></a> if the file is missing or
 misformatted, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
+<h3><code>SSL_CERT_DIR=dir</code><span><a class="mark" href="#cli_ssl_cert_dir_dir" id="cli_ssl_cert_dir_dir">#</a></span></h3>
+<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory
+containing trusted certificates.</p>
+<p>Note: Be aware that unless the child environment is explicitly set, this
+evironment variable will be inherited by any child processes, and if they use
+OpenSSL, it may cause them to trust the same CAs as node.</p>
+<h3><code>SSL_CERT_FILE=file</code><span><a class="mark" href="#cli_ssl_cert_file_file" id="cli_ssl_cert_file_file">#</a></span></h3>
+<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file
+containing trusted certificates.</p>
+<p>Note: Be aware that unless the child environment is explicitly set, this
+evironment variable will be inherited by any child processes, and if they use
+OpenSSL, it may cause them to trust the same CAs as node.</p>
 
       </div>
     </div>
@@ -330,6 +372,7 @@ options property is explicitly specified for a TLS or HTTPS client or server.</p
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

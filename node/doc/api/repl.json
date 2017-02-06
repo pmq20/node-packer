@@ -371,7 +371,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>repl.start()</code> method creates and starts a <code>repl.REPLServer</code> instance.</p>\n"
+          "desc": "<p>The <code>repl.start()</code> method creates and starts a <code>repl.REPLServer</code> instance.</p>\n<p>If <code>options</code> is a string, then it specifies the input prompt:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\n// a Unix style prompt\nrepl.start(&#39;$ &#39;);\n</code></pre>\n"
         }
       ],
       "type": "module",

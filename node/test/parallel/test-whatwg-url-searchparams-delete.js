@@ -2,13 +2,11 @@
 
 require('../common');
 const assert = require('assert');
-const URL = require('url').URL;
+const url = require('url');
+const URL = url.URL;
+const URLSearchParams = url.URLSearchParams;
 
-const m = new URL('http://example.org');
-let params = m.searchParams;
-
-// Until we export URLSearchParams
-const URLSearchParams = params.constructor;
+let params;
 
 // Delete basics
 params = new URLSearchParams('a=b&c=d');
@@ -42,6 +40,13 @@ params.append('first', 10);
 params.delete('first');
 assert.strictEqual(false, params.has('first'),
                    'Search params object has no "first" name');
+
+assert.throws(() => {
+  params.delete.call(undefined);
+}, /^TypeError: Value of `this` is not a URLSearchParams$/);
+assert.throws(() => {
+  params.delete();
+}, /^TypeError: "name" argument must be specified$/);
 
 // https://github.com/nodejs/node/issues/10480
 // Emptying searchParams should correctly update url's query

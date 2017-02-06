@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Child Process | Node.js v7.4.0 Documentation</title>
+  <title>Child Process | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -212,11 +212,11 @@ const spawn = require(&#39;child_process&#39;).spawn;
 const bat = spawn(&#39;cmd.exe&#39;, [&#39;/c&#39;, &#39;my.bat&#39;]);
 
 bat.stdout.on(&#39;data&#39;, (data) =&gt; {
-  console.log(data);
+  console.log(data.toString());
 });
 
 bat.stderr.on(&#39;data&#39;, (data) =&gt; {
-  console.log(data);
+  console.log(data.toString());
 });
 
 bat.on(&#39;exit&#39;, (code) =&gt; {
@@ -234,7 +234,7 @@ exec(&#39;my.bat&#39;, (err, stdout, stderr) =&gt; {
 });
 
 // Script with spaces in the filename:
-const bat = spawn(&#39;&quot;my script.cmd&quot;&#39;, [&#39;a&#39;, &#39;b&#39;], { shell:true });
+const bat = spawn(&#39;&quot;my script.cmd&quot;&#39;, [&#39;a&#39;, &#39;b&#39;], { shell: true });
 // or:
 exec(&#39;&quot;my script.cmd&quot; a b&#39;, (err, stdout, stderr) =&gt; {
   // ...
@@ -256,7 +256,7 @@ exec(&#39;&quot;my script.cmd&quot; a b&#39;, (err, stdout, stderr) =&gt; {
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> (Default: <code>0</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed (Default: <code>200*1024</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 </ul>
@@ -325,7 +325,7 @@ replace the existing process and uses a shell to execute the command.</em></p>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> (Default: <code>0</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed (Default: <code>200*1024</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 </ul>
@@ -485,7 +485,7 @@ ps.on(&#39;close&#39;, (code) =&gt; {
 });
 
 grep.stdout.on(&#39;data&#39;, (data) =&gt; {
-  console.log(`${data}`);
+  console.log(data.toString());
 });
 
 grep.stderr.on(&#39;data&#39;, (data) =&gt; {
@@ -551,8 +551,8 @@ const out = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 const err = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 
 const child = spawn(&#39;prg&#39;, [], {
- detached: true,
- stdio: [ &#39;ignore&#39;, out, err ]
+  detached: true,
+  stdio: [ &#39;ignore&#39;, out, err ]
 });
 
 child.unref();
@@ -658,8 +658,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs. (Default: <code>&#39;buffer&#39;</code>)</li>
@@ -703,8 +703,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs.
@@ -745,8 +745,8 @@ spawned process<ul>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> In milliseconds the maximum amount of time the process
 is allowed to run. (Default: <code>undefined</code>)</li>
-<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The signal value to be used when the spawned process
-will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
+<li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The signal value to be used when the spawned
+process will be killed. (Default: <code>&#39;SIGTERM&#39;</code>)</li>
 <li><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code></a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> largest amount of data (in bytes) allowed on
 stdout or stderr - if exceeded child process is killed</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding used for all stdio inputs and outputs.
@@ -912,7 +912,7 @@ as in this example:</p>
 <pre><code class="lang-js">&#39;use strict&#39;;
 const spawn = require(&#39;child_process&#39;).spawn;
 
-let child = spawn(&#39;sh&#39;, [&#39;-c&#39;,
+const child = spawn(&#39;sh&#39;, [&#39;-c&#39;,
   `node -e &quot;setInterval(() =&gt; {
       console.log(process.pid, &#39;is alive&#39;)
     }, 500);&quot;`
@@ -1108,21 +1108,21 @@ const fs = require(&#39;fs&#39;);
 const child_process = require(&#39;child_process&#39;);
 
 const child = child_process.spawn(&#39;ls&#39;, {
-    stdio: [
-      0, // Use parents stdin for child
-      &#39;pipe&#39;, // Pipe child&#39;s stdout to parent
-      fs.openSync(&#39;err.out&#39;, &#39;w&#39;) // Direct child&#39;s stderr to a file
-    ]
+  stdio: [
+    0, // Use parent&#39;s stdin for child
+    &#39;pipe&#39;, // Pipe child&#39;s stdout to parent
+    fs.openSync(&#39;err.out&#39;, &#39;w&#39;) // Direct child&#39;s stderr to a file
+  ]
 });
 
-assert.equal(child.stdio[0], null);
-assert.equal(child.stdio[0], child.stdin);
+assert.strictEqual(child.stdio[0], null);
+assert.strictEqual(child.stdio[0], child.stdin);
 
 assert(child.stdout);
-assert.equal(child.stdio[1], child.stdout);
+assert.strictEqual(child.stdio[1], child.stdout);
 
-assert.equal(child.stdio[2], null);
-assert.equal(child.stdio[2], child.stderr);
+assert.strictEqual(child.stdio[2], null);
+assert.strictEqual(child.stdio[2], child.stderr);
 </code></pre>
 <h3>child.stdout<span><a class="mark" href="#child_process_child_stdout" id="child_process_child_stdout">#</a></span></h3>
 <div class="api_metadata">
@@ -1151,6 +1151,7 @@ although there are only 4 characters:</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

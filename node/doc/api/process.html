@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>process | Node.js v7.4.0 Documentation</title>
+  <title>process | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -180,7 +180,7 @@ there is no work scheduled, but a listener registered on the <code>&#39;beforeEx
 event can make asynchronous calls, and thereby cause the Node.js process to
 continue.</p>
 <p>The listener callback function is invoked with the value of
-<a href="#processexitcode-1"><code>process.exitCode</code></a> passed as the only argument.</p>
+<a href="#process_process_exitcode"><code>process.exitCode</code></a> passed as the only argument.</p>
 <p>The <code>&#39;beforeExit&#39;</code> event is <em>not</em> emitted for conditions causing explicit
 termination, such as calling <a href="#process_process_exit_code"><code>process.exit()</code></a> or uncaught exceptions.</p>
 <p>The <code>&#39;beforeExit&#39;</code> should <em>not</em> be used as an alternative to the <code>&#39;exit&#39;</code> event
@@ -203,7 +203,7 @@ result of either:</p>
 <p>There is no way to prevent the exiting of the event loop at this point, and once
 all <code>&#39;exit&#39;</code> listeners have finished running the Node.js process will terminate.</p>
 <p>The listener callback function is invoked with the exit code specified either
-by the <a href="#processexitcode-1"><code>process.exitCode</code></a> property, or the <code>exitCode</code> argument passed to the
+by the <a href="#process_process_exitcode"><code>process.exitCode</code></a> property, or the <code>exitCode</code> argument passed to the
 <a href="#process_process_exit_code"><code>process.exit()</code></a> method, as the only argument.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.on(&#39;exit&#39;, (code) =&gt; {
@@ -1445,9 +1445,9 @@ process has been running.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.versions</code> property returns an object listing the version strings of
-Node.js and its dependencies. In addition, <code>process.versions.modules</code> indicates
-the current ABI version, which is increased whenever a C++ API changes. Node.js
-will refuse to load native modules built for an older <code>modules</code> value.</p>
+Node.js and its dependencies. <code>process.versions.modules</code> indicates the current
+ABI version, which is increased whenever a C++ API changes. Node.js will refuse
+to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate output similar to:</p>
@@ -1517,6 +1517,7 @@ the high-order bit, and then contain the value of the signal code.</li>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

@@ -2,6 +2,7 @@
 'use strict';
 
 const binding = process.binding('buffer');
+const { compare: compare_, compareOffset } = binding;
 const { isArrayBuffer, isSharedArrayBuffer } = process.binding('util');
 const bindingObj = {};
 const internalUtil = require('internal/util');
@@ -537,36 +538,43 @@ Buffer.prototype.compare = function compare(target,
 
   if (!(target instanceof Buffer))
     throw new TypeError('Argument must be a Buffer');
+  if (arguments.length === 1)
+    return compare_(this, target);
 
   if (start === undefined)
     start = 0;
+  else if (start < 0)
+    throw new RangeError('out of range index');
+  else
+    start >>>= 0;
+
   if (end === undefined)
     end = target.length;
+  else if (end > target.length)
+    throw new RangeError('out of range index');
+  else
+    end >>>= 0;
+
   if (thisStart === undefined)
     thisStart = 0;
+  else if (thisStart < 0)
+    throw new RangeError('out of range index');
+  else
+    thisStart >>>= 0;
+
   if (thisEnd === undefined)
     thisEnd = this.length;
-
-  if (start < 0 ||
-      end > target.length ||
-      thisStart < 0 ||
-      thisEnd > this.length) {
+  else if (thisEnd > this.length)
     throw new RangeError('out of range index');
-  }
+  else
+    thisEnd >>>= 0;
 
-  if (thisStart >= thisEnd && start >= end)
-    return 0;
   if (thisStart >= thisEnd)
-    return -1;
-  if (start >= end)
+    return (start >= end ? 0 : -1);
+  else if (start >= end)
     return 1;
 
-  start >>>= 0;
-  end >>>= 0;
-  thisStart >>>= 0;
-  thisEnd >>>= 0;
-
-  return binding.compareOffset(this, target, start, thisStart, end, thisEnd);
+  return compareOffset(this, target, start, thisStart, end, thisEnd);
 };
 
 
@@ -588,9 +596,10 @@ function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
   } else if (byteOffset < -0x80000000) {
     byteOffset = -0x80000000;
   }
-  byteOffset = +byteOffset;  // Coerce to Number.
-  if (isNaN(byteOffset)) {
-    // If the offset is undefined, null, NaN, "foo", etc, search whole buffer.
+  // Coerce to Number. Values like null and [] become 0.
+  byteOffset = +byteOffset;
+  // If the offset is undefined, "foo", {}, coerces to NaN, search whole buffer.
+  if (Number.isNaN(byteOffset)) {
     byteOffset = dir ? 0 : (buffer.length - 1);
   }
   dir = !!dir;  // Cast to bool.
@@ -793,10 +802,14 @@ Buffer.prototype.write = function(string, offset, length, encoding) {
 
 
 Buffer.prototype.toJSON = function() {
-  return {
-    type: 'Buffer',
-    data: Array.prototype.slice.call(this, 0)
-  };
+  if (this.length) {
+    const data = [];
+    for (var i = 0; i < this.length; ++i)
+      data[i] = this[i];
+    return { type: 'Buffer', data };
+  } else {
+    return { type: 'Buffer', data: [] };
+  }
 };
 
 

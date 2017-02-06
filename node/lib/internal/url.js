@@ -8,6 +8,7 @@ function getPunycode() {
   }
 }
 const punycode = getPunycode();
+const util = require('util');
 const binding = process.binding('url');
 const context = Symbol('context');
 const cannotBeBase = Symbol('cannot-be-base');
@@ -66,7 +67,8 @@ class TupleOrigin {
     return this[kDomain] || this[kHost];
   }
 
-  toString(unicode = false) {
+  // https://url.spec.whatwg.org/#dom-url-origin
+  toString(unicode = true) {
     var result = this[kScheme];
     result += '://';
     result += unicode ? domainToUnicode(this[kHost]) : this[kHost];
@@ -75,7 +77,7 @@ class TupleOrigin {
     return result;
   }
 
-  inspect() {
+  [util.inspect.custom]() {
     return `TupleOrigin {
       scheme: ${this[kScheme]},
       host: ${this[kHost]},
@@ -221,10 +223,6 @@ class URL {
     parse(this, input, base);
   }
 
-  get [Symbol.toStringTag]() {
-    return this instanceof URL ? 'URL' : 'URLPrototype';
-  }
-
   get [special]() {
     return (this[context].flags & binding.URL_FLAGS_SPECIAL) !== 0;
   }
@@ -233,7 +231,7 @@ class URL {
     return (this[context].flags & binding.URL_FLAGS_CANNOT_BE_BASE) !== 0;
   }
 
-  inspect(depth, opts) {
+  [util.inspect.custom](depth, opts) {
     const ctx = this[context];
     var ret = 'URL {\n';
     ret += `  href: ${this.href}\n`;
@@ -284,7 +282,8 @@ Object.defineProperties(URL.prototype, {
       if (ctx.host !== undefined) {
         ret += '//';
         const has_username = typeof ctx.username === 'string';
-        const has_password = typeof ctx.password === 'string';
+        const has_password = typeof ctx.password === 'string' &&
+                             ctx.password !== '';
         if (has_username || has_password) {
           if (has_username)
             ret += ctx.username;
@@ -311,6 +310,10 @@ Object.defineProperties(URL.prototype, {
       return ret;
     }
   },
+  [Symbol.toStringTag]: {
+    configurable: true,
+    value: 'URL'
+  },
   href: {
     enumerable: true,
     configurable: true,
@@ -325,7 +328,7 @@ Object.defineProperties(URL.prototype, {
     enumerable: true,
     configurable: true,
     get() {
-      return originFor(this).toString(true);
+      return originFor(this).toString();
     }
   },
   protocol: {
@@ -491,7 +494,7 @@ Object.defineProperties(URL.prototype, {
       ctx.query = '';
       binding.parse(search, binding.kQuery, null, ctx,
                     onParseSearchComplete.bind(this));
-      this[searchParams][searchParams] = querystring.parse(search);
+      initSearchParams(this[searchParams], search);
     }
   },
   searchParams: {  // readonly
@@ -608,8 +611,13 @@ function update(url, params) {
   }
 }
 
-function getSearchParamPairs(target) {
-  const obj = target[searchParams];
+// Reused by the URL parse function invoked by
+// the href setter, and the URLSearchParams constructor
+function initSearchParams(url, init) {
+  url[searchParams] = getParamsFromObject(querystring.parse(init));
+}
+
+function getParamsFromObject(obj) {
   const keys = Object.keys(obj);
   const values = [];
   for (var i = 0; i < keys.length; i++) {
@@ -617,25 +625,62 @@ function getSearchParamPairs(target) {
     const value = obj[name];
     if (Array.isArray(value)) {
       for (const item of value)
-        values.push([name, item]);
+        values.push(name, item);
     } else {
-      values.push([name, value]);
+      values.push(name, value);
     }
   }
   return values;
 }
 
-// Reused by the URL parse function invoked by
-// the href setter, and the URLSearchParams constructor
-function initSearchParams(url, init) {
-  url[searchParams] = querystring.parse(init);
+function getObjectFromParams(array) {
+  const obj = new StorageObject();
+  for (var i = 0; i < array.length; i += 2) {
+    const name = array[i];
+    const value = array[i + 1];
+    if (obj[name]) {
+      obj[name].push(value);
+    } else {
+      obj[name] = [value];
+    }
+  }
+  return obj;
+}
+
+// Mainly to mitigate func-name-matching ESLint rule
+function defineIDLClass(proto, classStr, obj) {
+  // https://heycam.github.io/webidl/#dfn-class-string
+  Object.defineProperty(proto, Symbol.toStringTag, {
+    writable: false,
+    enumerable: false,
+    configurable: true,
+    value: classStr
+  });
+
+  // https://heycam.github.io/webidl/#es-operations
+  for (const key of Object.keys(obj)) {
+    Object.defineProperty(proto, key, {
+      writable: true,
+      enumerable: true,
+      configurable: true,
+      value: obj[key]
+    });
+  }
+  for (const key of Object.getOwnPropertySymbols(obj)) {
+    Object.defineProperty(proto, key, {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: obj[key]
+    });
+  }
 }
 
 class URLSearchParams {
   constructor(init = '') {
     if (init instanceof URLSearchParams) {
       const childParams = init[searchParams];
-      this[searchParams] = Object.assign(Object.create(null), childParams);
+      this[searchParams] = childParams.slice();
     } else {
       init = String(init);
       if (init[0] === '?') init = init.slice(1);
@@ -646,104 +691,168 @@ class URLSearchParams {
     this[context] = null;
   }
 
-  get [Symbol.toStringTag]() {
-    return this instanceof URLSearchParams ?
-      'URLSearchParams' : 'URLSearchParamsPrototype';
-  }
+  [util.inspect.custom](recurseTimes, ctx) {
+    if (!this || !(this instanceof URLSearchParams)) {
+      throw new TypeError('Value of `this` is not a URLSearchParams');
+    }
 
+    const separator = ', ';
+    const innerOpts = Object.assign({}, ctx);
+    if (recurseTimes !== null) {
+      innerOpts.depth = recurseTimes - 1;
+    }
+    const innerInspect = (v) => util.inspect(v, innerOpts);
+
+    const list = this[searchParams];
+    const output = [];
+    for (var i = 0; i < list.length; i += 2)
+      output.push(`${innerInspect(list[i])} => ${innerInspect(list[i + 1])}`);
+
+    const colorRe = /\u001b\[\d\d?m/g;
+    const length = output.reduce(
+      (prev, cur) => prev + cur.replace(colorRe, '').length + separator.length,
+      -separator.length
+    );
+    if (length > ctx.breakLength) {
+      return `${this.constructor.name} {\n  ${output.join(',\n  ')} }`;
+    } else if (output.length) {
+      return `${this.constructor.name} { ${output.join(separator)} }`;
+    } else {
+      return `${this.constructor.name} {}`;
+    }
+  }
+}
+
+defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
   append(name, value) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
     if (arguments.length < 2) {
-      throw new TypeError(
-        'Both `name` and `value` arguments need to be specified');
+      throw new TypeError('"name" and "value" arguments must be specified');
     }
 
-    const obj = this[searchParams];
     name = String(name);
     value = String(value);
-    var existing = obj[name];
-    if (existing === undefined) {
-      obj[name] = value;
-    } else if (Array.isArray(existing)) {
-      existing.push(value);
-    } else {
-      obj[name] = [existing, value];
-    }
+    this[searchParams].push(name, value);
     update(this[context], this);
-  }
+  },
 
   delete(name) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
     if (arguments.length < 1) {
-      throw new TypeError('The `name` argument needs to be specified');
+      throw new TypeError('"name" argument must be specified');
     }
 
-    const obj = this[searchParams];
+    const list = this[searchParams];
     name = String(name);
-    delete obj[name];
-    update(this[context], this);
-  }
-
-  set(name, value) {
-    if (!this || !(this instanceof URLSearchParams)) {
-      throw new TypeError('Value of `this` is not a URLSearchParams');
+    for (var i = 0; i < list.length;) {
+      const cur = list[i];
+      if (cur === name) {
+        list.splice(i, 2);
+      } else {
+        i += 2;
+      }
     }
-    if (arguments.length < 2) {
-      throw new TypeError(
-        'Both `name` and `value` arguments need to be specified');
-    }
-
-    const obj = this[searchParams];
-    name = String(name);
-    value = String(value);
-    obj[name] = value;
     update(this[context], this);
-  }
+  },
 
   get(name) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
     if (arguments.length < 1) {
-      throw new TypeError('The `name` argument needs to be specified');
+      throw new TypeError('"name" argument must be specified');
     }
 
-    const obj = this[searchParams];
+    const list = this[searchParams];
     name = String(name);
-    var value = obj[name];
-    return value === undefined ? null : Array.isArray(value) ? value[0] : value;
-  }
+    for (var i = 0; i < list.length; i += 2) {
+      if (list[i] === name) {
+        return list[i + 1];
+      }
+    }
+    return null;
+  },
 
   getAll(name) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
     if (arguments.length < 1) {
-      throw new TypeError('The `name` argument needs to be specified');
+      throw new TypeError('"name" argument must be specified');
     }
 
-    const obj = this[searchParams];
+    const list = this[searchParams];
+    const values = [];
     name = String(name);
-    var value = obj[name];
-    return value === undefined ? [] : Array.isArray(value) ? value : [value];
-  }
+    for (var i = 0; i < list.length; i += 2) {
+      if (list[i] === name) {
+        values.push(list[i + 1]);
+      }
+    }
+    return values;
+  },
 
   has(name) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
     if (arguments.length < 1) {
-      throw new TypeError('The `name` argument needs to be specified');
+      throw new TypeError('"name" argument must be specified');
     }
 
-    const obj = this[searchParams];
+    const list = this[searchParams];
     name = String(name);
-    return name in obj;
-  }
+    for (var i = 0; i < list.length; i += 2) {
+      if (list[i] === name) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  set(name, value) {
+    if (!this || !(this instanceof URLSearchParams)) {
+      throw new TypeError('Value of `this` is not a URLSearchParams');
+    }
+    if (arguments.length < 2) {
+      throw new TypeError('"name" and "value" arguments must be specified');
+    }
+
+    const list = this[searchParams];
+    name = String(name);
+    value = String(value);
+
+    // If there are any name-value pairs whose name is `name`, in `list`, set
+    // the value of the first such name-value pair to `value` and remove the
+    // others.
+    var found = false;
+    for (var i = 0; i < list.length;) {
+      const cur = list[i];
+      if (cur === name) {
+        if (!found) {
+          list[i + 1] = value;
+          found = true;
+          i += 2;
+        } else {
+          list.splice(i, 2);
+        }
+      } else {
+        i += 2;
+      }
+    }
+
+    // Otherwise, append a new name-value pair whose name is `name` and value
+    // is `value`, to `list`.
+    if (!found) {
+      list.push(name, value);
+    }
+
+    update(this[context], this);
+  },
 
   // https://heycam.github.io/webidl/#es-iterators
   // Define entries here rather than [Symbol.iterator] as the function name
@@ -754,26 +863,28 @@ class URLSearchParams {
     }
 
     return createSearchParamsIterator(this, 'key+value');
-  }
+  },
 
   forEach(callback, thisArg = undefined) {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
-    if (arguments.length < 1) {
-      throw new TypeError('The `callback` argument needs to be specified');
+    if (typeof callback !== 'function') {
+      throw new TypeError('"callback" argument must be a function');
     }
 
-    let pairs = getSearchParamPairs(this);
+    let list = this[searchParams];
 
     var i = 0;
-    while (i < pairs.length) {
-      const [key, value] = pairs[i];
+    while (i < list.length) {
+      const key = list[i];
+      const value = list[i + 1];
       callback.call(thisArg, value, key, this);
-      pairs = getSearchParamPairs(this);
-      i++;
+      // in case the URL object's `search` is updated
+      list = this[searchParams];
+      i += 2;
     }
-  }
+  },
 
   // https://heycam.github.io/webidl/#es-iterable
   keys() {
@@ -782,7 +893,7 @@ class URLSearchParams {
     }
 
     return createSearchParamsIterator(this, 'key');
-  }
+  },
 
   values() {
     if (!this || !(this instanceof URLSearchParams)) {
@@ -790,19 +901,25 @@ class URLSearchParams {
     }
 
     return createSearchParamsIterator(this, 'value');
-  }
+  },
 
+  // https://heycam.github.io/webidl/#es-stringifier
   // https://url.spec.whatwg.org/#urlsearchparams-stringification-behavior
   toString() {
     if (!this || !(this instanceof URLSearchParams)) {
       throw new TypeError('Value of `this` is not a URLSearchParams');
     }
 
-    return querystring.stringify(this[searchParams]);
+    return querystring.stringify(getObjectFromParams(this[searchParams]));
   }
-}
+});
+
 // https://heycam.github.io/webidl/#es-iterable-entries
-URLSearchParams.prototype[Symbol.iterator] = URLSearchParams.prototype.entries;
+Object.defineProperty(URLSearchParams.prototype, Symbol.iterator, {
+  writable: true,
+  configurable: true,
+  value: URLSearchParams.prototype.entries
+});
 
 // https://heycam.github.io/webidl/#dfn-default-iterator-object
 function createSearchParamsIterator(target, kind) {
@@ -816,7 +933,9 @@ function createSearchParamsIterator(target, kind) {
 }
 
 // https://heycam.github.io/webidl/#dfn-iterator-prototype-object
-const URLSearchParamsIteratorPrototype = Object.setPrototypeOf({
+const URLSearchParamsIteratorPrototype = Object.create(IteratorPrototype);
+
+defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParamsIterator', {
   next() {
     if (!this ||
         Object.getPrototypeOf(this) !== URLSearchParamsIteratorPrototype) {
@@ -828,7 +947,7 @@ const URLSearchParamsIteratorPrototype = Object.setPrototypeOf({
       kind,
       index
     } = this[context];
-    const values = getSearchParamPairs(target);
+    const values = target[searchParams];
     const len = values.length;
     if (index >= len) {
       return {
@@ -837,32 +956,55 @@ const URLSearchParamsIteratorPrototype = Object.setPrototypeOf({
       };
     }
 
-    const pair = values[index];
-    this[context].index = index + 1;
+    const name = values[index];
+    const value = values[index + 1];
+    this[context].index = index + 2;
 
     let result;
     if (kind === 'key') {
-      result = pair[0];
+      result = name;
     } else if (kind === 'value') {
-      result = pair[1];
+      result = value;
     } else {
-      result = pair;
+      result = [name, value];
     }
 
     return {
       value: result,
       done: false
     };
+  },
+  [util.inspect.custom](recurseTimes, ctx) {
+    const innerOpts = Object.assign({}, ctx);
+    if (recurseTimes !== null) {
+      innerOpts.depth = recurseTimes - 1;
+    }
+    const {
+      target,
+      kind,
+      index
+    } = this[context];
+    const output = target[searchParams].slice(index).reduce((prev, cur, i) => {
+      const key = i % 2 === 0;
+      if (kind === 'key' && key) {
+        prev.push(cur);
+      } else if (kind === 'value' && !key) {
+        prev.push(cur);
+      } else if (kind === 'key+value' && !key) {
+        prev.push([target[searchParams][index + i - 1], cur]);
+      }
+      return prev;
+    }, []);
+    const breakLn = util.inspect(output, innerOpts).includes('\n');
+    const outputStrs = output.map((p) => util.inspect(p, innerOpts));
+    let outputStr;
+    if (breakLn) {
+      outputStr = `\n  ${outputStrs.join(',\n  ')}`;
+    } else {
+      outputStr = ` ${outputStrs.join(', ')}`;
+    }
+    return `${this[Symbol.toStringTag]} {${outputStr} }`;
   }
-}, IteratorPrototype);
-
-// Unlike interface and its prototype object, both default iterator object and
-// iterator prototype object of an interface have the same class string.
-Object.defineProperty(URLSearchParamsIteratorPrototype, Symbol.toStringTag, {
-  value: 'URLSearchParamsIterator',
-  writable: false,
-  enumerable: false,
-  configurable: true
 });
 
 function originFor(url, base) {
@@ -907,8 +1049,32 @@ function domainToUnicode(domain) {
   return binding.domainToUnicode(String(domain));
 }
 
+// Utility function that converts a URL object into an ordinary
+// options object as expected by the http.request and https.request
+// APIs.
+function urlToOptions(url) {
+  var options = {
+    protocol: url.protocol,
+    host: url.host,
+    hostname: url.hostname,
+    hash: url.hash,
+    search: url.search,
+    pathname: url.pathname,
+    path: `${url.pathname}${url.search}`,
+    href: url.href
+  };
+  if (url.port !== '') {
+    options.port = Number(url.port);
+  }
+  if (url.username || url.password) {
+    options.auth = `${url.username}:${url.password}`;
+  }
+  return options;
+}
+
 exports.URL = URL;
-exports.originFor = originFor;
+exports.URLSearchParams = URLSearchParams;
 exports.domainToASCII = domainToASCII;
 exports.domainToUnicode = domainToUnicode;
 exports.encodeAuth = encodeAuth;
+exports.urlToOptions = urlToOptions;

@@ -43,9 +43,9 @@ fs.closeSync(fd);
 
 // async tests
 testTruncate(common.mustCall(function(er) {
-  if (er) throw er;
+  assert.ifError(er);
   testFtruncate(common.mustCall(function(er) {
-    if (er) throw er;
+    assert.ifError(er);
   }));
 }));
 
@@ -144,5 +144,16 @@ function testFtruncate(cb) {
   fs.ftruncate(fd, 4, common.mustCall(function(err) {
     assert.ifError(err);
     assert(fs.readFileSync(file4).equals(Buffer.from('Hi\u0000\u0000')));
+  }));
+}
+
+{
+  const file5 = path.resolve(tmp, 'truncate-file-5.txt');
+  fs.writeFileSync(file5, 'Hi');
+  const fd = fs.openSync(file5, 'r+');
+  process.on('exit', () => fs.closeSync(fd));
+  fs.ftruncate(fd, undefined, common.mustCall(function(err) {
+    assert.ifError(err);
+    assert(fs.readFileSync(file5).equals(Buffer.from('')));
   }));
 }

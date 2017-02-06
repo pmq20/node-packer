@@ -605,14 +605,9 @@
                           "desc": "If `true`, specifies that the OCSP status request extension will be added to the client hello and an `'OCSPResponse'` event will be emitted on the socket before establishing a secure communication"
                         },
                         {
-                          "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing. ",
+                          "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by calling [`tls.createSecureContext()`][] with no options. ",
                           "name": "secureContext",
-                          "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing."
-                        },
-                        {
-                          "textRaw": "...: Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information. Construct a new `tls.TLSSocket` object from an existing TCP socket. ",
-                          "name": "...",
-                          "desc": "Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information. Construct a new `tls.TLSSocket` object from an existing TCP socket."
+                          "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by calling [`tls.createSecureContext()`][] with no options."
                         }
                       ],
                       "name": "options",
@@ -633,8 +628,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>&#39;OCSPResponse&#39;</code> event is emitted if the <code>requestOCSP</code> option was set\nwhen the <code>tls.TLSSocket</code> was created and an OCSP response has been received.\nThe listener callback is passed a single argument when called:</p>\n<ul>\n<li><code>response</code> {Buffer} The server&#39;s OCSP response</li>\n</ul>\n<p>Typically, the <code>response</code> is a digitally signed object from the server&#39;s CA that\ncontains information about server&#39;s certificate revocation status.</p>\n",
-              "params": []
+              "desc": "<p>Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</p>\n"
             },
             {
               "textRaw": "tlsSocket.address()",
@@ -697,10 +691,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`detailed` {boolean} Specify `true` to request that the full certificate chain with the `issuer` property be returned; `false` to return only the top certificate without the `issuer` property. ",
+                      "textRaw": "`detailed` {boolean} Include the full certificate chain if `true`, otherwise include just the peer's certificate. ",
                       "name": "detailed",
                       "type": "boolean",
-                      "desc": "Specify `true` to request that the full certificate chain with the `issuer` property be returned; `false` to return only the top certificate without the `issuer` property.",
+                      "desc": "Include the full certificate chain if `true`, otherwise include just the peer's certificate.",
                       "optional": true
                     }
                   ]
@@ -714,7 +708,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns an object representing the peer&#39;s certificate. The returned object has\nsome properties corresponding to the fields of the certificate.</p>\n<p>For example:</p>\n<pre><code class=\"lang-text\">{ subject:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuerInfo:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuer:\n   { ... another certificate ... },\n  raw: &lt; RAW DER buffer &gt;,\n  valid_from: &#39;Nov 11 09:52:22 2009 GMT&#39;,\n  valid_to: &#39;Nov  6 09:52:22 2029 GMT&#39;,\n  fingerprint: &#39;2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF&#39;,\n  serialNumber: &#39;B9B0D332A1AA5635&#39; }\n</code></pre>\n<p>If the peer does not provide a certificate, <code>null</code> or an empty object will be\nreturned.</p>\n"
+              "desc": "<p>Returns an object representing the peer&#39;s certificate. The returned object has\nsome properties corresponding to the fields of the certificate.</p>\n<p>If the full certificate chain was requested, each certificate will include a\n<code>issuerCertificate</code> property containing an object representing its issuer&#39;s\ncertificate.</p>\n<p>For example:</p>\n<pre><code class=\"lang-text\">{ subject:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuer:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuerCertificate:\n   { ... another certificate, possibly with a .issuerCertificate ... },\n  raw: &lt; RAW DER buffer &gt;,\n  valid_from: &#39;Nov 11 09:52:22 2009 GMT&#39;,\n  valid_to: &#39;Nov  6 09:52:22 2029 GMT&#39;,\n  fingerprint: &#39;2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF&#39;,\n  serialNumber: &#39;B9B0D332A1AA5635&#39; }\n</code></pre>\n<p>If the peer does not provide a certificate, an empty object will be returned.</p>\n"
             },
             {
               "textRaw": "tlsSocket.getProtocol()",
@@ -1226,10 +1220,10 @@
                       "desc": "Optional cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private `key`, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see `ca`).  When providing multiple cert chains, they do not have to be in the same order as their private keys in `key`. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail."
                     },
                     {
-                      "textRaw": "`ca`{string|string[]|Buffer|Buffer[]} Optional CA certificates to trust. Default is the well-known CAs from Mozilla. When connecting to peers that use certificates issued privately, or self-signed, the private root CA or self-signed certificate must be provided to verify the peer. ",
+                      "textRaw": "`ca` {string|string[]|Buffer|Buffer[]} Optionally override the trusted CA certificates. Default is to trust the well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced when CAs are explicitly specified using this option. The value can be a string or Buffer, or an Array of strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be chainable to a CA trusted by the server for the connection to be authenticated.  When using certificates that are not chainable to a well-known CA, the certificate's CA must be explicitly specified as a trusted or the connection will fail to authenticate. If the peer uses a certificate that doesn't match or chain to one of the default CAs, use the `ca` option to provide a CA certificate that the peer's certificate can match or chain to. For self-signed certificates, the certificate is its own CA, and must be provided. ",
                       "name": "ca",
                       "type": "string|string[]|Buffer|Buffer[]",
-                      "desc": "Optional CA certificates to trust. Default is the well-known CAs from Mozilla. When connecting to peers that use certificates issued privately, or self-signed, the private root CA or self-signed certificate must be provided to verify the peer."
+                      "desc": "Optionally override the trusted CA certificates. Default is to trust the well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced when CAs are explicitly specified using this option. The value can be a string or Buffer, or an Array of strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be chainable to a CA trusted by the server for the connection to be authenticated.  When using certificates that are not chainable to a well-known CA, the certificate's CA must be explicitly specified as a trusted or the connection will fail to authenticate. If the peer uses a certificate that doesn't match or chain to one of the default CAs, use the `ca` option to provide a CA certificate that the peer's certificate can match or chain to. For self-signed certificates, the certificate is its own CA, and must be provided."
                     },
                     {
                       "textRaw": "`crl` {string|string[]|Buffer|Buffer[]} Optional PEM formatted CRLs (Certificate Revocation Lists). ",
@@ -1410,6 +1404,11 @@
         {
           "textRaw": "tls.DEFAULT_ECDH_CURVE",
           "name": "DEFAULT_ECDH_CURVE",
+          "meta": {
+            "added": [
+              "v0.11.13"
+            ]
+          },
           "desc": "<p>The default curve name to use for ECDH key agreement in a tls server. The\ndefault value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href=\"https://www.rfc-editor.org/rfc/rfc4492.txt\">RFC 4492</a> and\n<a href=\"http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf\">FIPS.186-4</a> for more details.</p>\n"
         }
       ],

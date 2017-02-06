@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TLS (SSL) | Node.js v7.4.0 Documentation</title>
+  <title>TLS (SSL) | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -533,16 +533,11 @@ extension will be added to the client hello and an <code>&#39;OCSPResponse&#39;<
 will be emitted on the socket before establishing a secure communication</li>
 <li><code>secureContext</code>: Optional TLS context object created with
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. If a <code>secureContext</code> is <em>not</em> provided, one
-will be created by passing the entire <code>options</code> object to
-<code>tls.createSecureContext()</code>. <em>Note</em>: In effect, all
-<a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> options can be provided, but they will be
-<em>completely ignored</em> unless the <code>secureContext</code> option is missing.</li>
-<li>...: Optional <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> options can be provided, see
-the <code>secureContext</code> option for more information.
-Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</li>
+will be created by calling <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> with no options.</li>
 </ul>
 </li>
 </ul>
+<p>Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</p>
 <h3>Event: &#39;OCSPResponse&#39;<span><a class="mark" href="#tls_event_ocspresponse" id="tls_event_ocspresponse">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.13</span>
@@ -611,12 +606,14 @@ if called on a server socket. The supported types are <code>&#39;DH&#39;</code> 
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div><ul>
-<li><code>detailed</code> <span class="type">&lt;boolean&gt;</span> Specify <code>true</code> to request that the full certificate
-chain with the <code>issuer</code> property be returned; <code>false</code> to return only the
-top certificate without the <code>issuer</code> property.</li>
+<li><code>detailed</code> <span class="type">&lt;boolean&gt;</span> Include the full certificate chain if <code>true</code>, otherwise
+include just the peer&#39;s certificate.</li>
 </ul>
 <p>Returns an object representing the peer&#39;s certificate. The returned object has
 some properties corresponding to the fields of the certificate.</p>
+<p>If the full certificate chain was requested, each certificate will include a
+<code>issuerCertificate</code> property containing an object representing its issuer&#39;s
+certificate.</p>
 <p>For example:</p>
 <pre><code class="lang-text">{ subject:
    { C: &#39;UK&#39;,
@@ -625,23 +622,22 @@ some properties corresponding to the fields of the certificate.</p>
      O: &#39;node.js&#39;,
      OU: &#39;Test TLS Certificate&#39;,
      CN: &#39;localhost&#39; },
-  issuerInfo:
+  issuer:
    { C: &#39;UK&#39;,
      ST: &#39;Acknack Ltd&#39;,
      L: &#39;Rhys Jones&#39;,
      O: &#39;node.js&#39;,
      OU: &#39;Test TLS Certificate&#39;,
      CN: &#39;localhost&#39; },
-  issuer:
-   { ... another certificate ... },
+  issuerCertificate:
+   { ... another certificate, possibly with a .issuerCertificate ... },
   raw: &lt; RAW DER buffer &gt;,
   valid_from: &#39;Nov 11 09:52:22 2009 GMT&#39;,
   valid_to: &#39;Nov  6 09:52:22 2029 GMT&#39;,
   fingerprint: &#39;2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF&#39;,
   serialNumber: &#39;B9B0D332A1AA5635&#39; }
 </code></pre>
-<p>If the peer does not provide a certificate, <code>null</code> or an empty object will be
-returned.</p>
+<p>If the peer does not provide a certificate, an empty object will be returned.</p>
 <h3>tlsSocket.getProtocol()<span><a class="mark" href="#tls_tlssocket_getprotocol" id="tls_tlssocket_getprotocol">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.7.0</span>
@@ -884,10 +880,21 @@ see <code>ca</code>).  When providing multiple cert chains, they do not have to 
 the same order as their private keys in <code>key</code>. If the intermediate
 certificates are not provided, the peer will not be able to validate the
 certificate, and the handshake will fail.</li>
-<li><code>ca</code><span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optional CA certificates to trust.
-Default is the well-known CAs from Mozilla. When connecting to peers that
-use certificates issued privately, or self-signed, the private root CA or
-self-signed certificate must be provided to verify the peer.</li>
+<li><code>ca</code> <span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optionally override the trusted CA
+certificates. Default is to trust the well-known CAs curated by Mozilla.
+Mozilla&#39;s CAs are completely replaced when CAs are explicitly specified
+using this option. The value can be a string or Buffer, or an Array of
+strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs
+concatenated together. The peer&#39;s certificate must be chainable to a CA
+trusted by the server for the connection to be authenticated.  When using
+certificates that are not chainable to a well-known CA, the certificate&#39;s CA
+must be explicitly specified as a trusted or the connection will fail to
+authenticate.
+If the peer uses a certificate that doesn&#39;t match or chain to one of the
+default CAs, use the <code>ca</code> option to provide a CA certificate that the peer&#39;s
+certificate can match or chain to.
+For self-signed certificates, the certificate is its own CA, and must be
+provided.</li>
 <li><code>crl</code> <span class="type">&lt;string&gt;</span> | <span class="type">&lt;string[]&gt;</span> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;Buffer[]&gt;</span> Optional PEM formatted
 CRLs (Certificate Revocation Lists).</li>
 <li><code>ciphers</code> <span class="type">&lt;string&gt;</span> Optional cipher suite specification, replacing the
@@ -1034,7 +1041,9 @@ server.listen(8000, () =&gt; {
 <pre><code class="lang-js">console.log(tls.getCiphers()); // [&#39;AES128-SHA&#39;, &#39;AES256-SHA&#39;, ...]
 </code></pre>
 <h2>tls.DEFAULT_ECDH_CURVE<span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
-<p>The default curve name to use for ECDH key agreement in a tls server. The
+<div class="api_metadata">
+<span>Added in: v0.11.13</span>
+</div><p>The default curve name to use for ECDH key agreement in a tls server. The
 default value is <code>&#39;prime256v1&#39;</code> (NIST P-256). Consult <a href="https://www.rfc-editor.org/rfc/rfc4492.txt">RFC 4492</a> and
 <a href="http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">FIPS.186-4</a> for more details.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#tls_deprecated_apis" id="tls_deprecated_apis">#</a></span></h2>
@@ -1122,6 +1131,7 @@ socket.pipe(pair.encrypted);
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

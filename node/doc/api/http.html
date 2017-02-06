@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTP | Node.js v7.4.0 Documentation</title>
+  <title>HTTP | Node.js v7.5.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v7.4.0 Documentation</h1>
+        <h1>Node.js v7.5.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -218,23 +218,28 @@ list like the following:</p>
 <h2>Class: http.Agent<span><a class="mark" href="#http_class_http_agent" id="http_class_http_agent">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
-</div><p>The HTTP Agent is used for pooling sockets used in HTTP client
-requests.</p>
-<p>The HTTP Agent also defaults client requests to using
-<code>Connection: keep-alive</code>. If no pending HTTP requests are waiting on a
-socket to become free the socket is closed. This means that Node.js&#39;s
-pool has the benefit of keep-alive when under load but still does not
-require developers to manually close the HTTP clients using
-KeepAlive.</p>
-<p>If you opt into using HTTP KeepAlive, you can create an Agent object
-with that flag set to <code>true</code>.  (See the <a href="#http_new_agent_options">constructor options</a>.)
-Then, the Agent will keep unused sockets in a pool for later use.  They
-will be explicitly marked so as to not keep the Node.js process running.
-However, it is still a good idea to explicitly <a href="#http_agent_destroy"><code>destroy()</code></a> KeepAlive
-agents when they are no longer in use, so that the Sockets will be shut
-down.</p>
-<p>Sockets are removed from the agent&#39;s pool when the socket emits either
-a <code>&#39;close&#39;</code> event or a special <code>&#39;agentRemove&#39;</code> event. This means that if
+</div><p>An <code>Agent</code> is responsible for managing connection persistence
+and reuse for HTTP clients. It maintains a queue of pending requests
+for a given host and port, reusing a single socket connection for each
+until the queue is empty, at which time the socket is either destroyed
+or put into a pool where it is kept to be used again for requests to the
+same host and port. Whether it is destroyed or pooled depends on the
+<code>keepAlive</code> <a href="#http_new_agent_options">option</a>.</p>
+<p>Pooled connections have TCP Keep-Alive enabled for them, but servers may
+still close idle connections, in which case they will be removed from the
+pool and a new connection will be made when a new HTTP request is made for
+that host and port. Servers may also refuse to allow multiple requests
+over the same connection, in which case the connection will have to be
+remade for every request and cannot be pooled. The <code>Agent</code> will still make
+the requests to that server, but each one will occur over a new connection.</p>
+<p>When a connection is closed by the client or the server, it is removed
+from the pool. Any unused sockets in the pool will be unrefed so as not
+to keep the Node.js process running when there are no outstanding requests.
+(see <a href="net.html#net_socket_unref">socket.unref()</a>).</p>
+<p>It is good practice, to <a href="#http_agent_destroy"><code>destroy()</code></a> an <code>Agent</code> instance when it is no
+longer in use, because unused sockets consume OS resources.</p>
+<p>Sockets are removed from an agent&#39;s pool when the socket emits either
+a <code>&#39;close&#39;</code> event or an <code>&#39;agentRemove&#39;</code> event. This means that if
 you intend to keep one HTTP request open for a long time and don&#39;t
 want it to stay in the pool you can do something along the lines of:</p>
 <pre><code class="lang-js">http.get(options, (res) =&gt; {
@@ -243,8 +248,11 @@ want it to stay in the pool you can do something along the lines of:</p>
   socket.emit(&#39;agentRemove&#39;);
 });
 </code></pre>
-<p>Alternatively, you could just opt out of pooling entirely using
-<code>agent:false</code>:</p>
+<p>You may also use an agent for an individual request. By providing
+<code>{agent: false}</code> as an option to the <code>http.get()</code> or <code>http.request()</code>
+functions, a one-time use <code>Agent</code> with default options will be used
+for the client connection.</p>
+<p><code>agent:false</code>:</p>
 <pre><code class="lang-js">http.get({
   hostname: &#39;localhost&#39;,
   port: 80,
@@ -260,11 +268,13 @@ want it to stay in the pool you can do something along the lines of:</p>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Set of configurable options to set on the agent.
 Can have the following fields:<ul>
-<li><code>keepAlive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Keep sockets around in a pool to be used by
-other requests in the future. Default = <code>false</code></li>
-<li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> When using HTTP KeepAlive, how often
-to send TCP KeepAlive packets over sockets being kept alive.
-Default = <code>1000</code>.  Only relevant if <code>keepAlive</code> is set to <code>true</code>.</li>
+<li><code>keepAlive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Keep sockets around even when there are no
+outstanding requests, so they can be used for future requests without
+having to reestablish a TCP connection. Default = <code>false</code></li>
+<li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> When using the <code>keepAlive</code> option, specifies
+the <a href="#net_socket_setkeepalive_enable_initialdelay">initial delay</a>
+for TCP Keep-Alive packets. Ignored when the
+<code>keepAlive</code> option is <code>false</code> or <code>undefined</code>. Default = <code>1000</code>.</li>
 <li><code>maxSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Maximum number of sockets to allow per
 host.  Default = <code>Infinity</code>.</li>
 <li><code>maxFreeSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Maximum number of sockets to leave open
@@ -275,7 +285,7 @@ Default = <code>256</code>.</li>
 </ul>
 <p>The default <a href="#http_http_globalagent"><code>http.globalAgent</code></a> that is used by <a href="#http_http_request_options_callback"><code>http.request()</code></a> has all
 of these values set to their respective defaults.</p>
-<p>To configure any of them, you must create your own <a href="#http_class_http_agent"><code>http.Agent</code></a> object.</p>
+<p>To configure any of them, you must create your own <a href="#http_class_http_agent"><code>http.Agent</code></a> instance.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 var keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
@@ -292,7 +302,7 @@ http.request(options, onResponseCallback);
 </ul>
 <p>Produces a socket/stream to be used for HTTP requests.</p>
 <p>By default, this function is the same as <a href="net.html#net_net_createconnection_options_connectlistener"><code>net.createConnection()</code></a>. However,
-custom Agents may override this method in case greater flexibility is desired.</p>
+custom agents may override this method in case greater flexibility is desired.</p>
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
@@ -301,7 +311,7 @@ socket/stream from this function, or by passing the socket/stream to <code>callb
 <span>Added in: v0.11.4</span>
 </div><p>Destroy any sockets that are currently in use by the agent.</p>
 <p>It is usually not necessary to do this.  However, if you are using an
-agent with KeepAlive enabled, then it is best to explicitly shut down
+agent with <code>keepAlive</code> enabled, then it is best to explicitly shut down
 the agent when you know that it will no longer be used.  Otherwise,
 sockets may hang open for quite a long time before the server
 terminates them.</p>
@@ -312,7 +322,7 @@ terminates them.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>An object which contains arrays of sockets currently awaiting use by
-the Agent when HTTP KeepAlive is used.  Do not modify.</p>
+the agent when <code>keepAlive</code> is enabled.  Do not modify.</p>
 <h3>agent.getName(options)<span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
@@ -327,8 +337,8 @@ when issuing the request</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
 <p>Get a unique name for a set of request options, to determine whether a
-connection can be reused.  In the http agent, this returns
-<code>host:port:localAddress</code>.  In the https agent, the name includes the
+connection can be reused.  For an HTTP agent, this returns
+<code>host:port:localAddress</code>.  For an HTTPS agent, the name includes the
 CA, cert, ciphers, and other HTTPS/TLS-specific options that determine
 socket reusability.</p>
 <h3>agent.maxFreeSockets<span><a class="mark" href="#http_agent_maxfreesockets" id="http_agent_maxfreesockets">#</a></span></h3>
@@ -337,7 +347,7 @@ socket reusability.</p>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
 </ul>
-<p>By default set to 256.  For Agents supporting HTTP KeepAlive, this
+<p>By default set to 256.  For agents with <code>keepAlive</code> enabled, this
 sets the maximum number of sockets that will be left open in the free
 state.</p>
 <h3>agent.maxSockets<span><a class="mark" href="#http_agent_maxsockets" id="http_agent_maxsockets">#</a></span></h3>
@@ -364,7 +374,7 @@ sockets. Do not modify.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>An object which contains arrays of sockets currently in use by the
-Agent.  Do not modify.</p>
+agent.  Do not modify.</p>
 <h2>Class: http.ClientRequest<span><a class="mark" href="#http_class_http_clientrequest" id="http_class_http_clientrequest">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
@@ -410,7 +420,7 @@ socket has closed.</p>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this
-event isn&#39;t being listened for, clients receiving a <code>CONNECT</code> method will have
+event is not being listened for, clients receiving a <code>CONNECT</code> method will have
 their connections closed.</p>
 <p>A client and server pair that shows you how to listen for the <code>&#39;connect&#39;</code> event:</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
@@ -496,7 +506,7 @@ once.</p>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Emitted each time a server responds to a request with an upgrade. If this
-event isn&#39;t being listened for, clients receiving an upgrade header will have
+event is not being listened for, clients receiving an upgrade header will have
 their connections closed.</p>
 <p>A client server pair that show you how to listen for the <code>&#39;upgrade&#39;</code> event.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
@@ -566,7 +576,7 @@ is finished.</p>
 call <code>request.end()</code> or write the first chunk of request data.  It then tries
 hard to pack the request headers and data into a single TCP packet.</p>
 <p>That&#39;s usually what you want (it saves a TCP round-trip) but not when the first
-data isn&#39;t sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass
+data is not sent until possibly much later.  <code>request.flushHeaders()</code> lets you bypass
 the optimization and kickstart the request.</p>
 <h3>request.setNoDelay([noDelay])<span><a class="mark" href="#http_request_setnodelay_nodelay" id="http_request_setnodelay_nodelay">#</a></span></h3>
 <div class="api_metadata">
@@ -625,7 +635,7 @@ is flushed.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time a request with an HTTP <code>Expect: 100-continue</code> is received.
-If this event isn&#39;t listened for, the server will automatically respond
+If this event is not listened for, the server will automatically respond
 with a <code>100 Continue</code> as appropriate.</p>
 <p>Handling this event involves calling <a href="#http_response_writecontinue"><code>response.writeContinue()</code></a> if the client
 should continue to send the request body, or generating an appropriate HTTP
@@ -641,7 +651,7 @@ not be emitted.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time a request with an HTTP <code>Expect</code> header is received, where the
-value is not <code>100-continue</code>. If this event isn&#39;t listened for, the server will
+value is not <code>100-continue</code>. If this event is not listened for, the server will
 automatically respond with a <code>417 Expectation Failed</code> as appropriate.</p>
 <p>Note that when this event is emitted and handled, the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event will
 not be emitted.</p>
@@ -685,8 +695,8 @@ the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event</li>
 <li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a> Network socket between the server and client</li>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The first packet of the tunneling stream (may be empty)</li>
 </ul>
-<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event isn&#39;t
-listened for, then clients requesting a <code>CONNECT</code> method will have their
+<p>Emitted each time a client requests an HTTP <code>CONNECT</code> method. If this event is
+not listened for, then clients requesting a <code>CONNECT</code> method will have their
 connections closed.</p>
 <p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>
 event listener, meaning you will need to bind to it in order to handle data
@@ -710,7 +720,7 @@ accessed at <code>request.connection</code>.</p>
 <li><code>response</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a></li>
 </ul>
 <p>Emitted each time there is a request. Note that there may be multiple requests
-per connection (in the case of keep-alive connections).</p>
+per connection (in the case of HTTP Keep-Alive connections).</p>
 <h3>Event: &#39;upgrade&#39;<span><a class="mark" href="#http_event_upgrade_1" id="http_event_upgrade_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
@@ -720,7 +730,7 @@ the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event</li>
 <li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a> Network socket between the server and client</li>
 <li><code>head</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The first packet of the upgraded stream (may be empty)</li>
 </ul>
-<p>Emitted each time a client requests an HTTP upgrade. If this event isn&#39;t
+<p>Emitted each time a client requests an HTTP upgrade. If this event is not
 listened for, then clients requesting an upgrade will have their connections
 closed.</p>
 <p>After this event is emitted, the request&#39;s socket will not have a <code>&#39;data&#39;</code>
@@ -904,9 +914,8 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-<p>Reads out a header that&#39;s already been queued but not sent to the client.  Note
-that the name is case insensitive.  This can only be called before headers get
-implicitly flushed.</p>
+<p>Reads out a header that&#39;s already been queued but not sent to the client.
+Note that the name is case insensitive.</p>
 <p>Example:</p>
 <pre><code class="lang-js">var contentType = response.getHeader(&#39;content-type&#39;);
 </code></pre>
@@ -1350,7 +1359,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 </div><ul>
 <li><a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a></li>
 </ul>
-<p>Global instance of Agent which is used as the default for all HTTP client
+<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
 <h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -1378,17 +1387,15 @@ rejected but that may change in the future.</li>
 <li><code>headers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object containing request headers.</li>
 <li><code>auth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Basic authentication i.e. <code>&#39;user:password&#39;</code> to compute an
 Authorization header.</li>
-<li><code>agent</code> <a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Controls <a href="#http_class_http_agent"><code>Agent</code></a> behavior. When an Agent
-is used request will default to <code>Connection: keep-alive</code>. Possible values:<ul>
+<li><code>agent</code> <a href="http.html#http_class_http_agent" class="type">&lt;http.Agent&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Controls <a href="#http_class_http_agent"><code>Agent</code></a> behavior. Possible values:<ul>
 <li><code>undefined</code> (default): use <a href="#http_http_globalagent"><code>http.globalAgent</code></a> for this host and port.</li>
 <li><code>Agent</code> object: explicitly use the passed in <code>Agent</code>.</li>
-<li><code>false</code>: opts out of connection pooling with an Agent, defaults request to
-<code>Connection: close</code>.</li>
+<li><code>false</code>: causes a new <code>Agent</code> with default values to be used.</li>
 </ul>
 </li>
 <li><code>createConnection</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A function that produces a socket/stream to
 use for the request when the <code>agent</code> option is not used. This can be used to
-avoid creating a custom Agent class just to override the default
+avoid creating a custom <code>Agent</code> class just to override the default
 <code>createConnection</code> function. See <a href="#http_agent_createconnection_options_callback"><code>agent.createConnection()</code></a> for more
 details.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a>: A number specifying the socket timeout in milliseconds.
@@ -1455,7 +1462,7 @@ are registered the error will be thrown.</p>
 <li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to
 the server should be persisted until the next request.</p>
 </li>
-<li><p>Sending a &#39;Content-length&#39; header will disable the default chunked encoding.</p>
+<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>
 </li>
 <li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.
 Usually, when sending &#39;Expect: 100-continue&#39;, you should both set a timeout
@@ -1473,6 +1480,7 @@ to compute basic authentication.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
 </body>
 </html>
 

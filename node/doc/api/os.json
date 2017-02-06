@@ -23,6 +23,11 @@
           "textRaw": "`constants` {Object} ",
           "type": "Object",
           "name": "constants",
+          "meta": {
+            "added": [
+              "v6.3.0"
+            ]
+          },
           "desc": "<p>Returns an object containing commonly used operating system specific constants\nfor error codes, process signals, and so on. The specific constants currently\ndefined are described in <a href=\"#os_os_constants\">OS Constants</a>.</p>\n"
         }
       ],
@@ -36,12 +41,20 @@
               "v0.5.0"
             ]
           },
-          "desc": "<p>The <code>os.arch()</code> method returns a string identifying the operating system CPU\narchitecture <em>for which the Node.js binary was compiled</em>.</p>\n<p>The current possible values are: <code>&#39;arm&#39;</code>, <code>&#39;arm64&#39;</code>, <code>&#39;ia32&#39;</code>, <code>&#39;mips&#39;</code>,\n<code>&#39;mipsel&#39;</code>, <code>&#39;ppc&#39;</code>, <code>&#39;ppc64&#39;</code>, <code>&#39;s390&#39;</code>, <code>&#39;s390x&#39;</code>, <code>&#39;x32&#39;</code>, <code>&#39;x64&#39;</code>,  and\n<code>&#39;x86&#39;</code>.</p>\n<p>Equivalent to <a href=\"process.html#process_process_arch\"><code>process.arch</code></a>.</p>\n",
           "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {String} ",
+                "name": "return",
+                "type": "String"
+              },
+              "params": []
+            },
             {
               "params": []
             }
-          ]
+          ],
+          "desc": "<p>The <code>os.arch()</code> method returns a string identifying the operating system CPU\narchitecture <em>for which the Node.js binary was compiled</em>.</p>\n<p>The current possible values are: <code>&#39;arm&#39;</code>, <code>&#39;arm64&#39;</code>, <code>&#39;ia32&#39;</code>, <code>&#39;mips&#39;</code>,\n<code>&#39;mipsel&#39;</code>, <code>&#39;ppc&#39;</code>, <code>&#39;ppc64&#39;</code>, <code>&#39;s390&#39;</code>, <code>&#39;s390x&#39;</code>, <code>&#39;x32&#39;</code>, <code>&#39;x64&#39;</code>,  and\n<code>&#39;x86&#39;</code>.</p>\n<p>Equivalent to <a href=\"process.html#process_process_arch\"><code>process.arch</code></a>.</p>\n"
         },
         {
           "textRaw": "os.cpus()",

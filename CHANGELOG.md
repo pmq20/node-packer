@@ -2,12 +2,13 @@
 
 ## v0.9.3
 
-work in progress
+- upgrade Node.js runtime to v7.5.0
 
 ## v0.9.2
 
 - use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14
 - make libsquash + Node.js works under Windows: https://github.com/pmq20/node-compiler/pull/16
+- upgrade Node.js runtime to v7.4.0
 
 中文注解：接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，
 而且是根据访问需求在内存中进行部分解压，用户完全无感知，试验发现把 nodec 自身编译好之后，
@@ -21,7 +22,7 @@ work in progress
 - add support to pack an entire Node.js project (e.g. cnpmjs.org)
 - change the usage of the `nodec` command
 - stop polluting the vendor directory of nodec itself
-- upgrade to node-v7.3.0
+- upgrade Node.js runtime to v7.3.0
 
 中文注解：本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
 亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，

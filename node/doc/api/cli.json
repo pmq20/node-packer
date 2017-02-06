@@ -10,7 +10,7 @@
         {
           "textRaw": "Synopsis",
           "name": "synopsis",
-          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
+          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
           "type": "misc",
           "displayName": "Synopsis"
         },
@@ -215,7 +215,7 @@
               "name": "`--prof-process`",
               "meta": {
                 "added": [
-                  "v6.0.0"
+                  "v5.2.0"
                 ]
               },
               "desc": "<p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>\n",
@@ -283,6 +283,18 @@
               "displayName": "`--openssl-config=file`"
             },
             {
+              "textRaw": "`--use-openssl-ca`, `--use-bundled-ca`",
+              "name": "`--use-openssl-ca`,_`--use-bundled-ca`",
+              "meta": {
+                "added": [
+                  "v7.5.0"
+                ]
+              },
+              "desc": "<p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by\ncurrent NodeJS version. The default store is selectable at build-time.</p>\n<p>Using OpenSSL store allows for external modifications of the store. For most\nLinux and BSD distributions, this store is maintained by the distribution\nmaintainers and system administrators. OpenSSL CA store location is dependent on\nconfiguration of the OpenSSL library but this can be altered at runtime using\nenvironmental variables.</p>\n<p>The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store\nthat is fixed at release time. It is identical on all supported platforms.</p>\n<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>\n",
+              "type": "module",
+              "displayName": "`--use-openssl-ca`, `--use-bundled-ca`"
+            },
+            {
               "textRaw": "`--icu-data-dir=file`",
               "name": "`--icu-data-dir=file`",
               "meta": {
@@ -293,6 +305,18 @@
               "desc": "<p>Specify ICU data load path. (overrides <code>NODE_ICU_DATA</code>)</p>\n",
               "type": "module",
               "displayName": "`--icu-data-dir=file`"
+            },
+            {
+              "textRaw": "`--`",
+              "name": "`--`",
+              "meta": {
+                "added": [
+                  "v7.5.0"
+                ]
+              },
+              "desc": "<p>Indicate the end of node options. Pass the rest of the arguments to the script.\nIf no script filename or eval/print script is supplied prior to this, then\nthe next argument will be used as a script filename.</p>\n",
+              "type": "module",
+              "displayName": "`--`"
             }
           ],
           "type": "misc",
@@ -351,6 +375,18 @@
               "displayName": "`NODE_ICU_DATA=file`"
             },
             {
+              "textRaw": "`NODE_NO_WARNINGS=1`",
+              "name": "`node_no_warnings=1`",
+              "meta": {
+                "added": [
+                  "v7.5.0"
+                ]
+              },
+              "desc": "<p>When set to <code>1</code>, process warnings are silenced.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_NO_WARNINGS=1`"
+            },
+            {
               "textRaw": "`NODE_PRESERVE_SYMLINKS=1`",
               "name": "`node_preserve_symlinks=1`",
               "meta": {
@@ -379,7 +415,7 @@
               "name": "`node_tty_unsafe_async=1`",
               "meta": {
                 "added": [
-                  "6.4.0"
+                  "v6.4.0"
                 ]
               },
               "desc": "<p>When set to <code>1</code>, writes to <code>stdout</code> and <code>stderr</code> will be non-blocking and\nasynchronous when outputting to a TTY on platforms which support async stdio.\nSetting this will void any guarantee that stdio will not be interleaved or\ndropped at program exit. <strong>Use of this mode is not recommended.</strong></p>\n",
@@ -389,9 +425,28 @@
             {
               "textRaw": "`NODE_EXTRA_CA_CERTS=file`",
               "name": "`node_extra_ca_certs=file`",
+              "meta": {
+                "added": [
+                  "v7.3.0"
+                ]
+              },
               "desc": "<p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_name_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmisformatted, but any errors are otherwise ignored.</p>\n<p>Note that neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>\n",
               "type": "module",
               "displayName": "`NODE_EXTRA_CA_CERTS=file`"
+            },
+            {
+              "textRaw": "`SSL_CERT_DIR=dir`",
+              "name": "`ssl_cert_dir=dir`",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory\ncontaining trusted certificates.</p>\n<p>Note: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "type": "module",
+              "displayName": "`SSL_CERT_DIR=dir`"
+            },
+            {
+              "textRaw": "`SSL_CERT_FILE=file`",
+              "name": "`ssl_cert_file=file`",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file\ncontaining trusted certificates.</p>\n<p>Note: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "type": "module",
+              "displayName": "`SSL_CERT_FILE=file`"
             }
           ],
           "type": "misc",

@@ -178,6 +178,8 @@ more information about the governance of the Node.js project, see
 **Julien Gilli** &lt;jgilli@nodejs.org&gt;
 * [mscdex](https://github.com/mscdex) -
 **Brian White** &lt;mscdex@mscdex.net&gt;
+* [MylesBorins](https://github.com/MylesBorins) -
+**Myles Borins** &lt;myles.borins@gmail.com&gt;
 * [ofrobots](https://github.com/ofrobots) -
 **Ali Ijaz Sheikh** &lt;ofrobots@google.com&gt;
 * [rvagg](https://github.com/rvagg) -
@@ -186,8 +188,6 @@ more information about the governance of the Node.js project, see
 **Shigeki Ohtsu** &lt;ohtsu@iij.ad.jp&gt;
 * [targos](https://github.com/targos) -
 **Michaël Zasso** &lt;targos@protonmail.com&gt;
-* [TheAlphaNerd](https://github.com/TheAlphaNerd) -
-**Myles Borins** &lt;myles.borins@gmail.com&gt;
 * [thefourtheye](https://github.com/thefourtheye) -
 **Sakthipriyan Vairamani** &lt;thechargingvolcano@gmail.com&gt;
 * [trevnorris](https://github.com/trevnorris) -
@@ -197,6 +197,8 @@ more information about the governance of the Node.js project, see
 
 ### Collaborators
 
+* [abouthiroppy](https://github.com/abouthiroppy) -
+**Yuta Hiroto** &lt;hello@about-hiroppy.com&gt;
 * [ak239](https://github.com/ak239) -
 **Aleksei Koziatinskii** &lt;ak239spb@gmail.com&gt;
 * [andrasq](https://github.com/andrasq) -
@@ -219,6 +221,8 @@ more information about the governance of the Node.js project, see
 **Claudio Rodriguez** &lt;cjrodr@yahoo.com&gt;
 * [danbev](https://github.com/danbev) -
 **Daniel Bevenius** &lt;daniel.bevenius@gmail.com&gt;
+* [edsadr](https://github.com/edsadr) -
+**Adrian Estrada** &lt;edsadr@gmail.com&gt;
 * [eljefedelrodeodeljefe](https://github.com/eljefedelrodeodeljefe) -
 **Robert Jefe Lindstaedt** &lt;robert.lindstaedt@gmail.com&gt;
 * [estliberitas](https://github.com/estliberitas) -
@@ -327,6 +331,8 @@ more information about the governance of the Node.js project, see
 **Glen Keane** &lt;glenkeane.94@gmail.com&gt;
 * [thlorenz](https://github.com/thlorenz) -
 **Thorsten Lorenz** &lt;thlorenz@gmx.de&gt;
+* [TimothyGu](https://github.com/TimothyGu) -
+**Timothy Gu** &lt;timothygu99@gmail.com&gt;
 * [tunniclm](https://github.com/tunniclm) -
 **Mike Tunnicliffe** &lt;m.j.tunnicliffe@gmail.com&gt;
 * [vkurchatkin](https://github.com/vkurchatkin) -
@@ -346,8 +352,6 @@ project.
 
 Releases of Node.js and io.js will be signed with one of the following GPG keys:
 
-* **Chris Dickinson** &lt;christopher.s.dickinson@gmail.com&gt;
-`9554F04D7259F04124DE6B476D5A82AC7E37093B`
 * **Colin Ihrig** &lt;cjihrig@gmail.com&gt;
 `94AE36675C464D64BAFA68DD7434390BDBE9B9C5`
 * **Evan Lucas** &lt;evanlucas@me.com&gt;
@@ -364,7 +368,6 @@ Releases of Node.js and io.js will be signed with one of the following GPG keys:
 The full set of trusted release keys can be imported by running:
 
 ```shell
-gpg --keyserver pool.sks-keyservers.net --recv-keys 9554F04D7259F04124DE6B476D5A82AC7E37093B
 gpg --keyserver pool.sks-keyservers.net --recv-keys 94AE36675C464D64BAFA68DD7434390BDBE9B9C5
 gpg --keyserver pool.sks-keyservers.net --recv-keys FD3A5288F042B6850C66B31F09FE44734EB7990E
 gpg --keyserver pool.sks-keyservers.net --recv-keys 71DCFD284A79C3B38668286BC97EC7A07EDE3FC1
@@ -379,6 +382,8 @@ on what to do with these keys to verify that a downloaded file is official.
 Previous releases of Node.js have been signed with one of the following GPG
 keys:
 
+* **Chris Dickinson** &lt;christopher.s.dickinson@gmail.com&gt;
+`9554F04D7259F04124DE6B476D5A82AC7E37093B`
 * **Isaac Z. Schlueter** &lt;i@izs.me&gt;
 `93C7E9E91B49E432C2F75674B0A78B0A6C481CF6`
 * **Julien Gilli** &lt;jgilli@fastmail.fm&gt;

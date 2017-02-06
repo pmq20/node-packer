@@ -23,7 +23,7 @@ int enclose_io_lstat(const char *path, struct stat *buf)
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_lstat(enclose_io_fs, enclose_io_expanded, buf);
 	}
-	else if (IS_ENCLOSE_IO_PATH(path)) {
+	else if (enclose_io_is_path(path)) {
 		return squash_lstat(enclose_io_fs, path, buf);
 	}
 	else {
@@ -37,7 +37,7 @@ ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_readlink(enclose_io_fs, enclose_io_expanded, buf, bufsize);
 	}
-	else if (IS_ENCLOSE_IO_PATH(path)) {
+	else if (enclose_io_is_path(path)) {
 		return squash_readlink(enclose_io_fs, path, buf, bufsize);
 	}
 	else {
@@ -51,7 +51,7 @@ DIR * enclose_io_opendir(const char *filename)
 		ENCLOSE_IO_GEN_EXPANDED_NAME(filename);
 		return (DIR *)squash_opendir(enclose_io_fs, enclose_io_expanded);
 	}
-	else if (IS_ENCLOSE_IO_PATH(filename)) {
+	else if (enclose_io_is_path(filename)) {
 		return (DIR *)squash_opendir(enclose_io_fs, filename);
 	}
 	else {
@@ -127,7 +127,7 @@ int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
 		ENCLOSE_IO_GEN_EXPANDED_NAME(dirname);
 		return squash_scandir(enclose_io_fs, enclose_io_expanded, namelist, select, compar);
 	}
-	else if (IS_ENCLOSE_IO_PATH(dirname)) {
+	else if (enclose_io_is_path(dirname)) {
 		return squash_scandir(enclose_io_fs, dirname, namelist, select, compar);
 	}
 	else {
@@ -159,7 +159,7 @@ int enclose_io_chdir_helper(const char *path)
 
 int enclose_io_chdir(const char *path)
 {
-	if (IS_ENCLOSE_IO_PATH(path)) {
+	if (enclose_io_is_path(path)) {
 		return enclose_io_chdir_helper(path);
 	} else {
 		int ret = chdir(path);
@@ -203,7 +203,7 @@ int enclose_io_stat(const char *path, struct stat *buf)
 	if (enclose_io_cwd[0] && '/' != *path) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_stat(enclose_io_fs, enclose_io_expanded, buf);
-	} else if (IS_ENCLOSE_IO_PATH(path)) {
+	} else if (enclose_io_is_path(path)) {
 		return squash_stat(enclose_io_fs, path, buf);
 	} else {
 		return stat(path, buf);
@@ -224,7 +224,7 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 	if (enclose_io_cwd[0] && '/' != *pathname) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
-	} else if (IS_ENCLOSE_IO_PATH(pathname)) {
+	} else if (enclose_io_is_path(pathname)) {
 		return squash_open(enclose_io_fs, pathname);
 	} else {
 		if (2 == nargs) {
@@ -265,3 +265,106 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence)
 		return lseek(fildes, offset, whence);
 	}
 }
+
+short enclose_io_is_path(char *pathname)
+{
+	if (strnlen((pathname), 21) >= 21) {
+		if (0 == strncmp((pathname), "/__enclose_io_memfs__", 21)
+#ifdef _WIN32
+			|| 0 == strncmp((pathname), "\\__enclose_io_memfs__", 21)
+#endif
+			) {
+				return 1;
+			}
+	}
+#ifdef _WIN32
+	if (strnlen((pathname), 23) >= 23) {
+		if (0 == strncmp((pathname) + 1, ":/__enclose_io_memfs__", 22)
+			|| 0 == strncmp((pathname) + 1, ":\\__enclose_io_memfs__", 22)
+			) {
+				return 1;
+			}
+	}
+	if (strnlen((pathname), 24) >= 24) {
+		if (0 == strncmp((pathname), "\\\\?\\__enclose_io_memfs__", 24) ||
+			0 == strncmp((pathname), "//?/__enclose_io_memfs__", 24)) {
+				return 1;
+			}
+	}
+	if (strnlen((pathname), 27) >= 27) {
+		if (0 == strncmp((pathname), "\\\\?\\", 4) ||
+			0 == strncmp((pathname), "//?/", 4)) {
+			if (0 == strncmp((pathname) + 5, ":\\__enclose_io_memfs__", 22) ||
+				0 == strncmp((pathname) + 5, ":/__enclose_io_memfs__", 22)) {
+					return 1;
+				}
+		}
+	}
+#endif
+	return 0;
+}
+
+#ifdef _WIN32
+short enclose_io_is_path_w(wchar_t *pathname)
+{
+	if (wcsnlen((pathname), 21) >= 21) {
+		if (0 == wcsncmp((pathname), L"/__enclose_io_memfs__", 21)
+			|| 0 == wcsncmp((pathname), L"\\__enclose_io_memfs__", 21)
+			) {
+				return 1;
+			}
+	}
+	if (wcsnlen((pathname), 23) >= 23) {
+		if (0 == wcsncmp((pathname) + 1, L":/__enclose_io_memfs__", 22)
+			|| 0 == wcsncmp((pathname) + 1, L":\\__enclose_io_memfs__", 22)
+			) {
+				return 1;
+			}
+	}
+	if (wcsnlen((pathname), 24) >= 24) {
+		if (0 == wcsncmp((pathname), L"\\\\?\\__enclose_io_memfs__", 24) ||
+			0 == wcsncmp((pathname), L"//?/__enclose_io_memfs__", 24)) {
+				return 1;
+			}
+	}
+	if (wcsnlen((pathname), 27) >= 27) {
+		if (0 == wcsncmp((pathname), L"\\\\?\\", 4) ||
+			0 == wcsncmp((pathname), L"//?/", 4)) {
+			if (0 == wcsncmp((pathname) + 5, L":\\__enclose_io_memfs__", 22) ||
+				0 == wcsncmp((pathname) + 5, L":/__enclose_io_memfs__", 22)) {
+					return 1;
+				}
+		}
+	}
+	return 0;
+}
+
+short enclose_io_is_relative_w(wchar_t *pathname)
+{
+	if (L'\\' == (pathname)[0] ||
+		L'/' == (pathname)[0]) {
+		return 0;
+	}
+	if (wcsnlen(pathname, 3) >= 3) {
+		if (0 == wcsncmp((pathname) + 1, L":\\", 2) ||
+			0 == wcsncmp((pathname) + 1, L":/", 2)) {
+			return 0;
+		}
+	}
+	if (wcsnlen(pathname, 4) >= 4) {
+		if (0 == wcsncmp((pathname), L"\\\\?\\", 4) ||
+			0 == wcsncmp((pathname), L"//?/", 4)) {
+			return 0;
+		}
+	}
+	if (wcsnlen(pathname, 7) >= 7) {
+		if (0 == wcsncmp((pathname), L"\\\\?\\", 4) && 0 == wcsncmp((pathname) + 5, L":\\", 2) ) {
+				return 0;
+			}
+		if (0 == wcsncmp((pathname), L"//?/", 4) && 0 == wcsncmp((pathname) + 5, L":/", 2) ) {
+				return 0;
+			}
+	}
+	return 1;
+}
+#endif

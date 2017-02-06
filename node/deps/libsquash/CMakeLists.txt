@@ -5,7 +5,7 @@
 # For full terms see the included LICENSE file
 
 PROJECT(libsquash C)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 OPTION(BUILD_TESTS "Build a test of libsquash" OFF)
 

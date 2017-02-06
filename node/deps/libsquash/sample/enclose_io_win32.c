@@ -10,26 +10,17 @@
 
 #ifdef _WIN32
 
-int enclose_io_wopen(int nargs, const wchar_t *pathname, int flags, ...)
+int enclose_io_wopen(const wchar_t *pathname, int flags, int mode)
 {
-	if (enclose_io_cwd[0] && W_IS_ENCLOSE_IO_RELATIVE(pathname)) {
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(pathname)) {
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
-	} else if (W_IS_ENCLOSE_IO_PATH(pathname)) {
+	} else if (enclose_io_is_path_w(pathname)) {
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		return squash_open(enclose_io_fs, enclose_io_converted);
 	} else {
-		if (2 == nargs) {
-			return _wopen(pathname, flags);
-		} else {
-			assert(3 == nargs);
-			va_list args;
-			va_start(args, flags);
-			int mode = va_arg(args, int);
-			va_end(args);
-			return _wopen(pathname, flags, mode);
-		}
+		return _wopen(pathname, flags, mode);
 	}
 }
 
@@ -55,7 +46,7 @@ intptr_t enclose_io_get_osfhandle(int fd)
 
 int enclose_io_wchdir(const wchar_t *path)
 {
-	if (W_IS_ENCLOSE_IO_PATH(path)) {
+	if (enclose_io_is_path_w(path)) {
 		W_ENCLOSE_IO_PATH_CONVERT(path);
 		return enclose_io_chdir_helper(enclose_io_converted);
 	} else {
@@ -167,11 +158,11 @@ EncloseIOCreateFileW(
 	HANDLE hTemplateFile
 )
 {
-	if (enclose_io_cwd[0] && W_IS_ENCLOSE_IO_RELATIVE(lpFileName)) {
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return EncloseIOCreateFileWHelper(enclose_io_expanded);
-	} else if (W_IS_ENCLOSE_IO_PATH(lpFileName)) {
+	} else if (enclose_io_is_path_w(lpFileName)) {
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		return EncloseIOCreateFileWHelper(enclose_io_converted);
 	} else {
@@ -184,6 +175,209 @@ EncloseIOCreateFileW(
 			dwFlagsAndAttributes,
 			hTemplateFile
 		);
+	}
+}
+
+BOOL
+EncloseIOCloseHandle(
+	HANDLE hObject
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)hObject);
+	if (sqf) {
+		if (S_ISDIR(sqf->st.st_mode)) {
+			squash_closedir((SQUASH_DIR *)hObject);
+			return TRUE;
+		} else {
+			squash_close(*((int *)hObject));
+			free((int *)hObject);
+			return TRUE;
+		}
+	} else {
+		return CloseHandle(
+			hObject
+		);
+	}
+}
+
+static DWORD EncloseIOGetFileAttributesHelper(struct stat *st)
+{
+	DWORD fa = FILE_ATTRIBUTE_READONLY;
+	if (S_ISCHR(st->st_mode)) {
+		fa |= FILE_ATTRIBUTE_DEVICE;
+	} else if (S_ISLNK(st->st_mode)) {
+		fa |= FILE_ATTRIBUTE_REPARSE_POINT;
+	} else if (S_ISDIR(st->st_mode)) {
+		fa |= FILE_ATTRIBUTE_DIRECTORY;
+	} else {
+		fa |= FILE_ATTRIBUTE_NORMAL;
+	}
+	return fa;
+}
+
+DWORD
+EncloseIOGetFileAttributesW(
+    LPCWSTR lpFileName
+)
+{
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+		int ret;
+		struct stat buf;
+		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return INVALID_FILE_ATTRIBUTES;
+		}
+		return EncloseIOGetFileAttributesHelper(&buf);
+	} else if (enclose_io_is_path_w(lpFileName)) {
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		int ret;
+		struct stat buf;
+		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return INVALID_FILE_ATTRIBUTES;
+		}		
+		return EncloseIOGetFileAttributesHelper(&buf);
+	} else {
+		return GetFileAttributesW(
+			lpFileName
+		);
+	}
+}
+
+BOOL
+EncloseIOGetFileAttributesExW(
+    LPCWSTR lpFileName,
+    GET_FILEEX_INFO_LEVELS fInfoLevelId,
+    LPVOID lpFileInformation
+)
+{
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+		assert(GetFileExInfoStandard == fInfoLevelId);
+		int ret;
+		struct stat buf;
+		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return 0;
+		}
+		WIN32_FILE_ATTRIBUTE_DATA *fa = (WIN32_FILE_ATTRIBUTE_DATA *)lpFileInformation;
+		fa->dwFileAttributes = EncloseIOGetFileAttributesHelper(&buf);
+		return 1;
+	} else if (enclose_io_is_path_w(lpFileName)) {
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		assert(GetFileExInfoStandard == fInfoLevelId);
+		int ret;
+		struct stat buf;
+		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return 0;
+		}
+		WIN32_FILE_ATTRIBUTE_DATA *fa = (WIN32_FILE_ATTRIBUTE_DATA *)lpFileInformation;
+		fa->dwFileAttributes = EncloseIOGetFileAttributesHelper(&buf);
+		return 1;
+	} else {
+		return GetFileAttributesExW(
+			lpFileName,
+			fInfoLevelId,
+			lpFileInformation
+		);
+	}
+}
+
+BOOL
+EncloseIOReadFile(
+	HANDLE       hFile,
+	LPVOID       lpBuffer,
+	DWORD        nNumberOfBytesToRead,
+	LPDWORD      lpNumberOfBytesRead,
+	LPOVERLAPPED lpOverlapped
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)hFile);
+	if (sqf) {
+		// TODO the case of lpOverlapped
+		assert(NULL == lpOverlapped);
+		int ret = squash_read(sqf->fd, lpBuffer, nNumberOfBytesToRead);
+		if (-1 == ret)
+		{
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return FALSE;
+		}
+		*lpNumberOfBytesRead = ret;
+		return TRUE;
+	} else {
+		return ReadFile(
+			hFile,
+			lpBuffer,
+			nNumberOfBytesToRead,
+			lpNumberOfBytesRead,
+			lpOverlapped
+		);
+	}
+}
+
+#ifndef RUBY_EXPORT
+NTSTATUS
+EncloseIOpNtQueryInformationFile(
+	HANDLE FileHandle,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FileInformation,
+	ULONG Length,
+	FILE_INFORMATION_CLASS FileInformationClass)
+{
+	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
+	if (sqf) {
+		struct stat st = sqf->st;
+		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;
+		FILE_ALL_INFORMATION *file_info = (FILE_ALL_INFORMATION *)FileInformation;
+		file_info->BasicInformation.FileAttributes = EncloseIOGetFileAttributesHelper(&st);
+		file_info->StandardInformation.EndOfFile.QuadPart = st.st_size;
+
+		file_info->BasicInformation.LastAccessTime.QuadPart = st.st_atime * 10000000ULL + 116444736000000000ULL;
+		file_info->BasicInformation.ChangeTime.QuadPart = st.st_mtime * 10000000ULL + 116444736000000000ULL;
+		file_info->BasicInformation.LastWriteTime.QuadPart = st.st_mtime * 10000000ULL + 116444736000000000ULL;
+		file_info->BasicInformation.CreationTime.QuadPart = st.st_ctime * 10000000ULL + 116444736000000000ULL;
+		file_info->InternalInformation.IndexNumber.QuadPart = st.st_ino;
+		file_info->StandardInformation.AllocationSize.QuadPart = st.st_size;
+		file_info->StandardInformation.NumberOfLinks = st.st_nlink;
+
+		return STATUS_SUCCESS;
+	} else {
+		return pNtQueryInformationFile(
+			FileHandle,
+			IoStatusBlock,
+			FileInformation,
+			Length,
+			FileInformationClass
+		);
+	}
+}
+
+NTSTATUS
+EncloseIOpNtQueryVolumeInformationFile(
+	HANDLE FileHandle,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FsInformation,
+	ULONG Length,
+	FS_INFORMATION_CLASS FsInformationClass)
+{
+	if (squash_find_entry((void *)FileHandle)) {
+		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;
+		return STATUS_SUCCESS;
+	} else {
+		return pNtQueryVolumeInformationFile(
+			FileHandle,
+			IoStatusBlock,
+			FsInformation,
+			Length,
+			FsInformationClass);
 	}
 }
 
@@ -245,124 +439,5 @@ EncloseIOpNtQueryDirectoryFile(
 	}
 }
 
-BOOL
-EncloseIOCloseHandle(
-	HANDLE hObject
-)
-{
-	struct squash_file *sqf = squash_find_entry((void *)hObject);
-	if (sqf) {
-		if (S_ISDIR(sqf->st.st_mode)) {
-			squash_closedir((SQUASH_DIR *)hObject);
-			return TRUE;
-		} else {
-			squash_close(*((int *)hObject));
-			free((int *)hObject);
-			return TRUE;
-		}
-	} else {
-		return CloseHandle(
-			hObject
-		);
-	}
-}
-
-NTSTATUS
-EncloseIOpNtQueryInformationFile(
-	HANDLE FileHandle,
-	PIO_STATUS_BLOCK IoStatusBlock,
-	PVOID FileInformation,
-	ULONG Length,
-	FILE_INFORMATION_CLASS FileInformationClass)
-{
-	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
-	if (sqf) {
-		struct stat st = sqf->st;
-		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;
-		FILE_ALL_INFORMATION *file_info = (FILE_ALL_INFORMATION *)FileInformation;
-		file_info->BasicInformation.FileAttributes = FILE_ATTRIBUTE_READONLY;
-		if (S_ISCHR(st.st_mode)) {
-			file_info->BasicInformation.FileAttributes |= FILE_ATTRIBUTE_DEVICE;
-		} else if (S_ISLNK(st.st_mode)) {
-			file_info->BasicInformation.FileAttributes |= FILE_ATTRIBUTE_REPARSE_POINT;
-		} else if (S_ISDIR(st.st_mode)) {
-			file_info->BasicInformation.FileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
-		} else {
-			file_info->BasicInformation.FileAttributes |= FILE_ATTRIBUTE_NORMAL;
-		}
-		file_info->StandardInformation.EndOfFile.QuadPart = st.st_size;
-
-		file_info->BasicInformation.LastAccessTime.QuadPart = st.st_atime * 10000000ULL + 116444736000000000ULL;
-		file_info->BasicInformation.ChangeTime.QuadPart = st.st_mtime * 10000000ULL + 116444736000000000ULL;
-		file_info->BasicInformation.LastWriteTime.QuadPart = st.st_mtime * 10000000ULL + 116444736000000000ULL;
-		file_info->BasicInformation.CreationTime.QuadPart = st.st_ctime * 10000000ULL + 116444736000000000ULL;
-		file_info->InternalInformation.IndexNumber.QuadPart = st.st_ino;
-		file_info->StandardInformation.AllocationSize.QuadPart = st.st_size;
-		file_info->StandardInformation.NumberOfLinks = st.st_nlink;
-
-		return STATUS_SUCCESS;
-	} else {
-		return pNtQueryInformationFile(
-			FileHandle,
-			IoStatusBlock,
-			FileInformation,
-			Length,
-			FileInformationClass
-		);
-	}
-}
-
-NTSTATUS
-EncloseIOpNtQueryVolumeInformationFile(
-	HANDLE FileHandle,
-	PIO_STATUS_BLOCK IoStatusBlock,
-	PVOID FsInformation,
-	ULONG Length,
-	FS_INFORMATION_CLASS FsInformationClass)
-{
-	if (squash_find_entry((void *)FileHandle)) {
-		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;
-		return STATUS_SUCCESS;
-	} else {
-		return pNtQueryVolumeInformationFile(
-			FileHandle,
-			IoStatusBlock,
-			FsInformation,
-			Length,
-			FsInformationClass);
-	}
-}
-
-BOOL
-EncloseIOReadFile(
-	HANDLE       hFile,
-	LPVOID       lpBuffer,
-	DWORD        nNumberOfBytesToRead,
-	LPDWORD      lpNumberOfBytesRead,
-	LPOVERLAPPED lpOverlapped
-)
-{
-	struct squash_file *sqf = squash_find_entry((void *)hFile);
-	if (sqf) {
-		// TODO the case of lpOverlapped
-		assert(NULL == lpOverlapped);
-		int ret = squash_read(sqf->fd, lpBuffer, nNumberOfBytesToRead);
-		if (-1 == ret)
-		{
-			ENCLOSE_IO_SET_LAST_ERROR;
-			return FALSE;
-		}
-		*lpNumberOfBytesRead = ret;
-		return TRUE;
-	} else {
-		return ReadFile(
-			hFile,
-			lpBuffer,
-			nNumberOfBytesToRead,
-			lpNumberOfBytesRead,
-			lpOverlapped
-		);
-	}
-}
-
+#endif // !RUBY_EXPORT
 #endif

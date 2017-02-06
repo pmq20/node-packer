@@ -55,27 +55,9 @@ extern const uint8_t enclose_io_memfs[];
     19,18,17,16,15,14,13,12,11,10, \
      9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
-#define IS_ENCLOSE_IO_PATH(pathname) (strnlen(pathname, 21) >= 21 && 0 == strncmp((pathname), "/__enclose_io_memfs__", 21))
-
-#define W_IS_ENCLOSE_IO_PATH(pathname) ( \
-			(wcsnlen(pathname, 21) >= 21 && 0 == wcsncmp((pathname), L"\\__enclose_io_memfs__", 21)) || \
-			(wcsnlen(pathname, 24) >= 24 && 0 == wcsncmp((pathname), L"\\\\?\\__enclose_io_memfs__", 24)) || \
-			( \
-				wcsnlen(pathname, 27) >= 27 && \
-				0 == wcsncmp((pathname), L"\\\\?\\", 4) && \
-				0 == wcsncmp((pathname) + 5, L":\\__enclose_io_memfs__", 22) \
-			) \
-		)
-
-#define W_IS_ENCLOSE_IO_RELATIVE(pathname) ( \
-			(L'\\' != (pathname)[0]) && \
-			(wcsnlen(pathname, 4) < 4 || 0 != wcsncmp((pathname), L"\\\\?\\", 4)) && \
-			( \
-				wcsnlen(pathname, 7) < 7 || !( \
-				0 == wcsncmp((pathname), L"\\\\?\\", 4) && \
-				0 == wcsncmp((pathname) + 5, L":\\", 2) )\
-			) \
-		)
+short enclose_io_is_path(char *pathname);
+short enclose_io_is_path_w(wchar_t *pathname);
+short enclose_io_is_relative_w(wchar_t *pathname);
 
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	\
 			sqfs_name enclose_io_expanded; \
@@ -92,12 +74,14 @@ extern const uint8_t enclose_io_memfs[];
 			char *enclose_io_converted = (char *)enclose_io_converted_storage; \
 			char *enclose_io_i; \
 			size_t enclose_io_converted_length = wcstombs(enclose_io_converted_storage, (path), SQUASHFS_NAME_LEN); \
-			if (strnlen(enclose_io_converted_storage, 4) >= 4 && 0 == strncmp(enclose_io_converted_storage, "\\\\?\\", 4)) { \
+			if (strnlen(enclose_io_converted_storage, 4) >= 4 && (0 == strncmp(enclose_io_converted_storage, "\\\\?\\", 4) || 0 == strncmp(enclose_io_converted_storage, "//?/", 4))) { \
 				if (strnlen(enclose_io_converted_storage, 6) >= 6 && ':' == enclose_io_converted_storage[5]) { \
 					enclose_io_converted += 6; \
 				} else { \
 					enclose_io_converted += 4; \
 				} \
+			} else if (strnlen(enclose_io_converted_storage, 3) >= 3 && (0 == strncmp(enclose_io_converted_storage + 1, ":\\", 2) || 0 == strncmp(enclose_io_converted_storage + 1, ":/", 2))) { \
+				enclose_io_converted += 2; \
 			} \
 			for (enclose_io_i = enclose_io_converted; *enclose_io_i; enclose_io_i++) { \
 				if ('\\' == *enclose_io_i) { *enclose_io_i = '/'; } \
@@ -132,7 +116,7 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #include "enclose_io_winapi.h"
 
-int enclose_io_wopen(int nargs, const wchar_t *pathname, int flags, ...);
+int enclose_io_wopen(const wchar_t *pathname, int flags, int mode);
 int enclose_io_open_osfhandle(intptr_t osfhandle, int flags);
 intptr_t enclose_io_get_osfhandle(int fd);
 int enclose_io_wchdir(const wchar_t *path);
@@ -169,6 +153,18 @@ EncloseIOpNtQueryDirectoryFile(
 BOOL
 EncloseIOCloseHandle(
 	HANDLE hObject
+);
+
+DWORD
+EncloseIOGetFileAttributesW(
+    LPCWSTR lpFileName
+);
+
+BOOL
+EncloseIOGetFileAttributesExW(
+    LPCWSTR lpFileName,
+    GET_FILEEX_INFO_LEVELS fInfoLevelId,
+    LPVOID lpFileInformation
 );
 
 NTSTATUS

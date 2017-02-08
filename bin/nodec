@@ -22,16 +22,10 @@ Usage:
 
 EXAMPLES = %Q{
 
-Examples:
-  Compiling a command-line application:
-    git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-    cd coffeescript
-    nodec bin/coffee
-
-  Compiling a web application:
-    git clone --depth 1 https://github.com/cnpm/cnpmjs.org
-    cd cnpmjs.org
-    nodec dispatch.js
+Example:
+  git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+  cd coffeescript
+  nodec bin/coffee
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler

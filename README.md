@@ -1,17 +1,19 @@
 # Node.js Compiler
 
-Compiler for Node.js that compiles your Node.js application into a single executable.
+Compiling your Node.js application into a single executable.
 
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
 ## Download
 
-| Operating System | Architecture | Link                                                               |
-|:----------------:|:------------:|--------------------------------------------------------------------|
-|      Windows     |      x86     | http://www.enclose.io/pmq20/node-compiler/master/nodec.exe         |
-|     Mac OS X     |     x86-64   | http://www.enclose.io/pmq20/node-compiler/master/nodec-darwin-x64  |
-|       Linux      |     x86-64   | http://www.enclose.io/pmq20/node-compiler/master/nodec-linux-x64   |
+| Operating System | Architecture | Link    |
+|:----------------:|:------------:|---------|
+|      Windows     |      x86     |         |
+|     Mac OS X     |     x86-64   |         |
+|       Linux      |     x86-64   |         |
+
+On Mac OS X and Linux, you need to execute `chmod +x` after downloading the file.
 
 ## Usage
 

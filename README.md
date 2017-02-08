@@ -27,16 +27,8 @@ Compiler for Node.js that compiles your Node.js application into a single execut
           --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
 
-## Examples
-
-### Compiling a command-line application
+## Example
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
-
-### Compiling a web application
-
-    git clone --depth 1 https://github.com/cnpm/cnpmjs.org
-    cd cnpmjs.org
-    nodec dispatch.js

@@ -7,8 +7,6 @@ os:
   - osx
 
 addons:
-  artifacts:
-    s3_region: "ap-northeast-1"
   apt:
     sources:
       - ubuntu-toolchain-r-test

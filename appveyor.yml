@@ -37,6 +37,3 @@ test_script:
     npm --version
 
     ruby tests\coffeescript
-
-    ruby tests\cnpmjs
-

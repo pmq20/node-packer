@@ -15,7 +15,7 @@ http://nodec.enclose.io
 |       macOS      |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-darwin-x64  |
 |       Linux      |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-linux-x64   |
 
-On Mac OS X and Linux, you need to execute `chmod +x` after downloading the file.
+On macOS and Linux, you need to execute `chmod +x` on the downloaded file.
 
 ## Usage
 

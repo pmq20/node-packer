@@ -7,11 +7,11 @@ Compiling your Node.js application into a single executable.
 
 ## Download
 
-| Operating System | Architecture | Link    |
-|:----------------:|:------------:|---------|
-|      Windows     |      x86     |         |
-|     Mac OS X     |     x86-64   |         |
-|       Linux      |     x86-64   |         |
+| Operating System | Architecture | Link                                                           |
+|:----------------:|:------------:|----------------------------------------------------------------|
+|      Windows     |      x86     | http://enclose.io/pmq20/node-compiler/nodec-master.exe         |
+|     Mac OS X     |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-darwin-x64  |
+|       Linux      |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-linux-x64   |
 
 On Mac OS X and Linux, you need to execute `chmod +x` after downloading the file.
 

@@ -97,17 +97,17 @@ sqfs_err sqfs_stack_push(sqfs_stack *s, void *vout) {
 	return sqfs_stack_top(s, vout);
 }
 
-bool sqfs_stack_pop(sqfs_stack *s) {
+short sqfs_stack_pop(sqfs_stack *s) {
 	void *v;
 	
 	if (s->size == 0)
-		return false;
+		return 0;
 	
 	sqfs_stack_top(s, &v);
 	if (s->freer)
 		s->freer(v);
 	s->size--;
-	return true;
+	return 1;
 }
 
 size_t sqfs_stack_size(sqfs_stack *s) {

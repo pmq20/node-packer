@@ -76,7 +76,7 @@ void sqfs_blocklist_init(sqfs *fs, sqfs_inode *inode, sqfs_blocklist *bl) {
 	bl->fs = fs;
 	bl->remain = sqfs_blocklist_count(fs, inode);
 	bl->cur = inode->next;
-	bl->started = false;
+	bl->started = 0;
 	bl->pos = 0;
 	bl->block = inode->xtra.reg.start_block;
 	bl->input_size = 0;
@@ -84,7 +84,7 @@ void sqfs_blocklist_init(sqfs *fs, sqfs_inode *inode, sqfs_blocklist *bl) {
 
 sqfs_err sqfs_blocklist_next(sqfs_blocklist *bl) {
 	sqfs_err err = SQFS_OK;
-	bool compressed;
+	short compressed;
 	
 	if (bl->remain == 0)
 		return SQFS_ERR;
@@ -100,7 +100,7 @@ sqfs_err sqfs_blocklist_next(sqfs_blocklist *bl) {
 	
 	if (bl->started)
 		bl->pos += bl->fs->sb->block_size;
-	bl->started = true;
+	bl->started = 1;
 	
 	return SQFS_OK;
 }
@@ -140,7 +140,7 @@ sqfs_err sqfs_read_range(sqfs *fs, sqfs_inode *inode, sqfs_off_t start,
 		size_t data_off, data_size;
 		size_t take;
 		
-		bool fragment = (bl.remain == 0);
+		short fragment = (bl.remain == 0);
 		if (fragment) { /* fragment */
 			if (inode->xtra.reg.frag_idx == SQUASHFS_INVALID_FRAG)
 				break;
@@ -205,7 +205,7 @@ only need to read that one MD-block to seek within the file.
 */
 
 /* Is a file worth indexing? */
-static bool sqfs_blockidx_indexable(sqfs *fs, sqfs_inode *inode) {
+static short sqfs_blockidx_indexable(sqfs *fs, sqfs_inode *inode) {
 	size_t blocks = sqfs_blocklist_count(fs, inode);
 	size_t md_size = blocks * sizeof(sqfs_blocklist_entry);
 	return md_size >= SQUASHFS_METADATA_SIZE;
@@ -234,7 +234,7 @@ sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
 	sqfs_blockidx_entry **cachep;
 
 	size_t i = 0;
-	bool first = true;
+	short first = 1;
 	
 	*out = NULL;
 	
@@ -256,7 +256,7 @@ sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
 			blockidx[i].data_block = bl.block + bl.input_size;
 			blockidx[i++].md_block = (uint32_t)(bl.cur.block - fs->sb->inode_table_start);
 		}
-		first = false;
+		first = 0;
 		
 		err = sqfs_blocklist_next(&bl);
 		if (err) {

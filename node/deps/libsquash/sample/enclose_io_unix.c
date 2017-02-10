@@ -19,6 +19,14 @@ sqfs_name enclose_io_cwd;
 #ifndef _WIN32
 int enclose_io_lstat(const char *path, struct stat *buf)
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *path) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_lstat(enclose_io_fs, enclose_io_expanded, buf);
@@ -33,6 +41,14 @@ int enclose_io_lstat(const char *path, struct stat *buf)
 
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *path) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_readlink(enclose_io_fs, enclose_io_expanded, buf, bufsize);
@@ -47,6 +63,14 @@ ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 
 DIR * enclose_io_opendir(const char *filename)
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *filename) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(filename);
 		return (DIR *)squash_opendir(enclose_io_fs, enclose_io_expanded);
@@ -69,7 +93,7 @@ int enclose_io_closedir(DIR *dirp)
 	}
 }
 
-struct dirent * enclose_io_readdir(DIR *dirp)
+struct SQUASH_DIRENT * enclose_io_readdir(DIR *dirp)
 {
 	if (squash_find_entry(dirp)) {
 		return squash_readdir((SQUASH_DIR *)dirp);
@@ -119,10 +143,18 @@ int enclose_io_dirfd(DIR *dirp)
 	}
 }
 
-int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
-	int(*select)(const struct dirent *),
-	int(*compar)(const struct dirent **, const struct dirent **))
+int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
+	int(*select)(const struct SQUASH_DIRENT *),
+	int(*compar)(const struct SQUASH_DIRENT **, const struct SQUASH_DIRENT **))
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *dirname) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(dirname);
 		return squash_scandir(enclose_io_fs, enclose_io_expanded, namelist, select, compar);
@@ -200,6 +232,14 @@ char *enclose_io_getwd(char *buf)
 
 int enclose_io_stat(const char *path, struct stat *buf)
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *path) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		return squash_stat(enclose_io_fs, enclose_io_expanded, buf);
@@ -221,6 +261,14 @@ int enclose_io_fstat(int fildes, struct stat *buf)
 
 int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 {
+        sqfs_name enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        sqfs_name enclose_io_converted_storage;
+        char *enclose_io_converted;
+        char *enclose_io_i;
+        size_t enclose_io_converted_length;
+
 	if (enclose_io_cwd[0] && '/' != *pathname) {
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
@@ -231,8 +279,9 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 			return open(pathname, flags);
 		} else {
 			va_list args;
-			va_start(args, flags);
-			mode_t mode = va_arg(args, mode_t);
+			mode_t mode;
+                        va_start(args, flags);
+			mode = va_arg(args, mode_t);
 			va_end(args);
 			return open(pathname, flags, mode);
 		}

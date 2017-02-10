@@ -25,19 +25,27 @@
 #ifndef SQFS_COMMON_H
 #define SQFS_COMMON_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #ifdef _WIN32
 	#include "squash/windows.h"
+        struct squash_windows_dirent
+        {
+                long d_namlen;
+                ino_t d_ino;
+                char d_name[256 + 1]; //cf. sqfs_name
+                uint8_t d_type;
+        };
+        #define SQUASH_DIRENT squash_windows_dirent
 #else
 	#include <sys/dir.h>
 	#include <unistd.h>
 	typedef mode_t sqfs_mode_t;
 	typedef uid_t sqfs_id_t;
 	typedef off_t sqfs_off_t;
+        #define SQUASH_DIRENT dirent
 #endif
 typedef const uint8_t * sqfs_fd_t;
 
@@ -60,7 +68,7 @@ typedef struct sqfs_inode sqfs_inode;
 typedef struct {
 	size_t size;
 	void *data;
-	bool data_need_freeing;
+	short data_need_freeing;
 } sqfs_block;
 
 typedef struct {

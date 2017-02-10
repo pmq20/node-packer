@@ -37,8 +37,8 @@ static void test_basic_func()
 	sqfs_dir_entry entry;
 	sqfs_name name;
 
-	bool found;
-	bool has_next;
+	short found;
+	short has_next;
 	struct stat st;
 	size_t name_size = sizeof(name);
 	char buffer[1024];
@@ -306,16 +306,16 @@ static void test_virtual_fd()
 	fflush(stderr);
 }
 
-int filter_scandir(const struct dirent * ent)
+int filter_scandir(const struct SQUASH_DIRENT * ent)
 {
 	return (strncmp(ent->d_name,".",1) == 0);
 }
 
-int reverse_alpha_compar(const struct dirent **a, const struct dirent **b){
+int reverse_alpha_compar(const struct SQUASH_DIRENT **a, const struct SQUASH_DIRENT **b){
 	return -strcmp((*a)->d_name, (*b)->d_name);
 }
 #ifndef __linux__
-int alphasort(const struct dirent **a, const struct dirent **b){
+int alphasort(const struct SQUASH_DIRENT **a, const struct SQUASH_DIRENT **b){
 	return strcmp((*a)->d_name, (*b)->d_name);
 }
 
@@ -323,14 +323,18 @@ int alphasort(const struct dirent **a, const struct dirent **b){
 
 static void test_dirent()
 {
-	fprintf(stderr, "Testing dirent APIs\n");
-	fflush(stderr);
-
 	sqfs fs;
 	int ret;
 	int fd;
 	SQUASH_DIR *dir;
-	struct dirent *mydirent;
+	struct SQUASH_DIRENT *mydirent;
+	long pos;
+	struct SQUASH_DIRENT **namelist;
+	int numEntries;
+	int i;
+
+	fprintf(stderr, "Testing dirent APIs\n");
+	fflush(stderr);
 
 	memset(&fs, 0, sizeof(sqfs));
 	sqfs_open_image(&fs, libsquash_fixture, 0);
@@ -372,7 +376,7 @@ static void test_dirent()
 	expect(DT_LNK == mydirent->d_type, "so this one is a link");
 	mydirent = squash_readdir(dir);
 	expect(NULL == mydirent, "finally reaching an EOF");
-	long pos = squash_telldir(dir);
+	pos = squash_telldir(dir);
 	squash_rewinddir(dir);
 	mydirent = squash_readdir(dir);
 	expect(NULL != mydirent, "starting all over again");
@@ -388,9 +392,9 @@ static void test_dirent()
 	mydirent = squash_readdir(dir);
 	expect(NULL == mydirent, "oops empty dir");
 
-	struct dirent **namelist = 0;
+	namelist = 0;
 
-	int numEntries = squash_scandir(&fs, "/dir1", &namelist, filter_scandir, alphasort);
+	numEntries = squash_scandir(&fs, "/dir1", &namelist, filter_scandir, alphasort);
 
 	expect(2 == numEntries, "scandir_filter is happy");
 
@@ -407,8 +411,6 @@ static void test_dirent()
 #ifndef __linux__
 	expect(strlen(".bin") == namelist[1]->d_namlen, "got a str len");
 #endif
-
-	int i = 0;
 
 	for(i = 0; i < numEntries; i++){
 		free(namelist[i]);
@@ -455,26 +457,27 @@ static void test_dirent()
 
 static void test_squash_readlink()
 {
-	fprintf(stderr, "Testing squash_readlink...\n");
-	fflush(stderr);
-
 	sqfs fs;
-
 	sqfs_name name;
 	size_t name_size = sizeof(name);
 	struct stat st;
+	ssize_t readsize;
+	char content[] = ".0.0.4@something4";
+	char smallbuf[2] = {0,0};
+
+	fprintf(stderr, "Testing squash_readlink...\n");
+	fflush(stderr);
+
 	memset(&st, 0, sizeof(st));
 
 	memset(&fs, 0, sizeof(sqfs));
 	sqfs_open_image(&fs, libsquash_fixture, 0);
 
-	ssize_t  readsize = 0;
+	readsize = 0;
 	readsize = squash_readlink(&fs, "/dir1/something4" ,(char *)&name, name_size);
-	char content[] = ".0.0.4@something4";
 	expect(0 == strcmp(name, content), "something4 links to .0.0.4@something4");
 	expect(strlen(content) == readsize, "squash_readlink return value is happy");
 
-	char smallbuf[2] = {0,0};
 	readsize = squash_readlink(&fs, "/dir1/something4" ,smallbuf, 2);
 	expect(-1 == readsize, "squash_readlink ‘buf’ is too small ret val");
 	expect(ENAMETOOLONG == errno, "squash_readlink ‘buf’ is too small");
@@ -506,7 +509,7 @@ static void test_open_read_with_links()
 	expect(551 == x, "we can read 551");
 	buf[x+1] = '\0';
 	expect(buf == strstr(buf, "Abdel Fattah el-Sisi, the Egyptian President"), "read some content of the file");
-	expect(0 == strcmp(buf + 501, "to Greece and arrived in Cairo that evening.[18]\n\n"), "read some content of the file");
+	expect(0 == strncmp(buf + 501, "to Greece and arrived in Cairo that evening.[18]\n\n", 50), "read some content of the file");
 
 	fprintf(stderr, "\n");
 	fflush(stderr);

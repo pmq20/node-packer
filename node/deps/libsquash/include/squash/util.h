@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 /* Open a file, and optionally print a message on failure */
-sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd, bool print);
+sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd, short print);
 
 /* Close a file */
 void sqfs_fd_close(sqfs_fd_t fd);

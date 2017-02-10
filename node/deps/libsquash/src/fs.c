@@ -100,26 +100,26 @@ void sqfs_destroy(sqfs *fs) {
 	sqfs_cache_destroy(&fs->blockidx);
 }
 
-void sqfs_md_header(uint16_t hdr, bool *compressed, uint16_t *size) {
+void sqfs_md_header(uint16_t hdr, short *compressed, uint16_t *size) {
 	*compressed = !(hdr & SQUASHFS_COMPRESSED_BIT);
 	*size = hdr & ~SQUASHFS_COMPRESSED_BIT;
 	if (!*size)
 		*size = SQUASHFS_COMPRESSED_BIT;
 }
 
-void sqfs_data_header(uint32_t hdr, bool *compressed, uint32_t *size) {
+void sqfs_data_header(uint32_t hdr, short *compressed, uint32_t *size) {
 	*compressed = !(hdr & SQUASHFS_COMPRESSED_BIT_BLOCK);
 	*size = hdr & ~SQUASHFS_COMPRESSED_BIT_BLOCK;
 }
 
-sqfs_err sqfs_block_read(sqfs *fs, sqfs_off_t pos, bool compressed,
+sqfs_err sqfs_block_read(sqfs *fs, sqfs_off_t pos, short compressed,
 		uint32_t size, size_t outsize, sqfs_block **block) {
 	sqfs_err err = SQFS_ERR;
 	if (!(*block = malloc(sizeof(**block))))
 		return SQFS_ERR;
 	
 	(*block)->data = (void *)((fs->fd) + (pos + fs->offset));
-	(*block)->data_need_freeing = false;
+	(*block)->data_need_freeing = 0;
 
 	if (compressed) {
 		char *decomp = malloc(outsize);
@@ -133,7 +133,7 @@ sqfs_err sqfs_block_read(sqfs *fs, sqfs_off_t pos, bool compressed,
 		}
 		(*block)->data = decomp;
 		(*block)->size = outsize;
-		(*block)->data_need_freeing = true;
+		(*block)->data_need_freeing = 1;
 	} else {
 		(*block)->size = size;
 	}
@@ -150,7 +150,7 @@ sqfs_err sqfs_md_block_read(sqfs *fs, sqfs_off_t pos, size_t *data_size,
 		sqfs_block **block) {
 	sqfs_err err = SQFS_OK;
 	uint16_t hdr;
-	bool compressed;
+	short compressed;
 	uint16_t size;
 	
 	*data_size = 0;
@@ -169,7 +169,7 @@ sqfs_err sqfs_md_block_read(sqfs *fs, sqfs_off_t pos, size_t *data_size,
 
 sqfs_err sqfs_data_block_read(sqfs *fs, sqfs_off_t pos, uint32_t hdr,
 		sqfs_block **block) {
-	bool compressed;
+	short compressed;
 	uint32_t size;
 	sqfs_data_header(hdr, &compressed, &size);
 	return sqfs_block_read(fs, pos, compressed, size,

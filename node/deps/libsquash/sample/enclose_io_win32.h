@@ -20,8 +20,8 @@
 #define _getwd(...) enclose_io_getwd(__VA_ARGS__)
 #define _wgetwd(...) enclose_io_wgetwd(__VA_ARGS__)
 #define _fstati64(...)	enclose_io_fstati64(__VA_ARGS__)
-#define _open(...)	enclose_io_open(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
-#define _wopen(...)	enclose_io_wopen(__VA_ARGS__)
+#define _open(...)	enclose_io__open(__VA_ARGS__)
+#define _wopen(...)	enclose_io__wopen(__VA_ARGS__)
 #define _close(...)	enclose_io_close(__VA_ARGS__)
 #define _open_osfhandle(...) enclose_io_open_osfhandle(__VA_ARGS__)
 #define _get_osfhandle(...) enclose_io_get_osfhandle(__VA_ARGS__)
@@ -34,6 +34,11 @@
 
 #define GetFileAttributesW(...) EncloseIOGetFileAttributesW(__VA_ARGS__)
 #define GetFileAttributesExW(...) EncloseIOGetFileAttributesExW(__VA_ARGS__)
+#define GetHandleInformation(...) EncloseIOGetHandleInformation(__VA_ARGS__)
+#define GetFileType(...) EncloseIOGetFileType(__VA_ARGS__)
+#define FindFirstFileW(...) EncloseIOFindFirstFileW(__VA_ARGS__)
+#define FindNextFileW(...) EncloseIOFindNextFileW(__VA_ARGS__)
+#define FindClose(...) EncloseIOFindClose(__VA_ARGS__)
 
 #ifndef RUBY_EXPORT
 #define pNtQueryDirectoryFile(...) EncloseIOpNtQueryDirectoryFile(__VA_ARGS__)

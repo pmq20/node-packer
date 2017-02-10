@@ -131,12 +131,12 @@ void sqfs_traverse_close(sqfs_traverse *trv) {
 }
 
 
-bool sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err) {
+short sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err) {
 	sqfs_traverse_level *level;
-	bool found;
+	short found;
 	
 	*err = SQFS_OK;
-	while (true) {
+	while (1) {
 		switch (trv->state) {
 			case TRAVERSE_GET_ENTRY:
 				if ((*err = sqfs_stack_top(&trv->stack, &level)))
@@ -158,8 +158,8 @@ bool sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err) {
 					trv->state = TRAVERSE_DESCEND;
 				else
 					trv->state = TRAVERSE_NAME_REMOVE;
-				trv->dir_end = false;
-				return true;
+				trv->dir_end = 0;
+				return 1;
 			
 			case TRAVERSE_NAME_REMOVE:
 				sqfs_traverse_path_remove_name(trv);
@@ -177,15 +177,15 @@ bool sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err) {
 				if ((*err = sqfs_traverse_ascend(trv)))
 					goto error;
 				if (sqfs_stack_size(&trv->stack) > 0) {
-					trv->dir_end = true;
+					trv->dir_end = 1;
 					trv->state = TRAVERSE_NAME_REMOVE;
-					return true;
+					return 1;
 				}
 				trv->state = TRAVERSE_FINISHED;
 				break;
 			
 			case TRAVERSE_FINISHED:
-				return false;
+				return 0;
 			
 			case TRAVERSE_ERROR:
 				*err = SQFS_ERR;
@@ -195,7 +195,7 @@ bool sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err) {
 	
 error:
 	trv->state = TRAVERSE_ERROR;
-	return false;
+	return 0;
 }
 
 sqfs_err sqfs_traverse_prune(sqfs_traverse *trv) {
@@ -276,7 +276,7 @@ static sqfs_err sqfs_traverse_descend_inode(sqfs_traverse *trv,
 		sqfs_inode *inode) {
 	sqfs_err err;
 	sqfs_traverse_level *level;
-	bool initial;
+	short initial;
 	
 	initial = (sqfs_stack_size(&trv->stack) == 0);
 	

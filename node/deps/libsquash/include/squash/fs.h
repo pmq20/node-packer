@@ -89,10 +89,10 @@ void sqfs_version(sqfs *fs, int *major, int *minor);
 sqfs_compression_type sqfs_compression(sqfs *fs);
 
 
-void sqfs_md_header(uint16_t hdr, bool *compressed, uint16_t *size);
-void sqfs_data_header(uint32_t hdr, bool *compressed, uint32_t *size);
+void sqfs_md_header(uint16_t hdr, short *compressed, uint16_t *size);
+void sqfs_data_header(uint32_t hdr, short *compressed, uint32_t *size);
 
-sqfs_err sqfs_block_read(sqfs *fs, sqfs_off_t pos, bool compressed, uint32_t size,
+sqfs_err sqfs_block_read(sqfs *fs, sqfs_off_t pos, short compressed, uint32_t size,
 	size_t outsize, sqfs_block **block);
 void sqfs_block_dispose(sqfs_block *block);
 

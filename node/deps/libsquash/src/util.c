@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd, bool print) {
+sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd, short print) {
 	*fd = path;
 	return SQFS_OK;
 }

@@ -45,7 +45,7 @@ sqfs_err sqfs_stack_create(sqfs_stack *s, size_t vsize, size_t initial,
 void sqfs_stack_destroy(sqfs_stack *s);
 
 sqfs_err sqfs_stack_push(sqfs_stack *s, void *vout);
-bool sqfs_stack_pop(sqfs_stack *s);
+short sqfs_stack_pop(sqfs_stack *s);
 
 size_t sqfs_stack_size(sqfs_stack *s);
 sqfs_err sqfs_stack_at(sqfs_stack *s, size_t i, void *vout);

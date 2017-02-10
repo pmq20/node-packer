@@ -14,30 +14,6 @@
 typedef unsigned short sqfs_mode_t;
 typedef uint32_t sqfs_id_t;
 typedef DWORD64 sqfs_off_t;
-#ifdef dirent
-#undef dirent
-struct dirent
-{
-	long d_namlen;
-	ino_t d_ino;
-	char *d_name;
-	char *d_altname;
-	short d_altlen;
-	uint8_t d_type;
-};
-#define dirent direct
-#else
-struct dirent
-{
-	long d_namlen;
-	ino_t d_ino;
-	char *d_name;
-	char *d_altname;
-	short d_altlen;
-	uint8_t d_type;
-};
-#endif // dirent
-
 #endif // _WIN32
 
 #endif /* end of include guard: ENCLOSE_IO_PRELUDE_H_E46A560C */

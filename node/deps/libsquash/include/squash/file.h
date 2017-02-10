@@ -42,7 +42,7 @@ typedef struct {
 	sqfs *fs;
 	size_t remain;			/* How many blocks left in the file? */
 	sqfs_md_cursor cur;	/* Points to next blocksize in MD */
-	bool started;
+	short started;
 
 	uint64_t pos;
 	

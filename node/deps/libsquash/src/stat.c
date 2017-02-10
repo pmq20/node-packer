@@ -12,13 +12,13 @@ int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 {
 	sqfs_err error;
 	sqfs_inode node;
-	bool found;
+	short found;
 	
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 	if (SQFS_OK != error) {
 		return -1;
 	}
-	error = sqfs_lookup_path_inner(fs, &node, path, &found, true);
+	error = sqfs_lookup_path_inner(fs, &node, path, &found, 1);
 	if (SQFS_OK != error) {
 		return -1;
 	}
@@ -38,7 +38,7 @@ int squash_lstat(sqfs *fs, const char *path, struct stat *buf)
 {
 	sqfs_err error;
 	sqfs_inode node;
-	bool found;
+	short found;
 
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 	if (SQFS_OK != error) {

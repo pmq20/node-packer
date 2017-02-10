@@ -31,7 +31,7 @@
 #include "squash/stack.h"
 
 typedef struct {
-	bool dir_end;
+	short dir_end;
 	sqfs_dir_entry entry;
 	char *path;
 	
@@ -59,9 +59,9 @@ void sqfs_traverse_close(sqfs_traverse *trv);
 /* Get the next item in the traversal. An item may be:
    - A directory entry, in which case trv->entry will be filled
 	 - A marker that a directory is finished, in which case trv->dir_end will
-     be true.
-   Returns false if there are no more items. */
-bool sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err);
+     be 1.
+   Returns 0 if there are no more items. */
+short sqfs_traverse_next(sqfs_traverse *trv, sqfs_err *err);
 
 /* Don't recurse into the directory just returned. */
 sqfs_err sqfs_traverse_prune(sqfs_traverse *trv);

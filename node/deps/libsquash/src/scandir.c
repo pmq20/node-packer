@@ -12,14 +12,14 @@
 
 typedef int(*qsort_compar)(const void *, const void *);
 
-int squash_scandir(sqfs *fs, const char *dirname, struct dirent ***namelist,
-	int (*select)(const struct dirent *),
-	int (*compar)(const struct dirent **, const struct dirent **))
+int squash_scandir(sqfs *fs, const char *dirname, struct SQUASH_DIRENT ***namelist,
+	int (*select)(const struct SQUASH_DIRENT *),
+	int (*compar)(const struct SQUASH_DIRENT **, const struct SQUASH_DIRENT **))
 {
 	SQUASH_DIR * openeddir = 0;
 	size_t n = 0;
-	struct dirent **list = NULL;
-	struct dirent *ent = 0 ,*p = 0;
+	struct SQUASH_DIRENT **list = NULL;
+	struct SQUASH_DIRENT *ent = 0 ,*p = 0;
 
 	if((dirname == NULL) || (namelist == NULL))
 		return -1;
@@ -29,7 +29,7 @@ int squash_scandir(sqfs *fs, const char *dirname, struct dirent ***namelist,
 		return -1;
 
 
-	list = (struct dirent **)malloc(MAX_DIR_ENT*sizeof(struct dirent *));
+	list = (struct SQUASH_DIRENT **)malloc(MAX_DIR_ENT*sizeof(struct SQUASH_DIRENT *));
 
 
 	while(( ent = squash_readdir(openeddir)) != NULL)
@@ -37,9 +37,9 @@ int squash_scandir(sqfs *fs, const char *dirname, struct dirent ***namelist,
 		if( select && !select(ent))
 			continue;
 
-		p = (struct dirent *)malloc(sizeof(struct dirent));
+		p = (struct SQUASH_DIRENT *)malloc(sizeof(struct SQUASH_DIRENT));
 
-		memcpy((void *)p,(void *)ent,sizeof(struct dirent));
+		memcpy((void *)p,(void *)ent,sizeof(struct SQUASH_DIRENT));
 		list[n] = p;
 
 		n++;
@@ -52,14 +52,14 @@ int squash_scandir(sqfs *fs, const char *dirname, struct dirent ***namelist,
 	squash_closedir(openeddir);
 
 	//realloc the array
-	*namelist = realloc((void *)list,n*sizeof(struct dirent *));
+	*namelist = realloc((void *)list,n*sizeof(struct SQUASH_DIRENT *));
 	if(*namelist == NULL)
 		*namelist = list;
 
 
 	//sort the array
 	if(compar)
-		qsort((void *)*namelist,n,sizeof(struct dirent *),(qsort_compar)compar);
+		qsort((void *)*namelist,n,sizeof(struct SQUASH_DIRENT *),(qsort_compar)compar);
 
 	return n;
 

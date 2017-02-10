@@ -34,12 +34,13 @@ ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufs
 ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize)
 {
 	sqfs_err error;
-	assert(buf && path && fs);
-
 	sqfs_inode node;
+	short found;
+
+	assert(buf && path && fs);
 	memset(&node, 0, sizeof(sqfs_inode));
 
-	bool found = false;
+	found = 0;
 
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 	if(SQFS_OK != error)

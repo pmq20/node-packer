@@ -23,6 +23,7 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <Shlwapi.h>
 #else
 #include <sys/param.h>
 #include <sys/uio.h>
@@ -60,20 +61,17 @@ short enclose_io_is_path_w(wchar_t *pathname);
 short enclose_io_is_relative_w(wchar_t *pathname);
 
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	\
-			sqfs_name enclose_io_expanded; \
-			size_t enclose_io_cwd_len = strlen(enclose_io_cwd); \
-			memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
-			size_t memcpy_len = strlen(path); \
+                        enclose_io_cwd_len = strlen(enclose_io_cwd); \
+                        memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
+			memcpy_len = strlen(path); \
 			if (SQUASHFS_NAME_LEN - enclose_io_cwd_len < memcpy_len) { memcpy_len = SQUASHFS_NAME_LEN - enclose_io_cwd_len; } \
 			memcpy(&enclose_io_expanded[enclose_io_cwd_len], (path), memcpy_len); \
 			enclose_io_expanded[enclose_io_cwd_len + memcpy_len] = '\0'
 
 //TODO maybe use WideCharToMultiByte
 #define W_ENCLOSE_IO_PATH_CONVERT(path) \
-			sqfs_name enclose_io_converted_storage; \
-			char *enclose_io_converted = (char *)enclose_io_converted_storage; \
-			char *enclose_io_i; \
-			size_t enclose_io_converted_length = wcstombs(enclose_io_converted_storage, (path), SQUASHFS_NAME_LEN); \
+                        enclose_io_converted = (char *)enclose_io_converted_storage; \
+                        enclose_io_converted_length = wcstombs(enclose_io_converted_storage, (path), SQUASHFS_NAME_LEN); \
 			if (strnlen(enclose_io_converted_storage, 4) >= 4 && (0 == strncmp(enclose_io_converted_storage, "\\\\?\\", 4) || 0 == strncmp(enclose_io_converted_storage, "//?/", 4))) { \
 				if (strnlen(enclose_io_converted_storage, 6) >= 6 && ':' == enclose_io_converted_storage[5]) { \
 					enclose_io_converted += 6; \
@@ -116,7 +114,8 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #include "enclose_io_winapi.h"
 
-int enclose_io_wopen(const wchar_t *pathname, int flags, int mode);
+int enclose_io__open(const char *pathname, int flags);
+int enclose_io__wopen(const wchar_t *pathname, int flags, int mode);
 int enclose_io_open_osfhandle(intptr_t osfhandle, int flags);
 intptr_t enclose_io_get_osfhandle(int fd);
 int enclose_io_wchdir(const wchar_t *path);
@@ -192,19 +191,47 @@ EncloseIOReadFile(
 	LPOVERLAPPED lpOverlapped
 );
 
+BOOL
+EncloseIOGetHandleInformation(
+    HANDLE hObject,
+    LPDWORD lpdwFlags
+);
+
+DWORD
+EncloseIOGetFileType(
+        HANDLE hFile
+);
+
+HANDLE
+EncloseIOFindFirstFileW(
+        LPCWSTR lpFileName,
+        LPWIN32_FIND_DATAW lpFindFileData
+);
+
+BOOL
+EncloseIOFindNextFileW(
+        HANDLE hFindFile,
+        LPWIN32_FIND_DATAW lpFindFileData
+);
+
+BOOL
+EncloseIOFindClose(
+        HANDLE hFindFile
+);
+
 #else
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);
 DIR * enclose_io_opendir(const char *filename);
 int enclose_io_closedir(DIR *dirp);
-struct dirent * enclose_io_readdir(DIR *dirp);
+struct SQUASH_DIRENT * enclose_io_readdir(DIR *dirp);
 long enclose_io_telldir(DIR *dirp);
 void enclose_io_seekdir(DIR *dirp, long loc);
 void enclose_io_rewinddir(DIR *dirp);
 int enclose_io_dirfd(DIR *dirp);
-int enclose_io_scandir(const char *dirname, struct dirent ***namelist,
-	int(*select)(const struct dirent *),
-	int(*compar)(const struct dirent **, const struct dirent **));
+int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
+	int(*select)(const struct SQUASH_DIRENT *),
+	int(*compar)(const struct SQUASH_DIRENT **, const struct SQUASH_DIRENT **));
 #endif // !_WIN32
 
 #endif

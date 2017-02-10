@@ -24,8 +24,6 @@ test_script:
 
     call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64_x86
 
-    cmake --version
-
     python --version
 
     mksquashfs -version

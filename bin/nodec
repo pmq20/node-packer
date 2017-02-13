@@ -27,7 +27,7 @@ Example:
   git clone --depth 1 https://github.com/jashkenas/coffeescript.git
   cd coffeescript
   nodec bin/coffee
-  ./a.out
+  ./a.out (or a.exe on Windows)
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/pmq20/node-compiler

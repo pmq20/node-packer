@@ -48,4 +48,4 @@ On Linux, you could install Node.js Compiler like this:
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
-    ./a.out
+    ./a.out (or a.exe on Windows)

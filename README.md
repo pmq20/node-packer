@@ -9,6 +9,8 @@ http://enclose.io
 
 ## Nightly Builds: Feb 10, 2017
 
+### United States Mirror
+
 | Operating System | Architecture | Download Link                                 |
 |:----------------:|:------------:|-----------------------------------------------|
 |      Windows     |      x86     | http://enclose.io/2017feb10/nodec.exe         |

@@ -2,7 +2,7 @@
 
 Compiling your Node.js application into a single executable.
 
-http://nodec.enclose.io
+http://enclose.io
 
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)

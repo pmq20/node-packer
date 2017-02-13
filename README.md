@@ -17,9 +17,13 @@ http://enclose.io
 
 On Windows, you could just download Node.js Compiler `nodec.exe` and run it from the Visual Studio command line.
 
-On macOS, you could install Node.js Compiler like this: `sudo curl http://enclose.io/2017feb10/nodec-darwin-x64 > /usr/local/bin/nodec && chmod +x /usr/local/bin/nodec && nodec`
+On macOS, you could install Node.js Compiler like this:
 
-On Linux, you could install Node.js Compiler like this: `sudo curl http://enclose.io/2017feb10/nodec-linux-x64 > /usr/local/bin/nodec && chmod +x /usr/local/bin/nodec && nodec`
+    sudo curl http://enclose.io/2017feb10/nodec-darwin-x64 > /usr/local/bin/nodec && chmod +x /usr/local/bin/nodec && nodec
+
+On Linux, you could install Node.js Compiler like this:
+
+    sudo curl http://enclose.io/2017feb10/nodec-linux-x64 > /usr/local/bin/nodec && chmod +x /usr/local/bin/nodec && nodec
 
 ## Usage
 

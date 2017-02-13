@@ -9,7 +9,7 @@ http://enclose.io
 
 ## Nightly Builds: Feb 10, 2017
 
-### United States Mirror
+### United States mirror
 
 | Operating System | Architecture | Download Link                                 |
 |:----------------:|:------------:|-----------------------------------------------|

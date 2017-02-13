@@ -28,7 +28,7 @@ http://enclose.io
 
 ## Install
 
-On Windows, you could just download `nodec.exe` and run it from the Visual Studio command line.
+On Windows, you could just download `nodec.exe` and run it from the Visual Studio Command Prompt.
 
 On macOS, you could download and install into your system directory like this:
 

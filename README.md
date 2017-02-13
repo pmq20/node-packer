@@ -7,15 +7,21 @@ http://nodec.enclose.io
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
-## Download
+## Nightly Builds: Feb 10, 2017
 
-| Operating System | Architecture | Link                                                           |
+| Operating System | Architecture | URL                                                            |
 |:----------------:|:------------:|----------------------------------------------------------------|
 |      Windows     |      x86     | http://enclose.io/pmq20/node-compiler/nodec-master.exe         |
 |       macOS      |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-darwin-x64  |
 |       Linux      |     x86-64   | http://enclose.io/pmq20/node-compiler/nodec-master-linux-x64   |
 
-On macOS and Linux, you need to execute `chmod +x` on the downloaded file.
+On Windows, you could just download the exe file and run it from the command line.
+
+On macOS and Linux, you could install Node.js Compiler like this,
+
+    sudo curl [URL] > /usr/local/bin/nodec
+    chmod +x /usr/local/bin/nodec
+    nodec
 
 ## Usage
 

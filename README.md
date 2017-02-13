@@ -15,7 +15,7 @@ http://enclose.io
 |       macOS      |     x86-64   | http://enclose.io/2017feb10/nodec-darwin-x64  |
 |       Linux      |     x86-64   | http://enclose.io/2017feb10/nodec-linux-x64   |
 
-On Windows, you could just download [the exe file](http://enclose.io/2017feb10/nodec.exe) and run it from the Visual Studio command line.
+On Windows, you could just download `nodec.exe` and run it from the Visual Studio command line.
 
 On macOS, you could install Node.js Compiler like this:
 

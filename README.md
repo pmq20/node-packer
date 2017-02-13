@@ -9,21 +9,32 @@ http://enclose.io
 
 ## Nightly Builds: Feb 10, 2017
 
-| Operating System | Architecture | URL                                           |
+| Operating System | Architecture | Download Link                                 |
 |:----------------:|:------------:|-----------------------------------------------|
 |      Windows     |      x86     | http://enclose.io/2017feb10/nodec.exe         |
 |       macOS      |     x86-64   | http://enclose.io/2017feb10/nodec-darwin-x64  |
 |       Linux      |     x86-64   | http://enclose.io/2017feb10/nodec-linux-x64   |
 
-On Windows, you could just download Node.js Compiler `nodec.exe` and run it from the Visual Studio command line.
+### 中国北京镜像
 
-On macOS, you could install Node.js Compiler like this:
+|      操作系统     |      架构     | 下载链接                                                                    |
+|:----------------:|:------------:|---------------------------------------------------------------------------|
+|      Windows     |      x86     | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec.exe         |
+|       macOS      |     x86-64   | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec-darwin-x64  |
+|       Linux      |     x86-64   | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec-linux-x64   |
+
+
+## Install
+
+On Windows, you could just download `nodec.exe` and run it from the Visual Studio command line.
+
+On macOS, you could download and install into your system directory like this:
 
     sudo curl http://enclose.io/2017feb10/nodec-darwin-x64 > /usr/local/bin/nodec
     chmod +x /usr/local/bin/nodec
     nodec
 
-On Linux, you could install Node.js Compiler like this:
+On Linux, you could download and install into your system directory like this:
 
     sudo curl http://enclose.io/2017feb10/nodec-linux-x64 > /usr/local/bin/nodec
     chmod +x /usr/local/bin/nodec

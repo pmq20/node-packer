@@ -19,7 +19,7 @@ On Windows, you could just download the exe file and run it from the command lin
 
 On macOS and Linux, you could install Node.js Compiler like this,
 
-    sudo curl [URL] > /usr/local/bin/nodec
+    sudo curl [Nightly Build URL] > /usr/local/bin/nodec
     chmod +x /usr/local/bin/nodec
     nodec
 

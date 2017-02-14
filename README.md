@@ -62,3 +62,7 @@ On Linux, you could download and install into your system directory like this:
     cd coffeescript
     nodec bin/coffee
     ./a.out (or a.exe on Windows)
+
+## See Also
+
+[Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS implementation that can be easily linked and embedded within your application.

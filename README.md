@@ -65,4 +65,4 @@ On Linux, you could download and install into your system directory like this:
 
 ## See Also
 
-[Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS implementation that can be easily linked and embedded within your application.
+- [Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS implementation that can be easily linked and embedded within your application.

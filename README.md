@@ -7,38 +7,25 @@ http://enclose.io
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
-## Nightly Builds: Feb 10, 2017
-
-### Virginia, United States mirror
+## Nightly Builds: Feb 15, 2017
 
 | Operating System | Architecture | Download Link                                 |
 |:----------------:|:------------:|-----------------------------------------------|
-|      Windows     |      x86     | http://enclose.io/2017feb10/nodec.exe         |
-|       macOS      |     x86-64   | http://enclose.io/2017feb10/nodec-darwin-x64  |
-|       Linux      |     x86-64   | http://enclose.io/2017feb10/nodec-linux-x64   |
-
-### 中国北京镜像
-
-|      操作系统     |      架构     | 下载链接                                                                    |
-|:----------------:|:------------:|---------------------------------------------------------------------------|
-|      Windows     |      x86     | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec.exe         |
-|       macOS      |     x86-64   | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec-darwin-x64  |
-|       Linux      |     x86-64   | http://enclose-io.oss-cn-beijing.aliyuncs.com/2017feb10/nodec-linux-x64   |
-
-
-## Install
+|      Windows     |      x86     | http://enclose.io/2017feb15/nodec.exe         |
+|       macOS      |     x86-64   | http://enclose.io/2017feb15/nodec-darwin-x64  |
+|       Linux      |     x86-64   | http://enclose.io/2017feb15/nodec-linux-x64   |
 
 On Windows, you could just download `nodec.exe` and run it from the Visual Studio Command Prompt.
 
 On macOS, you could download and install into your system directory like this:
 
-    sudo curl http://enclose.io/2017feb10/nodec-darwin-x64 > /usr/local/bin/nodec
+    sudo curl http://enclose.io/2017feb15/nodec-darwin-x64 > /usr/local/bin/nodec
     chmod +x /usr/local/bin/nodec
     nodec
 
 On Linux, you could download and install into your system directory like this:
 
-    sudo curl http://enclose.io/2017feb10/nodec-linux-x64 > /usr/local/bin/nodec
+    sudo curl http://enclose.io/2017feb15/nodec-linux-x64 > /usr/local/bin/nodec
     chmod +x /usr/local/bin/nodec
     nodec
 

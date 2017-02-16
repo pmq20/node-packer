@@ -29,7 +29,7 @@ http://enclose.io
       -d, --tmpdir=DIR                 Speicifies the directory for temporary files
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
-          --npm=FILE                   Speifices the path of npm
+          --npm=FILE                   Specifies the path of npm
           --npm-package=NAME           Downloads and compiles the specified npm package
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --debug                      Enable debug mode

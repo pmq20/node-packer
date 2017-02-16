@@ -299,7 +299,10 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node)
 				error = sqfs_lookup_path(fs, node, buf_link, &found);
 				if (SQFS_OK != error) {
 					return error;
-				}
+				} else if (!found) {
+				        errno = ENOENT;
+				        return SQFS_ERR;
+                                }
 			} else { // is Relative Path
 				size_t pos = strlen(base_path) - 1;
 				// find the last /  "/a/b/cb"
@@ -317,7 +320,10 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node)
 				error = sqfs_lookup_path(fs, node, new_path, &found);
 				if (SQFS_OK != error) {
 					return error;
-				}
+				} else if (!found) {
+				        errno = ENOENT;
+				        return SQFS_ERR;
+                                }
 			}
 
 			inode_num++;

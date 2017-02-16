@@ -18,8 +18,8 @@ http://enclose.io
 ## Install
 
 - Windows: download the `nodec.exe` and run it from the Visual Studio Command Prompt
-- macOS: `sudo curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64 --output /usr/local/bin/nodec && sudo chmod +x /usr/local/bin/nodec`
-- Linux: `sudo curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64 --output /usr/local/bin/nodec && sudo chmod +x /usr/local/bin/nodec`
+- macOS: `curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64 > nodec && chmod +x nodec`
+- Linux: `curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64 > nodec && chmod +x nodec`
 
 ## Usage
 

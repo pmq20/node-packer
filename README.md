@@ -31,13 +31,15 @@ On Linux, you could download and install into your system directory like this:
 
 ## Usage
 
-    nodec [...OPTIONS..] ENTRANCE
+    nodec [OPTION]... ENTRANCE
       -r, --root=DIR                   Speicifies the path to the root of the application
       -o, --output=FILE                Speicifies the path of the output file
       -d, --tmpdir=DIR                 Speicifies the directory for temporary files
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
           --npm=FILE                   Speifices the path of npm
+          --npm-package=NAME           Downloads and compiles the specified npm package
+          --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --debug                      Enable debug mode
       -v, --version                    Prints the version of nodec and exit
           --node-version               Prints the version of the Node.js runtime and exit

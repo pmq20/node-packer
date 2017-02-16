@@ -17,7 +17,7 @@ Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_vers
 Compiling your Node.js application into a single executable.
 
 Usage:
-  nodec [...OPTIONS..] ENTRANCE
+  nodec [OPTION]... ENTRANCE
 
 }.strip
 
@@ -69,6 +69,14 @@ OptionParser.new do |opts|
 
   opts.on("--npm=FILE", "Speifices the path of npm") do |file|
     options[:npm] = file
+  end
+
+  opts.on("--npm-package=NAME", "Downloads and compiles the specified npm package") do |name|
+    options[:npm_package] = name
+  end
+
+  opts.on("--npm-package-version=VER", "Downloads and compiles the specified version of the npm package") do |ver|
+    options[:npm_package_version] = ver
   end
 
   opts.on("--debug", "Enable debug mode") do

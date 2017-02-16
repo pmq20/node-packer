@@ -6,6 +6,7 @@
 require "compiler/constants"
 require "compiler/error"
 require "compiler/utils"
+require "compiler/npm"
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
@@ -78,6 +79,12 @@ class Compiler
 
     @options[:tmpdir] ||= File.expand_path("nodec", Dir.tmpdir)
     @options[:tmpdir] = File.expand_path(@options[:tmpdir])
+    
+    if @options[:npm_package]
+      @options[:npm_package_version] ||= 'latest'
+      npm = ::Compiler::Npm.new(@options)
+      @entrance = npm.get_entrance(@entrance)
+    end
   end
 
   def init_tmpdir

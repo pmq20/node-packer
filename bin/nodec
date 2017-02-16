@@ -47,15 +47,15 @@ end
 OptionParser.new do |opts|
   opts.banner = USAGE
 
-  opts.on("-rDIR", "--root=DIR", "Speicifies the path to the root of the application") do |dir|
+  opts.on("-rDIR", "--root=DIR", "Specifies the path to the root of the application") do |dir|
     options[:root] = dir
   end
 
-  opts.on("-oFILE", "--output=FILE", "Speicifies the path of the output file") do |file|
+  opts.on("-oFILE", "--output=FILE", "Specifies the path of the output file") do |file|
     options[:output] = file
   end
 
-  opts.on("-dDIR", "--tmpdir=DIR", "Speicifies the directory for temporary files") do |dir|
+  opts.on("-dDIR", "--tmpdir=DIR", "Specifies the directory for temporary files") do |dir|
     options[:tmpdir] = dir
   end
 

@@ -24,9 +24,9 @@ http://enclose.io
 ## Usage
 
     nodec [OPTION]... ENTRANCE
-      -r, --root=DIR                   Speicifies the path to the root of the application
-      -o, --output=FILE                Speicifies the path of the output file
-      -d, --tmpdir=DIR                 Speicifies the directory for temporary files
+      -r, --root=DIR                   Specifies the path to the root of the application
+      -o, --output=FILE                Specifies the path of the output file
+      -d, --tmpdir=DIR                 Specifies the directory for temporary files
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
           --npm=FILE                   Specifies the path of npm

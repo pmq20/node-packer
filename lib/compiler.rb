@@ -6,7 +6,7 @@
 require "compiler/constants"
 require "compiler/error"
 require "compiler/utils"
-require "compiler/npm"
+require "compiler/npm_package"
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
@@ -43,22 +43,26 @@ class Compiler
     @entrance = entrance
 
     init_options
-    init_entrance
+    init_entrance_and_root
     init_tmpdir
   end
 
-  def init_entrance
-    # Important to expand_path; otherwiser the while would be erroneous
-    @entrance = File.expand_path(@entrance)
-    raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
-    if @options[:root]
-      @root = File.expand_path(@options[:root])
+  def init_entrance_and_root
+    if @npm_package
+      @root = @npm_package.work_dir
     else
-      @root = File.dirname(@entrance)
-      # this while has to correspond with the expand_path above
-      while !File.exist?(File.expand_path('./package.json', @root))
-        break if '/' == @root
-        @root = File.expand_path('..', @root)
+      # Important to expand_path; otherwiser the while would be erroneous
+      @entrance = File.expand_path(@entrance)
+      raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
+      if @options[:root]
+        @root = File.expand_path(@options[:root])
+      else
+        @root = File.dirname(@entrance)
+        # this while has to correspond with the expand_path above
+        while !File.exist?(File.expand_path('./package.json', @root))
+          break if '/' == @root
+          @root = File.expand_path('..', @root)
+        end
       end
     end
     unless File.exist?(File.expand_path('./package.json', @root))
@@ -82,13 +86,14 @@ class Compiler
     
     if @options[:npm_package]
       @options[:npm_package_version] ||= 'latest'
-      npm = ::Compiler::Npm.new(@options)
-      @entrance = npm.get_entrance(@entrance)
+      @npm_package = NpmPackage.new(@options)
     end
   end
 
   def init_tmpdir
-    if @options[:tmpdir].include? @root
+    @options[:tmpdir] = File.expand_path(@options[:tmpdir])
+    @root = File.expand_path(@root)
+    if !@npm_package && (@options[:tmpdir].include? @root)
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
     Utils.mkdir_p(@options[:tmpdir])
@@ -120,7 +125,14 @@ class Compiler
 
     Utils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
+      Utils.run("#{Utils.escape @options[:npm]} -v")
       Utils.run("#{Utils.escape @options[:npm]} install")
+      if @npm_package
+        @entrance = @npm_package.get_entrance(@entrance)
+        STDERR.puts "-> Setting entrance to #{@entrance}"
+      else
+        raise "@entrance should already be assigned at this point" unless @entrance.length > 0
+      end
     end
 
     Utils.chdir(@work_dir_inner) do
@@ -207,7 +219,7 @@ class Compiler
 
   def mempath(path)
     path = File.expand_path(path)
-    raise 'Logic error in mempath' unless @root == path[0...(@root.size)]
+    raise "path #{path} should start with #{@root}" unless @root == path[0...(@root.size)]
     "#{MEMFS}#{path[(@root.size)..-1]}"
   end
 

@@ -10,22 +10,24 @@ require 'json'
 require 'open3'
 
 class Compiler
-  class Npm
+  class NpmPackage
+    attr_reader :work_dir
+
     def initialize(options)
       @module_name = options[:npm_package]
       @module_version = options[:npm_package_version]
       @work_dir = File.expand_path("#{@module_name}-#{@module_version}", options[:tmpdir])
-      FileUtils.mkdir_p(@work_dir)
-      @package_path = File.join(@work_dir, "node_modules/#{@module_name}/package.json")
+      Utils.rm_rf(@work_dir)
+      Utils.mkdir_p(@work_dir)
+      @package_path = "node_modules/#{@module_name}/package.json"
       Utils.chdir(@work_dir) do
         File.open("package.json", "w") do |f|
           package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
           f.puts package
         end
-        Utils.run("#{options[:npm]} -v")
-        Utils.run("#{options[:npm]} install")
       end
     end
+
     def get_entrance(bin_name)
       @bin_name = bin_name
       unless File.exist?(@package_path)
@@ -42,6 +44,10 @@ class Compiler
         STDERR.puts "Using #{@bin_name} at #{@binaries[@bin_name]}"
       else
         raise Error, "No such binary: #{@bin_name}"
+      end
+      ret = File.expand_path("node_modules/#{@module_name}/#{@binaries[@bin_name]}")
+      unless File.exist?(ret)
+        raise Error, "Npm install failed to generate #{ret}"
       end
       return File.expand_path("node_modules/#{@module_name}/#{@binaries[@bin_name]}", @work_dir)
     end

@@ -7,27 +7,19 @@ http://enclose.io
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
-## Nightly Builds: Feb 16, 2017
+## Latest Release: v0.9.3
 
-| Operating System | Architecture | Download Link                                 |
-|:----------------:|:------------:|-----------------------------------------------|
-|      Windows     |      x86     | http://enclose.io/2017feb16/nodec.exe         |
-|       macOS      |     x86-64   | http://enclose.io/2017feb16/nodec-darwin-x64  |
-|       Linux      |     x86-64   | http://enclose.io/2017feb16/nodec-linux-x64   |
+| Operating System |  Arch.  | Download Link                                                                     |
+|:----------------:|:-------:|-----------------------------------------------------------------------------------|
+|      Windows     |   x86   | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec.exe         |
+|       macOS      |  x86-64 | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64  |
+|       Linux      |  x86-64 | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64   |
 
-On Windows, you could just download `nodec.exe` and run it from the Visual Studio Command Prompt.
+## Install
 
-On macOS, you could download and install into your system directory like this:
-
-    sudo curl http://enclose.io/2017feb16/nodec-darwin-x64 > /usr/local/bin/nodec
-    chmod +x /usr/local/bin/nodec
-    nodec
-
-On Linux, you could download and install into your system directory like this:
-
-    sudo curl http://enclose.io/2017feb16/nodec-linux-x64 > /usr/local/bin/nodec
-    chmod +x /usr/local/bin/nodec
-    nodec
+- Windows: download the `nodec.exe` and run it from the Visual Studio Command Prompt
+- macOS: `sudo curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64 --output /usr/local/bin/nodec && sudo chmod +x /usr/local/bin/nodec`
+- Linux: `sudo curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64 --output /usr/local/bin/nodec && sudo chmod +x /usr/local/bin/nodec`
 
 ## Usage
 

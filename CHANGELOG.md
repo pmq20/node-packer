@@ -2,7 +2,10 @@
 
 ## v0.9.3
 
+- distribute via binaries, i.e. nodec.exe, nodec-darwin-x64, and nodec-linux-x64
 - upgrade Node.js runtime to v7.5.0
+- upgrade libsquash to ___todo___
+- add --npm-package
 
 ## v0.9.2
 

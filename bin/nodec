@@ -10,9 +10,12 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "compiler"
 require 'optparse'
 
-USAGE = %Q{
-
+STDERR.puts %Q{
 Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_version})
+}.strip
+STDERR.puts
+
+USAGE = %Q{
 
 Compiling your Node.js application into a single executable.
 

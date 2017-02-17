@@ -249,8 +249,10 @@ EncloseIOReadFile(
         int ret;
 
 	if (sqf) {
-		// TODO the case of lpOverlapped
-		assert(NULL == lpOverlapped);
+		if (NULL != lpOverlapped) {
+                        squash_lseek(sqf->fd, lpOverlapped->Offset, SQUASH_SEEK_SET);
+                        assert(0 == lpOverlapped->OffsetHigh); // TODO support OffsetHigh
+                }
 		ret = squash_read(sqf->fd, lpBuffer, nNumberOfBytesToRead);
 		if (-1 == ret)
 		{

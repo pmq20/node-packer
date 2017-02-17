@@ -45,6 +45,16 @@ class Compiler
     init_options
     init_entrance_and_root
     init_tmpdir
+
+    STDERR.puts "Entrance: #{@entrance}"
+    STDERR.puts "Options: #{@options}"
+    STDERR.puts
+
+    Utils.mkdir_p(@options[:tmpdir])
+    @tmpdir_node = File.join(@options[:tmpdir], 'node')
+    unless Dir.exist?(@tmpdir_node)
+      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
+    end
   end
 
   def init_entrance_and_root
@@ -60,7 +70,7 @@ class Compiler
         @root = File.dirname(@entrance)
         # this while has to correspond with the expand_path above
         while !File.exist?(File.expand_path('./package.json', @root))
-          break if '/' == @root
+          break if @root == File.expand_path('..', @root)
           @root = File.expand_path('..', @root)
         end
       end
@@ -95,11 +105,6 @@ class Compiler
     @root = File.expand_path(@root)
     if !@npm_package && (@options[:tmpdir].include? @root)
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
-    end
-    Utils.mkdir_p(@options[:tmpdir])
-    @tmpdir_node = File.join(@options[:tmpdir], 'node')
-    unless Dir.exist?(@tmpdir_node)
-      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
     end
   end
 

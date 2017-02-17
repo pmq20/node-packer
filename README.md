@@ -9,19 +9,11 @@ http://enclose.io
 
 ## Download
 
-### Latest Release
-
-The latest release is v0.9.3, which was released on Feb 17, 2017.
-
 |    Operating System   |  Architecture | Download Link                                                                          |
 |:---------------------:|:-------------:|----------------------------------------------------------------------------------------|
 |        Windows        |      x86      | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec.exe/download         |
 |         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download  |
 |         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download   |
-
-### Previous Releases
-
-See https://sourceforge.net/projects/node-compiler/files
 
 ## Install
 

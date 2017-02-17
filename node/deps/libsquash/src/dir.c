@@ -278,16 +278,14 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 
 	sqfs_err error;
 	short found;
+	char base_path[SQUASHFS_PATH_LEN];
+	char new_path[SQUASHFS_PATH_LEN];
+	int inode_num;
+
 	if(strlen(path) > SQUASHFS_PATH_LEN){
 		errno = ENAMETOOLONG;
 		return SQFS_ERR;
 	}
-
-
-	char base_path[SQUASHFS_PATH_LEN];
-	char new_path[SQUASHFS_PATH_LEN];
-
-	int inode_num;
 
 	strncpy(base_path, path, SQUASHFS_PATH_LEN);
 	inode_num = 0;
@@ -322,7 +320,6 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				size_t pos = strlen(base_path) - 1;
 				// find the last /  "/a/b/cb"
 				while (base_path[pos--] != '/') { }
-
 
 				memcpy(new_path, base_path, pos + 2);
 				memcpy(new_path + pos + 2, buf_link, link_length);

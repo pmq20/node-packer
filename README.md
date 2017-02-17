@@ -9,11 +9,11 @@ http://enclose.io
 
 ## Latest Release: v0.9.3
 
-|    OS   |  Arch  | Download Link                                                                     |
-|:-------:|:------:|-----------------------------------------------------------------------------------|
-| Windows |  x86   | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec.exe         |
-|  macOS  | x86-64 | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64  |
-|  Linux  | x86-64 | https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64   |
+|    Operating System   |  Architecture | Download Link                                                                          |
+|:---------------------:|:-------------:|----------------------------------------------------------------------------------------|
+|        Windows        |      x86      | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec.exe/download         |
+|         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download  |
+|         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download   |
 
 ## Install
 

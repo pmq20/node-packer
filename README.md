@@ -7,7 +7,9 @@ http://enclose.io
 [![Travis CI status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 
-## Latest Release: v0.9.3
+## Download
+
+### Latest Release
 
 |    Operating System   |  Architecture | Download Link                                                                          |
 |:---------------------:|:-------------:|----------------------------------------------------------------------------------------|
@@ -15,19 +17,23 @@ http://enclose.io
 |         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download  |
 |         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download   |
 
+### Previous Releases
+
+See https://sourceforge.net/projects/node-compiler/files
+
 ## Install
 
 On Windows, download the executable `nodec.exe` and run it from the Visual Studio Command Prompt.
 
 On macOS,
 
-    curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-darwin-x64 > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
 On Linux,
 
-    curl https://github.com/pmq20/node-compiler/releases/download/v0.9.3/nodec-linux-x64 > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
 

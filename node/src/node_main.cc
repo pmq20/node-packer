@@ -15,11 +15,13 @@ int wmain(int argc, wchar_t *wargv[]) {
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);
-  enclose_io_fs = (sqfs *)malloc(sizeof(sqfs));
+  enclose_io_fs = (sqfs *)calloc(sizeof(sqfs), 1);
   assert(NULL != enclose_io_fs);
-  memset(enclose_io_fs, 0, sizeof(sqfs));
   enclose_io_ret = sqfs_open_image(enclose_io_fs, enclose_io_memfs, 0);
   assert(SQFS_OK == enclose_io_ret);
+  #ifdef ENCLOSE_IO_ROOT_ALIAS
+  enclose_io_fs->root_alias = ENCLOSE_IO_ROOT_ALIAS;
+  #endif
 
   #ifdef ENCLOSE_IO_ENTRANCE
   int new_argc = argc;

@@ -182,6 +182,12 @@ class Compiler
         f.puts '#include "enclose_io_unix.h"'
         if Gem.win_platform?
           f.puts "#define ENCLOSE_IO_ENTRANCE L#{mempath(@entrance).inspect}"
+          # TODO remove this dirty hack some day
+          squash_root_alias = @work_dir
+          squash_root_alias += '/' unless '/' == squash_root_alias[-1]
+          raise 'logic error' unless ':/' == squash_root_alias[1..2]
+          squash_root_alias = "/cygdrive/#{squash_root_alias[0].downcase}/#{squash_root_alias[3..-1]}"
+          f.puts "#define ENCLOSE_IO_ROOT_ALIAS #{squash_root_alias.inspect}"
         else
           f.puts "#define ENCLOSE_IO_ENTRANCE #{mempath(@entrance).inspect}"
         end

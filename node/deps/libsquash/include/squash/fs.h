@@ -45,6 +45,7 @@ struct sqfs {
 	sqfs_cache frag_cache;
 	sqfs_cache blockidx;
 	sqfs_decompressor decompressor;
+        const char *root_alias;
 };
 
 struct sqfs_inode {

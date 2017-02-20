@@ -167,6 +167,31 @@ int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
 	}
 }
 
+ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset)
+{
+	if (SQUASH_VALID_VFD(d)) {
+		off_t lseek_off, backup_off;
+		ssize_t read_ssize;
+		backup_off = squash_lseek(d, 0, SQUASH_SEEK_CUR);
+		if (-1 == backup_off) {
+			return -1;
+		}
+		lseek_off = squash_lseek(d, offset, SQUASH_SEEK_SET);
+		if (-1 == lseek_off) {
+			return -1;
+		}
+		read_ssize = squash_read(d, buf, nbyte);
+		if (-1 == read_ssize) {
+			return -1;
+		}
+		lseek_off = squash_lseek(d, backup_off, SQUASH_SEEK_SET);
+		assert(backup_off == lseek_off);
+		return read_ssize;
+	} else {
+		return pread(d, buf, nbyte, offset);
+	}
+}
+
 ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt)
 {
 	if (SQUASH_VALID_VFD(d)) {
@@ -326,31 +351,6 @@ ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 		return squash_read(fildes, buf, nbyte);
 	} else {
 		return read(fildes, buf, nbyte);
-	}
-}
-
-ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset)
-{
-	if (SQUASH_VALID_VFD(d)) {
-		off_t lseek_off, backup_off;
-		ssize_t read_ssize;
-		backup_off = squash_lseek(d, 0, SQUASH_SEEK_CUR);
-		if (-1 == backup_off) {
-			return -1;
-		}
-		lseek_off = squash_lseek(d, offset, SQUASH_SEEK_SET);
-		if (-1 == lseek_off) {
-			return -1;
-		}
-		read_ssize = squash_read(d, buf, nbyte);
-		if (-1 == read_ssize) {
-			return -1;
-		}
-		lseek_off = squash_lseek(d, backup_off, SQUASH_SEEK_SET);
-		assert(backup_off == lseek_off);
-		return read_ssize;
-	} else {
-		return pread(d, buf, nbyte, offset);
 	}
 }
 

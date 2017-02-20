@@ -11,7 +11,6 @@
 #ifndef __cplusplus
 
 #define chdir(...)	enclose_io_chdir(__VA_ARGS__)
-#define pread(...)	enclose_io_pread(__VA_ARGS__)
 
 #ifndef RUBY_EXPORT
 	#define getcwd(...)	enclose_io_getcwd(__VA_ARGS__)
@@ -39,6 +38,7 @@
 	#define rewinddir(...)	enclose_io_rewinddir(__VA_ARGS__)
 	#define dirfd(...)	enclose_io_dirfd(__VA_ARGS__)
 	#define scandir(...)	enclose_io_scandir(__VA_ARGS__)
+	#define pread(...)	enclose_io_pread(__VA_ARGS__)
 	#define readv(...)	enclose_io_readv(__VA_ARGS__)
 
 #endif // !_WIN32

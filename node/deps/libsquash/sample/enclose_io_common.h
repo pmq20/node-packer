@@ -108,8 +108,6 @@ int enclose_io_fstat(int fildes, struct stat *buf);
 int enclose_io_open(int nargs, const char *pathname, int flags, ...);
 int enclose_io_close(int fildes);
 ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte);
-ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset);
-ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt);
 off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #ifdef _WIN32
@@ -234,6 +232,8 @@ int enclose_io_dirfd(DIR *dirp);
 int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
 	int(*select)(const struct SQUASH_DIRENT *),
 	int(*compar)(const struct SQUASH_DIRENT **, const struct SQUASH_DIRENT **));
+ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset);
+ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt);
 #endif // !_WIN32
 
 #endif

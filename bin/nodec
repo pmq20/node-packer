@@ -62,7 +62,7 @@ OptionParser.new do |opts|
     options[:tmpdir] = dir
   end
 
-  opts.on("--clean", "Cleans temporary files before compiling") do
+  opts.on("-c", "--clean", "Cleans temporary files before compiling") do
     options[:clean] = true
   end
 
@@ -74,7 +74,7 @@ OptionParser.new do |opts|
     options[:vcbuild_args] = args
   end
 
-  opts.on("--npm=FILE", "Specifies the path of npm") do |file|
+  opts.on('-nFILE', "--npm=FILE", "Specifies the path of npm") do |file|
     options[:npm] = file
   end
 

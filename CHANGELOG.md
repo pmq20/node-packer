@@ -1,11 +1,18 @@
 # Node.js Compiler Changelog
 
+## v0.9.4
+
+- add option --clean to clean temporary files before compiling
+
 ## v0.9.3
 
 - distribute via binaries, i.e. nodec.exe, nodec-darwin-x64, and nodec-linux-x64
 - upgrade Node.js runtime to v7.5.0
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/ea07909623b1e1f43e67acc3c7880dea6ba5854a
 - add --npm-package
+
+中文注解：接入 SquashFS 和 libsquash 后已经可以正常编译 Windows 下的某些包，编译后轻测可用。
+其他平台和其他包还没来得及测试，可能还存在一些问题。
 
 ## v0.9.2
 

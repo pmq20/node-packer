@@ -50,6 +50,7 @@ class Compiler
     STDERR.puts "Options: #{@options}"
     STDERR.puts
 
+    Utils.rm_rf(@options[:tmpdir]) if @options[:clean]
     Utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], 'node')
     unless Dir.exist?(@tmpdir_node)

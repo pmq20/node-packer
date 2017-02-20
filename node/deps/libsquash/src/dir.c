@@ -318,13 +318,48 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				}
 			} else { // is Relative Path
 				size_t pos = strlen(base_path) - 1;
+				char *dot_dot, *dot_dot_left;
 				// find the last /  "/a/b/cb"
 				while (base_path[pos--] != '/') { }
 
 				memcpy(new_path, base_path, pos + 2);
 				memcpy(new_path + pos + 2, buf_link, link_length);
 				new_path[pos + 2 + link_length] = '\0';
-				//find node from /
+				
+				// we might get a new_path like /a/b/../../c/d
+				// in which case we need to interpret dot-dot's
+				while ((dot_dot = strstr(new_path, "/../"))) {
+					dot_dot_left = dot_dot - 1;
+					do {
+						if (dot_dot_left < new_path) {
+							errno = ENOENT;
+							return SQFS_ERR;
+						}
+						if ('/' == *dot_dot_left) {
+							break;
+						}
+						--dot_dot_left;
+					} while (1);
+					memmove(dot_dot_left, dot_dot + 3, strlen(dot_dot + 3) + 1);
+				}
+				// what about /a/b/c/d/..
+				if (strlen(new_path) >= 3 &&
+				    0 == strcmp(new_path + strlen(new_path) - 3, "/..")) {
+					dot_dot_left = new_path + strlen(new_path) - 4;
+					do {
+						if (dot_dot_left < new_path) {
+							errno = ENOENT;
+							return SQFS_ERR;
+						}
+						if ('/' == *dot_dot_left) {
+							break;
+						}
+						--dot_dot_left;
+					} while (1);
+					*dot_dot_left = '\0';
+				}
+				
+				// find node from /
 				error = sqfs_inode_get(fs, node, sqfs_inode_root(fs));
 				if (SQFS_OK != error) {
 					return error;
@@ -372,7 +407,6 @@ sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *path,
 	while (*path) {
 		const char *name;
 		size_t size;
-		short dfound;
 		
 		/* Find next path component */
 		while (*path == '/') /* skip leading slashes */
@@ -382,12 +416,17 @@ sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *path,
 		while (*path && *path != '/')
 			++path;
 		size = path - name;
-		if (size == 0) /* we're done */
+		if (0 == size) {
+			/* we're done */
 			break;
-		
-		if ((err = sqfs_dir_lookup(fs, inode, name, size, &entry, &dfound)))
+		}
+		if (1 == size && '.' == *name) {
+			/* interpret dot */
+			continue;
+		}
+		if ((err = sqfs_dir_lookup(fs, inode, name, size, &entry, found)))
 			return err;
-		if (!dfound)
+		if (!(*found))
 			return SQFS_OK; /* not found */
 		
 		if ((err = sqfs_inode_get(fs, inode, sqfs_dentry_inode(&entry))))

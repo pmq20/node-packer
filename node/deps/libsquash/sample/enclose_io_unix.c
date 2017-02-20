@@ -166,6 +166,29 @@ int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
 		return scandir(dirname, namelist, select, compar);
 	}
 }
+
+ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt)
+{
+	if (SQUASH_VALID_VFD(d)) {
+		int i;
+		ssize_t i_ssize;
+		ssize_t ret = 0;
+		for (i = 0; i < iovcnt; ++i) {
+			i_ssize = squash_read(d, iov[i].iov_base, iov[i].iov_len);
+			if (-1 == i_ssize) {
+				return -1;
+			} else if (0 == i_ssize) {
+				break;
+			} else {
+				ret += i_ssize;
+			}
+		}
+		return ret;
+	} else {
+		return readv(d, iov, iovcnt);
+	}
+}
+
 #endif // !_WIN32
 
 int enclose_io_chdir_helper(const char *path)
@@ -303,6 +326,31 @@ ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 		return squash_read(fildes, buf, nbyte);
 	} else {
 		return read(fildes, buf, nbyte);
+	}
+}
+
+ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset)
+{
+	if (SQUASH_VALID_VFD(d)) {
+		off_t lseek_off, backup_off;
+		ssize_t read_ssize;
+		backup_off = squash_lseek(d, 0, SQUASH_SEEK_CUR);
+		if (-1 == backup_off) {
+			return -1;
+		}
+		lseek_off = squash_lseek(d, offset, SQUASH_SEEK_SET);
+		if (-1 == lseek_off) {
+			return -1;
+		}
+		read_ssize = squash_read(d, buf, nbyte);
+		if (-1 == read_ssize) {
+			return -1;
+		}
+		lseek_off = squash_lseek(d, backup_off, SQUASH_SEEK_SET);
+		assert(backup_off == lseek_off);
+		return read_ssize;
+	} else {
+		return pread(d, buf, nbyte, offset);
 	}
 }
 

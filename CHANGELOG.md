@@ -3,7 +3,8 @@
 ## v0.9.4
 
 - add option --clean to clean temporary files before compiling
-- upgrade libsquash to https://github.com/pmq20/libsquash/commit/f89d88ed9c59e5726874ed35b528a15d20ec1188
+- fix #18: https://github.com/pmq20/node-compiler/issues/18
+- upgrade libsquash to https://github.com/pmq20/libsquash/commit/e8441d3f0dd10af5e3b56bd89ec7097f303ae2d3
 
 ## v0.9.3
 

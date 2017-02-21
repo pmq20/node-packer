@@ -46,15 +46,21 @@ ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize) {
 
     error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
     if (SQFS_OK != error)
-        return -1;
+    	goto failure;
     error = sqfs_lookup_path(fs, &node, path, &found);
     if (SQFS_OK != error)
-        return -1;
+    	goto failure;
 
     if (found) {
         return squash_readlink_inode(fs, &node, buf, bufsize);
     } else {
         errno = ENOENT;
-        return -1;
+	goto failure;
     }
+
+failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
+	return -1;
 }

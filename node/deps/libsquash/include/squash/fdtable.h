@@ -26,7 +26,6 @@ struct squash_fdtable {
 	size_t end;
 };
 
-extern int squash_fd_dup_from;
 extern struct squash_fdtable squash_global_fdtable;
 
 #endif /* end of include guard: FDTABLE_H_60F13289 */

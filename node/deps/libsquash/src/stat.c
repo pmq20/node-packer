@@ -16,22 +16,27 @@ int squash_stat(sqfs *fs, const char *path, struct stat *buf)
 	
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 	error = sqfs_lookup_path_inner(fs, &node, path, &found, 1);
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 	if (!found) {
 		errno = ENOENT;
-		return -1;
+		goto failure;
 	}
 	error = sqfs_stat(fs, &node, buf);
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 
 	return 0;
+failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
+	return -1;
 }
 
 int squash_lstat(sqfs *fs, const char *path, struct stat *buf)
@@ -42,22 +47,27 @@ int squash_lstat(sqfs *fs, const char *path, struct stat *buf)
 
 	error = sqfs_inode_get(fs, &node, sqfs_inode_root(fs));
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 	error = sqfs_lookup_path(fs, &node, path, &found);
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 	if (!found) {
 		errno = ENOENT;
-		return -1;
+		goto failure;
 	}
 	error = sqfs_stat(fs, &node, buf);
 	if (SQFS_OK != error) {
-		return -1;
+		goto failure;
 	}
 
 	return 0;
+failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
+	return -1;
 }
 
 int squash_fstat(int vfd, struct stat *buf)

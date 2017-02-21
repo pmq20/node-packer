@@ -9,7 +9,6 @@
 #include "squash.h"
 #include <stdlib.h>
 
-int squash_fd_dup_from;
 struct squash_fdtable squash_global_fdtable;
 MUTEX squash_global_fdtable_mutex;
 
@@ -52,51 +51,54 @@ int squash_open(sqfs *fs, const char *path)
 	file->pos = 0;
 
 	// get a dummy fd from the system
-	fd = dup(squash_fd_dup_from);
+	fd = dup(0);
 	if (-1 == fd) {
 		goto failure;
 	}
 	// make sure that our global fd table is large enough
 	nr = fd + 1;
 
-    MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_fdtable_mutex);
 	if (squash_global_fdtable.nr < nr)
 	{
 		// we secretly extend the requested size
 		// in order to minimize the number of realloc calls
 		nr *= 10;
 		squash_global_fdtable.fds = realloc(squash_global_fdtable.fds,
-						nr * sizeof(struct squash_file *));
+						    nr * sizeof(struct squash_file *));
 		if (NULL == squash_global_fdtable.fds)
 		{
 			errno = ENOMEM;
 			goto failure;
 		}
 		memset(squash_global_fdtable.fds + squash_global_fdtable.nr,
-			0,
-			(nr - squash_global_fdtable.nr) * sizeof(struct squash_file *));
+		       0,
+		       (nr - squash_global_fdtable.nr) * sizeof(struct squash_file *));
 		squash_global_fdtable.nr = nr;
 	}
-    MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
 
 	// construct a handle (mainly) for win32
 	handle = (int *)malloc(sizeof(int));
 	if (NULL == handle) {
 		errno = ENOMEM;
-                goto failure;
+		goto failure;
 	}
 	*handle = fd;
 	file->payload = (void *)handle;
-        
+
 	// insert the fd into the global fd table
 	file->fd = fd;
-    MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_fdtable_mutex);
 	squash_global_fdtable.fds[fd] = file;
 	squash_global_fdtable.end = fd + 1;
-    MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
 	return fd;
 
 failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
 	free(file);
 	return -1;
 }
@@ -134,17 +136,22 @@ ssize_t squash_read(int vfd, void *buf, sqfs_off_t nbyte)
 	if (!SQUASH_VALID_VFD(vfd))
 	{
 		errno = EBADF;
-		return -1;
+		goto failure;
 	}
 	file = squash_global_fdtable.fds[vfd];
 
 	error = sqfs_read_range(file->fs, &file->node, file->pos, &nbyte, buf);
 	if (SQFS_OK != error)
 	{
-		return -1;
+		goto failure;
 	}
 	file->pos += nbyte;
 	return nbyte;
+failure:
+	if (!errno) {
+		errno = EBADF;
+	}
+	return -1;
 }
 
 off_t squash_lseek(int vfd, off_t offset, int whence)

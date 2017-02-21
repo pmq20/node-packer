@@ -26,13 +26,13 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	dir->fs = fs;
 	dir->entries = NULL;
 	dir->nr = 0;
-        dir->filename = strdup(filename);
+	dir->filename = strdup(filename);
 	dir->fd = squash_open(fs, filename);
 	if (-1 == dir->fd)
 	{
 		goto failure;
 	}
-    handle = (int *)(squash_global_fdtable.fds[dir->fd]->payload);
+	handle = (int *)(squash_global_fdtable.fds[dir->fd]->payload);
 
 	MUTEX_LOCK(&squash_global_fdtable_mutex);
 	free(handle);
@@ -63,6 +63,9 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	}
 	return dir;
 failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
 	free(dir);
 	return NULL;
 }
@@ -73,13 +76,16 @@ int squash_closedir(SQUASH_DIR *dirp)
 
 	assert(-1 != dirp->fd);
 	free(dirp->entries);
-        free(dirp->filename);
-        if (dirp->payload) {
-                free(dirp->payload);
-        }
+	free(dirp->filename);
+	if (dirp->payload) {
+		free(dirp->payload);
+	}
 	// dirp itself will be freed by squash_close as `payload`
 	ret = squash_close(dirp->fd);
 	if (0 != ret) {
+		if (!errno) {
+			errno = EBADF;
+		}
 		return -1;
 	}
 	return 0;

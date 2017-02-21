@@ -31,6 +31,11 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 		sqfs_name enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
@@ -39,6 +44,7 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		return squash_open(enclose_io_fs, enclose_io_converted);
 	} else {
@@ -74,6 +80,7 @@ int enclose_io_wchdir(const wchar_t *path)
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(path);
 		return enclose_io_chdir_helper(enclose_io_converted);
 	} else {
@@ -184,6 +191,11 @@ EncloseIOCreateFileW(
 		sqfs_name enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return EncloseIOCreateFileWHelper(enclose_io_expanded);
@@ -192,6 +204,7 @@ EncloseIOCreateFileW(
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		return EncloseIOCreateFileWHelper(enclose_io_converted);
 	} else {
@@ -288,8 +301,13 @@ EncloseIOGetFileAttributesW(
 		sqfs_name enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		int ret;
 		struct stat buf;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
@@ -305,6 +323,7 @@ EncloseIOGetFileAttributesW(
 		size_t enclose_io_converted_length;
 		int ret;
 		struct stat buf;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
 		if (-1 == ret) {
@@ -349,6 +368,10 @@ EncloseIOGetFileAttributesExW(
 		sqfs_name enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		int ret;
 		struct stat buf;
 		WIN32_FILE_ATTRIBUTE_DATA *fa;
@@ -513,6 +536,11 @@ EncloseIOFindFirstFileW(
 		sqfs_name enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return EncloseIOFindFirstFileHelper(enclose_io_expanded, lpFindFileData);
@@ -521,6 +549,7 @@ EncloseIOFindFirstFileW(
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		return EncloseIOFindFirstFileHelper(enclose_io_converted, lpFindFileData);
 	} else {

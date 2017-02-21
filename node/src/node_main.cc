@@ -12,6 +12,8 @@ extern "C" {
 
 int wmain(int argc, wchar_t *wargv[]) {
   // ======= [Enclose.io Hack start] =========
+  squash_fd_dup_from = _wopen(wargv[0], _O_RDONLY);
+  assert(squash_fd_dup_from >= 0);
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);
@@ -88,6 +90,8 @@ int wmain(int argc, wchar_t *wargv[]) {
 // UNIX
 int main(int argc, char *argv[]) {
   // ======= [Enclose.io Hack start] =========
+  squash_fd_dup_from = open(argv[0], O_RDONLY);
+  assert(squash_fd_dup_from >= 0);
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);

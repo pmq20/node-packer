@@ -12,15 +12,10 @@
 
 int enclose_io__open(const char *pathname, int flags)
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-
 	if (enclose_io_cwd[0] && '/' != *pathname) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
 	} else if (enclose_io_is_path(pathname)) {
@@ -32,19 +27,18 @@ int enclose_io__open(const char *pathname, int flags)
 
 int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-
 	if (enclose_io_cwd[0] && enclose_io_is_relative_w(pathname)) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return squash_open(enclose_io_fs, enclose_io_expanded);
 	} else if (enclose_io_is_path_w(pathname)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		return squash_open(enclose_io_fs, enclose_io_converted);
 	} else {
@@ -75,12 +69,11 @@ intptr_t enclose_io_get_osfhandle(int fd)
 
 int enclose_io_wchdir(const wchar_t *path)
 {
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-
 	if (enclose_io_is_path_w(path)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		W_ENCLOSE_IO_PATH_CONVERT(path);
 		return enclose_io_chdir_helper(enclose_io_converted);
 	} else {
@@ -187,19 +180,18 @@ EncloseIOCreateFileW(
 	HANDLE hTemplateFile
 )
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-
 	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return EncloseIOCreateFileWHelper(enclose_io_expanded);
 	} else if (enclose_io_is_path_w(lpFileName)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		return EncloseIOCreateFileWHelper(enclose_io_converted);
 	} else {
@@ -292,17 +284,12 @@ EncloseIOGetFileAttributesW(
     LPCWSTR lpFileName
 )
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-        int ret;
-        struct stat buf;
-
 	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		int ret;
+		struct stat buf;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
@@ -312,6 +299,12 @@ EncloseIOGetFileAttributesW(
 		}
 		return EncloseIOGetFileAttributesHelper(&buf);
 	} else if (enclose_io_is_path_w(lpFileName)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+		int ret;
+		struct stat buf;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
 		if (-1 == ret) {
@@ -352,18 +345,14 @@ EncloseIOGetFileAttributesExW(
     LPVOID lpFileInformation
 )
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-        int ret;
-        struct stat buf;
-        WIN32_FILE_ATTRIBUTE_DATA *fa;
-
 	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		int ret;
+		struct stat buf;
+		WIN32_FILE_ATTRIBUTE_DATA *fa;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		assert(GetFileExInfoStandard == fInfoLevelId);
@@ -376,6 +365,14 @@ EncloseIOGetFileAttributesExW(
                 EncloseIOFillWin32FileAttributeDataHelper(fa, &buf);
 		return 1;
 	} else if (enclose_io_is_path_w(lpFileName)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+		int ret;
+		struct stat buf;
+		WIN32_FILE_ATTRIBUTE_DATA *fa;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		assert(GetFileExInfoStandard == fInfoLevelId);
 		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
@@ -512,26 +509,25 @@ EncloseIOFindFirstFileW(
         LPWIN32_FIND_DATAW lpFindFileData
 )
 {
-        sqfs_name enclose_io_expanded;
-        size_t enclose_io_cwd_len;
-        size_t memcpy_len;
-        sqfs_name enclose_io_converted_storage;
-        char *enclose_io_converted;
-        char *enclose_io_i;
-        size_t enclose_io_converted_length;
-
 	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		sqfs_name enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return EncloseIOFindFirstFileHelper(enclose_io_expanded, lpFindFileData);
 	} else if (enclose_io_is_path_w(lpFileName)) {
+		sqfs_name enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		return EncloseIOFindFirstFileHelper(enclose_io_converted, lpFindFileData);
 	} else {
-                return FindFirstFileW(
-                        lpFileName,
-                        lpFindFileData
-                );
+		return FindFirstFileW(
+			lpFileName,
+			lpFindFileData
+		);
 	}
 }
 

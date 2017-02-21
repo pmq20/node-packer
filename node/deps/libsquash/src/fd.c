@@ -9,6 +9,7 @@
 #include "squash.h"
 #include <stdlib.h>
 
+int squash_fd_dup_from;
 struct squash_fdtable squash_global_fdtable;
 MUTEX squash_global_fdtable_mutex;
 
@@ -51,7 +52,10 @@ int squash_open(sqfs *fs, const char *path)
 	file->pos = 0;
 
 	// get a dummy fd from the system
-	fd = dup(0);
+	fd = dup(squash_fd_dup_from);
+	if (-1 == fd) {
+		goto failure;
+	}
 	// make sure that our global fd table is large enough
 	nr = fd + 1;
 

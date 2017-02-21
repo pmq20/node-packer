@@ -220,7 +220,8 @@ sqfs_err sqfs_blockidx_init(sqfs_cache *cache) {
 		SQUASHFS_META_SLOTS, &sqfs_blockidx_dispose);
 }
 
-sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
+/* Fill *out with all the block-index entries for this file */
+static sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
 		sqfs_blockidx_entry **out) {
 	size_t blocks;	/* Number of blocks in the file */
 	size_t md_size; /* Amount of metadata necessary to hold the blocksizes */
@@ -271,35 +272,43 @@ sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
 	return SQFS_OK;
 }
 
-sqfs_err sqfs_blockidx_blocklist(sqfs *fs, sqfs_inode *inode,
-		sqfs_blocklist *bl, sqfs_off_t start) {
+sqfs_err sqfs_blockidx_blocklist(sqfs *fs, sqfs_inode *inode, sqfs_blocklist *bl, sqfs_off_t start) {
 	size_t block, metablock, skipped;
 	sqfs_blockidx_entry *blockidx, **bp;
 	sqfs_cache_idx idx;
-	
+	sqfs_err ret;
+
+	MUTEX_LOCK(&fs->blockidx.mutex);
+
 	sqfs_blocklist_init(fs, inode, bl);
 	block = (size_t)(start / fs->sb->block_size);
 	if (block > bl->remain) { /* fragment */
 		bl->remain = 0;
-		return SQFS_OK;
+		ret = SQFS_OK;
+		goto exit;
 	}
 	
 	/* How many MD-blocks do we want to skip? */
 	metablock = (bl->cur.offset + block * sizeof(sqfs_blocklist_entry))
 		/ SQUASHFS_METADATA_SIZE;
-	if (metablock == 0)
-		return SQFS_OK; /* no skip needed, don't want an index */
-	if (!sqfs_blockidx_indexable(fs, inode))
-		return SQFS_OK; /* too small to index */
+	if (metablock == 0) {
+		ret = SQFS_OK; /* no skip needed, don't want an index */
+		goto exit;
+	}
+	if (!sqfs_blockidx_indexable(fs, inode)) {
+		ret = SQFS_OK; /* too small to index */
+		goto exit;
+	}
 	
 	/* Get the index, creating it if necessary */
 	idx = inode->base.inode_number + 1; /* zero means invalid index */
 	if ((bp = sqfs_cache_get(&fs->blockidx, idx))) {
 		blockidx = *bp;
 	} else {
-		sqfs_err err = sqfs_blockidx_add(fs, inode, &blockidx);
-		if (err)
-			return err;
+		ret = sqfs_blockidx_add(fs, inode, &blockidx);
+		if (ret) {
+			goto exit;
+		}
 	}
 	
 	skipped = (metablock * SQUASHFS_METADATA_SIZE / sizeof(sqfs_blocklist_entry))
@@ -311,6 +320,10 @@ sqfs_err sqfs_blockidx_blocklist(sqfs *fs, sqfs_inode *inode,
 	bl->remain -= skipped;
 	bl->pos = (uint64_t)skipped * fs->sb->block_size;
 	bl->block = blockidx->data_block;
-	return SQFS_OK;
+	ret = SQFS_OK;
+
+exit:
+	MUTEX_UNLOCK(&fs->blockidx.mutex);
+	return ret;
 }
 

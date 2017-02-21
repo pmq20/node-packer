@@ -52,7 +52,7 @@ sqfs_compression_type sqfs_compression(sqfs *fs) {
 }
 
 sqfs_err sqfs_init(sqfs *fs, sqfs_fd_t fd, size_t offset) {
-	sqfs_err err = SQFS_OK;
+	sqfs_err err;
 	memset(fs, 0, sizeof(*fs));
 	
 	fs->fd = fd;
@@ -148,7 +148,7 @@ error:
 
 sqfs_err sqfs_md_block_read(sqfs *fs, sqfs_off_t pos, size_t *data_size,
 		sqfs_block **block) {
-	sqfs_err err = SQFS_OK;
+	sqfs_err err;
 	uint16_t hdr;
 	short compressed;
 	uint16_t size;
@@ -177,35 +177,45 @@ sqfs_err sqfs_data_block_read(sqfs *fs, sqfs_off_t pos, uint32_t hdr,
 }
 
 sqfs_err sqfs_md_cache(sqfs *fs, sqfs_off_t *pos, sqfs_block **block) {
-	sqfs_block_cache_entry *entry = sqfs_cache_get(
-		&fs->md_cache, *pos);
+	sqfs_block_cache_entry *entry;
+	sqfs_err ret;
+	MUTEX_LOCK(&fs->md_cache.mutex);
+
+	entry = sqfs_cache_get(&fs->md_cache, *pos);
 	if (!entry) {
-		sqfs_err err = SQFS_OK;
 		entry = sqfs_cache_add(&fs->md_cache, *pos);
-		/* fprintf(stderr, "MD BLOCK: %12llx\n", (long long)*pos); */
-		err = sqfs_md_block_read(fs, *pos,
-			&entry->data_size, &entry->block);
-		if (err)
-			return err;
+		ret = sqfs_md_block_read(fs, *pos, &entry->data_size, &entry->block);
+		if (ret) {
+			goto exit;
+		}
 	}
 	*block = entry->block;
 	*pos += entry->data_size;
-	return SQFS_OK;
+	ret = SQFS_OK;
+exit:
+	MUTEX_UNLOCK(&fs->md_cache.mutex);
+	return ret;
 }
 
 sqfs_err sqfs_data_cache(sqfs *fs, sqfs_cache *cache, sqfs_off_t pos,
 		uint32_t hdr, sqfs_block **block) {
-	sqfs_block_cache_entry *entry = sqfs_cache_get(cache, pos);
+	sqfs_block_cache_entry *entry;
+	sqfs_err ret;
+	MUTEX_LOCK(&cache->mutex);
+
+	entry = sqfs_cache_get(cache, pos);
 	if (!entry) {
-		sqfs_err err = SQFS_OK;
 		entry = sqfs_cache_add(cache, pos);
-		err = sqfs_data_block_read(fs, pos, hdr,
-			&entry->block);
-		if (err)
-			return err;
+		ret = sqfs_data_block_read(fs, pos, hdr, &entry->block);
+		if (ret) {
+			goto exit;
+		}
 	}
 	*block = entry->block;
-	return SQFS_OK;
+	ret = SQFS_OK;
+exit:
+	MUTEX_UNLOCK(&cache->mutex);
+	return ret;
 }
 
 void sqfs_block_dispose(sqfs_block *block) {
@@ -267,7 +277,7 @@ sqfs_err sqfs_id_get(sqfs *fs, uint16_t idx, sqfs_id_t *id) {
 sqfs_err sqfs_readlink(sqfs *fs, sqfs_inode *inode, char *buf, size_t *size) {
 	size_t want;
 	sqfs_md_cursor cur;
-	sqfs_err err = SQFS_OK;
+	sqfs_err err;
 	if (!S_ISLNK(inode->base.mode))
 		return SQFS_ERR;
 
@@ -291,7 +301,7 @@ int sqfs_export_ok(sqfs *fs) {
 
 sqfs_err sqfs_export_inode(sqfs *fs, sqfs_inode_num n, sqfs_inode_id *i) {
 	uint64_t r;
-	sqfs_err err = SQFS_OK;
+	sqfs_err err;
 	
 	if (!sqfs_export_ok(fs))
 		return SQFS_UNSUP;
@@ -323,7 +333,7 @@ static void sqfs_decode_dev(sqfs_inode *i, uint32_t rdev) {
 
 sqfs_err sqfs_inode_get(sqfs *fs, sqfs_inode *inode, sqfs_inode_id id) {
 	sqfs_md_cursor cur;
-	sqfs_err err = SQFS_OK;
+	sqfs_err err;
 	
 	memset(inode, 0, sizeof(*inode));
 	

@@ -71,10 +71,6 @@ typedef struct {
 
 sqfs_err sqfs_blockidx_init(sqfs_cache *cache);
 
-/* Fill *out with all the block-index entries for this file */
-sqfs_err sqfs_blockidx_add(sqfs *fs, sqfs_inode *inode,
-	sqfs_blockidx_entry **out);
-
 /* Get a blocklist fast-forwarded to the correct location */
 sqfs_err sqfs_blockidx_blocklist(sqfs *fs, sqfs_inode *inode,
 	sqfs_blocklist *bl, sqfs_off_t start);

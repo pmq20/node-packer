@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "squash/mutex.h"
 
 #ifdef _WIN32
 	#include "squash/windows.h"

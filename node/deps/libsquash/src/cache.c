@@ -34,6 +34,8 @@ sqfs_err sqfs_cache_init(sqfs_cache *cache, size_t size, size_t count,
 	cache->count = count;
 	cache->dispose = dispose;
 	cache->next = 0;
+
+	MUTEX_INIT(&cache->mutex);
 	
 	cache->idxs = calloc(count, sizeof(sqfs_cache_idx));
 	cache->buf = calloc(count, size);
@@ -49,6 +51,8 @@ static void *sqfs_cache_entry(sqfs_cache *cache, size_t i) {
 }
 
 void sqfs_cache_destroy(sqfs_cache *cache) {
+	MUTEX_DESTORY(&cache->mutex);
+
 	if (cache->buf && cache->idxs) {
 		size_t i;
 		for (i = 0; i < cache->count; ++i) {
@@ -62,11 +66,15 @@ void sqfs_cache_destroy(sqfs_cache *cache) {
 
 void *sqfs_cache_get(sqfs_cache *cache, sqfs_cache_idx idx) {
 	size_t i;
+	void *ret = NULL;
 	for (i = 0; i < cache->count; ++i) {
-		if (cache->idxs[i] == idx)
-			return sqfs_cache_entry(cache, i);
+		if (cache->idxs[i] == idx){
+			ret = sqfs_cache_entry(cache, i);
+			break;
+		}
+
 	}
-	return NULL;
+	return ret;
 }
 
 void *sqfs_cache_add(sqfs_cache *cache, sqfs_cache_idx idx) {

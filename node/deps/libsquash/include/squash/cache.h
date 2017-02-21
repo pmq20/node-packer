@@ -46,6 +46,8 @@ typedef struct {
 	
 	size_t size, count;
 	size_t next; /* next block to evict */
+	
+	MUTEX mutex;
 } sqfs_cache;
 
 sqfs_err sqfs_cache_init(sqfs_cache *cache, size_t size, size_t count,

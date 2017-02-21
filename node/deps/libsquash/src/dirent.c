@@ -33,8 +33,12 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 		goto failure;
 	}
     handle = (int *)(squash_global_fdtable.fds[dir->fd]->payload);
+
+	MUTEX_LOCK(&squash_global_fdtable_mutex);
 	free(handle);
 	squash_global_fdtable.fds[dir->fd]->payload = (void *)dir;
+	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+
 	dir->actual_nr = 0;
 	dir->loc = 0;
 	error = sqfs_inode_get(fs, &dir->node, sqfs_inode_root(fs));

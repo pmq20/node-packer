@@ -31,7 +31,7 @@ First install the prerequisites:
 
 Then download the executable `nodec.exe` and run it from the VC++/VS Command Prompt.
 
-### macOS,
+### macOS
 
 First install the prerequisites:
 
@@ -49,7 +49,7 @@ Then,
     chmod +x nodec
     ./nodec
 
-### Linux,
+### Linux
 
 First install the prerequisites:
 

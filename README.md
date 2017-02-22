@@ -29,9 +29,9 @@ First install the prerequisites:
     including the Community edition (remember to select
     "Common Tools for Visual C++ 2015" feature during installation).
 
-Then download the executable `nodec.exe` and run it from the VC++/VS Command Prompt.
+Then download the executable `nodec.exe` and run it from the VC++ or VS Command Prompt.
 
-### macOS,
+### macOS
 
 First install the prerequisites:
 
@@ -49,7 +49,7 @@ Then,
     chmod +x nodec
     ./nodec
 
-### Linux,
+### Linux
 
 First install the prerequisites:
 

@@ -17,15 +17,49 @@ http://enclose.io
 
 ## Install
 
-On Windows, download the executable `nodec.exe` and run it from the Visual Studio Command Prompt.
+### Windows
 
-On macOS,
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
+* [Python 2.6 or 2.7](https://www.python.org/downloads/)
+* One of:
+  * [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+  * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
+    including the Community edition (remember to select
+    "Common Tools for Visual C++ 2015" feature during installation).
+
+Then download the executable `nodec.exe` and run it from the VC++/VS Command Prompt.
+
+### macOS,
+
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](http://squashfs.sourceforge.net/): `brew install squashfs`
+* [Xcode](https://developer.apple.com/xcode/download/)
+  * You also need to install the `Command Line Tools` via Xcode. You can find
+    this under the menu `Xcode -> Preferences -> Downloads`
+  * This step will install `gcc` and the related toolchain containing `make`
+* Python 2.6 or 2.7
+* GNU Make 3.81 or newer
+
+Then,
 
     curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
-On Linux,
+### Linux,
+
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
+* `gcc` and `g++` 4.8 or newer, or
+* `clang` and `clang++` 3.4 or newer
+* Python 2.6 or 2.7
+* GNU Make 3.81 or newer
+
+Then,
 
     curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download > nodec
     chmod +x nodec

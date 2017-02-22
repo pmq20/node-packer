@@ -17,9 +17,9 @@ int enclose_io__open(const char *pathname, int flags)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
-		return squash_open(enclose_io_fs, enclose_io_expanded);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
 	} else if (enclose_io_is_path(pathname)) {
-		return squash_open(enclose_io_fs, pathname);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, pathname));
 	} else {
                 return _open(pathname, flags);
 	}
@@ -38,7 +38,7 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		return squash_open(enclose_io_fs, enclose_io_expanded);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
 	} else if (enclose_io_is_path_w(pathname)) {
 		sqfs_name enclose_io_converted_storage;
 		char *enclose_io_converted;
@@ -46,7 +46,7 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
-		return squash_open(enclose_io_fs, enclose_io_converted);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_converted));
 	} else {
 		return _wopen(pathname, flags, mode);
 	}
@@ -80,9 +80,23 @@ int enclose_io_wchdir(const wchar_t *path)
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
+                struct stat st;
+                int ret;
 
 		W_ENCLOSE_IO_PATH_CONVERT(path);
-		return enclose_io_chdir_helper(enclose_io_converted);
+                ret = squash_stat(enclose_io_fs, enclose_io_converted, &st);
+                if (-1 == ret) {
+        		ENCLOSE_IO_SET_LAST_ERROR;
+                        return -1;
+                }
+                if (S_ISDIR(st.st_mode)) {
+                        enclose_io_chdir_helper(enclose_io_converted);
+                        return 0;
+                } else {
+                        errno = ENOENT;
+        		ENCLOSE_IO_SET_LAST_ERROR;
+                        return -1;
+                }
 	} else {
 		int ret = _wchdir(path);
 		if (0 == ret) {
@@ -125,6 +139,8 @@ int enclose_io_fstati64(int fildes, struct _stati64 *buf)
         struct stat st;
 	if (SQUASH_VALID_VFD(fildes)) {
 		if (NULL == buf) {
+                        errno = EINVAL;
+                        ENCLOSE_IO_SET_LAST_ERROR;
 			return -1;
 		}
 		st = SQUASH_VFD_FILE(fildes)->st;
@@ -148,7 +164,7 @@ int enclose_io_fstati64(int fildes, struct _stati64 *buf)
 __int64 enclose_io_lseeki64(int fildes, __int64 offset, int whence)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		return squash_lseek(fildes, offset, whence);
+		ENCLOSE_IO_DOS_RETURN(squash_lseek(fildes, offset, whence));
 	} else {
 		return _lseeki64(fildes, offset, whence);
 	}
@@ -167,12 +183,20 @@ static HANDLE EncloseIOCreateFileWHelper(char * incoming)
 	}
 	if (S_ISDIR(buf.st_mode)) {
 		dirp = squash_opendir(enclose_io_fs, incoming);
-		assert(NULL != dirp);
-                return (HANDLE)(dirp);
+		if (NULL != dirp) {
+                        return (HANDLE)(dirp);
+                } else {
+                        ENCLOSE_IO_SET_LAST_ERROR;
+                        return INVALID_HANDLE_VALUE;
+                }
 	} else {
 		ret = squash_open(enclose_io_fs, incoming);
-		assert(ret >= 0);
-                return (HANDLE)(squash_global_fdtable.fds[ret]->payload);
+		if (ret >= 0) {
+                        return (HANDLE)(squash_global_fdtable.fds[ret]->payload);
+                } else {
+                        ENCLOSE_IO_SET_LAST_ERROR;
+                        return INVALID_HANDLE_VALUE;
+                }
 	}
 }
 
@@ -227,11 +251,20 @@ EncloseIOCloseHandle(
 {
 	struct squash_file *sqf = squash_find_entry((void *)hObject);
 	if (sqf) {
+                int ret;
 		if (S_ISDIR(sqf->st.st_mode)) {
-			squash_closedir((SQUASH_DIR *)hObject);
+			ret = squash_closedir((SQUASH_DIR *)hObject);
+                        if (-1 == ret) {
+                                ENCLOSE_IO_SET_LAST_ERROR;
+                                return FALSE;
+                        }
 			return TRUE;
 		} else {
-			squash_close(*((int *)hObject));
+			ret = squash_close(*((int *)hObject));
+                        if (-1 == ret) {
+                                ENCLOSE_IO_SET_LAST_ERROR;
+                                return FALSE;
+                        }
 			return TRUE;
 		}
 	} else {
@@ -259,8 +292,7 @@ EncloseIOReadFile(
                         assert(0 == lpOverlapped->OffsetHigh); // TODO support OffsetHigh
                 }
 		ret = squash_read(sqf->fd, lpBuffer, nNumberOfBytesToRead);
-		if (-1 == ret)
-		{
+		if (-1 == ret) {
 			ENCLOSE_IO_SET_LAST_ERROR;
 			return FALSE;
 		}
@@ -439,8 +471,8 @@ EncloseIOGetFileType(
 )
 {
 	struct squash_file *sqf = squash_find_entry((void *)hFile);
-        struct stat st;
         if (sqf) {
+                struct stat st;
 		st = sqf->st;
                 if (S_ISCHR(st.st_mode)) {
                         return FILE_TYPE_CHAR;
@@ -516,7 +548,8 @@ EncloseIOFindFirstFileHelper(
         } while (!PathMatchSpecA(current_path, dup_incoming));
         free(current_path);
         if (NULL == mydirent) {
-                squash_closedir(dirp);
+                int ret = squash_closedir(dirp);
+                assert(0 == ret);
                 ENCLOSE_IO_SET_LAST_ERROR;
                 return INVALID_HANDLE_VALUE;
         }
@@ -576,7 +609,8 @@ EncloseIOFindNextFileW(
                 dirp = (SQUASH_DIR*)hFindFile;
                 current_path = (char *)malloc(strlen((char *)(dirp->payload)) + SQUASHFS_NAME_LEN + 1);
                 if (NULL == current_path) {
-                        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+                        errno = ENOMEM;
+                        ENCLOSE_IO_SET_LAST_ERROR;
                         return 0;
                 }
                 memcpy(current_path, dirp->filename, strlen(dirp->filename) + 1);
@@ -591,7 +625,9 @@ EncloseIOFindNextFileW(
                 } while (!PathMatchSpecA(current_path, (char *)(dirp->payload)));
                 free(current_path);
                 if (NULL == mydirent) {
+                        errno = ENOENT;
                         SetLastError(ERROR_NO_MORE_FILES);
+                        _doserrno = ERROR_NO_MORE_FILES;
                         return 0;
                 }
                 mbstowcs(lpFindFileData->cFileName, mydirent->d_name, sizeof(lpFindFileData->cFileName));
@@ -627,6 +663,60 @@ EncloseIOFindClose(
                         hFindFile
                 );
         }
+}
+
+BOOL
+EncloseIODeviceIoControl(
+        HANDLE hDevice,
+        DWORD dwIoControlCode,
+        LPVOID lpInBuffer,
+        DWORD nInBufferSize,
+        LPVOID lpOutBuffer,
+        DWORD nOutBufferSize,
+        LPDWORD lpBytesReturned,
+        LPOVERLAPPED lpOverlapped
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)hDevice);
+        int ret;
+
+	if (sqf) {
+                struct stat st;
+                sqfs_inode *node;
+
+                // TODO support more than FSCTL_GET_REPARSE_POINT
+                assert(dwIoControlCode == FSCTL_GET_REPARSE_POINT);
+		st = sqf->st;
+                if (!S_ISLNK(st.st_mode)) {
+                        errno = EINVAL;
+                        SetLastError(ERROR_NOT_A_REPARSE_POINT);
+                        _doserrno = ERROR_NOT_A_REPARSE_POINT;
+                        return FALSE;
+                }
+                ret = squash_readlink_inode(
+                        enclose_io_fs,
+                        &sqf->node,
+                        lpOutBuffer,
+                        nOutBufferSize
+                      );
+                if (-1 == ret) {
+                        ENCLOSE_IO_SET_LAST_ERROR;
+                        return FALSE;
+                }
+                *lpBytesReturned = ret;
+                return TRUE;
+	} else {
+                return DeviceIoControl(
+                        hDevice,
+                        dwIoControlCode,
+                        lpInBuffer,
+                        nInBufferSize,
+                        lpOutBuffer,
+                        nOutBufferSize,
+                        lpBytesReturned,
+                        lpOverlapped
+                );
+	}
 }
 
 #ifndef RUBY_EXPORT

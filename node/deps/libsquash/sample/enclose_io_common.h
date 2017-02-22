@@ -88,18 +88,37 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 #define ENCLOSE_IO_SET_LAST_ERROR do { \
 			if (ENOMEM == errno) { \
 				SetLastError(ERROR_NOT_ENOUGH_MEMORY); \
+                                _doserrno = ERROR_NOT_ENOUGH_MEMORY; \
 			} else if (ENOENT == errno) { \
 				SetLastError(ERROR_FILE_NOT_FOUND); \
+                                _doserrno = ERROR_FILE_NOT_FOUND; \
 			} else if (EBADF == errno) { \
 				SetLastError(ERROR_INVALID_HANDLE); \
+                                _doserrno = ERROR_INVALID_HANDLE; \
 			} else if (ENAMETOOLONG == errno) { \
 				SetLastError(ERROR_BUFFER_OVERFLOW); \
+                                _doserrno = ERROR_BUFFER_OVERFLOW; \
 			} else { \
 				SetLastError(ERROR_INVALID_FUNCTION); \
+                                _doserrno = ERROR_INVALID_FUNCTION; \
 			} \
 		} while (0)
 
-int enclose_io_chdir_helper(const char *path);
+#ifdef _WIN32
+#define ENCLOSE_IO_DOS_RETURN(statement) do { \
+                        int ret = (statement); \
+                        if (-1 == ret) { \
+                                ENCLOSE_IO_SET_LAST_ERROR; \
+                                return ret; \
+                        } else { \
+                                return ret; \
+                        } \
+                } while (0)
+#else
+#define ENCLOSE_IO_DOS_RETURN(statement) return (statement)
+#endif // _WIN32
+
+void enclose_io_chdir_helper(const char *path);
 int enclose_io_chdir(const char *path);
 char *enclose_io_getcwd(char *buf, size_t size);
 char *enclose_io_getwd(char *buf);
@@ -217,6 +236,18 @@ EncloseIOFindNextFileW(
 BOOL
 EncloseIOFindClose(
         HANDLE hFindFile
+);
+
+BOOL
+EncloseIODeviceIoControl(
+        HANDLE hDevice,
+        DWORD dwIoControlCode,
+        LPVOID lpInBuffer,
+        DWORD nInBufferSize,
+        LPVOID lpOutBuffer,
+        DWORD nOutBufferSize,
+        LPDWORD lpBytesReturned,
+        LPOVERLAPPED lpOverlapped
 );
 
 #else

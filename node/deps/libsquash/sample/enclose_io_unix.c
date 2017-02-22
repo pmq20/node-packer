@@ -196,33 +196,47 @@ ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt)
 
 #endif // !_WIN32
 
-int enclose_io_chdir_helper(const char *path)
+void enclose_io_chdir_helper(const char *path)
 {
-	struct stat st;
-	int ret = squash_stat(enclose_io_fs, path, &st);
-	if (0 == ret && S_ISDIR(st.st_mode)) {
-		size_t memcpy_len = strlen(path);
-		if (SQUASHFS_NAME_LEN - 1 < memcpy_len) {
-			memcpy_len = SQUASHFS_NAME_LEN - 1;
-		}
-		memcpy(enclose_io_cwd, path, memcpy_len);
-		while ('/' == enclose_io_cwd[memcpy_len - 1]) {
-			memcpy_len--;
-		}
-		enclose_io_cwd[memcpy_len] = '/';
-		enclose_io_cwd[memcpy_len + 1] = '\0';
-		return 0;
-	} else {
-		return -1;
-	}
+        size_t memcpy_len = strlen(path);
+        if (SQUASHFS_NAME_LEN - 1 < memcpy_len) {
+        	memcpy_len = SQUASHFS_NAME_LEN - 1;
+        }
+        memcpy(enclose_io_cwd, path, memcpy_len);
+        while ('/' == enclose_io_cwd[memcpy_len - 1]) {
+        	memcpy_len--;
+        }
+        enclose_io_cwd[memcpy_len] = '/';
+        enclose_io_cwd[memcpy_len + 1] = '\0';
 }
 
 int enclose_io_chdir(const char *path)
 {
 	if (enclose_io_is_path(path)) {
-		return enclose_io_chdir_helper(path);
+                struct stat st;
+                int ret;
+                
+                ret = squash_stat(enclose_io_fs, path, &st);
+                if (-1 == ret) {
+                        #ifdef _WIN32
+        		ENCLOSE_IO_SET_LAST_ERROR;
+                        #endif
+                        return -1;
+                }
+                if (S_ISDIR(st.st_mode)) {
+                        enclose_io_chdir_helper(path);
+                        return 0;
+                } else {
+                        errno = ENOENT;
+                        #ifdef _WIN32
+        		ENCLOSE_IO_SET_LAST_ERROR;
+                        #endif
+                        return -1;
+                }
 	} else {
-		int ret = chdir(path);
+		int ret;
+                
+                ret = chdir(path);
 		if (0 == ret) {
 			enclose_io_cwd[0] = '\0';
 		}
@@ -238,6 +252,9 @@ char *enclose_io_getcwd(char *buf, size_t size)
 			buf = malloc((memcpy_len + 1) * sizeof(char));
 			if (NULL == buf) {
 				errno = ENOMEM;
+                                #ifdef _WIN32
+                                ENCLOSE_IO_SET_LAST_ERROR;
+                                #endif
 				return NULL;
 			}
 		} else {
@@ -265,9 +282,9 @@ int enclose_io_stat(const char *path, struct stat *buf)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-		return squash_stat(enclose_io_fs, enclose_io_expanded, buf);
+		ENCLOSE_IO_DOS_RETURN(squash_stat(enclose_io_fs, enclose_io_expanded, buf));
 	} else if (enclose_io_is_path(path)) {
-		return squash_stat(enclose_io_fs, path, buf);
+		ENCLOSE_IO_DOS_RETURN(squash_stat(enclose_io_fs, path, buf));
 	} else {
 		return stat(path, buf);
 	}
@@ -276,7 +293,7 @@ int enclose_io_stat(const char *path, struct stat *buf)
 int enclose_io_fstat(int fildes, struct stat *buf)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		return squash_fstat(fildes, buf);
+		ENCLOSE_IO_DOS_RETURN(squash_fstat(fildes, buf));
 	} else {
 		return fstat(fildes, buf);
 	}
@@ -289,9 +306,9 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
-		return squash_open(enclose_io_fs, enclose_io_expanded);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
 	} else if (enclose_io_is_path(pathname)) {
-		return squash_open(enclose_io_fs, pathname);
+		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, pathname));
 	} else {
 		if (2 == nargs) {
 			return open(pathname, flags);
@@ -309,7 +326,7 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 int enclose_io_close(int fildes)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		return squash_close(fildes);
+		ENCLOSE_IO_DOS_RETURN(squash_close(fildes));
 	} else {
 		return close(fildes);
 	}
@@ -318,7 +335,7 @@ int enclose_io_close(int fildes)
 ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		return squash_read(fildes, buf, nbyte);
+		ENCLOSE_IO_DOS_RETURN(squash_read(fildes, buf, nbyte));
 	} else {
 		return read(fildes, buf, nbyte);
 	}
@@ -327,7 +344,7 @@ ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte)
 off_t enclose_io_lseek(int fildes, off_t offset, int whence)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		return squash_lseek(fildes, offset, whence);
+		ENCLOSE_IO_DOS_RETURN(squash_lseek(fildes, offset, whence));
 	} else {
 		return lseek(fildes, offset, whence);
 	}

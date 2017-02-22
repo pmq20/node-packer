@@ -13,8 +13,10 @@ ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufs
     size_t want = 0;
     sqfs_md_cursor cur;
 
-    if (!S_ISLNK(node->base.mode))
+    if (!S_ISLNK(node->base.mode)) {
+        errno = EINVAL;
         return -1;
+    }
 
     want = node->xtra.symlink_size;
 
@@ -28,8 +30,10 @@ ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufs
     }
     cur = node->next;
     error = sqfs_md_read(fs, &cur, buf, want);
-    if (SQFS_OK != error)
+    if (SQFS_OK != error) {
+        errno = EIO;
         return -1;
+    }
     buf[want] = '\0';
     return want;
 }

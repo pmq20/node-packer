@@ -23,11 +23,9 @@ First install the prerequisites:
 
 * [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
 * [Python 2.6 or 2.7](https://www.python.org/downloads/)
-* One of:
-  * [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
-  * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
-    including the Community edition (remember to select
-    "Common Tools for Visual C++ 2015" feature during installation).
+* [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
+  including the Community edition (remember to select
+  "Common Tools for Visual C++ 2015" feature during installation).
 
 Then download the executable `nodec.exe` and run it from the VC++ or VS Command Prompt.
 

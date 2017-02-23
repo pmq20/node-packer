@@ -16,9 +16,11 @@ class Compiler
       @module_name = options[:npm_package]
       @module_version = options[:npm_package_version]
       @work_dir = File.expand_path("#{@module_name}-#{@module_version}", options[:tmpdir])
+    end
+
+    def stuff_tmpdir
       Utils.rm_rf(@work_dir)
       Utils.mkdir_p(@work_dir)
-      @package_path = "node_modules/#{@module_name}/package.json"
       Utils.chdir(@work_dir) do
         File.open("package.json", "w") do |f|
           package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
@@ -28,6 +30,7 @@ class Compiler
     end
 
     def get_entrance(bin_name)
+      @package_path = "node_modules/#{@module_name}/package.json"
       @bin_name = bin_name
       unless File.exist?(@package_path)
         raise Error, "No package.json exist at #{@package_path}."

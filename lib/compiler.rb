@@ -56,19 +56,19 @@ class Compiler
   def init_entrance_and_root
     if @npm_package
       @root = @npm_package.work_dir
+      return
+    end
+    # Important to expand_path; otherwiser the while would be erroneous
+    @entrance = File.expand_path(@entrance)
+    raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
+    if @options[:root]
+      @root = File.expand_path(@options[:root])
     else
-      # Important to expand_path; otherwiser the while would be erroneous
-      @entrance = File.expand_path(@entrance)
-      raise Error, "Cannot find entrance #{@entrance}." unless File.exist?(@entrance)
-      if @options[:root]
-        @root = File.expand_path(@options[:root])
-      else
-        @root = File.dirname(@entrance)
-        # this while has to correspond with the expand_path above
-        while !File.exist?(File.expand_path('./package.json', @root))
-          break if @root == File.expand_path('..', @root)
-          @root = File.expand_path('..', @root)
-        end
+      @root = File.dirname(@entrance)
+      # this while has to correspond with the expand_path above
+      while !File.exist?(File.expand_path('./package.json', @root))
+        break if @root == File.expand_path('..', @root)
+        @root = File.expand_path('..', @root)
       end
     end
     unless File.exist?(File.expand_path('./package.json', @root))
@@ -102,6 +102,8 @@ class Compiler
     if !@npm_package && (@options[:tmpdir].include? @root)
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
+    @work_dir = File.join(@options[:tmpdir], '__work_dir__')
+    @work_dir_inner = File.join(@work_dir, '__enclose_io_memfs__')
   end
 
   def stuff_tmpdir
@@ -111,10 +113,12 @@ class Compiler
     unless Dir.exist?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
     end
+    @npm_package.stuff_tmpdir
   end
 
   def run!
     npm_install unless @options[:keep_tmpdir]
+    npm_package_set_entrance if @npm_package
     make_enclose_io_memfs
     make_enclose_io_vars
     if Gem.win_platform?
@@ -126,23 +130,21 @@ class Compiler
     end
   end
 
+  def npm_package_set_entrance
+    Utils.chdir(@work_dir_inner) do
+      @entrance = @npm_package.get_entrance(@entrance)
+      STDERR.puts "-> Setting entrance to #{@entrance}"
+    end
+  end
+
   def npm_install
-    @work_dir = File.join(@options[:tmpdir], '__work_dir__')
     Utils.rm_rf(@work_dir)
     Utils.mkdir_p(@work_dir)
-
-    @work_dir_inner = File.join(@work_dir, '__enclose_io_memfs__')
 
     Utils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
       Utils.run("#{Utils.escape @options[:npm]} -v")
       Utils.run("#{Utils.escape @options[:npm]} install")
-      if @npm_package
-        @entrance = @npm_package.get_entrance(@entrance)
-        STDERR.puts "-> Setting entrance to #{@entrance}"
-      else
-        raise "@entrance should already be assigned at this point" unless @entrance.length > 0
-      end
     end
 
     Utils.chdir(@work_dir_inner) do

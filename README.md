@@ -71,8 +71,8 @@ Then,
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
-          --clean-tmdir                Cleans all temporary files that were generated last time
-          --keep-tmdir                 Keeps all temporary files that were generated last time
+          --clean-tmpdir                Cleans all temporary files that were generated last time
+          --keep-tmpdir                 Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
       -n, --npm=FILE                   Specifies the path of npm

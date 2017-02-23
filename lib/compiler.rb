@@ -105,7 +105,7 @@ class Compiler
   end
 
   def stuff_tmpdir
-    Utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmdir]
+    Utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmpdir]
     Utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], 'node')
     unless Dir.exist?(@tmpdir_node)
@@ -114,7 +114,7 @@ class Compiler
   end
 
   def run!
-    npm_install unless @options[:keep_tmdir]
+    npm_install unless @options[:keep_tmpdir]
     make_enclose_io_memfs
     make_enclose_io_vars
     if Gem.win_platform?

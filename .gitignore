@@ -1,9 +1,3 @@
 .DS_Store
-*.dll
 *~
 
-/.vs/
-/.vscode/
-/coffeescript/
-/a.exe
-/a.out

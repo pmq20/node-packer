@@ -62,8 +62,12 @@ OptionParser.new do |opts|
     options[:tmpdir] = dir
   end
 
-  opts.on("-c", "--clean", "Cleans temporary files before compiling") do
-    options[:clean] = true
+  opts.on("--clean-tmdir", "Cleans all temporary files that were generated last time") do
+    options[:clean_tmdir] = true
+  end
+
+  opts.on("--keep-tmdir", "Keeps all temporary files that were generated last time") do
+    options[:keep_tmdir] = true
   end
 
   opts.on("--make-args=ARGS", "Passes extra arguments to make") do |args|

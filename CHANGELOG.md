@@ -2,7 +2,7 @@
 
 ## v0.9.4
 
-- add options --clean-tmdir and --keep-tmdir
+- add options --clean-tmpdir and --keep-tmpdir
 - fix #18: https://github.com/pmq20/node-compiler/issues/18
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/e8441d3f0dd10af5e3b56bd89ec7097f303ae2d3
 - upgrade Node.js runtime to v7.6.0

@@ -113,7 +113,7 @@ class Compiler
     unless Dir.exist?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
     end
-    @npm_package.stuff_tmpdir
+    @npm_package.stuff_tmpdir if @npm_package
   end
 
   def run!

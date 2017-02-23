@@ -1,4 +1,4 @@
-# Addons
+# C/C++ Addons
 
 Node.js Addons are dynamically-linked shared objects, written in C or C++, that
 can be loaded into Node.js using the [`require()`][require] function, and used
@@ -1110,7 +1110,7 @@ const addon = require('./build/Release/addon');
 
 [bindings]: https://github.com/TooTallNate/node-bindings
 [download]: https://github.com/nodejs/node-addon-examples
-[Embedder's Guide]: https://developers.google.com/v8/embed
+[Embedder's Guide]: https://github.com/v8/v8/wiki/Embedder's%20Guide
 [examples]: https://github.com/nodejs/nan/tree/master/examples/
 [installation instructions]: https://github.com/nodejs/node-gyp#installation
 [libuv]: https://github.com/libuv/libuv

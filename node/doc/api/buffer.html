@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v7.5.0 Documentation</title>
+  <title>Buffer | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -470,9 +470,7 @@ console.log(buf2.toString());
 <h3>new Buffer(arrayBuffer[, byteOffset [, length]])<span><a class="mark" href="#buffer_new_buffer_arraybuffer_byteoffset_length" id="buffer_new_buffer_arraybuffer_byteoffset_length">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use
-<a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>
-instead.</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a> instead.</pre><ul>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
 <li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
@@ -506,8 +504,7 @@ console.log(buf);
 <h3>new Buffer(size)<span><a class="mark" href="#buffer_new_buffer_size" id="buffer_new_buffer_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see
-<a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
@@ -531,8 +528,7 @@ console.log(buf);
 <h3>new Buffer(string[, encoding])<span><a class="mark" href="#buffer_new_buffer_string_encoding" id="buffer_new_buffer_string_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated:
-Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> String to encode</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -686,6 +682,9 @@ calculate the length of</li>
 <p>Returns the actual byte length of a string. This is not the same as
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in
 a string.</p>
+<p><em>Note</em> that for <code>&#39;base64&#39;</code> and <code>&#39;hex&#39;</code>, this function assumes valid input. For
+strings that contain non-Base64/Hex-encoded data (e.g. whitespace), the return
+value might be greater than the length of a <code>Buffer</code> created from the string.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const str = &#39;\u00bd + \u00bc = \u00be&#39;;
 

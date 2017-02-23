@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Executing JavaScript | Node.js v7.5.0 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -86,7 +86,7 @@
       <div id="toc">
         <h2>Table of Contents</h2>
         <ul>
-<li><span class="stability_2"><a href="#vm_executing_javascript">Executing JavaScript</a></span><ul>
+<li><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (Executing JavaScript)</a></span><ul>
 <li><span class="stability_undefined"><a href="#vm_class_vm_script">Class: vm.Script</a></span><ul>
 <li><span class="stability_undefined"><a href="#vm_new_vm_script_code_options">new vm.Script(code, options)</a></span></li>
 <li><span class="stability_undefined"><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></span></li>
@@ -109,7 +109,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Executing JavaScript<span><a class="mark" href="#vm_executing_javascript" id="vm_executing_javascript">#</a></span></h1>
+        <h1>VM (Executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
 <pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=vm-->
 <p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual
 Machine contexts. It can be accessed using:</p>
@@ -506,7 +506,7 @@ is passed from. This may introduce risks when untrusted code is executed, e.g.
 altering objects in the context in unwanted ways.</p>
 <h2>What does it mean to &quot;contextify&quot; an object?<span><a class="mark" href="#vm_what_does_it_mean_to_contextify_an_object" id="vm_what_does_it_mean_to_contextify_an_object">#</a></span></h2>
 <p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.
-According to the <a href="https://developers.google.com/v8/embed#contexts">V8 Embedder&#39;s Guide</a>:</p>
+According to the <a href="https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide#contexts">V8 Embedder&#39;s Guide</a>:</p>
 <blockquote>
 <p>In V8, a context is an execution environment that allows separate, unrelated,
 JavaScript applications to run in a single instance of V8. You must explicitly

@@ -2,8 +2,8 @@
   "source": "doc/api/process.md",
   "globals": [
     {
-      "textRaw": "process",
-      "name": "process",
+      "textRaw": "Process",
+      "name": "Process",
       "type": "global",
       "desc": "<p>The <code>process</code> object is a <code>global</code> that provides information about, and control\nover, the current Node.js process. As a global, it is always available to\nNode.js applications without using <code>require()</code>.</p>\n",
       "modules": [

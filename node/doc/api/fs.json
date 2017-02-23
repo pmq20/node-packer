@@ -3367,7 +3367,7 @@
                   "textRaw": "Inodes",
                   "name": "Inodes",
                   "type": "misc",
-                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n"
+                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and \nclose operations on some platforms cause inode changes that force watch \noperations to become invalid and ineffective. AIX retains inode for the \nlifetime of a file, that way though this is different from Linux / OS X, \nthis improves the usability of file watching. This is expected behavior.</p>\n"
                 },
                 {
                   "textRaw": "Filename Argument",

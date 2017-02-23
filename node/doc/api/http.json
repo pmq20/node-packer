@@ -207,10 +207,10 @@
                       "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Default = `false`"
                     },
                     {
-                      "textRaw": "`keepAliveMsecs` {Integer} When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`. ",
+                      "textRaw": "`keepAliveMsecs` {Integer} When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`. ",
                       "name": "keepAliveMsecs",
                       "type": "Integer",
-                      "desc": "When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`."
+                      "desc": "When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`."
                     },
                     {
                       "textRaw": "`maxSockets` {Number} Maximum number of sockets to allow per host.  Default = `Infinity`. ",

@@ -2,7 +2,7 @@
   "source": "doc/api/vm.md",
   "modules": [
     {
-      "textRaw": "Executing JavaScript",
+      "textRaw": "VM (Executing JavaScript)",
       "name": "vm",
       "stability": 2,
       "stabilityText": "Stable",
@@ -641,7 +641,7 @@
         {
           "textRaw": "What does it mean to \"contextify\" an object?",
           "name": "what_does_it_mean_to_\"contextify\"_an_object?",
-          "desc": "<p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.\nAccording to the <a href=\"https://developers.google.com/v8/embed#contexts\">V8 Embedder&#39;s Guide</a>:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n&quot;contextifying&quot; the <code>sandbox</code>.</p>\n",
+          "desc": "<p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.\nAccording to the <a href=\"https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide#contexts\">V8 Embedder&#39;s Guide</a>:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n&quot;contextifying&quot; the <code>sandbox</code>.</p>\n",
           "type": "module",
           "displayName": "What does it mean to \"contextify\" an object?"
         }

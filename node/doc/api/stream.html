@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.5.0 Documentation</title>
+  <title>Stream | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -462,6 +462,7 @@ many small chunks of data to a stream do not cause a backup in the internal
 buffer that would have an adverse impact on performance. In such situations,
 implementations that implement the <code>writable._writev()</code> method can perform
 buffered writes in a more optimized manner.</p>
+<p>See also: <a href="#stream_writable_uncork"><code>writable.uncork()</code></a>.</p>
 <h5>writable.end([chunk][, encoding][, callback])<span><a class="mark" href="#stream_writable_end_chunk_encoding_callback" id="stream_writable_end_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -499,7 +500,7 @@ file.end(&#39;world!&#39;);
 <span>Added in: v0.11.2</span>
 </div><p>The <code>writable.uncork()</code> method flushes all data buffered since
 <a href="#stream_writable_cork"><code>stream.cork()</code></a> was called.</p>
-<p>When using <code>writable.cork()</code> and <code>writable.uncork()</code> to manage the buffering
+<p>When using <a href="#stream_writable_cork"><code>writable.cork()</code></a> and <code>writable.uncork()</code> to manage the buffering
 of writes to a stream, it is recommended that calls to <code>writable.uncork()</code> be
 deferred using <code>process.nextTick()</code>. Doing so allows batching of all
 <code>writable.write()</code> calls that occur within a given Node.js event loop phase.</p>
@@ -508,7 +509,7 @@ stream.write(&#39;some &#39;);
 stream.write(&#39;data &#39;);
 process.nextTick(() =&gt; stream.uncork());
 </code></pre>
-<p>If the <code>writable.cork()</code> method is called multiple times on a stream, the same
+<p>If the <a href="#stream_writable_cork"><code>writable.cork()</code></a> method is called multiple times on a stream, the same
 number of calls to <code>writable.uncork()</code> must be called to flush the buffered
 data.</p>
 <pre><code class="lang-js">stream.cork();
@@ -521,6 +522,7 @@ process.nextTick(() =&gt; {
   stream.uncork();
 });
 </code></pre>
+<p>See also: <a href="#stream_writable_cork"><code>writable.cork()</code></a>.</p>
 <h5>writable.write(chunk[, encoding][, callback])<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback" id="stream_writable_write_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>

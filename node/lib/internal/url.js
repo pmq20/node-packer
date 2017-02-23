@@ -1,13 +1,5 @@
 'use strict';
 
-function getPunycode() {
-  try {
-    return process.binding('icu');
-  } catch (err) {
-    return require('punycode');
-  }
-}
-const punycode = getPunycode();
 const util = require('util');
 const binding = process.binding('url');
 const context = Symbol('context');
@@ -15,11 +7,15 @@ const cannotBeBase = Symbol('cannot-be-base');
 const special = Symbol('special');
 const searchParams = Symbol('query');
 const querystring = require('querystring');
+const os = require('os');
+
+const isWindows = process.platform === 'win32';
 
 const kScheme = Symbol('scheme');
 const kHost = Symbol('host');
 const kPort = Symbol('port');
 const kDomain = Symbol('domain');
+const kFormat = Symbol('format');
 
 // https://tc39.github.io/ecma262/#sec-%iteratorprototype%-object
 const IteratorPrototype = Object.getPrototypeOf(
@@ -195,12 +191,7 @@ function onParseSearchComplete(flags, protocol, username, password,
   if (flags & binding.URL_FLAGS_FAILED)
     return;
   const ctx = this[context];
-  if (query) {
-    ctx.query = query;
-    ctx.flags |= binding.URL_FLAGS_HAS_QUERY;
-  } else {
-    ctx.flags &= ~binding.URL_FLAGS_HAS_QUERY;
-  }
+  ctx.query = query;
 }
 
 function onParseHashComplete(flags, protocol, username, password,
@@ -263,18 +254,19 @@ class URL {
 }
 
 Object.defineProperties(URL.prototype, {
-  toString: {
-    // https://heycam.github.io/webidl/#es-stringifier
-    writable: true,
-    enumerable: true,
-    configurable: true,
+  [kFormat]: {
+    enumerable: false,
+    configurable: false,
     // eslint-disable-next-line func-name-matching
-    value: function toString(options) {
-      options = options || {};
-      const fragment =
-        options.fragment !== undefined ?
-          !!options.fragment : true;
-      const unicode = !!options.unicode;
+    value: function format(options) {
+      if (options && typeof options !== 'object')
+        throw new TypeError('options must be an object');
+      options = Object.assign({
+        fragment: true,
+        unicode: false,
+        search: true,
+        auth: true
+      }, options);
       const ctx = this[context];
       var ret;
       if (this.protocol)
@@ -284,28 +276,23 @@ Object.defineProperties(URL.prototype, {
         const has_username = typeof ctx.username === 'string';
         const has_password = typeof ctx.password === 'string' &&
                              ctx.password !== '';
-        if (has_username || has_password) {
+        if (options.auth && (has_username || has_password)) {
           if (has_username)
             ret += ctx.username;
           if (has_password)
             ret += `:${ctx.password}`;
           ret += '@';
         }
-        if (unicode) {
-          ret += punycode.toUnicode(this.hostname);
-          if (this.port !== undefined)
-            ret += `:${this.port}`;
-        } else {
-          ret += this.host;
-        }
+        ret += options.unicode ?
+          domainToUnicode(this.host) : this.host;
       } else if (ctx.scheme === 'file:') {
         ret += '//';
       }
       if (this.pathname)
         ret += this.pathname;
-      if (typeof ctx.query === 'string')
+      if (options.search && typeof ctx.query === 'string')
         ret += `?${ctx.query}`;
-      if (fragment & typeof ctx.fragment === 'string')
+      if (options.fragment && typeof ctx.fragment === 'string')
         ret += `#${ctx.fragment}`;
       return ret;
     }
@@ -314,11 +301,21 @@ Object.defineProperties(URL.prototype, {
     configurable: true,
     value: 'URL'
   },
+  toString: {
+    // https://heycam.github.io/webidl/#es-stringifier
+    writable: true,
+    enumerable: true,
+    configurable: true,
+    // eslint-disable-next-line func-name-matching
+    value: function toString() {
+      return this[kFormat]({});
+    }
+  },
   href: {
     enumerable: true,
     configurable: true,
     get() {
-      return this.toString();
+      return this[kFormat]({});
     },
     set(input) {
       parse(this, input);
@@ -487,13 +484,15 @@ Object.defineProperties(URL.prototype, {
       if (!search) {
         ctx.query = null;
         ctx.flags &= ~binding.URL_FLAGS_HAS_QUERY;
-        this[searchParams][searchParams] = {};
-        return;
+      } else {
+        if (search[0] === '?') search = search.slice(1);
+        ctx.query = '';
+        ctx.flags |= binding.URL_FLAGS_HAS_QUERY;
+        if (search) {
+          binding.parse(search, binding.kQuery, null, ctx,
+                        onParseSearchComplete.bind(this));
+        }
       }
-      if (search[0] === '?') search = search.slice(1);
-      ctx.query = '';
-      binding.parse(search, binding.kQuery, null, ctx,
-                    onParseSearchComplete.bind(this));
       initSearchParams(this[searchParams], search);
     }
   },
@@ -611,9 +610,11 @@ function update(url, params) {
   }
 }
 
-// Reused by the URL parse function invoked by
-// the href setter, and the URLSearchParams constructor
 function initSearchParams(url, init) {
+  if (!init) {
+    url[searchParams] = [];
+    return;
+  }
   url[searchParams] = getParamsFromObject(querystring.parse(init));
 }
 
@@ -1072,9 +1073,71 @@ function urlToOptions(url) {
   return options;
 }
 
+function getPathFromURLWin32(url) {
+  var hostname = url.hostname;
+  var pathname = url.pathname;
+  for (var n = 0; n < pathname.length; n++) {
+    if (pathname[n] === '%') {
+      var third = pathname.codePointAt(n + 2) | 0x20;
+      if ((pathname[n + 1] === '2' && third === 102) || // 2f 2F /
+          (pathname[n + 1] === '5' && third === 99)) {  // 5c 5C \
+        return new TypeError(
+          'Path must not include encoded \\ or / characters');
+      }
+    }
+  }
+  pathname = decodeURIComponent(pathname);
+  if (hostname !== '') {
+    // If hostname is set, then we have a UNC path
+    // Pass the hostname through domainToUnicode just in case
+    // it is an IDN using punycode encoding. We do not need to worry
+    // about percent encoding because the URL parser will have
+    // already taken care of that for us. Note that this only
+    // causes IDNs with an appropriate `xn--` prefix to be decoded.
+    return `//${domainToUnicode(hostname)}${pathname}`;
+  } else {
+    // Otherwise, it's a local path that requires a drive letter
+    var letter = pathname.codePointAt(1) | 0x20;
+    var sep = pathname[2];
+    if (letter < 97 || letter > 122 ||   // a..z A..Z
+        (sep !== ':')) {
+      return new TypeError('File URLs must specify absolute paths');
+    }
+    return pathname.slice(1);
+  }
+}
+
+function getPathFromURLPosix(url) {
+  if (url.hostname !== '') {
+    return new TypeError(
+      `File URLs on ${os.platform()} must use hostname 'localhost'` +
+      ' or not specify any hostname');
+  }
+  var pathname = url.pathname;
+  for (var n = 0; n < pathname.length; n++) {
+    if (pathname[n] === '%') {
+      var third = pathname.codePointAt(n + 2) | 0x20;
+      if (pathname[n + 1] === '2' && third === 102) {
+        return new TypeError('Path must not include encoded / characters');
+      }
+    }
+  }
+  return decodeURIComponent(pathname);
+}
+
+function getPathFromURL(path) {
+  if (!(path instanceof URL))
+    return path;
+  if (path.protocol !== 'file:')
+    return new TypeError('Only `file:` URLs are supported');
+  return isWindows ? getPathFromURLWin32(path) : getPathFromURLPosix(path);
+}
+
+exports.getPathFromURL = getPathFromURL;
 exports.URL = URL;
 exports.URLSearchParams = URLSearchParams;
 exports.domainToASCII = domainToASCII;
 exports.domainToUnicode = domainToUnicode;
 exports.encodeAuth = encodeAuth;
 exports.urlToOptions = urlToOptions;
+exports.formatSymbol = kFormat;

@@ -2,7 +2,7 @@
   "source": "doc/api/util.md",
   "modules": [
     {
-      "textRaw": "util",
+      "textRaw": "Util",
       "name": "util",
       "stability": 2,
       "stabilityText": "Stable",
@@ -961,7 +961,7 @@
         }
       ],
       "type": "module",
-      "displayName": "util"
+      "displayName": "Util"
     }
   ]
 }

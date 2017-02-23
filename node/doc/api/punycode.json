@@ -2,7 +2,7 @@
   "source": "doc/api/punycode.md",
   "modules": [
     {
-      "textRaw": "punycode",
+      "textRaw": "Punycode",
       "name": "punycode",
       "stability": 0,
       "stabilityText": "Deprecated",
@@ -173,7 +173,7 @@
         }
       ],
       "type": "module",
-      "displayName": "punycode"
+      "displayName": "Punycode"
     }
   ]
 }

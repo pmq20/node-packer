@@ -973,7 +973,7 @@
         {
           "textRaw": "`maxBuffer` and Unicode",
           "name": "`maxbuffer`_and_unicode",
-          "desc": "<p>It is important to keep in mind that the <code>maxBuffer</code> option specifies the\nlargest number of <em>octets</em> allowed on <code>stdout</code> or <code>stderr</code>. If this value is\nexceeded, then the child process is terminated. This particularly impacts\noutput that includes multibyte character encodings such as UTF-8 or UTF-16.\nFor instance, the following will output 13 UTF-8 encoded octets to <code>stdout</code>\nalthough there are only 4 characters:</p>\n<pre><code class=\"lang-js\">console.log(&#39;中文测试&#39;);\n</code></pre>\n",
+          "desc": "<p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>\nor <code>stderr</code>. If this value is exceeded, then the child process is terminated.\nThis impacts output that includes multibyte character encodings such as UTF-8 or\nUTF-16. For instance, <code>console.log(&#39;中文测试&#39;)</code> will send 13 UTF-8 encoded bytes\nto <code>stdout</code> although there are only 4 characters.</p>\n",
           "type": "module",
           "displayName": "`maxBuffer` and Unicode"
         }

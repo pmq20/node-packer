@@ -7,9 +7,17 @@
 
 #include <fstream>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
+#include "v8-platform.h"  // NOLINT(build/include)
+
 namespace v8 {
+
+namespace base {
+class Mutex;
+}  // namespace base
+
 namespace platform {
 namespace tracing {
 
@@ -217,7 +225,8 @@ class TracingController {
     ENABLED_FOR_ETW_EXPORT = 1 << 3
   };
 
-  TracingController() {}
+  TracingController();
+  ~TracingController();
   void Initialize(TraceBuffer* trace_buffer);
   const uint8_t* GetCategoryGroupEnabled(const char* category_group);
   static const char* GetCategoryGroupName(const uint8_t* category_enabled_flag);
@@ -232,6 +241,9 @@ class TracingController {
   void StartTracing(TraceConfig* trace_config);
   void StopTracing();
 
+  void AddTraceStateObserver(Platform::TraceStateObserver* observer);
+  void RemoveTraceStateObserver(Platform::TraceStateObserver* observer);
+
  private:
   const uint8_t* GetCategoryGroupEnabledInternal(const char* category_group);
   void UpdateCategoryGroupEnabledFlag(size_t category_index);
@@ -239,6 +251,8 @@ class TracingController {
 
   std::unique_ptr<TraceBuffer> trace_buffer_;
   std::unique_ptr<TraceConfig> trace_config_;
+  std::unique_ptr<base::Mutex> mutex_;
+  std::unordered_set<Platform::TraceStateObserver*> observers_;
   Mode mode_ = DISABLED;
 
   // Disallow copy and assign

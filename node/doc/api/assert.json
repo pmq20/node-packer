@@ -6,7 +6,7 @@
       "name": "assert",
       "stability": 3,
       "stabilityText": "Locked",
-      "desc": "<p>The <code>assert</code> module provides a simple set of assertion tests that can be used to\ntest invariants. The module is intended for internal use by Node.js, but can be\nused in application code via <code>require(&#39;assert&#39;)</code>. However, <code>assert</code> is not a\ntesting framework, and is not intended to be used as a general purpose assertion\nlibrary.</p>\n<p>The API for the <code>assert</code> module is <a href=\"documentation.html#documentation_stability_index\">Locked</a>. This means that there will be no\nadditions or changes to any of the methods implemented and exposed by\nthe module.</p>\n",
+      "desc": "<p>The <code>assert</code> module provides a simple set of assertion tests that can be used to\ntest invariants.</p>\n",
       "methods": [
         {
           "textRaw": "assert(value[, message])",

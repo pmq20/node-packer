@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Child Process | Node.js v7.5.0 Documentation</title>
+  <title>Child Process | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -1136,14 +1136,11 @@ then this will be <code>undefined</code>.</p>
 <p><code>child.stdout</code> is an alias for <code>child.stdio[1]</code>. Both properties will refer
 to the same value.</p>
 <h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
-<p>It is important to keep in mind that the <code>maxBuffer</code> option specifies the
-largest number of <em>octets</em> allowed on <code>stdout</code> or <code>stderr</code>. If this value is
-exceeded, then the child process is terminated. This particularly impacts
-output that includes multibyte character encodings such as UTF-8 or UTF-16.
-For instance, the following will output 13 UTF-8 encoded octets to <code>stdout</code>
-although there are only 4 characters:</p>
-<pre><code class="lang-js">console.log(&#39;中文测试&#39;);
-</code></pre>
+<p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>
+or <code>stderr</code>. If this value is exceeded, then the child process is terminated.
+This impacts output that includes multibyte character encodings such as UTF-8 or
+UTF-16. For instance, <code>console.log(&#39;中文测试&#39;)</code> will send 13 UTF-8 encoded bytes
+to <code>stdout</code> although there are only 4 characters.</p>
 
       </div>
     </div>

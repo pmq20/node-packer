@@ -38,7 +38,7 @@ function parent() {
         // may still be asked to process more requests if they were read before
         // the flood-prevention mechanism activated.
         setImmediate(() => {
-          req.socket.on('data', () => common.fail('Unexpected data received'));
+          req.socket.on('data', common.mustNotCall('Unexpected data received'));
         });
       }
       backloggedReqs++;
@@ -70,7 +70,7 @@ function child() {
 
   let req = `GET / HTTP/1.1\r\nHost: localhost:${port}\r\nAccept: */*\r\n\r\n`;
 
-  req = new Array(10241).join(req);
+  req = req.repeat(10240);
 
   conn.on('connect', write);
 

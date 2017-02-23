@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v7.5.0 Documentation</title>
+  <title>File System | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -1635,6 +1635,12 @@ watches the inode. If the watched path is deleted and recreated, it is assigned
 a new inode. The watch will emit an event for the delete but will continue
 watching the <em>original</em> inode. Events for the new inode will not be emitted.
 This is expected behavior.</p>
+<p>In AIX, save and close of a file being watched causes two notifications -
+one for adding new content, and one for truncation. Moreover, save and 
+close operations on some platforms cause inode changes that force watch 
+operations to become invalid and ineffective. AIX retains inode for the 
+lifetime of a file, that way though this is different from Linux / OS X, 
+this improves the usability of file watching. This is expected behavior.</p>
 <h4>Filename Argument<span><a class="mark" href="#fs_filename_argument" id="fs_filename_argument">#</a></span></h4>
 <!--type=misc-->
 <p>Providing <code>filename</code> argument in the callback is only supported on Linux and

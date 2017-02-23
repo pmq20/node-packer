@@ -254,12 +254,6 @@ function REPLServer(prompt,
       // an expression.
       cmd = `(${cmd})`;
       self.wrappedCmd = true;
-    } else {
-      // Mitigate https://github.com/nodejs/node/issues/548
-      cmd = cmd.replace(
-        /^\s*function(?:\s*(\*)\s*|\s+)([^(]+)/,
-        (_, genStar, name) => `var ${name} = function ${genStar || ''}${name}`
-      );
     }
     // Append a \n so that it will be either
     // terminated, or continued onto the next expression if it's an
@@ -324,7 +318,7 @@ function REPLServer(prompt,
       let previouslyInRawMode;
       if (self.breakEvalOnSigint) {
         // Start the SIGINT watchdog before entering raw mode so that a very
-        // quick Ctrl+C doesn’t lead to aborting the process completely.
+        // quick Ctrl+C doesn't lead to aborting the process completely.
         utilBinding.startSigintWatchdog();
         previouslyInRawMode = self._setRawMode(false);
       }

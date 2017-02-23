@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v7.5.0 Documentation</title>
+  <title>About this Documentation | Node.js v7.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -72,7 +72,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v7.5.0 Documentation</h1>
+        <h1>Node.js v7.6.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -96,7 +96,7 @@
 <li><span class="stability_undefined"><a href="#synopsis_example">Example</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#addons_addons">Addons</a></span><ul>
+<li><span class="stability_undefined"><a href="#addons_c_c_addons">C/C++ Addons</a></span><ul>
 <li><span class="stability_undefined"><a href="#addons_hello_world">Hello world</a></span><ul>
 <li><span class="stability_undefined"><a href="#addons_building">Building</a></span></li>
 <li><span class="stability_undefined"><a href="#addons_linking_to_node_js_own_dependencies">Linking to Node.js&#39; own dependencies</a></span></li>
@@ -610,6 +610,9 @@
 <li><span class="stability_undefined"><a href="#errors_error_code">error.code</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_errno">error.errno</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_syscall">error.syscall</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_error_path">error.path</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_error_address">error.address</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_error_port">error.port</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#errors_common_system_errors">Common System Errors</a></span></li>
@@ -928,7 +931,7 @@
 </li>
 </ul>
 </li>
-<li><span class="stability_2"><a href="#net_net">net</a></span><ul>
+<li><span class="stability_2"><a href="#net_net">Net</a></span><ul>
 <li><span class="stability_undefined"><a href="#net_class_net_server">Class: net.Server</a></span><ul>
 <li><span class="stability_undefined"><a href="#net_event_close">Event: &#39;close&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#net_event_connection">Event: &#39;connection&#39;</a></span></li>
@@ -1045,7 +1048,7 @@
 <li><span class="stability_undefined"><a href="#path_path_win32">path.win32</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#process_process">process</a></span><ul>
+<li><span class="stability_undefined"><a href="#process_process">Process</a></span><ul>
 <li><span class="stability_undefined"><a href="#process_process_events">Process Events</a></span><ul>
 <li><span class="stability_undefined"><a href="#process_event_beforeexit">Event: &#39;beforeExit&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#process_event_disconnect">Event: &#39;disconnect&#39;</a></span></li>
@@ -1118,7 +1121,7 @@
 <li><span class="stability_undefined"><a href="#process_exit_codes">Exit Codes</a></span></li>
 </ul>
 </li>
-<li><span class="stability_0"><a href="#punycode_punycode">punycode</a></span><ul>
+<li><span class="stability_0"><a href="#punycode_punycode">Punycode</a></span><ul>
 <li><span class="stability_undefined"><a href="#punycode_punycode_decode_string">punycode.decode(string)</a></span></li>
 <li><span class="stability_undefined"><a href="#punycode_punycode_encode_string">punycode.encode(string)</a></span></li>
 <li><span class="stability_undefined"><a href="#punycode_punycode_toascii_domain">punycode.toASCII(domain)</a></span></li>
@@ -1303,7 +1306,7 @@
 </li>
 </ul>
 </li>
-<li><span class="stability_2"><a href="#string_decoder_stringdecoder">StringDecoder</a></span><ul>
+<li><span class="stability_2"><a href="#string_decoder_string_decoder">String Decoder</a></span><ul>
 <li><span class="stability_undefined"><a href="#string_decoder_class_new_stringdecoder_encoding">Class: new StringDecoder([encoding])</a></span><ul>
 <li><span class="stability_undefined"><a href="#string_decoder_stringdecoder_end_buffer">stringDecoder.end([buffer])</a></span></li>
 <li><span class="stability_undefined"><a href="#string_decoder_stringdecoder_write_buffer">stringDecoder.write(buffer)</a></span></li>
@@ -1475,7 +1478,7 @@
 </li>
 </ul>
 </li>
-<li><span class="stability_2"><a href="#util_util">util</a></span><ul>
+<li><span class="stability_2"><a href="#util_util">Util</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_util_debuglog_section">util.debuglog(section)</a></span></li>
 <li><span class="stability_undefined"><a href="#util_util_deprecate_function_string">util.deprecate(function, string)</a></span></li>
 <li><span class="stability_undefined"><a href="#util_util_format_format_args">util.format(format[, ...args])</a></span></li>
@@ -1519,7 +1522,7 @@
 <li><span class="stability_undefined"><a href="#v8_v8_setflagsfromstring_string">v8.setFlagsFromString(string)</a></span></li>
 </ul>
 </li>
-<li><span class="stability_2"><a href="#vm_executing_javascript">Executing JavaScript</a></span><ul>
+<li><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (Executing JavaScript)</a></span><ul>
 <li><span class="stability_undefined"><a href="#vm_class_vm_script">Class: vm.Script</a></span><ul>
 <li><span class="stability_undefined"><a href="#vm_new_vm_script_code_options">new vm.Script(code, options)</a></span></li>
 <li><span class="stability_undefined"><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></span></li>
@@ -1616,16 +1619,7 @@ proven, and so relied upon, that they are unlikely to ever change at
 all.  Others are brand new and experimental, or known to be hazardous
 and in the process of being redesigned.</p>
 <p>The stability indices are as follows:</p>
-<pre class="api_stability api_stability_0">Stability: 0 - Deprecated
-This feature is known to be problematic, and changes are
-planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards
-compatibility should not be expected.</pre><pre class="api_stability api_stability_1">Stability: 1 - Experimental
-This feature is subject to change, and is gated by a command line flag.
-It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2">Stability: 2 - Stable
-The API has proven satisfactory. Compatibility with the npm ecosystem
-is a high priority, and will not be broken unless absolutely necessary.</pre><pre class="api_stability api_stability_3">Stability: 3 - Locked
-Only fixes related to security, performance, or bug fixes will be accepted.
-Please do not suggest API changes in this area; they will be refused.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
+<pre class="api_stability api_stability_0">Stability: 0 - Deprecated This feature is known to be problematic, and changes are planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards compatibility should not be expected.</pre><pre class="api_stability api_stability_1">Stability: 1 - Experimental This feature is subject to change, and is gated by a command line flag. It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2">Stability: 2 - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><pre class="api_stability api_stability_3">Stability: 3 - Locked Only bug fixes, security fixes, and performance improvements will be accepted. Please do not suggest API changes in this area; they will be refused.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
 <pre class="api_stability api_stability_1">Stability: 1 - Experimental</pre><p>Every HTML file in the markdown has a corresponding JSON file with the
 same data.</p>
 <p>This feature was added in Node.js v0.6.12.  It is experimental.</p>
@@ -1674,7 +1668,7 @@ Server running at http://127.0.0.1:3000/
 <p>All of the examples in the documentation can be run similarly.</p>
 <!-- [end-include:synopsis.md] -->
 <!-- [start-include:addons.md] -->
-<h1>Addons<span><a class="mark" href="#addons_addons" id="addons_addons">#</a></span></h1>
+<h1>C/C++ Addons<span><a class="mark" href="#addons_c_c_addons" id="addons_c_c_addons">#</a></span></h1>
 <p>Node.js Addons are dynamically-linked shared objects, written in C or C++, that
 can be loaded into Node.js using the <a href="globals.html#globals_require"><code>require()</code></a> function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
@@ -1855,7 +1849,7 @@ illustration of how it can be used.</p>
 <h2>Addon examples<span><a class="mark" href="#addons_addon_examples" id="addons_addon_examples">#</a></span></h2>
 <p>Following are some example Addons intended to help developers get started. The
 examples make use of the V8 APIs. Refer to the online <a href="https://v8docs.nodesource.com/">V8 reference</a>
-for help with the various V8 calls, and V8&#39;s <a href="https://developers.google.com/v8/embed">Embedder&#39;s Guide</a> for an
+for help with the various V8 calls, and V8&#39;s <a href="https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide">Embedder&#39;s Guide</a> for an
 explanation of several concepts used such as handles, scopes, function
 templates, etc.</p>
 <p>Each of these examples using the following <code>binding.gyp</code> file:</p>
@@ -2645,13 +2639,7 @@ const addon = require(&#39;./build/Release/addon&#39;);
 <!-- [start-include:assert.md] -->
 <h1>Assert<span><a class="mark" href="#assert_assert" id="assert_assert">#</a></span></h1>
 <pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
-test invariants. The module is intended for internal use by Node.js, but can be
-used in application code via <code>require(&#39;assert&#39;)</code>. However, <code>assert</code> is not a
-testing framework, and is not intended to be used as a general purpose assertion
-library.</p>
-<p>The API for the <code>assert</code> module is <a href="documentation.html#documentation_stability_index">Locked</a>. This means that there will be no
-additions or changes to any of the methods implemented and exposed by
-the module.</p>
+test invariants.</p>
 <h2>assert(value[, message])<span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
@@ -3292,9 +3280,7 @@ console.log(buf2.toString());
 <h3>new Buffer(arrayBuffer[, byteOffset [, length]])<span><a class="mark" href="#buffer_new_buffer_arraybuffer_byteoffset_length" id="buffer_new_buffer_arraybuffer_byteoffset_length">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use
-<a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>
-instead.</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a> instead.</pre><ul>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
 <li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
@@ -3328,8 +3314,7 @@ console.log(buf);
 <h3>new Buffer(size)<span><a class="mark" href="#buffer_new_buffer_size" id="buffer_new_buffer_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see
-<a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
@@ -3353,8 +3338,7 @@ console.log(buf);
 <h3>new Buffer(string[, encoding])<span><a class="mark" href="#buffer_new_buffer_string_encoding" id="buffer_new_buffer_string_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0 </span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated:
-Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> String to encode</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -3508,6 +3492,9 @@ calculate the length of</li>
 <p>Returns the actual byte length of a string. This is not the same as
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in
 a string.</p>
+<p><em>Note</em> that for <code>&#39;base64&#39;</code> and <code>&#39;hex&#39;</code>, this function assumes valid input. For
+strings that contain non-Base64/Hex-encoded data (e.g. whitespace), the return
+value might be greater than the length of a <code>Buffer</code> created from the string.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const str = &#39;\u00bd + \u00bc = \u00be&#39;;
 
@@ -6023,14 +6010,11 @@ then this will be <code>undefined</code>.</p>
 <p><code>child.stdout</code> is an alias for <code>child.stdio[1]</code>. Both properties will refer
 to the same value.</p>
 <h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
-<p>It is important to keep in mind that the <code>maxBuffer</code> option specifies the
-largest number of <em>octets</em> allowed on <code>stdout</code> or <code>stderr</code>. If this value is
-exceeded, then the child process is terminated. This particularly impacts
-output that includes multibyte character encodings such as UTF-8 or UTF-16.
-For instance, the following will output 13 UTF-8 encoded octets to <code>stdout</code>
-although there are only 4 characters:</p>
-<pre><code class="lang-js">console.log(&#39;中文测试&#39;);
-</code></pre>
+<p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>
+or <code>stderr</code>. If this value is exceeded, then the child process is terminated.
+This impacts output that includes multibyte character encodings such as UTF-8 or
+UTF-16. For instance, <code>console.log(&#39;中文测试&#39;)</code> will send 13 UTF-8 encoded bytes
+to <code>stdout</code> although there are only 4 characters.</p>
 <!-- [end-include:child_process.md] -->
 <!-- [start-include:cluster.md] -->
 <h1>Cluster<span><a class="mark" href="#cluster_cluster" id="cluster_cluster">#</a></span></h1>
@@ -9203,8 +9187,8 @@ should contain a <code>type</code> field of either <code>udp4</code> or <code>ud
 boolean <code>reuseAddr</code> field.</p>
 <p>When <code>reuseAddr</code> is <code>true</code> <a href="#dgram_socket_bind_port_address_callback"><code>socket.bind()</code></a> will reuse the address, even if
 another process has already bound a socket on it. <code>reuseAddr</code> defaults to
-<code>false</code>. An optional <code>callback</code> function can be passed specified which is added
-as a listener for <code>&#39;message&#39;</code> events.</p>
+<code>false</code>. The optional <code>callback</code> function is added as a listener for <code>&#39;message&#39;</code>
+events.</p>
 <p>Once the socket is created, calling <a href="#dgram_socket_bind_port_address_callback"><code>socket.bind()</code></a> will instruct the
 socket to begin listening for datagram messages. When <code>address</code> and <code>port</code> are
 not passed to  <a href="#dgram_socket_bind_port_address_callback"><code>socket.bind()</code></a> the method will bind the socket to the &quot;all
@@ -9238,10 +9222,10 @@ name resolution, and that do not necessarily perform any network communication.
 This category contains only one function: <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>. <strong>Developers
 looking to perform name resolution in the same way that other applications on
 the same operating system behave should use <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</strong></p>
-<p>For example, looking up <code>nodejs.org</code>.</p>
+<p>For example, looking up <code>iana.org</code>.</p>
 <pre><code class="lang-js">const dns = require(&#39;dns&#39;);
 
-dns.lookup(&#39;nodejs.org&#39;, (err, addresses, family) =&gt; {
+dns.lookup(&#39;iana.org&#39;, (err, addresses, family) =&gt; {
   console.log(&#39;addresses:&#39;, addresses);
 });
 </code></pre>
@@ -9252,11 +9236,11 @@ functions do not use the same set of configuration files used by
 <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a> (e.g. <code>/etc/hosts</code>). These functions should be used by
 developers who do not want to use the underlying operating system&#39;s facilities
 for name resolution, and instead want to <em>always</em> perform DNS queries.</p>
-<p>Below is an example that resolves <code>&#39;nodejs.org&#39;</code> then reverse resolves the IP
+<p>Below is an example that resolves <code>&#39;archive.org&#39;</code> then reverse resolves the IP
 addresses that are returned.</p>
 <pre><code class="lang-js">const dns = require(&#39;dns&#39;);
 
-dns.resolve4(&#39;nodejs.org&#39;, (err, addresses) =&gt; {
+dns.resolve4(&#39;archive.org&#39;, (err, addresses) =&gt; {
   if (err) throw err;
 
   console.log(`addresses: ${JSON.stringify(addresses)}`);
@@ -9965,8 +9949,7 @@ single domain.</p>
 <p>If the domain on which <code>exit</code> is called has been disposed, <code>exit</code> will return
 without exiting the domain.</p>
 <h3>domain.dispose()<span><a class="mark" href="#domain_domain_dispose" id="domain_domain_dispose">#</a></span></h3>
-<pre class="api_stability api_stability_0">Stability: 0 - Deprecated.  Please recover from failed IO actions
-explicitly via error event handlers set on the domain.</pre><p>Once <code>dispose</code> has been called, the domain will no longer be used by callbacks
+<pre class="api_stability api_stability_0">Stability: 0 - Deprecated.  Please recover from failed IO actions explicitly via error event handlers set on the domain.</pre><p>Once <code>dispose</code> has been called, the domain will no longer be used by callbacks
 bound into the domain via <code>run</code>, <code>bind</code>, or <code>intercept</code>, and a <code>&#39;dispose&#39;</code> event
 is emitted.</p>
 <!-- [end-include:domain.md] -->
@@ -10137,7 +10120,10 @@ provide a text description of the error.</p>
 <p>All errors generated by Node.js, including all System and JavaScript errors,
 will either be instances of, or inherit from, the <code>Error</code> class.</p>
 <h3>new Error(message)<span><a class="mark" href="#errors_new_error_message" id="errors_new_error_message">#</a></span></h3>
-<p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the
+<div class="signature"><ul>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the
 provided text message. If an object is passed as <code>message</code>, the text message
 is generated by calling <code>message.toString()</code>. The <code>error.stack</code> property will
 represent the point in the code at which <code>new Error()</code> was called. Stack traces
@@ -10145,7 +10131,11 @@ are dependent on <a href="https://github.com/v8/v8/wiki/Stack-Trace-API">V8&#39;
 (a) the beginning of  <em>synchronous code execution</em>, or (b) the number of frames
 given by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>
 <h3>Error.captureStackTrace(targetObject[, constructorOpt])<span><a class="mark" href="#errors_error_capturestacktrace_targetobject_constructoropt" id="errors_error_capturestacktrace_targetobject_constructoropt">#</a></span></h3>
-<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns
+<div class="signature"><ul>
+<li><code>targetObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>constructorOpt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+</div><p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns
 a string representing the location in the code at which
 <code>Error.captureStackTrace()</code> was called.</p>
 <pre><code class="lang-js">const myObject = {};
@@ -10169,7 +10159,10 @@ details of error generation from an end user. For instance:</p>
 new MyError().stack
 </code></pre>
 <h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
-<p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+</ul>
+</div><p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames
 collected by a stack trace (whether generated by <code>new Error().stack</code> or
 <code>Error.captureStackTrace(obj)</code>).</p>
 <p>The default value is <code>10</code> but may be set to any valid JavaScript number. Changes
@@ -10177,17 +10170,24 @@ will affect any stack trace captured <em>after</em> the value has been changed.<
 <p>If set to a non-number value, or set to a negative number, stack traces will
 not capture any frames.</p>
 <h4>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h4>
-<p>Returns the string description of error as set by calling <code>new Error(message)</code>.
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>The <code>error.message</code> property is the string description of the error as set by calling <code>new Error(message)</code>.
 The <code>message</code> passed to the constructor will also appear in the first line of
 the stack trace of the <code>Error</code>, however changing this property after the
-<code>Error</code> object is created <em>may not</em> change the first line of the stack trace.</p>
+<code>Error</code> object is created <em>may not</em> change the first line of the stack trace
+(for example, when <code>error.stack</code> is read before this property is changed).</p>
 <pre><code class="lang-js">const err = new Error(&#39;The message&#39;);
 console.log(err.message);
 // Prints: The message
 </code></pre>
 <h4>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h4>
-<p>Returns a string describing the point in the code at which the <code>Error</code> was
-instantiated.</p>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>The <code>error.stack</code> property is a string describing the point in the code at which
+the <code>Error</code> was instantiated.</p>
 <p>For example:</p>
 <pre><code class="lang-txt">Error: Things keep happening!
    at /home/gbusey/file.js:525:2
@@ -10327,14 +10327,43 @@ of error codes and their meanings is available by running <code>man 2 intro</cod
 added properties.</p>
 <h3>Class: System Error<span><a class="mark" href="#errors_class_system_error" id="errors_class_system_error">#</a></span></h3>
 <h4>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h4>
-<p>Returns a string representing the error code, which is always <code>E</code> followed by
-a sequence of capital letters, and may be referenced in <code>man 2 intro</code>.</p>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>The <code>error.code</code> property is a string representing the error code, which is always
+<code>E</code> followed by a sequence of capital letters.</p>
 <h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
-<p>Returns a number corresponding to the <strong>negated</strong> error code, which may be
-referenced in <code>man 2 intro</code>. For example, an <code>ENOENT</code> error has an <code>errno</code> of
-<code>-2</code> because the error code for <code>ENOENT</code> is <code>2</code>.</p>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+</ul>
+</div><p>The <code>error.errno</code> property is a number or a string.
+The number is a <strong>negative</strong> value which corresponds to the error code defined in
+<a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handling</code></a>. See uv-errno.h header file (<code>deps/uv/include/uv-errno.h</code> in
+the Node.js source tree) for details.
+In case of a string, it is the same as <code>error.code</code>.</p>
 <h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
-<p>Returns a string describing the <a href="http://man7.org/linux/man-pages/man2/syscall.2.html">syscall</a> that failed.</p>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>The <code>error.syscall</code> property is a string describing the <a href="http://man7.org/linux/man-pages/man2/syscall.2.html">syscall</a> that failed.</p>
+<h4>error.path<span><a class="mark" href="#errors_error_path" id="errors_error_path">#</a></span></h4>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a string
+containing a relevant invalid pathname.</p>
+<h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a string
+describing the address to which the connection failed.</p>
+<h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+</ul>
+</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number representing
+the connection&#39;s port that is not available.</p>
 <h3>Common System Errors<span><a class="mark" href="#errors_common_system_errors" id="errors_common_system_errors">#</a></span></h3>
 <p>This list is <strong>not exhaustive</strong>, but enumerates many of the common system
 errors encountered when writing a Node.js program. An exhaustive list may be
@@ -12250,6 +12279,12 @@ watches the inode. If the watched path is deleted and recreated, it is assigned
 a new inode. The watch will emit an event for the delete but will continue
 watching the <em>original</em> inode. Events for the new inode will not be emitted.
 This is expected behavior.</p>
+<p>In AIX, save and close of a file being watched causes two notifications -
+one for adding new content, and one for truncation. Moreover, save and 
+close operations on some platforms cause inode changes that force watch 
+operations to become invalid and ineffective. AIX retains inode for the 
+lifetime of a file, that way though this is different from Linux / OS X, 
+this improves the usability of file watching. This is expected behavior.</p>
 <h4>Filename Argument<span><a class="mark" href="#fs_filename_argument" id="fs_filename_argument">#</a></span></h4>
 <!--type=misc-->
 <p>Providing <code>filename</code> argument in the callback is only supported on Linux and
@@ -12911,7 +12946,7 @@ Can have the following fields:<ul>
 outstanding requests, so they can be used for future requests without
 having to reestablish a TCP connection. Default = <code>false</code></li>
 <li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> When using the <code>keepAlive</code> option, specifies
-the <a href="#net_socket_setkeepalive_enable_initialdelay">initial delay</a>
+the <a href="net.html#net_socket_setkeepalive_enable_initialdelay">initial delay</a>
 for TCP Keep-Alive packets. Ignored when the
 <code>keepAlive</code> option is <code>false</code> or <code>undefined</code>. Default = <code>1000</code>.</li>
 <li><code>maxSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Maximum number of sockets to allow per
@@ -14794,7 +14829,7 @@ typically <em>only</em> available within a specific module&#39;s code, it must b
 explicitly exported in order to be used.</p>
 <!-- [end-include:modules.md] -->
 <!-- [start-include:net.md] -->
-<h1>net<span><a class="mark" href="#net_net" id="net_net">#</a></span></h1>
+<h1>Net<span><a class="mark" href="#net_net" id="net_net">#</a></span></h1>
 <pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>net</code> module provides you with an asynchronous network wrapper. It contains
 functions for creating both servers and clients (called streams). You can include
 this module with <code>require(&#39;net&#39;);</code>.</p>
@@ -16937,7 +16972,7 @@ characters are accepted as path delimiters; however, only the backward slash
 (<code>\</code>) will be used in return values.</p>
 <!-- [end-include:path.md] -->
 <!-- [start-include:process.md] -->
-<h1>process<span><a class="mark" href="#process_process" id="process_process">#</a></span></h1>
+<h1>Process<span><a class="mark" href="#process_process" id="process_process">#</a></span></h1>
 <!-- type=global -->
 <p>The <code>process</code> object is a <code>global</code> that provides information about, and control
 over, the current Node.js process. As a global, it is always available to
@@ -18285,7 +18320,7 @@ the high-order bit, and then contain the value of the signal code.</li>
 </ul>
 <!-- [end-include:process.md] -->
 <!-- [start-include:punycode.md] -->
-<h1>punycode<span><a class="mark" href="#punycode_punycode" id="punycode_punycode">#</a></span></h1>
+<h1>Punycode<span><a class="mark" href="#punycode_punycode" id="punycode_punycode">#</a></span></h1>
 <pre class="api_stability api_stability_0">Stability: 0 - Deprecated</pre><p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.
 In a future major version of Node.js this module will be removed. Users
 currently depending on the <code>punycode</code> module should switch to using the
@@ -19612,6 +19647,7 @@ many small chunks of data to a stream do not cause a backup in the internal
 buffer that would have an adverse impact on performance. In such situations,
 implementations that implement the <code>writable._writev()</code> method can perform
 buffered writes in a more optimized manner.</p>
+<p>See also: <a href="#stream_writable_uncork"><code>writable.uncork()</code></a>.</p>
 <h5>writable.end([chunk][, encoding][, callback])<span><a class="mark" href="#stream_writable_end_chunk_encoding_callback" id="stream_writable_end_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -19649,7 +19685,7 @@ file.end(&#39;world!&#39;);
 <span>Added in: v0.11.2</span>
 </div><p>The <code>writable.uncork()</code> method flushes all data buffered since
 <a href="#stream_writable_cork"><code>stream.cork()</code></a> was called.</p>
-<p>When using <code>writable.cork()</code> and <code>writable.uncork()</code> to manage the buffering
+<p>When using <a href="#stream_writable_cork"><code>writable.cork()</code></a> and <code>writable.uncork()</code> to manage the buffering
 of writes to a stream, it is recommended that calls to <code>writable.uncork()</code> be
 deferred using <code>process.nextTick()</code>. Doing so allows batching of all
 <code>writable.write()</code> calls that occur within a given Node.js event loop phase.</p>
@@ -19658,7 +19694,7 @@ stream.write(&#39;some &#39;);
 stream.write(&#39;data &#39;);
 process.nextTick(() =&gt; stream.uncork());
 </code></pre>
-<p>If the <code>writable.cork()</code> method is called multiple times on a stream, the same
+<p>If the <a href="#stream_writable_cork"><code>writable.cork()</code></a> method is called multiple times on a stream, the same
 number of calls to <code>writable.uncork()</code> must be called to flush the buffered
 data.</p>
 <pre><code class="lang-js">stream.cork();
@@ -19671,6 +19707,7 @@ process.nextTick(() =&gt; {
   stream.uncork();
 });
 </code></pre>
+<p>See also: <a href="#stream_writable_cork"><code>writable.cork()</code></a>.</p>
 <h5>writable.write(chunk[, encoding][, callback])<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback" id="stream_writable_write_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -20977,7 +21014,7 @@ However, because the argument is an empty string, no data is added to the
 readable buffer so there is nothing for a user to consume.</p>
 <!-- [end-include:stream.md] -->
 <!-- [start-include:string_decoder.md] -->
-<h1>StringDecoder<span><a class="mark" href="#string_decoder_stringdecoder" id="string_decoder_stringdecoder">#</a></span></h1>
+<h1>String Decoder<span><a class="mark" href="#string_decoder_string_decoder" id="string_decoder_string_decoder">#</a></span></h1>
 <pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>string_decoder</code> module provides an API for decoding <code>Buffer</code> objects into
 strings in a manner that preserves encoded multi-byte UTF-8 and UTF-16
 characters. It can be accessed using:</p>
@@ -22756,7 +22793,7 @@ console.log(myURL.origin);
 </code></pre>
 <!-- [end-include:url.md] -->
 <!-- [start-include:util.md] -->
-<h1>util<span><a class="mark" href="#util_util" id="util_util">#</a></span></h1>
+<h1>Util<span><a class="mark" href="#util_util" id="util_util">#</a></span></h1>
 <pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>util</code> module is primarily designed to support the needs of Node.js&#39; own
 internal APIs. However, many of the utilities are useful for application and
 module developers as well. It can be accessed using:</p>
@@ -23513,7 +23550,7 @@ setTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);
 </code></pre>
 <!-- [end-include:v8.md] -->
 <!-- [start-include:vm.md] -->
-<h1>Executing JavaScript<span><a class="mark" href="#vm_executing_javascript" id="vm_executing_javascript">#</a></span></h1>
+<h1>VM (Executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
 <pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=vm-->
 <p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual
 Machine contexts. It can be accessed using:</p>
@@ -23910,7 +23947,7 @@ is passed from. This may introduce risks when untrusted code is executed, e.g.
 altering objects in the context in unwanted ways.</p>
 <h2>What does it mean to &quot;contextify&quot; an object?<span><a class="mark" href="#vm_what_does_it_mean_to_contextify_an_object" id="vm_what_does_it_mean_to_contextify_an_object">#</a></span></h2>
 <p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.
-According to the <a href="https://developers.google.com/v8/embed#contexts">V8 Embedder&#39;s Guide</a>:</p>
+According to the <a href="https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide#contexts">V8 Embedder&#39;s Guide</a>:</p>
 <blockquote>
 <p>In V8, a context is an execution environment that allows separate, unrelated,
 JavaScript applications to run in a single instance of V8. You must explicitly

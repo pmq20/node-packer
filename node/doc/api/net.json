@@ -2,7 +2,7 @@
   "source": "doc/api/net.md",
   "modules": [
     {
-      "textRaw": "net",
+      "textRaw": "Net",
       "name": "net",
       "stability": 2,
       "stabilityText": "Stable",
@@ -1197,7 +1197,7 @@
         }
       ],
       "type": "module",
-      "displayName": "net"
+      "displayName": "Net"
     }
   ]
 }

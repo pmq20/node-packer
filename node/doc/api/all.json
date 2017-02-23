@@ -18,7 +18,7 @@
           "textRaw": "Stability Index",
           "name": "Stability Index",
           "type": "misc",
-          "desc": "<p>Throughout the documentation, you will see indications of a section&#39;s\nstability.  The Node.js API is still somewhat changing, and as it\nmatures, certain parts are more reliable than others.  Some are so\nproven, and so relied upon, that they are unlikely to ever change at\nall.  Others are brand new and experimental, or known to be hazardous\nand in the process of being redesigned.</p>\n<p>The stability indices are as follows:</p>\n<pre><code class=\"lang-txt\">Stability: 0 - Deprecated\nThis feature is known to be problematic, and changes are\nplanned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards\ncompatibility should not be expected.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 1 - Experimental\nThis feature is subject to change, and is gated by a command line flag.\nIt may change or be removed in future versions.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 2 - Stable\nThe API has proven satisfactory. Compatibility with the npm ecosystem\nis a high priority, and will not be broken unless absolutely necessary.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 3 - Locked\nOnly fixes related to security, performance, or bug fixes will be accepted.\nPlease do not suggest API changes in this area; they will be refused.\n</code></pre>\n"
+          "desc": "<p>Throughout the documentation, you will see indications of a section&#39;s\nstability.  The Node.js API is still somewhat changing, and as it\nmatures, certain parts are more reliable than others.  Some are so\nproven, and so relied upon, that they are unlikely to ever change at\nall.  Others are brand new and experimental, or known to be hazardous\nand in the process of being redesigned.</p>\n<p>The stability indices are as follows:</p>\n<pre><code class=\"lang-txt\">Stability: 0 - Deprecated\nThis feature is known to be problematic, and changes are\nplanned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards\ncompatibility should not be expected.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 1 - Experimental\nThis feature is subject to change, and is gated by a command line flag.\nIt may change or be removed in future versions.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 2 - Stable\nThe API has proven satisfactory. Compatibility with the npm ecosystem\nis a high priority, and will not be broken unless absolutely necessary.\n</code></pre>\n<pre><code class=\"lang-txt\">Stability: 3 - Locked\nOnly bug fixes, security fixes, and performance improvements will be accepted.\nPlease do not suggest API changes in this area; they will be refused.\n</code></pre>\n"
         },
         {
           "textRaw": "JSON Output",
@@ -601,19 +601,40 @@
               "name": "System",
               "properties": [
                 {
-                  "textRaw": "error.code",
+                  "textRaw": "`code` {String} ",
+                  "type": "String",
                   "name": "code",
-                  "desc": "<p>Returns a string representing the error code, which is always <code>E</code> followed by\na sequence of capital letters, and may be referenced in <code>man 2 intro</code>.</p>\n"
+                  "desc": "<p>The <code>error.code</code> property is a string representing the error code, which is always\n<code>E</code> followed by a sequence of capital letters.</p>\n"
                 },
                 {
-                  "textRaw": "error.errno",
+                  "textRaw": "`errno` {String | Number} ",
+                  "type": "String | Number",
                   "name": "errno",
-                  "desc": "<p>Returns a number corresponding to the <strong>negated</strong> error code, which may be\nreferenced in <code>man 2 intro</code>. For example, an <code>ENOENT</code> error has an <code>errno</code> of\n<code>-2</code> because the error code for <code>ENOENT</code> is <code>2</code>.</p>\n"
+                  "desc": "<p>The <code>error.errno</code> property is a number or a string.\nThe number is a <strong>negative</strong> value which corresponds to the error code defined in\n<a href=\"http://docs.libuv.org/en/v1.x/errors.html\"><code>libuv Error handling</code></a>. See uv-errno.h header file (<code>deps/uv/include/uv-errno.h</code> in\nthe Node.js source tree) for details.\nIn case of a string, it is the same as <code>error.code</code>.</p>\n"
                 },
                 {
-                  "textRaw": "error.syscall",
+                  "textRaw": "`syscall` {String} ",
+                  "type": "String",
                   "name": "syscall",
-                  "desc": "<p>Returns a string describing the <a href=\"http://man7.org/linux/man-pages/man2/syscall.2.html\">syscall</a> that failed.</p>\n"
+                  "desc": "<p>The <code>error.syscall</code> property is a string describing the <a href=\"http://man7.org/linux/man-pages/man2/syscall.2.html\">syscall</a> that failed.</p>\n"
+                },
+                {
+                  "textRaw": "`path` {String} ",
+                  "type": "String",
+                  "name": "path",
+                  "desc": "<p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a string\ncontaining a relevant invalid pathname.</p>\n"
+                },
+                {
+                  "textRaw": "`address` {String} ",
+                  "type": "String",
+                  "name": "address",
+                  "desc": "<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a string\ndescribing the address to which the connection failed.</p>\n"
+                },
+                {
+                  "textRaw": "`port` {Number} ",
+                  "type": "Number",
+                  "name": "port",
+                  "desc": "<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number representing\nthe connection&#39;s port that is not available.</p>\n"
                 }
               ]
             }
@@ -642,8 +663,22 @@
               "textRaw": "Error.captureStackTrace(targetObject[, constructorOpt])",
               "type": "method",
               "name": "captureStackTrace",
-              "desc": "<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns\na string representing the location in the code at which\n<code>Error.captureStackTrace()</code> was called.</p>\n<pre><code class=\"lang-js\">const myObject = {};\nError.captureStackTrace(myObject);\nmyObject.stack  // similar to `new Error().stack`\n</code></pre>\n<p>The first line of the trace, instead of being prefixed with <code>ErrorType:\nmessage</code>, will be the result of calling <code>targetObject.toString()</code>.</p>\n<p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames\nabove <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the\ngenerated stack trace.</p>\n<p>The <code>constructorOpt</code> argument is useful for hiding implementation\ndetails of error generation from an end user. For instance:</p>\n<pre><code class=\"lang-js\">function MyError() {\n  Error.captureStackTrace(this, MyError);\n}\n\n// Without passing MyError to captureStackTrace, the MyError\n// frame would show up in the .stack property. By passing\n// the constructor, we omit that frame and all frames above it.\nnew MyError().stack\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`targetObject` {Object} ",
+                      "name": "targetObject",
+                      "type": "Object"
+                    },
+                    {
+                      "textRaw": "`constructorOpt` {Function} ",
+                      "name": "constructorOpt",
+                      "type": "Function",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -655,29 +690,43 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns\na string representing the location in the code at which\n<code>Error.captureStackTrace()</code> was called.</p>\n<pre><code class=\"lang-js\">const myObject = {};\nError.captureStackTrace(myObject);\nmyObject.stack  // similar to `new Error().stack`\n</code></pre>\n<p>The first line of the trace, instead of being prefixed with <code>ErrorType:\nmessage</code>, will be the result of calling <code>targetObject.toString()</code>.</p>\n<p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames\nabove <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the\ngenerated stack trace.</p>\n<p>The <code>constructorOpt</code> argument is useful for hiding implementation\ndetails of error generation from an end user. For instance:</p>\n<pre><code class=\"lang-js\">function MyError() {\n  Error.captureStackTrace(this, MyError);\n}\n\n// Without passing MyError to captureStackTrace, the MyError\n// frame would show up in the .stack property. By passing\n// the constructor, we omit that frame and all frames above it.\nnew MyError().stack\n</code></pre>\n"
             }
           ],
           "properties": [
             {
-              "textRaw": "Error.stackTraceLimit",
+              "textRaw": "`stackTraceLimit` {Number} ",
+              "type": "Number",
               "name": "stackTraceLimit",
               "desc": "<p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames\ncollected by a stack trace (whether generated by <code>new Error().stack</code> or\n<code>Error.captureStackTrace(obj)</code>).</p>\n<p>The default value is <code>10</code> but may be set to any valid JavaScript number. Changes\nwill affect any stack trace captured <em>after</em> the value has been changed.</p>\n<p>If set to a non-number value, or set to a negative number, stack traces will\nnot capture any frames.</p>\n",
               "properties": [
                 {
-                  "textRaw": "error.message",
+                  "textRaw": "`message` {String} ",
+                  "type": "String",
                   "name": "message",
-                  "desc": "<p>Returns the string description of error as set by calling <code>new Error(message)</code>.\nThe <code>message</code> passed to the constructor will also appear in the first line of\nthe stack trace of the <code>Error</code>, however changing this property after the\n<code>Error</code> object is created <em>may not</em> change the first line of the stack trace.</p>\n<pre><code class=\"lang-js\">const err = new Error(&#39;The message&#39;);\nconsole.log(err.message);\n// Prints: The message\n</code></pre>\n"
+                  "desc": "<p>The <code>error.message</code> property is the string description of the error as set by calling <code>new Error(message)</code>.\nThe <code>message</code> passed to the constructor will also appear in the first line of\nthe stack trace of the <code>Error</code>, however changing this property after the\n<code>Error</code> object is created <em>may not</em> change the first line of the stack trace\n(for example, when <code>error.stack</code> is read before this property is changed).</p>\n<pre><code class=\"lang-js\">const err = new Error(&#39;The message&#39;);\nconsole.log(err.message);\n// Prints: The message\n</code></pre>\n"
                 },
                 {
-                  "textRaw": "error.stack",
+                  "textRaw": "`stack` {String} ",
+                  "type": "String",
                   "name": "stack",
-                  "desc": "<p>Returns a string describing the point in the code at which the <code>Error</code> was\ninstantiated.</p>\n<p>For example:</p>\n<pre><code class=\"lang-txt\">Error: Things keep happening!\n   at /home/gbusey/file.js:525:2\n   at Frobnicator.refrobulate (/home/gbusey/business-logic.js:424:21)\n   at Actor.&lt;anonymous&gt; (/home/gbusey/actors.js:400:8)\n   at increaseSynergy (/home/gbusey/actors.js:701:6)\n</code></pre>\n<p>The first line is formatted as <code>&lt;error class name&gt;: &lt;error message&gt;</code>, and\nis followed by a series of stack frames (each line beginning with &quot;at &quot;).\nEach frame describes a call site within the code that lead to the error being\ngenerated. V8 attempts to display a name for each function (by variable name,\nfunction name, or object method name), but occasionally it will not be able to\nfind a suitable name. If V8 cannot determine a name for the function, only\nlocation information will be displayed for that frame. Otherwise, the\ndetermined function name will be displayed with location information appended\nin parentheses.</p>\n<p>It is important to note that frames are <strong>only</strong> generated for JavaScript\nfunctions. If, for example, execution synchronously passes through a C++ addon\nfunction called <code>cheetahify</code>, which itself calls a JavaScript function, the\nframe representing the <code>cheetahify</code> call will <strong>not</strong> be present in the stack\ntraces:</p>\n<pre><code class=\"lang-js\">const cheetahify = require(&#39;./native-binding.node&#39;);\n\nfunction makeFaster() {\n  // cheetahify *synchronously* calls speedy.\n  cheetahify(function speedy() {\n    throw new Error(&#39;oh no!&#39;);\n  });\n}\n\nmakeFaster(); // will throw:\n  // /home/gbusey/file.js:6\n  //     throw new Error(&#39;oh no!&#39;);\n  //           ^\n  // Error: oh no!\n  //     at speedy (/home/gbusey/file.js:6:11)\n  //     at makeFaster (/home/gbusey/file.js:5:3)\n  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)\n  //     at Module._compile (module.js:456:26)\n  //     at Object.Module._extensions..js (module.js:474:10)\n  //     at Module.load (module.js:356:32)\n  //     at Function.Module._load (module.js:312:12)\n  //     at Function.Module.runMain (module.js:497:10)\n  //     at startup (node.js:119:16)\n  //     at node.js:906:3\n</code></pre>\n<p>The location information will be one of:</p>\n<ul>\n<li><code>native</code>, if the frame represents a call internal to V8 (as in <code>[].forEach</code>).</li>\n<li><code>plain-filename.js:line:column</code>, if the frame represents a call internal\n to Node.js.</li>\n<li><code>/absolute/path/to/file.js:line:column</code>, if the frame represents a call in\na user program, or its dependencies.</li>\n</ul>\n<p>The string representing the stack trace is lazily generated when the\n<code>error.stack</code> property is <strong>accessed</strong>.</p>\n<p>The number of frames captured by the stack trace is bounded by the smaller of\n<code>Error.stackTraceLimit</code> or the number of available frames on the current event\nloop tick.</p>\n<p>System-level errors are generated as augmented <code>Error</code> instances, which are\ndetailed <a href=\"#errors_system_errors\">here</a>.</p>\n"
+                  "desc": "<p>The <code>error.stack</code> property is a string describing the point in the code at which\nthe <code>Error</code> was instantiated.</p>\n<p>For example:</p>\n<pre><code class=\"lang-txt\">Error: Things keep happening!\n   at /home/gbusey/file.js:525:2\n   at Frobnicator.refrobulate (/home/gbusey/business-logic.js:424:21)\n   at Actor.&lt;anonymous&gt; (/home/gbusey/actors.js:400:8)\n   at increaseSynergy (/home/gbusey/actors.js:701:6)\n</code></pre>\n<p>The first line is formatted as <code>&lt;error class name&gt;: &lt;error message&gt;</code>, and\nis followed by a series of stack frames (each line beginning with &quot;at &quot;).\nEach frame describes a call site within the code that lead to the error being\ngenerated. V8 attempts to display a name for each function (by variable name,\nfunction name, or object method name), but occasionally it will not be able to\nfind a suitable name. If V8 cannot determine a name for the function, only\nlocation information will be displayed for that frame. Otherwise, the\ndetermined function name will be displayed with location information appended\nin parentheses.</p>\n<p>It is important to note that frames are <strong>only</strong> generated for JavaScript\nfunctions. If, for example, execution synchronously passes through a C++ addon\nfunction called <code>cheetahify</code>, which itself calls a JavaScript function, the\nframe representing the <code>cheetahify</code> call will <strong>not</strong> be present in the stack\ntraces:</p>\n<pre><code class=\"lang-js\">const cheetahify = require(&#39;./native-binding.node&#39;);\n\nfunction makeFaster() {\n  // cheetahify *synchronously* calls speedy.\n  cheetahify(function speedy() {\n    throw new Error(&#39;oh no!&#39;);\n  });\n}\n\nmakeFaster(); // will throw:\n  // /home/gbusey/file.js:6\n  //     throw new Error(&#39;oh no!&#39;);\n  //           ^\n  // Error: oh no!\n  //     at speedy (/home/gbusey/file.js:6:11)\n  //     at makeFaster (/home/gbusey/file.js:5:3)\n  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)\n  //     at Module._compile (module.js:456:26)\n  //     at Object.Module._extensions..js (module.js:474:10)\n  //     at Module.load (module.js:356:32)\n  //     at Function.Module._load (module.js:312:12)\n  //     at Function.Module.runMain (module.js:497:10)\n  //     at startup (node.js:119:16)\n  //     at node.js:906:3\n</code></pre>\n<p>The location information will be one of:</p>\n<ul>\n<li><code>native</code>, if the frame represents a call internal to V8 (as in <code>[].forEach</code>).</li>\n<li><code>plain-filename.js:line:column</code>, if the frame represents a call internal\n to Node.js.</li>\n<li><code>/absolute/path/to/file.js:line:column</code>, if the frame represents a call in\na user program, or its dependencies.</li>\n</ul>\n<p>The string representing the stack trace is lazily generated when the\n<code>error.stack</code> property is <strong>accessed</strong>.</p>\n<p>The number of frames captured by the stack trace is bounded by the smaller of\n<code>Error.stackTraceLimit</code> or the number of available frames on the current event\nloop tick.</p>\n<p>System-level errors are generated as augmented <code>Error</code> instances, which are\ndetailed <a href=\"#errors_system_errors\">here</a>.</p>\n"
                 }
               ]
             }
           ],
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`message` {String} ",
+                  "name": "message",
+                  "type": "String"
+                }
+              ],
+              "desc": "<p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the\nprovided text message. If an object is passed as <code>message</code>, the text message\nis generated by calling <code>message.toString()</code>. The <code>error.stack</code> property will\nrepresent the point in the code at which <code>new Error()</code> was called. Stack traces\nare dependent on <a href=\"https://github.com/v8/v8/wiki/Stack-Trace-API\">V8&#39;s stack trace API</a>. Stack traces extend only to either\n(a) the beginning of  <em>synchronous code execution</em>, or (b) the number of frames\ngiven by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>\n"
+            },
             {
               "params": [
                 {
@@ -831,8 +880,8 @@
           "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n<!-- [end-include:globals.md] -->\n<!-- [start-include:http.md] -->\n"
         },
         {
-          "textRaw": "process",
-          "name": "process",
+          "textRaw": "Process",
+          "name": "Process",
           "type": "global",
           "desc": "<p>The <code>process</code> object is a <code>global</code> that provides information about, and control\nover, the current Node.js process. As a global, it is always available to\nNode.js applications without using <code>require()</code>.</p>\n",
           "modules": [
@@ -2081,8 +2130,8 @@
   ],
   "modules": [
     {
-      "textRaw": "Addons",
-      "name": "addons",
+      "textRaw": "C/C++ Addons",
+      "name": "c/c++_addons",
       "desc": "<p>Node.js Addons are dynamically-linked shared objects, written in C or C++, that\ncan be loaded into Node.js using the <a href=\"globals.html#globals_require\"><code>require()</code></a> function, and used\njust as if they were an ordinary Node.js module. They are used primarily to\nprovide an interface between JavaScript running in Node.js and C/C++ libraries.</p>\n<p>At the moment, the method for implementing Addons is rather complicated,\ninvolving knowledge of several components and APIs :</p>\n<ul>\n<li><p>V8: the C++ library Node.js currently uses to provide the\nJavaScript implementation. V8 provides the mechanisms for creating objects,\ncalling functions, etc. V8&#39;s API is documented mostly in the\n<code>v8.h</code> header file (<code>deps/v8/include/v8.h</code> in the Node.js source\ntree), which is also available <a href=\"https://v8docs.nodesource.com/\">online</a>.</p>\n</li>\n<li><p><a href=\"https://github.com/libuv/libuv\">libuv</a>: The C library that implements the Node.js event loop, its worker\nthreads and all of the asynchronous behaviors of the platform. It also\nserves as a cross-platform abstraction library, giving easy, POSIX-like\naccess across all major operating systems to many common system tasks, such\nas interacting with the filesystem, sockets, timers and system events. libuv\nalso provides a pthreads-like threading abstraction that may be used to\npower more sophisticated asynchronous Addons that need to move beyond the\nstandard event loop. Addon authors are encouraged to think about how to\navoid blocking the event loop with I/O or other time-intensive tasks by\noff-loading work via libuv to non-blocking system operations, worker threads\nor a custom use of libuv&#39;s threads.</p>\n</li>\n<li><p>Internal Node.js libraries. Node.js itself exports a number of C/C++ APIs\nthat Addons can use &mdash; the most important of which is the\n<code>node::ObjectWrap</code> class.</p>\n</li>\n<li><p>Node.js includes a number of other statically linked libraries including\nOpenSSL. These other libraries are located in the <code>deps/</code> directory in the\nNode.js source tree. Only the V8 and OpenSSL symbols are purposefully\nre-exported by Node.js and may be used to various extents by Addons.\nSee <a href=\"#addons_linking_to_node_js_own_dependencies\">Linking to Node.js&#39; own dependencies</a> for additional information.</p>\n</li>\n</ul>\n<p>All of the following examples are available for <a href=\"https://github.com/nodejs/node-addon-examples\">download</a> and may\nbe used as a starting-point for your own Addon.</p>\n",
       "modules": [
         {
@@ -2118,7 +2167,7 @@
         {
           "textRaw": "Addon examples",
           "name": "addon_examples",
-          "desc": "<p>Following are some example Addons intended to help developers get started. The\nexamples make use of the V8 APIs. Refer to the online <a href=\"https://v8docs.nodesource.com/\">V8 reference</a>\nfor help with the various V8 calls, and V8&#39;s <a href=\"https://developers.google.com/v8/embed\">Embedder&#39;s Guide</a> for an\nexplanation of several concepts used such as handles, scopes, function\ntemplates, etc.</p>\n<p>Each of these examples using the following <code>binding.gyp</code> file:</p>\n<pre><code class=\"lang-json\">{\n  &quot;targets&quot;: [\n    {\n      &quot;target_name&quot;: &quot;addon&quot;,\n      &quot;sources&quot;: [ &quot;addon.cc&quot; ]\n    }\n  ]\n}\n</code></pre>\n<p>In cases where there is more than one <code>.cc</code> file, simply add the additional\nfilename to the <code>sources</code> array. For example:</p>\n<pre><code class=\"lang-json\">&quot;sources&quot;: [&quot;addon.cc&quot;, &quot;myexample.cc&quot;]\n</code></pre>\n<p>Once the <code>binding.gyp</code> file is ready, the example Addons can be configured and\nbuilt using <code>node-gyp</code>:</p>\n<pre><code class=\"lang-console\">$ node-gyp configure build\n</code></pre>\n",
+          "desc": "<p>Following are some example Addons intended to help developers get started. The\nexamples make use of the V8 APIs. Refer to the online <a href=\"https://v8docs.nodesource.com/\">V8 reference</a>\nfor help with the various V8 calls, and V8&#39;s <a href=\"https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide\">Embedder&#39;s Guide</a> for an\nexplanation of several concepts used such as handles, scopes, function\ntemplates, etc.</p>\n<p>Each of these examples using the following <code>binding.gyp</code> file:</p>\n<pre><code class=\"lang-json\">{\n  &quot;targets&quot;: [\n    {\n      &quot;target_name&quot;: &quot;addon&quot;,\n      &quot;sources&quot;: [ &quot;addon.cc&quot; ]\n    }\n  ]\n}\n</code></pre>\n<p>In cases where there is more than one <code>.cc</code> file, simply add the additional\nfilename to the <code>sources</code> array. For example:</p>\n<pre><code class=\"lang-json\">&quot;sources&quot;: [&quot;addon.cc&quot;, &quot;myexample.cc&quot;]\n</code></pre>\n<p>Once the <code>binding.gyp</code> file is ready, the example Addons can be configured and\nbuilt using <code>node-gyp</code>:</p>\n<pre><code class=\"lang-console\">$ node-gyp configure build\n</code></pre>\n",
           "modules": [
             {
               "textRaw": "Function arguments",
@@ -2198,14 +2247,14 @@
         }
       ],
       "type": "module",
-      "displayName": "Addons"
+      "displayName": "C/C++ Addons"
     },
     {
       "textRaw": "Assert",
       "name": "assert",
       "stability": 3,
       "stabilityText": "Locked",
-      "desc": "<p>The <code>assert</code> module provides a simple set of assertion tests that can be used to\ntest invariants. The module is intended for internal use by Node.js, but can be\nused in application code via <code>require(&#39;assert&#39;)</code>. However, <code>assert</code> is not a\ntesting framework, and is not intended to be used as a general purpose assertion\nlibrary.</p>\n<p>The API for the <code>assert</code> module is <a href=\"documentation.html#documentation_stability_index\">Locked</a>. This means that there will be no\nadditions or changes to any of the methods implemented and exposed by\nthe module.</p>\n",
+      "desc": "<p>The <code>assert</code> module provides a simple set of assertion tests that can be used to\ntest invariants.</p>\n",
       "methods": [
         {
           "textRaw": "assert(value[, message])",
@@ -2801,7 +2850,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns the actual byte length of a string. This is not the same as\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length\"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in\na string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const str = &#39;\\u00bd + \\u00bc = \\u00be&#39;;\n\n// Prints: ½ + ¼ = ¾: 9 characters, 12 bytes\nconsole.log(`${str}: ${str.length} characters, ` +\n            `${Buffer.byteLength(str, &#39;utf8&#39;)} bytes`);\n</code></pre>\n<p>When <code>string</code> is a <code>Buffer</code>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>, the\nactual byte length is returned.</p>\n"
+              "desc": "<p>Returns the actual byte length of a string. This is not the same as\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length\"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in\na string.</p>\n<p><em>Note</em> that for <code>&#39;base64&#39;</code> and <code>&#39;hex&#39;</code>, this function assumes valid input. For\nstrings that contain non-Base64/Hex-encoded data (e.g. whitespace), the return\nvalue might be greater than the length of a <code>Buffer</code> created from the string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const str = &#39;\\u00bd + \\u00bc = \\u00be&#39;;\n\n// Prints: ½ + ¼ = ¾: 9 characters, 12 bytes\nconsole.log(`${str}: ${str.length} characters, ` +\n            `${Buffer.byteLength(str, &#39;utf8&#39;)} bytes`);\n</code></pre>\n<p>When <code>string</code> is a <code>Buffer</code>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>, the\nactual byte length is returned.</p>\n"
             },
             {
               "textRaw": "Class Method: Buffer.compare(buf1, buf2)",
@@ -7261,7 +7310,7 @@
         {
           "textRaw": "`maxBuffer` and Unicode",
           "name": "`maxbuffer`_and_unicode",
-          "desc": "<p>It is important to keep in mind that the <code>maxBuffer</code> option specifies the\nlargest number of <em>octets</em> allowed on <code>stdout</code> or <code>stderr</code>. If this value is\nexceeded, then the child process is terminated. This particularly impacts\noutput that includes multibyte character encodings such as UTF-8 or UTF-16.\nFor instance, the following will output 13 UTF-8 encoded octets to <code>stdout</code>\nalthough there are only 4 characters:</p>\n<pre><code class=\"lang-js\">console.log(&#39;中文测试&#39;);\n</code></pre>\n<!-- [end-include:child_process.md] -->\n<!-- [start-include:cluster.md] -->\n",
+          "desc": "<p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>\nor <code>stderr</code>. If this value is exceeded, then the child process is terminated.\nThis impacts output that includes multibyte character encodings such as UTF-8 or\nUTF-16. For instance, <code>console.log(&#39;中文测试&#39;)</code> will send 13 UTF-8 encoded bytes\nto <code>stdout</code> although there are only 4 characters.</p>\n<!-- [end-include:child_process.md] -->\n<!-- [start-include:cluster.md] -->\n",
           "type": "module",
           "displayName": "`maxBuffer` and Unicode"
         }
@@ -10657,7 +10706,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a <code>dgram.Socket</code> object. The <code>options</code> argument is an object that\nshould contain a <code>type</code> field of either <code>udp4</code> or <code>udp6</code> and an optional\nboolean <code>reuseAddr</code> field.</p>\n<p>When <code>reuseAddr</code> is <code>true</code> <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will reuse the address, even if\nanother process has already bound a socket on it. <code>reuseAddr</code> defaults to\n<code>false</code>. An optional <code>callback</code> function can be passed specified which is added\nas a listener for <code>&#39;message&#39;</code> events.</p>\n<p>Once the socket is created, calling <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will instruct the\nsocket to begin listening for datagram messages. When <code>address</code> and <code>port</code> are\nnot passed to  <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> the method will bind the socket to the &quot;all\ninterfaces&quot; address on a random port (it does the right thing for both <code>udp4</code>\nand <code>udp6</code> sockets). The bound address and port can be retrieved using\n<a href=\"#dgram_socket_address\"><code>socket.address().address</code></a> and <a href=\"#dgram_socket_address\"><code>socket.address().port</code></a>.</p>\n"
+              "desc": "<p>Creates a <code>dgram.Socket</code> object. The <code>options</code> argument is an object that\nshould contain a <code>type</code> field of either <code>udp4</code> or <code>udp6</code> and an optional\nboolean <code>reuseAddr</code> field.</p>\n<p>When <code>reuseAddr</code> is <code>true</code> <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will reuse the address, even if\nanother process has already bound a socket on it. <code>reuseAddr</code> defaults to\n<code>false</code>. The optional <code>callback</code> function is added as a listener for <code>&#39;message&#39;</code>\nevents.</p>\n<p>Once the socket is created, calling <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will instruct the\nsocket to begin listening for datagram messages. When <code>address</code> and <code>port</code> are\nnot passed to  <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> the method will bind the socket to the &quot;all\ninterfaces&quot; address on a random port (it does the right thing for both <code>udp4</code>\nand <code>udp6</code> sockets). The bound address and port can be retrieved using\n<a href=\"#dgram_socket_address\"><code>socket.address().address</code></a> and <a href=\"#dgram_socket_address\"><code>socket.address().port</code></a>.</p>\n"
             },
             {
               "textRaw": "dgram.createSocket(type[, callback])",
@@ -10718,7 +10767,7 @@
       "name": "dns",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>dns</code> module contains functions belonging to two different categories:</p>\n<p>1) Functions that use the underlying operating system facilities to perform\nname resolution, and that do not necessarily perform any network communication.\nThis category contains only one function: <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. <strong>Developers\nlooking to perform name resolution in the same way that other applications on\nthe same operating system behave should use <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</strong></p>\n<p>For example, looking up <code>nodejs.org</code>.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.lookup(&#39;nodejs.org&#39;, (err, addresses, family) =&gt; {\n  console.log(&#39;addresses:&#39;, addresses);\n});\n</code></pre>\n<p>2) Functions that connect to an actual DNS server to perform name resolution,\nand that <em>always</em> use the network to perform DNS queries. This category\ncontains all functions in the <code>dns</code> module <em>except</em> <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. These\nfunctions do not use the same set of configuration files used by\n<a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a> (e.g. <code>/etc/hosts</code>). These functions should be used by\ndevelopers who do not want to use the underlying operating system&#39;s facilities\nfor name resolution, and instead want to <em>always</em> perform DNS queries.</p>\n<p>Below is an example that resolves <code>&#39;nodejs.org&#39;</code> then reverse resolves the IP\naddresses that are returned.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.resolve4(&#39;nodejs.org&#39;, (err, addresses) =&gt; {\n  if (err) throw err;\n\n  console.log(`addresses: ${JSON.stringify(addresses)}`);\n\n  addresses.forEach((a) =&gt; {\n    dns.reverse(a, (err, hostnames) =&gt; {\n      if (err) {\n        throw err;\n      }\n      console.log(`reverse for ${a}: ${JSON.stringify(hostnames)}`);\n    });\n  });\n});\n</code></pre>\n<p>There are subtle consequences in choosing one over the other, please consult\nthe <a href=\"#dns_implementation_considerations\">Implementation considerations section</a> for more information.</p>\n",
+      "desc": "<p>The <code>dns</code> module contains functions belonging to two different categories:</p>\n<p>1) Functions that use the underlying operating system facilities to perform\nname resolution, and that do not necessarily perform any network communication.\nThis category contains only one function: <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. <strong>Developers\nlooking to perform name resolution in the same way that other applications on\nthe same operating system behave should use <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</strong></p>\n<p>For example, looking up <code>iana.org</code>.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.lookup(&#39;iana.org&#39;, (err, addresses, family) =&gt; {\n  console.log(&#39;addresses:&#39;, addresses);\n});\n</code></pre>\n<p>2) Functions that connect to an actual DNS server to perform name resolution,\nand that <em>always</em> use the network to perform DNS queries. This category\ncontains all functions in the <code>dns</code> module <em>except</em> <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. These\nfunctions do not use the same set of configuration files used by\n<a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a> (e.g. <code>/etc/hosts</code>). These functions should be used by\ndevelopers who do not want to use the underlying operating system&#39;s facilities\nfor name resolution, and instead want to <em>always</em> perform DNS queries.</p>\n<p>Below is an example that resolves <code>&#39;archive.org&#39;</code> then reverse resolves the IP\naddresses that are returned.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.resolve4(&#39;archive.org&#39;, (err, addresses) =&gt; {\n  if (err) throw err;\n\n  console.log(`addresses: ${JSON.stringify(addresses)}`);\n\n  addresses.forEach((a) =&gt; {\n    dns.reverse(a, (err, hostnames) =&gt; {\n      if (err) {\n        throw err;\n      }\n      console.log(`reverse for ${a}: ${JSON.stringify(hostnames)}`);\n    });\n  });\n});\n</code></pre>\n<p>There are subtle consequences in choosing one over the other, please consult\nthe <a href=\"#dns_implementation_considerations\">Implementation considerations section</a> for more information.</p>\n",
       "methods": [
         {
           "textRaw": "dns.getServers()",
@@ -15229,7 +15278,7 @@
                   "textRaw": "Inodes",
                   "name": "Inodes",
                   "type": "misc",
-                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n"
+                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and \nclose operations on some platforms cause inode changes that force watch \noperations to become invalid and ineffective. AIX retains inode for the \nlifetime of a file, that way though this is different from Linux / OS X, \nthis improves the usability of file watching. This is expected behavior.</p>\n"
                 },
                 {
                   "textRaw": "Filename Argument",
@@ -15925,10 +15974,10 @@
                       "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Default = `false`"
                     },
                     {
-                      "textRaw": "`keepAliveMsecs` {Integer} When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`. ",
+                      "textRaw": "`keepAliveMsecs` {Integer} When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`. ",
                       "name": "keepAliveMsecs",
                       "type": "Integer",
-                      "desc": "When using the `keepAlive` option, specifies the [initial delay](#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`."
+                      "desc": "When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Default = `1000`."
                     },
                     {
                       "textRaw": "`maxSockets` {Number} Maximum number of sockets to allow per host.  Default = `Infinity`. ",
@@ -18039,7 +18088,7 @@
       "displayName": "module"
     },
     {
-      "textRaw": "net",
+      "textRaw": "Net",
       "name": "net",
       "stability": 2,
       "stabilityText": "Stable",
@@ -19234,7 +19283,7 @@
         }
       ],
       "type": "module",
-      "displayName": "net"
+      "displayName": "Net"
     },
     {
       "textRaw": "OS",
@@ -20159,7 +20208,7 @@
       "displayName": "Path"
     },
     {
-      "textRaw": "punycode",
+      "textRaw": "Punycode",
       "name": "punycode",
       "stability": 0,
       "stabilityText": "Deprecated",
@@ -20330,7 +20379,7 @@
         }
       ],
       "type": "module",
-      "displayName": "punycode"
+      "displayName": "Punycode"
     },
     {
       "textRaw": "Query String",
@@ -21684,7 +21733,7 @@
                           "v0.11.2"
                         ]
                       },
-                      "desc": "<p>The <code>writable.cork()</code> method forces all written data to be buffered in memory.\nThe buffered data will be flushed when either the <a href=\"#stream_writable_uncork\"><code>stream.uncork()</code></a> or\n<a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> methods are called.</p>\n<p>The primary intent of <code>writable.cork()</code> is to avoid a situation where writing\nmany small chunks of data to a stream do not cause a backup in the internal\nbuffer that would have an adverse impact on performance. In such situations,\nimplementations that implement the <code>writable._writev()</code> method can perform\nbuffered writes in a more optimized manner.</p>\n",
+                      "desc": "<p>The <code>writable.cork()</code> method forces all written data to be buffered in memory.\nThe buffered data will be flushed when either the <a href=\"#stream_writable_uncork\"><code>stream.uncork()</code></a> or\n<a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> methods are called.</p>\n<p>The primary intent of <code>writable.cork()</code> is to avoid a situation where writing\nmany small chunks of data to a stream do not cause a backup in the internal\nbuffer that would have an adverse impact on performance. In such situations,\nimplementations that implement the <code>writable._writev()</code> method can perform\nbuffered writes in a more optimized manner.</p>\n<p>See also: <a href=\"#stream_writable_uncork\"><code>writable.uncork()</code></a>.</p>\n",
                       "signatures": [
                         {
                           "params": []
@@ -21789,7 +21838,7 @@
                           "v0.11.2"
                         ]
                       },
-                      "desc": "<p>The <code>writable.uncork()</code> method flushes all data buffered since\n<a href=\"#stream_writable_cork\"><code>stream.cork()</code></a> was called.</p>\n<p>When using <code>writable.cork()</code> and <code>writable.uncork()</code> to manage the buffering\nof writes to a stream, it is recommended that calls to <code>writable.uncork()</code> be\ndeferred using <code>process.nextTick()</code>. Doing so allows batching of all\n<code>writable.write()</code> calls that occur within a given Node.js event loop phase.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; stream.uncork());\n</code></pre>\n<p>If the <code>writable.cork()</code> method is called multiple times on a stream, the same\nnumber of calls to <code>writable.uncork()</code> must be called to flush the buffered\ndata.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.cork();\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; {\n  stream.uncork();\n  // The data will not be flushed until uncork() is called a second time.\n  stream.uncork();\n});\n</code></pre>\n",
+                      "desc": "<p>The <code>writable.uncork()</code> method flushes all data buffered since\n<a href=\"#stream_writable_cork\"><code>stream.cork()</code></a> was called.</p>\n<p>When using <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a> and <code>writable.uncork()</code> to manage the buffering\nof writes to a stream, it is recommended that calls to <code>writable.uncork()</code> be\ndeferred using <code>process.nextTick()</code>. Doing so allows batching of all\n<code>writable.write()</code> calls that occur within a given Node.js event loop phase.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; stream.uncork());\n</code></pre>\n<p>If the <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a> method is called multiple times on a stream, the same\nnumber of calls to <code>writable.uncork()</code> must be called to flush the buffered\ndata.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.cork();\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; {\n  stream.uncork();\n  // The data will not be flushed until uncork() is called a second time.\n  stream.uncork();\n});\n</code></pre>\n<p>See also: <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a>.</p>\n",
                       "signatures": [
                         {
                           "params": []
@@ -22827,8 +22876,8 @@
       "displayName": "Stream"
     },
     {
-      "textRaw": "StringDecoder",
-      "name": "stringdecoder",
+      "textRaw": "String Decoder",
+      "name": "string_decoder",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>string_decoder</code> module provides an API for decoding <code>Buffer</code> objects into\nstrings in a manner that preserves encoded multi-byte UTF-8 and UTF-16\ncharacters. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const StringDecoder = require(&#39;string_decoder&#39;).StringDecoder;\n</code></pre>\n<p>The following example shows the basic use of the <code>StringDecoder</code> class.</p>\n<pre><code class=\"lang-js\">const StringDecoder = require(&#39;string_decoder&#39;).StringDecoder;\nconst decoder = new StringDecoder(&#39;utf8&#39;);\n\nconst cent = Buffer.from([0xC2, 0xA2]);\nconsole.log(decoder.write(cent));\n\nconst euro = Buffer.from([0xE2, 0x82, 0xAC]);\nconsole.log(decoder.write(euro));\n</code></pre>\n<p>When a <code>Buffer</code> instance is written to the <code>StringDecoder</code> instance, an\ninternal buffer is used to ensure that the decoded string does not contain\nany incomplete multibyte characters. These are held in the buffer until the\nnext call to <code>stringDecoder.write()</code> or until <code>stringDecoder.end()</code> is called.</p>\n<p>In the following example, the three UTF-8 encoded bytes of the European Euro\nsymbol (<code>€</code>) are written over three separate operations:</p>\n<pre><code class=\"lang-js\">const StringDecoder = require(&#39;string_decoder&#39;).StringDecoder;\nconst decoder = new StringDecoder(&#39;utf8&#39;);\n\ndecoder.write(Buffer.from([0xE2]));\ndecoder.write(Buffer.from([0x82]));\nconsole.log(decoder.end(Buffer.from([0xAC])));\n</code></pre>\n",
@@ -22910,7 +22959,7 @@
         }
       ],
       "type": "module",
-      "displayName": "StringDecoder"
+      "displayName": "String Decoder"
     },
     {
       "textRaw": "Timers",
@@ -25493,7 +25542,7 @@
       "displayName": "URL"
     },
     {
-      "textRaw": "util",
+      "textRaw": "Util",
       "name": "util",
       "stability": 2,
       "stabilityText": "Stable",
@@ -26452,7 +26501,7 @@
         }
       ],
       "type": "module",
-      "displayName": "util"
+      "displayName": "Util"
     },
     {
       "textRaw": "V8",
@@ -26516,7 +26565,7 @@
       "displayName": "V8"
     },
     {
-      "textRaw": "Executing JavaScript",
+      "textRaw": "VM (Executing JavaScript)",
       "name": "vm",
       "stability": 2,
       "stabilityText": "Stable",
@@ -27155,7 +27204,7 @@
         {
           "textRaw": "What does it mean to \"contextify\" an object?",
           "name": "what_does_it_mean_to_\"contextify\"_an_object?",
-          "desc": "<p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.\nAccording to the <a href=\"https://developers.google.com/v8/embed#contexts\">V8 Embedder&#39;s Guide</a>:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n&quot;contextifying&quot; the <code>sandbox</code>.</p>\n<!-- [end-include:vm.md] -->\n<!-- [start-include:zlib.md] -->\n",
+          "desc": "<p>All JavaScript executed within Node.js runs within the scope of a &quot;context&quot;.\nAccording to the <a href=\"https://github.com/v8/v8/wiki/Embedder&#39;s%20Guide#contexts\">V8 Embedder&#39;s Guide</a>:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n&quot;contextifying&quot; the <code>sandbox</code>.</p>\n<!-- [end-include:vm.md] -->\n<!-- [start-include:zlib.md] -->\n",
           "type": "module",
           "displayName": "What does it mean to \"contextify\" an object?"
         }
@@ -28005,8 +28054,22 @@
           "textRaw": "Error.captureStackTrace(targetObject[, constructorOpt])",
           "type": "method",
           "name": "captureStackTrace",
-          "desc": "<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns\na string representing the location in the code at which\n<code>Error.captureStackTrace()</code> was called.</p>\n<pre><code class=\"lang-js\">const myObject = {};\nError.captureStackTrace(myObject);\nmyObject.stack  // similar to `new Error().stack`\n</code></pre>\n<p>The first line of the trace, instead of being prefixed with <code>ErrorType:\nmessage</code>, will be the result of calling <code>targetObject.toString()</code>.</p>\n<p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames\nabove <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the\ngenerated stack trace.</p>\n<p>The <code>constructorOpt</code> argument is useful for hiding implementation\ndetails of error generation from an end user. For instance:</p>\n<pre><code class=\"lang-js\">function MyError() {\n  Error.captureStackTrace(this, MyError);\n}\n\n// Without passing MyError to captureStackTrace, the MyError\n// frame would show up in the .stack property. By passing\n// the constructor, we omit that frame and all frames above it.\nnew MyError().stack\n</code></pre>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`targetObject` {Object} ",
+                  "name": "targetObject",
+                  "type": "Object"
+                },
+                {
+                  "textRaw": "`constructorOpt` {Function} ",
+                  "name": "constructorOpt",
+                  "type": "Function",
+                  "optional": true
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -28018,29 +28081,43 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns\na string representing the location in the code at which\n<code>Error.captureStackTrace()</code> was called.</p>\n<pre><code class=\"lang-js\">const myObject = {};\nError.captureStackTrace(myObject);\nmyObject.stack  // similar to `new Error().stack`\n</code></pre>\n<p>The first line of the trace, instead of being prefixed with <code>ErrorType:\nmessage</code>, will be the result of calling <code>targetObject.toString()</code>.</p>\n<p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames\nabove <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the\ngenerated stack trace.</p>\n<p>The <code>constructorOpt</code> argument is useful for hiding implementation\ndetails of error generation from an end user. For instance:</p>\n<pre><code class=\"lang-js\">function MyError() {\n  Error.captureStackTrace(this, MyError);\n}\n\n// Without passing MyError to captureStackTrace, the MyError\n// frame would show up in the .stack property. By passing\n// the constructor, we omit that frame and all frames above it.\nnew MyError().stack\n</code></pre>\n"
         }
       ],
       "properties": [
         {
-          "textRaw": "Error.stackTraceLimit",
+          "textRaw": "`stackTraceLimit` {Number} ",
+          "type": "Number",
           "name": "stackTraceLimit",
           "desc": "<p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames\ncollected by a stack trace (whether generated by <code>new Error().stack</code> or\n<code>Error.captureStackTrace(obj)</code>).</p>\n<p>The default value is <code>10</code> but may be set to any valid JavaScript number. Changes\nwill affect any stack trace captured <em>after</em> the value has been changed.</p>\n<p>If set to a non-number value, or set to a negative number, stack traces will\nnot capture any frames.</p>\n",
           "properties": [
             {
-              "textRaw": "error.message",
+              "textRaw": "`message` {String} ",
+              "type": "String",
               "name": "message",
-              "desc": "<p>Returns the string description of error as set by calling <code>new Error(message)</code>.\nThe <code>message</code> passed to the constructor will also appear in the first line of\nthe stack trace of the <code>Error</code>, however changing this property after the\n<code>Error</code> object is created <em>may not</em> change the first line of the stack trace.</p>\n<pre><code class=\"lang-js\">const err = new Error(&#39;The message&#39;);\nconsole.log(err.message);\n// Prints: The message\n</code></pre>\n"
+              "desc": "<p>The <code>error.message</code> property is the string description of the error as set by calling <code>new Error(message)</code>.\nThe <code>message</code> passed to the constructor will also appear in the first line of\nthe stack trace of the <code>Error</code>, however changing this property after the\n<code>Error</code> object is created <em>may not</em> change the first line of the stack trace\n(for example, when <code>error.stack</code> is read before this property is changed).</p>\n<pre><code class=\"lang-js\">const err = new Error(&#39;The message&#39;);\nconsole.log(err.message);\n// Prints: The message\n</code></pre>\n"
             },
             {
-              "textRaw": "error.stack",
+              "textRaw": "`stack` {String} ",
+              "type": "String",
               "name": "stack",
-              "desc": "<p>Returns a string describing the point in the code at which the <code>Error</code> was\ninstantiated.</p>\n<p>For example:</p>\n<pre><code class=\"lang-txt\">Error: Things keep happening!\n   at /home/gbusey/file.js:525:2\n   at Frobnicator.refrobulate (/home/gbusey/business-logic.js:424:21)\n   at Actor.&lt;anonymous&gt; (/home/gbusey/actors.js:400:8)\n   at increaseSynergy (/home/gbusey/actors.js:701:6)\n</code></pre>\n<p>The first line is formatted as <code>&lt;error class name&gt;: &lt;error message&gt;</code>, and\nis followed by a series of stack frames (each line beginning with &quot;at &quot;).\nEach frame describes a call site within the code that lead to the error being\ngenerated. V8 attempts to display a name for each function (by variable name,\nfunction name, or object method name), but occasionally it will not be able to\nfind a suitable name. If V8 cannot determine a name for the function, only\nlocation information will be displayed for that frame. Otherwise, the\ndetermined function name will be displayed with location information appended\nin parentheses.</p>\n<p>It is important to note that frames are <strong>only</strong> generated for JavaScript\nfunctions. If, for example, execution synchronously passes through a C++ addon\nfunction called <code>cheetahify</code>, which itself calls a JavaScript function, the\nframe representing the <code>cheetahify</code> call will <strong>not</strong> be present in the stack\ntraces:</p>\n<pre><code class=\"lang-js\">const cheetahify = require(&#39;./native-binding.node&#39;);\n\nfunction makeFaster() {\n  // cheetahify *synchronously* calls speedy.\n  cheetahify(function speedy() {\n    throw new Error(&#39;oh no!&#39;);\n  });\n}\n\nmakeFaster(); // will throw:\n  // /home/gbusey/file.js:6\n  //     throw new Error(&#39;oh no!&#39;);\n  //           ^\n  // Error: oh no!\n  //     at speedy (/home/gbusey/file.js:6:11)\n  //     at makeFaster (/home/gbusey/file.js:5:3)\n  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)\n  //     at Module._compile (module.js:456:26)\n  //     at Object.Module._extensions..js (module.js:474:10)\n  //     at Module.load (module.js:356:32)\n  //     at Function.Module._load (module.js:312:12)\n  //     at Function.Module.runMain (module.js:497:10)\n  //     at startup (node.js:119:16)\n  //     at node.js:906:3\n</code></pre>\n<p>The location information will be one of:</p>\n<ul>\n<li><code>native</code>, if the frame represents a call internal to V8 (as in <code>[].forEach</code>).</li>\n<li><code>plain-filename.js:line:column</code>, if the frame represents a call internal\n to Node.js.</li>\n<li><code>/absolute/path/to/file.js:line:column</code>, if the frame represents a call in\na user program, or its dependencies.</li>\n</ul>\n<p>The string representing the stack trace is lazily generated when the\n<code>error.stack</code> property is <strong>accessed</strong>.</p>\n<p>The number of frames captured by the stack trace is bounded by the smaller of\n<code>Error.stackTraceLimit</code> or the number of available frames on the current event\nloop tick.</p>\n<p>System-level errors are generated as augmented <code>Error</code> instances, which are\ndetailed <a href=\"#errors_system_errors\">here</a>.</p>\n"
+              "desc": "<p>The <code>error.stack</code> property is a string describing the point in the code at which\nthe <code>Error</code> was instantiated.</p>\n<p>For example:</p>\n<pre><code class=\"lang-txt\">Error: Things keep happening!\n   at /home/gbusey/file.js:525:2\n   at Frobnicator.refrobulate (/home/gbusey/business-logic.js:424:21)\n   at Actor.&lt;anonymous&gt; (/home/gbusey/actors.js:400:8)\n   at increaseSynergy (/home/gbusey/actors.js:701:6)\n</code></pre>\n<p>The first line is formatted as <code>&lt;error class name&gt;: &lt;error message&gt;</code>, and\nis followed by a series of stack frames (each line beginning with &quot;at &quot;).\nEach frame describes a call site within the code that lead to the error being\ngenerated. V8 attempts to display a name for each function (by variable name,\nfunction name, or object method name), but occasionally it will not be able to\nfind a suitable name. If V8 cannot determine a name for the function, only\nlocation information will be displayed for that frame. Otherwise, the\ndetermined function name will be displayed with location information appended\nin parentheses.</p>\n<p>It is important to note that frames are <strong>only</strong> generated for JavaScript\nfunctions. If, for example, execution synchronously passes through a C++ addon\nfunction called <code>cheetahify</code>, which itself calls a JavaScript function, the\nframe representing the <code>cheetahify</code> call will <strong>not</strong> be present in the stack\ntraces:</p>\n<pre><code class=\"lang-js\">const cheetahify = require(&#39;./native-binding.node&#39;);\n\nfunction makeFaster() {\n  // cheetahify *synchronously* calls speedy.\n  cheetahify(function speedy() {\n    throw new Error(&#39;oh no!&#39;);\n  });\n}\n\nmakeFaster(); // will throw:\n  // /home/gbusey/file.js:6\n  //     throw new Error(&#39;oh no!&#39;);\n  //           ^\n  // Error: oh no!\n  //     at speedy (/home/gbusey/file.js:6:11)\n  //     at makeFaster (/home/gbusey/file.js:5:3)\n  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)\n  //     at Module._compile (module.js:456:26)\n  //     at Object.Module._extensions..js (module.js:474:10)\n  //     at Module.load (module.js:356:32)\n  //     at Function.Module._load (module.js:312:12)\n  //     at Function.Module.runMain (module.js:497:10)\n  //     at startup (node.js:119:16)\n  //     at node.js:906:3\n</code></pre>\n<p>The location information will be one of:</p>\n<ul>\n<li><code>native</code>, if the frame represents a call internal to V8 (as in <code>[].forEach</code>).</li>\n<li><code>plain-filename.js:line:column</code>, if the frame represents a call internal\n to Node.js.</li>\n<li><code>/absolute/path/to/file.js:line:column</code>, if the frame represents a call in\na user program, or its dependencies.</li>\n</ul>\n<p>The string representing the stack trace is lazily generated when the\n<code>error.stack</code> property is <strong>accessed</strong>.</p>\n<p>The number of frames captured by the stack trace is bounded by the smaller of\n<code>Error.stackTraceLimit</code> or the number of available frames on the current event\nloop tick.</p>\n<p>System-level errors are generated as augmented <code>Error</code> instances, which are\ndetailed <a href=\"#errors_system_errors\">here</a>.</p>\n"
             }
           ]
         }
       ],
       "signatures": [
+        {
+          "params": [
+            {
+              "textRaw": "`message` {String} ",
+              "name": "message",
+              "type": "String"
+            }
+          ],
+          "desc": "<p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the\nprovided text message. If an object is passed as <code>message</code>, the text message\nis generated by calling <code>message.toString()</code>. The <code>error.stack</code> property will\nrepresent the point in the code at which <code>new Error()</code> was called. Stack traces\nare dependent on <a href=\"https://github.com/v8/v8/wiki/Stack-Trace-API\">V8&#39;s stack trace API</a>. Stack traces extend only to either\n(a) the beginning of  <em>synchronous code execution</em>, or (b) the number of frames\ngiven by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>\n"
+        },
         {
           "params": [
             {
@@ -28188,8 +28265,8 @@
       "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n<!-- [end-include:globals.md] -->\n<!-- [start-include:http.md] -->\n"
     },
     {
-      "textRaw": "process",
-      "name": "process",
+      "textRaw": "Process",
+      "name": "Process",
       "type": "global",
       "desc": "<p>The <code>process</code> object is a <code>global</code> that provides information about, and control\nover, the current Node.js process. As a global, it is always available to\nNode.js applications without using <code>require()</code>.</p>\n",
       "modules": [

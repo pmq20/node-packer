@@ -6,6 +6,12 @@ if (!common.hasCrypto) {
   common.skip('missing crypto');
   return;
 }
+
+if (!common.opensslCli) {
+  common.skip('missing openssl-cli');
+  return;
+}
+
 const tls = require('tls');
 
 const exec = require('child_process').exec;
@@ -18,7 +24,7 @@ const options = {
   ecdhCurve: false
 };
 
-const server = tls.createServer(options, common.fail);
+const server = tls.createServer(options, common.mustNotCall());
 
 server.listen(0, '127.0.0.1', common.mustCall(function() {
   let cmd = '"' + common.opensslCli + '" s_client -cipher ' + options.ciphers +

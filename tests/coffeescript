@@ -8,6 +8,9 @@
 require 'shellwords'
 require 'fileutils'
 
+tmpdir = File.expand_path("nodec", Dir.tmpdir)
+tmpdir_node = File.join(tmpdir, 'node')
+
 unless Dir.exist?('coffeescript')
   puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
   raise 'git failed' unless $?.success?
@@ -17,7 +20,7 @@ Dir.chdir('coffeescript')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec bin/coffee")
+pid = spawn("ruby ../bin/nodec --tmpdir=#{Shellwords.escape tmpdir} bin/coffee")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for coffeescript" unless status.success?
 
@@ -31,7 +34,22 @@ else
   outpath = Shellwords.escape(outpath)
 end
 
+# PART 1
 raise unless `#{outpath} --help`.include?(%q{If called without options, `coffee` will run your script.})
 raise unless $?.success?
 raise unless 64 == `#{outpath} --eval "console.log(((x) -> x * x)(8))"`.to_i
 raise unless $?.success?
+
+# PART 2
+Dir.chdir(tmpdir_node)
+ENV['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1'
+if Gem.win_platform?
+  pid = spawn("call vcbuild.bat release nosign noprojgen nobuild test-ci ignore-flaky ")
+  pid, status = Process.wait2(pid)
+  raise "Failed running make run-ci" unless status.success?
+else
+  ENV['FLAKY_TESTS'] = 'dontcare'
+  pid = spawn("make run-ci")
+  pid, status = Process.wait2(pid)
+  raise "Failed running make run-ci" unless status.success?
+end

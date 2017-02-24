@@ -12,7 +12,7 @@
 struct squash_fdtable squash_global_fdtable;
 MUTEX squash_global_fdtable_mutex;
 
-int squash_open(sqfs *fs, const char *path)
+int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 {
 	sqfs_err error;
 	struct squash_file *file = calloc(1, sizeof(struct squash_file));
@@ -32,7 +32,7 @@ int squash_open(sqfs *fs, const char *path)
 	{
 		goto failure;
 	}
-	error = sqfs_lookup_path_inner(fs, &file->node, path, &found, 1);
+	error = sqfs_lookup_path_inner(fs, &file->node, path, &found, follow_link);
 	if (SQFS_OK != error)
 	{
 		goto failure;
@@ -91,7 +91,9 @@ int squash_open(sqfs *fs, const char *path)
 	file->fd = fd;
 	MUTEX_LOCK(&squash_global_fdtable_mutex);
 	squash_global_fdtable.fds[fd] = file;
-	squash_global_fdtable.end = fd + 1;
+        if (squash_global_fdtable.end < fd + 1) {
+        	squash_global_fdtable.end = fd + 1;
+        }
 	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
 	return fd;
 
@@ -103,29 +105,38 @@ failure:
 	return -1;
 }
 
+int squash_open(sqfs *fs, const char *path)
+{
+        return squash_open_inner(fs, path, 1);
+}
+
 int squash_close(int vfd)
 {
-    if (!SQUASH_VALID_VFD(vfd)) {
-        errno = EBADF;
-        return -1;
-    }
-    close(vfd);
-    MUTEX_LOCK(&squash_global_fdtable_mutex);
-    if (S_ISDIR(squash_global_fdtable.fds[vfd]->st.st_mode)) {
-        SQUASH_DIR *dir = (SQUASH_DIR *) (squash_global_fdtable.fds[vfd]->payload);
-        free(dir);
-    } else {
-        int *handle = (int *) (squash_global_fdtable.fds[vfd]->payload);
-        free(handle);
-    }
-    free(squash_global_fdtable.fds[vfd]);
-    squash_global_fdtable.fds[vfd] = NULL;
-    while (vfd >= 0 && NULL == squash_global_fdtable.fds[vfd]) {
-        vfd -= 1;
-    }
-    squash_global_fdtable.end = vfd + 1;
-    MUTEX_UNLOCK(&squash_global_fdtable_mutex);
-    return 0;
+        if (!SQUASH_VALID_VFD(vfd)) {
+                errno = EBADF;
+                return -1;
+        }
+        close(vfd);
+        MUTEX_LOCK(&squash_global_fdtable_mutex);
+        if (S_ISDIR(squash_global_fdtable.fds[vfd]->st.st_mode)) {
+                SQUASH_DIR *dir = (SQUASH_DIR *) (squash_global_fdtable.fds[vfd]->payload);
+                free(dir);
+        } else {
+                int *handle = (int *) (squash_global_fdtable.fds[vfd]->payload);
+                free(handle);
+        }
+        free(squash_global_fdtable.fds[vfd]);
+        squash_global_fdtable.fds[vfd] = NULL;
+        if (vfd + 1 == squash_global_fdtable.end) {
+                while (vfd >= 0 && NULL == squash_global_fdtable.fds[vfd]) {
+                        vfd -= 1;
+                }
+                squash_global_fdtable.end = vfd + 1;
+        } else {
+                assert(squash_global_fdtable.end > vfd + 1);
+        }
+        MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+        return 0;
 }
 
 ssize_t squash_read(int vfd, void *buf, sqfs_off_t nbyte)

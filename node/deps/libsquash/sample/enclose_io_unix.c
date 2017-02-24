@@ -14,13 +14,13 @@
 #endif
 
 sqfs *enclose_io_fs;
-sqfs_name enclose_io_cwd;
+sqfs_path enclose_io_cwd;
 
 #ifndef _WIN32
 int enclose_io_lstat(const char *path, struct stat *buf)
 {
 	if (enclose_io_cwd[0] && '/' != *path) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
@@ -37,7 +37,7 @@ int enclose_io_lstat(const char *path, struct stat *buf)
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 {
 	if (enclose_io_cwd[0] && '/' != *path) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
@@ -54,7 +54,7 @@ ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize)
 DIR * enclose_io_opendir(const char *filename)
 {
 	if (enclose_io_cwd[0] && '/' != *filename) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(filename);
@@ -133,7 +133,7 @@ int enclose_io_scandir(const char *dirname, struct SQUASH_DIRENT ***namelist,
 	int(*compar)(const struct SQUASH_DIRENT **, const struct SQUASH_DIRENT **))
 {
 	if (enclose_io_cwd[0] && '/' != *dirname) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(dirname);
@@ -199,8 +199,8 @@ ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt)
 void enclose_io_chdir_helper(const char *path)
 {
         size_t memcpy_len = strlen(path);
-        if (SQUASHFS_NAME_LEN - 1 < memcpy_len) {
-        	memcpy_len = SQUASHFS_NAME_LEN - 1;
+        if (SQUASHFS_PATH_LEN - 1 < memcpy_len) {
+        	memcpy_len = SQUASHFS_PATH_LEN - 1;
         }
         memcpy(enclose_io_cwd, path, memcpy_len);
         while ('/' == enclose_io_cwd[memcpy_len - 1]) {
@@ -278,7 +278,7 @@ char *enclose_io_getwd(char *buf)
 int enclose_io_stat(const char *path, struct stat *buf)
 {
 	if (enclose_io_cwd[0] && '/' != *path) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
@@ -302,7 +302,7 @@ int enclose_io_fstat(int fildes, struct stat *buf)
 int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 {
 	if (enclose_io_cwd[0] && '/' != *pathname) {
-		sqfs_name enclose_io_expanded;
+		sqfs_path enclose_io_expanded;
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);

@@ -36,7 +36,7 @@
         {
                 long d_namlen;
                 ino_t d_ino;
-                char d_name[256 + 1]; //cf. sqfs_name
+                char d_name[256 + 1]; // i.e. SQUASHFS_NAME_LEN + 1
                 uint8_t d_type;
         };
         #define SQUASH_DIRENT squash_windows_dirent

@@ -94,6 +94,8 @@ int squash_fstat(int vfd, struct stat *buf);
  */
 int squash_open(sqfs *fs, const char *path);
 
+int squash_open_inner(sqfs *fs, const char *path, short follow_link);
+
 /*
  * Deletes a vfd(virtual file descriptor) from
  * the per-process object reference table.

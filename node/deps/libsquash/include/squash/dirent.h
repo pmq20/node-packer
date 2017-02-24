@@ -19,7 +19,7 @@ typedef struct {
 	int	fd;	/* virtual file descriptor associated with directory */
 	sqfs_inode node;
 	sqfs_dir dir;
-	// CAUTION: this is a big struct, mind the SQUASHFS_NAME_LEN 256 size
+	// CAUTION: this is a big struct, mind the SQUASHFS_NAME_LEN size
 	struct {
 		sqfs_dir_entry entry;
 		struct SQUASH_DIRENT sysentry;

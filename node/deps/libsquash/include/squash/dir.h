@@ -46,6 +46,8 @@ typedef struct {
 
 typedef char sqfs_name[SQUASHFS_NAME_LEN + 1];
 
+typedef char sqfs_path[SQUASHFS_PATH_LEN + 1];
+
 /* Begin a directory traversal, initializing the dir structure.
    If offset is non-zero, fast-forward to that offset in the directory. */
 sqfs_err 	sqfs_dir_open(sqfs *fs, sqfs_inode *inode, sqfs_dir *dir,

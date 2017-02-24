@@ -195,7 +195,7 @@ static HANDLE EncloseIOCreateFileWHelper(
 		return INVALID_HANDLE_VALUE;
 	}
 	if (S_ISDIR(buf.st_mode)) {
-		dirp = squash_opendir(enclose_io_fs, incoming);
+		dirp = squash_opendir_inner(enclose_io_fs, incoming, follow_link);
 		if (NULL != dirp) {
                         return (HANDLE)(dirp);
                 } else {

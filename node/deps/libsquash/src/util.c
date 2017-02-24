@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd, short print) {
+sqfs_err sqfs_fd_open(const uint8_t *path, sqfs_fd_t *fd) {
 	*fd = path;
 	return SQFS_OK;
 }
@@ -44,7 +44,7 @@ sqfs_err sqfs_open_image(sqfs *fs, const uint8_t *image, size_t offset) {
 	sqfs_err err;
 	sqfs_fd_t fd;
 
-	if ((err = sqfs_fd_open(image, &fd, stderr)))
+	if ((err = sqfs_fd_open(image, &fd)))
 		return err;
 
 	err = sqfs_init(fs, fd, offset);

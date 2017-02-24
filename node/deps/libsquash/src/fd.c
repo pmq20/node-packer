@@ -112,11 +112,15 @@ int squash_open(sqfs *fs, const char *path)
 
 int squash_close(int vfd)
 {
+	int ret;
         if (!SQUASH_VALID_VFD(vfd)) {
                 errno = EBADF;
                 return -1;
         }
-        close(vfd);
+        ret = close(vfd);
+	if (-1 == ret) {
+		return -1;
+	}
         MUTEX_LOCK(&squash_global_fdtable_mutex);
         if (S_ISDIR(squash_global_fdtable.fds[vfd]->st.st_mode)) {
                 SQUASH_DIR *dir = (SQUASH_DIR *) (squash_global_fdtable.fds[vfd]->payload);

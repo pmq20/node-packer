@@ -42,7 +42,7 @@ int MUTEX_UNLOCK(MUTEX *mutex)
 int MUTEX_DESTORY(MUTEX *mutex)
 {
 #ifdef _WIN32
-    return CloseHandle(mutex);
+    return CloseHandle(*mutex);
 #else
     return pthread_mutex_destroy(mutex);
 #endif

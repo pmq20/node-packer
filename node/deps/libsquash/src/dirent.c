@@ -11,7 +11,7 @@
 
 #include <assert.h>
 
-SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
+SQUASH_DIR *squash_opendir_inner(sqfs *fs, const char *filename, short follow_link)
 {
 	sqfs_err error;
 	short found;
@@ -46,7 +46,7 @@ SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
 	{
 		goto failure;
 	}
-	error = sqfs_lookup_path_inner(fs, &dir->node, filename, &found, 1);
+	error = sqfs_lookup_path_inner(fs, &dir->node, filename, &found, follow_link);
 	if (SQFS_OK != error)
 	{
 		goto failure;
@@ -68,6 +68,11 @@ failure:
 	}
 	free(dir);
 	return NULL;
+}
+
+SQUASH_DIR *squash_opendir(sqfs *fs, const char *filename)
+{
+        return squash_opendir_inner(fs, filename, 1);
 }
 
 int squash_closedir(SQUASH_DIR *dirp)

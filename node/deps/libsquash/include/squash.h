@@ -157,6 +157,8 @@ ssize_t squash_readlink(sqfs *fs, const char *path, char *buf, size_t bufsize);
  */
 SQUASH_DIR * squash_opendir(sqfs *fs, const char *filename);
 
+SQUASH_DIR * squash_opendir_inner(sqfs *fs, const char *filename, short follow_link);
+
 /*
  * Closes the named directory stream and
  * frees the structure associated with the dirp pointer,

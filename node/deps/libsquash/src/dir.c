@@ -299,17 +299,8 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				if (SQFS_OK != error) {
 					return error;
 				}
-                                if (fs->root_alias &&
-                                    strlen(buf_link) >= strlen(fs->root_alias) &&
-                                    buf_link == strstr(buf_link, fs->root_alias)) {
-                                        char *buf_link_ptr = buf_link + strlen(fs->root_alias) - 1;
-                                        assert(buf_link_ptr[0] == '/'); // still is Absolute Path 
-        				error = sqfs_lookup_path(fs, node, buf_link_ptr, &found);
-                                        strncpy(new_path, buf_link_ptr, SQUASHFS_PATH_LEN);
-                                } else {
-        				error = sqfs_lookup_path(fs, node, buf_link, &found);
-                                        strncpy(new_path, buf_link, SQUASHFS_PATH_LEN);
-                                }
+                                error = sqfs_lookup_path(fs, node, buf_link, &found);
+                                strncpy(new_path, buf_link, SQUASHFS_PATH_LEN);
 				if (SQFS_OK != error) {
 					return error;
 				} else if (!found) {

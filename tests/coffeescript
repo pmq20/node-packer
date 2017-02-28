@@ -7,6 +7,7 @@
 
 require 'shellwords'
 require 'fileutils'
+require 'tmpdir'
 
 tmpdir = File.expand_path("nodec", Dir.tmpdir)
 tmpdir_node = File.join(tmpdir, 'node')
@@ -53,3 +54,4 @@ else
   pid, status = Process.wait2(pid)
   raise "Failed running make run-ci" unless status.success?
 end
+

@@ -784,6 +784,64 @@ EncloseIODeviceIoControl(
 	}
 }
 
+HANDLE
+EncloseIOCreateIoCompletionPort(
+        HANDLE FileHandle,
+        HANDLE ExistingCompletionPort,
+        ULONG_PTR CompletionKey,
+        DWORD NumberOfConcurrentThreads
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
+        int ret;
+
+	if (sqf) {
+                // do nothing
+                assert(NULL != ExistingCompletionPort);
+                return ExistingCompletionPort;
+        } else {
+                return CreateIoCompletionPort(
+                        FileHandle,
+                        ExistingCompletionPort,
+                        CompletionKey,
+                        NumberOfConcurrentThreads
+                );
+        }
+}
+
+BOOL
+EncloseIOReadDirectoryChangesW(
+        HANDLE hDirectory,
+        LPVOID lpBuffer,
+        DWORD nBufferLength,
+        BOOL bWatchSubtree,
+        DWORD dwNotifyFilter,
+        LPDWORD lpBytesReturned,
+        LPOVERLAPPED lpOverlapped,
+        LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)hDirectory);
+        int ret;
+
+	if (sqf) {
+                // do nothing
+                assert(lpOverlapped);
+                return TRUE;
+        } else {
+                return ReadDirectoryChangesW(
+                        hDirectory,
+                        lpBuffer,
+                        nBufferLength,
+                        bWatchSubtree,
+                        dwNotifyFilter,
+                        lpBytesReturned,
+                        lpOverlapped,
+                        lpCompletionRoutine
+                );
+        }
+}
+
 #ifndef RUBY_EXPORT
 NTSTATUS
 EncloseIOpNtQueryInformationFile(

@@ -114,9 +114,10 @@ wchar_t *enclose_io_wgetcwd(wchar_t *buf, size_t size)
 		retlen = mbstowcs(tempbuf, enclose_io_cwd, SQUASHFS_PATH_LEN);
 		if ((size_t)-1 == retlen) {
                         errno = ERANGE;
+                        ENCLOSE_IO_SET_LAST_ERROR;
 			return NULL;
 		}
-                tempbuf[retlen] = '\0';
+                tempbuf[retlen] = L'\0';
 		if (NULL == buf) {
 			buf = malloc((retlen + 1) * sizeof(wchar_t));
 			if (NULL == buf) {
@@ -715,11 +716,23 @@ EncloseIODeviceIoControl(
         int ret;
 
 	if (sqf) {
+                char the_path[SQUASHFS_PATH_LEN + 1];
+                wchar_t the_wpath[SQUASHFS_PATH_LEN + 1];
                 struct stat st;
                 sqfs_inode *node;
+                size_t retlen;
+		REPARSE_DATA_BUFFER* reparse_data = (REPARSE_DATA_BUFFER*)lpOutBuffer;
+
+                // TODO handle the overlapped
+                assert(NULL == lpOverlapped);
 
                 // TODO support more than FSCTL_GET_REPARSE_POINT
+		assert(0 == nInBufferSize);
+
+		// FSCTL_GET_REPARSE_POINT
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364571(v=vs.85).aspx
                 assert(dwIoControlCode == FSCTL_GET_REPARSE_POINT);
+		assert(NULL == lpInBuffer);
 		st = sqf->st;
                 if (!S_ISLNK(st.st_mode)) {
                         errno = EINVAL;
@@ -730,14 +743,32 @@ EncloseIODeviceIoControl(
                 ret = squash_readlink_inode(
                         enclose_io_fs,
                         &sqf->node,
-                        lpOutBuffer,
-                        nOutBufferSize
+                        the_path,
+                        SQUASHFS_PATH_LEN
                       );
                 if (-1 == ret) {
                         ENCLOSE_IO_SET_LAST_ERROR;
                         return FALSE;
                 }
-                *lpBytesReturned = ret;
+                
+		retlen = mbstowcs(the_wpath, the_path, SQUASHFS_PATH_LEN);
+		if ((size_t)-1 == retlen) {
+                        errno = ENAMETOOLONG;
+                        ENCLOSE_IO_SET_LAST_ERROR;
+			return FALSE;
+		}
+                the_wpath[retlen] = L'\0';
+                *lpBytesReturned = sizeof(REPARSE_DATA_BUFFER) + retlen * sizeof(wchar_t);
+                if (*lpBytesReturned > nOutBufferSize) {
+                        *lpBytesReturned = 0;
+                        errno = ENAMETOOLONG;
+                        ENCLOSE_IO_SET_LAST_ERROR;
+			return FALSE;
+                }
+                reparse_data->ReparseTag = IO_REPARSE_TAG_SYMLINK;
+                memcpy(reparse_data->SymbolicLinkReparseBuffer.PathBuffer, the_wpath, (retlen + 1) * sizeof(wchar_t));
+                reparse_data->SymbolicLinkReparseBuffer.SubstituteNameLength = retlen * sizeof(wchar_t);
+                reparse_data->SymbolicLinkReparseBuffer.SubstituteNameOffset = 0;
                 return TRUE;
 	} else {
                 return DeviceIoControl(

@@ -390,7 +390,7 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
     }
     opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
     opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
+  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
     opts.args.unshift(process.execPath);
     opts.file = process.execPath;
     if (!opts.options.env) {
@@ -436,7 +436,7 @@ function spawnSync(/*file, args, options*/) {
     }
     opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
     opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
+  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
     opts.args.unshift(process.execPath);
     opts.file = process.execPath;
     if (!opts.options.env) {

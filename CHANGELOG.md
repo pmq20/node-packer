@@ -2,15 +2,15 @@
 
 ## v0.9.4
 
+- upgrade Node.js runtime to v7.7.1
 - add options --clean-tmpdir and --keep-tmpdir
 - fix #18: https://github.com/pmq20/node-compiler/issues/18
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/e8441d3f0dd10af5e3b56bd89ec7097f303ae2d3
-- upgrade Node.js runtime to v7.6.0
 
 ## v0.9.3
 
-- distribute via binaries, i.e. nodec.exe, nodec-darwin-x64, and nodec-linux-x64
 - upgrade Node.js runtime to v7.5.0
+- distribute via binaries, i.e. nodec.exe, nodec-darwin-x64, and nodec-linux-x64
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/ea07909623b1e1f43e67acc3c7880dea6ba5854a
 - add --npm-package
 
@@ -19,9 +19,9 @@
 
 ## v0.9.2
 
+- upgrade Node.js runtime to v7.4.0
 - use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14
 - make libsquash + Node.js works under Windows: https://github.com/pmq20/node-compiler/pull/16
-- upgrade Node.js runtime to v7.4.0
 
 中文注解：接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，
 而且是根据访问需求在内存中进行部分解压，用户完全无感知，试验发现把 nodec 自身编译好之后，
@@ -32,10 +32,10 @@
 
 ## v0.9.1
 
+- upgrade Node.js runtime to v7.3.0
 - add support to pack an entire Node.js project (e.g. cnpmjs.org)
 - change the usage of the `nodec` command
 - stop polluting the vendor directory of nodec itself
-- upgrade Node.js runtime to v7.3.0
 
 中文注解：本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
 亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，
@@ -44,8 +44,8 @@
 
 ## v0.9.0
 
-- let `enclose_io_memfs_exist_dir` and `enclose_io_memfs_readdir` fail fast
 - upgrade the runtime to node-v7.2.1
+- let `enclose_io_memfs_exist_dir` and `enclose_io_memfs_readdir` fail fast
 - make `ENCLOSE_IO_USE_ORIGINAL_NODE` non-contagious
 
 ## v0.8.0
@@ -60,15 +60,15 @@
 
 ## v0.6.0
 
-- hack spawn and spawnSync: https://github.com/pmq20/compiler/pull/10
-- hack fs.stat, fs.watch, fs.watchFile: https://github.com/pmq20/compiler/pull/11
+- hack spawn and spawnSync: https://github.com/pmq20/node-compiler/pull/10
+- hack fs.stat, fs.watch, fs.watchFile: https://github.com/pmq20/node-compiler/pull/11
 
 ## v0.5.0
 
-- use node_javascript.cc and js2c.py from v6: https://github.com/pmq20/compiler/commit/48428dd8e3ce12f6f001c5190c00965a5c696290
-- resume using `__enclose_io_fork__`: https://github.com/pmq20/compiler/commit/80e963f56e6688621d8e129761d4dd3dd52c5707
-- upgrade the runtime to node v7.0.0 to node v7.1.0: https://github.com/pmq20/compiler/pull/9
-- unshift slash into MEMFS: https://github.com/pmq20/compiler/pull/8
-- hack fs.readdir and fs.readdirSync: https://github.com/pmq20/compiler/pull/7
-- hack fs.readFile: https://github.com/pmq20/compiler/pull/4
-- prefer ENCLOSE_IO_USE_ORIGINAL_NODE to `__enclose_io_fork__`: https://github.com/pmq20/compiler/pull/3
+- upgrade the runtime to node v7.1.0: https://github.com/pmq20/node-compiler/pull/9
+- use node_javascript.cc and js2c.py from v6: https://github.com/pmq20/node-compiler/commit/48428dd8e3ce12f6f001c5190c00965a5c696290
+- resume using `__enclose_io_fork__`: https://github.com/pmq20/node-compiler/commit/80e963f56e6688621d8e129761d4dd3dd52c5707
+- unshift slash into MEMFS: https://github.com/pmq20/node-compiler/pull/8
+- hack fs.readdir and fs.readdirSync: https://github.com/pmq20/node-compiler/pull/7
+- hack fs.readFile: https://github.com/pmq20/node-compiler/pull/4
+- prefer ENCLOSE_IO_USE_ORIGINAL_NODE to `__enclose_io_fork__`: https://github.com/pmq20/node-compiler/pull/3

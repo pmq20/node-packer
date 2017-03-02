@@ -144,7 +144,7 @@ class Compiler
     Utils.cp_r(@root, @work_dir_inner)
     Utils.chdir(@work_dir_inner) do
       Utils.run("#{Utils.escape @options[:npm]} -v")
-      Utils.run("#{Utils.escape @options[:npm]} install")
+      Utils.run("#{Utils.escape @options[:npm]} install --production")
     end
 
     Utils.chdir(@work_dir_inner) do

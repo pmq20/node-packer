@@ -14,7 +14,8 @@
           "meta": {
             "added": [
               "v6.0.0"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p><code>fs</code> functions support passing and receiving paths as both strings\nand Buffers. The latter is intended to make it possible to work with\nfilesystems that allow for non-UTF-8 filenames. For most typical\nuses, working with paths as Buffers will be unnecessary, as the string\nAPI converts to and from UTF-8 automatically.</p>\n<p><em>Note</em> that on certain file systems (such as NTFS and HFS+) filenames\nwill always be encoded as UTF-8. On such file systems, passing\nnon-UTF-8 encoded Buffers to <code>fs</code> functions will not work as expected.</p>\n",
           "type": "module",
@@ -66,7 +67,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Objects returned from <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> are of this type.</p>\n<p>The <code>listener</code> callback provided to <code>fs.watch()</code> receives the returned FSWatcher&#39;s\n<code>change</code> events.</p>\n<p>The object itself emits these events:</p>\n",
           "events": [
@@ -77,7 +79,8 @@
               "meta": {
                 "added": [
                   "v0.5.8"
-                ]
+                ],
+                "changes": []
               },
               "params": [],
               "desc": "<p>Emitted when something changes in a watched directory or file.\nSee more details in <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a>.</p>\n<p>The <code>filename</code> argument may not be provided depending on operating system\nsupport. If <code>filename</code> is provided, it will be provided as a <code>Buffer</code> if\n<code>fs.watch()</code> is called with its <code>encoding</code> option set to <code>&#39;buffer&#39;</code>, otherwise\n<code>filename</code> will be a string.</p>\n<pre><code class=\"lang-js\">// Example when handled through fs.watch listener\nfs.watch(&#39;./tmp&#39;, {encoding: &#39;buffer&#39;}, (eventType, filename) =&gt; {\n  if (filename)\n    console.log(filename);\n    // Prints: &lt;Buffer ...&gt;\n});\n</code></pre>\n"
@@ -89,7 +92,8 @@
               "meta": {
                 "added": [
                   "v0.5.8"
-                ]
+                ],
+                "changes": []
               },
               "params": [],
               "desc": "<p>Emitted when an error occurs.</p>\n"
@@ -103,7 +107,8 @@
               "meta": {
                 "added": [
                   "v0.5.8"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Stop watching for changes on the given <code>fs.FSWatcher</code>.</p>\n",
               "signatures": [
@@ -121,22 +126,11 @@
           "meta": {
             "added": [
               "v0.1.93"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p><code>ReadStream</code> is a <a href=\"stream.html#stream_class_stream_readable\">Readable Stream</a>.</p>\n",
           "events": [
-            {
-              "textRaw": "Event: 'open'",
-              "type": "event",
-              "name": "open",
-              "meta": {
-                "added": [
-                  "v0.1.93"
-                ]
-              },
-              "params": [],
-              "desc": "<p>Emitted when the ReadStream&#39;s file is opened.</p>\n"
-            },
             {
               "textRaw": "Event: 'close'",
               "type": "event",
@@ -144,10 +138,24 @@
               "meta": {
                 "added": [
                   "v0.1.93"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed\nusing the <code>fs.close()</code> method.</p>\n",
               "params": []
+            },
+            {
+              "textRaw": "Event: 'open'",
+              "type": "event",
+              "name": "open",
+              "meta": {
+                "added": [
+                  "v0.1.93"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when the ReadStream&#39;s file is opened.</p>\n"
             }
           ],
           "properties": [
@@ -157,7 +165,8 @@
               "meta": {
                 "added": [
                   "6.4.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The number of bytes read so far.</p>\n"
             },
@@ -167,7 +176,8 @@
               "meta": {
                 "added": [
                   "v0.1.93"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The path to the file the stream is reading from as specified in the first\nargument to <code>fs.createReadStream()</code>. If <code>path</code> is passed as a string, then\n<code>readStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>readStream.path</code> will be a <code>Buffer</code>.</p>\n"
             }
@@ -180,7 +190,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Objects returned from <a href=\"#fs_fs_stat_path_callback\"><code>fs.stat()</code></a>, <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a> and <a href=\"#fs_fs_fstat_fd_callback\"><code>fs.fstat()</code></a> and their\nsynchronous counterparts are of this type.</p>\n<ul>\n<li><code>stats.isFile()</code></li>\n<li><code>stats.isDirectory()</code></li>\n<li><code>stats.isBlockDevice()</code></li>\n<li><code>stats.isCharacterDevice()</code></li>\n<li><code>stats.isSymbolicLink()</code> (only valid with <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a>)</li>\n<li><code>stats.isFIFO()</code></li>\n<li><code>stats.isSocket()</code></li>\n</ul>\n<p>For a regular file <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect(stats)</code></a> would return a string very\nsimilar to this:</p>\n<pre><code class=\"lang-js\">{\n  dev: 2114,\n  ino: 48064969,\n  mode: 33188,\n  nlink: 1,\n  uid: 85,\n  gid: 100,\n  rdev: 0,\n  size: 527,\n  blksize: 4096,\n  blocks: 8,\n  atime: Mon, 10 Oct 2011 23:24:11 GMT,\n  mtime: Mon, 10 Oct 2011 23:24:11 GMT,\n  ctime: Mon, 10 Oct 2011 23:24:11 GMT,\n  birthtime: Mon, 10 Oct 2011 23:24:11 GMT\n}\n</code></pre>\n<p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are\ninstances of <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\"><code>Date</code></a> object and to compare the values of\nthese objects you should use appropriate methods. For most general\nuses <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime\"><code>getTime()</code></a> will return the number of\nmilliseconds elapsed since <em>1 January 1970 00:00:00 UTC</em> and this\ninteger should be sufficient for any comparison, however there are\nadditional methods which can be used for displaying fuzzy information.\nMore details can be found in the <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\">MDN JavaScript Reference</a>\npage.</p>\n",
           "modules": [
@@ -200,22 +211,11 @@
           "meta": {
             "added": [
               "v0.1.93"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p><code>WriteStream</code> is a <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a>.</p>\n",
           "events": [
-            {
-              "textRaw": "Event: 'open'",
-              "type": "event",
-              "name": "open",
-              "meta": {
-                "added": [
-                  "v0.1.93"
-                ]
-              },
-              "params": [],
-              "desc": "<p>Emitted when the WriteStream&#39;s file is opened.</p>\n"
-            },
             {
               "textRaw": "Event: 'close'",
               "type": "event",
@@ -223,10 +223,24 @@
               "meta": {
                 "added": [
                   "v0.1.93"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed\nusing the <code>fs.close()</code> method.</p>\n",
               "params": []
+            },
+            {
+              "textRaw": "Event: 'open'",
+              "type": "event",
+              "name": "open",
+              "meta": {
+                "added": [
+                  "v0.1.93"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when the WriteStream&#39;s file is opened.</p>\n"
             }
           ],
           "properties": [
@@ -236,7 +250,8 @@
               "meta": {
                 "added": [
                   "v0.4.7"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The number of bytes written so far. Does not include data that is still queued\nfor writing.</p>\n"
             },
@@ -246,7 +261,8 @@
               "meta": {
                 "added": [
                   "v0.1.93"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The path to the file the stream is writing to as specified in the first\nargument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed as a string, then\n<code>writeStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>writeStream.path</code> will be a <code>Buffer</code>.</p>\n"
             }
@@ -261,7 +277,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -308,7 +325,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -347,6 +365,23 @@
           "meta": {
             "added": [
               "v0.6.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7831",
+                "description": "The passed `options` object will never be modified."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -423,6 +458,18 @@
           "meta": {
             "added": [
               "v0.6.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7831",
+                "description": "The passed `options` object will never be modified."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -491,6 +538,13 @@
           "meta": {
             "added": [
               "v0.1.30"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -536,7 +590,8 @@
           "meta": {
             "added": [
               "v0.6.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -573,6 +628,13 @@
           "meta": {
             "added": [
               "v0.1.97"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -626,7 +688,8 @@
           "meta": {
             "added": [
               "v0.1.97"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -671,6 +734,13 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -708,7 +778,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -737,6 +808,18 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7831",
+                "description": "The passed `options` object will never be modified."
+              },
+              {
+                "version": "v2.3.0",
+                "pr-url": "https://github.com/nodejs/node/pull/1845",
+                "description": "The passed `options` object can be a string now."
+              }
             ]
           },
           "signatures": [
@@ -813,6 +896,23 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7831",
+                "description": "The passed `options` object will never be modified."
+              },
+              {
+                "version": "v5.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3679",
+                "description": "The `autoClose` option is supported now."
+              },
+              {
+                "version": "v2.3.0",
+                "pr-url": "https://github.com/nodejs/node/pull/1845",
+                "description": "The passed `options` object can be a string now."
+              }
             ]
           },
           "signatures": [
@@ -887,7 +987,8 @@
             ],
             "deprecated": [
               "v1.0.0"
-            ]
+            ],
+            "changes": []
           },
           "stability": 0,
           "stabilityText": "Deprecated: Use [`fs.stat()`][] or [`fs.access()`][] instead.",
@@ -926,7 +1027,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -955,6 +1057,13 @@
           "meta": {
             "added": [
               "v0.4.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1000,7 +1109,8 @@
           "meta": {
             "added": [
               "v0.4.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1037,6 +1147,13 @@
           "meta": {
             "added": [
               "v0.4.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1090,7 +1207,8 @@
           "meta": {
             "added": [
               "v0.4.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1135,6 +1253,13 @@
           "meta": {
             "added": [
               "v0.1.96"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1172,7 +1297,8 @@
           "meta": {
             "added": [
               "v0.1.96"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1201,6 +1327,13 @@
           "meta": {
             "added": [
               "v0.1.95"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1238,7 +1371,8 @@
           "meta": {
             "added": [
               "v0.1.95"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1267,6 +1401,13 @@
           "meta": {
             "added": [
               "v0.1.96"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1304,7 +1445,8 @@
           "meta": {
             "added": [
               "v0.1.96"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1333,6 +1475,13 @@
           "meta": {
             "added": [
               "v0.8.6"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1379,7 +1528,8 @@
           "meta": {
             "added": [
               "v0.8.6"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1417,6 +1567,18 @@
           "meta": {
             "added": [
               "v0.4.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v4.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2387",
+                "description": "Numeric strings, `NaN` and `Infinity` are now allowed time specifiers."
+              }
             ]
           },
           "signatures": [
@@ -1470,6 +1632,13 @@
           "meta": {
             "added": [
               "v0.4.2"
+            ],
+            "changes": [
+              {
+                "version": "v4.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2387",
+                "description": "Numeric strings, `NaN` and `Infinity` are now allowed time specifiers."
+              }
             ]
           },
           "signatures": [
@@ -1515,6 +1684,13 @@
           "meta": {
             "deprecated": [
               "v0.4.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1560,7 +1736,8 @@
           "meta": {
             "deprecated": [
               "v0.4.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1597,6 +1774,13 @@
           "meta": {
             "deprecated": [
               "v0.4.7"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1650,7 +1834,8 @@
           "meta": {
             "deprecated": [
               "v0.4.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1695,6 +1880,13 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1740,7 +1932,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1777,6 +1970,13 @@
           "meta": {
             "added": [
               "v0.1.30"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1814,7 +2014,8 @@
           "meta": {
             "added": [
               "v0.1.30"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1843,6 +2044,13 @@
           "meta": {
             "added": [
               "v0.1.8"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -1890,7 +2098,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -1929,6 +2138,18 @@
           "meta": {
             "added": [
               "v5.10.0"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v6.2.1",
+                "pr-url": "https://github.com/nodejs/node/pull/6828",
+                "description": "The `callback` parameter is optional now."
+              }
             ]
           },
           "signatures": [
@@ -1984,7 +2205,8 @@
           "meta": {
             "added": [
               "v5.10.0"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2031,7 +2253,8 @@
           "meta": {
             "added": [
               "v0.0.2"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2086,7 +2309,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2133,6 +2357,18 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10382",
+                "description": "The `buffer` parameter can now be a `Uint8Array`."
+              },
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/4518",
+                "description": "The `length` parameter can now be `0`."
+              }
             ]
           },
           "signatures": [
@@ -2202,6 +2438,13 @@
           "meta": {
             "added": [
               "v0.1.8"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -2257,7 +2500,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2304,6 +2548,23 @@
           "meta": {
             "added": [
               "v0.1.29"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v5.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3740",
+                "description": "The `callback` will always be called with `null` as the `error` parameter in case of success."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -2366,6 +2627,13 @@
           "meta": {
             "added": [
               "v0.1.8"
+            ],
+            "changes": [
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -2420,6 +2688,13 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -2475,7 +2750,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2522,6 +2798,13 @@
           "meta": {
             "added": [
               "v0.1.21"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/4518",
+                "description": "The `length` parameter can now be `0`."
+              }
             ]
           },
           "signatures": [
@@ -2583,6 +2866,23 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v6.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7899",
+                "description": "Calling `realpath` now works again for various edge cases on Windows."
+              },
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3594",
+                "description": "The `cache` parameter was removed."
+              }
             ]
           },
           "signatures": [
@@ -2638,6 +2938,18 @@
           "meta": {
             "added": [
               "v0.1.31"
+            ],
+            "changes": [
+              {
+                "version": "v6.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7899",
+                "description": "Calling `realpathSync` now works again for various edge cases on Windows."
+              },
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3594",
+                "description": "The `cache` parameter was removed."
+              }
             ]
           },
           "signatures": [
@@ -2686,6 +2998,13 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -2731,7 +3050,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2768,6 +3088,13 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -2805,7 +3132,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2834,6 +3162,13 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -2871,7 +3206,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2900,7 +3236,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -2955,7 +3292,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -3002,6 +3340,13 @@
           "meta": {
             "added": [
               "v0.8.6"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -3048,7 +3393,8 @@
           "meta": {
             "added": [
               "v0.8.6"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -3086,6 +3432,13 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -3123,7 +3476,8 @@
           "meta": {
             "added": [
               "v0.1.21"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -3152,7 +3506,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -3191,6 +3546,18 @@
           "meta": {
             "added": [
               "v0.4.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v4.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2387",
+                "description": "Numeric strings, `NaN` and `Infinity` are now allowed time specifiers."
+              }
             ]
           },
           "signatures": [
@@ -3244,6 +3611,13 @@
           "meta": {
             "added": [
               "v0.4.2"
+            ],
+            "changes": [
+              {
+                "version": "v4.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2387",
+                "description": "Numeric strings, `NaN` and `Infinity` are now allowed time specifiers."
+              }
             ]
           },
           "signatures": [
@@ -3289,6 +3663,13 @@
           "meta": {
             "added": [
               "v0.5.10"
+            ],
+            "changes": [
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7831",
+                "description": "The passed `options` object will never be modified."
+              }
             ]
           },
           "signatures": [
@@ -3367,7 +3748,7 @@
                   "textRaw": "Inodes",
                   "name": "Inodes",
                   "type": "misc",
-                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and \nclose operations on some platforms cause inode changes that force watch \noperations to become invalid and ineffective. AIX retains inode for the \nlifetime of a file, that way though this is different from Linux / OS X, \nthis improves the usability of file watching. This is expected behavior.</p>\n"
+                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and\nclose operations on some platforms cause inode changes that force watch\noperations to become invalid and ineffective. AIX retains inode for the\nlifetime of a file, that way though this is different from Linux / OS X,\nthis improves the usability of file watching. This is expected behavior.</p>\n"
                 },
                 {
                   "textRaw": "Filename Argument",
@@ -3386,7 +3767,8 @@
           "meta": {
             "added": [
               "v0.1.31"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -3445,6 +3827,23 @@
           "meta": {
             "added": [
               "v0.0.2"
+            ],
+            "changes": [
+              {
+                "version": "v7.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10382",
+                "description": "The `buffer` parameter can now be a `Uint8Array`."
+              },
+              {
+                "version": "v7.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7856",
+                "description": "The `offset` and `length` parameters are optional now."
+              },
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -3520,6 +3919,18 @@
           "meta": {
             "added": [
               "v0.11.5"
+            ],
+            "changes": [
+              {
+                "version": "v7.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7856",
+                "description": "The `position` parameter is optional now."
+              },
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              }
             ]
           },
           "signatures": [
@@ -3585,6 +3996,23 @@
           "meta": {
             "added": [
               "v0.1.29"
+            ],
+            "changes": [
+              {
+                "version": "v7.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10382",
+                "description": "The `data` parameter can now be a `Uint8Array`."
+              },
+              {
+                "version": "v7.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7897",
+                "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -3661,6 +4089,18 @@
           "meta": {
             "added": [
               "v0.1.29"
+            ],
+            "changes": [
+              {
+                "version": "v7.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10382",
+                "description": "The `data` parameter can now be a `Uint8Array`."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/3163",
+                "description": "The `file` parameter can be a file descriptor now."
+              }
             ]
           },
           "signatures": [
@@ -3729,6 +4169,18 @@
           "meta": {
             "added": [
               "v0.1.21"
+            ],
+            "changes": [
+              {
+                "version": "v7.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10382",
+                "description": "The `buffer` parameter can now be a `Uint8Array`."
+              },
+              {
+                "version": "v7.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7856",
+                "description": "The `offset` and `length` parameters are optional now."
+              }
             ]
           },
           "signatures": [
@@ -3796,6 +4248,13 @@
           "meta": {
             "added": [
               "v0.11.5"
+            ],
+            "changes": [
+              {
+                "version": "v7.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/7856",
+                "description": "The `position` parameter is optional now."
+              }
             ]
           },
           "signatures": [

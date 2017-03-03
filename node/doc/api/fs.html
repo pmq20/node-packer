@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v7.6.0 Documentation</title>
+  <title>File System | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -95,8 +96,8 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#fs_class_fs_readstream">Class: fs.ReadStream</a></span><ul>
-<li><span class="stability_undefined"><a href="#fs_event_open">Event: &#39;open&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_event_close">Event: &#39;close&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_event_open">Event: &#39;open&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_readstream_bytesread">readStream.bytesRead</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_readstream_path">readStream.path</a></span></li>
 </ul>
@@ -106,8 +107,8 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#fs_class_fs_writestream">Class: fs.WriteStream</a></span><ul>
-<li><span class="stability_undefined"><a href="#fs_event_open_1">Event: &#39;open&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_event_close_1">Event: &#39;close&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_event_open_1">Event: &#39;open&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_writestream_byteswritten">writeStream.bytesWritten</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_writestream_path">writeStream.path</a></span></li>
 </ul>
@@ -330,6 +331,11 @@ fs.watch(&#39;./tmp&#39;, {encoding: &#39;buffer&#39;}, (eventType, filename) =&
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
 </div><p><code>ReadStream</code> is a <a href="stream.html#stream_class_stream_readable">Readable Stream</a>.</p>
+<h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close" id="fs_event_close">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.93</span>
+</div><p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed
+using the <code>fs.close()</code> method.</p>
 <h3>Event: &#39;open&#39;<span><a class="mark" href="#fs_event_open" id="fs_event_open">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
@@ -337,11 +343,6 @@ fs.watch(&#39;./tmp&#39;, {encoding: &#39;buffer&#39;}, (eventType, filename) =&
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Integer file descriptor used by the ReadStream.</li>
 </ul>
 <p>Emitted when the ReadStream&#39;s file is opened.</p>
-<h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close" id="fs_event_close">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.1.93</span>
-</div><p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed
-using the <code>fs.close()</code> method.</p>
 <h3>readStream.bytesRead<span><a class="mark" href="#fs_readstream_bytesread" id="fs_readstream_bytesread">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: 6.4.0</span>
@@ -422,6 +423,11 @@ on Unix systems, it never was.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
 </div><p><code>WriteStream</code> is a <a href="stream.html#stream_class_stream_writable">Writable Stream</a>.</p>
+<h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close_1" id="fs_event_close_1">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.93</span>
+</div><p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed
+using the <code>fs.close()</code> method.</p>
 <h3>Event: &#39;open&#39;<span><a class="mark" href="#fs_event_open_1" id="fs_event_open_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
@@ -429,11 +435,6 @@ on Unix systems, it never was.</p>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Integer file descriptor used by the WriteStream.</li>
 </ul>
 <p>Emitted when the WriteStream&#39;s file is opened.</p>
-<h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close_1" id="fs_event_close_1">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.1.93</span>
-</div><p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed
-using the <code>fs.close()</code> method.</p>
 <h3>writeStream.bytesWritten<span><a class="mark" href="#fs_writestream_byteswritten" id="fs_writestream_byteswritten">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.4.7</span>
@@ -557,7 +558,23 @@ process.</p>
 checks fail, and does nothing otherwise.</p>
 <h2>fs.appendFile(file, data[, options], callback)<span><a class="mark" href="#fs_fs_appendfile_file_data_options_callback" id="fs_fs_appendfile_file_data_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.6.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v7.0.0</td>
+<td><p>The passed <code>options</code> object will never be modified.</p>
+</td></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.6.7</td>
+<td><p><span>Added in: v0.6.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> filename or file descriptor</li>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
@@ -585,7 +602,20 @@ checks fail, and does nothing otherwise.</p>
 automatically.</em></p>
 <h2>fs.appendFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_appendfilesync_file_data_options" id="fs_fs_appendfilesync_file_data_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.6.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The passed <code>options</code> object will never be modified.</p>
+</td></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.6.7</td>
+<td><p><span>Added in: v0.6.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> filename or file descriptor</li>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
@@ -599,7 +629,17 @@ automatically.</em></p>
 <p>The synchronous version of <a href="fs.html#fs_fs_appendfile_file_data_options_callback"><code>fs.appendFile()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.chmod(path, mode, callback)<span><a class="mark" href="#fs_fs_chmod_path_mode_callback" id="fs_fs_chmod_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.30</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.30</td>
+<td><p><span>Added in: v0.1.30</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -617,7 +657,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.chown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.97</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.97</td>
+<td><p><span>Added in: v0.1.97</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -637,7 +687,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.close(fd, callback)<span><a class="mark" href="#fs_fs_close_fd_callback" id="fs_fs_close_fd_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -657,7 +717,20 @@ operations. The specific constants currently defined are described in
 <a href="#fs_fs_constants_1">FS Constants</a>.</p>
 <h2>fs.createReadStream(path[, options])<span><a class="mark" href="#fs_fs_createreadstream_path_options" id="fs_fs_createreadstream_path_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The passed <code>options</code> object will never be modified.</p>
+</td></tr>
+<tr><td>v2.3.0</td>
+<td><p>The passed <code>options</code> object can be a string now.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -706,7 +779,23 @@ file was created.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.createWriteStream(path[, options])<span><a class="mark" href="#fs_fs_createwritestream_path_options" id="fs_fs_createwritestream_path_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The passed <code>options</code> object will never be modified.</p>
+</td></tr>
+<tr><td>v5.5.0</td>
+<td><p>The <code>autoClose</code> option is supported now.</p>
+</td></tr>
+<tr><td>v2.3.0</td>
+<td><p>The passed <code>options</code> object can be a string now.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -746,8 +835,7 @@ there&#39;s no file descriptor leak.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.exists(path, callback)<span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
-<span>Deprecated since: v1.0.0 </span>
+<span>Added in: v0.0.2</span><span>Deprecated since: v1.0.0</span>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a> or <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a> instead.</pre><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -839,7 +927,17 @@ inconsistent with other Node.js callbacks. <code>fs.existsSync()</code> does not
 a callback.)</p>
 <h2>fs.fchmod(fd, mode, callback)<span><a class="mark" href="#fs_fs_fchmod_fd_mode_callback" id="fs_fs_fchmod_fd_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.4.7</td>
+<td><p><span>Added in: v0.4.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -857,7 +955,17 @@ are given to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html">fchmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fchown(fd, uid, gid, callback)<span><a class="mark" href="#fs_fs_fchown_fd_uid_gid_callback" id="fs_fs_fchown_fd_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.4.7</td>
+<td><p><span>Added in: v0.4.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -877,7 +985,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchown.2.html">fchown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fdatasync(fd, callback)<span><a class="mark" href="#fs_fs_fdatasync_fd_callback" id="fs_fs_fdatasync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.96</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.96</td>
+<td><p><span>Added in: v0.1.96</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -893,7 +1011,17 @@ given to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html">fdatasync(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fstat(fd, callback)<span><a class="mark" href="#fs_fs_fstat_fd_callback" id="fs_fs_fstat_fd_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.95</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.95</td>
+<td><p><span>Added in: v0.1.95</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -910,7 +1038,17 @@ except that the file to be stat-ed is specified by the file descriptor <code>fd<
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fstat.2.html">fstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.fsync(fd, callback)<span><a class="mark" href="#fs_fs_fsync_fd_callback" id="fs_fs_fsync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.96</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.96</td>
+<td><p><span>Added in: v0.1.96</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -926,7 +1064,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fsync.2.html">fsync(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.ftruncate(fd, len, callback)<span><a class="mark" href="#fs_fs_ftruncate_fd_len_callback" id="fs_fs_ftruncate_fd_len_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.8.6</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.8.6</td>
+<td><p><span>Added in: v0.8.6</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> default = <code>0</code></li>
@@ -977,7 +1125,20 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html">ftruncate(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.futimes(fd, atime, mtime, callback)<span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v4.1.0</td>
+<td><p>Numeric strings, <code>NaN</code> and <code>Infinity</code> are now allowed time specifiers.</p>
+</td></tr>
+<tr><td>v0.4.2</td>
+<td><p><span>Added in: v0.4.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -988,7 +1149,17 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 descriptor.</p>
 <h2>fs.futimesSync(fd, atime, mtime)<span><a class="mark" href="#fs_fs_futimessync_fd_atime_mtime" id="fs_fs_futimessync_fd_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.1.0</td>
+<td><p>Numeric strings, <code>NaN</code> and <code>Infinity</code> are now allowed time specifiers.</p>
+</td></tr>
+<tr><td>v0.4.2</td>
+<td><p><span>Added in: v0.4.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -997,7 +1168,17 @@ descriptor.</p>
 <p>Synchronous version of <a href="#fs_fs_futimes_fd_atime_mtime_callback"><code>fs.futimes()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.lchmod(path, mode, callback)<span><a class="mark" href="#fs_fs_lchmod_path_mode_callback" id="fs_fs_lchmod_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Deprecated since: v0.4.7 </span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.4.7</td>
+<td><p><span>Deprecated since: v0.4.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1008,7 +1189,7 @@ are given to the completion callback.</p>
 <p>Only available on Mac OS X.</p>
 <h2>fs.lchmodSync(path, mode)<span><a class="mark" href="#fs_fs_lchmodsync_path_mode" id="fs_fs_lchmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
-<span>Deprecated since: v0.4.7 </span>
+<span>Deprecated since: v0.4.7</span>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1016,7 +1197,17 @@ are given to the completion callback.</p>
 <p>Synchronous <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.lchown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_lchown_path_uid_gid_callback" id="fs_fs_lchown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Deprecated since: v0.4.7 </span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.4.7</td>
+<td><p><span>Deprecated since: v0.4.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1027,7 +1218,7 @@ are given to the completion callback.</p>
 to the completion callback.</p>
 <h2>fs.lchownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_lchownsync_path_uid_gid" id="fs_fs_lchownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
-<span>Deprecated since: v0.4.7 </span>
+<span>Deprecated since: v0.4.7</span>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1036,7 +1227,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.link(existingPath, newPath, callback)<span><a class="mark" href="#fs_fs_link_existingpath_newpath_callback" id="fs_fs_link_existingpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
@@ -1054,7 +1255,17 @@ the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.lstat(path, callback)<span><a class="mark" href="#fs_fs_lstat_path_callback" id="fs_fs_lstat_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.30</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.30</td>
+<td><p><span>Added in: v0.1.30</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1072,7 +1283,17 @@ not the file that it refers to.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.mkdir(path[, mode], callback)<span><a class="mark" href="#fs_fs_mkdir_path_mode_callback" id="fs_fs_mkdir_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.8</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.8</td>
+<td><p><span>Added in: v0.1.8</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1090,7 +1311,20 @@ to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.mkdtemp(prefix[, options], callback)<span><a class="mark" href="#fs_fs_mkdtemp_prefix_options_callback" id="fs_fs_mkdtemp_prefix_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v5.10.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v6.2.1</td>
+<td><p>The <code>callback</code> parameter is optional now.</p>
+</td></tr>
+<tr><td>v5.10.0</td>
+<td><p><span>Added in: v5.10.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>prefix</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1241,7 +1475,20 @@ fs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {
 descriptor.</p>
 <h2>fs.read(fd, buffer, offset, length, position, callback)<span><a class="mark" href="#fs_fs_read_fd_buffer_offset_length_position_callback" id="fs_fs_read_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.4.0</td>
+<td><p>The <code>buffer</code> parameter can now be a <code>Uint8Array</code>.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>length</code> parameter can now be <code>0</code>.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1259,7 +1506,17 @@ If <code>position</code> is <code>null</code>, data will be read from the curren
 <p>The callback is given the three arguments, <code>(err, bytesRead, buffer)</code>.</p>
 <h2>fs.readdir(path[, options], callback)<span><a class="mark" href="#fs_fs_readdir_path_options_callback" id="fs_fs_readdir_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.8</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.8</td>
+<td><p><span>Added in: v0.1.8</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1293,7 +1550,23 @@ the filenames passed to the callback. If the <code>encoding</code> is set to <co
 the filenames returned will be passed as <code>Buffer</code> objects.</p>
 <h2>fs.readFile(file[, options], callback)<span><a class="mark" href="#fs_fs_readfile_file_options_callback" id="fs_fs_readfile_file_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.29</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v5.1.0</td>
+<td><p>The <code>callback</code> will always be called with <code>null</code> as the <code>error</code> parameter in case of success.</p>
+</td></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.1.29</td>
+<td><p><span>Added in: v0.1.29</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
@@ -1320,7 +1593,17 @@ contents of the file.</p>
 automatically.</em></p>
 <h2>fs.readFileSync(file[, options])<span><a class="mark" href="#fs_fs_readfilesync_file_options" id="fs_fs_readfilesync_file_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.8</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.1.8</td>
+<td><p><span>Added in: v0.1.8</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a><ul>
@@ -1334,7 +1617,17 @@ automatically.</em></p>
 string. Otherwise it returns a buffer.</p>
 <h2>fs.readlink(path[, options], callback)<span><a class="mark" href="#fs_fs_readlink_path_options_callback" id="fs_fs_readlink_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1366,7 +1659,17 @@ the link path passed to the callback. If the <code>encoding</code> is set to <co
 the link path returned will be passed as a <code>Buffer</code> object.</p>
 <h2>fs.readSync(fd, buffer, offset, length, position)<span><a class="mark" href="#fs_fs_readsync_fd_buffer_offset_length_position" id="fs_fs_readsync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>length</code> parameter can now be <code>0</code>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1377,7 +1680,23 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <p>Synchronous version of <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>. Returns the number of <code>bytesRead</code>.</p>
 <h2>fs.realpath(path[, options], callback)<span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v6.4.0</td>
+<td><p>Calling <code>realpath</code> now works again for various edge cases on Windows.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>cache</code> parameter was removed.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1395,7 +1714,20 @@ the path passed to the callback. If the <code>encoding</code> is set to <code>&#
 the path returned will be passed as a <code>Buffer</code> object.</p>
 <h2>fs.realpathSync(path[, options])<span><a class="mark" href="#fs_fs_realpathsync_path_options" id="fs_fs_realpathsync_path_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.4.0</td>
+<td><p>Calling <code>realpathSync</code> now works again for various edge cases on Windows.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>cache</code> parameter was removed.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a>;</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1411,7 +1743,17 @@ the returned value. If the <code>encoding</code> is set to <code>&#39;buffer&#39
 will be passed as a <code>Buffer</code> object.</p>
 <h2>fs.rename(oldPath, newPath, callback)<span><a class="mark" href="#fs_fs_rename_oldpath_newpath_callback" id="fs_fs_rename_oldpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
@@ -1429,7 +1771,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.rmdir(path, callback)<span><a class="mark" href="#fs_fs_rmdir_path_callback" id="fs_fs_rmdir_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1445,7 +1797,17 @@ to the completion callback.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.stat(path, callback)<span><a class="mark" href="#fs_fs_stat_path_callback" id="fs_fs_stat_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1496,7 +1858,17 @@ argument will automatically be normalized to absolute path.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.truncate(path, len, callback)<span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.8.6</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.8.6</td>
+<td><p><span>Added in: v0.8.6</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> default = <code>0</code></li>
@@ -1516,7 +1888,17 @@ first argument. In this case, <code>fs.ftruncate()</code> is called.</p>
 passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is called.</p>
 <h2>fs.unlink(path, callback)<span><a class="mark" href="#fs_fs_unlink_path_callback" id="fs_fs_unlink_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1547,7 +1929,20 @@ no-op, not an error.</p>
 when possible.</em></p>
 <h2>fs.utimes(path, atime, mtime, callback)<span><a class="mark" href="#fs_fs_utimes_path_atime_mtime_callback" id="fs_fs_utimes_path_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v4.1.0</td>
+<td><p>Numeric strings, <code>NaN</code> and <code>Infinity</code> are now allowed time specifiers.</p>
+</td></tr>
+<tr><td>v0.4.2</td>
+<td><p><span>Added in: v0.4.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1567,7 +1962,17 @@ converted to the corresponding number.</li>
 </ul>
 <h2>fs.utimesSync(path, atime, mtime)<span><a class="mark" href="#fs_fs_utimessync_path_atime_mtime" id="fs_fs_utimessync_path_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.4.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.1.0</td>
+<td><p>Numeric strings, <code>NaN</code> and <code>Infinity</code> are now allowed time specifiers.</p>
+</td></tr>
+<tr><td>v0.4.2</td>
+<td><p><span>Added in: v0.4.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1576,7 +1981,17 @@ converted to the corresponding number.</li>
 <p>Synchronous version of <a href="#fs_fs_futimes_fd_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.5.10</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>The passed <code>options</code> object will never be modified.</p>
+</td></tr>
+<tr><td>v0.5.10</td>
+<td><p><span>Added in: v0.5.10</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -1636,10 +2051,10 @@ a new inode. The watch will emit an event for the delete but will continue
 watching the <em>original</em> inode. Events for the new inode will not be emitted.
 This is expected behavior.</p>
 <p>In AIX, save and close of a file being watched causes two notifications -
-one for adding new content, and one for truncation. Moreover, save and 
-close operations on some platforms cause inode changes that force watch 
-operations to become invalid and ineffective. AIX retains inode for the 
-lifetime of a file, that way though this is different from Linux / OS X, 
+one for adding new content, and one for truncation. Moreover, save and
+close operations on some platforms cause inode changes that force watch
+operations to become invalid and ineffective. AIX retains inode for the
+lifetime of a file, that way though this is different from Linux / OS X,
 this improves the usability of file watching. This is expected behavior.</p>
 <h4>Filename Argument<span><a class="mark" href="#fs_filename_argument" id="fs_filename_argument">#</a></span></h4>
 <!--type=misc-->
@@ -1696,7 +2111,23 @@ you need to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>
 <code>fs.unwatchFile</code> when possible.</em></p>
 <h2>fs.write(fd, buffer[, offset[, length[, position]]], callback)<span><a class="mark" href="#fs_fs_write_fd_buffer_offset_length_position_callback" id="fs_fs_write_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.4.0</td>
+<td><p>The <code>buffer</code> parameter can now be a <code>Uint8Array</code>.</p>
+</td></tr>
+<tr><td>v7.2.0</td>
+<td><p>The <code>offset</code> and <code>length</code> parameters are optional now.</p>
+</td></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1721,7 +2152,20 @@ The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
 <h2>fs.write(fd, string[, position[, encoding]], callback)<span><a class="mark" href="#fs_fs_write_fd_string_position_encoding_callback" id="fs_fs_write_fd_string_position_encoding_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.11.5</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>The <code>position</code> parameter is optional now.</p>
+</td></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v0.11.5</td>
+<td><p><span>Added in: v0.11.5</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
@@ -1749,7 +2193,23 @@ The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
 <h2>fs.writeFile(file, data[, options], callback)<span><a class="mark" href="#fs_fs_writefile_file_data_options_callback" id="fs_fs_writefile_file_data_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.29</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.4.0</td>
+<td><p>The <code>data</code> parameter can now be a <code>Uint8Array</code>.</p>
+</td></tr>
+<tr><td>v7.0.0</td>
+<td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.1.29</td>
+<td><p><span>Added in: v0.1.29</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1782,7 +2242,20 @@ without waiting for the callback. For this scenario,
 automatically.</em></p>
 <h2>fs.writeFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.29</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.4.0</td>
+<td><p>The <code>data</code> parameter can now be a <code>Uint8Array</code>.</p>
+</td></tr>
+<tr><td>v5.0.0</td>
+<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+</td></tr>
+<tr><td>v0.1.29</td>
+<td><p><span>Added in: v0.1.29</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> filename or file descriptor</li>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1796,7 +2269,20 @@ automatically.</em></p>
 <p>The synchronous version of <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.writeSync(fd, buffer[, offset[, length[, position]]])<span><a class="mark" href="#fs_fs_writesync_fd_buffer_offset_length_position" id="fs_fs_writesync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.4.0</td>
+<td><p>The <code>buffer</code> parameter can now be a <code>Uint8Array</code>.</p>
+</td></tr>
+<tr><td>v7.2.0</td>
+<td><p>The <code>offset</code> and <code>length</code> parameters are optional now.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
@@ -1806,7 +2292,17 @@ automatically.</em></p>
 </ul>
 <h2>fs.writeSync(fd, string[, position[, encoding]])<span><a class="mark" href="#fs_fs_writesync_fd_string_position_encoding" id="fs_fs_writesync_fd_string_position_encoding">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.11.5</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>The <code>position</code> parameter is optional now.</p>
+</td></tr>
+<tr><td>v0.11.5</td>
+<td><p><span>Added in: v0.11.5</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>

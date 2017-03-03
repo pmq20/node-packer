@@ -15,7 +15,8 @@
           "meta": {
             "added": [
               "v0.3.1"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Instances of the <code>vm.Script</code> class contain precompiled scripts that can be\nexecuted in specific sandboxes (or &quot;contexts&quot;).</p>\n",
           "methods": [
@@ -26,6 +27,13 @@
               "meta": {
                 "added": [
                   "v0.3.1"
+                ],
+                "changes": [
+                  {
+                    "version": "v5.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/4777",
+                    "description": "The `cachedData` and `produceCachedData` options are supported now."
+                  }
                 ]
               },
               "signatures": [
@@ -107,6 +115,13 @@
               "meta": {
                 "added": [
                   "v0.3.1"
+                ],
+                "changes": [
+                  {
+                    "version": "v6.3.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/6635",
+                    "description": "The `breakOnSigint` option is supported now."
+                  }
                 ]
               },
               "signatures": [
@@ -184,7 +199,8 @@
               "meta": {
                 "added": [
                   "v0.3.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -258,7 +274,8 @@
               "meta": {
                 "added": [
                   "v0.3.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -325,7 +342,8 @@
           "meta": {
             "added": [
               "v0.3.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -356,7 +374,8 @@
           "meta": {
             "added": [
               "v0.11.7"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -460,7 +479,8 @@
           "meta": {
             "added": [
               "v0.11.14"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -490,7 +510,8 @@
           "meta": {
             "added": [
               "v0.3.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -572,7 +593,8 @@
           "meta": {
             "added": [
               "v0.3.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {

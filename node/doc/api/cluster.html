@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cluster | Node.js v7.6.0 Documentation</title>
+  <title>Cluster | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="cluster" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -335,7 +336,17 @@ if (cluster.isMaster) {
 <p>It is not emitted in the worker.</p>
 <h3>worker.disconnect()<span><a class="mark" href="#cluster_worker_disconnect" id="cluster_worker_disconnect">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.3.0</td>
+<td><p>This method now returns a reference to <code>worker</code>.</p>
+</td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li>Returns: <span class="type">&lt;Worker&gt;</span> A reference to <code>worker</code>.</li>
 </ul>
@@ -458,7 +469,17 @@ on <code>process</code> and <code>.exitedAfterDisconnect</code> is not <code>tru
 accidental disconnection.</p>
 <h3>worker.send(message[, sendHandle][, callback])<span><a class="mark" href="#cluster_worker_send_message_sendhandle_callback" id="cluster_worker_send_message_sendhandle_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.0.0</td>
+<td><p>The <code>callback</code> parameter is supported now.</p>
+</td></tr>
+<tr><td>v0.7.0</td>
+<td><p><span>Added in: v0.7.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 <li><code>sendHandle</code> <a href="net.html#net_server_listen_handle_backlog_callback" class="type">&lt;Handle&gt;</a></li>
@@ -483,8 +504,20 @@ accidental disconnection.</p>
 </code></pre>
 <h3>worker.suicide<span><a class="mark" href="#cluster_worker_suicide" id="cluster_worker_suicide">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.0</span>
-<span>Deprecated since: v6.0.0 </span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>Accessing this property will now emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p><span>Deprecated since: v6.0.0</span></p>
+</td></tr>
+<tr><td>v0.7.0</td>
+<td><p><span>Added in: v0.7.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a> instead.</pre><p>An alias to <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a>.</p>
 <p>Set by calling <code>.kill()</code> or <code>.disconnect()</code>. Until then, it is <code>undefined</code>.</p>
 <p>The boolean <code>worker.suicide</code> lets you distinguish between voluntary
@@ -585,12 +618,24 @@ on more than one address.</p>
 <li><code>&quot;udp4&quot;</code> or <code>&quot;udp6&quot;</code> (UDP v4 or v6)</li>
 </ul>
 <h2>Event: &#39;message&#39;<span><a class="mark" href="#cluster_event_message_1" id="cluster_event_message_1">#</a></span></h2>
-<div class="signature"><ul>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>worker</code> parameter is passed now; see below for details.</p>
+</td></tr>
+<tr><td>v2.5.0</td>
+<td><p><span>Added in: v2.5.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><ul>
 <li><code>worker</code> <a href="cluster.html#cluster_class_worker" class="type">&lt;cluster.Worker&gt;</a></li>
 <li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 <li><code>handle</code> <span class="type">&lt;undefined&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
-</div><p>Emitted when the cluster master receives a message from any worker.</p>
+<p>Emitted when the cluster master receives a message from any worker.</p>
 <p>See <a href="child_process.html#child_process_event_message">child_process event: &#39;message&#39;</a>.</p>
 <p>Before Node.js v6.0, this event emitted only the message and the handle,
 but not the worker object, contrary to what the documentation stated.</p>
@@ -682,7 +727,17 @@ distribute IOCP handles without incurring a large performance hit.</p>
 values are <code>&quot;rr&quot;</code> and <code>&quot;none&quot;</code>.</p>
 <h2>cluster.settings<span><a class="mark" href="#cluster_cluster_settings" id="cluster_cluster_settings">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.1</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.4.0</td>
+<td><p>The <code>stdio</code> option is supported now.</p>
+</td></tr>
+<tr><td>v0.7.1</td>
+<td><p><span>Added in: v0.7.1</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>execArgv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> list of string arguments passed to the Node.js
@@ -705,7 +760,17 @@ the settings, including the default values.</p>
 <p>This object is not supposed to be changed or set manually, by you.</p>
 <h2>cluster.setupMaster([settings])<span><a class="mark" href="#cluster_cluster_setupmaster_settings" id="cluster_cluster_setupmaster_settings">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.1</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.4.0</td>
+<td><p>The <code>stdio</code> option is supported now.</p>
+</td></tr>
+<tr><td>v0.7.1</td>
+<td><p><span>Added in: v0.7.1</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>settings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> file path to worker file.  (Default=<code>process.argv[1]</code>)</li>

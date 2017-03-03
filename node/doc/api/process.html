@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Process | Node.js v7.6.0 Documentation</title>
+  <title>Process | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -116,11 +117,11 @@
 <li><span class="stability_undefined"><a href="#process_process_cpuusage_previousvalue">process.cpuUsage([previousValue])</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_cwd">process.cwd()</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_disconnect">process.disconnect()</a></span></li>
-<li><span class="stability_undefined"><a href="#process_process_env">process.env</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_emitwarning_warning_name_ctor">process.emitWarning(warning[, name][, ctor])</a></span><ul>
 <li><span class="stability_undefined"><a href="#process_avoiding_duplicate_warnings">Avoiding duplicate warnings</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#process_process_env">process.env</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_execargv">process.execArgv</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_execpath">process.execPath</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_exit_code">process.exit([code])</a></span></li>
@@ -148,7 +149,7 @@
 <li><span class="stability_undefined"><a href="#process_process_stderr">process.stderr</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_stdin">process.stdin</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_stdout">process.stdout</a></span><ul>
-<li><span class="stability_undefined"><a href="#process_tty_terminals_and_process_stdout">TTY Terminals and <code>process.stdout</code></a></span></li>
+<li><span class="stability_undefined"><a href="#process_a_note_on_process_i_o">A note on process I/O</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#process_process_title">process.title</a></span></li>
@@ -315,7 +316,20 @@ is emitted or not, an external monitor should be employed in a separate process
 to detect application failures and recover or restart as needed.</p>
 <h3>Event: &#39;unhandledRejection&#39;<span><a class="mark" href="#process_event_unhandledrejection" id="process_event_unhandledrejection">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v1.4.1</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>Not handling Promise rejections has been deprecated.</p>
+</td></tr>
+<tr><td>v6.6.0</td>
+<td><p>Unhandled Promise rejections have been will now emit a process warning.</p>
+</td></tr>
+<tr><td>v1.4.1</td>
+<td><p><span>Added in: v1.4.1</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>The <code>&#39;unhandledRejection</code>&#39; event is emitted whenever a <code>Promise</code> is rejected and
 no error handler is attached to the promise within a turn of the event loop.
 When programming with Promises, exceptions are encapsulated as &quot;rejected
@@ -653,60 +667,6 @@ once there are no other connections keeping it alive.</p>
 process&#39;s <a href="child_process.html#child_process_child_disconnect"><code>ChildProcess.disconnect()</code></a>.</p>
 <p>If the Node.js process was not spawned with an IPC channel,
 <code>process.disconnect()</code> will be <code>undefined</code>.</p>
-<h2>process.env<span><a class="mark" href="#process_process_env" id="process_process_env">#</a></span></h2>
-<div class="api_metadata">
-<span>Added in: v0.1.27</span>
-</div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-</ul>
-<p>The <code>process.env</code> property returns an object containing the user environment.
-See <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
-<p>An example of this object looks like:</p>
-<pre><code class="lang-js">{
-  TERM: &#39;xterm-256color&#39;,
-  SHELL: &#39;/usr/local/bin/bash&#39;,
-  USER: &#39;maciej&#39;,
-  PATH: &#39;~/.bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;,
-  PWD: &#39;/Users/maciej&#39;,
-  EDITOR: &#39;vim&#39;,
-  SHLVL: &#39;1&#39;,
-  HOME: &#39;/Users/maciej&#39;,
-  LOGNAME: &#39;maciej&#39;,
-  _: &#39;/usr/local/bin/node&#39;
-}
-</code></pre>
-<p>It is possible to modify this object, but such modifications will not be
-reflected outside the Node.js process. In other words, the following example
-would not work:</p>
-<pre><code class="lang-console">$ node -e &#39;process.env.foo = &quot;bar&quot;&#39; &amp;&amp; echo $foo
-</code></pre>
-<p>While the following will:</p>
-<pre><code class="lang-js">process.env.foo = &#39;bar&#39;;
-console.log(process.env.foo);
-</code></pre>
-<p>Assigning a property on <code>process.env</code> will implicitly convert the value
-to a string.</p>
-<p>Example:</p>
-<pre><code class="lang-js">process.env.test = null;
-console.log(process.env.test);
-// =&gt; &#39;null&#39;
-process.env.test = undefined;
-console.log(process.env.test);
-// =&gt; &#39;undefined&#39;
-</code></pre>
-<p>Use <code>delete</code> to delete a property from <code>process.env</code>.</p>
-<p>Example:</p>
-<pre><code class="lang-js">process.env.TEST = 1;
-delete process.env.TEST;
-console.log(process.env.TEST);
-// =&gt; undefined
-</code></pre>
-<p>On Windows operating systems, environment variables are case-insensitive.</p>
-<p>Example:</p>
-<pre><code class="lang-js">process.env.TEST = 1;
-console.log(process.env.test);
-// =&gt; 1
-</code></pre>
 <h2>process.emitWarning(warning[, name][, ctor])<span><a class="mark" href="#process_process_emitwarning_warning_name_ctor" id="process_process_emitwarning_warning_name_ctor">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -777,6 +737,60 @@ emitMyWarning();
 emitMyWarning();
 // Emits nothing
 </code></pre>
+<h2>process.env<span><a class="mark" href="#process_process_env" id="process_process_env">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.27</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>The <code>process.env</code> property returns an object containing the user environment.
+See <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
+<p>An example of this object looks like:</p>
+<pre><code class="lang-js">{
+  TERM: &#39;xterm-256color&#39;,
+  SHELL: &#39;/usr/local/bin/bash&#39;,
+  USER: &#39;maciej&#39;,
+  PATH: &#39;~/.bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;,
+  PWD: &#39;/Users/maciej&#39;,
+  EDITOR: &#39;vim&#39;,
+  SHLVL: &#39;1&#39;,
+  HOME: &#39;/Users/maciej&#39;,
+  LOGNAME: &#39;maciej&#39;,
+  _: &#39;/usr/local/bin/node&#39;
+}
+</code></pre>
+<p>It is possible to modify this object, but such modifications will not be
+reflected outside the Node.js process. In other words, the following example
+would not work:</p>
+<pre><code class="lang-console">$ node -e &#39;process.env.foo = &quot;bar&quot;&#39; &amp;&amp; echo $foo
+</code></pre>
+<p>While the following will:</p>
+<pre><code class="lang-js">process.env.foo = &#39;bar&#39;;
+console.log(process.env.foo);
+</code></pre>
+<p>Assigning a property on <code>process.env</code> will implicitly convert the value
+to a string.</p>
+<p>Example:</p>
+<pre><code class="lang-js">process.env.test = null;
+console.log(process.env.test);
+// =&gt; &#39;null&#39;
+process.env.test = undefined;
+console.log(process.env.test);
+// =&gt; &#39;undefined&#39;
+</code></pre>
+<p>Use <code>delete</code> to delete a property from <code>process.env</code>.</p>
+<p>Example:</p>
+<pre><code class="lang-js">process.env.TEST = 1;
+delete process.env.TEST;
+console.log(process.env.TEST);
+// =&gt; undefined
+</code></pre>
+<p>On Windows operating systems, environment variables are case-insensitive.</p>
+<p>Example:</p>
+<pre><code class="lang-js">process.env.TEST = 1;
+console.log(process.env.test);
+// =&gt; 1
+</code></pre>
 <h2>process.execArgv<span><a class="mark" href="#process_process_execargv" id="process_process_execargv">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -815,10 +829,11 @@ that started the Node.js process.</p>
 </div><ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The exit code. Defaults to <code>0</code>.</li>
 </ul>
-<p>The <code>process.exit()</code> method instructs Node.js to terminate the process as
-quickly as possible with the specified exit <code>code</code>. If the <code>code</code> is omitted,
-exit uses either the &#39;success&#39; code <code>0</code> or the value of <code>process.exitCode</code> if
-specified.</p>
+<p>The <code>process.exit()</code> method instructs Node.js to terminate the process
+synchronously with an exit status of <code>code</code>. If <code>code</code> is omitted, exit uses
+either the &#39;success&#39; code <code>0</code> or the value of <code>process.exitCode</code> if it has been
+set.  Node.js will not terminate until all the <a href="#process_event_exit"><code>&#39;exit&#39;</code></a> event listeners are
+called.</p>
 <p>To exit with a &#39;failure&#39; code:</p>
 <pre><code class="lang-js">process.exit(1);
 </code></pre>
@@ -841,7 +856,7 @@ if (someConditionNotMet()) {
 }
 </code></pre>
 <p>The reason this is problematic is because writes to <code>process.stdout</code> in Node.js
-are sometimes <em>non-blocking</em> and may occur over multiple ticks of the Node.js
+are sometimes <em>asynchronous</em> and may occur over multiple ticks of the Node.js
 event loop. Calling <code>process.exit()</code>, however, forces the process to exit
 <em>before</em> those additional writes to <code>stdout</code> can be performed.</p>
 <p>Rather than calling <code>process.exit()</code> directly, the code <em>should</em> set the
@@ -1022,7 +1037,17 @@ safe to assume that the two refer to the same module.</p>
 is no entry script.</p>
 <h2>process.memoryUsage()<span><a class="mark" href="#process_process_memoryusage" id="process_process_memoryusage">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.16</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>Added <code>external</code> to the returned object.</p>
+</td></tr>
+<tr><td>v0.1.16</td>
+<td><p><span>Added in: v0.1.16</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>rss</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
@@ -1050,7 +1075,17 @@ of the Node.js process measured in bytes.</p>
 objects managed by V8.</p>
 <h2>process.nextTick(callback[, ...args])<span><a class="mark" href="#process_process_nexttick_callback_args" id="process_process_nexttick_callback_args">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.26</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v1.8.1</td>
+<td><p>Additional arguments after <code>callback</code> are now supported.</p>
+</td></tr>
+<tr><td>v0.1.26</td>
+<td><p><span>Added in: v0.1.26</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span> Additional arguments to pass when invoking the <code>callback</code></li>
@@ -1142,7 +1177,17 @@ system platform on which the Node.js process is running. For instance
 </code></pre>
 <h2>process.release<span><a class="mark" href="#process_process_release" id="process_process_release">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v3.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.2.0</td>
+<td><p>The <code>lts</code> property is now supported.</p>
+</td></tr>
+<tr><td>v3.0.0</td>
+<td><p><span>Added in: v3.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>The <code>process.release</code> property returns an Object containing metadata related to
 the current release, including URLs for the source tarball and headers-only
 tarball.</p>
@@ -1297,30 +1342,15 @@ Android)</p>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stderr</code> property returns a <a href="stream.html">Writable</a> stream equivalent to or
-associated with <code>stderr</code> (fd <code>2</code>).</p>
-<p>Note: <code>process.stderr</code> and <code>process.stdout</code> differ from other Node.js streams
-in several ways:</p>
-<ol>
-<li>They cannot be closed (<a href="stream.html#stream_writable_end_chunk_encoding_callback"><code>end()</code></a> will throw).</li>
-<li>They never emit the <a href="stream.html#stream_event_finish"><code>&#39;finish&#39;</code></a> event.</li>
-<li>Writes <em>can</em> block when output is redirected to a file.<ul>
-<li>Note that disks are fast and operating systems normally employ write-back
-caching so this is very uncommon.</li>
-</ul>
-</li>
-<li>Writes on UNIX <strong>will</strong> block by default if output is going to a TTY
-(a terminal).</li>
-<li>Windows functionality differs. Writes block except when output is going to a
-TTY.</li>
-</ol>
-<p>To check if Node.js is being run in a TTY context, read the <code>isTTY</code> property
-on <code>process.stderr</code>, <code>process.stdout</code>, or <code>process.stdin</code>:</p>
+</div><p>The <code>process.stderr</code> property returns a <a href="stream.html#stream_writable_streams">Writable</a> stream connected to
+<code>stderr</code> (fd <code>2</code>).</p>
+<p>Note: <code>process.stderr</code> differs from other Node.js streams in important ways,
+see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdin</code> property returns a <a href="stream.html">Readable</a> stream equivalent to or
+</div><p>The <code>process.stdin</code> property returns a <a href="stream.html#stream_readable_streams">Readable</a> stream equivalent to or
 associated with <code>stdin</code> (fd <code>0</code>).</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.stdin.setEncoding(&#39;utf8&#39;);
@@ -1336,7 +1366,7 @@ process.stdin.on(&#39;end&#39;, () =&gt; {
   process.stdout.write(&#39;end&#39;);
 });
 </code></pre>
-<p>As a <a href="stream.html">Readable</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
+<p>As a <a href="stream.html#stream_readable_streams">Readable</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
 is compatible with scripts written for Node.js prior to v0.10.
 For more information see <a href="stream.html#stream_compatibility_with_older_node_js_versions">Stream compatibility</a>.</p>
 <p><em>Note</em>: In &quot;old&quot; streams mode the <code>stdin</code> stream is paused by default, so one
@@ -1346,42 +1376,50 @@ must call <code>process.stdin.resume()</code> to read from it. Note also that ca
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdout</code> property returns a <a href="stream.html">Writable</a> stream equivalent to or
-associated with <code>stdout</code> (fd <code>1</code>).</p>
-<p>For example:</p>
-<pre><code class="lang-js">console.log = (msg) =&gt; {
-  process.stdout.write(`${msg}\n`);
-};
+</div><p>The <code>process.stdout</code> property returns a <a href="stream.html#stream_writable_streams">Writable</a> stream connected to
+<code>stdout</code> (fd <code>2</code>).</p>
+<p>For example, to copy process.stdin to process.stdout:</p>
+<pre><code class="lang-js">process.stdin.pipe(process.stdout);
 </code></pre>
-<p>Note: <code>process.stderr</code> and <code>process.stdout</code> differ from other Node.js streams
-in several ways:</p>
+<p>Note: <code>process.stdout</code> differs from other Node.js streams in important ways,
+see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
+<h3>A note on process I/O<span><a class="mark" href="#process_a_note_on_process_i_o" id="process_a_note_on_process_i_o">#</a></span></h3>
+<p><code>process.stdout</code> and <code>process.stderr</code> differ from other Node.js streams in
+important ways:</p>
 <ol>
+<li>They are used internally by [<code>console.log()</code>][] and [<code>console.error()</code>][],
+respectively.</li>
 <li>They cannot be closed (<a href="stream.html#stream_writable_end_chunk_encoding_callback"><code>end()</code></a> will throw).</li>
-<li>They never emit the <a href="stream.html#stream_event_finish"><code>&#39;finish&#39;</code></a> event.</li>
-<li>Writes <em>can</em> block when output is redirected to a file.<ul>
-<li>Note that disks are fast and operating systems normally employ write-back
-caching so this is very uncommon.</li>
+<li>They will never emit the <a href="stream.html#stream_event_finish"><code>&#39;finish&#39;</code></a> event.</li>
+<li>Writes may be synchronous depending on the what the stream is connected to
+and whether the system is Windows or Unix:<ul>
+<li>Files: <em>synchronous</em> on Windows and Linux</li>
+<li>TTYs (Terminals): <em>asynchronous</em> on Windows, <em>synchronous</em> on Unix</li>
+<li>Pipes (and sockets): <em>synchronous</em> on Windows, <em>asynchronous</em> on Unix</li>
 </ul>
 </li>
-<li>Writes on UNIX <strong>will</strong> block by default if output is going to a TTY
-(a terminal).</li>
-<li>Windows functionality differs. Writes block except when output is going to a
-TTY.</li>
 </ol>
-<p>To check if Node.js is being run in a TTY context, read the <code>isTTY</code> property
-on <code>process.stderr</code>, <code>process.stdout</code>, or <code>process.stdin</code>:</p>
-<h3>TTY Terminals and <code>process.stdout</code><span><a class="mark" href="#process_tty_terminals_and_process_stdout" id="process_tty_terminals_and_process_stdout">#</a></span></h3>
-<p>The <code>process.stderr</code> and <code>process.stdout</code> streams are blocking when outputting
-to TTYs (terminals) on OS X as a workaround for the operating system&#39;s small,
-1kb buffer size. This is to prevent interleaving between <code>stdout</code> and <code>stderr</code>.</p>
-<p>To check if Node.js is being run in a <a href="tty.html#tty_tty">TTY</a> context, check the <code>isTTY</code>
-property on <code>process.stderr</code>, <code>process.stdout</code>, or <code>process.stdin</code>.</p>
+<p>These behaviours are partly for historical reasons, as changing them would
+create backwards incompatibility, but they are also expected by some users.</p>
+<p>Synchronous writes avoid problems such as output written with <code>console.log()</code> or
+<code>console.write()</code> being unexpectedly interleaved, or not written at all if
+<code>process.exit()</code> is called before an asynchronous write completes. See
+<a href="#process_process_exit_code"><code>process.exit()</code></a> for more information.</p>
+<p><strong><em>Warning</em></strong>: Synchronous writes block the event loop until the write has
+completed. This can be near instantaneous in the case of output to a file, but
+under high system load, pipes that are not being read at the receiving end, or
+with slow terminals or file systems, its possible for the event loop to be
+blocked often enough and long enough to have severe negative performance
+impacts. This may not be a problem when writing to an interactive terminal
+session, but consider this particularly careful when doing production logging to
+the process output streams.</p>
+<p>To check if a stream is connected to a <a href="tty.html#tty_tty">TTY</a> context, check the <code>isTTY</code>
+property.</p>
 <p>For instance:</p>
 <pre><code class="lang-console">$ node -p &quot;Boolean(process.stdin.isTTY)&quot;
 true
 $ echo &quot;foo&quot; | node -p &quot;Boolean(process.stdin.isTTY)&quot;
 false
-
 $ node -p &quot;Boolean(process.stdout.isTTY)&quot;
 true
 $ node -p &quot;Boolean(process.stdout.isTTY)&quot; | cat
@@ -1440,7 +1478,17 @@ process has been running.</p>
 </code></pre>
 <h2>process.versions<span><a class="mark" href="#process_process_versions" id="process_process_versions">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.2.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.2.0</td>
+<td><p>The <code>icu</code> property is now supported.</p>
+</td></tr>
+<tr><td>v0.2.0</td>
+<td><p><span>Added in: v0.2.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>

@@ -1,7 +1,3 @@
-// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
-//
-// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
-//
 // Originally from narwhal.js (http://narwhaljs.org)
 // Copyright (c) 2009 Thomas Robinson <280north.com>
 //
@@ -213,7 +209,7 @@ function _deepEqual(actual, expected, strict, memos) {
 }
 
 function isArguments(object) {
-  return Object.prototype.toString.call(object) == '[object Arguments]';
+  return Object.prototype.toString.call(object) === '[object Arguments]';
 }
 
 function objEquiv(a, b, strict, actualVisitedObjects) {
@@ -294,11 +290,12 @@ assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
 };
 
 function expectedException(actual, expected) {
-  if (!actual || !expected) {
+  // actual is guaranteed to be an Error object, but we need to check expected.
+  if (!expected) {
     return false;
   }
 
-  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+  if (Object.prototype.toString.call(expected) === '[object RegExp]') {
     return expected.test(actual);
   }
 

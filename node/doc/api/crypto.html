@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Crypto | Node.js v7.6.0 Documentation</title>
+  <title>Crypto | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -175,12 +176,12 @@
 <li><span class="stability_undefined"><a href="#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback">crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_pbkdf2sync_password_salt_iterations_keylen_digest">crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_privatedecrypt_private_key_buffer">crypto.privateDecrypt(private_key, buffer)</a></span></li>
-<li><span class="stability_undefined"><a href="#crypto_crypto_timingsafeequal_a_b">crypto.timingSafeEqual(a, b)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_privateencrypt_private_key_buffer">crypto.privateEncrypt(private_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicdecrypt_public_key_buffer">crypto.publicDecrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicencrypt_public_key_buffer">crypto.publicEncrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_randombytes_size_callback">crypto.randomBytes(size[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_setengine_engine_flags">crypto.setEngine(engine[, flags])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_crypto_timingsafeequal_a_b">crypto.timingSafeEqual(a, b)</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#crypto_notes">Notes</a></span><ul>
@@ -369,7 +370,17 @@ using <code>0x0</code> instead of PKCS padding.</p>
 <p>Returns <code>this</code> for method chaining.</p>
 <h3>cipher.update(data[, input_encoding][, output_encoding])<span><a class="mark" href="#crypto_cipher_update_data_input_encoding_output_encoding" id="crypto_cipher_update_data_input_encoding_output_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.94</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.94</td>
+<td><p><span>Added in: v0.1.94</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the cipher with <code>data</code>. If the <code>input_encoding</code> argument is given,
 its value must be one of <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code>, or <code>&#39;latin1&#39;</code> and the <code>data</code>
 argument is a string using the specified encoding. If the <code>input_encoding</code>
@@ -446,14 +457,34 @@ no longer be used to decrypt data. Attempts to call <code>decipher.final()</code
 than once will result in an error being thrown.</p>
 <h3>decipher.setAAD(buffer)<span><a class="mark" href="#crypto_decipher_setaad_buffer" id="crypto_decipher_setaad_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v1.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>This method now returns a reference to <code>decipher</code>.</p>
+</td></tr>
+<tr><td>v1.0.0</td>
+<td><p><span>Added in: v1.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAAD()</code> method sets the value used for the
 <em>additional authenticated data</em> (AAD) input parameter.</p>
 <p>Returns <code>this</code> for method chaining.</p>
 <h3>decipher.setAuthTag(buffer)<span><a class="mark" href="#crypto_decipher_setauthtag_buffer" id="crypto_decipher_setauthtag_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v1.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>This method now returns a reference to <code>decipher</code>.</p>
+</td></tr>
+<tr><td>v1.0.0</td>
+<td><p><span>Added in: v1.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAuthTag()</code> method is used to pass in the
 received <em>authentication tag</em>. If no tag is provided, or if the cipher text
@@ -473,7 +504,17 @@ multiple of the ciphers block size.</p>
 <p>Returns <code>this</code> for method chaining.</p>
 <h3>decipher.update(data[, input_encoding][, output_encoding])<span><a class="mark" href="#crypto_decipher_update_data_input_encoding_output_encoding" id="crypto_decipher_update_data_input_encoding_output_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.94</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.94</td>
+<td><p><span>Added in: v0.1.94</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the decipher with <code>data</code>. If the <code>input_encoding</code> argument is given,
 its value must be one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code>, or <code>&#39;hex&#39;</code> and the <code>data</code>
 argument is a string using the specified encoding. If the <code>input_encoding</code>
@@ -608,7 +649,17 @@ assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;
 </code></pre>
 <h3>ecdh.computeSecret(other_public_key[, input_encoding][, output_encoding])<span><a class="mark" href="#crypto_ecdh_computesecret_other_public_key_input_encoding_output_encoding" id="crypto_ecdh_computesecret_other_public_key_input_encoding_output_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.14</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.11.14</td>
+<td><p><span>Added in: v0.11.14</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Computes the shared secret using <code>other_public_key</code> as the other
 party&#39;s public key and returns the computed shared secret. The supplied
 key is interpreted using specified <code>input_encoding</code>, and the returned secret
@@ -657,8 +708,7 @@ created, an error is thrown. Upon setting the private key, the associated
 public point (key) is also generated and set in the ECDH object.</p>
 <h3>ecdh.setPublicKey(public_key[, encoding])<span><a class="mark" href="#crypto_ecdh_setpublickey_public_key_encoding" id="crypto_ecdh_setpublickey_public_key_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.14</span>
-<span>Deprecated since: v5.2.0 </span>
+<span>Added in: v0.11.14</span><span>Deprecated since: v5.2.0</span>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated</pre><p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>&#39;latin1&#39;</code>,
 <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided <code>public_key</code> is expected to
 be a string; otherwise a <a href="buffer.html"><code>Buffer</code></a> is expected.</p>
@@ -746,7 +796,17 @@ a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 called. Multiple calls will cause an error to be thrown.</p>
 <h3>hash.update(data[, input_encoding])<span><a class="mark" href="#crypto_hash_update_data_input_encoding" id="crypto_hash_update_data_input_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.92</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.92</td>
+<td><p><span>Added in: v0.1.92</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the hash content with the given <code>data</code>, the encoding of which
 is given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or
 <code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
@@ -808,7 +868,17 @@ provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</c
 called. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>
 <h3>hmac.update(data[, input_encoding])<span><a class="mark" href="#crypto_hmac_update_data_input_encoding" id="crypto_hmac_update_data_input_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.94</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.94</td>
+<td><p><span>Added in: v0.1.94</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which
 is given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or
 <code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
@@ -887,7 +957,17 @@ returned.</p>
 called. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>
 <h3>sign.update(data[, input_encoding])<span><a class="mark" href="#crypto_sign_update_data_input_encoding" id="crypto_sign_update_data_input_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.92</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.92</td>
+<td><p><span>Added in: v0.1.92</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which
 is given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or
 <code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
@@ -932,7 +1012,17 @@ console.log(verify.verify(publicKey, signature));
 </code></pre>
 <h3>verifier.update(data[, input_encoding])<span><a class="mark" href="#crypto_verifier_update_data_input_encoding" id="crypto_verifier_update_data_input_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.92</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default <code>input_encoding</code> changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.1.92</td>
+<td><p><span>Added in: v0.1.92</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which
 is given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or
 <code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
@@ -1007,8 +1097,7 @@ available cipher algorithms.</p>
 <a href="buffer.html">buffers</a>.</p>
 <h3>crypto.createCredentials(details)<span><a class="mark" href="#crypto_crypto_createcredentials_details" id="crypto_crypto_createcredentials_details">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.92</span>
-<span>Deprecated since: v0.11.13 </span>
+<span>Added in: v0.1.92</span><span>Deprecated since: v0.11.13</span>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> instead.</pre><ul>
 <li><code>details</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Identical to <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>.</li>
 </ul>
@@ -1046,7 +1135,17 @@ available cipher algorithms.</p>
 <a href="buffer.html">buffers</a>.</p>
 <h3>crypto.createDiffieHellman(prime[, prime_encoding][, generator][, generator_encoding])<span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_prime_encoding_generator_generator_encoding" id="crypto_crypto_creatediffiehellman_prime_prime_encoding_generator_generator_encoding">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.12</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default for the encoding parameters changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an
 optional specific <code>generator</code>.</p>
 <p>The <code>generator</code> argument can be a number, string, or <a href="buffer.html"><code>Buffer</code></a>. If
@@ -1189,7 +1288,20 @@ console.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, .
 </code></pre>
 <h3>crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)<span><a class="mark" href="#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback" id="crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.5.5</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>Calling this function without passing the <code>digest</code> parameter is deprecated now and will emit a warning.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default encoding for <code>password</code> if it is a string changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.5.5</td>
+<td><p><span>Added in: v0.5.5</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)
 implementation. A selected HMAC digest algorithm specified by <code>digest</code> is
 applied to derive a key of the requested byte length (<code>keylen</code>) from the
@@ -1214,7 +1326,20 @@ crypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;, (
 <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a>.</p>
 <h3>crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)<span><a class="mark" href="#crypto_crypto_pbkdf2sync_password_salt_iterations_keylen_digest" id="crypto_crypto_pbkdf2sync_password_salt_iterations_keylen_digest">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.9.3</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>Calling this function without passing the <code>digest</code> parameter is deprecated now and will emit a warning.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default encoding for <code>password</code> if it is a string changed from <code>binary</code> to <code>utf8</code>.</p>
+</td></tr>
+<tr><td>v0.9.3</td>
+<td><p><span>Added in: v0.9.3</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)
 implementation. A selected HMAC digest algorithm specified by <code>digest</code> is
 applied to derive a key of the requested byte length (<code>keylen</code>) from the
@@ -1253,17 +1378,6 @@ keys:</p>
 </li>
 </ul>
 <p>All paddings are defined in <code>crypto.constants</code>.</p>
-<h3>crypto.timingSafeEqual(a, b)<span><a class="mark" href="#crypto_crypto_timingsafeequal_a_b" id="crypto_crypto_timingsafeequal_a_b">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v6.6.0</span>
-</div><p>Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that
-would allow an attacker to guess one of the values. This is suitable for
-comparing HMAC digests or secret values like authentication cookies or
-<a href="https://www.w3.org/TR/capability-urls/">capability urls</a>.</p>
-<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, and they must have the same length.</p>
-<p><strong>Note</strong>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the
-<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the
-surrounding code does not introduce timing vulnerabilities.</p>
 <h3>crypto.privateEncrypt(private_key, buffer)<span><a class="mark" href="#crypto_crypto_privateencrypt_private_key_buffer" id="crypto_crypto_privateencrypt_private_key_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.1.0</span>
@@ -1375,6 +1489,17 @@ is a bit field taking one of or a mix of the following flags (defined in
 <li><code>crypto.constants.ENGINE_METHOD_ALL</code></li>
 <li><code>crypto.constants.ENGINE_METHOD_NONE</code></li>
 </ul>
+<h3>crypto.timingSafeEqual(a, b)<span><a class="mark" href="#crypto_crypto_timingsafeequal_a_b" id="crypto_crypto_timingsafeequal_a_b">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v6.6.0</span>
+</div><p>Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that
+would allow an attacker to guess one of the values. This is suitable for
+comparing HMAC digests or secret values like authentication cookies or
+<a href="https://www.w3.org/TR/capability-urls/">capability urls</a>.</p>
+<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, and they must have the same length.</p>
+<p><strong>Note</strong>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the
+<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the
+surrounding code does not introduce timing vulnerabilities.</p>
 <h2>Notes<span><a class="mark" href="#crypto_notes" id="crypto_notes">#</a></span></h2>
 <h3>Legacy Streams API (pre Node.js v0.10)<span><a class="mark" href="#crypto_legacy_streams_api_pre_node_js_v0_10" id="crypto_legacy_streams_api_pre_node_js_v0_10">#</a></span></h3>
 <p>The Crypto module was added to Node.js before there was the concept of a

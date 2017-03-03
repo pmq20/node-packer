@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Assert | Node.js v7.6.0 Documentation</title>
+  <title>Assert | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="assert" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -86,7 +87,7 @@
       <div id="toc">
         <h2>Table of Contents</h2>
         <ul>
-<li><span class="stability_3"><a href="#assert_assert">Assert</a></span><ul>
+<li><span class="stability_2"><a href="#assert_assert">Assert</a></span><ul>
 <li><span class="stability_undefined"><a href="#assert_assert_value_message">assert(value[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_deepequal_actual_expected_message">assert.deepEqual(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_deepstrictequal_actual_expected_message">assert.deepStrictEqual(actual, expected[, message])</a></span></li>
@@ -109,12 +110,16 @@
 
       <div id="apicontent">
         <h1>Assert<span><a class="mark" href="#assert_assert" id="assert_assert">#</a></span></h1>
-<pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
 test invariants.</p>
 <h2>assert(value[, message])<span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
-</div><p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a> .</p>
+</div><ul>
+<li><code>value</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a> .</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert(true);
@@ -130,8 +135,29 @@ assert(false, &#39;it\&#39;s false&#39;);
 </code></pre>
 <h2>assert.deepEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
-</div><p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.4.0, v4.7.1</td>
+<td><p>Typed array slices are handled correctly now.</p>
+</td></tr>
+<tr><td>v6.1.0, v4.5.0</td>
+<td><p>Objects with circular references can be used as inputs now.</p>
+</td></tr>
+<tr><td>v5.10.1, v4.4.3</td>
+<td><p>Handle non-<code>Uint8Array</code> typed arrays correctly.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.
 Primitive values are compared with the equal comparison operator ( <code>==</code> ).</p>
 <p>Only enumerable &quot;own&quot; properties are considered. The <code>deepEqual()</code>
 implementation does not test object prototypes, attached symbols, or
@@ -181,8 +207,29 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned.</p>
 <h2>assert.deepStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_deepstrictequal_actual_expected_message" id="assert_assert_deepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v1.2.0</span>
-</div><p>Generally identical to <code>assert.deepEqual()</code> with two exceptions. First,
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.4.0, v4.7.1</td>
+<td><p>Typed array slices are handled correctly now.</p>
+</td></tr>
+<tr><td>v6.1.0</td>
+<td><p>Objects with circular references can be used as inputs now.</p>
+</td></tr>
+<tr><td>v5.10.1, v4.4.3</td>
+<td><p>Handle non-<code>Uint8Array</code> typed arrays correctly.</p>
+</td></tr>
+<tr><td>v1.2.0</td>
+<td><p><span>Added in: v1.2.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Generally identical to <code>assert.deepEqual()</code> with two exceptions. First,
 primitive values are compared using the strict equality operator ( <code>===</code> ).
 Second, object comparisons include a strict equality check of their prototypes.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
@@ -199,8 +246,26 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned.</p>
 <h2>assert.doesNotThrow(block[, error][, message])<span><a class="mark" href="#assert_assert_doesnotthrow_block_error_message" id="assert_assert_doesnotthrow_block_error_message">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
-</div><p>Asserts that the function <code>block</code> does not throw an error. See
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.11.0, v4.4.5</td>
+<td><p>The <code>message</code> parameter is respected now.</p>
+</td></tr>
+<tr><td>v4.2.0</td>
+<td><p>The <code>error</code> parameter can now be an arrow function.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
+</div><ul>
+<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Asserts that the function <code>block</code> does not throw an error. See
 <a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a> for more details.</p>
 <p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>block</code>
 function.</p>
@@ -241,7 +306,12 @@ message:</p>
 <h2>assert.equal(actual, expected[, message])<span><a class="mark" href="#assert_assert_equal_actual_expected_message" id="assert_assert_equal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters
 using the equal comparison operator ( <code>==</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -261,7 +331,13 @@ parameter is undefined, a default error message is assigned.</p>
 <h2>assert.fail(actual, expected, message, operator)<span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator" id="assert_assert_fail_actual_expected_message_operator">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>operator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as
 the values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.
 Otherwise, the error message is the value of <code>message</code>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
@@ -275,7 +351,10 @@ assert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);
 <h2>assert.ifError(value)<span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.97</span>
-</div><p>Throws <code>value</code> if <code>value</code> is truthy. This is useful when testing the <code>error</code>
+</div><ul>
+<li><code>value</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Throws <code>value</code> if <code>value</code> is truthy. This is useful when testing the <code>error</code>
 argument in callbacks.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -291,7 +370,12 @@ assert.ifError(new Error());
 <h2>assert.notDeepEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notdeepequal_actual_expected_message" id="assert_assert_notdeepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests for any deep inequality. Opposite of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>.</p>
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests for any deep inequality. Opposite of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 const obj1 = {
@@ -329,7 +413,12 @@ parameter is undefined, a default error message is assigned.</p>
 <h2>assert.notDeepStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notdeepstrictequal_actual_expected_message" id="assert_assert_notdeepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v1.2.0</span>
-</div><p>Tests for deep strict inequality. Opposite of <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests for deep strict inequality. Opposite of <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert.notDeepEqual({a:1}, {a:&#39;1&#39;});
@@ -344,7 +433,12 @@ the <code>message</code> parameter is undefined, a default error message is assi
 <h2>assert.notEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notequal_actual_expected_message" id="assert_assert_notequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests shallow, coercive inequality with the not equal comparison operator
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests shallow, coercive inequality with the not equal comparison operator
 ( <code>!=</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -363,7 +457,12 @@ parameter is undefined, a default error message is assigned.</p>
 <h2>assert.notStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notstrictequal_actual_expected_message" id="assert_assert_notstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests strict inequality as determined by the strict not equal operator
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests strict inequality as determined by the strict not equal operator
 ( <code>!==</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -382,7 +481,11 @@ assert.notStrictEqual(1, &#39;1&#39;);
 <h2>assert.ok(value[, message])<span><a class="mark" href="#assert_assert_ok_value_message" id="assert_assert_ok_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests if <code>value</code> is truthy. It is equivalent to
+</div><ul>
+<li><code>value</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests if <code>value</code> is truthy. It is equivalent to
 <code>assert.equal(!!value, true, message)</code>.</p>
 <p>If <code>value</code> is not truthy, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
@@ -403,7 +506,12 @@ assert.ok(false, &#39;it\&#39;s false&#39;);
 <h2>assert.strictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_strictequal_actual_expected_message" id="assert_assert_strictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
-</div><p>Tests strict equality as determined by the strict equality operator ( <code>===</code> ).</p>
+</div><ul>
+<li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Tests strict equality as determined by the strict equality operator ( <code>===</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert.strictEqual(1, 2);
@@ -420,8 +528,23 @@ assert.strictEqual(1, &#39;1&#39;);
 <code>message</code> parameter is undefined, a default error message is assigned.</p>
 <h2>assert.throws(block[, error][, message])<span><a class="mark" href="#assert_assert_throws_block_error_message" id="assert_assert_throws_block_error_message">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
-</div><p>Expects the function <code>block</code> to throw an error.</p>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v4.2.0</td>
+<td><p>The <code>error</code> parameter can now be an arrow function.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
+</div><ul>
+<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Expects the function <code>block</code> to throw an error.</p>
 <p>If specified, <code>error</code> can be a constructor, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, or validation
 function.</p>
 <p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if

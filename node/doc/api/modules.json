@@ -90,7 +90,8 @@
           "meta": {
             "added": [
               "v0.1.16"
-            ]
+            ],
+            "changes": []
           },
           "type": "var",
           "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>In each module, the <code>module</code> free variable is a reference to the object\nrepresenting the current module.  For convenience, <code>module.exports</code> is\nalso accessible via the <code>exports</code> module-global. <code>module</code> is not actually\na global but rather local to each module.</p>\n",
@@ -102,7 +103,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The module objects required by this one.</p>\n"
             },
@@ -113,7 +115,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The <code>module.exports</code> object is created by the Module system. Sometimes this is\nnot acceptable; many want their module to be an instance of some class. To do\nthis, assign the desired export object to <code>module.exports</code>. Note that assigning\nthe desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,\nwhich is probably not what you want to do.</p>\n<p>For example suppose we were making a module called <code>a.js</code></p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n\nmodule.exports = new EventEmitter();\n\n// Do some work, and after some time emit\n// the &#39;ready&#39; event from the module itself.\nsetTimeout(() =&gt; {\n  module.exports.emit(&#39;ready&#39;);\n}, 1000);\n</code></pre>\n<p>Then in another file we could do</p>\n<pre><code class=\"lang-js\">const a = require(&#39;./a&#39;);\na.on(&#39;ready&#39;, () =&gt; {\n  console.log(&#39;module a is ready&#39;);\n});\n</code></pre>\n<p>Note that assignment to <code>module.exports</code> must be done immediately. It cannot be\ndone in any callbacks.  This does not work:</p>\n<p>x.js:</p>\n<pre><code class=\"lang-js\">setTimeout(() =&gt; {\n  module.exports = { a: &#39;hello&#39; };\n}, 0);\n</code></pre>\n<p>y.js:</p>\n<pre><code class=\"lang-js\">const x = require(&#39;./x&#39;);\nconsole.log(x.a);\n</code></pre>\n",
               "modules": [
@@ -123,7 +126,8 @@
                   "meta": {
                     "added": [
                       "v0.1.16"
-                    ]
+                    ],
+                    "changes": []
                   },
                   "desc": "<p>The <code>exports</code> variable is available within a module&#39;s file-level scope, and is\nassigned the value of <code>module.exports</code> before the module is evaluated.</p>\n<p>It allows a shortcut, so that <code>module.exports.f = ...</code> can be written more\nsuccinctly as <code>exports.f = ...</code>. However, be aware that like any variable, if a\nnew value is assigned to <code>exports</code>, it is no longer bound to <code>module.exports</code>:</p>\n<pre><code class=\"lang-js\">module.exports.hello = true; // Exported from require of module\nexports = { hello: false };  // Not exported, only available in the module\n</code></pre>\n<p>When the <code>module.exports</code> property is being completely replaced by a new\nobject, it is common to also reassign <code>exports</code>, for example:</p>\n<pre><code class=\"lang-js\">module.exports = exports = function Constructor() {\n    // ... etc.\n</code></pre>\n<p>To illustrate the behavior, imagine this hypothetical implementation of\n<code>require()</code>, which is quite similar to what is actually done by <code>require()</code>:</p>\n<pre><code class=\"lang-js\">function require(...) {\n  var module = { exports: {} };\n  ((module, exports) =&gt; {\n    // Your module code here. In this example, define a function.\n    function some_func() {};\n    exports = some_func;\n    // At this point, exports is no longer a shortcut to module.exports, and\n    // this module will still export an empty default object.\n    module.exports = some_func;\n    // At this point, the module will now export some_func, instead of the\n    // default object.\n  })(module, module.exports);\n  return module.exports;\n}\n</code></pre>\n",
                   "type": "module",
@@ -138,7 +142,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The fully resolved filename to the module.</p>\n"
             },
@@ -149,7 +154,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The identifier for the module.  Typically this is the fully resolved\nfilename.</p>\n"
             },
@@ -160,7 +166,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Whether or not the module is done loading, or is in the process of\nloading.</p>\n"
             },
@@ -171,7 +178,8 @@
               "meta": {
                 "added": [
                   "v0.1.16"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The module that first required this one.</p>\n",
               "shortDesc": "Module object"
@@ -185,7 +193,8 @@
               "meta": {
                 "added": [
                   "v0.5.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {

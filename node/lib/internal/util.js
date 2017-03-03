@@ -6,31 +6,9 @@ const prefix = `(${process.release.name}:${process.pid}) `;
 const kArrowMessagePrivateSymbolIndex = binding['arrow_message_private_symbol'];
 const kDecoratedPrivateSymbolIndex = binding['decorated_private_symbol'];
 
-exports.getHiddenValue = binding.getHiddenValue;
-exports.setHiddenValue = binding.setHiddenValue;
-
 // The `buffer` module uses this. Defining it here instead of in the public
 // `util` module makes it accessible without having to `require('util')` there.
 exports.customInspectSymbol = Symbol('util.inspect.custom');
-
-// All the internal deprecations have to use this function only, as this will
-// prepend the prefix to the actual message.
-exports.deprecate = function(fn, msg) {
-  return exports._deprecate(fn, msg);
-};
-
-exports.error = function(msg) {
-  const fmt = `${prefix}${msg}`;
-  if (arguments.length > 1) {
-    const args = new Array(arguments.length);
-    args[0] = fmt;
-    for (var i = 1; i < arguments.length; ++i)
-      args[i] = arguments[i];
-    console.error.apply(console, args);
-  } else {
-    console.error(fmt);
-  }
-};
 
 exports.trace = function(msg) {
   console.trace(`${prefix}${msg}`);
@@ -39,11 +17,11 @@ exports.trace = function(msg) {
 // Mark that a method should not be used.
 // Returns a modified function which warns once by default.
 // If --no-deprecation is set, then it is a no-op.
-exports._deprecate = function(fn, msg) {
+exports.deprecate = function deprecate(fn, msg, code) {
   // Allow for deprecating things in the process of starting up.
   if (global.process === undefined) {
     return function() {
-      return exports._deprecate(fn, msg).apply(this, arguments);
+      return exports.deprecate(fn, msg, code).apply(this, arguments);
     };
   }
 
@@ -77,14 +55,14 @@ exports._deprecate = function(fn, msg) {
 
 exports.decorateErrorStack = function decorateErrorStack(err) {
   if (!(exports.isError(err) && err.stack) ||
-      exports.getHiddenValue(err, kDecoratedPrivateSymbolIndex) === true)
+      binding.getHiddenValue(err, kDecoratedPrivateSymbolIndex) === true)
     return;
 
-  const arrow = exports.getHiddenValue(err, kArrowMessagePrivateSymbolIndex);
+  const arrow = binding.getHiddenValue(err, kArrowMessagePrivateSymbolIndex);
 
   if (arrow) {
     err.stack = arrow + err.stack;
-    exports.setHiddenValue(err, kDecoratedPrivateSymbolIndex, true);
+    binding.setHiddenValue(err, kDecoratedPrivateSymbolIndex, true);
   }
 };
 

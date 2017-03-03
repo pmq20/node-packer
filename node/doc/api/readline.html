@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Readline | Node.js v7.6.0 Documentation</title>
+  <title>Readline | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="readline" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -123,7 +124,7 @@
 
       <div id="apicontent">
         <h1>Readline<span><a class="mark" href="#readline_readline" id="readline_readline">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>readline</code> module provides an interface for reading data from a <a href="stream.html">Readable</a>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>readline</code> module provides an interface for reading data from a <a href="stream.html#stream_readable_streams">Readable</a>
 stream (such as <a href="process.html#process_process_stdin"><code>process.stdin</code></a>) one line at a time. It can be accessed using:</p>
 <pre><code class="lang-js">const readline = require(&#39;readline&#39;);
 </code></pre>
@@ -150,7 +151,7 @@ waits for data to be received on the <code>input</code> stream.</p>
 <span>Added in: v0.1.104</span>
 </div><p>Instances of the <code>readline.Interface</code> class are constructed using the
 <code>readline.createInterface()</code> method. Every instance is associated with a
-single <code>input</code> <a href="stream.html">Readable</a> stream and a single <code>output</code> <a href="stream.html">Writable</a> stream.
+single <code>input</code> <a href="stream.html#stream_readable_streams">Readable</a> stream and a single <code>output</code> <a href="stream.html#stream_writable_streams">Writable</a> stream.
 The <code>output</code> stream is used to print prompts for user input that arrives on,
 and is read from, the <code>input</code> stream.</p>
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#readline_event_close" id="readline_event_close">#</a></span></h3>
@@ -210,7 +211,7 @@ events <a href="readline.html#readline_event_sigtstp"><code>SIGTSTP</code></a> a
 <span>Added in: v0.7.5</span>
 </div><p>The <code>&#39;SIGCONT&#39;</code> event is emitted when a Node.js process previously moved into
 the background using <code>&lt;ctrl&gt;-Z</code> (i.e. <code>SIGTSTP</code>) is then brought back to the
-foreground using <a href="http://man7.org/linux/man-pages/man1/fg.1.html">fg(1)</a>.</p>
+foreground using <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>.</p>
 <p>If the <code>input</code> stream was paused <em>before</em> the <code>SIGTSTP</code> request, this event will
 not be emitted.</p>
 <p>The listener function is invoked without passing any arguments.</p>
@@ -243,7 +244,7 @@ event will be emitted.</p>
 input, typically known as <code>SIGTSTP</code>. If there are no <code>SIGTSTP</code> event listeners
 registered when the <code>input</code> stream receives a <code>SIGTSTP</code>, the Node.js process
 will be sent to the background.</p>
-<p>When the program is resumed using <a href="http://man7.org/linux/man-pages/man1/fg.1.html">fg(1)</a>, the <code>&#39;pause&#39;</code> and <code>SIGCONT</code> events
+<p>When the program is resumed using <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>, the <code>&#39;pause&#39;</code> and <code>SIGCONT</code> events
 will be emitted. These can be used to resume the <code>input</code> stream.</p>
 <p>The <code>&#39;pause&#39;</code> and <code>&#39;SIGCONT&#39;</code> events will not be emitted if the <code>input</code> was
 paused before the process was sent to the background.</p>
@@ -371,12 +372,25 @@ in a specified direction identified by <code>dir</code>.</p>
 the current position of the cursor down.</p>
 <h2>readline.createInterface(options)<span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.98</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>prompt</code> option is supported now.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>historySize</code> option can be <code>0</code> now.</p>
+</td></tr>
+<tr><td>v0.1.98</td>
+<td><p><span>Added in: v0.1.98</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>input</code> <span class="type">&lt;Readable&gt;</span> The <a href="stream.html">Readable</a> stream to listen to. This option is
+<li><code>input</code> <span class="type">&lt;Readable&gt;</span> The <a href="stream.html#stream_readable_streams">Readable</a> stream to listen to. This option is
 <em>required</em>.</li>
-<li><code>output</code> <span class="type">&lt;Writable&gt;</span> The <a href="stream.html">Writable</a> stream to write readline data to.</li>
+<li><code>output</code> <span class="type">&lt;Writable&gt;</span> The <a href="stream.html#stream_writable_streams">Writable</a> stream to write readline data to.</li>
 <li><code>completer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An optional function used for Tab autocompletion.</li>
 <li><code>terminal</code> <span class="type">&lt;boolean&gt;</span> <code>true</code> if the <code>input</code> and <code>output</code> streams should be
 treated like a TTY, and have ANSI/VT100 escape codes written to it.
@@ -450,7 +464,7 @@ given <a href="tty.html">TTY</a> <code>stream</code>.</p>
 <li><code>stream</code> <span class="type">&lt;Readable&gt;</span></li>
 <li><code>interface</code> <span class="type">&lt;readline.Interface&gt;</span></li>
 </ul>
-<p>The <code>readline.emitKeypressEvents()</code> method causes the given <a href="stream.html">Writable</a>
+<p>The <code>readline.emitKeypressEvents()</code> method causes the given <a href="stream.html#stream_writable_streams">Writable</a>
 <code>stream</code> to begin emitting <code>&#39;keypress&#39;</code> events corresponding to received input.</p>
 <p>Optionally, <code>interface</code> specifies a <code>readline.Interface</code> instance for which
 autocompletion is disabled when copy-pasted input is detected.</p>
@@ -498,7 +512,7 @@ rl.on(&#39;line&#39;, (line) =&gt; {
 </code></pre>
 <h2>Example: Read File Stream Line-by-Line<span><a class="mark" href="#readline_example_read_file_stream_line_by_line" id="readline_example_read_file_stream_line_by_line">#</a></span></h2>
 <p>A common use case for <code>readline</code> is to consume input from a filesystem
-<a href="stream.html">Readable</a> stream one line at a time, as illustrated in the following
+<a href="stream.html#stream_readable_streams">Readable</a> stream one line at a time, as illustrated in the following
 example:</p>
 <pre><code class="lang-js">const readline = require(&#39;readline&#39;);
 const fs = require(&#39;fs&#39;);

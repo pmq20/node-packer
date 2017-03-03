@@ -4,6 +4,15 @@
     {
       "textRaw": "Punycode",
       "name": "punycode",
+      "meta": {
+        "changes": [
+          {
+            "version": "v7.0.0",
+            "pr-url": "https://github.com/nodejs/node/pull/7941",
+            "description": "Accessing this module will now emit a deprecation warning."
+          }
+        ]
+      },
       "stability": 0,
       "stabilityText": "Deprecated",
       "desc": "<p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.\nIn a future major version of Node.js this module will be removed. Users\ncurrently depending on the <code>punycode</code> module should switch to using the\nuserland-provided <a href=\"https://mths.be/punycode\">Punycode.js</a> module instead.</p>\n<p>The <code>punycode</code> module is a bundled version of the <a href=\"https://mths.be/punycode\">Punycode.js</a> module. It\ncan be accessed using:</p>\n<pre><code class=\"lang-js\">const punycode = require(&#39;punycode&#39;);\n</code></pre>\n<p><a href=\"https://tools.ietf.org/html/rfc3492\">Punycode</a> is a character encoding scheme defined by RFC 3492 that is\nprimarily intended for use in Internationalized Domain Names. Because host\nnames in URLs are limited to ASCII characters only, Domain Names that contain\nnon-ASCII characters must be converted into ASCII using the Punycode scheme.\nFor instance, the Japanese character that translates into the English word,\n<code>&#39;example&#39;</code> is <code>&#39;例&#39;</code>. The Internationalized Domain Name, <code>&#39;例.com&#39;</code> (equivalent\nto <code>&#39;example.com&#39;</code>) is represented by Punycode as the ASCII string\n<code>&#39;xn--fsq.com&#39;</code>.</p>\n<p>The <code>punycode</code> module provides a simple implementation of the Punycode standard.</p>\n<p><em>Note</em>: The <code>punycode</code> module is a third-party dependency used by Node.js and\nmade available to developers as a convenience. Fixes or other modifications to\nthe module must be directed to the <a href=\"https://mths.be/punycode\">Punycode.js</a> project.</p>\n",
@@ -15,7 +24,8 @@
           "meta": {
             "added": [
               "v0.5.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -44,7 +54,8 @@
           "meta": {
             "added": [
               "v0.5.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -73,7 +84,8 @@
           "meta": {
             "added": [
               "v0.6.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -102,7 +114,8 @@
           "meta": {
             "added": [
               "v0.6.1"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -132,7 +145,8 @@
           "meta": {
             "added": [
               "v0.7.0"
-            ]
+            ],
+            "changes": []
           },
           "modules": [
             {
@@ -141,7 +155,8 @@
               "meta": {
                 "added": [
                   "v0.7.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<ul>\n<li><code>string</code> {String}</li>\n</ul>\n<p>The <code>punycode.ucs2.decode()</code> method returns an array containing the numeric\ncodepoint values of each Unicode symbol in the string.</p>\n<pre><code class=\"lang-js\">punycode.ucs2.decode(&#39;abc&#39;); // [0x61, 0x62, 0x63]\n// surrogate pair for U+1D306 tetragram for centre:\npunycode.ucs2.decode(&#39;\\uD834\\uDF06&#39;); // [0x1D306]\n</code></pre>\n",
               "type": "module",
@@ -153,7 +168,8 @@
               "meta": {
                 "added": [
                   "v0.7.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<ul>\n<li><code>codePoints</code> {Array}</li>\n</ul>\n<p>The <code>punycode.ucs2.encode()</code> method returns a string based on an array of\nnumeric code point values.</p>\n<pre><code class=\"lang-js\">punycode.ucs2.encode([0x61, 0x62, 0x63]); // &#39;abc&#39;\npunycode.ucs2.encode([0x1D306]); // &#39;\\uD834\\uDF06&#39;\n</code></pre>\n",
               "type": "module",
@@ -167,7 +183,8 @@
           "meta": {
             "added": [
               "v0.6.1"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a string identifying the current <a href=\"https://mths.be/punycode\">Punycode.js</a> version number.</p>\n"
         }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>UDP / Datagram Sockets | Node.js v7.6.0 Documentation</title>
+  <title>UDP / Datagram Sockets | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram active" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -98,12 +99,12 @@
 <li><span class="stability_undefined"><a href="#dgram_socket_bind_options_callback">socket.bind(options[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_close_callback">socket.close([callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_dropmembership_multicastaddress_multicastinterface">socket.dropMembership(multicastAddress[, multicastInterface])</a></span></li>
+<li><span class="stability_undefined"><a href="#dgram_socket_ref">socket.ref()</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_send_msg_offset_length_port_address_callback">socket.send(msg, [offset, length,] port, address[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setbroadcast_flag">socket.setBroadcast(flag)</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setmulticastloopback_flag">socket.setMulticastLoopback(flag)</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setmulticastttl_ttl">socket.setMulticastTTL(ttl)</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setttl_ttl">socket.setTTL(ttl)</a></span></li>
-<li><span class="stability_undefined"><a href="#dgram_socket_ref">socket.ref()</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_unref">socket.unref()</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_change_to_asynchronous_socket_bind_behavior">Change to asynchronous <code>socket.bind()</code> behavior</a></span></li>
 </ul>
@@ -303,9 +304,33 @@ kernel when the socket is closed or the process terminates, so most apps will
 never have reason to call this.</p>
 <p>If <code>multicastInterface</code> is not specified, the operating system will attempt to
 drop membership on all valid interfaces.</p>
+<h3>socket.ref()<span><a class="mark" href="#dgram_socket_ref" id="dgram_socket_ref">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.1</span>
+</div><p>By default, binding a socket will cause it to block the Node.js process from
+exiting as long as the socket is open. The <code>socket.unref()</code> method can be used
+to exclude the socket from the reference counting that keeps the Node.js
+process active. The <code>socket.ref()</code> method adds the socket back to the reference
+counting and restores the default behavior.</p>
+<p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>
+<p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be
+chained.</p>
 <h3>socket.send(msg, [offset, length,] port, address[, callback])<span><a class="mark" href="#dgram_socket_send_msg_offset_length_port_address_callback" id="dgram_socket_send_msg_offset_length_port_address_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.99</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>On success, <code>callback</code> will now be called with an <code>error</code> argument of <code>null</code> rather than <code>0</code>.</p>
+</td></tr>
+<tr><td>v5.7.0</td>
+<td><p>The <code>msg</code> parameter can be an array now. Also, the <code>offset</code> and <code>length</code> parameters are optional now.</p>
+</td></tr>
+<tr><td>v0.1.99</td>
+<td><p><span>Added in: v0.1.99</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Message to be sent</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer. Optional. Offset in the buffer where the message starts.</li>
@@ -428,17 +453,6 @@ TTL.  If the TTL is decremented to 0 by a router, it will not be forwarded.
 Changing TTL values is typically done for network probes or when multicasting.</p>
 <p>The argument to <code>socket.setTTL()</code> is a number of hops between 1 and 255.
 The default on most systems is 64 but can vary.</p>
-<h3>socket.ref()<span><a class="mark" href="#dgram_socket_ref" id="dgram_socket_ref">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.9.1</span>
-</div><p>By default, binding a socket will cause it to block the Node.js process from
-exiting as long as the socket is open. The <code>socket.unref()</code> method can be used
-to exclude the socket from the reference counting that keeps the Node.js
-process active. The <code>socket.ref()</code> method adds the socket back to the reference
-counting and restores the default behavior.</p>
-<p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>
-<p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be
-chained.</p>
 <h3>socket.unref()<span><a class="mark" href="#dgram_socket_unref" id="dgram_socket_unref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>

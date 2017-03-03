@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Command Line Options | Node.js v7.6.0 Documentation</title>
+  <title>Command Line Options | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -102,6 +103,8 @@
 <li><span class="stability_undefined"><a href="#cli_no_warnings"><code>--no-warnings</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_warnings"><code>--trace-warnings</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_sync_io"><code>--trace-sync-io</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_trace_events_enabled"><code>--trace-events-enabled</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_trace_event_categories"><code>--trace-event-categories</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_zero_fill_buffers"><code>--zero-fill-buffers</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_preserve_symlinks"><code>--preserve-symlinks</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_track_heap_objects"><code>--track-heap-objects</code></a></span></li>
@@ -126,6 +129,7 @@
 <li><span class="stability_undefined"><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_tty_unsafe_async_1"><code>NODE_TTY_UNSAFE_ASYNC=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_extra_ca_certs_file"><code>NODE_EXTRA_CA_CERTS=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_openssl_conf_file"><code>OPENSSL_CONF=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_ssl_cert_file_file"><code>SSL_CERT_FILE=file</code></a></span></li>
 </ul>
@@ -160,16 +164,36 @@ debugging, multiple ways to execute scripts, and other helpful runtime options.<
 The output of this option is less detailed than this document.</p>
 <h3><code>-e</code>, <code>--eval &quot;script&quot;</code><span><a class="mark" href="#cli_e_eval_script" id="cli_e_eval_script">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.5.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.11.0</td>
+<td><p>Built-in libraries are now available as predefined variables.</p>
+</td></tr>
+<tr><td>v0.5.2</td>
+<td><p><span>Added in: v0.5.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Evaluate the following argument as JavaScript. The modules which are
 predefined in the REPL can also be used in <code>script</code>.</p>
 <h3><code>-p</code>, <code>--print &quot;script&quot;</code><span><a class="mark" href="#cli_p_print_script" id="cli_p_print_script">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.6.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.11.0</td>
+<td><p>Built-in libraries are now available as predefined variables.</p>
+</td></tr>
+<tr><td>v0.6.4</td>
+<td><p><span>Added in: v0.6.4</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Identical to <code>-e</code> but prints the result.</p>
 <h3><code>-c</code>, <code>--check</code><span><a class="mark" href="#cli_c_check" id="cli_c_check">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v5.0.0</span>
+<span>Added in: v5.0.0, v4.2.0</span>
 </div><p>Syntax check the script without executing.</p>
 <h3><code>-i</code>, <code>--interactive</code><span><a class="mark" href="#cli_i_interactive" id="cli_i_interactive">#</a></span></h3>
 <div class="api_metadata">
@@ -206,6 +230,15 @@ rules. <code>module</code> may be either a path to a file, or a node module name
 <span>Added in: v2.1.0</span>
 </div><p>Prints a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.</p>
+<h3><code>--trace-events-enabled</code><span><a class="mark" href="#cli_trace_events_enabled" id="cli_trace_events_enabled">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>Enables the collection of trace event tracing information.</p>
+<h3><code>--trace-event-categories</code><span><a class="mark" href="#cli_trace_event_categories" id="cli_trace_event_categories">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>A comma separated list of categories that should be traced when trace event
+tracing is enabled using <code>--trace-events-enabled</code>.</p>
 <h3><code>--zero-fill-buffers</code><span><a class="mark" href="#cli_zero_fill_buffers" id="cli_zero_fill_buffers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -353,14 +386,26 @@ certificates in PEM format. A message will be emitted (once) with
 misformatted, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
+<h3><code>OPENSSL_CONF=file</code><span><a class="mark" href="#cli_openssl_conf_file" id="cli_openssl_conf_file">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>Load an OpenSSL configuration file on startup. Among other uses, this can be
+used to enable FIPS-compliant crypto if Node.js is built with <code>./configure
+\-\-openssl\-fips</code>.</p>
+<p>If the <a href="#cli_openssl_config_file"><code>--openssl-config</code></a> command line option is used, the environment
+variable is ignored.</p>
 <h3><code>SSL_CERT_DIR=dir</code><span><a class="mark" href="#cli_ssl_cert_dir_dir" id="cli_ssl_cert_dir_dir">#</a></span></h3>
-<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory
 containing trusted certificates.</p>
 <p>Note: Be aware that unless the child environment is explicitly set, this
 evironment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.</p>
 <h3><code>SSL_CERT_FILE=file</code><span><a class="mark" href="#cli_ssl_cert_file_file" id="cli_ssl_cert_file_file">#</a></span></h3>
-<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file
 containing trusted certificates.</p>
 <p>Note: Be aware that unless the child environment is explicitly set, this
 evironment variable will be inherited by any child processes, and if they use

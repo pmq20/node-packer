@@ -110,7 +110,8 @@
                     ],
                     "deprecated": [
                       "v3.0.0"
-                    ]
+                    ],
+                    "changes": []
                   },
                   "stability": 0,
                   "stabilityText": "Deprecated: Use `NODE_REPL_HISTORY` instead.",
@@ -149,7 +150,8 @@
           "meta": {
             "added": [
               "v0.1.91"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>The <code>repl.REPLServer</code> class inherits from the <a href=\"readline.html#readline_class_interface\"><code>readline.Interface</code></a> class.\nInstances of <code>repl.REPLServer</code> are created using the <code>repl.start()</code> method and\n<em>should not</em> be created directly using the JavaScript <code>new</code> keyword.</p>\n",
           "events": [
@@ -160,7 +162,8 @@
               "meta": {
                 "added": [
                   "v0.7.7"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The <code>&#39;exit&#39;</code> event is emitted when the REPL is exited either by receiving the\n<code>.exit</code> command as input, the user pressing <code>&lt;ctrl&gt;-C</code> twice to signal <code>SIGINT</code>,\nor by pressing <code>&lt;ctrl&gt;-D</code> to signal <code>&#39;end&#39;</code> on the input stream. The listener\ncallback is invoked without any arguments.</p>\n<pre><code class=\"lang-js\">replServer.on(&#39;exit&#39;, () =&gt; {\n  console.log(&#39;Received &quot;exit&quot; event from repl!&#39;);\n  process.exit();\n});\n</code></pre>\n",
               "params": []
@@ -172,7 +175,8 @@
               "meta": {
                 "added": [
                   "v0.11.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>The <code>&#39;reset&#39;</code> event is emitted when the REPL&#39;s context is reset. This occurs\nwhenever the <code>.clear</code> command is received as input <em>unless</em> the REPL is using\nthe default evaluator and the <code>repl.REPLServer</code> instance was created with the\n<code>useGlobal</code> option set to <code>true</code>. The listener callback will be called with a\nreference to the <code>context</code> object as the only argument.</p>\n<p>This can be used primarily to re-initialize REPL context to some pre-defined\nstate as illustrated in the following simple example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nfunction initializeContext(context) {\n  context.m = &#39;test&#39;;\n}\n\nconst r = repl.start({prompt: &#39;&gt; &#39;});\ninitializeContext(r.context);\n\nr.on(&#39;reset&#39;, initializeContext);\n</code></pre>\n<p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then\nreset to its initial value using the <code>.clear</code> command:</p>\n<pre><code class=\"lang-js\">$ ./node example.js\n&gt; m\n&#39;test&#39;\n&gt; m = 1\n1\n&gt; m\n1\n&gt; .clear\nClearing context...\n&gt; m\n&#39;test&#39;\n&gt;\n</code></pre>\n",
               "params": []
@@ -186,7 +190,8 @@
               "meta": {
                 "added": [
                   "v0.3.0"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -225,7 +230,8 @@
               "meta": {
                 "added": [
                   "v0.1.91"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -260,6 +266,13 @@
           "meta": {
             "added": [
               "v0.1.91"
+            ],
+            "changes": [
+              {
+                "version": "v5.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5388",
+                "description": "The `options` parameter is optional now."
+              }
             ]
           },
           "signatures": [

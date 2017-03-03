@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Events | Node.js v7.6.0 Documentation</title>
+  <title>Events | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="events" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -289,7 +290,17 @@ myEmitter.emit(&#39;event&#39;);
 </code></pre>
 <h3>Event: &#39;removeListener&#39;<span><a class="mark" href="#events_event_removelistener" id="events_event_removelistener">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.9.3</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.1.0, v4.7.0</td>
+<td><p>For listeners attached using <code>.once()</code>, the <code>listener</code> argument now yields the original listener function.</p>
+</td></tr>
+<tr><td>v0.9.3</td>
+<td><p><span>Added in: v0.9.3</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;Symbol&gt;</a> The event name</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
@@ -297,8 +308,7 @@ myEmitter.emit(&#39;event&#39;);
 <p>The <code>&#39;removeListener&#39;</code> event is emitted <em>after</em> the <code>listener</code> is removed.</p>
 <h3>EventEmitter.listenerCount(emitter, eventName)<span><a class="mark" href="#events_eventemitter_listenercount_emitter_eventname" id="events_eventemitter_listenercount_emitter_eventname">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.9.12</span>
-<span>Deprecated since: v4.0.0 </span>
+<span>Added in: v0.9.12</span><span>Deprecated since: v4.0.0</span>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#events_emitter_listenercount_eventname"><code>emitter.listenerCount()</code></a> instead.</pre><p>A class method that returns the number of listeners for the given <code>eventName</code>
 registered on the given <code>emitter</code>.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
@@ -379,7 +389,17 @@ set by <a href="#events_emitter_setmaxlisteners_n"><code>emitter.setMaxListeners
 <p>Returns the number of listeners listening to the event named <code>eventName</code>.</p>
 <h3>emitter.listeners(eventName)<span><a class="mark" href="#events_emitter_listeners_eventname" id="events_emitter_listeners_eventname">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.26</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>For listeners attached using <code>.once()</code> this returns the original listeners instead of wrapper functions now.</p>
+</td></tr>
+<tr><td>v0.1.26</td>
+<td><p><span>Added in: v0.1.26</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>
 <pre><code class="lang-js">server.on(&#39;connection&#39;, (stream) =&gt; {
   console.log(&#39;someone connected!&#39;);

@@ -110,6 +110,13 @@ function requestOCSP(self, hello, ctx, cb) {
 
   if (!ctx)
     ctx = self.server._sharedCreds;
+
+  // TLS socket is using a `net.Server` instead of a tls.TLSServer.
+  // Some TLS properties like `server._sharedCreds` will not be present
+  if (!ctx)
+    return cb(null);
+
+  // TODO(indutny): eventually disallow raw `SecureContext`
   if (ctx.context)
     ctx = ctx.context;
 
@@ -294,9 +301,9 @@ var proxiedMethods = [
 
 // Proxy HandleWrap, PipeWrap and TCPWrap methods
 proxiedMethods.forEach(function(name) {
-  tls_wrap.TLSWrap.prototype[name] = function methodProxy() {
+  tls_wrap.TLSWrap.prototype[name] = function methodProxy(...args) {
     if (this._parent[name])
-      return this._parent[name].apply(this._parent, arguments);
+      return this._parent[name].apply(this._parent, args);
   };
 });
 
@@ -344,7 +351,7 @@ TLSSocket.prototype._wrapHandle = function(wrap) {
   // Wrap socket's handle
   var context = options.secureContext ||
                 options.credentials ||
-                tls.createSecureContext();
+                tls.createSecureContext(options);
   res = tls_wrap.wrap(handle._externalStream,
                       context.context,
                       !!options.isServer);
@@ -978,19 +985,15 @@ function normalizeConnectArgs(listArgs) {
   // the host/port/path args that it knows about, not the tls options.
   // This means that options.host overrides a host arg.
   if (listArgs[1] !== null && typeof listArgs[1] === 'object') {
-    options = util._extend(options, listArgs[1]);
+    util._extend(options, listArgs[1]);
   } else if (listArgs[2] !== null && typeof listArgs[2] === 'object') {
-    options = util._extend(options, listArgs[2]);
+    util._extend(options, listArgs[2]);
   }
 
   return (cb) ? [options, cb] : [options];
 }
 
-exports.connect = function(/* [port,] [host,] [options,] [cb] */) {
-  const argsLen = arguments.length;
-  var args = new Array(argsLen);
-  for (var i = 0; i < argsLen; i++)
-    args[i] = arguments[i];
+exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
   args = normalizeConnectArgs(args);
   var options = args[0];
   var cb = args[1];

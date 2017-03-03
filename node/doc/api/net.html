@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Net | Node.js v7.6.0 Documentation</title>
+  <title>Net | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="net" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -188,8 +189,10 @@ event is not emitted until all connections are ended.</p>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Emitted when an error occurs.  The <a href="#net_event_close"><code>&#39;close&#39;</code></a> event will be called directly
-following this event.  See example in discussion of <code>server.listen</code>.</p>
+<p>Emitted when an error occurs. Unlike <a href="#net_class_net_socket"><code>net.Socket</code></a>, the <a href="#net_event_close"><code>&#39;close&#39;</code></a>
+event will <strong>not</strong> be emitted directly following this event unless
+<a href="#net_server_close_callback"><code>server.close()</code></a> is manually called. See the example in discussion of
+<a href="#net_server_listen_port_hostname_backlog_callback"><code>server.listen()</code></a>.</p>
 <h3>Event: &#39;listening&#39;<span><a class="mark" href="#net_event_listening" id="net_event_listening">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
@@ -227,8 +230,7 @@ that event, it will be called with an Error as its only argument if the server
 was not open when it was closed.</p>
 <h3>server.connections<span><a class="mark" href="#net_server_connections" id="net_server_connections">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.2.0</span>
-<span>Deprecated since: v0.9.7 </span>
+<span>Added in: v0.2.0</span><span>Deprecated since: v0.9.7</span>
 </div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</pre><p>The number of concurrent connections on the server.</p>
 <p>This becomes <code>null</code> when sending a socket to a child with
 <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>. To poll forks and get current number of active
@@ -327,9 +329,13 @@ subsequent call will <em>re-open</em> the server using the provided options.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the
-<code>hostname</code> is omitted, the server will accept connections on any IPv6 address
-(<code>::</code>) when IPv6 is available, or any IPv4 address (<code>0.0.0.0</code>) otherwise.
-Omit the port argument, or use a port value of <code>0</code>, to have the operating system
+<code>hostname</code> is omitted, the server will accept connections on the
+<a href="https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the
+<a href="https://en.wikipedia.org/wiki/0.0.0.0">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>
+<p><em>Note</em>: in most operating systems, listening to the
+<a href="https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on
+the <a href="https://en.wikipedia.org/wiki/0.0.0.0">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>
+<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system
 assign a random port, which can be retrieved by using <code>server.address().port</code>
 after the <code>&#39;listening&#39;</code> event has been emitted.</p>
 <p>Backlog is the maximum length of the queue of pending connections.
@@ -453,7 +459,17 @@ caveat that the user is required to <code>end()</code> their side now.</p>
 following this event.</p>
 <h3>Event: &#39;lookup&#39;<span><a class="mark" href="#net_event_lookup" id="net_event_lookup">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.3</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.10.0</td>
+<td><p>The <code>host</code> parameter is supported now.</p>
+</td></tr>
+<tr><td>v0.11.3</td>
+<td><p><span>Added in: v0.11.3</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Emitted after resolving the hostname but before connecting.
 Not applicable to UNIX sockets.</p>
 <ul>
@@ -501,7 +517,20 @@ encoded, so the exact number of bytes is not known.)</p>
 </div><p>The amount of bytes sent.</p>
 <h3>socket.connect(options[, connectListener])<span><a class="mark" href="#net_socket_connect_options_connectlistener" id="net_socket_connect_options_connectlistener">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.90</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>hints</code> option defaults to <code>0</code> in all cases now. Previously, in the absence of the <code>family</code> option it would default to <code>dns.ADDRCONFIG | dns.V4MAPPED</code>.</p>
+</td></tr>
+<tr><td>v5.11.0</td>
+<td><p>The <code>hints</code> option is supported now.</p>
+</td></tr>
+<tr><td>v0.1.90</td>
+<td><p><span>Added in: v0.1.90</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Opens the connection for a given socket.</p>
 <p>For TCP sockets, <code>options</code> argument should be an object which specifies:</p>
 <ul>

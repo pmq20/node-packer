@@ -8,9 +8,12 @@
 #include "util-inl.h"
 #include "uv.h"
 #include "v8.h"
+#include "tracing/trace_event.h"
 
 #include <stdint.h>
 #include <stdlib.h>
+
+#include <string>
 
 struct sockaddr;
 
@@ -34,7 +37,7 @@ namespace node {
 
 // Set in node.cc by ParseArgs with the value of --openssl-config.
 // Used in node_crypto.cc when initializing OpenSSL.
-extern const char* openssl_config;
+extern std::string openssl_config;
 
 // Set in node.cc by ParseArgs when --preserve-symlinks is used.
 // Used in node_config.cc to set a constant on process.binding('config')
@@ -105,6 +108,8 @@ void RegisterSignalHandler(int signal,
                            void (*handler)(int signal),
                            bool reset_handler = false);
 #endif
+
+bool SafeGetenv(const char* key, std::string* text);
 
 template <typename T, size_t N>
 constexpr size_t arraysize(const T(&)[N]) { return N; }
@@ -194,6 +199,35 @@ v8::MaybeLocal<v8::Object> New(Environment* env,
 // because ArrayBufferAllocator::Free() deallocates it again with free().
 // Mixing operator new and free() is undefined behavior so don't do that.
 v8::MaybeLocal<v8::Object> New(Environment* env, char* data, size_t length);
+
+// Construct a Buffer from a MaybeStackBuffer (and also its subclasses like
+// Utf8Value and TwoByteValue).
+// If |buf| is invalidated, an empty MaybeLocal is returned, and nothing is
+// changed.
+// If |buf| contains actual data, this method takes ownership of |buf|'s
+// underlying buffer. However, |buf| itself can be reused even after this call,
+// but its capacity, if increased through AllocateSufficientStorage, is not
+// guaranteed to stay the same.
+template <typename T>
+static v8::MaybeLocal<v8::Object> New(Environment* env,
+                                      MaybeStackBuffer<T>* buf) {
+  v8::MaybeLocal<v8::Object> ret;
+  char* src = reinterpret_cast<char*>(buf->out());
+  const size_t len_in_bytes = buf->length() * sizeof(buf->out()[0]);
+
+  if (buf->IsAllocated())
+    ret = New(env, src, len_in_bytes);
+  else if (!buf->IsInvalidated())
+    ret = Copy(env, src, len_in_bytes);
+
+  if (ret.IsEmpty())
+    return ret;
+
+  if (buf->IsAllocated())
+    buf->Release();
+
+  return ret;
+}
 }  // namespace Buffer
 
 }  // namespace node

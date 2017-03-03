@@ -38,6 +38,7 @@
 #include "req-wrap.h"
 #include "req-wrap-inl.h"
 #include "string_bytes.h"
+#include "tracing/agent.h"
 #include "util.h"
 #include "uv.h"
 #if NODE_USE_V8_PLATFORM
@@ -151,10 +152,12 @@ static node_module* modpending;
 static node_module* modlist_builtin;
 static node_module* modlist_linked;
 static node_module* modlist_addon;
+static bool trace_enabled = false;
+static const char* trace_enabled_categories = nullptr;
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
 // Path to ICU data (for i18n / Intl)
-static const char* icu_data_dir = nullptr;
+std::string icu_data_dir;  // NOLINT(runtime/string)
 #endif
 
 // used by C++ modules as well
@@ -174,7 +177,7 @@ bool ssl_openssl_cert_store =
 bool enable_fips_crypto = false;
 bool force_fips_crypto = false;
 # endif  // NODE_FIPS_MODE
-const char* openssl_config = nullptr;
+std::string openssl_config;  // NOLINT(runtime/string)
 #endif  // HAVE_OPENSSL
 
 // true if process warnings should be suppressed
@@ -195,6 +198,7 @@ static uv_async_t dispatch_debug_messages_async;
 
 static Mutex node_isolate_mutex;
 static v8::Isolate* node_isolate;
+static tracing::Agent* tracing_agent;
 
 static node::DebugOptions debug_options;
 
@@ -203,6 +207,7 @@ static struct {
   void Initialize(int thread_pool_size) {
     platform_ = v8::platform::CreateDefaultPlatform(thread_pool_size);
     V8::InitializePlatform(platform_);
+    tracing::TraceEventHelper::SetCurrentPlatform(platform_);
   }
 
   void PumpMessageLoop(Isolate* isolate) {
@@ -901,12 +906,21 @@ Local<Value> UVException(Isolate* isolate,
 
 
 // Look up environment variable unless running as setuid root.
-inline const char* secure_getenv(const char* key) {
+bool SafeGetenv(const char* key, std::string* text) {
 #ifndef _WIN32
-  if (getuid() != geteuid() || getgid() != getegid())
-    return nullptr;
+  // TODO(bnoordhuis) Should perhaps also check whether getauxval(AT_SECURE)
+  // is non-zero on Linux.
+  if (getuid() != geteuid() || getgid() != getegid()) {
+    text->clear();
+    return false;
+  }
 #endif
-  return getenv(key);
+  if (const char* value = getenv(key)) {
+    *text = value;
+    return true;
+  }
+  text->clear();
+  return false;
 }
 
 
@@ -2238,25 +2252,22 @@ void MemoryUsage(const FunctionCallbackInfo<Value>& args) {
     return env->ThrowUVException(err, "uv_resident_set_memory");
   }
 
+  Isolate* isolate = env->isolate();
   // V8 memory usage
   HeapStatistics v8_heap_stats;
-  env->isolate()->GetHeapStatistics(&v8_heap_stats);
+  isolate->GetHeapStatistics(&v8_heap_stats);
 
-  Local<Number> heap_total =
-      Number::New(env->isolate(), v8_heap_stats.total_heap_size());
-  Local<Number> heap_used =
-      Number::New(env->isolate(), v8_heap_stats.used_heap_size());
-  Local<Number> external_mem =
-      Number::New(env->isolate(),
-                  env->isolate()->AdjustAmountOfExternalAllocatedMemory(0));
+  // Get the double array pointer from the Float64Array argument.
+  CHECK(args[0]->IsFloat64Array());
+  Local<Float64Array> array = args[0].As<Float64Array>();
+  CHECK_EQ(array->Length(), 4);
+  Local<ArrayBuffer> ab = array->Buffer();
+  double* fields = static_cast<double*>(ab->GetContents().Data());
 
-  Local<Object> info = Object::New(env->isolate());
-  info->Set(env->rss_string(), Number::New(env->isolate(), rss));
-  info->Set(env->heap_total_string(), heap_total);
-  info->Set(env->heap_used_string(), heap_used);
-  info->Set(env->external_string(), external_mem);
-
-  args.GetReturnValue().Set(info);
+  fields[0] = rss;
+  fields[1] = v8_heap_stats.total_heap_size();
+  fields[2] = v8_heap_stats.used_heap_size();
+  fields[3] = isolate->AdjustAmountOfExternalAllocatedMemory(0);
 }
 
 
@@ -2367,8 +2378,6 @@ struct node_module* get_linked_module(const char* name) {
   CHECK(mp == nullptr || (mp->nm_flags & NM_F_LINKED) != 0);
   return mp;
 }
-
-typedef void (UV_DYNAMIC* extInit)(Local<Object> exports);
 
 // DLOpen is process.dlopen(module, filename).
 // Used to load 'module.node' dynamically shared objects.
@@ -3060,17 +3069,6 @@ void SetupProcessObject(Environment* env,
                     "ares",
                     FIXED_ONE_BYTE_STRING(env->isolate(), ARES_VERSION_STR));
 
-#if defined(NODE_HAVE_I18N_SUPPORT) && defined(U_ICU_VERSION)
-  // ICU-related versions are now handled on the js side, see bootstrap_node.js
-
-  if (icu_data_dir != nullptr) {
-    // Did the user attempt (via env var or parameter) to set an ICU path?
-    READONLY_PROPERTY(process,
-                      "icu_data_dir",
-                      OneByteString(env->isolate(), icu_data_dir));
-  }
-#endif
-
   const char node_modules_version[] = NODE_STRINGIFY(NODE_MODULE_VERSION);
   READONLY_PROPERTY(
       versions,
@@ -3376,6 +3374,9 @@ void SetupProcessObject(Environment* env,
 
 void SignalExit(int signo) {
   uv_tty_reset_mode();
+  if (trace_enabled) {
+    tracing_agent->Stop();
+  }
 #ifdef __FreeBSD__
   // FreeBSD has a nasty bug, see RegisterSignalHandler for details
   struct sigaction sa;
@@ -3521,8 +3522,9 @@ static void PrintHelp() {
          "  --enable-fips              enable FIPS crypto at startup\n"
          "  --force-fips               force FIPS crypto (cannot be disabled)\n"
 #endif  /* NODE_FIPS_MODE */
-         "  --openssl-config=path      load OpenSSL configuration file from\n"
-         "                             the specified path\n"
+         "  --openssl-config=file      load OpenSSL configuration from the\n"
+         "                             specified file (overrides\n"
+         "                             OPENSSL_CONF)\n"
 #endif /* HAVE_OPENSSL */
 #if defined(NODE_HAVE_I18N_SUPPORT)
          "  --icu-data-dir=dir         set ICU data load path to dir\n"
@@ -3555,6 +3557,8 @@ static void PrintHelp() {
          "                             prefixed to the module search path\n"
          "NODE_REPL_HISTORY            path to the persistent REPL history\n"
          "                             file\n"
+         "OPENSSL_CONF                 load OpenSSL configuration from file\n"
+         "\n"
          "Documentation can be found at https://nodejs.org/\n");
 }
 
@@ -3659,6 +3663,16 @@ static void ParseArgs(int* argc,
       trace_deprecation = true;
     } else if (strcmp(arg, "--trace-sync-io") == 0) {
       trace_sync_io = true;
+    } else if (strcmp(arg, "--trace-events-enabled") == 0) {
+      trace_enabled = true;
+    } else if (strcmp(arg, "--trace-event-categories") == 0) {
+      const char* categories = argv[index + 1];
+      if (categories == nullptr) {
+        fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
+        exit(9);
+      }
+      args_consumed += 1;
+      trace_enabled_categories = categories;
     } else if (strcmp(arg, "--track-heap-objects") == 0) {
       track_heap_objects = true;
     } else if (strcmp(arg, "--throw-deprecation") == 0) {
@@ -3692,11 +3706,11 @@ static void ParseArgs(int* argc,
       force_fips_crypto = true;
 #endif /* NODE_FIPS_MODE */
     } else if (strncmp(arg, "--openssl-config=", 17) == 0) {
-      openssl_config = arg + 17;
+      openssl_config.assign(arg + 17);
 #endif /* HAVE_OPENSSL */
 #if defined(NODE_HAVE_I18N_SUPPORT)
     } else if (strncmp(arg, "--icu-data-dir=", 15) == 0) {
-      icu_data_dir = arg + 15;
+      icu_data_dir.assign(arg + 15);
 #endif
     } else if (strcmp(arg, "--expose-internals") == 0 ||
                strcmp(arg, "--expose_internals") == 0) {
@@ -4183,9 +4197,14 @@ void Init(int* argc,
 #endif
 
   // Allow for environment set preserving symlinks.
-  if (auto preserve_symlinks = secure_getenv("NODE_PRESERVE_SYMLINKS")) {
-    config_preserve_symlinks = (*preserve_symlinks == '1');
+  {
+    std::string text;
+    config_preserve_symlinks =
+        SafeGetenv("NODE_PRESERVE_SYMLINKS", &text) && text[0] == '1';
   }
+
+  if (openssl_config.empty())
+    SafeGetenv("OPENSSL_CONF", &openssl_config);
 
   // Parse a few arguments which are specific to Node.
   int v8_argc;
@@ -4213,12 +4232,11 @@ void Init(int* argc,
 #endif
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
-  if (icu_data_dir == nullptr) {
-    // if the parameter isn't given, use the env variable.
-    icu_data_dir = secure_getenv("NODE_ICU_DATA");
-  }
+  // If the parameter isn't given, use the env variable.
+  if (icu_data_dir.empty())
+    SafeGetenv("NODE_ICU_DATA", &icu_data_dir);
   // Initialize ICU.
-  // If icu_data_dir is nullptr here, it will load the 'minimal' data.
+  // If icu_data_dir is empty here, it will load the 'minimal' data.
   if (!i18n::InitializeICUDirectory(icu_data_dir)) {
     FatalError(nullptr, "Could not initialize ICU "
                      "(check NODE_ICU_DATA or --icu-data-dir parameters)");
@@ -4483,8 +4501,11 @@ int Start(int argc, char** argv) {
   Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
 
 #if HAVE_OPENSSL
-  if (const char* extra = secure_getenv("NODE_EXTRA_CA_CERTS"))
-    crypto::UseExtraCaCerts(extra);
+  {
+    std::string extra_ca_certs;
+    if (SafeGetenv("NODE_EXTRA_CA_CERTS", &extra_ca_certs))
+      crypto::UseExtraCaCerts(extra_ca_certs);
+  }
 #ifdef NODE_FIPS_MODE
   // In the case of FIPS builds we should make sure
   // the random source is properly initialized first.
@@ -4493,13 +4514,23 @@ int Start(int argc, char** argv) {
   // V8 on Windows doesn't have a good source of entropy. Seed it from
   // OpenSSL's pool.
   V8::SetEntropySource(crypto::EntropySource);
-#endif
+#endif  // HAVE_OPENSSL
 
   v8_platform.Initialize(v8_thread_pool_size);
+  // Enable tracing when argv has --trace-events-enabled.
+  if (trace_enabled) {
+    fprintf(stderr, "Warning: Trace event is an experimental feature "
+            "and could change at any time.\n");
+    tracing_agent = new tracing::Agent();
+    tracing_agent->Start(v8_platform.platform_, trace_enabled_categories);
+  }
   V8::Initialize();
   v8_initialized = true;
   const int exit_code =
       Start(uv_default_loop(), argc, argv, exec_argc, exec_argv);
+  if (trace_enabled) {
+    tracing_agent->Stop();
+  }
   v8_initialized = false;
   V8::Dispose();
 

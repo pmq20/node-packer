@@ -15,9 +15,10 @@ For example, looking up `iana.org`.
 ```js
 const dns = require('dns');
 
-dns.lookup('iana.org', (err, addresses, family) => {
-  console.log('addresses:', addresses);
+dns.lookup('iana.org', (err, address, family) => {
+  console.log('address: %j family: IPv%s', address, family);
 });
+// address: "192.0.43.8" family: IPv4
 ```
 
 2) Functions that connect to an actual DNS server to perform name resolution,
@@ -64,6 +65,10 @@ resolution.
 ## dns.lookup(hostname[, options], callback)
 <!-- YAML
 added: v0.1.90
+changes:
+  - version: v1.2.0
+    pr-url: https://github.com/nodejs/node/pull/744
+    description: The `all` option is supported now.
 -->
 
 Resolves a hostname (e.g. `'nodejs.org'`) into the first found A (IPv4) or
@@ -84,15 +89,7 @@ Alternatively, `options` can be an object containing these properties:
 * `all`: {Boolean} - When `true`, the callback returns all resolved addresses
   in an array, otherwise returns a single address. Defaults to `false`.
 
-All properties are optional. An example usage of options is shown below.
-
-```js
-{
-  family: 4,
-  hints: dns.ADDRCONFIG | dns.V4MAPPED,
-  all: false
-}
-```
+All properties are optional.
 
 The `callback` function has arguments `(err, address, family)`. `address` is a
 string representation of an IPv4 or IPv6 address. `family` is either the
@@ -114,6 +111,25 @@ with addresses, and vice versa. This implementation can have subtle but
 important consequences on the behavior of any Node.js program. Please take some
 time to consult the [Implementation considerations section][] before using
 `dns.lookup()`.
+
+Example usage:
+
+```js
+const dns = require('dns');
+const options = {
+  family: 6,
+  hints: dns.ADDRCONFIG | dns.V4MAPPED,
+};
+dns.lookup('example.com', options, (err, address, family) =>
+  console.log('address: %j family: IPv%s', address, family));
+// address: "2606:2800:220:1:248:1893:25c8:1946" family: IPv6
+
+// When options.all is true, the result will be an Array.
+options.all = true;
+dns.lookup('example.com', options, (err, addresses) =>
+  console.log('addresses: %j', addresses));
+// addresses: [{"address":"2606:2800:220:1:248:1893:25c8:1946","family":6}]
+```
 
 ### Supported getaddrinfo flags
 
@@ -186,6 +202,11 @@ one of the error codes listed [here](#dns_error_codes).
 ## dns.resolve4(hostname[, options], callback)
 <!-- YAML
 added: v0.1.16
+changes:
+  - version: v7.2.0
+    pr-url: https://github.com/nodejs/node/pull/9296
+    description: This method now supports passing `options`,
+                 specifically `options.ttl`.
 -->
 
 Uses the DNS protocol to resolve a IPv4 addresses (`A` records) for the
@@ -203,6 +224,11 @@ will contain an array of IPv4 addresses (e.g.
 ## dns.resolve6(hostname[, options], callback)
 <!-- YAML
 added: v0.1.16
+changes:
+  - version: v7.2.0
+    pr-url: https://github.com/nodejs/node/pull/9296
+    description: This method now supports passing `options`,
+                 specifically `options.ttl`.
 -->
 
 Uses the DNS protocol to resolve a IPv6 addresses (`AAAA` records) for the
@@ -276,6 +302,15 @@ Uses the DNS protocol to resolve name server records (`NS` records) for the
 contain an array of name server records available for `hostname`
 (e.g. `['ns1.example.com', 'ns2.example.com']`).
 
+## dns.resolvePtr(hostname, callback)
+<!-- YAML
+added: v6.0.0
+-->
+
+Uses the DNS protocol to resolve pointer records (`PTR` records) for the
+`hostname`. The `addresses` argument passed to the `callback` function will
+be an array of strings containing the reply records.
+
 ## dns.resolveSoa(hostname, callback)
 <!-- YAML
 added: v0.11.10
@@ -327,15 +362,6 @@ be an array of objects with the following properties:
   name: 'service.example.com'
 }
 ```
-
-## dns.resolvePtr(hostname, callback)
-<!-- YAML
-added: v6.0.0
--->
-
-Uses the DNS protocol to resolve pointer records (`PTR` records) for the
-`hostname`. The `addresses` argument passed to the `callback` function will
-be an array of strings containing the reply records.
 
 ## dns.resolveTxt(hostname, callback)
 <!-- YAML

@@ -27,7 +27,8 @@
               "meta": {
                 "added": [
                   "v0.9.1"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>When called, requests that the Node.js event loop <em>not</em> exit so long as the\n<code>Timeout</code> is active. Calling <code>timeout.ref()</code> multiple times will have no effect.</p>\n<p><em>Note</em>: By default, all <code>Timeout</code> objects are &quot;ref&#39;d&quot;, making it normally\nunnecessary to call <code>timeout.ref()</code> unless <code>timeout.unref()</code> had been called\npreviously.</p>\n<p>Returns a reference to the <code>Timeout</code>.</p>\n",
               "signatures": [
@@ -43,7 +44,8 @@
               "meta": {
                 "added": [
                   "v0.9.1"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>When called, the active <code>Timeout</code> object will not require the Node.js event loop\nto remain active. If there is no other activity keeping the event loop running,\nthe process may exit before the <code>Timeout</code> object&#39;s callback is invoked. Calling\n<code>timeout.unref()</code> multiple times will have no effect.</p>\n<p><em>Note</em>: Calling <code>timeout.unref()</code> creates an internal timer that will wake the\nNode.js event loop. Creating too many of these can adversely impact performance\nof the Node.js application.</p>\n<p>Returns a reference to the <code>Timeout</code>.</p>\n",
               "signatures": [
@@ -68,7 +70,8 @@
               "meta": {
                 "added": [
                   "v0.9.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -109,7 +112,8 @@
               "meta": {
                 "added": [
                   "v0.0.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -159,7 +163,8 @@
               "meta": {
                 "added": [
                   "v0.0.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -218,7 +223,8 @@
               "meta": {
                 "added": [
                   "v0.9.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -248,7 +254,8 @@
               "meta": {
                 "added": [
                   "v0.0.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -278,7 +285,8 @@
               "meta": {
                 "added": [
                   "v0.0.1"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {

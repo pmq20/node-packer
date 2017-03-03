@@ -131,7 +131,7 @@ exports.format = function(f) {
 };
 
 
-exports.deprecate = internalUtil._deprecate;
+exports.deprecate = internalUtil.deprecate;
 
 
 var debugs = {};
@@ -449,8 +449,10 @@ function formatValue(ctx, value, recurseTimes) {
     }
   }
 
-  var base = '', empty = false, braces;
+  var base = '';
+  var empty = false;
   var formatter = formatObject;
+  var braces;
 
   // We can't compare constructors for various objects using a comparison like
   // `constructor === Array` because the object could have come from a different
@@ -604,9 +606,8 @@ function formatValue(ctx, value, recurseTimes) {
 
 
 function formatNumber(ctx, value) {
-  // Format -0 as '-0'. Strict equality won't distinguish 0 from -0,
-  // so instead we use the fact that 1 / -0 < 0 whereas 1 / 0 > 0 .
-  if (value === 0 && 1 / value < 0)
+  // Format -0 as '-0'. Strict equality won't distinguish 0 from -0.
+  if (Object.is(value, -0))
     return ctx.stylize('-0', 'number');
   return ctx.stylize('' + value, 'number');
 }

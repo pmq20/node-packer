@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v7.6.0 Documentation</title>
+  <title>DNS | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -100,9 +101,9 @@
 <li><span class="stability_undefined"><a href="#dns_dns_resolvemx_hostname_callback">dns.resolveMx(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvenaptr_hostname_callback">dns.resolveNaptr(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvens_hostname_callback">dns.resolveNs(hostname, callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#dns_dns_resolveptr_hostname_callback">dns.resolvePtr(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvesoa_hostname_callback">dns.resolveSoa(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvesrv_hostname_callback">dns.resolveSrv(hostname, callback)</a></span></li>
-<li><span class="stability_undefined"><a href="#dns_dns_resolveptr_hostname_callback">dns.resolvePtr(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvetxt_hostname_callback">dns.resolveTxt(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_reverse_ip_callback">dns.reverse(ip, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_setservers_servers">dns.setServers(servers)</a></span></li>
@@ -129,9 +130,10 @@ the same operating system behave should use <a href="#dns_dns_lookup_hostname_op
 <p>For example, looking up <code>iana.org</code>.</p>
 <pre><code class="lang-js">const dns = require(&#39;dns&#39;);
 
-dns.lookup(&#39;iana.org&#39;, (err, addresses, family) =&gt; {
-  console.log(&#39;addresses:&#39;, addresses);
+dns.lookup(&#39;iana.org&#39;, (err, address, family) =&gt; {
+  console.log(&#39;address: %j family: IPv%s&#39;, address, family);
 });
+// address: &quot;192.0.43.8&quot; family: IPv4
 </code></pre>
 <p>2) Functions that connect to an actual DNS server to perform name resolution,
 and that <em>always</em> use the network to perform DNS queries. This category
@@ -168,7 +170,17 @@ the <a href="#dns_implementation_considerations">Implementation considerations s
 resolution.</p>
 <h2>dns.lookup(hostname[, options], callback)<span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.90</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v1.2.0</td>
+<td><p>The <code>all</code> option is supported now.</p>
+</td></tr>
+<tr><td>v0.1.90</td>
+<td><p><span>Added in: v0.1.90</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or
 AAAA (IPv6) record. <code>options</code> can be an object or integer. If <code>options</code> is
 not provided, then IPv4 and IPv6 addresses are both valid. If <code>options</code> is
@@ -186,13 +198,7 @@ flags.</li>
 <li><code>all</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> - When <code>true</code>, the callback returns all resolved addresses
 in an array, otherwise returns a single address. Defaults to <code>false</code>.</li>
 </ul>
-<p>All properties are optional. An example usage of options is shown below.</p>
-<pre><code class="lang-js">{
-  family: 4,
-  hints: dns.ADDRCONFIG | dns.V4MAPPED,
-  all: false
-}
-</code></pre>
+<p>All properties are optional.</p>
 <p>The <code>callback</code> function has arguments <code>(err, address, family)</code>. <code>address</code> is a
 string representation of an IPv4 or IPv6 address. <code>family</code> is either the
 integer <code>4</code> or <code>6</code> and denotes the family of <code>address</code> (not necessarily the
@@ -210,6 +216,22 @@ with addresses, and vice versa. This implementation can have subtle but
 important consequences on the behavior of any Node.js program. Please take some
 time to consult the <a href="#dns_implementation_considerations">Implementation considerations section</a> before using
 <code>dns.lookup()</code>.</p>
+<p>Example usage:</p>
+<pre><code class="lang-js">const dns = require(&#39;dns&#39;);
+const options = {
+  family: 6,
+  hints: dns.ADDRCONFIG | dns.V4MAPPED,
+};
+dns.lookup(&#39;example.com&#39;, options, (err, address, family) =&gt;
+  console.log(&#39;address: %j family: IPv%s&#39;, address, family));
+// address: &quot;2606:2800:220:1:248:1893:25c8:1946&quot; family: IPv6
+
+// When options.all is true, the result will be an Array.
+options.all = true;
+dns.lookup(&#39;example.com&#39;, options, (err, addresses) =&gt;
+  console.log(&#39;addresses: %j&#39;, addresses));
+// addresses: [{&quot;address&quot;:&quot;2606:2800:220:1:248:1893:25c8:1946&quot;,&quot;family&quot;:6}]
+</code></pre>
 <h3>Supported getaddrinfo flags<span><a class="mark" href="#dns_supported_getaddrinfo_flags" id="dns_supported_getaddrinfo_flags">#</a></span></h3>
 <p>The following flags can be passed as hints to <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</p>
 <ul>
@@ -266,7 +288,17 @@ corresponding lookup methods.</p>
 one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
 <h2>dns.resolve4(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve4_hostname_options_callback" id="dns_dns_resolve4_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.16</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>This method now supports passing <code>options</code>, specifically <code>options.ttl</code>.</p>
+</td></tr>
+<tr><td>v0.1.16</td>
+<td><p><span>Added in: v0.1.16</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
 will contain an array of IPv4 addresses (e.g.
@@ -283,7 +315,17 @@ rather than an array of strings.  The TTL is expressed in seconds.</li>
 </ul>
 <h2>dns.resolve6(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve6_hostname_options_callback" id="dns_dns_resolve6_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.16</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.2.0</td>
+<td><p>This method now supports passing <code>options</code>, specifically <code>options.ttl</code>.</p>
+</td></tr>
+<tr><td>v0.1.16</td>
+<td><p><span>Added in: v0.1.16</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
 will contain an array of IPv6 addresses.</p>
@@ -343,6 +385,12 @@ will contain an array of objects with the following properties:</p>
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 contain an array of name server records available for <code>hostname</code>
 (e.g. <code>[&#39;ns1.example.com&#39;, &#39;ns2.example.com&#39;]</code>).</p>
+<h2>dns.resolvePtr(hostname, callback)<span><a class="mark" href="#dns_dns_resolveptr_hostname_callback" id="dns_dns_resolveptr_hostname_callback">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v6.0.0</span>
+</div><p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
+<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
+be an array of strings containing the reply records.</p>
 <h2>dns.resolveSoa(hostname, callback)<span><a class="mark" href="#dns_dns_resolvesoa_hostname_callback" id="dns_dns_resolvesoa_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.10</span>
@@ -387,12 +435,6 @@ be an array of objects with the following properties:</p>
   name: &#39;service.example.com&#39;
 }
 </code></pre>
-<h2>dns.resolvePtr(hostname, callback)<span><a class="mark" href="#dns_dns_resolveptr_hostname_callback" id="dns_dns_resolveptr_hostname_callback">#</a></span></h2>
-<div class="api_metadata">
-<span>Added in: v6.0.0</span>
-</div><p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
-<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
-be an array of strings containing the reply records.</p>
 <h2>dns.resolveTxt(hostname, callback)<span><a class="mark" href="#dns_dns_resolvetxt_hostname_callback" id="dns_dns_resolvetxt_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>

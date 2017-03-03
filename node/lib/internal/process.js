@@ -11,6 +11,7 @@ function lazyConstants() {
 
 exports.setup_cpuUsage = setup_cpuUsage;
 exports.setup_hrtime = setup_hrtime;
+exports.setupMemoryUsage = setupMemoryUsage;
 exports.setupConfig = setupConfig;
 exports.setupKillAndExit = setupKillAndExit;
 exports.setupSignalHandlers = setupSignalHandlers;
@@ -73,7 +74,9 @@ function setup_cpuUsage() {
   };
 }
 
-
+// The 3 entries filled in by the original process.hrtime contains
+// the upper/lower 32 bits of the second part of the value,
+// and the remaining nanoseconds of the value.
 function setup_hrtime() {
   const _hrtime = process.hrtime;
   const hrValues = new Uint32Array(3);
@@ -98,6 +101,20 @@ function setup_hrtime() {
   };
 }
 
+function setupMemoryUsage() {
+  const memoryUsage_ = process.memoryUsage;
+  const memValues = new Float64Array(4);
+
+  process.memoryUsage = function memoryUsage() {
+    memoryUsage_(memValues);
+    return {
+      rss: memValues[0],
+      heapTotal: memValues[1],
+      heapUsed: memValues[2],
+      external: memValues[3]
+    };
+  };
+}
 
 function setupConfig(_source) {
   // NativeModule._source
@@ -122,7 +139,7 @@ function setupConfig(_source) {
     const oldV8BreakIterator = Intl.v8BreakIterator;
     const des = Object.getOwnPropertyDescriptor(Intl, 'v8BreakIterator');
     des.value = require('internal/util').deprecate(function v8BreakIterator() {
-      if (processConfig.hasSmallICU && !process.icu_data_dir) {
+      if (processConfig.hasSmallICU && !processConfig.icuDataDir) {
         // Intl.v8BreakIterator() would crash w/ fatal error, so throw instead.
         throw new Error('v8BreakIterator: full ICU data not installed. ' +
                         'See https://github.com/nodejs/node/wiki/Intl');
@@ -131,8 +148,6 @@ function setupConfig(_source) {
     }, 'Intl.v8BreakIterator is deprecated and will be removed soon.');
     Object.defineProperty(Intl, 'v8BreakIterator', des);
   }
-  // Don’t let icu_data_dir leak through.
-  delete process.icu_data_dir;
 }
 
 

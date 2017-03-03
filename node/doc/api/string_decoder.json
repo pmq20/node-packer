@@ -15,7 +15,8 @@
           "meta": {
             "added": [
               "v0.1.99"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<ul>\n<li><code>encoding</code> {string} The character encoding the <code>StringDecoder</code> will use.\nDefaults to <code>&#39;utf8&#39;</code>.</li>\n</ul>\n<p>Creates a new <code>StringDecoder</code> instance.</p>\n",
           "methods": [
@@ -26,7 +27,8 @@
               "meta": {
                 "added": [
                   "v0.9.3"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {
@@ -58,7 +60,8 @@
               "meta": {
                 "added": [
                   "v0.1.99"
-                ]
+                ],
+                "changes": []
               },
               "signatures": [
                 {

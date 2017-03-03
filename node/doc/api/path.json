@@ -24,6 +24,13 @@
           "meta": {
             "added": [
               "v0.1.25"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
             ]
           },
           "signatures": [
@@ -69,6 +76,13 @@
           "meta": {
             "added": [
               "v0.1.16"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
             ]
           },
           "signatures": [
@@ -103,6 +117,13 @@
           "meta": {
             "added": [
               "v0.1.25"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
             ]
           },
           "signatures": [
@@ -137,7 +158,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -198,7 +220,8 @@
           "meta": {
             "added": [
               "v0.11.2"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -232,7 +255,8 @@
           "meta": {
             "added": [
               "v0.1.16"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -269,7 +293,8 @@
           "meta": {
             "added": [
               "v0.1.23"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -303,7 +328,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -337,6 +363,13 @@
           "meta": {
             "added": [
               "v0.5.0"
+            ],
+            "changes": [
+              {
+                "version": "v6.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/8523",
+                "description": "On Windows, the leading slashes for UNC paths are now included in the return value."
+              }
             ]
           },
           "signatures": [
@@ -379,7 +412,8 @@
           "meta": {
             "added": [
               "v0.3.4"
-            ]
+            ],
+            "changes": []
           },
           "signatures": [
             {
@@ -418,7 +452,8 @@
           "meta": {
             "added": [
               "v0.9.3"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Provides the platform-specific path delimiter:</p>\n<ul>\n<li><code>;</code> for Windows</li>\n<li><code>:</code> for POSIX</li>\n</ul>\n<p>For example, on POSIX:</p>\n<pre><code class=\"lang-js\">console.log(process.env.PATH)\n// Prints: &#39;/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;\n\nprocess.env.PATH.split(path.delimiter)\n// Returns: [&#39;/usr/bin&#39;, &#39;/bin&#39;, &#39;/usr/sbin&#39;, &#39;/sbin&#39;, &#39;/usr/local/bin&#39;]\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">console.log(process.env.PATH)\n// Prints: &#39;C:\\Windows\\system32;C:\\Windows;C:\\Program Files\\node\\&#39;\n\nprocess.env.PATH.split(path.delimiter)\n// Returns: [&#39;C:\\\\Windows\\\\system32&#39;, &#39;C:\\\\Windows&#39;, &#39;C:\\\\Program Files\\\\node\\\\&#39;]\n</code></pre>\n"
         },
@@ -429,7 +464,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>The <code>path.posix</code> property provides access to POSIX specific implementations\nof the <code>path</code> methods.</p>\n"
         },
@@ -440,7 +476,8 @@
           "meta": {
             "added": [
               "v0.7.9"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Provides the platform-specific path segment separator:</p>\n<ul>\n<li><code>\\</code> on Windows</li>\n<li><code>/</code> on POSIX</li>\n</ul>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">&#39;foo/bar/baz&#39;.split(path.sep)\n// Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">&#39;foo\\\\bar\\\\baz&#39;.split(path.sep)\n// Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]\n</code></pre>\n"
         },
@@ -451,7 +488,8 @@
           "meta": {
             "added": [
               "v0.11.15"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>The <code>path.win32</code> property provides access to Windows-specific implementations\nof the <code>path</code> methods.</p>\n<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\\</code>)\ncharacters are accepted as path delimiters; however, only the backward slash\n(<code>\\</code>) will be used in return values.</p>\n"
         }

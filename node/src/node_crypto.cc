@@ -1813,7 +1813,6 @@ template <class Base>
 void SSLWrap<Base>::LoadSession(const FunctionCallbackInfo<Value>& args) {
   Base* w;
   ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
-  Environment* env = w->ssl_env();
 
   if (args.Length() >= 1 && Buffer::HasInstance(args[0])) {
     ssize_t slen = Buffer::Length(args[0]);
@@ -5881,14 +5880,14 @@ void InitCryptoOnce() {
   OPENSSL_no_config();
 
   // --openssl-config=...
-  if (openssl_config != nullptr) {
+  if (!openssl_config.empty()) {
     OPENSSL_load_builtin_modules();
 #ifndef OPENSSL_NO_ENGINE
     ENGINE_load_builtin_engines();
 #endif
     ERR_clear_error();
     CONF_modules_load_file(
-        openssl_config,
+        openssl_config.c_str(),
         nullptr,
         CONF_MFLAGS_DEFAULT_SECTION);
     int err = ERR_get_error();

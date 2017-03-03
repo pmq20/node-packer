@@ -36,7 +36,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "type": "misc",
           "desc": "<p>All of the constants defined in <code>zlib.h</code> are also defined on\n<code>require(&#39;zlib&#39;).constants</code>. In the normal course of operations, it will not be\nnecessary to use these  constants. They are documented so that their presence is\nnot surprising. This section is taken almost directly from the\n<a href=\"http://zlib.net/manual.html#Constants\">zlib documentation</a>.  See <a href=\"http://zlib.net/manual.html#Constants\">http://zlib.net/manual.html#Constants</a> for more\ndetails.</p>\n<p><em>Note</em>: Previously, the constants were available directly from\n<code>require(&#39;zlib&#39;)</code>, for instance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants\ndirectly from the module is currently still possible but should be considered\ndeprecated.</p>\n<p>Allowed flush values.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>zlib.constants.Z_PARTIAL_FLUSH</code></li>\n<li><code>zlib.constants.Z_SYNC_FLUSH</code></li>\n<li><code>zlib.constants.Z_FULL_FLUSH</code></li>\n<li><code>zlib.constants.Z_FINISH</code></li>\n<li><code>zlib.constants.Z_BLOCK</code></li>\n<li><code>zlib.constants.Z_TREES</code></li>\n</ul>\n<p>Return codes for the compression/decompression functions. Negative\nvalues are errors, positive values are used for special but normal\nevents.</p>\n<ul>\n<li><code>zlib.constants.Z_OK</code></li>\n<li><code>zlib.constants.Z_STREAM_END</code></li>\n<li><code>zlib.constants.Z_NEED_DICT</code></li>\n<li><code>zlib.constants.Z_ERRNO</code></li>\n<li><code>zlib.constants.Z_STREAM_ERROR</code></li>\n<li><code>zlib.constants.Z_DATA_ERROR</code></li>\n<li><code>zlib.constants.Z_MEM_ERROR</code></li>\n<li><code>zlib.constants.Z_BUF_ERROR</code></li>\n<li><code>zlib.constants.Z_VERSION_ERROR</code></li>\n</ul>\n<p>Compression levels.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_BEST_SPEED</code></li>\n<li><code>zlib.constants.Z_BEST_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_DEFAULT_COMPRESSION</code></li>\n</ul>\n<p>Compression strategy.</p>\n<ul>\n<li><code>zlib.constants.Z_FILTERED</code></li>\n<li><code>zlib.constants.Z_HUFFMAN_ONLY</code></li>\n<li><code>zlib.constants.Z_RLE</code></li>\n<li><code>zlib.constants.Z_FIXED</code></li>\n<li><code>zlib.constants.Z_DEFAULT_STRATEGY</code></li>\n</ul>\n"
@@ -47,6 +48,13 @@
           "meta": {
             "added": [
               "v0.11.1"
+            ],
+            "changes": [
+              {
+                "version": "v5.11.0",
+                "pr-url": "https://github.com/nodejs/node/pull/6069",
+                "description": "The `finishFlush` option is supported now."
+              }
             ]
           },
           "type": "misc",
@@ -65,7 +73,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflate\">Deflate</a>.</p>\n",
               "signatures": [
@@ -103,7 +112,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflate\">Deflate</a>.</p>\n",
               "signatures": [
@@ -127,7 +137,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a>.</p>\n",
               "signatures": [
@@ -165,7 +176,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a>.</p>\n",
               "signatures": [
@@ -189,7 +201,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a>.</p>\n",
               "signatures": [
@@ -227,7 +240,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a>.</p>\n",
               "signatures": [
@@ -251,7 +265,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gzip\">Gzip</a>.</p>\n",
               "signatures": [
@@ -289,7 +304,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Compress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_gzip\">Gzip</a>.</p>\n",
               "signatures": [
@@ -313,7 +329,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflate\">Inflate</a>.</p>\n",
               "signatures": [
@@ -351,7 +368,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflate\">Inflate</a>.</p>\n",
               "signatures": [
@@ -375,7 +393,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a>.</p>\n",
               "signatures": [
@@ -413,7 +432,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a>.</p>\n",
               "signatures": [
@@ -437,7 +457,8 @@
               "meta": {
                 "added": [
                   "v0.6.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_unzip\">Unzip</a>.</p>\n",
               "signatures": [
@@ -475,7 +496,8 @@
               "meta": {
                 "added": [
                   "v0.11.12"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Decompress a <a href=\"buffer.html\">Buffer</a> or string with <a href=\"#zlib_class_zlib_unzip\">Unzip</a>.</p>\n",
               "signatures": [
@@ -498,7 +520,8 @@
       "meta": {
         "added": [
           "v0.5.8"
-        ]
+        ],
+        "changes": []
       },
       "classes": [
         {
@@ -508,7 +531,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Compress data using deflate.</p>\n"
         },
@@ -519,7 +543,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Compress data using deflate, and do not append a <code>zlib</code> header.</p>\n"
         },
@@ -530,6 +555,23 @@
           "meta": {
             "added": [
               "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5883",
+                "description": "Trailing garbage at the end of the input stream will now result in an `error` event."
+              },
+              {
+                "version": "v5.9.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5120",
+                "description": "Multiple concatenated gzip file members are supported now."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `error` event."
+              }
             ]
           },
           "desc": "<p>Decompress a gzip stream.</p>\n"
@@ -541,7 +583,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Compress data using gzip.</p>\n"
         },
@@ -552,6 +595,13 @@
           "meta": {
             "added": [
               "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `error` event."
+              }
             ]
           },
           "desc": "<p>Decompress a deflate stream.</p>\n"
@@ -563,6 +613,18 @@
           "meta": {
             "added": [
               "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v6.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/8512",
+                "description": "Custom dictionaries are now supported by `InflateRaw`."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `error` event."
+              }
             ]
           },
           "desc": "<p>Decompress a raw deflate stream.</p>\n"
@@ -574,7 +636,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Decompress either a Gzip- or Deflate-compressed stream by auto-detecting\nthe header.</p>\n"
         },
@@ -585,7 +648,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>\n",
           "methods": [
@@ -596,7 +660,8 @@
               "meta": {
                 "added": [
                   "v0.5.8"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p><code>kind</code> defaults to <code>zlib.constants.Z_FULL_FLUSH</code>.</p>\n<p>Flush pending data. Don&#39;t call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>\n",
               "signatures": [
@@ -620,7 +685,8 @@
               "meta": {
                 "added": [
                   "v0.11.4"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Dynamically update the compression level and compression strategy.\nOnly applicable to deflate algorithm.</p>\n",
               "signatures": [
@@ -646,7 +712,8 @@
               "meta": {
                 "added": [
                   "v0.7.0"
-                ]
+                ],
+                "changes": []
               },
               "desc": "<p>Reset the compressor/decompressor to factory defaults. Only applicable to\nthe inflate and deflate algorithms.</p>\n",
               "signatures": [
@@ -665,7 +732,8 @@
           "meta": {
             "added": [
               "v7.0.0"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Provides an object enumerating Zlib-related constants.</p>\n"
         }
@@ -678,7 +746,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_deflate\">Deflate</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -699,7 +768,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -720,7 +790,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -741,7 +812,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_gzip\">Gzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -762,7 +834,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_inflate\">Inflate</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -783,7 +856,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
@@ -804,7 +878,8 @@
           "meta": {
             "added": [
               "v0.5.8"
-            ]
+            ],
+            "changes": []
           },
           "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_unzip\">Unzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [

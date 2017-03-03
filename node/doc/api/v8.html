@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>V8 | Node.js v7.6.0 Documentation</title>
+  <title>V8 | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -87,8 +88,8 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_undefined"><a href="#v8_v8">V8</a></span><ul>
-<li><span class="stability_undefined"><a href="#v8_v8_getheapstatistics">v8.getHeapStatistics()</a></span></li>
 <li><span class="stability_undefined"><a href="#v8_v8_getheapspacestatistics">v8.getHeapSpaceStatistics()</a></span></li>
+<li><span class="stability_undefined"><a href="#v8_v8_getheapstatistics">v8.getHeapStatistics()</a></span></li>
 <li><span class="stability_undefined"><a href="#v8_v8_setflagsfromstring_string">v8.setFlagsFromString(string)</a></span></li>
 </ul>
 </li>
@@ -103,42 +104,19 @@ built into the Node.js binary. It can be accessed using:</p>
 <pre><code class="lang-js">const v8 = require(&#39;v8&#39;);
 </code></pre>
 <p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>
-<h2>v8.getHeapStatistics()<span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
-<div class="api_metadata">
-<span>Added in: v1.0.0</span>
-</div><p>Returns an object with the following properties:</p>
-<ul>
-<li><code>total_heap_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_heap_size_executable</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_physical_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_available_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>used_heap_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>heap_size_limit</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>peak_malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>does_zap_garbage</code> <span class="type">&lt;number&gt;</span></li>
-</ul>
-<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>
-option is enabled or not. This makes V8 overwrite heap garbage with a bit
-pattern. The RSS footprint (resident memory set) gets bigger because it
-continuously touches all heap pages and that makes them less likely to get
-swapped out by the operating system.</p>
-<p>For example:</p>
-<pre><code class="lang-js">{
-  total_heap_size: 7326976,
-  total_heap_size_executable: 4194304,
-  total_physical_size: 7326976,
-  total_available_size: 1152656,
-  used_heap_size: 3476208,
-  heap_size_limit: 1535115264,
-  malloced_memory: 16384,
-  peak_malloced_memory: 1127496,
-  does_zap_garbage: 0
-}
-</code></pre>
 <h2>v8.getHeapSpaceStatistics()<span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v6.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.5.0</td>
+<td><p>Support values exceeding the 32-bit unsigned integer range.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p><span>Added in: v6.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Returns statistics about the V8 heap spaces, i.e. the segments which make up
 the V8 heap. Neither the ordering of heap spaces, nor the availability of a
 heap space can be guaranteed as the statistics are provided via the V8
@@ -190,6 +168,52 @@ next.</p>
     &quot;physical_space_size&quot;: 0
   }
 ]
+</code></pre>
+<h2>v8.getHeapStatistics()<span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.5.0</td>
+<td><p>Support values exceeding the 32-bit unsigned integer range.</p>
+</td></tr>
+<tr><td>v7.2.0</td>
+<td><p>Added <code>malloced_memory</code>, <code>peak_malloced_memory</code>, and <code>does_zap_garbage</code>.</p>
+</td></tr>
+<tr><td>v1.0.0</td>
+<td><p><span>Added in: v1.0.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><p>Returns an object with the following properties:</p>
+<ul>
+<li><code>total_heap_size</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>total_heap_size_executable</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>total_physical_size</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>total_available_size</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>used_heap_size</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>heap_size_limit</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>peak_malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>does_zap_garbage</code> <span class="type">&lt;number&gt;</span></li>
+</ul>
+<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>
+option is enabled or not. This makes V8 overwrite heap garbage with a bit
+pattern. The RSS footprint (resident memory set) gets bigger because it
+continuously touches all heap pages and that makes them less likely to get
+swapped out by the operating system.</p>
+<p>For example:</p>
+<pre><code class="lang-js">{
+  total_heap_size: 7326976,
+  total_heap_size_executable: 4194304,
+  total_physical_size: 7326976,
+  total_available_size: 1152656,
+  used_heap_size: 3476208,
+  heap_size_limit: 1535115264,
+  malloced_memory: 16384,
+  peak_malloced_memory: 1127496,
+  does_zap_garbage: 0
+}
 </code></pre>
 <h2>v8.setFlagsFromString(string)<span><a class="mark" href="#v8_v8_setflagsfromstring_string" id="v8_v8_setflagsfromstring_string">#</a></span></h2>
 <div class="api_metadata">

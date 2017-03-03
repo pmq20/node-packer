@@ -214,19 +214,6 @@ added: v0.3.2
 The `tls.Server` class is a subclass of `net.Server` that accepts encrypted
 connections using TLS or SSL.
 
-### Event: 'tlsClientError'
-<!-- YAML
-added: v6.0.0
--->
-
-The `'tlsClientError'` event is emitted when an error occurs before a secure
-connection is established. The listener callback is passed two arguments when
-called:
-
-* `exception` {Error} The `Error` object describing the error
-* `tlsSocket` {tls.TLSSocket} The `tls.TLSSocket` instance from which the
-  error originated.
-
 ### Event: 'newSession'
 <!-- YAML
 added: v0.9.2
@@ -353,6 +340,19 @@ When ALPN has no selected protocol, `tlsSocket.alpnProtocol` returns `false`.
 The `tlsSocket.servername` property is a string containing the server name
 requested via SNI.
 
+### Event: 'tlsClientError'
+<!-- YAML
+added: v6.0.0
+-->
+
+The `'tlsClientError'` event is emitted when an error occurs before a secure
+connection is established. The listener callback is passed two arguments when
+called:
+
+* `exception` {Error} The `Error` object describing the error
+* `tlsSocket` {tls.TLSSocket} The `tls.TLSSocket` instance from which the
+  error originated.
+
 ### server.addContext(hostname, context)
 <!-- YAML
 added: v0.5.3
@@ -461,6 +461,10 @@ connection is open.
 ### new tls.TLSSocket(socket[, options])
 <!-- YAML
 added: v0.11.4
+changes:
+  - version: v5.0.0
+    pr-url: https://github.com/nodejs/node/pull/2564
+    description: ALPN options are supported now.
 -->
 
 * `socket` {net.Socket} An instance of [`net.Socket`][]
@@ -483,7 +487,12 @@ added: v0.11.4
     will be emitted on the socket before establishing a secure communication
   * `secureContext`: Optional TLS context object created with
     [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one
-    will be created by calling [`tls.createSecureContext()`][] with no options.
+    will be created by passing the entire `options` object to
+    `tls.createSecureContext()`. *Note*: In effect, all
+    [`tls.createSecureContext()`][] options can be provided, but they will be
+    _completely ignored_ unless the `secureContext` option is missing.
+  * ...: Optional [`tls.createSecureContext()`][] options can be provided, see
+    the `secureContext` option for more information.
 
 Construct a new `tls.TLSSocket` object from an existing TCP socket.
 
@@ -526,14 +535,6 @@ underlying socket as reported by the operating system. Returns an
 object with three properties, e.g.,
 `{ port: 12346, family: 'IPv4', address: '127.0.0.1' }`
 
-### tlsSocket.authorized
-<!-- YAML
-added: v0.11.4
--->
-
-Returns `true` if the peer certificate was signed by one of the CAs specified
-when creating the `tls.TLSSocket` instance, otherwise `false`.
-
 ### tlsSocket.authorizationError
 <!-- YAML
 added: v0.11.4
@@ -541,6 +542,14 @@ added: v0.11.4
 
 Returns the reason why the peer's certificate was not been verified. This
 property is set only when `tlsSocket.authorized === false`.
+
+### tlsSocket.authorized
+<!-- YAML
+added: v0.11.4
+-->
+
+Returns `true` if the peer certificate was signed by one of the CAs specified
+when creating the `tls.TLSSocket` instance, otherwise `false`.
 
 ### tlsSocket.encrypted
 <!-- YAML
@@ -736,40 +745,16 @@ and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.
 
-## tls.connect(port[, host][, options][, callback])
-<!-- YAML
-added: v0.11.3
--->
-
-* `port` {number} Default value for `options.port`.
-* `host` {string} Optional default value for `options.host`.
-* `options` {Object} See [`tls.connect()`][].
-* `callback` {Function} See [`tls.connect()`][].
-
-Same as [`tls.connect()`][] except that `port` and `host` can be provided
-as arguments instead of options.
-
-*Note*: A port or host option, if specified, will take precedence over any port
-or host argument.
-
-## tls.connect(path[, options][, callback])
-<!-- YAML
-added: v0.11.3
--->
-
-* `path` {string} Default value for `options.path`.
-* `options` {Object} See [`tls.connect()`][].
-* `callback` {Function} See [`tls.connect()`][].
-
-Same as [`tls.connect()`][] except that `path` can be provided
-as an argument instead of an option.
-
-*Note*: A path option, if specified, will take precedence over the path
-argument.
-
 ## tls.connect(options[, callback])
 <!-- YAML
 added: v0.11.3
+changes:
+  - version: v5.3.0, v4.7.0
+    pr-url: https://github.com/nodejs/node/pull/4246
+    description: The `secureContext` option is supported now.
+  - version: v5.0.0
+    pr-url: https://github.com/nodejs/node/pull/2564
+    description: ALPN options are supported now.
 -->
 
 * `options` {Object}
@@ -879,10 +864,51 @@ socket.on('end', () => {
 });
 ```
 
+## tls.connect(path[, options][, callback])
+<!-- YAML
+added: v0.11.3
+-->
+
+* `path` {string} Default value for `options.path`.
+* `options` {Object} See [`tls.connect()`][].
+* `callback` {Function} See [`tls.connect()`][].
+
+Same as [`tls.connect()`][] except that `path` can be provided
+as an argument instead of an option.
+
+*Note*: A path option, if specified, will take precedence over the path
+argument.
+
+## tls.connect(port[, host][, options][, callback])
+<!-- YAML
+added: v0.11.3
+-->
+
+* `port` {number} Default value for `options.port`.
+* `host` {string} Optional default value for `options.host`.
+* `options` {Object} See [`tls.connect()`][].
+* `callback` {Function} See [`tls.connect()`][].
+
+Same as [`tls.connect()`][] except that `port` and `host` can be provided
+as arguments instead of options.
+
+*Note*: A port or host option, if specified, will take precedence over any port
+or host argument.
+
 
 ## tls.createSecureContext(options)
 <!-- YAML
 added: v0.11.13
+changes:
+  - version: v7.3.0
+    pr-url: https://github.com/nodejs/node/pull/10294
+    description: If the `key` option is an array, individual entries do not
+                 need a `passphrase` property anymore. Array entries can also
+                 just be `string`s or `Buffer`s now.
+  - version: v5.2.0
+    pr-url: https://github.com/nodejs/node/pull/4099
+    description: The `ca` option can now be a single string containing multiple
+                 CA certificates.
 -->
 
 * `options` {Object}
@@ -972,6 +998,10 @@ publicly trusted list of CAs as given in
 ## tls.createServer([options][, secureConnectionListener])
 <!-- YAML
 added: v0.3.2
+changes:
+  - version: v5.0.0
+    pr-url: https://github.com/nodejs/node/pull/2564
+    description: ALPN options are supported now.
 -->
 
 * `options` {Object}
@@ -1146,6 +1176,10 @@ certificate used is properly authorized.
 <!-- YAML
 added: v0.3.2
 deprecated: v0.11.3
+changes:
+  - version: v5.0.0
+    pr-url: https://github.com/nodejs/node/pull/2564
+    description: ALPN options are supported now.
 -->
 
 > Stability: 0 - Deprecated: Use [`tls.TLSSocket`][] instead.

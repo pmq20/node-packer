@@ -38,12 +38,15 @@
 
     _process.setup_hrtime();
     _process.setup_cpuUsage();
+    _process.setupMemoryUsage();
     _process.setupConfig(NativeModule._source);
     NativeModule.require('internal/process/warning').setup();
     NativeModule.require('internal/process/next_tick').setup();
     NativeModule.require('internal/process/stdio').setup();
     _process.setupKillAndExit();
     _process.setupSignalHandlers();
+    if (global.__coverage__)
+      NativeModule.require('internal/process/write-coverage').setup();
 
     if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
       if (!process.env.ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE) {

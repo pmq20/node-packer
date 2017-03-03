@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Console | Node.js v7.6.0 Documentation</title>
+  <title>Console | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -87,7 +88,6 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_2"><a href="#console_console">Console</a></span><ul>
-<li><span class="stability_undefined"><a href="#console_asynchronous_vs_synchronous_consoles">Asynchronous vs Synchronous Consoles</a></span></li>
 <li><span class="stability_undefined"><a href="#console_class_console">Class: Console</a></span><ul>
 <li><span class="stability_undefined"><a href="#console_new_console_stdout_stderr">new Console(stdout[, stderr])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_assert_value_message_args">console.assert(value[, message][, ...args])</a></span></li>
@@ -115,10 +115,14 @@ JavaScript console mechanism provided by web browsers.</p>
 <ul>
 <li>A <code>Console</code> class with methods such as <code>console.log()</code>, <code>console.error()</code> and
 <code>console.warn()</code> that can be used to write to any Node.js stream.</li>
-<li>A global <code>console</code> instance configured to write to <code>stdout</code> and <code>stderr</code>.
-Because this object is global, it can be used without calling
+<li>A global <code>console</code> instance configured to write to <a href="process.html#process_process_stdout"><code>process.stdout</code></a> and
+<a href="process.html#process_process_stderr"><code>process.stderr</code></a>.  The global <code>console</code> can be used without calling
 <code>require(&#39;console&#39;)</code>.</li>
 </ul>
+<p><strong><em>Warning</em></strong>: The global console object&#39;s methods are neither consistently
+synchronous like the browser APIs they resemble, nor are they consistently
+asynchronous like all other Node.js streams. See the <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for
+more information.</p>
 <p>Example using the global <code>console</code>:</p>
 <pre><code class="lang-js">console.log(&#39;hello world&#39;);
 // Prints: hello world, to stdout
@@ -147,17 +151,6 @@ const name = &#39;Will Robinson&#39;;
 myConsole.warn(`Danger ${name}! Danger!`);
 // Prints: Danger Will Robinson! Danger!, to err
 </code></pre>
-<p>While the API for the <code>Console</code> class is designed fundamentally around the
-browser <code>console</code> object, the <code>Console</code> in Node.js is <em>not</em> intended to
-duplicate the browser&#39;s functionality exactly.</p>
-<h2>Asynchronous vs Synchronous Consoles<span><a class="mark" href="#console_asynchronous_vs_synchronous_consoles" id="console_asynchronous_vs_synchronous_consoles">#</a></span></h2>
-<p>The console functions are usually asynchronous unless the destination is a file.
-Disks are fast and operating systems normally employ write-back caching;
-it should be a very rare occurrence indeed that a write blocks, but it
-is possible.</p>
-<p>Additionally, console functions are blocking when outputting to TTYs
-(terminals) on OS X as a workaround for the OS&#39;s very small, 1kb buffer size.
-This is to prevent interleaving between <code>stdout</code> and <code>stderr</code>.</p>
 <h2>Class: Console<span><a class="mark" href="#console_class_console" id="console_class_console">#</a></span></h2>
 <!--type=class-->
 <p>The <code>Console</code> class can be used to create a simple logger with configurable
@@ -296,7 +289,17 @@ are identified by a unique <code>label</code>. Use the same <code>label</code> w
 milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>
 <h3>console.timeEnd(label)<span><a class="mark" href="#console_console_timeend_label" id="console_console_timeend_label">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.104</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>This method no longer supports multiple calls that don’t map to individual <code>console.time()</code> calls; see below for details.</p>
+</td></tr>
+<tr><td>v0.1.104</td>
+<td><p><span>Added in: v0.1.104</span></p>
+</td></tr>
+</table>
+</details>
 </div><p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>
 <pre><code class="lang-js">console.time(&#39;100-elements&#39;);

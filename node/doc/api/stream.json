@@ -59,7 +59,8 @@
                   "meta": {
                     "added": [
                       "v0.9.4"
-                    ]
+                    ],
+                    "changes": []
                   },
                   "events": [
                     {
@@ -69,7 +70,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>&#39;close&#39;</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>Not all Writable streams will emit the <code>&#39;close&#39;</code> event.</p>\n",
                       "params": []
@@ -81,7 +83,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>If a call to <a href=\"#stream_writable_write_chunk_encoding_callback\"><code>stream.write(chunk)</code></a> returns <code>false</code>, the\n<code>&#39;drain&#39;</code> event will be emitted when it is appropriate to resume writing data\nto the stream.</p>\n<pre><code class=\"lang-js\">// Write the data to the supplied writable stream one million times.\n// Be attentive to back-pressure.\nfunction writeOneMillionTimes(writer, data, encoding, callback) {\n  let i = 1000000;\n  write();\n  function write() {\n    var ok = true;\n    do {\n      i--;\n      if (i === 0) {\n        // last time!\n        writer.write(data, encoding, callback);\n      } else {\n        // see if we should continue, or wait\n        // don&#39;t pass the callback, because we&#39;re not done yet.\n        ok = writer.write(data, encoding);\n      }\n    } while (i &gt; 0 &amp;&amp; ok);\n    if (i &gt; 0) {\n      // had to stop early!\n      // write some more once it drains\n      writer.once(&#39;drain&#39;, write);\n    }\n  }\n}\n</code></pre>\n",
                       "params": []
@@ -93,7 +96,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "params": [],
                       "desc": "<p>The <code>&#39;error&#39;</code> event is emitted if an error occurred while writing or piping\ndata. The listener callback is passed a single <code>Error</code> argument when called.</p>\n<p><em>Note</em>: The stream is not closed when the <code>&#39;error&#39;</code> event is emitted.</p>\n"
@@ -105,7 +109,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>&#39;finish&#39;</code> event is emitted after the <a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> method\nhas been called, and all data has been flushed to the underlying system.</p>\n<pre><code class=\"lang-js\">const writer = getWritableStreamSomehow();\nfor (var i = 0; i &lt; 100; i ++) {\n  writer.write(&#39;hello, #${i}!\\n&#39;);\n}\nwriter.end(&#39;This is the end\\n&#39;);\nwriter.on(&#39;finish&#39;, () =&gt; {\n  console.error(&#39;All writes are now complete.&#39;);\n});\n</code></pre>\n",
                       "params": []
@@ -117,7 +122,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "params": [],
                       "desc": "<p>The <code>&#39;pipe&#39;</code> event is emitted when the <a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a> method is called on\na readable stream, adding this writable to its set of destinations.</p>\n<pre><code class=\"lang-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on(&#39;pipe&#39;, (src) =&gt; {\n  console.error(&#39;something is piping into the writer&#39;);\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\n</code></pre>\n"
@@ -129,7 +135,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "params": [],
                       "desc": "<p>The <code>&#39;unpipe&#39;</code> event is emitted when the <a href=\"#stream_readable_unpipe_destination\"><code>stream.unpipe()</code></a> method is called\non a <a href=\"#stream_class_stream_readable\">Readable</a> stream, removing this <a href=\"#stream_class_stream_writable\">Writable</a> from its set of\ndestinations.</p>\n<pre><code class=\"lang-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on(&#39;unpipe&#39;, (src) =&gt; {\n  console.error(&#39;Something has stopped piping into the writer.&#39;);\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\nreader.unpipe(writer);\n</code></pre>\n"
@@ -143,7 +150,8 @@
                       "meta": {
                         "added": [
                           "v0.11.2"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>writable.cork()</code> method forces all written data to be buffered in memory.\nThe buffered data will be flushed when either the <a href=\"#stream_writable_uncork\"><code>stream.uncork()</code></a> or\n<a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> methods are called.</p>\n<p>The primary intent of <code>writable.cork()</code> is to avoid a situation where writing\nmany small chunks of data to a stream do not cause a backup in the internal\nbuffer that would have an adverse impact on performance. In such situations,\nimplementations that implement the <code>writable._writev()</code> method can perform\nbuffered writes in a more optimized manner.</p>\n<p>See also: <a href=\"#stream_writable_uncork\"><code>writable.uncork()</code></a>.</p>\n",
                       "signatures": [
@@ -159,7 +167,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -213,6 +222,13 @@
                       "meta": {
                         "added": [
                           "v0.11.15"
+                        ],
+                        "changes": [
+                          {
+                            "version": "v6.1.0",
+                            "pr-url": "https://github.com/nodejs/node/pull/5040",
+                            "description": "This method now returns a reference to `writable`."
+                          }
                         ]
                       },
                       "signatures": [
@@ -248,7 +264,8 @@
                       "meta": {
                         "added": [
                           "v0.11.2"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>writable.uncork()</code> method flushes all data buffered since\n<a href=\"#stream_writable_cork\"><code>stream.cork()</code></a> was called.</p>\n<p>When using <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a> and <code>writable.uncork()</code> to manage the buffering\nof writes to a stream, it is recommended that calls to <code>writable.uncork()</code> be\ndeferred using <code>process.nextTick()</code>. Doing so allows batching of all\n<code>writable.write()</code> calls that occur within a given Node.js event loop phase.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; stream.uncork());\n</code></pre>\n<p>If the <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a> method is called multiple times on a stream, the same\nnumber of calls to <code>writable.uncork()</code> must be called to flush the buffered\ndata.</p>\n<pre><code class=\"lang-js\">stream.cork();\nstream.write(&#39;some &#39;);\nstream.cork();\nstream.write(&#39;data &#39;);\nprocess.nextTick(() =&gt; {\n  stream.uncork();\n  // The data will not be flushed until uncork() is called a second time.\n  stream.uncork();\n});\n</code></pre>\n<p>See also: <a href=\"#stream_writable_cork\"><code>writable.cork()</code></a>.</p>\n",
                       "signatures": [
@@ -264,6 +281,13 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
+                        ],
+                        "changes": [
+                          {
+                            "version": "v6.0.0",
+                            "pr-url": "https://github.com/nodejs/node/pull/6170",
+                            "description": "Passing `null` as the `chunk` parameter will always be considered invalid now, even in object mode."
+                          }
                         ]
                       },
                       "signatures": [
@@ -356,7 +380,8 @@
                   "meta": {
                     "added": [
                       "v0.9.4"
-                    ]
+                    ],
+                    "changes": []
                   },
                   "events": [
                     {
@@ -366,7 +391,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>&#39;close&#39;</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>Not all <a href=\"#stream_class_stream_readable\">Readable</a> streams will emit the <code>&#39;close&#39;</code> event.</p>\n",
                       "params": []
@@ -378,7 +404,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "params": [],
                       "desc": "<p>The <code>&#39;data&#39;</code> event is emitted whenever the stream is relinquishing ownership of\na chunk of data to a consumer. This may occur whenever the stream is switched\nin flowing mode by calling <code>readable.pipe()</code>, <code>readable.resume()</code>, or by\nattaching a listener callback to the <code>&#39;data&#39;</code> event. The <code>&#39;data&#39;</code> event will\nalso be emitted whenever the <code>readable.read()</code> method is called and a chunk of\ndata is available to be returned.</p>\n<p>Attaching a <code>&#39;data&#39;</code> event listener to a stream that has not been explicitly\npaused will switch the stream into flowing mode. Data will then be passed as\nsoon as it is available.</p>\n<p>The listener callback will be passed the chunk of data as a string if a default\nencoding has been specified for the stream using the\n<code>readable.setEncoding()</code> method; otherwise the data will be passed as a\n<code>Buffer</code>.</p>\n<pre><code class=\"lang-js\">const readable = getReadableStreamSomehow();\nreadable.on(&#39;data&#39;, (chunk) =&gt; {\n  console.log(`Received ${chunk.length} bytes of data.`);\n});\n</code></pre>\n"
@@ -390,7 +417,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>&#39;end&#39;</code> event is emitted when there is no more data to be consumed from\nthe stream.</p>\n<p><em>Note</em>: The <code>&#39;end&#39;</code> event <strong>will not be emitted</strong> unless the data is\ncompletely consumed. This can be accomplished by switching the stream into\nflowing mode, or by calling <a href=\"#stream_readable_read_size\"><code>stream.read()</code></a> repeatedly until\nall data has been consumed.</p>\n<pre><code class=\"lang-js\">const readable = getReadableStreamSomehow();\nreadable.on(&#39;data&#39;, (chunk) =&gt; {\n  console.log(`Received ${chunk.length} bytes of data.`);\n});\nreadable.on(&#39;end&#39;, () =&gt; {\n  console.log(&#39;There will be no more data.&#39;);\n});\n</code></pre>\n",
                       "params": []
@@ -402,7 +430,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "params": [],
                       "desc": "<p>The <code>&#39;error&#39;</code> event may be emitted by a Readable implementation at any time.\nTypically, this may occur if the underlying stream in unable to generate data\ndue to an underlying internal failure, or when a stream implementation attempts\nto push an invalid chunk of data.</p>\n<p>The listener callback will be passed a single <code>Error</code> object.</p>\n"
@@ -414,7 +443,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "desc": "<p>The <code>&#39;readable&#39;</code> event is emitted when there is data available to be read from\nthe stream. In some cases, attaching a listener for the <code>&#39;readable&#39;</code> event will\ncause some amount of data to be read into an internal buffer.</p>\n<pre><code class=\"lang-javascript\">const readable = getReadableStreamSomehow();\nreadable.on(&#39;readable&#39;, () =&gt; {\n  // there is some data to read now\n});\n</code></pre>\n<p>The <code>&#39;readable&#39;</code> event will also be emitted once the end of the stream data\nhas been reached but before the <code>&#39;end&#39;</code> event is emitted.</p>\n<p>Effectively, the <code>&#39;readable&#39;</code> event indicates that the stream has new\ninformation: either new data is available or the end of the stream has been\nreached. In the former case, <a href=\"#stream_readable_read_size\"><code>stream.read()</code></a> will return the\navailable data. In the latter case, <a href=\"#stream_readable_read_size\"><code>stream.read()</code></a> will return\n<code>null</code>. For instance, in the following example, <code>foo.txt</code> is an empty file:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\nconst rr = fs.createReadStream(&#39;foo.txt&#39;);\nrr.on(&#39;readable&#39;, () =&gt; {\n  console.log(&#39;readable:&#39;, rr.read());\n});\nrr.on(&#39;end&#39;, () =&gt; {\n  console.log(&#39;end&#39;);\n});\n</code></pre>\n<p>The output of running this script is:</p>\n<pre><code class=\"lang-txt\">$ node test.js\nreadable: null\nend\n</code></pre>\n<p><em>Note</em>: In general, the <code>readable.pipe()</code> and <code>&#39;data&#39;</code> event mechanisms are\npreferred over the use of the <code>&#39;readable&#39;</code> event.</p>\n",
                       "params": []
@@ -439,7 +469,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -463,7 +494,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -512,7 +544,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -549,7 +582,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -573,7 +607,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -608,7 +643,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -640,7 +676,8 @@
                       "meta": {
                         "added": [
                           "v0.9.11"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -670,7 +707,8 @@
                       "meta": {
                         "added": [
                           "v0.9.4"
-                        ]
+                        ],
+                        "changes": []
                       },
                       "signatures": [
                         {
@@ -710,6 +748,13 @@
                   "meta": {
                     "added": [
                       "v0.9.4"
+                    ],
+                    "changes": [
+                      {
+                        "version": "v6.8.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/8834",
+                        "description": "Instances of `Duplex` now return `true` when checking `instanceof stream.Writable`."
+                      }
                     ]
                   },
                   "desc": "<p>Duplex streams are streams that implement both the <a href=\"#stream_class_stream_readable\">Readable</a> and\n<a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Duplex streams include:</p>\n<ul>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n"
@@ -721,7 +766,8 @@
                   "meta": {
                     "added": [
                       "v0.9.4"
-                    ]
+                    ],
+                    "changes": []
                   },
                   "desc": "<p>Transform streams are <a href=\"#stream_class_stream_duplex\">Duplex</a> streams where the output is in some way\nrelated to the input. Like all <a href=\"#stream_class_stream_duplex\">Duplex</a> streams, Transform streams\nimplement both the <a href=\"#stream_class_stream_readable\">Readable</a> and <a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Transform streams include:</p>\n<ul>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n"
                 }
@@ -740,6 +786,12 @@
             {
               "textRaw": "Simplified Construction",
               "name": "simplified_construction",
+              "meta": {
+                "added": [
+                  "v1.2.0"
+                ],
+                "changes": []
+              },
               "desc": "<p>For many simple cases, it is possible to construct a stream without relying on\ninheritance. This can be accomplished by directly creating instances of the\n<code>stream.Writable</code>, <code>stream.Readable</code>, <code>stream.Duplex</code> or <code>stream.Transform</code>\nobjects and passing appropriate methods as constructor options.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">const Writable = require(&#39;stream&#39;).Writable;\n\nconst myWritable = new Writable({\n  write(chunk, encoding, callback) {\n    // ...\n  }\n});\n</code></pre>\n",
               "type": "misc",
               "displayName": "Simplified Construction"

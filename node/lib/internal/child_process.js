@@ -230,12 +230,16 @@ util.inherits(ChildProcess, EventEmitter);
 
 
 function flushStdio(subprocess) {
-  if (subprocess.stdio == null) return;
-  subprocess.stdio.forEach(function(stream, fd, stdio) {
+  const stdio = subprocess.stdio;
+
+  if (stdio == null) return;
+
+  for (var i = 0; i < stdio.length; i++) {
+    const stream = stdio[i];
     if (!stream || !stream.readable || stream._readableState.readableListening)
-      return;
+      continue;
     stream.resume();
-  });
+  }
 }
 
 
@@ -268,6 +272,7 @@ ChildProcess.prototype.spawn = function(options) {
   const self = this;
   var ipc;
   var ipcFd;
+  var i;
   // If no `stdio` option was given - use default
   var stdio = options.stdio || 'pipe';
 
@@ -302,11 +307,12 @@ ChildProcess.prototype.spawn = function(options) {
     if (err !== uv.UV_ENOENT) return err;
   } else if (err) {
     // Close all opened fds on error
-    stdio.forEach(function(stdio) {
-      if (stdio.type === 'pipe') {
-        stdio.handle.close();
+    for (i = 0; i < stdio.length; i++) {
+      const stream = stdio[i];
+      if (stream.type === 'pipe') {
+        stream.handle.close();
       }
-    });
+    }
 
     this._handle.close();
     this._handle = null;
@@ -315,27 +321,29 @@ ChildProcess.prototype.spawn = function(options) {
 
   this.pid = this._handle.pid;
 
-  stdio.forEach(function(stdio, i) {
-    if (stdio.type === 'ignore') return;
+  for (i = 0; i < stdio.length; i++) {
+    const stream = stdio[i];
+    if (stream.type === 'ignore') continue;
 
-    if (stdio.ipc) {
+    if (stream.ipc) {
       self._closesNeeded++;
-      return;
+      continue;
     }
 
-    if (stdio.handle) {
+    if (stream.handle) {
       // when i === 0 - we're dealing with stdin
       // (which is the only one writable pipe)
-      stdio.socket = createSocket(self.pid !== 0 ? stdio.handle : null, i > 0);
+      stream.socket = createSocket(self.pid !== 0 ?
+          stream.handle : null, i > 0);
 
       if (i > 0 && self.pid !== 0) {
         self._closesNeeded++;
-        stdio.socket.on('close', function() {
+        stream.socket.on('close', function() {
           maybeClose(self);
         });
       }
     }
-  });
+  }
 
   this.stdin = stdio.length >= 1 && stdio[0].socket !== undefined ?
       stdio[0].socket : null;
@@ -407,6 +415,24 @@ ChildProcess.prototype.unref = function() {
   if (this._handle) this._handle.unref();
 };
 
+class Control extends EventEmitter {
+  constructor(channel) {
+    super();
+    this.channel = channel;
+    this.refs = 0;
+  }
+  ref() {
+    if (++this.refs === 1) {
+      this.channel.ref();
+    }
+  }
+  unref() {
+    if (--this.refs === 0) {
+      this.channel.unref();
+      this.emit('unref');
+    }
+  }
+}
 
 function setupChannel(target, channel) {
   target.channel = channel;
@@ -421,24 +447,7 @@ function setupChannel(target, channel) {
   target._handleQueue = null;
   target._pendingHandle = null;
 
-  const control = new class extends EventEmitter {
-    constructor() {
-      super();
-      this.channel = channel;
-      this.refs = 0;
-    }
-    ref() {
-      if (++this.refs === 1) {
-        this.channel.ref();
-      }
-    }
-    unref() {
-      if (--this.refs === 0) {
-        this.channel.unref();
-        this.emit('unref');
-      }
-    }
-  }();
+  const control = new Control(channel);
 
   var decoder = new StringDecoder('utf8');
   var jsonBuffer = '';
@@ -796,11 +805,11 @@ function _validateStdio(stdio, sync) {
     }
 
     // Defaults
-    if (stdio === null || stdio === undefined) {
+    if (stdio == null) {
       stdio = i < 3 ? 'pipe' : 'ignore';
     }
 
-    if (stdio === null || stdio === 'ignore') {
+    if (stdio === 'ignore') {
       acc.push({type: 'ignore'});
     } else if (stdio === 'pipe' || typeof stdio === 'number' && stdio < 0) {
       var a = {
@@ -886,7 +895,7 @@ function getSocketList(type, slave, key) {
 function maybeClose(subprocess) {
   subprocess._closesGot++;
 
-  if (subprocess._closesGot == subprocess._closesNeeded) {
+  if (subprocess._closesGot === subprocess._closesNeeded) {
     subprocess.emit('close', subprocess.exitCode, subprocess.signalCode);
   }
 }

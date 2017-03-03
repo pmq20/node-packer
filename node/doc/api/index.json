@@ -353,6 +353,16 @@
     },
     {
       "type": "text",
+      "text": "[Tracing](tracing.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[TTY](tty.html)"
     },
     {

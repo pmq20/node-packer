@@ -112,7 +112,8 @@ exports.exec = function(command /*, options, callback*/) {
 
 
 exports.execFile = function(file /*, args, options, callback*/) {
-  var args = [], callback;
+  var args = [];
+  var callback;
   var options = {
     encoding: 'utf8',
     timeout: 0,
@@ -132,7 +133,7 @@ exports.execFile = function(file /*, args, options, callback*/) {
   }
 
   if (pos < arguments.length && typeof arguments[pos] === 'object') {
-    options = util._extend(options, arguments[pos++]);
+    util._extend(options, arguments[pos++]);
   } else if (pos < arguments.length && arguments[pos] == null) {
     pos++;
   }
@@ -196,9 +197,7 @@ exports.execFile = function(file /*, args, options, callback*/) {
       stderr = Buffer.concat(_stderr);
     }
 
-    if (ex) {
-      // Will be handled later
-    } else if (code === 0 && signal === null) {
+    if (!ex && code === 0 && signal === null) {
       callback(null, stdout, stderr);
       return;
     }

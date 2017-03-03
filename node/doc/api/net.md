@@ -40,8 +40,10 @@ added: v0.1.90
 
 * {Error}
 
-Emitted when an error occurs.  The [`'close'`][] event will be called directly
-following this event.  See example in discussion of `server.listen`.
+Emitted when an error occurs. Unlike [`net.Socket`][], the [`'close'`][]
+event will **not** be emitted directly following this event unless
+[`server.close()`][] is manually called. See the example in discussion of
+[`server.listen()`][`server.listen(port, host, backlog, callback)`].
 
 ### Event: 'listening'
 <!-- YAML
@@ -224,8 +226,14 @@ added: v0.1.90
 -->
 
 Begin accepting connections on the specified `port` and `hostname`. If the
-`hostname` is omitted, the server will accept connections on any IPv6 address
-(`::`) when IPv6 is available, or any IPv4 address (`0.0.0.0`) otherwise.
+`hostname` is omitted, the server will accept connections on the
+[unspecified IPv6 address][] (`::`) when IPv6 is available, or the
+[unspecified IPv4 address][] (`0.0.0.0`) otherwise.
+
+*Note*: in most operating systems, listening to the
+[unspecified IPv6 address][] (`::`) may cause the `net.Server` to also listen on
+the [unspecified IPv4 address][] (`0.0.0.0`).
+
 Omit the port argument, or use a port value of `0`, to have the operating system
 assign a random port, which can be retrieved by using `server.address().port`
 after the `'listening'` event has been emitted.
@@ -403,6 +411,10 @@ following this event.
 ### Event: 'lookup'
 <!-- YAML
 added: v0.11.3
+changes:
+  - version: v5.10.0
+    pr-url: https://github.com/nodejs/node/pull/5598
+    description: The `host` parameter is supported now.
 -->
 
 Emitted after resolving the hostname but before connecting.
@@ -471,6 +483,15 @@ The amount of bytes sent.
 ### socket.connect(options[, connectListener])
 <!-- YAML
 added: v0.1.90
+changes:
+  - version: v6.0.0
+    pr-url: https://github.com/nodejs/node/pull/6021
+    description: The `hints` option defaults to `0` in all cases now.
+                 Previously, in the absence of the `family` option it would
+                 default to `dns.ADDRCONFIG | dns.V4MAPPED`.
+  - version: v5.11.0
+    pr-url: https://github.com/nodejs/node/pull/6000
+    description: The `hints` option is supported now.
 -->
 
 Opens the connection for a given socket.
@@ -936,8 +957,11 @@ Returns true if input is a version 6 IP address, otherwise returns false.
 [`resume()`]: #net_socket_resume
 [`server.getConnections()`]: #net_server_getconnections_callback
 [`server.listen(port, host, backlog, callback)`]: #net_server_listen_port_hostname_backlog_callback
+[`server.close()`]: #net_server_close_callback
 [`socket.connect(options, connectListener)`]: #net_socket_connect_options_connectlistener
 [`socket.connect`]: #net_socket_connect_options_connectlistener
 [`socket.setTimeout()`]: #net_socket_settimeout_timeout_callback
 [`stream.setEncoding()`]: stream.html#stream_readable_setencoding_encoding
 [Readable Stream]: stream.html#stream_class_stream_readable
+[unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address
+[unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0

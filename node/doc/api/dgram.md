@@ -225,9 +225,34 @@ never have reason to call this.
 If `multicastInterface` is not specified, the operating system will attempt to
 drop membership on all valid interfaces.
 
+### socket.ref()
+<!-- YAML
+added: v0.9.1
+-->
+
+By default, binding a socket will cause it to block the Node.js process from
+exiting as long as the socket is open. The `socket.unref()` method can be used
+to exclude the socket from the reference counting that keeps the Node.js
+process active. The `socket.ref()` method adds the socket back to the reference
+counting and restores the default behavior.
+
+Calling `socket.ref()` multiples times will have no additional effect.
+
+The `socket.ref()` method returns a reference to the socket so calls can be
+chained.
+
 ### socket.send(msg, [offset, length,] port, address[, callback])
 <!-- YAML
 added: v0.1.99
+changes:
+  - version: v6.0.0
+    pr-url: https://github.com/nodejs/node/pull/5929
+    description: On success, `callback` will now be called with an `error`
+                 argument of `null` rather than `0`.
+  - version: v5.7.0
+    pr-url: https://github.com/nodejs/node/pull/4374
+    description: The `msg` parameter can be an array now. Also, the `offset`
+                 and `length` parameters are optional now.
 -->
 
 * `msg` {Buffer|String|Array} Message to be sent
@@ -376,22 +401,6 @@ Changing TTL values is typically done for network probes or when multicasting.
 
 The argument to `socket.setTTL()` is a number of hops between 1 and 255.
 The default on most systems is 64 but can vary.
-
-### socket.ref()
-<!-- YAML
-added: v0.9.1
--->
-
-By default, binding a socket will cause it to block the Node.js process from
-exiting as long as the socket is open. The `socket.unref()` method can be used
-to exclude the socket from the reference counting that keeps the Node.js
-process active. The `socket.ref()` method adds the socket back to the reference
-counting and restores the default behavior.
-
-Calling `socket.ref()` multiples times will have no additional effect.
-
-The `socket.ref()` method returns a reference to the socket so calls can be
-chained.
 
 ### socket.unref()
 <!-- YAML

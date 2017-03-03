@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.6.0 Documentation</title>
+  <title>Stream | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -488,7 +489,17 @@ file.end(&#39;world!&#39;);
 </code></pre>
 <h5>writable.setDefaultEncoding(encoding)<span><a class="mark" href="#stream_writable_setdefaultencoding_encoding" id="stream_writable_setdefaultencoding_encoding">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.11.15</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.1.0</td>
+<td><p>This method now returns a reference to <code>writable</code>.</p>
+</td></tr>
+<tr><td>v0.11.15</td>
+<td><p><span>Added in: v0.11.15</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The new default encoding</li>
 <li>Returns: <code>this</code></li>
@@ -525,7 +536,17 @@ process.nextTick(() =&gt; {
 <p>See also: <a href="#stream_writable_cork"><code>writable.cork()</code></a>.</p>
 <h5>writable.write(chunk[, encoding][, callback])<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback" id="stream_writable_write_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.9.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>Passing <code>null</code> as the <code>chunk</code> parameter will always be considered invalid now, even in object mode.</p>
+</td></tr>
+<tr><td>v0.9.4</td>
+<td><p><span>Added in: v0.9.4</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The data to write</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding, if <code>chunk</code> is a String</li>
@@ -1041,7 +1062,17 @@ myReader.on(&#39;readable&#39;, () =&gt; {
 <h3>Duplex and Transform Streams<span><a class="mark" href="#stream_duplex_and_transform_streams" id="stream_duplex_and_transform_streams">#</a></span></h3>
 <h4>Class: stream.Duplex<span><a class="mark" href="#stream_class_stream_duplex" id="stream_class_stream_duplex">#</a></span></h4>
 <div class="api_metadata">
-<span>Added in: v0.9.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.8.0</td>
+<td><p>Instances of <code>Duplex</code> now return <code>true</code> when checking <code>instanceof stream.Writable</code>.</p>
+</td></tr>
+<tr><td>v0.9.4</td>
+<td><p><span>Added in: v0.9.4</span></p>
+</td></tr>
+</table>
+</details>
 </div><!--type=class-->
 <p>Duplex streams are streams that implement both the <a href="#stream_class_stream_readable">Readable</a> and
 <a href="#stream_class_stream_writable">Writable</a> interfaces.</p>
@@ -1146,7 +1177,9 @@ methods of a stream that are intended for use by consumers (as described in
 the <a href="#stream_api_for_stream_consumers">API for Stream Consumers</a> section). Doing so may lead to adverse
 side effects in application code consuming the stream.</p>
 <h3>Simplified Construction<span><a class="mark" href="#stream_simplified_construction" id="stream_simplified_construction">#</a></span></h3>
-<p>For many simple cases, it is possible to construct a stream without relying on
+<div class="api_metadata">
+<span>Added in: v1.2.0</span>
+</div><p>For many simple cases, it is possible to construct a stream without relying on
 inheritance. This can be accomplished by directly creating instances of the
 <code>stream.Writable</code>, <code>stream.Readable</code>, <code>stream.Duplex</code> or <code>stream.Transform</code>
 objects and passing appropriate methods as constructor options.</p>

@@ -124,7 +124,7 @@ added: v0.7.5
 
 The `'SIGCONT'` event is emitted when a Node.js process previously moved into
 the background using `<ctrl>-Z` (i.e. `SIGTSTP`) is then brought back to the
-foreground using fg(1).
+foreground using fg(1p).
 
 If the `input` stream was paused *before* the `SIGTSTP` request, this event will
 not be emitted.
@@ -174,7 +174,7 @@ input, typically known as `SIGTSTP`. If there are no `SIGTSTP` event listeners
 registered when the `input` stream receives a `SIGTSTP`, the Node.js process
 will be sent to the background.
 
-When the program is resumed using fg(1), the `'pause'` and `SIGCONT` events
+When the program is resumed using fg(1p), the `'pause'` and `SIGCONT` events
 will be emitted. These can be used to resume the `input` stream.
 
 The `'pause'` and `'SIGCONT'` events will not be emitted if the `input` was
@@ -344,6 +344,13 @@ the current position of the cursor down.
 ## readline.createInterface(options)
 <!-- YAML
 added: v0.1.98
+changes:
+  - version: v6.3.0
+    pr-url: https://github.com/nodejs/node/pull/7125
+    description: The `prompt` option is supported now.
+  - version: v6.0.0
+    pr-url: https://github.com/nodejs/node/pull/6352
+    description: The `historySize` option can be `0` now.
 -->
 
 * `options` {Object}
@@ -518,8 +525,8 @@ rl.on('line', (line) => {
 
 [`process.stdin`]: process.html#process_process_stdin
 [`process.stdout`]: process.html#process_process_stdout
-[Writable]: stream.html
-[Readable]: stream.html
+[Writable]: stream.html#stream_writable_streams
+[Readable]: stream.html#stream_readable_streams
 [TTY]: tty.html
 [`SIGTSTP`]: readline.html#readline_event_sigtstp
 [`SIGCONT`]: readline.html#readline_event_sigcont

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTP | Node.js v7.6.0 Documentation</title>
+  <title>HTTP | Node.js v7.7.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -53,6 +53,7 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
@@ -72,7 +73,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v7.6.0 Documentation</h1>
+        <h1>Node.js v7.7.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -108,6 +109,7 @@
 <li><span class="stability_undefined"><a href="#http_event_socket">Event: &#39;socket&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_upgrade">Event: &#39;upgrade&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_abort">request.abort()</a></span></li>
+<li><span class="stability_undefined"><a href="#http_request_aborted">request.aborted</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_end_data_encoding_callback">request.end([data][, encoding][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_flushheaders">request.flushHeaders()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_setnodelay_nodelay">request.setNoDelay([noDelay])</a></span></li>
@@ -142,6 +144,9 @@
 <li><span class="stability_undefined"><a href="#http_response_end_data_encoding_callback">response.end([data][, encoding][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_finished">response.finished</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_getheader_name">response.getHeader(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#http_response_getheadernames">response.getHeaderNames()</a></span></li>
+<li><span class="stability_undefined"><a href="#http_response_getheaders">response.getHeaders()</a></span></li>
+<li><span class="stability_undefined"><a href="#http_response_hasheader_name">response.hasHeader(name)</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_headerssent">response.headersSent</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_removeheader_name">response.removeHeader(name)</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_senddate">response.sendDate</a></span></li>
@@ -164,9 +169,9 @@
 <li><span class="stability_undefined"><a href="#http_message_rawheaders">message.rawHeaders</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_rawtrailers">message.rawTrailers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_settimeout_msecs_callback">message.setTimeout(msecs, callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#http_message_socket">message.socket</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_statuscode">message.statusCode</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_statusmessage">message.statusMessage</a></span></li>
-<li><span class="stability_undefined"><a href="#http_message_socket">message.socket</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_trailers">message.trailers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_url">message.url</a></span></li>
 </ul>
@@ -553,6 +558,11 @@ srv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
 <span>Added in: v0.3.8</span>
 </div><p>Marks the request as aborting. Calling this will cause remaining data
 in the response to be dropped and the socket to be destroyed.</p>
+<h3>request.aborted<span><a class="mark" href="#http_request_aborted" id="http_request_aborted">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><p>If a request has been aborted, this value is the time when the request was
+aborted, in milliseconds since 1 January 1970 00:00:00 UTC.</p>
 <h3>request.end([data][, encoding][, callback])<span><a class="mark" href="#http_request_end_data_encoding_callback" id="http_request_end_data_encoding_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
@@ -657,7 +667,17 @@ automatically respond with a <code>417 Expectation Failed</code> as appropriate.
 not be emitted.</p>
 <h3>Event: &#39;clientError&#39;<span><a class="mark" href="#http_event_clienterror" id="http_event_clienterror">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.94</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>The default action of calling <code>.destroy()</code> on the <code>socket</code> will no longer take place if there are listeners attached for <code>clientError</code>.</p>
+</td></tr>
+<tr><td>v0.1.94</td>
+<td><p><span>Added in: v0.1.94</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>exception</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 <li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
@@ -783,9 +803,13 @@ subsequent call will <em>re-open</em> the server using the provided options.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the
-<code>hostname</code> is omitted, the server will accept connections on any IPv6 address
-(<code>::</code>) when IPv6 is available, or any IPv4 address (<code>0.0.0.0</code>) otherwise.
-Omit the port argument, or use a port value of <code>0</code>, to have the operating system
+<code>hostname</code> is omitted, the server will accept connections on the
+<a href="https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the
+<a href="https://en.wikipedia.org/wiki/0.0.0.0">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>
+<p><em>Note</em>: in most operating systems, listening to the
+<a href="https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on
+the <a href="https://en.wikipedia.org/wiki/0.0.0.0">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>
+<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system
 assign a random port, which can be retrieved by using <code>server.address().port</code>
 after the <code>&#39;listening&#39;</code> event has been emitted.</p>
 <p>To listen to a unix socket, supply a filename instead of port and hostname.</p>
@@ -918,6 +942,51 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 Note that the name is case insensitive.</p>
 <p>Example:</p>
 <pre><code class="lang-js">var contentType = response.getHeader(&#39;content-type&#39;);
+</code></pre>
+<h3>response.getHeaderNames()<span><a class="mark" href="#http_response_getheadernames" id="http_response_getheadernames">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns an array containing the unique names of the current outgoing headers.
+All header names are lowercase.</p>
+<p>Example:</p>
+<pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
+response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
+
+var headerNames = response.getHeaderNames();
+// headerNames === [&#39;foo&#39;, &#39;set-cookie&#39;]
+</code></pre>
+<h3>response.getHeaders()<span><a class="mark" href="#http_response_getheaders" id="http_response_getheaders">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Returns a shallow copy of the current outgoing headers. Since a shallow copy
+is used, array values may be mutated without additional calls to various
+header-related http module methods. The keys of the returned object are the
+header names and the values are the respective header values. All header names
+are lowercase.</p>
+<p>Example:</p>
+<pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
+response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
+
+var headers = response.getHeaders();
+// headers === { foo: &#39;bar&#39;, &#39;set-cookie&#39;: [&#39;foo=bar&#39;, &#39;bar=baz&#39;] }
+</code></pre>
+<h3>response.hasHeader(name)<span><a class="mark" href="#http_response_hasheader_name" id="http_response_hasheader_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+<p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the
+outgoing headers. Note that the header name matching is case-insensitive.</p>
+<p>Example:</p>
+<pre><code class="lang-js">var hasContentType = response.hasHeader(&#39;content-type&#39;);
 </code></pre>
 <h3>response.headersSent<span><a class="mark" href="#http_response_headerssent" id="http_response_headerssent">#</a></span></h3>
 <div class="api_metadata">
@@ -1054,7 +1123,17 @@ buffer. Returns <code>false</code> if all or part of the data was queued in user
 the request body should be sent. See the <a href="#http_event_checkcontinue"><code>&#39;checkContinue&#39;</code></a> event on <code>Server</code>.</p>
 <h3>response.writeHead(statusCode[, statusMessage][, headers])<span><a class="mark" href="#http_response_writehead_statuscode_statusmessage_headers" id="http_response_writehead_statuscode_statusmessage_headers">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.30</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.11.0, v4.4.5</td>
+<td><p>A <code>RangeError</code> is thrown if <code>statusCode</code> is not a number in the range <code>[100, 999]</code>.</p>
+</td></tr>
+<tr><td>v0.1.30</td>
+<td><p><span>Added in: v0.1.30</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>statusCode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
 <li><code>statusMessage</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
@@ -1207,6 +1286,15 @@ received.  Only populated at the <code>&#39;end&#39;</code> event.</p>
 </ul>
 <p>Calls <code>message.connection.setTimeout(msecs, callback)</code>.</p>
 <p>Returns <code>message</code>.</p>
+<h3>message.socket<span><a class="mark" href="#http_message_socket" id="http_message_socket">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>The <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> object associated with the connection.</p>
+<p>With HTTPS support, use <a href="tls.html#tls_tlssocket_getpeercertificate_detailed"><code>request.socket.getPeerCertificate()</code></a> to obtain the
+client&#39;s authentication details.</p>
 <h3>message.statusCode<span><a class="mark" href="#http_message_statuscode" id="http_message_statuscode">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.1</span>
@@ -1223,15 +1311,6 @@ received.  Only populated at the <code>&#39;end&#39;</code> event.</p>
 </ul>
 <p><strong>Only valid for response obtained from <a href="#http_class_http_clientrequest"><code>http.ClientRequest</code></a>.</strong></p>
 <p>The HTTP response status message (reason phrase). E.G. <code>OK</code> or <code>Internal Server Error</code>.</p>
-<h3>message.socket<span><a class="mark" href="#http_message_socket" id="http_message_socket">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.3.0</span>
-</div><ul>
-<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
-</ul>
-<p>The <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> object associated with the connection.</p>
-<p>With HTTPS support, use <a href="tls.html#tls_tlssocket_getpeercertificate_detailed"><code>request.socket.getPeerCertificate()</code></a> to obtain the
-client&#39;s authentication details.</p>
 <h3>message.trailers<span><a class="mark" href="#http_message_trailers" id="http_message_trailers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>

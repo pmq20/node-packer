@@ -450,6 +450,14 @@ added: v0.3.8
 Marks the request as aborting. Calling this will cause remaining data
 in the response to be dropped and the socket to be destroyed.
 
+### request.aborted
+<!-- YAML
+added: v0.11.14
+-->
+
+If a request has been aborted, this value is the time when the request was
+aborted, in milliseconds since 1 January 1970 00:00:00 UTC.
+
 ### request.end([data][, encoding][, callback])
 <!-- YAML
 added: v0.1.90
@@ -586,6 +594,12 @@ not be emitted.
 ### Event: 'clientError'
 <!-- YAML
 added: v0.1.94
+changes:
+  - version: v6.0.0
+    pr-url: https://github.com/nodejs/node/pull/4557
+    description: The default action of calling `.destroy()` on the `socket`
+                 will no longer take place if there are listeners attached
+                 for `clientError`.
 -->
 
 * `exception` {Error}
@@ -745,8 +759,14 @@ added: v0.1.90
 * `callback` {Function}
 
 Begin accepting connections on the specified `port` and `hostname`. If the
-`hostname` is omitted, the server will accept connections on any IPv6 address
-(`::`) when IPv6 is available, or any IPv4 address (`0.0.0.0`) otherwise.
+`hostname` is omitted, the server will accept connections on the
+[unspecified IPv6 address][] (`::`) when IPv6 is available, or the
+[unspecified IPv4 address][] (`0.0.0.0`) otherwise.
+
+*Note*: in most operating systems, listening to the
+[unspecified IPv6 address][] (`::`) may cause the `net.Server` to also listen on
+the [unspecified IPv4 address][] (`0.0.0.0`).
+
 Omit the port argument, or use a port value of `0`, to have the operating system
 assign a random port, which can be retrieved by using `server.address().port`
 after the `'listening'` event has been emitted.
@@ -926,6 +946,66 @@ Example:
 
 ```js
 var contentType = response.getHeader('content-type');
+```
+
+### response.getHeaderNames()
+<!-- YAML
+added: v7.7.0
+-->
+
+* Returns: {Array}
+
+Returns an array containing the unique names of the current outgoing headers.
+All header names are lowercase.
+
+Example:
+
+```js
+response.setHeader('Foo', 'bar');
+response.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);
+
+var headerNames = response.getHeaderNames();
+// headerNames === ['foo', 'set-cookie']
+```
+
+### response.getHeaders()
+<!-- YAML
+added: v7.7.0
+-->
+
+* Returns: {Object}
+
+Returns a shallow copy of the current outgoing headers. Since a shallow copy
+is used, array values may be mutated without additional calls to various
+header-related http module methods. The keys of the returned object are the
+header names and the values are the respective header values. All header names
+are lowercase.
+
+Example:
+
+```js
+response.setHeader('Foo', 'bar');
+response.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);
+
+var headers = response.getHeaders();
+// headers === { foo: 'bar', 'set-cookie': ['foo=bar', 'bar=baz'] }
+```
+
+### response.hasHeader(name)
+<!-- YAML
+added: v7.7.0
+-->
+
+* `name` {String}
+* Returns: {Boolean}
+
+Returns `true` if the header identified by `name` is currently set in the
+outgoing headers. Note that the header name matching is case-insensitive.
+
+Example:
+
+```js
+var hasContentType = response.hasHeader('content-type');
 ```
 
 ### response.headersSent
@@ -1112,6 +1192,11 @@ the request body should be sent. See the [`'checkContinue'`][] event on `Server`
 ### response.writeHead(statusCode[, statusMessage][, headers])
 <!-- YAML
 added: v0.1.30
+changes:
+  - version: v5.11.0, v4.4.5
+    pr-url: https://github.com/nodejs/node/pull/6291
+    description: A `RangeError` is thrown if `statusCode` is not a number in
+                 the range `[100, 999]`.
 -->
 
 * `statusCode` {Number}
@@ -1310,6 +1395,18 @@ Calls `message.connection.setTimeout(msecs, callback)`.
 
 Returns `message`.
 
+### message.socket
+<!-- YAML
+added: v0.3.0
+-->
+
+* {net.Socket}
+
+The [`net.Socket`][] object associated with the connection.
+
+With HTTPS support, use [`request.socket.getPeerCertificate()`][] to obtain the
+client's authentication details.
+
 ### message.statusCode
 <!-- YAML
 added: v0.1.1
@@ -1331,18 +1428,6 @@ added: v0.11.10
 **Only valid for response obtained from [`http.ClientRequest`][].**
 
 The HTTP response status message (reason phrase). E.G. `OK` or `Internal Server Error`.
-
-### message.socket
-<!-- YAML
-added: v0.3.0
--->
-
-* {net.Socket}
-
-The [`net.Socket`][] object associated with the connection.
-
-With HTTPS support, use [`request.socket.getPeerCertificate()`][] to obtain the
-client's authentication details.
 
 ### message.trailers
 <!-- YAML
@@ -1659,3 +1744,5 @@ There are a few special headers that should be noted.
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [socket.unref()]: net.html#net_socket_unref
+[unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address
+[unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0

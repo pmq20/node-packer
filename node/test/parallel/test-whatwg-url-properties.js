@@ -2,11 +2,11 @@
 'use strict';
 
 require('../common');
-
 const URL = require('url').URL;
 const assert = require('assert');
 const urlToOptions = require('internal/url').urlToOptions;
 
+// Tests below are not from WPT.
 const url = new URL('http://user:pass@foo.bar.com:21/aaa/zzz?l=24#test');
 const oldParams = url.searchParams;  // for test of [SameObject]
 
@@ -23,7 +23,7 @@ for (const prop in url) {
 const expected = ['toString',
                   'href', 'origin', 'protocol',
                   'username', 'password', 'host', 'hostname', 'port',
-                  'pathname', 'search', 'searchParams', 'hash'];
+                  'pathname', 'search', 'searchParams', 'hash', 'toJSON'];
 
 assert.deepStrictEqual(props, expected);
 

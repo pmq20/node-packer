@@ -1,6 +1,6 @@
 # Assert
 
-> Stability: 3 - Locked
+> Stability: 2 - Stable
 
 The `assert` module provides a simple set of assertion tests that can be used to
 test invariants.
@@ -9,6 +9,8 @@ test invariants.
 <!-- YAML
 added: v0.5.9
 -->
+* `value` {any}
+* `message` {any}
 
 An alias of [`assert.ok()`][] .
 
@@ -30,7 +32,20 @@ assert(false, 'it\'s false');
 ## assert.deepEqual(actual, expected[, message])
 <!-- YAML
 added: v0.1.21
+changes:
+  - version: v6.4.0, v4.7.1
+    pr-url: https://github.com/nodejs/node/pull/8002
+    description: Typed array slices are handled correctly now.
+  - version: v6.1.0, v4.5.0
+    pr-url: https://github.com/nodejs/node/pull/6432
+    description: Objects with circular references can be used as inputs now.
+  - version: v5.10.1, v4.4.3
+    pr-url: https://github.com/nodejs/node/pull/5910
+    description: Handle non-`Uint8Array` typed arrays correctly.
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests for deep equality between the `actual` and `expected` parameters.
 Primitive values are compared with the equal comparison operator ( `==` ).
@@ -91,7 +106,20 @@ parameter is undefined, a default error message is assigned.
 ## assert.deepStrictEqual(actual, expected[, message])
 <!-- YAML
 added: v1.2.0
+changes:
+  - version: v6.4.0, v4.7.1
+    pr-url: https://github.com/nodejs/node/pull/8002
+    description: Typed array slices are handled correctly now.
+  - version: v6.1.0
+    pr-url: https://github.com/nodejs/node/pull/6432
+    description: Objects with circular references can be used as inputs now.
+  - version: v5.10.1, v4.4.3
+    pr-url: https://github.com/nodejs/node/pull/5910
+    description: Handle non-`Uint8Array` typed arrays correctly.
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Generally identical to `assert.deepEqual()` with two exceptions. First,
 primitive values are compared using the strict equality operator ( `===` ).
@@ -115,7 +143,17 @@ parameter is undefined, a default error message is assigned.
 ## assert.doesNotThrow(block[, error][, message])
 <!-- YAML
 added: v0.1.21
+changes:
+  - version: v5.11.0, v4.4.5
+    pr-url: https://github.com/nodejs/node/pull/2407
+    description: The `message` parameter is respected now.
+  - version: v4.2.0
+    pr-url: https://github.com/nodejs/node/pull/3276
+    description: The `error` parameter can now be an arrow function.
 -->
+* `block` {Function}
+* `error` {RegExp|Function}
+* `message` {any}
 
 Asserts that the function `block` does not throw an error. See
 [`assert.throws()`][] for more details.
@@ -171,6 +209,9 @@ assert.doesNotThrow(
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests shallow, coercive equality between the `actual` and `expected` parameters
 using the equal comparison operator ( `==` ).
@@ -197,6 +238,10 @@ parameter is undefined, a default error message is assigned.
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
+* `operator` {String}
 
 Throws an `AssertionError`. If `message` is falsy, the error message is set as
 the values of `actual` and `expected` separated by the provided `operator`.
@@ -216,6 +261,7 @@ assert.fail(1, 2, 'whoops', '>');
 <!-- YAML
 added: v0.1.97
 -->
+* `value` {any}
 
 Throws `value` if `value` is truthy. This is useful when testing the `error`
 argument in callbacks.
@@ -237,6 +283,9 @@ assert.ifError(new Error());
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests for any deep inequality. Opposite of [`assert.deepEqual()`][].
 
@@ -281,6 +330,9 @@ parameter is undefined, a default error message is assigned.
 <!-- YAML
 added: v1.2.0
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests for deep strict inequality. Opposite of [`assert.deepStrictEqual()`][].
 
@@ -302,6 +354,9 @@ the `message` parameter is undefined, a default error message is assigned.
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests shallow, coercive inequality with the not equal comparison operator
 ( `!=` ).
@@ -327,6 +382,9 @@ parameter is undefined, a default error message is assigned.
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests strict inequality as determined by the strict not equal operator
 ( `!==` ).
@@ -352,6 +410,8 @@ If the values are strictly equal, an `AssertionError` is thrown with a
 <!-- YAML
 added: v0.1.21
 -->
+* `value` {any}
+* `message` {any}
 
 Tests if `value` is truthy. It is equivalent to
 `assert.equal(!!value, true, message)`.
@@ -379,6 +439,9 @@ assert.ok(false, 'it\'s false');
 <!-- YAML
 added: v0.1.21
 -->
+* `actual` {any}
+* `expected` {any}
+* `message` {any}
 
 Tests strict equality as determined by the strict equality operator ( `===` ).
 
@@ -402,7 +465,14 @@ If the values are not strictly equal, an `AssertionError` is thrown with a
 ## assert.throws(block[, error][, message])
 <!-- YAML
 added: v0.1.21
+changes:
+  - version: v4.2.0
+    pr-url: https://github.com/nodejs/node/pull/3276
+    description: The `error` parameter can now be an arrow function.
 -->
+* `block` {Function}
+* `error` {RegExp|Function}
+* `message` {any}
 
 Expects the function `block` to throw an error.
 

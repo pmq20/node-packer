@@ -14,9 +14,17 @@
 	#ifdef dirfd
 		#undef dirfd
 	#endif
+
+	#define getcwd(...)	enclose_io_getcwd(__VA_ARGS__)
 	#define getwd(...)	enclose_io_getwd(__VA_ARGS__)
 	#define chdir(...)	enclose_io_chdir(__VA_ARGS__)
+	#define stat(...)	enclose_io_stat(__VA_ARGS__)
+	#define fstat(...)	enclose_io_fstat(__VA_ARGS__)
 	#define lstat(...)	enclose_io_lstat(__VA_ARGS__)
+	#define open(...)	enclose_io_open(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
+	#define close(...)	enclose_io_close(__VA_ARGS__)
+	#define read(...)	enclose_io_read(__VA_ARGS__)
+	#define lseek(...)	enclose_io_lseek(__VA_ARGS__)
 	#define readlink(...)	enclose_io_readlink(__VA_ARGS__)
 	#define opendir(...)	enclose_io_opendir(__VA_ARGS__)
 	#define closedir(...)	enclose_io_closedir(__VA_ARGS__)

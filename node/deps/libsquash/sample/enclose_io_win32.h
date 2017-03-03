@@ -15,6 +15,25 @@
 #undef _fstati64
 #endif
 
+#define chdir(...)	enclose_io_chdir(__VA_ARGS__)
+
+#ifndef RUBY_EXPORT
+	// Ruby has defined the following symbols to
+	// something like rb_w32_uopen
+	#define getcwd(...)	enclose_io_getcwd(__VA_ARGS__)
+	#define stat(...)	enclose_io_stat(__VA_ARGS__)
+	#define fstat(...)	enclose_io_fstat(__VA_ARGS__)
+	#define open(...)	enclose_io_open(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
+	#define close(...)	enclose_io_close(__VA_ARGS__)
+	#define read(...)	enclose_io_read(__VA_ARGS__)
+	#define lseek(...)	enclose_io_lseek(__VA_ARGS__)
+
+	// Ruby does not use those things
+	#define pNtQueryDirectoryFile(...) EncloseIOpNtQueryDirectoryFile(__VA_ARGS__)
+	#define pNtQueryInformationFile(...) EncloseIOpNtQueryInformationFile(__VA_ARGS__)
+	#define pNtQueryVolumeInformationFile(...) EncloseIOpNtQueryVolumeInformationFile(__VA_ARGS__)
+#endif // !RUBY_EXPORT
+
 #define _chdir(...) enclose_io_chdir(__VA_ARGS__)
 #define _wchdir(...) enclose_io_wchdir(__VA_ARGS__)
 #define _getwd(...) enclose_io_getwd(__VA_ARGS__)
@@ -42,12 +61,6 @@
 #define DeviceIoControl(...) EncloseIODeviceIoControl(__VA_ARGS__)
 #define CreateIoCompletionPort(...) EncloseIOCreateIoCompletionPort(__VA_ARGS__)
 #define ReadDirectoryChangesW(...) EncloseIOReadDirectoryChangesW(__VA_ARGS__)
-
-#ifndef RUBY_EXPORT
-#define pNtQueryDirectoryFile(...) EncloseIOpNtQueryDirectoryFile(__VA_ARGS__)
-#define pNtQueryInformationFile(...) EncloseIOpNtQueryInformationFile(__VA_ARGS__)
-#define pNtQueryVolumeInformationFile(...) EncloseIOpNtQueryVolumeInformationFile(__VA_ARGS__)
-#endif //!RUBY_EXPORT
 
 #endif //_WIN32
 #endif //!__cplusplus

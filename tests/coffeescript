@@ -9,6 +9,17 @@ require 'shellwords'
 require 'fileutils'
 require 'tmpdir'
 
+def escape(arg)
+  if Gem.win_platform?
+    if arg.include?('"')
+      raise NotImplementedError
+    end
+    %Q{"#{arg}"}
+  else
+    Shellwords.escape(arg)
+  end
+end
+
 tmpdir = File.expand_path("nodec", Dir.tmpdir)
 tmpdir_node = File.join(tmpdir, 'node')
 
@@ -21,7 +32,7 @@ Dir.chdir('coffeescript')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec --tmpdir=#{Shellwords.escape tmpdir} bin/coffee")
+pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} bin/coffee")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for coffeescript" unless status.success?
 
@@ -32,7 +43,7 @@ if Gem.win_platform?
   outpath = %Q{"#{outpath}"}
 else
   File.chmod(0777, outpath)
-  outpath = Shellwords.escape(outpath)
+  outpath = escape(outpath)
 end
 
 # PART 1

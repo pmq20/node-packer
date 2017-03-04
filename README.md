@@ -11,9 +11,9 @@ http://enclose.io
 
 |    Operating System   |  Architecture | Download Link                                                                          |
 |:---------------------:|:-------------:|----------------------------------------------------------------------------------------|
-|        Windows        |      x86      | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec.exe/download         |
-|         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download  |
-|         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download   |
+|        Windows        |      x86      | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec.exe/download         |
+|         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-darwin-x64/download  |
+|         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-linux-x64/download   |
 
 ## Install
 
@@ -43,7 +43,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-darwin-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -59,7 +59,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.3/nodec-linux-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
 

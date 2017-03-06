@@ -17,11 +17,11 @@ and loaded into memory in advance.
 1. Introduced vfd(virtual file descriptor) as a handle for follow-up.
 libsquash operations. The vfd is a non-negative integer that lives together with
 other ordinary file descriptors of the process.
-1. Added new API's that mirror the calling style of common system calls;
-also added is a sample on how to use libsquash in an unobtrusive way by utilizing those API's.
+1. Added new API that mirror the calling style of common system calls;
+also added is a sample on how to use libsquash in an unobtrusive way by utilizing those API.
 1. Made it compile on 3 platforms simultanesly: Windows, macOS and Linux.
 1. Added [CMake](https://cmake.org/) so that Xcode and Vistual Studio Projects could be easily generated.
-1. Added tests for both the old and new API's of the library.
+1. Added tests for both the old and new API of the library.
 1. Eliminate dependencies on <stdbool.h> so that Windows XP and Visual C++ 2010 could use this library.
 
 ## Building
@@ -35,7 +35,7 @@ On most systems you could build the library using the following commands,
 
 Use `cmake -DBUILD_TESTS=ON ..` to build the tests in addition and use `ctest --verbose` to run them.
 
-## New API's
+## API
 
 ### `squash_stat(fs, path, buf)`
 

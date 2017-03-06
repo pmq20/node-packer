@@ -9,11 +9,11 @@ http://enclose.io
 
 ## Download
 
-|    Operating System   |  Architecture | Download Link                                                                          |
-|:---------------------:|:-------------:|----------------------------------------------------------------------------------------|
-|        Windows        |      x86      | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec.exe/download         |
-|         macOS         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-darwin-x64/download  |
-|         Linux         |     x86-64    | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-linux-x64/download   |
+|    Operating System   |  Architecture | Black-box Test | Download Link                                                                          |
+|:---------------------:|:-------------:|:--------------:|----------------------------------------------------------------------------------------|
+|        Windows        |      x86      |                | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec.exe/download         |
+|         macOS         |     x86-64    |                | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-darwin-x64/download  |
+|         Linux         |     x86-64    |                | https://sourceforge.net/projects/node-compiler/files/v0.9.4/nodec-linux-x64/download   |
 
 ## Install
 

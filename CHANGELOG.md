@@ -5,6 +5,7 @@
 - let Main CI use the correct Node.js version
 - add Black-box Tests
 - add CI Matrix
+- make sure that the user have installed the correct version of node in her environment; it should match the enclosed Node.js runtime version of the compiler
 
 ## v0.9.4
 

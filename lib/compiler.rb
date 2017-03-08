@@ -42,6 +42,8 @@ class Compiler
     @options = options
     @entrance = entrance
 
+    check_base_node_version!
+
     init_options
     init_entrance_and_root
     init_tmpdir
@@ -51,6 +53,17 @@ class Compiler
     STDERR.puts
 
     stuff_tmpdir
+  end
+
+  def check_base_node_version!
+    expectation = "v#{self.class.node_version}"
+    got = `node -v`.to_s.strip
+    unless got.include?(expectation)
+      msg  = "Please make sure to have installed the correct version of node in your environment.\n"
+      msg  = "It should match the enclosed Node.js runtime version of the compiler.\n"
+      msg += "Expecting #{expectation}; yet got #{got}."
+      raise Error, msg
+    end
   end
 
   def init_entrance_and_root

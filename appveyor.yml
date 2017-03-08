@@ -8,7 +8,7 @@ build_script:
 
     Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
 
-    Start-FileDownload https://github.com/pmq20/node/releases/download/node740-win32/node740-win32.zip -FileName C:\projects\node-compiler\node740-win32.zip
+    Start-FileDownload https://nodejs.org/dist/v7.7.1/node-v7.7.1-win-x86.zip -FileName C:\projects\node-compiler\node.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -16,7 +16,7 @@ build_script:
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\sqfs43-win32.zip", "C:\projects\node-compiler\usr\bin")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\node740-win32.zip", "C:\projects\node-compiler\usr\bin")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\node.zip", "C:\projects\node-compiler\usr\bin")
 
 test_script:
 - cmd: |

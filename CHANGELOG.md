@@ -2,7 +2,9 @@
 
 ## v0.9.5
 
-
+- let Main CI use the correct Node.js version
+- add Black-box Tests
+- add CI Matrix
 
 ## v0.9.4
 

@@ -20,7 +20,7 @@ build_script:
 
 test_script:
 - cmd: |
-    set PATH=C:\projects\node-compiler-blbt\usr\bin\node-v7.7.1-win-x86;C:\projects\node-compiler-blbt\usr\bin;%PATH%
+    set PATH=C:\projects\node-compiler\usr\bin\node-v7.7.1-win-x86;C:\projects\node-compiler\usr\bin;%PATH%
 
     call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64_x86
 

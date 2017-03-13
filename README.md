@@ -2,9 +2,9 @@
 
 Compiling your Node.js application into a single executable.
 
-http://enclose.io
-
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
+
+## Download
 
 |                       |                                                       Master CI                                                                                                       |                                                                    RAM Test                                                                                               |                                                             Black-box Test                                                                     |                                            Download Link                                                    |
 |:---------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|
@@ -87,5 +87,6 @@ Then,
 
 ## See Also
 
-- [Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS that can be easily linked and embedded within your application.
 - [SquashFS](http://squashfs.sourceforge.net/): a compressed read-only filesystem for Linux.
+- [Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS that can be easily linked and embedded within your application.
+- [Enclose.IO](http://enclose.io/): cloud-based service that compiles your application into a single executable.

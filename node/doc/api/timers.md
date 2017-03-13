@@ -1,6 +1,6 @@
 # Timers
 
-> Stability: 3 - Locked
+> Stability: 2 - Stable
 
 The `timer` module exposes a global API for scheduling functions to
 be called at some future period of time. Because the timer functions are
@@ -163,7 +163,7 @@ added: v0.0.1
 Cancels a `Timeout` object created by [`setTimeout()`][].
 
 
-[the Node.js Event Loop]: https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md
+[the Node.js Event Loop]: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick
 [`TypeError`]: errors.html#errors_class_typeerror
 [`clearImmediate()`]: timers.html#timers_clearimmediate_immediate
 [`clearInterval()`]: timers.html#timers_clearinterval_timeout

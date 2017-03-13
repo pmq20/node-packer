@@ -1,15 +1,7 @@
 'use strict';
 
-function importPunycode() {
-  try {
-    return process.binding('icu');
-  } catch (e) {
-    return require('punycode');
-  }
-}
-
-const { toASCII } = importPunycode();
-
+const { toASCII } = process.binding('config').hasIntl ?
+  process.binding('icu') : require('punycode');
 const { StorageObject, hexTable } = require('internal/querystring');
 const internalUrl = require('internal/url');
 exports.parse = urlParse;
@@ -319,7 +311,10 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
       // It only converts parts of the domain name that
       // have non-ASCII characters, i.e. it doesn't matter if
       // you call it with a domain that already is ASCII-only.
-      this.hostname = toASCII(this.hostname);
+
+      // Use lenient mode (`true`) to try to support even non-compliant
+      // URLs.
+      this.hostname = toASCII(this.hostname, true);
     }
 
     var p = this.port ? ':' + this.port : '';

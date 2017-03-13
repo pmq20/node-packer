@@ -337,6 +337,8 @@ more information about the governance of the Node.js project, see
 **Mike Tunnicliffe** &lt;m.j.tunnicliffe@gmail.com&gt;
 * [vkurchatkin](https://github.com/vkurchatkin) -
 **Vladimir Kurchatkin** &lt;vladimir.kurchatkin@gmail.com&gt;
+* [watilde](https://github.com/watilde) -
+**Daijiro Wachi** &lt;daijiro.wachi@gmail.com&gt; (he/him)
 * [whitlockjc](https://github.com/whitlockjc) -
 **Jeremy Whitlock** &lt;jwhitlock@apache.org&gt;
 * [yorkie](https://github.com/yorkie) -
@@ -392,6 +394,11 @@ Previous releases may also have been signed with one of the following GPG keys:
 `114F43EE0176B71C7BC219DD50A3051F888C628D`
 * **Timothy J Fontaine** &lt;tjfontaine@gmail.com&gt;
 `7937DFD2AB06298B2293C3187D33FF9D0246406D`
+
+### Working Groups
+
+Information on the current Node.js Working Groups can be found in the
+[CTC repository](https://github.com/nodejs/CTC/blob/master/WORKING_GROUPS.md).
 
 [npm]: https://www.npmjs.com
 [Website]: https://nodejs.org/en/

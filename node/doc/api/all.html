@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v7.7.1 Documentation</title>
+  <title>About this Documentation | Node.js v7.7.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v7.7.1 Documentation</h1>
+        <h1>Node.js v7.7.2 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -373,7 +373,7 @@
 <li><span class="stability_undefined"><a href="#console_console_log_data_args">console.log([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_time_label">console.time(label)</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_timeend_label">console.timeEnd(label)</a></span></li>
-<li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace(message[, ...args])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace([message][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_warn_data_args">console.warn([data][, ...args])</a></span></li>
 </ul>
 </li>
@@ -575,11 +575,9 @@
 <li><span class="stability_undefined"><a href="#errors_class_error">Class: Error</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_new_error_message">new Error(message)</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_capturestacktrace_targetobject_constructoropt">Error.captureStackTrace(targetObject[, constructorOpt])</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span><ul>
+<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_message">error.message</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_stack">error.stack</a></span></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#errors_class_rangeerror">Class: RangeError</a></span></li>
@@ -887,7 +885,7 @@
 <li><span class="stability_undefined"><a href="#https_https_request_options_callback">https.request(options, callback)</a></span></li>
 </ul>
 </li>
-<li><span class="stability_3"><a href="#modules_modules">Modules</a></span><ul>
+<li><span class="stability_2"><a href="#modules_modules">Modules</a></span><ul>
 <li><span class="stability_undefined"><a href="#modules_accessing_the_main_module">Accessing the main module</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_addenda_package_manager_tips">Addenda: Package Manager Tips</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_all_together">All Together...</a></span></li>
@@ -1300,7 +1298,7 @@
 </li>
 </ul>
 </li>
-<li><span class="stability_3"><a href="#timers_timers">Timers</a></span><ul>
+<li><span class="stability_2"><a href="#timers_timers">Timers</a></span><ul>
 <li><span class="stability_undefined"><a href="#timers_class_immediate">Class: Immediate</a></span></li>
 <li><span class="stability_undefined"><a href="#timers_class_timeout">Class: Timeout</a></span><ul>
 <li><span class="stability_undefined"><a href="#timers_timeout_ref">timeout.ref()</a></span></li>
@@ -1490,7 +1488,7 @@
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_iterator">urlSearchParams[@@iterator]()</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToAscii(domain)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToASCII(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_require_url_domaintounicode_domain">require(&#39;url&#39;).domainToUnicode(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_percent_encoding_in_the_whatwg_url_standard">Percent-Encoding in the WHATWG URL Standard</a></span></li>
 </ul>
@@ -1638,7 +1636,7 @@ proven, and so relied upon, that they are unlikely to ever change at
 all.  Others are brand new and experimental, or known to be hazardous
 and in the process of being redesigned.</p>
 <p>The stability indices are as follows:</p>
-<pre class="api_stability api_stability_0">Stability: 0 - Deprecated This feature is known to be problematic, and changes are planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards compatibility should not be expected.</pre><pre class="api_stability api_stability_1">Stability: 1 - Experimental This feature is subject to change, and is gated by a command line flag. It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2">Stability: 2 - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><pre class="api_stability api_stability_3">Stability: 3 - Locked Only bug fixes, security fixes, and performance improvements will be accepted. Please do not suggest API changes in this area; they will be refused.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
+<pre class="api_stability api_stability_0">Stability: 0 - Deprecated This feature is known to be problematic, and changes are planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards compatibility should not be expected.</pre><pre class="api_stability api_stability_1">Stability: 1 - Experimental This feature is subject to change, and is gated by a command line flag. It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2">Stability: 2 - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
 <pre class="api_stability api_stability_1">Stability: 1 - Experimental</pre><p>Every HTML file in the markdown has a corresponding JSON file with the
 same data.</p>
 <p>This feature was added in Node.js v0.6.12.  It is experimental.</p>
@@ -2198,11 +2196,11 @@ const buf3 = Buffer.allocUnsafe(10);
 // Creates a Buffer containing [0x1, 0x2, 0x3].
 const buf4 = Buffer.from([1, 2, 3]);
 
-// Creates a Buffer containing ASCII bytes [0x74, 0x65, 0x73, 0x74].
-const buf5 = Buffer.from(&#39;test&#39;);
-
 // Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].
-const buf6 = Buffer.from(&#39;tést&#39;, &#39;utf8&#39;);
+const buf5 = Buffer.from(&#39;tést&#39;);
+
+// Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].
+const buf6 = Buffer.from(&#39;tést&#39;, &#39;latin-1&#39;);
 </code></pre>
 <h2><code>Buffer.from()</code>, <code>Buffer.alloc()</code>, and <code>Buffer.allocUnsafe()</code><span><a class="mark" href="#buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe" id="buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe">#</a></span></h2>
 <p>In versions of Node.js prior to v6, <code>Buffer</code> instances were created using the
@@ -2461,7 +2459,7 @@ It can be constructed in a variety of ways.</p>
 </ul>
 <p>Allocates a new <code>Buffer</code> using an <code>array</code> of octets.</p>
 <p>Example:</p>
-<pre><code class="lang-js">// Creates a new Buffer containing the ASCII bytes of the string &#39;buffer&#39;
+<pre><code class="lang-js">// Creates a new Buffer containing the UTF-8 bytes of the string &#39;buffer&#39;
 const buf = new Buffer([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 </code></pre>
 <h3>new Buffer(arrayBuffer[, byteOffset [, length]])<span><a class="mark" href="#buffer_new_buffer_arraybuffer_byteoffset_length" id="buffer_new_buffer_arraybuffer_byteoffset_length">#</a></span></h3>
@@ -2853,7 +2851,7 @@ console.log(bufA.length);
 </ul>
 <p>Allocates a new <code>Buffer</code> using an <code>array</code> of octets.</p>
 <p>Example:</p>
-<pre><code class="lang-js">// Creates a new Buffer containing ASCII bytes of the string &#39;buffer&#39;
+<pre><code class="lang-js">// Creates a new Buffer containing UTF-8 bytes of the string &#39;buffer&#39;
 const buf = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>array</code> is not an <code>Array</code>.</p>
@@ -7358,7 +7356,7 @@ dropped at program exit. <strong>Use of this mode is not recommended.</strong></
 extra certificates in <code>file</code>. The file should consist of one or more trusted
 certificates in PEM format. A message will be emitted (once) with
 <a href="process.html#process_process_emitwarning_warning_name_ctor"><code>process.emitWarning()</code></a> if the file is missing or
-misformatted, but any errors are otherwise ignored.</p>
+malformed, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
 <h3><code>OPENSSL_CONF=file</code><span><a class="mark" href="#cli_openssl_conf_file" id="cli_openssl_conf_file">#</a></span></h3>
@@ -7439,7 +7437,11 @@ or <code>console.Console</code>:</p>
 const Console = console.Console;
 </code></pre>
 <h3>new Console(stdout[, stderr])<span><a class="mark" href="#console_new_console_stdout_stderr" id="console_new_console_stdout_stderr">#</a></span></h3>
-<p>Creates a new <code>Console</code> by passing one or two writable stream instances.
+<div class="signature"><ul>
+<li><code>stdout</code> <span class="type">&lt;Writable&gt;</span></li>
+<li><code>stderr</code> <span class="type">&lt;Writable&gt;</span></li>
+</ul>
+</div><p>Creates a new <code>Console</code> by passing one or two writable stream instances.
 <code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>
 is used for warning or error output. If <code>stderr</code> is not passed, warning and error
 output will be sent to <code>stdout</code>.</p>
@@ -7459,7 +7461,12 @@ logger.log(&#39;count: %d&#39;, count);
 <h3>console.assert(value[, message][, ...args])<span><a class="mark" href="#console_console_assert_value_message_args" id="console_console_assert_value_message_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
-</div><p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,
+</div><ul>
+<li><code>value</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,
 an <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted
 using <a href="util.html#util_util_format_format_args"><code>util.format()</code></a> and used as the error message.</p>
 <pre><code class="lang-js">console.assert(true, &#39;does nothing&#39;);
@@ -7506,7 +7513,16 @@ console.log(&#39;this will also print&#39;);
 <h3>console.dir(obj[, options])<span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
-</div><p>Uses <a href="#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
+</div><ul>
+<li><code>obj</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>showHidden</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><code>depth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>colors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses <a href="#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
 This function bypasses any custom <code>inspect()</code> function defined on <code>obj</code>. An
 optional <code>options</code> object may be passed to alter certain aspects of the
 formatted string:</p>
@@ -7526,7 +7542,11 @@ Defaults to <code>false</code>. Colors are customizable; see
 <h3>console.error([data][, ...args])<span><a class="mark" href="#console_console_error_data_args" id="console_console_error_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
 values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
@@ -7542,11 +7562,19 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 <h3>console.info([data][, ...args])<span><a class="mark" href="#console_console_info_data_args" id="console_console_info_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>The <code>console.info()</code> function is an alias for <a href="console.html#console_console_log_data_args"><code>console.log()</code></a>.</p>
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>The <code>console.info()</code> function is an alias for <a href="console.html#console_console_log_data_args"><code>console.log()</code></a>.</p>
 <h3>console.log([data][, ...args])<span><a class="mark" href="#console_console_log_data_args" id="console_console_log_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
 values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
@@ -7562,7 +7590,10 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 <h3>console.time(label)<span><a class="mark" href="#console_console_time_label" id="console_console_time_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
-</div><p>Starts a timer that can be used to compute the duration of an operation. Timers
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>Starts a timer that can be used to compute the duration of an operation. Timers
 are identified by a unique <code>label</code>. Use the same <code>label</code> when you call
 <a href="#console_console_timeend_label"><code>console.timeEnd()</code></a> to stop the timer and output the elapsed time in
 milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>
@@ -7579,7 +7610,10 @@ milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-mil
 </td></tr>
 </table>
 </details>
-</div><p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>
 <pre><code class="lang-js">console.time(&#39;100-elements&#39;);
 for (let i = 0; i &lt; 100; i++) {
@@ -7592,10 +7626,14 @@ console.timeEnd(&#39;100-elements&#39;);
 leaking it. On older versions, the timer persisted. This allowed
 <code>console.timeEnd()</code> to be called multiple times for the same label. This
 functionality was unintended and is no longer supported.</em></p>
-<h3>console.trace(message[, ...args])<span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
+<h3>console.trace([message][, ...args])<span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
-</div><p>Prints to <code>stderr</code> the string <code>&#39;Trace :&#39;</code>, followed by the <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>
+</div><ul>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stderr</code> the string <code>&#39;Trace :&#39;</code>, followed by the <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>
 formatted message and stack trace to the current position in the code.</p>
 <pre><code class="lang-js">console.trace(&#39;Show me&#39;);
 // Prints: (stack trace will vary based on where trace is called)
@@ -7614,7 +7652,11 @@ formatted message and stack trace to the current position in the code.</p>
 <h3>console.warn([data][, ...args])<span><a class="mark" href="#console_console_warn_data_args" id="console_console_warn_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>The <code>console.warn()</code> function is an alias for <a href="console.html#console_console_error_data_args"><code>console.error()</code></a>.</p>
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>The <code>console.warn()</code> function is an alias for <a href="console.html#console_console_error_data_args"><code>console.error()</code></a>.</p>
 <!-- [end-include:console.md] -->
 <!-- [start-include:crypto.md] -->
 <h1>Crypto<span><a class="mark" href="#crypto_crypto" id="crypto_crypto">#</a></span></h1>
@@ -10366,15 +10408,15 @@ the first argument will be passed as <code>null</code>.</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
 
 function nodeStyleCallback(err, data) {
- if (err) {
-   console.error(&#39;There was an error&#39;, err);
-   return;
- }
- console.log(data);
+  if (err) {
+    console.error(&#39;There was an error&#39;, err);
+    return;
+  }
+  console.log(data);
 }
 
 fs.readFile(&#39;/some/file/that/does-not-exist&#39;, nodeStyleCallback);
-fs.readFile(&#39;/some/file/that/does-exist&#39;, nodeStyleCallback)
+fs.readFile(&#39;/some/file/that/does-exist&#39;, nodeStyleCallback);
 </code></pre>
 <p>The JavaScript <code>try / catch</code> mechanism <strong>cannot</strong> be used to intercept errors
 generated by asynchronous APIs.  A common mistake for beginners is to try to
@@ -10389,14 +10431,14 @@ try {
       throw err;
     }
   });
-} catch(err) {
+} catch (err) {
   // This will not catch the throw!
-  console.log(err);
+  console.error(err);
 }
 </code></pre>
 <p>This will not work because the callback function passed to <code>fs.readFile()</code> is
 called asynchronously. By the time the callback has been called, the
-surrounding code (including the <code>try { } catch(err) { }</code> block will have
+surrounding code (including the <code>try { } catch (err) { }</code> block will have
 already exited. Throwing an error inside the callback <strong>can crash the Node.js
 process</strong> in most cases. If <a href="domain.html">domains</a> are enabled, or a handler has been
 registered with <code>process.on(&#39;uncaughtException&#39;)</code>, such errors can be
@@ -10430,7 +10472,7 @@ a string representing the location in the code at which
 <code>Error.captureStackTrace()</code> was called.</p>
 <pre><code class="lang-js">const myObject = {};
 Error.captureStackTrace(myObject);
-myObject.stack  // similar to `new Error().stack`
+myObject.stack;  // similar to `new Error().stack`
 </code></pre>
 <p>The first line of the trace, instead of being prefixed with <code>ErrorType:
 message</code>, will be the result of calling <code>targetObject.toString()</code>.</p>
@@ -10446,7 +10488,7 @@ details of error generation from an end user. For instance:</p>
 // Without passing MyError to captureStackTrace, the MyError
 // frame would show up in the .stack property. By passing
 // the constructor, we omit that frame and all frames above it.
-new MyError().stack
+new MyError().stack;
 </code></pre>
 <h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
 <div class="signature"><ul>
@@ -10459,7 +10501,7 @@ collected by a stack trace (whether generated by <code>new Error().stack</code> 
 will affect any stack trace captured <em>after</em> the value has been changed.</p>
 <p>If set to a non-number value, or set to a negative number, stack traces will
 not capture any frames.</p>
-<h4>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h4>
+<h3>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h3>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
@@ -10469,10 +10511,10 @@ the stack trace of the <code>Error</code>, however changing this property after 
 <code>Error</code> object is created <em>may not</em> change the first line of the stack trace
 (for example, when <code>error.stack</code> is read before this property is changed).</p>
 <pre><code class="lang-js">const err = new Error(&#39;The message&#39;);
-console.log(err.message);
+console.error(err.message);
 // Prints: The message
 </code></pre>
-<h4>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h4>
+<h3>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h3>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
@@ -10545,7 +10587,7 @@ set or range of acceptable values for a function; whether that is a numeric
 range, or outside the set of options for a given function parameter.</p>
 <p>For example:</p>
 <pre><code class="lang-js">require(&#39;net&#39;).connect(-1);
-  // throws RangeError, port should be &gt; 0 &amp;&amp; &lt; 65536
+  // throws &quot;RangeError: &quot;port&quot; option should be &gt;= 0 and &lt; 65536: -1&quot;
 </code></pre>
 <p>Node.js will generate and throw <code>RangeError</code> instances <em>immediately</em> as a form
 of argument validation.</p>
@@ -10558,16 +10600,6 @@ will do so.</p>
 <pre><code class="lang-js">doesNotExist;
   // throws ReferenceError, doesNotExist is not a variable in this program.
 </code></pre>
-<p><code>ReferenceError</code> instances will have an <code>error.arguments</code> property whose value
-is an array containing a single element: a string representing the variable
-that was not defined.</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
-try {
-  doesNotExist;
-} catch(err) {
-  assert(err.arguments[0], &#39;doesNotExist&#39;);
-}
-</code></pre>
 <p>Unless an application is dynamically generating and running code,
 <code>ReferenceError</code> instances should always be considered a bug in the code
 or its dependencies.</p>
@@ -10579,7 +10611,7 @@ evaluation. Code evaluation may happen as a result of <code>eval</code>, <code>F
 program.</p>
 <pre><code class="lang-js">try {
   require(&#39;vm&#39;).runInThisContext(&#39;binary ! isNotOk&#39;);
-} catch(err) {
+} catch (err) {
   // err will be a SyntaxError
 }
 </code></pre>
@@ -15230,7 +15262,7 @@ var req = https.request(options, (res) =&gt; {
 <!-- [end-include:https.md] -->
 <!-- [start-include:modules.md] -->
 <h1>Modules<span><a class="mark" href="#modules_modules" id="modules_modules">#</a></span></h1>
-<pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><!--name=module-->
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=module-->
 <p>Node.js has a simple module loading system.  In Node.js, files and modules
 are in one-to-one correspondence (each file is treated as a separate module).</p>
 <p>As an example, consider a file named <code>foo.js</code>:</p>
@@ -15954,7 +15986,7 @@ and passed to the user through the <code>&#39;connection&#39;</code> event of a 
 <p><code>fd</code> allows you to specify the existing file descriptor of socket.
 Set <code>readable</code> and/or <code>writable</code> to <code>true</code> to allow reads and/or writes on this
 socket (NOTE: Works only when <code>fd</code> is passed).
-About <code>allowHalfOpen</code>, refer to <code>createServer()</code> and <code>&#39;end&#39;</code> event.</p>
+About <code>allowHalfOpen</code>, refer to <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> and <a href="#stream_event_end"><code>&#39;end&#39;</code></a> event.</p>
 <p><code>net.Socket</code> instances are <a href="events.html"><code>EventEmitter</code></a> with the following events:</p>
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#net_event_close_1" id="net_event_close_1">#</a></span></h3>
 <div class="api_metadata">
@@ -20442,7 +20474,7 @@ are both stream instances.</p>
 </code></pre>
 <p>While it is important for all Node.js users to understand how streams work,
 the <code>stream</code> module itself is most useful for developers that are creating new
-types of stream instances. Developer&#39;s who are primarily <em>consuming</em> stream
+types of stream instances. Developers who are primarily <em>consuming</em> stream
 objects will rarely (if ever) have need to use the <code>stream</code> module directly.</p>
 <h2>Organization of this Document<span><a class="mark" href="#stream_organization_of_this_document" id="stream_organization_of_this_document">#</a></span></h2>
 <p>This document is divided into two primary sections with a third section for
@@ -21023,10 +21055,9 @@ end
 <p><em>Note</em>: In general, the <code>readable.pipe()</code> and <code>&#39;data&#39;</code> event mechanisms are
 preferred over the use of the <code>&#39;readable&#39;</code> event.</p>
 <h5>readable.isPaused()<span><a class="mark" href="#stream_readable_ispaused" id="stream_readable_ispaused">#</a></span></h5>
-<!--
-added: v0.11.14
--->
-<ul>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
 </ul>
 <p>The <code>readable.isPaused()</code> method returns the current operating state of the
@@ -22162,12 +22193,12 @@ internal buffer for the next call to <code>stringDecoder.write()</code> or
 <!-- [end-include:string_decoder.md] -->
 <!-- [start-include:timers.md] -->
 <h1>Timers<span><a class="mark" href="#timers_timers" id="timers_timers">#</a></span></h1>
-<pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><p>The <code>timer</code> module exposes a global API for scheduling functions to
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>timer</code> module exposes a global API for scheduling functions to
 be called at some future period of time. Because the timer functions are
 globals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>
 <p>The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around <a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a>.</p>
+built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a>.</p>
 <h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
 <p>This object is created internally and is returned from <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
 can be passed to <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
@@ -22211,7 +22242,7 @@ event loop is doing.</p>
 <span>Added in: v0.9.1</span>
 </div><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call at the end of this turn of
-<a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a></li>
+<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
 </ul>
 <p>Schedules the &quot;immediate&quot; execution of the <code>callback</code> after I/O events&#39;
@@ -24296,7 +24327,7 @@ lies outside the range denoted above, it is ignored.</p>
 </div><p>Gets and sets the protocol portion of the URL.</p>
 <pre><code class="lang-js">const myURL = new URL(&#39;https://example.org&#39;);
 console.log(myURL.protocol);
-  // Prints http:
+  // Prints https:
 
 myURL.protocol = &#39;ftp&#39;;
 console.log(myURL.href);
@@ -24524,20 +24555,40 @@ for (const [name, value] of params) {
   // foo bar
   // xyz baz
 </code></pre>
-<h3>require(&#39;url&#39;).domainToAscii(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
+<h3>require(&#39;url&#39;).domainToASCII(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>.</p>
-<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToAscii()</code> method is introduced as part of
+</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
+invalid domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_require_url_domaintounicode_domain"><code>require(&#39;url&#39;).domainToUnicode()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToASCII(&#39;español.com&#39;));
+  // Prints xn--espaol-zwa.com
+console.log(url.domainToASCII(&#39;中文.com&#39;));
+  // Prints xn--fiq228c.com
+console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
+<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToASCII()</code> method is introduced as part of
 the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
 <h3>require(&#39;url&#39;).domainToUnicode(domain)<span><a class="mark" href="#url_require_url_domaintounicode_domain" id="url_require_url_domaintounicode_domain">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-</div><p>Returns the Unicode serialization of the <code>domain</code>.</p>
+</div><p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
+domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_require_url_domaintoascii_domain"><code>require(&#39;url&#39;).domainToASCII()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));
+  // Prints español.com
+console.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));
+  // Prints 中文.com
+console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
 <p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the
 the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
 <p><a id="whatwg-percent-encoding"></a></p>

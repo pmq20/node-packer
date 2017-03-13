@@ -503,7 +503,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_name_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmisformatted, but any errors are otherwise ignored.</p>\n<p>Note that neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>\n",
+              "desc": "<p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_name_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmalformed, but any errors are otherwise ignored.</p>\n<p>Note that neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>\n",
               "type": "module",
               "displayName": "`NODE_EXTRA_CA_CERTS=file`"
             },

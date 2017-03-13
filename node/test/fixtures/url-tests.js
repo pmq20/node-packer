@@ -3589,17 +3589,17 @@ module.exports =
     "base": "http://other.com/",
     "failure": true
   },
-  // "U+FFFD",
-  // {
-  //   "input": "https://\ufffd",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
-  // {
-  //   "input": "https://%EF%BF%BD",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
+  "U+FFFD",
+  {
+    "input": "https://\ufffd",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://%EF%BF%BD",
+    "base": "about:blank",
+    "failure": true
+  },
   {
     "input": "https://x/\ufffd?\ufffd#\ufffd",
     "base": "about:blank",
@@ -4497,26 +4497,26 @@ module.exports =
     "hash": ""
   },
   "# Hosts and percent-encoding",
-  // {
-  //   "input": "ftp://example.com%80/",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
-  // {
-  //   "input": "ftp://example.com%A0/",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
-  // {
-  //   "input": "https://example.com%80/",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
-  // {
-  //   "input": "https://example.com%A0/",
-  //   "base": "about:blank",
-  //   "failure": true
-  // },
+  {
+    "input": "ftp://example.com%80/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "ftp://example.com%A0/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://example.com%80/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://example.com%A0/",
+    "base": "about:blank",
+    "failure": true
+  },
   {
     "input": "ftp://%e2%98%83",
     "base": "about:blank",
@@ -5622,5 +5622,33 @@ module.exports =
     "input": "non-special://[:80/",
     "base": "about:blank",
     "failure": true
+  },
+  {
+    "input": "blob:https://example.com:443/",
+    "base": "about:blank",
+    "href": "blob:https://example.com:443/",
+    "protocol": "blob:",
+    "username": "",
+    "password": "",
+    "host": "",
+    "hostname": "",
+    "port": "",
+    "pathname": "https://example.com:443/",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "blob:d3958f5c-0777-0845-9dcf-2cb28783acaf",
+    "base": "about:blank",
+    "href": "blob:d3958f5c-0777-0845-9dcf-2cb28783acaf",
+    "protocol": "blob:",
+    "username": "",
+    "password": "",
+    "host": "",
+    "hostname": "",
+    "port": "",
+    "pathname": "d3958f5c-0777-0845-9dcf-2cb28783acaf",
+    "search": "",
+    "hash": ""
   }
 ]

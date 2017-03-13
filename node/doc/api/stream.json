@@ -6,7 +6,7 @@
       "name": "stream",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>A stream is an abstract interface for working with streaming data in Node.js.\nThe <code>stream</code> module provides a base API that makes it easy to build objects\nthat implement the stream interface.</p>\n<p>There are many stream objects provided by Node.js. For instance, a\n<a href=\"http.html#http_class_http_incomingmessage\">request to an HTTP server</a> and <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a>\nare both stream instances.</p>\n<p>Streams can be readable, writable, or both. All streams are instances of\n<a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a>.</p>\n<p>The <code>stream</code> module can be accessed using:</p>\n<pre><code class=\"lang-js\">const stream = require(&#39;stream&#39;);\n</code></pre>\n<p>While it is important for all Node.js users to understand how streams work,\nthe <code>stream</code> module itself is most useful for developers that are creating new\ntypes of stream instances. Developer&#39;s who are primarily <em>consuming</em> stream\nobjects will rarely (if ever) have need to use the <code>stream</code> module directly.</p>\n",
+      "desc": "<p>A stream is an abstract interface for working with streaming data in Node.js.\nThe <code>stream</code> module provides a base API that makes it easy to build objects\nthat implement the stream interface.</p>\n<p>There are many stream objects provided by Node.js. For instance, a\n<a href=\"http.html#http_class_http_incomingmessage\">request to an HTTP server</a> and <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a>\nare both stream instances.</p>\n<p>Streams can be readable, writable, or both. All streams are instances of\n<a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a>.</p>\n<p>The <code>stream</code> module can be accessed using:</p>\n<pre><code class=\"lang-js\">const stream = require(&#39;stream&#39;);\n</code></pre>\n<p>While it is important for all Node.js users to understand how streams work,\nthe <code>stream</code> module itself is most useful for developers that are creating new\ntypes of stream instances. Developers who are primarily <em>consuming</em> stream\nobjects will rarely (if ever) have need to use the <code>stream</code> module directly.</p>\n",
       "modules": [
         {
           "textRaw": "Organization of this Document",
@@ -455,12 +455,26 @@
                       "textRaw": "readable.isPaused()",
                       "type": "method",
                       "name": "isPaused",
-                      "desc": "<!--\nadded: v0.11.14\n-->\n<ul>\n<li>Returns: {Boolean}</li>\n</ul>\n<p>The <code>readable.isPaused()</code> method returns the current operating state of the\nReadable. This is used primarily by the mechanism that underlies the\n<code>readable.pipe()</code> method. In most typical cases, there will be no reason to\nuse this method directly.</p>\n<pre><code class=\"lang-js\">const readable = new stream.Readable\n\nreadable.isPaused() // === false\nreadable.pause()\nreadable.isPaused() // === true\nreadable.resume()\nreadable.isPaused() // === false\n</code></pre>\n",
+                      "meta": {
+                        "added": [
+                          "v0.11.14"
+                        ],
+                        "changes": []
+                      },
                       "signatures": [
+                        {
+                          "return": {
+                            "textRaw": "Returns: {Boolean} ",
+                            "name": "return",
+                            "type": "Boolean"
+                          },
+                          "params": []
+                        },
                         {
                           "params": []
                         }
-                      ]
+                      ],
+                      "desc": "<p>The <code>readable.isPaused()</code> method returns the current operating state of the\nReadable. This is used primarily by the mechanism that underlies the\n<code>readable.pipe()</code> method. In most typical cases, there will be no reason to\nuse this method directly.</p>\n<pre><code class=\"lang-js\">const readable = new stream.Readable\n\nreadable.isPaused() // === false\nreadable.pause()\nreadable.isPaused() // === true\nreadable.resume()\nreadable.isPaused() // === false\n</code></pre>\n"
                     },
                     {
                       "textRaw": "readable.pause()",

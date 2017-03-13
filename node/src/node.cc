@@ -2892,7 +2892,7 @@ static Local<Object> GetFeatures(Environment* env) {
   // TODO(bnoordhuis) ping libuv
   obj->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "ipv6"), True(env->isolate()));
 
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
   Local<Boolean> tls_npn = True(env->isolate());
 #else
   Local<Boolean> tls_npn = False(env->isolate());
@@ -3444,7 +3444,7 @@ void LoadEnvironment(Environment* env) {
   // (FatalException(), break on uncaught exception in debugger)
   //
   // This is not strictly necessary since it's almost impossible
-  // to attach the debugger fast enought to break on exception
+  // to attach the debugger fast enough to break on exception
   // thrown during process startup.
   try_catch.SetVerbose(true);
 

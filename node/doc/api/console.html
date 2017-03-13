@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Console | Node.js v7.7.1 Documentation</title>
+  <title>Console | Node.js v7.7.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v7.7.1 Documentation</h1>
+        <h1>Node.js v7.7.2 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -97,7 +97,7 @@
 <li><span class="stability_undefined"><a href="#console_console_log_data_args">console.log([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_time_label">console.time(label)</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_timeend_label">console.timeEnd(label)</a></span></li>
-<li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace(message[, ...args])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace([message][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_warn_data_args">console.warn([data][, ...args])</a></span></li>
 </ul>
 </li>
@@ -160,7 +160,11 @@ or <code>console.Console</code>:</p>
 const Console = console.Console;
 </code></pre>
 <h3>new Console(stdout[, stderr])<span><a class="mark" href="#console_new_console_stdout_stderr" id="console_new_console_stdout_stderr">#</a></span></h3>
-<p>Creates a new <code>Console</code> by passing one or two writable stream instances.
+<div class="signature"><ul>
+<li><code>stdout</code> <span class="type">&lt;Writable&gt;</span></li>
+<li><code>stderr</code> <span class="type">&lt;Writable&gt;</span></li>
+</ul>
+</div><p>Creates a new <code>Console</code> by passing one or two writable stream instances.
 <code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>
 is used for warning or error output. If <code>stderr</code> is not passed, warning and error
 output will be sent to <code>stdout</code>.</p>
@@ -180,7 +184,12 @@ logger.log(&#39;count: %d&#39;, count);
 <h3>console.assert(value[, message][, ...args])<span><a class="mark" href="#console_console_assert_value_message_args" id="console_console_assert_value_message_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
-</div><p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,
+</div><ul>
+<li><code>value</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,
 an <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted
 using <a href="util.html#util_util_format_format_args"><code>util.format()</code></a> and used as the error message.</p>
 <pre><code class="lang-js">console.assert(true, &#39;does nothing&#39;);
@@ -227,7 +236,16 @@ console.log(&#39;this will also print&#39;);
 <h3>console.dir(obj[, options])<span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
-</div><p>Uses <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
+</div><ul>
+<li><code>obj</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>showHidden</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><code>depth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>colors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
 This function bypasses any custom <code>inspect()</code> function defined on <code>obj</code>. An
 optional <code>options</code> object may be passed to alter certain aspects of the
 formatted string:</p>
@@ -247,7 +265,11 @@ Defaults to <code>false</code>. Colors are customizable; see
 <h3>console.error([data][, ...args])<span><a class="mark" href="#console_console_error_data_args" id="console_console_error_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
 values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
@@ -263,11 +285,19 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 <h3>console.info([data][, ...args])<span><a class="mark" href="#console_console_info_data_args" id="console_console_info_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>The <code>console.info()</code> function is an alias for <a href="#console_console_log_data_args"><code>console.log()</code></a>.</p>
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>The <code>console.info()</code> function is an alias for <a href="#console_console_log_data_args"><code>console.log()</code></a>.</p>
 <h3>console.log([data][, ...args])<span><a class="mark" href="#console_console_log_data_args" id="console_console_log_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
 values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
@@ -283,7 +313,10 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 <h3>console.time(label)<span><a class="mark" href="#console_console_time_label" id="console_console_time_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
-</div><p>Starts a timer that can be used to compute the duration of an operation. Timers
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>Starts a timer that can be used to compute the duration of an operation. Timers
 are identified by a unique <code>label</code>. Use the same <code>label</code> when you call
 <a href="#console_console_timeend_label"><code>console.timeEnd()</code></a> to stop the timer and output the elapsed time in
 milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>
@@ -300,7 +333,10 @@ milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-mil
 </td></tr>
 </table>
 </details>
-</div><p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+</ul>
+<p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>
 <pre><code class="lang-js">console.time(&#39;100-elements&#39;);
 for (let i = 0; i &lt; 100; i++) {
@@ -313,10 +349,14 @@ console.timeEnd(&#39;100-elements&#39;);
 leaking it. On older versions, the timer persisted. This allowed
 <code>console.timeEnd()</code> to be called multiple times for the same label. This
 functionality was unintended and is no longer supported.</em></p>
-<h3>console.trace(message[, ...args])<span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
+<h3>console.trace([message][, ...args])<span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
-</div><p>Prints to <code>stderr</code> the string <code>&#39;Trace :&#39;</code>, followed by the <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>
+</div><ul>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Prints to <code>stderr</code> the string <code>&#39;Trace :&#39;</code>, followed by the <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>
 formatted message and stack trace to the current position in the code.</p>
 <pre><code class="lang-js">console.trace(&#39;Show me&#39;);
 // Prints: (stack trace will vary based on where trace is called)
@@ -335,7 +375,11 @@ formatted message and stack trace to the current position in the code.</p>
 <h3>console.warn([data][, ...args])<span><a class="mark" href="#console_console_warn_data_args" id="console_console_warn_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
-</div><p>The <code>console.warn()</code> function is an alias for <a href="#console_console_error_data_args"><code>console.error()</code></a>.</p>
+</div><ul>
+<li><code>data</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>The <code>console.warn()</code> function is an alias for <a href="#console_console_error_data_args"><code>console.error()</code></a>.</p>
 
       </div>
     </div>

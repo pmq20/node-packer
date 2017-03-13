@@ -147,7 +147,7 @@ template void SSLWrap<TLSWrap>::OnClientHello(
     void* arg,
     const ClientHelloParser::ClientHello& hello);
 
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
 template int SSLWrap<TLSWrap>::AdvertiseNextProtoCallback(
     SSL* s,
     const unsigned char** data,
@@ -913,7 +913,7 @@ void SecureContext::SetDHParam(const FunctionCallbackInfo<Value>& args) {
   (void) &clear_error_on_return;  // Silence compiler warning.
 
   // Auto DH is not supported in openssl 1.0.1, so dhparam needs
-  // to be specifed explicitly
+  // to be specified explicitly
   if (args.Length() != 1)
     return env->ThrowTypeError("DH argument is mandatory");
 
@@ -1314,11 +1314,11 @@ void SSLWrap<Base>::AddMethods(Environment* env, Local<FunctionTemplate> t) {
   env->SetProtoMethod(t, "setMaxSendFragment", SetMaxSendFragment);
 #endif  // SSL_set_max_send_fragment
 
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
   env->SetProtoMethod(t, "getNegotiatedProtocol", GetNegotiatedProto);
-#endif  // OPENSSL_NPN_NEGOTIATED
+#endif  // OPENSSL_NO_NEXTPROTONEG
 
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
   env->SetProtoMethod(t, "setNPNProtocols", SetNPNProtocols);
 #endif
 
@@ -1338,7 +1338,7 @@ void SSLWrap<Base>::AddMethods(Environment* env, Local<FunctionTemplate> t) {
 
 template <class Base>
 void SSLWrap<Base>::InitNPN(SecureContext* sc) {
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
   // Server should advertise NPN protocols
   SSL_CTX_set_next_protos_advertised_cb(sc->ctx_,
                                         AdvertiseNextProtoCallback,
@@ -1346,7 +1346,7 @@ void SSLWrap<Base>::InitNPN(SecureContext* sc) {
   // Client should select protocol from list of advertised
   // If server supports NPN
   SSL_CTX_set_next_proto_select_cb(sc->ctx_, SelectNextProtoCallback, nullptr);
-#endif  // OPENSSL_NPN_NEGOTIATED
+#endif  // OPENSSL_NO_NEXTPROTONEG
 
 #ifdef NODE__HAVE_TLSEXT_STATUS_CB
   // OCSP stapling
@@ -2091,7 +2091,7 @@ void SSLWrap<Base>::GetProtocol(const FunctionCallbackInfo<Value>& args) {
 }
 
 
-#ifdef OPENSSL_NPN_NEGOTIATED
+#ifndef OPENSSL_NO_NEXTPROTONEG
 template <class Base>
 int SSLWrap<Base>::AdvertiseNextProtoCallback(SSL* s,
                                               const unsigned char** data,
@@ -2231,7 +2231,7 @@ void SSLWrap<Base>::SetNPNProtocols(const FunctionCallbackInfo<Value>& args) {
           env->npn_buffer_private_symbol(),
           args[0]).FromJust());
 }
-#endif  // OPENSSL_NPN_NEGOTIATED
+#endif  // OPENSSL_NO_NEXTPROTONEG
 
 #ifdef TLSEXT_TYPE_application_layer_protocol_negotiation
 template <class Base>
@@ -5998,7 +5998,6 @@ void SetFipsCrypto(const FunctionCallbackInfo<Value>& args) {
 #endif /* NODE_FIPS_MODE */
 }
 
-// FIXME(bnoordhuis) Handle global init correctly.
 void InitCrypto(Local<Object> target,
                 Local<Value> unused,
                 Local<Context> context,

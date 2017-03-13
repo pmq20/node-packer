@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.7.1 Documentation</title>
+  <title>Stream | Node.js v7.7.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.7.1 Documentation</h1>
+        <h1>Node.js v7.7.2 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -203,7 +203,7 @@ are both stream instances.</p>
 </code></pre>
 <p>While it is important for all Node.js users to understand how streams work,
 the <code>stream</code> module itself is most useful for developers that are creating new
-types of stream instances. Developer&#39;s who are primarily <em>consuming</em> stream
+types of stream instances. Developers who are primarily <em>consuming</em> stream
 objects will rarely (if ever) have need to use the <code>stream</code> module directly.</p>
 <h2>Organization of this Document<span><a class="mark" href="#stream_organization_of_this_document" id="stream_organization_of_this_document">#</a></span></h2>
 <p>This document is divided into two primary sections with a third section for
@@ -784,10 +784,9 @@ end
 <p><em>Note</em>: In general, the <code>readable.pipe()</code> and <code>&#39;data&#39;</code> event mechanisms are
 preferred over the use of the <code>&#39;readable&#39;</code> event.</p>
 <h5>readable.isPaused()<span><a class="mark" href="#stream_readable_ispaused" id="stream_readable_ispaused">#</a></span></h5>
-<!--
-added: v0.11.14
--->
-<ul>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
 </ul>
 <p>The <code>readable.isPaused()</code> method returns the current operating state of the

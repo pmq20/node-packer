@@ -157,7 +157,7 @@
                   "textRaw": "`protocol` {String} ",
                   "type": "String",
                   "name": "protocol",
-                  "desc": "<p>Gets and sets the protocol portion of the URL.</p>\n<pre><code class=\"lang-js\">const myURL = new URL(&#39;https://example.org&#39;);\nconsole.log(myURL.protocol);\n  // Prints http:\n\nmyURL.protocol = &#39;ftp&#39;;\nconsole.log(myURL.href);\n  // Prints ftp://example.org\n</code></pre>\n<p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>\n"
+                  "desc": "<p>Gets and sets the protocol portion of the URL.</p>\n<pre><code class=\"lang-js\">const myURL = new URL(&#39;https://example.org&#39;);\nconsole.log(myURL.protocol);\n  // Prints https:\n\nmyURL.protocol = &#39;ftp&#39;;\nconsole.log(myURL.href);\n  // Prints ftp://example.org\n</code></pre>\n<p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>\n"
                 },
                 {
                   "textRaw": "`search` {String} ",
@@ -587,9 +587,9 @@
           ],
           "methods": [
             {
-              "textRaw": "require('url').domainToAscii(domain)",
+              "textRaw": "require('url').domainToASCII(domain)",
               "type": "method",
-              "name": "domainToAscii",
+              "name": "domainToASCII",
               "signatures": [
                 {
                   "return": {
@@ -608,12 +608,12 @@
                 {
                   "params": [
                     {
-                      "name": "'url').domainToAscii(domain"
+                      "name": "'url').domainToASCII(domain"
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> ASCII serialization of the <code>domain</code>.</p>\n<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToAscii()</code> method is introduced as part of\nthe new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>\n"
+              "desc": "<p>Returns the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an\ninvalid domain, the empty string is returned.</p>\n<p>It performs the inverse operation to <a href=\"#url_require_url_domaintounicode_domain\"><code>require(&#39;url&#39;).domainToUnicode()</code></a>.</p>\n<pre><code class=\"lang-js\">const url = require(&#39;url&#39;);\nconsole.log(url.domainToASCII(&#39;español.com&#39;));\n  // Prints xn--espaol-zwa.com\nconsole.log(url.domainToASCII(&#39;中文.com&#39;));\n  // Prints xn--fiq228c.com\nconsole.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));\n  // Prints an empty string\n</code></pre>\n<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToASCII()</code> method is introduced as part of\nthe new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>\n"
             },
             {
               "textRaw": "require('url').domainToUnicode(domain)",
@@ -642,7 +642,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns the Unicode serialization of the <code>domain</code>.</p>\n<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the\nthe new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>\n<p><a id=\"whatwg-percent-encoding\"></a></p>\n"
+              "desc": "<p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid\ndomain, the empty string is returned.</p>\n<p>It performs the inverse operation to <a href=\"#url_require_url_domaintoascii_domain\"><code>require(&#39;url&#39;).domainToASCII()</code></a>.</p>\n<pre><code class=\"lang-js\">const url = require(&#39;url&#39;);\nconsole.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));\n  // Prints español.com\nconsole.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));\n  // Prints 中文.com\nconsole.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));\n  // Prints an empty string\n</code></pre>\n<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the\nthe new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>\n<p><a id=\"whatwg-percent-encoding\"></a></p>\n"
             }
           ],
           "modules": [

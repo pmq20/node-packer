@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Timers | Node.js v7.7.1 Documentation</title>
+  <title>Timers | Node.js v7.7.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="timers" class="interior">
       <header>
-        <h1>Node.js v7.7.1 Documentation</h1>
+        <h1>Node.js v7.7.2 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -87,7 +87,7 @@
       <div id="toc">
         <h2>Table of Contents</h2>
         <ul>
-<li><span class="stability_3"><a href="#timers_timers">Timers</a></span><ul>
+<li><span class="stability_2"><a href="#timers_timers">Timers</a></span><ul>
 <li><span class="stability_undefined"><a href="#timers_class_immediate">Class: Immediate</a></span></li>
 <li><span class="stability_undefined"><a href="#timers_class_timeout">Class: Timeout</a></span><ul>
 <li><span class="stability_undefined"><a href="#timers_timeout_ref">timeout.ref()</a></span></li>
@@ -114,12 +114,12 @@
 
       <div id="apicontent">
         <h1>Timers<span><a class="mark" href="#timers_timers" id="timers_timers">#</a></span></h1>
-<pre class="api_stability api_stability_3">Stability: 3 - Locked</pre><p>The <code>timer</code> module exposes a global API for scheduling functions to
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>timer</code> module exposes a global API for scheduling functions to
 be called at some future period of time. Because the timer functions are
 globals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>
 <p>The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around <a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a>.</p>
+built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a>.</p>
 <h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
 <p>This object is created internally and is returned from <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
 can be passed to <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
@@ -163,7 +163,7 @@ event loop is doing.</p>
 <span>Added in: v0.9.1</span>
 </div><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call at the end of this turn of
-<a href="https://github.com/nodejs/node/blob/master/doc/topics/event-loop-timers-and-nexttick.md">the Node.js Event Loop</a></li>
+<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
 </ul>
 <p>Schedules the &quot;immediate&quot; execution of the <code>callback</code> after I/O events&#39;

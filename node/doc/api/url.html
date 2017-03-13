@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>URL | Node.js v7.7.1 Documentation</title>
+  <title>URL | Node.js v7.7.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v7.7.1 Documentation</h1>
+        <h1>Node.js v7.7.2 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -144,7 +144,7 @@
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_iterator">urlSearchParams[@@iterator]()</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToAscii(domain)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToASCII(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_require_url_domaintounicode_domain">require(&#39;url&#39;).domainToUnicode(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_percent_encoding_in_the_whatwg_url_standard">Percent-Encoding in the WHATWG URL Standard</a></span></li>
 </ul>
@@ -643,7 +643,7 @@ lies outside the range denoted above, it is ignored.</p>
 </div><p>Gets and sets the protocol portion of the URL.</p>
 <pre><code class="lang-js">const myURL = new URL(&#39;https://example.org&#39;);
 console.log(myURL.protocol);
-  // Prints http:
+  // Prints https:
 
 myURL.protocol = &#39;ftp&#39;;
 console.log(myURL.href);
@@ -871,20 +871,40 @@ for (const [name, value] of params) {
   // foo bar
   // xyz baz
 </code></pre>
-<h3>require(&#39;url&#39;).domainToAscii(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
+<h3>require(&#39;url&#39;).domainToASCII(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>.</p>
-<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToAscii()</code> method is introduced as part of
+</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
+invalid domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_require_url_domaintounicode_domain"><code>require(&#39;url&#39;).domainToUnicode()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToASCII(&#39;español.com&#39;));
+  // Prints xn--espaol-zwa.com
+console.log(url.domainToASCII(&#39;中文.com&#39;));
+  // Prints xn--fiq228c.com
+console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
+<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToASCII()</code> method is introduced as part of
 the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
 <h3>require(&#39;url&#39;).domainToUnicode(domain)<span><a class="mark" href="#url_require_url_domaintounicode_domain" id="url_require_url_domaintounicode_domain">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
 </ul>
-</div><p>Returns the Unicode serialization of the <code>domain</code>.</p>
+</div><p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
+domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_require_url_domaintoascii_domain"><code>require(&#39;url&#39;).domainToASCII()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));
+  // Prints español.com
+console.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));
+  // Prints 中文.com
+console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
 <p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the
 the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
 <p><a id="whatwg-percent-encoding"></a></p>

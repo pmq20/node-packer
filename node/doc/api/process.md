@@ -276,9 +276,9 @@ lead to sub-optimal application performance, bugs or security vulnerabilities.
 The listener function is called with a single `warning` argument whose value is
 an `Error` object. There are three key properties that describe the warning:
 
-* `name` {String} The name of the warning (currently `Warning` by default).
-* `message` {String} A system-provided description of the warning.
-* `stack` {String} A stack trace to the location in the code where the warning
+* `name` {string} The name of the warning (currently `Warning` by default).
+* `message` {string} A system-provided description of the warning.
+* `stack` {string} A stack trace to the location in the code where the warning
   was issued.
 
 ```js
@@ -416,7 +416,7 @@ generate a core file.
 added: v0.5.0
 -->
 
-* {String}
+* {string}
 
 The `process.arch` property returns a String identifying the processor
 architecture that the Node.js process is currently running on. For instance
@@ -470,7 +470,7 @@ Would generate the output:
 added: 6.4.0
 -->
 
-* {String}
+* {string}
 
 The `process.argv0` property stores a read-only copy of the original value of
 `argv[0]` passed when Node.js starts.
@@ -498,7 +498,7 @@ property is `undefined`.
 added: v0.1.17
 -->
 
-* `directory` {String}
+* `directory` {string}
 
 The `process.chdir()` method changes the current working directory of the
 Node.js process or throws an exception if doing so fails (for instance, if
@@ -565,7 +565,7 @@ replace the value of `process.config`.
 added: v0.7.2
 -->
 
-* {Boolean}
+* {boolean}
 
 If the Node.js process is spawned with an IPC channel (see the [Child Process][]
 and [Cluster][] documentation), the `process.connected` property will return
@@ -583,8 +583,8 @@ added: v6.1.0
 * `previousValue` {Object} A previous return value from calling
   `process.cpuUsage()`
 * Returns: {Object}
-    * `user` {Integer}
-    * `system` {Integer}
+    * `user` {integer}
+    * `system` {integer}
 
 The `process.cpuUsage()` method returns the user and system CPU time usage of
 the current process, in an object with properties `user` and `system`, whose
@@ -612,7 +612,7 @@ console.log(process.cpuUsage(startUsage));
 added: v0.1.8
 -->
 
-* Returns: {String}
+* Returns: {string}
 
 The `process.cwd()` method returns the current working directory of the Node.js
 process.
@@ -642,8 +642,8 @@ If the Node.js process was not spawned with an IPC channel,
 added: v6.0.0
 -->
 
-* `warning` {String | Error} The warning to emit.
-* `name` {String} When `warning` is a String, `name` is the name to use
+* `warning` {string | Error} The warning to emit.
+* `name` {string} When `warning` is a String, `name` is the name to use
   for the warning. Default: `Warning`.
 * `ctor` {Function} When `warning` is a String, `ctor` is an optional
   function used to limit the generated stack trace. Default
@@ -839,7 +839,7 @@ And `process.argv`:
 added: v0.1.100
 -->
 
-* {String}
+* {string}
 
 The `process.execPath` property returns the absolute pathname of the executable
 that started the Node.js process.
@@ -856,7 +856,7 @@ For example:
 added: v0.1.13
 -->
 
-* `code` {Integer} The exit code. Defaults to `0`.
+* `code` {integer} The exit code. Defaults to `0`.
 
 The `process.exit()` method instructs Node.js to terminate the process
 synchronously with an exit status of `code`. If `code` is omitted, exit uses
@@ -921,7 +921,7 @@ is safer than calling `process.exit()`.
 added: v0.11.8
 -->
 
-* {Integer}
+* {integer}
 
 A number which will be the process exit code, when the process either
 exits gracefully, or is exited via [`process.exit()`][] without specifying
@@ -1006,7 +1006,7 @@ Android)
 added: v0.1.28
 -->
 
-* Returns: {Integer}
+* Returns: {integer}
 
 The `process.getuid()` method returns the numeric user identity of the process.
 (See getuid(2).)
@@ -1058,8 +1058,8 @@ passing the result to process.hrtime() will result in undefined behavior.
 added: v0.9.4
 -->
 
-* `user` {String|number} The user name or numeric identifier.
-* `extra_group` {String|number} A group name or numeric identifier.
+* `user` {string|number} The user name or numeric identifier.
+* `extra_group` {string|number} A group name or numeric identifier.
 
 The `process.initgroups()` method reads the `/etc/group` file and initializes
 the group access list, using all groups of which the user is a member. This is
@@ -1085,7 +1085,7 @@ added: v0.0.6
 -->
 
 * `pid` {number} A process ID
-* `signal` {String|number} The signal to send, either as a string or number.
+* `signal` {string|number} The signal to send, either as a string or number.
   Defaults to `'SIGTERM'`.
 
 The `process.kill()` method sends the `signal` to the process identified by
@@ -1145,10 +1145,10 @@ changes:
 -->
 
 * Returns: {Object}
-    * `rss` {Integer}
-    * `heapTotal` {Integer}
-    * `heapUsed` {Integer}
-    * `external` {Integer}
+    * `rss` {integer}
+    * `heapTotal` {integer}
+    * `heapUsed` {integer}
+    * `external` {integer}
 
 The `process.memoryUsage()` method returns an object describing the memory usage
 of the Node.js process measured in bytes.
@@ -1274,7 +1274,7 @@ happening, just like a `while(true);` loop.
 added: v0.1.15
 -->
 
-* {Integer}
+* {integer}
 
 The `process.pid` property returns the PID of the process.
 
@@ -1287,7 +1287,7 @@ console.log(`This process is pid ${process.pid}`);
 added: v0.1.16
 -->
 
-* {String}
+* {string}
 
 The `process.platform` property returns a string identifying the operating
 system platform on which the Node.js process is running. For instance
@@ -1312,19 +1312,19 @@ tarball.
 
 `process.release` contains the following properties:
 
-* `name` {String} A value that will always be `'node'` for Node.js. For
+* `name` {string} A value that will always be `'node'` for Node.js. For
   legacy io.js releases, this will be `'io.js'`.
-* `sourceUrl` {String} an absolute URL pointing to a _`.tar.gz`_ file containing
+* `sourceUrl` {string} an absolute URL pointing to a _`.tar.gz`_ file containing
   the source code of the current release.
-* `headersUrl`{String} an absolute URL pointing to a _`.tar.gz`_ file containing
+* `headersUrl`{string} an absolute URL pointing to a _`.tar.gz`_ file containing
   only the source header files for the current release. This file is
   significantly smaller than the full source file and can be used for compiling
   Node.js native add-ons.
-* `libUrl` {String} an absolute URL pointing to a _`node.lib`_ file matching the
+* `libUrl` {string} an absolute URL pointing to a _`node.lib`_ file matching the
   architecture and version of the current release. This file is used for
   compiling Node.js native add-ons. _This property is only present on Windows
   builds of Node.js and will be missing on all other platforms._
-* `lts` {String} a string label identifying the [LTS][] label for this release.
+* `lts` {string} a string label identifying the [LTS][] label for this release.
   If the Node.js release is not an LTS release, this will be `undefined`.
 
 For example:
@@ -1352,7 +1352,7 @@ added: v0.5.9
 * `sendHandle` {Handle object}
 * `options` {Object}
 * `callback` {Function}
-* Returns: {Boolean}
+* Returns: {boolean}
 
 If Node.js is spawned with an IPC channel, the `process.send()` method can be
 used to send messages to the parent process. Messages will be received as a
@@ -1369,7 +1369,7 @@ If Node.js was not spawned with an IPC channel, `process.send()` will be
 added: v2.0.0
 -->
 
-* `id` {String|number} A group name or ID
+* `id` {string|number} A group name or ID
 
 The `process.setegid()` method sets the effective group identity of the process.
 (See setegid(2).) The `id` can be passed as either a numeric ID or a group
@@ -1398,7 +1398,7 @@ Android)
 added: v2.0.0
 -->
 
-* `id` {String|number} A user name or ID
+* `id` {string|number} A user name or ID
 
 The `process.seteuid()` method sets the effective user identity of the process.
 (See seteuid(2).) The `id` can be passed as either a numeric ID or a username
@@ -1426,7 +1426,7 @@ Android)
 added: v0.1.31
 -->
 
-* `id` {String|number} The group name or ID
+* `id` {string|number} The group name or ID
 
 The `process.setgid()` method sets the group identity of the process. (See
 setgid(2).)  The `id` can be passed as either a numeric ID or a group name
@@ -1604,7 +1604,7 @@ See the [TTY][] documentation for more information.
 added: v0.1.104
 -->
 
-* {String}
+* {string}
 
 The `process.title` property returns the current process title (i.e. returns
 the current value of `ps`). Assigning a new value to `process.title` modifies
@@ -1645,7 +1645,7 @@ console.log(
 added: v0.5.0
 -->
 
-* Returns: {Number}
+* Returns: {number}
 
 The `process.uptime()` method returns the number of seconds the current Node.js
 process has been running.
@@ -1655,7 +1655,7 @@ process has been running.
 added: v0.1.3
 -->
 
-* {String}
+* {string}
 
 The `process.version` property returns the Node.js version string.
 
@@ -1761,6 +1761,8 @@ cases:
 [`Error`]: errors.html#errors_class_error
 [`EventEmitter`]: events.html#events_class_eventemitter
 [`JSON.stringify()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+[`console.error()`]: console.html#console_console_error_data_args
+[`console.log()`]: console.html#console_console_log_data_args
 [`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
 [`process.argv`]: #process_process_argv

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v7.7.2 Documentation</title>
+  <title>DNS | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -121,7 +121,7 @@
 
       <div id="apicontent">
         <h1>DNS<span><a class="mark" href="#dns_dns" id="dns_dns">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>dns</code> module contains functions belonging to two different categories:</p>
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>dns</code> module contains functions belonging to two different categories:</p>
 <p>1) Functions that use the underlying operating system facilities to perform
 name resolution, and that do not necessarily perform any network communication.
 This category contains only one function: <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>. <strong>Developers
@@ -187,15 +187,15 @@ not provided, then IPv4 and IPv6 addresses are both valid. If <code>options</cod
 an integer, then it must be <code>4</code> or <code>6</code>.</p>
 <p>Alternatively, <code>options</code> can be an object containing these properties:</p>
 <ul>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - The record family. If present, must be the integer
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - The record family. If present, must be the integer
 <code>4</code> or <code>6</code>. If not provided, both IP v4 and v6 addresses are accepted.</li>
-<li><code>hints</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - If present, it should be one or more of the supported
+<li><code>hints</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - If present, it should be one or more of the supported
 <code>getaddrinfo</code> flags. If <code>hints</code> is not provided, then no flags are passed to
 <code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by bitwise
 <code>OR</code>ing their values.
 See <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a> for more information on supported
 flags.</li>
-<li><code>all</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> - When <code>true</code>, the callback returns all resolved addresses
+<li><code>all</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> - When <code>true</code>, the callback returns all resolved addresses
 in an array, otherwise returns a single address. Defaults to <code>false</code>.</li>
 </ul>
 <p>All properties are optional.</p>
@@ -304,9 +304,9 @@ one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
 will contain an array of IPv4 addresses (e.g.
 <code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>
 <ul>
-<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Hostname to resolve.</li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
+<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
 The callback receives an array of <code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects
 rather than an array of strings.  The TTL is expressed in seconds.</li>
 </ul>
@@ -330,9 +330,9 @@ rather than an array of strings.  The TTL is expressed in seconds.</li>
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
 will contain an array of IPv6 addresses.</p>
 <ul>
-<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Hostname to resolve.</li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
+<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
 The callback receives an array of <code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code>
 objects rather than an array of strings.  The TTL is expressed in seconds.</li>
 </ul>

@@ -28,9 +28,9 @@
               },
               "params": [
                 {
-                  "textRaw": "`section` {String} A string identifying the portion of the application for which the `debuglog` function is being created. ",
+                  "textRaw": "`section` {string} A string identifying the portion of the application for which the `debuglog` function is being created. ",
                   "name": "section",
-                  "type": "String",
+                  "type": "string",
                   "desc": "A string identifying the portion of the application for which the `debuglog` function is being created."
                 }
               ]
@@ -83,9 +83,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`format` {String} A `printf`-like format string. ",
+                  "textRaw": "`format` {string} A `printf`-like format string. ",
                   "name": "format",
-                  "type": "String",
+                  "type": "string",
                   "desc": "A `printf`-like format string."
                 },
                 {
@@ -341,9 +341,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`string` {String} The message to print to `stderr` ",
+                      "textRaw": "`string` {string} The message to print to `stderr` ",
                       "name": "string",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The message to print to `stderr`"
                     }
                   ]
@@ -377,9 +377,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`...strings` {String} The message to print to `stderr` ",
+                      "textRaw": "`...strings` {string} The message to print to `stderr` ",
                       "name": "...strings",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The message to print to `stderr`",
                       "optional": true
                     }
@@ -940,9 +940,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`string` {String} ",
+                      "textRaw": "`string` {string} ",
                       "name": "string",
-                      "type": "String"
+                      "type": "string"
                     }
                   ]
                 },

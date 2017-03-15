@@ -284,14 +284,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
@@ -332,14 +332,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 }
               ]
@@ -388,40 +388,40 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Number} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|number} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Number",
+                  "type": "string|Buffer|number",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {string|Buffer} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string|null} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `'utf8'`"
                     },
                     {
-                      "textRaw": "`mode` {Integer} default = `0o666` ",
+                      "textRaw": "`mode` {integer} default = `0o666` ",
                       "name": "mode",
-                      "type": "Integer",
+                      "type": "integer",
                       "desc": "default = `0o666`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'a'` ",
+                      "textRaw": "`flag` {string} default = `'a'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'a'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 },
                 {
@@ -476,40 +476,40 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Number} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|number} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Number",
+                  "type": "string|Buffer|number",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer} ",
+                  "textRaw": "`data` {string|Buffer} ",
                   "name": "data",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string|null} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `'utf8'`"
                     },
                     {
-                      "textRaw": "`mode` {Integer} default = `0o666` ",
+                      "textRaw": "`mode` {integer} default = `0o666` ",
                       "name": "mode",
-                      "type": "Integer",
+                      "type": "integer",
                       "desc": "default = `0o666`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'a'` ",
+                      "textRaw": "`flag` {string} default = `'a'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'a'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 }
               ]
@@ -551,14 +551,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -597,14 +597,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -641,19 +641,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -695,19 +695,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -747,9 +747,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -785,9 +785,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -826,51 +826,51 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`flags` {String} ",
+                      "textRaw": "`flags` {string} ",
                       "name": "flags",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`encoding` {String} ",
+                      "textRaw": "`encoding` {string} ",
                       "name": "encoding",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`fd` {Integer} ",
+                      "textRaw": "`fd` {integer} ",
                       "name": "fd",
-                      "type": "Integer"
+                      "type": "integer"
                     },
                     {
-                      "textRaw": "`mode` {Integer} ",
+                      "textRaw": "`mode` {integer} ",
                       "name": "mode",
-                      "type": "Integer"
+                      "type": "integer"
                     },
                     {
-                      "textRaw": "`autoClose` {Boolean} ",
+                      "textRaw": "`autoClose` {boolean} ",
                       "name": "autoClose",
-                      "type": "Boolean"
+                      "type": "boolean"
                     },
                     {
-                      "textRaw": "`start` {Integer} ",
+                      "textRaw": "`start` {integer} ",
                       "name": "start",
-                      "type": "Integer"
+                      "type": "integer"
                     },
                     {
-                      "textRaw": "`end` {Integer} ",
+                      "textRaw": "`end` {integer} ",
                       "name": "end",
-                      "type": "Integer"
+                      "type": "integer"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -919,46 +919,46 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`flags` {String} ",
+                      "textRaw": "`flags` {string} ",
                       "name": "flags",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`defaultEncoding` {String} ",
+                      "textRaw": "`defaultEncoding` {string} ",
                       "name": "defaultEncoding",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`fd` {Integer} ",
+                      "textRaw": "`fd` {integer} ",
                       "name": "fd",
-                      "type": "Integer"
+                      "type": "integer"
                     },
                     {
-                      "textRaw": "`mode` {Integer} ",
+                      "textRaw": "`mode` {integer} ",
                       "name": "mode",
-                      "type": "Integer"
+                      "type": "integer"
                     },
                     {
-                      "textRaw": "`autoClose` {Boolean} ",
+                      "textRaw": "`autoClose` {boolean} ",
                       "name": "autoClose",
-                      "type": "Boolean"
+                      "type": "boolean"
                     },
                     {
-                      "textRaw": "`start` {Integer} ",
+                      "textRaw": "`start` {integer} ",
                       "name": "start",
-                      "type": "Integer"
+                      "type": "integer"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -996,9 +996,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1034,9 +1034,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -1070,14 +1070,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1116,14 +1116,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1160,19 +1160,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1214,19 +1214,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1266,9 +1266,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1304,9 +1304,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1340,9 +1340,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1378,9 +1378,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1414,9 +1414,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1452,9 +1452,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1488,14 +1488,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`len` {Integer} default = `0` ",
+                  "textRaw": "`len` {integer} default = `0` ",
                   "name": "len",
-                  "type": "Integer",
+                  "type": "integer",
                   "desc": "default = `0`"
                 },
                 {
@@ -1535,14 +1535,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`len` {Integer} default = `0` ",
+                  "textRaw": "`len` {integer} default = `0` ",
                   "name": "len",
-                  "type": "Integer",
+                  "type": "integer",
                   "desc": "default = `0`"
                 }
               ]
@@ -1585,19 +1585,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`atime` {Integer} ",
+                  "textRaw": "`atime` {integer} ",
                   "name": "atime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mtime` {Integer} ",
+                  "textRaw": "`mtime` {integer} ",
                   "name": "mtime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1645,19 +1645,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`atime` {Integer} ",
+                  "textRaw": "`atime` {integer} ",
                   "name": "atime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mtime` {Integer} ",
+                  "textRaw": "`mtime` {integer} ",
                   "name": "mtime",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1697,14 +1697,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1743,14 +1743,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1787,19 +1787,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1841,19 +1841,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`uid` {Integer} ",
+                  "textRaw": "`uid` {integer} ",
                   "name": "uid",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`gid` {Integer} ",
+                  "textRaw": "`gid` {integer} ",
                   "name": "gid",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -1893,14 +1893,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`existingPath` {String | Buffer} ",
+                  "textRaw": "`existingPath` {string|Buffer} ",
                   "name": "existingPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`newPath` {String | Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer} ",
                   "name": "newPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1939,14 +1939,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`existingPath` {String | Buffer} ",
+                  "textRaw": "`existingPath` {string|Buffer} ",
                   "name": "existingPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`newPath` {String | Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer} ",
                   "name": "newPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -1983,9 +1983,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -2021,9 +2021,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -2057,14 +2057,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
@@ -2105,14 +2105,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 }
               ]
@@ -2156,22 +2156,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`prefix` {String} ",
+                  "textRaw": "`prefix` {string} ",
                   "name": "prefix",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 },
                 {
@@ -2212,22 +2212,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`prefix` {String} ",
+                  "textRaw": "`prefix` {string} ",
                   "name": "prefix",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -2260,19 +2260,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`flags` {String | Number} ",
+                  "textRaw": "`flags` {string|number} ",
                   "name": "flags",
-                  "type": "String | Number"
+                  "type": "string|number"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
@@ -2316,19 +2316,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`flags` {String | Number} ",
+                  "textRaw": "`flags` {string|number} ",
                   "name": "flags",
-                  "type": "String | Number"
+                  "type": "string|number"
                 },
                 {
-                  "textRaw": "`mode` {Integer} ",
+                  "textRaw": "`mode` {integer} ",
                   "name": "mode",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 }
               ]
@@ -2375,29 +2375,29 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
+                  "textRaw": "`buffer` {string|Buffer|Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer | Uint8Array"
+                  "type": "string|Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`offset` {Integer} ",
+                  "textRaw": "`offset` {integer} ",
                   "name": "offset",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`length` {Integer} ",
+                  "textRaw": "`length` {integer} ",
                   "name": "length",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -2451,22 +2451,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 },
                 {
@@ -2507,22 +2507,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -2571,29 +2571,29 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Integer",
+                  "type": "string|Buffer|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `null` ",
+                      "textRaw": "`encoding` {string|null} default = `null` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `null`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'r'` ",
+                      "textRaw": "`flag` {string} default = `'r'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'r'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 },
                 {
@@ -2640,29 +2640,29 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Integer",
+                  "type": "string|Buffer|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `null` ",
+                      "textRaw": "`encoding` {string|null} default = `null` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `null`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'r'` ",
+                      "textRaw": "`flag` {string} default = `'r'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'r'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 }
               ]
@@ -2701,22 +2701,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 },
                 {
@@ -2757,22 +2757,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -2811,29 +2811,29 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {String | Buffer | Uint8Array} ",
+                  "textRaw": "`buffer` {string|Buffer|Uint8Array} ",
                   "name": "buffer",
-                  "type": "String | Buffer | Uint8Array"
+                  "type": "string|Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`offset` {Integer} ",
+                  "textRaw": "`offset` {integer} ",
                   "name": "offset",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`length` {Integer} ",
+                  "textRaw": "`length` {integer} ",
                   "name": "length",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -2889,22 +2889,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 },
                 {
@@ -2956,23 +2956,23 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer}; ",
+                  "textRaw": "`path` {string|Buffer}; ",
                   "name": "path",
-                  "type": "String | Buffer",
+                  "type": "string|Buffer",
                   "desc": ";"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 }
               ]
@@ -3011,14 +3011,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`oldPath` {String | Buffer} ",
+                  "textRaw": "`oldPath` {string|Buffer} ",
                   "name": "oldPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`newPath` {String | Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer} ",
                   "name": "newPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3057,14 +3057,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`oldPath` {String | Buffer} ",
+                  "textRaw": "`oldPath` {string|Buffer} ",
                   "name": "oldPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`newPath` {String | Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer} ",
                   "name": "newPath",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -3101,9 +3101,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3139,9 +3139,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -3175,9 +3175,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3213,9 +3213,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -3243,19 +3243,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`target` {String | Buffer} ",
+                  "textRaw": "`target` {string|Buffer} ",
                   "name": "target",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`type` {String} ",
+                  "textRaw": "`type` {string} ",
                   "name": "type",
-                  "type": "String",
+                  "type": "string",
                   "optional": true
                 },
                 {
@@ -3299,19 +3299,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`target` {String | Buffer} ",
+                  "textRaw": "`target` {string|Buffer} ",
                   "name": "target",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`type` {String} ",
+                  "textRaw": "`type` {string} ",
                   "name": "type",
-                  "type": "String",
+                  "type": "string",
                   "optional": true
                 }
               ]
@@ -3353,14 +3353,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`len` {Integer} default = `0` ",
+                  "textRaw": "`len` {integer} default = `0` ",
                   "name": "len",
-                  "type": "Integer",
+                  "type": "integer",
                   "desc": "default = `0`"
                 },
                 {
@@ -3400,14 +3400,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`len` {Integer} default = `0` ",
+                  "textRaw": "`len` {integer} default = `0` ",
                   "name": "len",
-                  "type": "Integer",
+                  "type": "integer",
                   "desc": "default = `0`"
                 }
               ]
@@ -3445,9 +3445,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3483,9 +3483,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 }
               ]
             },
@@ -3513,9 +3513,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {String | Buffer} ",
+                  "textRaw": "`filename` {string|Buffer} ",
                   "name": "filename",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`listener` {Function} ",
@@ -3564,19 +3564,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`atime` {Integer} ",
+                  "textRaw": "`atime` {integer} ",
                   "name": "atime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mtime` {Integer} ",
+                  "textRaw": "`mtime` {integer} ",
                   "name": "mtime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3624,19 +3624,19 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {String | Buffer} ",
+                  "textRaw": "`path` {string|Buffer} ",
                   "name": "path",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`atime` {Integer} ",
+                  "textRaw": "`atime` {integer} ",
                   "name": "atime",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`mtime` {Integer} ",
+                  "textRaw": "`mtime` {integer} ",
                   "name": "mtime",
-                  "type": "Integer"
+                  "type": "integer"
                 }
               ]
             },
@@ -3676,34 +3676,34 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {String | Buffer} ",
+                  "textRaw": "`filename` {string|Buffer} ",
                   "name": "filename",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
-                  "textRaw": "`options` {String | Object} ",
+                  "textRaw": "`options` {string|Object} ",
                   "options": [
                     {
-                      "textRaw": "`persistent` {Boolean} Indicates whether the process should continue to run as long as files are being watched. default = `true` ",
+                      "textRaw": "`persistent` {boolean} Indicates whether the process should continue to run as long as files are being watched. default = `true` ",
                       "name": "persistent",
-                      "type": "Boolean",
+                      "type": "boolean",
                       "desc": "Indicates whether the process should continue to run as long as files are being watched. default = `true`"
                     },
                     {
-                      "textRaw": "`recursive` {Boolean} Indicates whether all subdirectories should be watched, or only the current directory. The applies when a directory is specified, and only on supported platforms (See [Caveats][]). default = `false` ",
+                      "textRaw": "`recursive` {boolean} Indicates whether all subdirectories should be watched, or only the current directory. The applies when a directory is specified, and only on supported platforms (See [Caveats][]). default = `false` ",
                       "name": "recursive",
-                      "type": "Boolean",
+                      "type": "boolean",
                       "desc": "Indicates whether all subdirectories should be watched, or only the current directory. The applies when a directory is specified, and only on supported platforms (See [Caveats][]). default = `false`"
                     },
                     {
-                      "textRaw": "`encoding` {String} Specifies the character encoding to be used for the  filename passed to the listener. default = `'utf8'` ",
+                      "textRaw": "`encoding` {string} Specifies the character encoding to be used for the  filename passed to the listener. default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String",
+                      "type": "string",
                       "desc": "Specifies the character encoding to be used for the  filename passed to the listener. default = `'utf8'`"
                     }
                   ],
                   "name": "options",
-                  "type": "String | Object",
+                  "type": "string|Object",
                   "optional": true
                 },
                 {
@@ -3774,22 +3774,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {String | Buffer} ",
+                  "textRaw": "`filename` {string|Buffer} ",
                   "name": "filename",
-                  "type": "String | Buffer"
+                  "type": "string|Buffer"
                 },
                 {
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`persistent` {Boolean} ",
+                      "textRaw": "`persistent` {boolean} ",
                       "name": "persistent",
-                      "type": "Boolean"
+                      "type": "boolean"
                     },
                     {
-                      "textRaw": "`interval` {Integer} ",
+                      "textRaw": "`interval` {integer} ",
                       "name": "interval",
-                      "type": "Integer"
+                      "type": "integer"
                     }
                   ],
                   "name": "options",
@@ -3850,31 +3850,31 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
+                  "textRaw": "`buffer` {Buffer|Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer | Uint8Array"
+                  "type": "Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`offset` {Integer} ",
+                  "textRaw": "`offset` {integer} ",
                   "name": "offset",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`length` {Integer} ",
+                  "textRaw": "`length` {integer} ",
                   "name": "length",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
@@ -3937,25 +3937,25 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`string` {String} ",
+                  "textRaw": "`string` {string} ",
                   "name": "string",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`encoding` {String} ",
+                  "textRaw": "`encoding` {string} ",
                   "name": "encoding",
-                  "type": "String",
+                  "type": "string",
                   "optional": true
                 },
                 {
@@ -4019,40 +4019,40 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Integer",
+                  "type": "string|Buffer|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
+                  "textRaw": "`data` {string|Buffer|Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer | Uint8Array"
+                  "type": "string|Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string|null} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `'utf8'`"
                     },
                     {
-                      "textRaw": "`mode` {Integer} default = `0o666` ",
+                      "textRaw": "`mode` {integer} default = `0o666` ",
                       "name": "mode",
-                      "type": "Integer",
+                      "type": "integer",
                       "desc": "default = `0o666`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'w'` ",
+                      "textRaw": "`flag` {string} default = `'w'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'w'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 },
                 {
@@ -4107,40 +4107,40 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {String | Buffer | Integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "String | Buffer | Integer",
+                  "type": "string|Buffer|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {String | Buffer | Uint8Array} ",
+                  "textRaw": "`data` {string|Buffer|Uint8Array} ",
                   "name": "data",
-                  "type": "String | Buffer | Uint8Array"
+                  "type": "string|Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`options` {Object | String} ",
+                  "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {String | Null} default = `'utf8'` ",
+                      "textRaw": "`encoding` {string|null} default = `'utf8'` ",
                       "name": "encoding",
-                      "type": "String | Null",
+                      "type": "string|null",
                       "desc": "default = `'utf8'`"
                     },
                     {
-                      "textRaw": "`mode` {Integer} default = `0o666` ",
+                      "textRaw": "`mode` {integer} default = `0o666` ",
                       "name": "mode",
-                      "type": "Integer",
+                      "type": "integer",
                       "desc": "default = `0o666`"
                     },
                     {
-                      "textRaw": "`flag` {String} default = `'w'` ",
+                      "textRaw": "`flag` {string} default = `'w'` ",
                       "name": "flag",
-                      "type": "String",
+                      "type": "string",
                       "desc": "default = `'w'`"
                     }
                   ],
                   "name": "options",
-                  "type": "Object | String",
+                  "type": "Object|string",
                   "optional": true
                 }
               ]
@@ -4187,31 +4187,31 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer | Uint8Array} ",
+                  "textRaw": "`buffer` {Buffer|Uint8Array} ",
                   "name": "buffer",
-                  "type": "Buffer | Uint8Array"
+                  "type": "Buffer|Uint8Array"
                 },
                 {
-                  "textRaw": "`offset` {Integer} ",
+                  "textRaw": "`offset` {integer} ",
                   "name": "offset",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`length` {Integer} ",
+                  "textRaw": "`length` {integer} ",
                   "name": "length",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 }
               ]
@@ -4261,25 +4261,25 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {Integer} ",
+                  "textRaw": "`fd` {integer} ",
                   "name": "fd",
-                  "type": "Integer"
+                  "type": "integer"
                 },
                 {
-                  "textRaw": "`string` {String} ",
+                  "textRaw": "`string` {string} ",
                   "name": "string",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`position` {Integer} ",
+                  "textRaw": "`position` {integer} ",
                   "name": "position",
-                  "type": "Integer",
+                  "type": "integer",
                   "optional": true
                 },
                 {
-                  "textRaw": "`encoding` {String} ",
+                  "textRaw": "`encoding` {string} ",
                   "name": "encoding",
-                  "type": "String",
+                  "type": "string",
                   "optional": true
                 }
               ]

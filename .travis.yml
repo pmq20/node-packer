@@ -1,6 +1,6 @@
 language: node_js
 
-node_js: 7.7.2
+node_js: 7.7.3
 
 os:
   - linux

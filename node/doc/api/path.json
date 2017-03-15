@@ -36,20 +36,20 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`ext` {String} An optional file extension ",
+                  "textRaw": "`ext` {string} An optional file extension ",
                   "name": "ext",
-                  "type": "String",
+                  "type": "string",
                   "desc": "An optional file extension",
                   "optional": true
                 }
@@ -88,15 +88,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -129,15 +129,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -164,38 +164,38 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
                   "textRaw": "`pathObject` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`dir` {String} ",
+                      "textRaw": "`dir` {string} ",
                       "name": "dir",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`root` {String} ",
+                      "textRaw": "`root` {string} ",
                       "name": "root",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`base` {String} ",
+                      "textRaw": "`base` {string} ",
                       "name": "base",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`name` {String} ",
+                      "textRaw": "`name` {string} ",
                       "name": "name",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`ext` {String} ",
+                      "textRaw": "`ext` {string} ",
                       "name": "ext",
-                      "type": "String"
+                      "type": "string"
                     }
                   ],
                   "name": "pathObject",
@@ -226,15 +226,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {Boolean} ",
+                "textRaw": "Returns: {boolean} ",
                 "name": "return",
-                "type": "Boolean"
+                "type": "boolean"
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -261,15 +261,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`...paths` {String} A sequence of path segments ",
+                  "textRaw": "`...paths` {string} A sequence of path segments ",
                   "name": "...paths",
-                  "type": "String",
+                  "type": "string",
                   "desc": "A sequence of path segments",
                   "optional": true
                 }
@@ -299,15 +299,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -340,9 +340,9 @@
               },
               "params": [
                 {
-                  "textRaw": "`path` {String} ",
+                  "textRaw": "`path` {string} ",
                   "name": "path",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -354,7 +354,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>path.parse()</code> method returns an object whose properties represent\nsignificant elements of the <code>path</code>.</p>\n<p>The returned object will have the following properties:</p>\n<ul>\n<li><code>root</code> {String}</li>\n<li><code>dir</code> {String}</li>\n<li><code>base</code> {String}</li>\n<li><code>ext</code> {String}</li>\n<li><code>name</code> {String}</li>\n</ul>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;/home/user/dir/file.txt&#39;)\n// Returns:\n// {\n//    root : &quot;/&quot;,\n//    dir : &quot;/home/user/dir&quot;,\n//    base : &quot;file.txt&quot;,\n//    ext : &quot;.txt&quot;,\n//    name : &quot;file&quot;\n// }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot;  /    home/user/dir / file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;C:\\\\path\\\\dir\\\\file.txt&#39;)\n// Returns:\n// {\n//    root : &quot;C:\\\\&quot;,\n//    dir : &quot;C:\\\\path\\\\dir&quot;,\n//    base : &quot;file.txt&quot;,\n//    ext : &quot;.txt&quot;,\n//    name : &quot;file&quot;\n// }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot; C:\\      path\\dir   \\ file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+          "desc": "<p>The <code>path.parse()</code> method returns an object whose properties represent\nsignificant elements of the <code>path</code>.</p>\n<p>The returned object will have the following properties:</p>\n<ul>\n<li><code>root</code> {string}</li>\n<li><code>dir</code> {string}</li>\n<li><code>base</code> {string}</li>\n<li><code>ext</code> {string}</li>\n<li><code>name</code> {string}</li>\n</ul>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;/home/user/dir/file.txt&#39;)\n// Returns:\n// {\n//    root : &quot;/&quot;,\n//    dir : &quot;/home/user/dir&quot;,\n//    base : &quot;file.txt&quot;,\n//    ext : &quot;.txt&quot;,\n//    name : &quot;file&quot;\n// }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot;  /    home/user/dir / file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;C:\\\\path\\\\dir\\\\file.txt&#39;)\n// Returns:\n// {\n//    root : &quot;C:\\\\&quot;,\n//    dir : &quot;C:\\\\path\\\\dir&quot;,\n//    base : &quot;file.txt&quot;,\n//    ext : &quot;.txt&quot;,\n//    name : &quot;file&quot;\n// }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot; C:\\      path\\dir   \\ file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
         },
         {
           "textRaw": "path.relative(from, to)",
@@ -375,20 +375,20 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`from` {String} ",
+                  "textRaw": "`from` {string} ",
                   "name": "from",
-                  "type": "String"
+                  "type": "string"
                 },
                 {
-                  "textRaw": "`to` {String} ",
+                  "textRaw": "`to` {string} ",
                   "name": "to",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -418,15 +418,15 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {String} ",
+                "textRaw": "Returns: {string} ",
                 "name": "return",
-                "type": "String"
+                "type": "string"
               },
               "params": [
                 {
-                  "textRaw": "`...paths` {String} A sequence of paths or path segments ",
+                  "textRaw": "`...paths` {string} A sequence of paths or path segments ",
                   "name": "...paths",
-                  "type": "String",
+                  "type": "string",
                   "desc": "A sequence of paths or path segments",
                   "optional": true
                 }
@@ -446,8 +446,8 @@
       ],
       "properties": [
         {
-          "textRaw": "`delimiter` {String} ",
-          "type": "String",
+          "textRaw": "`delimiter` {string} ",
+          "type": "string",
           "name": "delimiter",
           "meta": {
             "added": [
@@ -470,8 +470,8 @@
           "desc": "<p>The <code>path.posix</code> property provides access to POSIX specific implementations\nof the <code>path</code> methods.</p>\n"
         },
         {
-          "textRaw": "`sep` {String} ",
-          "type": "String",
+          "textRaw": "`sep` {string} ",
+          "type": "string",
           "name": "sep",
           "meta": {
             "added": [

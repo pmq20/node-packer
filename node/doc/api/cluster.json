@@ -188,9 +188,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`signal` {String} Name of the kill signal to send to the worker process. ",
+                      "textRaw": "`signal` {string} Name of the kill signal to send to the worker process. ",
                       "name": "signal",
-                      "type": "String",
+                      "type": "string",
                       "desc": "Name of the kill signal to send to the worker process.",
                       "optional": true,
                       "default": "'SIGTERM'"
@@ -273,8 +273,8 @@
           ],
           "properties": [
             {
-              "textRaw": "`exitedAfterDisconnect` {Boolean} ",
-              "type": "Boolean",
+              "textRaw": "`exitedAfterDisconnect` {boolean} ",
+              "type": "boolean",
               "name": "exitedAfterDisconnect",
               "meta": {
                 "added": [
@@ -285,8 +285,8 @@
               "desc": "<p>Set by calling <code>.kill()</code> or <code>.disconnect()</code>. Until then, it is <code>undefined</code>.</p>\n<p>The boolean <code>worker.exitedAfterDisconnect</code> lets you distinguish between voluntary\nand accidental exit, the master may choose not to respawn a worker based on\nthis value.</p>\n<pre><code class=\"lang-js\">cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n  if (worker.exitedAfterDisconnect === true) {\n    console.log(&#39;Oh, it was just voluntary – no need to worry&#39;);\n  }\n});\n\n// kill worker\nworker.kill();\n</code></pre>\n"
             },
             {
-              "textRaw": "`id` {Number} ",
-              "type": "Number",
+              "textRaw": "`id` {number} ",
+              "type": "number",
               "name": "id",
               "meta": {
                 "added": [
@@ -527,10 +527,10 @@
                   "textRaw": "`settings` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`exec` {String} file path to worker file.  (Default=`process.argv[1]`) ",
+                      "textRaw": "`exec` {string} file path to worker file.  (Default=`process.argv[1]`) ",
                       "name": "exec",
                       "default": "process.argv[1]",
-                      "type": "String",
+                      "type": "string",
                       "desc": "file path to worker file."
                     },
                     {
@@ -541,10 +541,10 @@
                       "desc": "string arguments passed to worker."
                     },
                     {
-                      "textRaw": "`silent` {Boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
+                      "textRaw": "`silent` {boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
                       "name": "silent",
                       "default": "false",
-                      "type": "Boolean",
+                      "type": "boolean",
                       "desc": "whether or not to send output to parent's stdio."
                     },
                     {
@@ -574,8 +574,8 @@
       ],
       "properties": [
         {
-          "textRaw": "`isMaster` {Boolean} ",
-          "type": "Boolean",
+          "textRaw": "`isMaster` {boolean} ",
+          "type": "boolean",
           "name": "isMaster",
           "meta": {
             "added": [
@@ -586,8 +586,8 @@
           "desc": "<p>True if the process is a master. This is determined\nby the <code>process.env.NODE_UNIQUE_ID</code>. If <code>process.env.NODE_UNIQUE_ID</code> is\nundefined, then <code>isMaster</code> is <code>true</code>.</p>\n"
         },
         {
-          "textRaw": "`isWorker` {Boolean} ",
-          "type": "Boolean",
+          "textRaw": "`isWorker` {boolean} ",
+          "type": "boolean",
           "name": "isWorker",
           "meta": {
             "added": [
@@ -633,10 +633,10 @@
               "desc": "list of string arguments passed to the Node.js executable."
             },
             {
-              "textRaw": "`exec` {String} file path to worker file.  (Default=`process.argv[1]`) ",
+              "textRaw": "`exec` {string} file path to worker file.  (Default=`process.argv[1]`) ",
               "name": "exec",
               "default": "process.argv[1]",
-              "type": "String",
+              "type": "string",
               "desc": "file path to worker file."
             },
             {
@@ -647,10 +647,10 @@
               "desc": "string arguments passed to worker."
             },
             {
-              "textRaw": "`silent` {Boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
+              "textRaw": "`silent` {boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
               "name": "silent",
               "default": "false",
-              "type": "Boolean",
+              "type": "boolean",
               "desc": "whether or not to send output to parent's stdio."
             },
             {
@@ -660,15 +660,15 @@
               "desc": "Configures the stdio of forked processes. Because the cluster module relies on IPC to function, this configuration must contain an `'ipc'` entry. When this option is provided, it overrides `silent`."
             },
             {
-              "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+              "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
               "name": "uid",
-              "type": "Number",
+              "type": "number",
               "desc": "Sets the user identity of the process. (See setuid(2).)"
             },
             {
-              "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+              "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
               "name": "gid",
-              "type": "Number",
+              "type": "number",
               "desc": "Sets the group identity of the process. (See setgid(2).)"
             }
           ],

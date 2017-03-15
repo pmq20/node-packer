@@ -2,7 +2,7 @@
 
 ## v0.9.5
 
-- upgrade Node.js runtime to v7.7.2
+- upgrade Node.js runtime to v7.7.3
 - let Master CI use the correct Node.js version
 - add Black-box Test
 - add RAM Test

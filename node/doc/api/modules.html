@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Modules | Node.js v7.7.2 Documentation</title>
+  <title>Modules | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -123,7 +123,7 @@
 
       <div id="apicontent">
         <h1>Modules<span><a class="mark" href="#modules_modules" id="modules_modules">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=module-->
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!--name=module-->
 <p>Node.js has a simple module loading system.  In Node.js, files and modules
 are in one-to-one correspondence (each file is treated as a separate module).</p>
 <p>As an example, consider a file named <code>foo.js</code>:</p>
@@ -241,14 +241,18 @@ LOAD_AS_FILE(X)
 3. If X.json is a file, parse X.json to a JavaScript Object.  STOP
 4. If X.node is a file, load X.node as binary addon.  STOP
 
+LOAD_INDEX(X)
+1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
+2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
+3. If X/index.node is a file, load X/index.node as binary addon.  STOP
+
 LOAD_AS_DIRECTORY(X)
 1. If X/package.json is a file,
    a. Parse X/package.json, and look for &quot;main&quot; field.
    b. let M = X + (json main field)
    c. LOAD_AS_FILE(M)
-2. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
-3. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
-4. If X/index.node is a file, load X/index.node as binary addon.  STOP
+   d. LOAD_INDEX(M)
+2. LOAD_INDEX(X)
 
 LOAD_NODE_MODULES(X, START)
 1. let DIRS=NODE_MODULES_PATHS(START)
@@ -558,14 +562,14 @@ object, it is common to also reassign <code>exports</code>, for example:</p>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The fully resolved filename to the module.</p>
 <h3>module.id<span><a class="mark" href="#modules_module_id" id="modules_module_id">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The identifier for the module.  Typically this is the fully resolved
 filename.</p>
@@ -573,7 +577,7 @@ filename.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Whether or not the module is done loading, or is in the process of
 loading.</p>
@@ -588,7 +592,7 @@ loading.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
 </div><ul>
-<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <code>module.exports</code> from the resolved module</li>
 </ul>
 <p>The <code>module.require</code> method provides a way to load a module as if

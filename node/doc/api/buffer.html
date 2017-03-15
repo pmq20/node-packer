@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v7.7.2 Documentation</title>
+  <title>Buffer | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -187,7 +187,7 @@
 
       <div id="apicontent">
         <h1>Buffer<span><a class="mark" href="#buffer_buffer" id="buffer_buffer">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>Prior to the introduction of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> in ECMAScript 2015 (ES6), the
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>Prior to the introduction of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> in ECMAScript 2015 (ES6), the
 JavaScript language had no mechanism for reading or manipulating streams
 of binary data. The <code>Buffer</code> class was introduced as part of the Node.js
 API to make it possible to interact with octet streams in the context of things
@@ -475,7 +475,7 @@ It can be constructed in a variety of ways.</p>
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> instead.</pre><ul>
 <li><code>array</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> An array of bytes to copy from</li>
 </ul>
 <p>Allocates a new <code>Buffer</code> using an <code>array</code> of octets.</p>
@@ -505,11 +505,11 @@ const buf = new Buffer([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a> instead.</pre><ul>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
 <p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
@@ -552,7 +552,7 @@ console.log(buf);
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> instead.</pre><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> An existing <code>Buffer</code> to copy data from</li>
 </ul>
 <p>Copies the passed <code>buffer</code> data onto a new <code>Buffer</code> instance.</p>
@@ -584,8 +584,8 @@ console.log(buf2.toString());
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead (also see <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a>).</pre><ul>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
 <a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
@@ -621,9 +621,9 @@ console.log(buf);
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> String to encode</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> instead.</pre><ul>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> String to encode</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 <p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If
 provided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>
@@ -646,10 +646,10 @@ console.log(buf2.toString());
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
-<li><code>fill</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> A value to pre-fill the new <code>Buffer</code> with.
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
+<li><code>fill</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> A value to pre-fill the new <code>Buffer</code> with.
 <strong>Default:</strong> <code>0</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>fill</code> is a string, this is its encoding.
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>fill</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes. If <code>fill</code> is <code>undefined</code>, the
@@ -697,7 +697,7 @@ contents will <em>never contain sensitive data</em>.</p>
 </table>
 </details>
 </div><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
 <a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
@@ -734,7 +734,7 @@ additional performance that <a href="#buffer_class_method_buffer_allocunsafe_siz
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>Buffer</code></li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
 <a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
@@ -789,11 +789,11 @@ a developer has observed undue memory retention in their applications.</p>
 </table>
 </details>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> A value to
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> A value to
 calculate the length of</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>string</code> is a string, this is its encoding.
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>string</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The number of bytes contained within <code>string</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The number of bytes contained within <code>string</code></li>
 </ul>
 <p>Returns the actual byte length of a string. This is not the same as
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in
@@ -816,7 +816,7 @@ actual byte length is returned.</p>
 </div><ul>
 <li><code>buf1</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 <li><code>buf2</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Compares <code>buf1</code> to <code>buf2</code> typically for the purpose of sorting arrays of
 <code>Buffer</code> instances. This is equivalent to calling
@@ -835,7 +835,7 @@ console.log(arr.sort(Buffer.compare));
 <span>Added in: v0.7.11</span>
 </div><ul>
 <li><code>list</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> List of <code>Buffer</code> instances to concat</li>
-<li><code>totalLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Total length of the <code>Buffer</code> instances in <code>list</code>
+<li><code>totalLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Total length of the <code>Buffer</code> instances in <code>list</code>
 when concatenated</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
@@ -882,8 +882,8 @@ const buf = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 </div><ul>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> An <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or the <code>.buffer</code> property of a
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>.</li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes to expose.
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Index of first byte to expose. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number of bytes to expose.
 <strong>Default:</strong> <code>arrayBuffer.length - byteOffset</code></li>
 </ul>
 <p>This creates a view of the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> without copying the underlying
@@ -942,8 +942,8 @@ console.log(buf2.toString());
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A string to encode.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string to encode.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 <p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If
 provided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>
@@ -968,15 +968,15 @@ console.log(buf2.toString());
 <span>Added in: v0.1.101</span>
 </div><ul>
 <li><code>obj</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Returns <code>true</code> if <code>obj</code> is a <code>Buffer</code>, <code>false</code> otherwise.</p>
 <h3>Class Method: Buffer.isEncoding(encoding)<span><a class="mark" href="#buffer_class_method_buffer_isencoding_encoding" id="buffer_class_method_buffer_isencoding_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> A character encoding name to check</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A character encoding name to check</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Returns <code>true</code> if <code>encoding</code> contains a supported character encoding, or <code>false</code>
 otherwise.</p>
@@ -984,7 +984,7 @@ otherwise.</p>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <strong>Default:</strong> <code>8192</code></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>8192</code></li>
 </ul>
 <p>This is the number of bytes used to determine the size of pre-allocated, internal
 <code>Buffer</code> instances used for pooling. This value may be modified.</p>
@@ -1020,17 +1020,17 @@ console.log(buf.toString(&#39;ascii&#39;));
 </details>
 </div><ul>
 <li><code>target</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> to compare to</li>
-<li><code>targetStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>target</code> at which to begin
+<li><code>targetStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>target</code> at which to begin
 comparison. <strong>Default:</strong> <code>0</code></li>
-<li><code>targetEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset with <code>target</code> at which to end comparison
+<li><code>targetEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset with <code>target</code> at which to end comparison
 (not inclusive). Ignored when <code>targetStart</code> is <code>undefined</code>.
 <strong>Default:</strong> <code>target.length</code></li>
-<li><code>sourceStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>buf</code> at which to begin comparison.
+<li><code>sourceStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>buf</code> at which to begin comparison.
 Ignored when <code>targetStart</code> is <code>undefined</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>sourceEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>buf</code> at which to end comparison
+<li><code>sourceEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>buf</code> at which to end comparison
 (not inclusive). Ignored when <code>targetStart</code> is <code>undefined</code>.
 <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Compares <code>buf</code> with <code>target</code> and returns a number indicating whether <code>buf</code>
 comes before, after, or is the same as <code>target</code> in sort order.
@@ -1087,13 +1087,13 @@ console.log(buf1.compare(buf2, 5, 6, 5));
 <span>Added in: v0.1.90</span>
 </div><ul>
 <li><code>target</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> A <code>Buffer</code> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array"><code>Uint8Array</code></a> to copy into.</li>
-<li><code>targetStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>target</code> at which to begin
+<li><code>targetStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>target</code> at which to begin
 copying to. <strong>Default:</strong> <code>0</code></li>
-<li><code>sourceStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>buf</code> at which to begin copying from.
+<li><code>sourceStart</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>buf</code> at which to begin copying from.
 Ignored when <code>targetStart</code> is <code>undefined</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>sourceEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The offset within <code>buf</code> at which to stop copying (not
+<li><code>sourceEnd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The offset within <code>buf</code> at which to stop copying (not
 inclusive). Ignored when <code>sourceStart</code> is <code>undefined</code>. <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The number of bytes copied.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The number of bytes copied.</li>
 </ul>
 <p>Copies data from a region of <code>buf</code> to a region in <code>target</code> even if the <code>target</code>
 memory region overlaps with <code>buf</code>.</p>
@@ -1153,7 +1153,7 @@ for (const pair of buf.entries()) {
 <span>Added in: v0.11.13</span>
 </div><ul>
 <li><code>otherBuffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> to compare to</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Returns <code>true</code> if both <code>buf</code> and <code>otherBuffer</code> have exactly the same bytes,
 <code>false</code> otherwise.</p>
@@ -1182,10 +1182,10 @@ console.log(buf1.equals(buf3));
 </table>
 </details>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The value to fill <code>buf</code> with</li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start filling <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to stop filling <code>buf</code> (not inclusive). <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>value</code> is a string, this is its encoding.
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The value to fill <code>buf</code> with</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start filling <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
+<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to stop filling <code>buf</code> (not inclusive). <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>value</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A reference to <code>buf</code></li>
 </ul>
@@ -1209,11 +1209,11 @@ console.log(Buffer.allocUnsafe(3).fill(&#39;\u0222&#39;));
 <div class="api_metadata">
 <span>Added in: v5.3.0</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> What to search for</li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to begin searching in <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>value</code> is a string, this is its encoding.
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> What to search for</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to begin searching in <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>value</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> <code>true</code> if <code>value</code> was found in <code>buf</code>, <code>false</code> otherwise</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if <code>value</code> was found in <code>buf</code>, <code>false</code> otherwise</li>
 </ul>
 <p>Equivalent to <a href="#buffer_buf_indexof_value_byteoffset_encoding"><code>buf.indexOf() !== -1</code></a>.</p>
 <p>Examples:</p>
@@ -1255,11 +1255,11 @@ console.log(buf.includes(&#39;this&#39;, 4));
 </table>
 </details>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> What to search for</li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to begin searching in <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>value</code> is a string, this is its encoding.
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> What to search for</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to begin searching in <code>buf</code>. <strong>Default:</strong> <code>0</code></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>value</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The index of the first occurrence of <code>value</code> in <code>buf</code> or <code>-1</code>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The index of the first occurrence of <code>value</code> in <code>buf</code> or <code>-1</code>
 if <code>buf</code> does not contain <code>value</code></li>
 </ul>
 <p>If <code>value</code> is:</p>
@@ -1347,12 +1347,12 @@ for (const key of buf.keys()) {
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> What to search for</li>
-<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to begin searching in <code>buf</code>.
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> What to search for</li>
+<li><code>byteOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to begin searching in <code>buf</code>.
 <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a><code>- 1</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If <code>value</code> is a string, this is its encoding.
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>value</code> is a string, this is its encoding.
 <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The index of the last occurrence of <code>value</code> in <code>buf</code> or <code>-1</code>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The index of the last occurrence of <code>value</code> in <code>buf</code> or <code>-1</code>
 if <code>buf</code> does not contain <code>value</code></li>
 </ul>
 <p>Identical to <a href="#buffer_buf_indexof_value_byteoffset_encoding"><code>buf.indexOf()</code></a>, except <code>buf</code> is searched from back to front
@@ -1418,7 +1418,7 @@ console.log(b.lastIndexOf(&#39;b&#39;, []));
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Returns the amount of memory allocated for <code>buf</code> in bytes. Note that this
 does not necessarily reflect the amount of &quot;usable&quot; data within <code>buf</code>.</p>
@@ -1455,9 +1455,9 @@ console.log(buf.length);
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 8</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 8</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>Reads a 64-bit double from <code>buf</code> at the specified <code>offset</code> with specified
 endian format (<code>readDoubleBE()</code> returns big endian, <code>readDoubleLE()</code> returns
@@ -1485,9 +1485,9 @@ console.log(buf.readDoubleLE(1, true));
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>Reads a 32-bit float from <code>buf</code> at the specified <code>offset</code> with specified
 endian format (<code>readFloatBE()</code> returns big endian, <code>readFloatLE()</code> returns
@@ -1514,9 +1514,9 @@ console.log(buf.readFloatLE(1, true));
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads a signed 8-bit integer from <code>buf</code> at the specified <code>offset</code>.</p>
 <p>Setting <code>noAssert</code> to <code>true</code> allows <code>offset</code> to be beyond the end of <code>buf</code>, but
@@ -1539,9 +1539,9 @@ console.log(buf.readInt8(2));
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads a signed 16-bit integer from <code>buf</code> at the specified <code>offset</code> with
 the specified endian format (<code>readInt16BE()</code> returns big endian,
@@ -1566,9 +1566,9 @@ console.log(buf.readInt16LE(1));
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads a signed 32-bit integer from <code>buf</code> at the specified <code>offset</code> with
 the specified endian format (<code>readInt32BE()</code> returns big endian,
@@ -1593,10 +1593,10 @@ console.log(buf.readInt32LE(1));
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
-<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to read. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> and <code>byteLength</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
+<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> How many bytes to read. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> and <code>byteLength</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads <code>byteLength</code> number of bytes from <code>buf</code> at the specified <code>offset</code>
 and interprets the result as a two&#39;s complement signed value. Supports up to 48
@@ -1619,9 +1619,9 @@ console.log(buf.readIntBE(1, 6).toString(16));
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads an unsigned 8-bit integer from <code>buf</code> at the specified <code>offset</code>.</p>
 <p>Setting <code>noAssert</code> to <code>true</code> allows <code>offset</code> to be beyond the end of <code>buf</code>, but
@@ -1643,9 +1643,9 @@ console.log(buf.readUInt8(2));
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads an unsigned 16-bit integer from <code>buf</code> at the specified <code>offset</code> with
 specified endian format (<code>readUInt16BE()</code> returns big endian, <code>readUInt16LE()</code>
@@ -1675,9 +1675,9 @@ console.log(buf.readUInt16LE(2).toString(16));
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads an unsigned 32-bit integer from <code>buf</code> at the specified <code>offset</code> with
 specified endian format (<code>readUInt32BE()</code> returns big endian,
@@ -1701,10 +1701,10 @@ console.log(buf.readUInt32LE(1).toString(16));
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
-<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to read. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>offset</code> and <code>byteLength</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start reading. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
+<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> How many bytes to read. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>offset</code> and <code>byteLength</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Reads <code>byteLength</code> number of bytes from <code>buf</code> at the specified <code>offset</code>
 and interprets the result as an unsigned integer. Supports up to 48
@@ -1740,8 +1740,8 @@ console.log(buf.readUIntBE(1, 6).toString(16));
 </table>
 </details>
 </div><ul>
-<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where the new <code>Buffer</code> will start. <strong>Default:</strong> <code>0</code></li>
-<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where the new <code>Buffer</code> will end (not inclusive).
+<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where the new <code>Buffer</code> will start. <strong>Default:</strong> <code>0</code></li>
+<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where the new <code>Buffer</code> will end (not inclusive).
 <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
@@ -1890,11 +1890,11 @@ console.log(copy);
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The character encoding to decode to. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The byte offset to start decoding at. <strong>Default:</strong> <code>0</code></li>
-<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The byte offset to stop decoding at (not inclusive).
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The character encoding to decode to. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The byte offset to start decoding at. <strong>Default:</strong> <code>0</code></li>
+<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The byte offset to stop decoding at (not inclusive).
 <strong>Default:</strong> <a href="#buffer_buf_length"><code>buf.length</code></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Decodes <code>buf</code> to a string according to the specified character encoding in
 <code>encoding</code>. <code>start</code> and <code>end</code> may be passed to decode only a subset of <code>buf</code>.</p>
@@ -1961,11 +1961,11 @@ for (const value of buf) {
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> String to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing <code>string</code>. <strong>Default:</strong> <code>0</code></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to write. <strong>Default:</strong> <code>buf.length - offset</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The character encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number of bytes written</li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> String to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing <code>string</code>. <strong>Default:</strong> <code>0</code></li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> How many bytes to write. <strong>Default:</strong> <code>buf.length - offset</code></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The character encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number of bytes written</li>
 </ul>
 <p>Writes <code>string</code> to <code>buf</code> at <code>offset</code> according to the character encoding in <code>encoding</code>.
 The <code>length</code> parameter is the number of bytes to write. If <code>buf</code> did not contain
@@ -1984,10 +1984,10 @@ console.log(`${len} bytes: ${buf.toString(&#39;utf8&#39;, 0, len)}`);
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 8</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 8</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeDoubleBE()</code> writes big endian, <code>writeDoubleLE()</code> writes little
@@ -2013,10 +2013,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeFloatBE()</code> writes big endian, <code>writeFloatLE()</code> writes little
@@ -2041,10 +2041,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code>. <code>value</code> <em>should</em> be a valid
 signed 8-bit integer. Behavior is undefined when <code>value</code> is anything other than
@@ -2066,10 +2066,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeInt16BE()</code> writes big endian, <code>writeInt16LE()</code> writes little
@@ -2092,10 +2092,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeInt32BE()</code> writes big endian, <code>writeInt32LE()</code> writes little
@@ -2118,12 +2118,12 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
-<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to write. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code>, <code>offset</code>, and <code>byteLength</code> validation?
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
+<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> How many bytes to write. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code>, <code>offset</code>, and <code>byteLength</code> validation?
 <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.
 Supports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is
@@ -2147,10 +2147,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 1</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code>. <code>value</code> <em>should</em> be a
 valid unsigned 8-bit integer. Behavior is undefined when <code>value</code> is anything
@@ -2173,10 +2173,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 2</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeUInt16BE()</code> writes big endian, <code>writeUInt16LE()</code> writes little
@@ -2204,10 +2204,10 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - 4</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code> and <code>offset</code> validation? <strong>Default:</strong> <code>false</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>value</code> to <code>buf</code> at the specified <code>offset</code> with specified endian
 format (<code>writeUInt32BE()</code> writes big endian, <code>writeUInt32LE()</code> writes little
@@ -2233,12 +2233,12 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.5</span>
 </div><ul>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Number to be written to <code>buf</code></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
-<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> How many bytes to write. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
-<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Skip <code>value</code>, <code>offset</code>, and <code>byteLength</code> validation?
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Number to be written to <code>buf</code></li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Where to start writing. Must satisfy: <code>0 &lt;= offset &lt;= buf.length - byteLength</code></li>
+<li><code>byteLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> How many bytes to write. Must satisfy: <code>0 &lt; byteLength &lt;= 6</code></li>
+<li><code>noAssert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Skip <code>value</code>, <code>offset</code>, and <code>byteLength</code> validation?
 <strong>Default:</strong> <code>false</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>offset</code> plus the number of bytes written</li>
 </ul>
 <p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.
 Supports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is
@@ -2262,7 +2262,7 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v0.5.4</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> <strong>Default:</strong> <code>50</code></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>50</code></li>
 </ul>
 <p>Returns the maximum number of bytes that will be returned when
 <code>buf.inspect()</code> is called. This can be overridden by user modules. See
@@ -2273,7 +2273,7 @@ console.log(buf);
 <div class="api_metadata">
 <span>Added in: v3.0.0</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The largest size allowed for a single <code>Buffer</code> instance</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The largest size allowed for a single <code>Buffer</code> instance</li>
 </ul>
 <p>On 32-bit architectures, this value is <code>(2^30)-1</code> (~1GB).
 On 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>
@@ -2284,8 +2284,8 @@ On 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>
 <span>Added in: v7.1.0</span>
 </div><ul>
 <li><code>source</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> instance</li>
-<li><code>fromEnc</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The current encoding</li>
-<li><code>toEnc</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> To target encoding</li>
+<li><code>fromEnc</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The current encoding</li>
+<li><code>toEnc</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> To target encoding</li>
 </ul>
 <p>Re-encodes the given <code>Buffer</code> instance from one character encoding to another.
 Returns a new <code>Buffer</code> instance.</p>
@@ -2306,7 +2306,7 @@ with <code>?</code> in the transcoded <code>Buffer</code>.</p>
 <h2>Class: SlowBuffer<span><a class="mark" href="#buffer_class_slowbuffer" id="buffer_class_slowbuffer">#</a></span></h2>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0</span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow()</code></a> instead.</pre><p>Returns an un-pooled <code>Buffer</code>.</p>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow()</code></a> instead.</pre><p>Returns an un-pooled <code>Buffer</code>.</p>
 <p>In order to avoid the garbage collection overhead of creating many individually
 allocated <code>Buffer</code> instances, by default allocations under 4KB are sliced from a
 single larger allocated object. This approach improves both performance and memory
@@ -2335,8 +2335,8 @@ has observed undue memory retention in their applications.</p>
 <h3>new SlowBuffer(size)<span><a class="mark" href="#buffer_new_slowbuffer_size" id="buffer_new_slowbuffer_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Deprecated since: v6.0.0</span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow()</code></a> instead.</pre><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Integer&gt;</a> The desired length of the new <code>SlowBuffer</code></li>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow()</code></a> instead.</pre><ul>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>SlowBuffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
 <a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.

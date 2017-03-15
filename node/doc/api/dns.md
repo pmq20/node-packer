@@ -78,15 +78,15 @@ an integer, then it must be `4` or `6`.
 
 Alternatively, `options` can be an object containing these properties:
 
-* `family` {Number} - The record family. If present, must be the integer
+* `family` {number} - The record family. If present, must be the integer
   `4` or `6`. If not provided, both IP v4 and v6 addresses are accepted.
-* `hints`: {Number} - If present, it should be one or more of the supported
+* `hints`: {number} - If present, it should be one or more of the supported
   `getaddrinfo` flags. If `hints` is not provided, then no flags are passed to
   `getaddrinfo`. Multiple flags can be passed through `hints` by bitwise
   `OR`ing their values.
   See [supported `getaddrinfo` flags][] for more information on supported
   flags.
-* `all`: {Boolean} - When `true`, the callback returns all resolved addresses
+* `all`: {boolean} - When `true`, the callback returns all resolved addresses
   in an array, otherwise returns a single address. Defaults to `false`.
 
 All properties are optional.
@@ -214,9 +214,9 @@ Uses the DNS protocol to resolve a IPv4 addresses (`A` records) for the
 will contain an array of IPv4 addresses (e.g.
 `['74.125.79.104', '74.125.79.105', '74.125.79.106']`).
 
-* `hostname` {String} Hostname to resolve.
+* `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  * `ttl` {Boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     The callback receives an array of `{ address: '1.2.3.4', ttl: 60 }` objects
     rather than an array of strings.  The TTL is expressed in seconds.
 * `callback` {Function} An `(err, result)` callback function.
@@ -235,9 +235,9 @@ Uses the DNS protocol to resolve a IPv6 addresses (`AAAA` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function
 will contain an array of IPv6 addresses.
 
-* `hostname` {String} Hostname to resolve.
+* `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  * `ttl` {Boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     The callback receives an array of `{ address: '0:1:2:3:4:5:6:7', ttl: 60 }`
     objects rather than an array of strings.  The TTL is expressed in seconds.
 * `callback` {Function} An `(err, result)` callback function.

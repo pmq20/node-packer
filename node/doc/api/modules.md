@@ -161,14 +161,18 @@ LOAD_AS_FILE(X)
 3. If X.json is a file, parse X.json to a JavaScript Object.  STOP
 4. If X.node is a file, load X.node as binary addon.  STOP
 
+LOAD_INDEX(X)
+1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
+2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
+3. If X/index.node is a file, load X/index.node as binary addon.  STOP
+
 LOAD_AS_DIRECTORY(X)
 1. If X/package.json is a file,
    a. Parse X/package.json, and look for "main" field.
    b. let M = X + (json main field)
    c. LOAD_AS_FILE(M)
-2. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
-3. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
-4. If X/index.node is a file, load X/index.node as binary addon.  STOP
+   d. LOAD_INDEX(M)
+2. LOAD_INDEX(X)
 
 LOAD_NODE_MODULES(X, START)
 1. let DIRS=NODE_MODULES_PATHS(START)
@@ -580,7 +584,7 @@ function require(...) {
 added: v0.1.16
 -->
 
-* {String}
+* {string}
 
 The fully resolved filename to the module.
 
@@ -589,7 +593,7 @@ The fully resolved filename to the module.
 added: v0.1.16
 -->
 
-* {String}
+* {string}
 
 The identifier for the module.  Typically this is the fully resolved
 filename.
@@ -599,7 +603,7 @@ filename.
 added: v0.1.16
 -->
 
-* {Boolean}
+* {boolean}
 
 Whether or not the module is done loading, or is in the process of
 loading.
@@ -618,7 +622,7 @@ The module that first required this one.
 added: v0.5.1
 -->
 
-* `id` {String}
+* `id` {string}
 * Returns: {Object} `module.exports` from the resolved module
 
 The `module.require` method provides a way to load a module as if

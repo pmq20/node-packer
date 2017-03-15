@@ -174,16 +174,16 @@
                         {
                           "params": [
                             {
-                              "textRaw": "`chunk` {String|Buffer|any} Optional data to write. For streams not operating in object mode, `chunk` must be a string or a `Buffer`. For object mode streams, `chunk` may be any JavaScript value other than `null`. ",
+                              "textRaw": "`chunk` {string|Buffer|any} Optional data to write. For streams not operating in object mode, `chunk` must be a string or a `Buffer`. For object mode streams, `chunk` may be any JavaScript value other than `null`. ",
                               "name": "chunk",
-                              "type": "String|Buffer|any",
+                              "type": "string|Buffer|any",
                               "desc": "Optional data to write. For streams not operating in object mode, `chunk` must be a string or a `Buffer`. For object mode streams, `chunk` may be any JavaScript value other than `null`.",
                               "optional": true
                             },
                             {
-                              "textRaw": "`encoding` {String} The encoding, if `chunk` is a String ",
+                              "textRaw": "`encoding` {string} The encoding, if `chunk` is a String ",
                               "name": "encoding",
-                              "type": "String",
+                              "type": "string",
                               "desc": "The encoding, if `chunk` is a String",
                               "optional": true
                             },
@@ -240,9 +240,9 @@
                           },
                           "params": [
                             {
-                              "textRaw": "`encoding` {String} The new default encoding ",
+                              "textRaw": "`encoding` {string} The new default encoding ",
                               "name": "encoding",
-                              "type": "String",
+                              "type": "string",
                               "desc": "The new default encoding"
                             }
                           ]
@@ -293,22 +293,22 @@
                       "signatures": [
                         {
                           "return": {
-                            "textRaw": "Returns: {Boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`. ",
+                            "textRaw": "Returns: {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`. ",
                             "name": "return",
-                            "type": "Boolean",
+                            "type": "boolean",
                             "desc": "`false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
                           },
                           "params": [
                             {
-                              "textRaw": "`chunk` {String|Buffer} The data to write ",
+                              "textRaw": "`chunk` {string|Buffer} The data to write ",
                               "name": "chunk",
-                              "type": "String|Buffer",
+                              "type": "string|Buffer",
                               "desc": "The data to write"
                             },
                             {
-                              "textRaw": "`encoding` {String} The encoding, if `chunk` is a String ",
+                              "textRaw": "`encoding` {string} The encoding, if `chunk` is a String ",
                               "name": "encoding",
-                              "type": "String",
+                              "type": "string",
                               "desc": "The encoding, if `chunk` is a String",
                               "optional": true
                             },
@@ -337,7 +337,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>&#39;error&#39;</code> event.</p>\n<p>The return value is <code>true</code> if the internal buffer is less than the\n<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.\nIf <code>false</code> is returned, further attempts to write data to the stream should\nstop until the <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event is emitted.</p>\n<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and\nreturn false. Once all currently buffered chunks are drained (accepted for\ndelivery by the operating system), the <code>&#39;drain&#39;</code> event will be emitted.\nIt is recommended that once write() returns false, no more chunks be written\nuntil the <code>&#39;drain&#39;</code> event is emitted. While calling <code>write()</code> on a stream that\nis not draining is allowed, Node.js will buffer all written chunks until\nmaximum memory usage occurs, at which point it will abort unconditionally.\nEven before it aborts, high memory usage will cause poor garbage collector\nperformance and high RSS (which is not typically released back to the system,\neven after the memory is no longer required). Since TCP sockets may never\ndrain if the remote peer does not read the data, writing a socket that is\nnot draining may lead to a remotely exploitable vulnerability.</p>\n<p>Writing data while the stream is not draining is particularly\nproblematic for a <a href=\"#stream_class_stream_transform\">Transform</a>, because the <code>Transform</code> streams are paused\nby default until they are piped or an <code>&#39;data&#39;</code> or <code>&#39;readable&#39;</code> event handler\nis added.</p>\n<p>If the data to be written can be generated or fetched on demand, it is\nrecommended to encapsulate the logic into a <a href=\"#stream_class_stream_readable\">Readable</a> and use\n<a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is\npossible to respect backpressure and avoid memory issues using the\nthe <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event:</p>\n<pre><code class=\"lang-js\">function write (data, cb) {\n  if (!stream.write(data)) {\n    stream.once(&#39;drain&#39;, cb)\n  } else {\n    process.nextTick(cb)\n  }\n}\n\n// Wait for cb to be called before doing any other write.\nwrite(&#39;hello&#39;, () =&gt; {\n  console.log(&#39;write completed, do more writes now&#39;)\n})\n</code></pre>\n<p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>\n"
+                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>&#39;error&#39;</code> event.</p>\n<p>The return value is <code>true</code> if the internal buffer is less than the\n<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.\nIf <code>false</code> is returned, further attempts to write data to the stream should\nstop until the <a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event is emitted.</p>\n<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and\nreturn false. Once all currently buffered chunks are drained (accepted for\ndelivery by the operating system), the <code>&#39;drain&#39;</code> event will be emitted.\nIt is recommended that once write() returns false, no more chunks be written\nuntil the <code>&#39;drain&#39;</code> event is emitted. While calling <code>write()</code> on a stream that\nis not draining is allowed, Node.js will buffer all written chunks until\nmaximum memory usage occurs, at which point it will abort unconditionally.\nEven before it aborts, high memory usage will cause poor garbage collector\nperformance and high RSS (which is not typically released back to the system,\neven after the memory is no longer required). Since TCP sockets may never\ndrain if the remote peer does not read the data, writing a socket that is\nnot draining may lead to a remotely exploitable vulnerability.</p>\n<p>Writing data while the stream is not draining is particularly\nproblematic for a <a href=\"#stream_class_stream_transform\">Transform</a>, because the <code>Transform</code> streams are paused\nby default until they are piped or an <code>&#39;data&#39;</code> or <code>&#39;readable&#39;</code> event handler\nis added.</p>\n<p>If the data to be written can be generated or fetched on demand, it is\nrecommended to encapsulate the logic into a <a href=\"#stream_class_stream_readable\">Readable</a> and use\n<a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is\npossible to respect backpressure and avoid memory issues using the\n<a href=\"#stream_event_drain\"><code>&#39;drain&#39;</code></a> event:</p>\n<pre><code class=\"lang-js\">function write (data, cb) {\n  if (!stream.write(data)) {\n    stream.once(&#39;drain&#39;, cb)\n  } else {\n    process.nextTick(cb)\n  }\n}\n\n// Wait for cb to be called before doing any other write.\nwrite(&#39;hello&#39;, () =&gt; {\n  console.log(&#39;write completed, do more writes now&#39;)\n})\n</code></pre>\n<p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>\n"
                     }
                   ]
                 }
@@ -464,9 +464,9 @@
                       "signatures": [
                         {
                           "return": {
-                            "textRaw": "Returns: {Boolean} ",
+                            "textRaw": "Returns: {boolean} ",
                             "name": "return",
-                            "type": "Boolean"
+                            "type": "boolean"
                           },
                           "params": []
                         },
@@ -524,9 +524,9 @@
                               "textRaw": "`options` {Object} Pipe options ",
                               "options": [
                                 {
-                                  "textRaw": "`end` {Boolean} End the writer when the reader ends. Defaults to `true`. ",
+                                  "textRaw": "`end` {boolean} End the writer when the reader ends. Defaults to `true`. ",
                                   "name": "end",
-                                  "type": "Boolean",
+                                  "type": "boolean",
                                   "desc": "End the writer when the reader ends. Defaults to `true`."
                                 }
                               ],
@@ -564,15 +564,15 @@
                       "signatures": [
                         {
                           "return": {
-                            "textRaw": "Return {String|Buffer|Null} ",
+                            "textRaw": "Return {string|Buffer|null} ",
                             "name": "return",
-                            "type": "String|Buffer|Null"
+                            "type": "string|Buffer|null"
                           },
                           "params": [
                             {
-                              "textRaw": "`size` {Number} Optional argument to specify how much data to read. ",
+                              "textRaw": "`size` {number} Optional argument to specify how much data to read. ",
                               "name": "size",
-                              "type": "Number",
+                              "type": "number",
                               "desc": "Optional argument to specify how much data to read.",
                               "optional": true
                             }
@@ -633,9 +633,9 @@
                           },
                           "params": [
                             {
-                              "textRaw": "`encoding` {String} The encoding to use. ",
+                              "textRaw": "`encoding` {string} The encoding to use. ",
                               "name": "encoding",
-                              "type": "String",
+                              "type": "string",
                               "desc": "The encoding to use."
                             }
                           ]
@@ -697,9 +697,9 @@
                         {
                           "params": [
                             {
-                              "textRaw": "`chunk` {Buffer|String} Chunk of data to unshift onto the read queue ",
+                              "textRaw": "`chunk` {Buffer|string} Chunk of data to unshift onto the read queue ",
                               "name": "chunk",
-                              "type": "Buffer|String",
+                              "type": "Buffer|string",
                               "desc": "Chunk of data to unshift onto the read queue"
                             }
                           ]
@@ -826,21 +826,21 @@
                           "textRaw": "`options` {Object} ",
                           "options": [
                             {
-                              "textRaw": "`highWaterMark` {Number} Buffer level when [`stream.write()`][stream-write] starts returning `false`. Defaults to `16384` (16kb), or `16` for `objectMode` streams. ",
+                              "textRaw": "`highWaterMark` {number} Buffer level when [`stream.write()`][stream-write] starts returning `false`. Defaults to `16384` (16kb), or `16` for `objectMode` streams. ",
                               "name": "highWaterMark",
-                              "type": "Number",
+                              "type": "number",
                               "desc": "Buffer level when [`stream.write()`][stream-write] starts returning `false`. Defaults to `16384` (16kb), or `16` for `objectMode` streams."
                             },
                             {
-                              "textRaw": "`decodeStrings` {Boolean} Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. Defaults to `true` ",
+                              "textRaw": "`decodeStrings` {boolean} Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. Defaults to `true` ",
                               "name": "decodeStrings",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. Defaults to `true`"
                             },
                             {
-                              "textRaw": "`objectMode` {Boolean} Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string or `Buffer` if supported by the stream implementation. Defaults to `false` ",
+                              "textRaw": "`objectMode` {boolean} Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string or `Buffer` if supported by the stream implementation. Defaults to `false` ",
                               "name": "objectMode",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string or `Buffer` if supported by the stream implementation. Defaults to `false`"
                             },
                             {
@@ -881,15 +881,15 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`chunk` {Buffer|String} The chunk to be written. Will **always** be a buffer unless the `decodeStrings` option was set to `false`. ",
+                          "textRaw": "`chunk` {Buffer|string} The chunk to be written. Will **always** be a buffer unless the `decodeStrings` option was set to `false`. ",
                           "name": "chunk",
-                          "type": "Buffer|String",
+                          "type": "Buffer|string",
                           "desc": "The chunk to be written. Will **always** be a buffer unless the `decodeStrings` option was set to `false`."
                         },
                         {
-                          "textRaw": "`encoding` {String} If the chunk is a string, then `encoding` is the character encoding of that string. If chunk is a `Buffer`, or if the stream is operating in object mode, `encoding` may be ignored. ",
+                          "textRaw": "`encoding` {string} If the chunk is a string, then `encoding` is the character encoding of that string. If chunk is a `Buffer`, or if the stream is operating in object mode, `encoding` may be ignored. ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "If the chunk is a string, then `encoding` is the character encoding of that string. If chunk is a `Buffer`, or if the stream is operating in object mode, `encoding` may be ignored."
                         },
                         {
@@ -986,21 +986,21 @@
                           "textRaw": "`options` {Object} ",
                           "options": [
                             {
-                              "textRaw": "`highWaterMark` {Number} The maximum number of bytes to store in the internal buffer before ceasing to read from the underlying resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams ",
+                              "textRaw": "`highWaterMark` {number} The maximum number of bytes to store in the internal buffer before ceasing to read from the underlying resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams ",
                               "name": "highWaterMark",
-                              "type": "Number",
+                              "type": "number",
                               "desc": "The maximum number of bytes to store in the internal buffer before ceasing to read from the underlying resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams"
                             },
                             {
-                              "textRaw": "`encoding` {String} If specified, then buffers will be decoded to strings using the specified encoding. Defaults to `null` ",
+                              "textRaw": "`encoding` {string} If specified, then buffers will be decoded to strings using the specified encoding. Defaults to `null` ",
                               "name": "encoding",
-                              "type": "String",
+                              "type": "string",
                               "desc": "If specified, then buffers will be decoded to strings using the specified encoding. Defaults to `null`"
                             },
                             {
-                              "textRaw": "`objectMode` {Boolean} Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. Defaults to `false` ",
+                              "textRaw": "`objectMode` {boolean} Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. Defaults to `false` ",
                               "name": "objectMode",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. Defaults to `false`"
                             },
                             {
@@ -1035,9 +1035,9 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`size` {Number} Number of bytes to read asynchronously ",
+                          "textRaw": "`size` {number} Number of bytes to read asynchronously ",
                           "name": "size",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Number of bytes to read asynchronously"
                         }
                       ]
@@ -1059,22 +1059,22 @@
                   "signatures": [
                     {
                       "return": {
-                        "textRaw": "Returns {Boolean} `true` if additional chunks of data may continued to be pushed; `false` otherwise. ",
+                        "textRaw": "Returns {boolean} `true` if additional chunks of data may continued to be pushed; `false` otherwise. ",
                         "name": "return",
-                        "type": "Boolean",
+                        "type": "boolean",
                         "desc": "`true` if additional chunks of data may continued to be pushed; `false` otherwise."
                       },
                       "params": [
                         {
-                          "textRaw": "`chunk` {Buffer|Null|String} Chunk of data to push into the read queue ",
+                          "textRaw": "`chunk` {Buffer|null|string} Chunk of data to push into the read queue ",
                           "name": "chunk",
-                          "type": "Buffer|Null|String",
+                          "type": "Buffer|null|string",
                           "desc": "Chunk of data to push into the read queue"
                         },
                         {
-                          "textRaw": "`encoding` {String} Encoding of String chunks.  Must be a valid Buffer encoding, such as `'utf8'` or `'ascii'` ",
+                          "textRaw": "`encoding` {string} Encoding of String chunks.  Must be a valid Buffer encoding, such as `'utf8'` or `'ascii'` ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Encoding of String chunks.  Must be a valid Buffer encoding, such as `'utf8'` or `'ascii'`",
                           "optional": true
                         }
@@ -1131,21 +1131,21 @@
                           "textRaw": "`options` {Object} Passed to both Writable and Readable constructors. Also has the following fields: ",
                           "options": [
                             {
-                              "textRaw": "`allowHalfOpen` {Boolean} Defaults to `true`. If set to `false`, then the stream will automatically end the readable side when the writable side ends and vice versa. ",
+                              "textRaw": "`allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then the stream will automatically end the readable side when the writable side ends and vice versa. ",
                               "name": "allowHalfOpen",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Defaults to `true`. If set to `false`, then the stream will automatically end the readable side when the writable side ends and vice versa."
                             },
                             {
-                              "textRaw": "`readableObjectMode` {Boolean} Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`. ",
+                              "textRaw": "`readableObjectMode` {boolean} Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`. ",
                               "name": "readableObjectMode",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`."
                             },
                             {
-                              "textRaw": "`writableObjectMode` {Boolean} Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`. ",
+                              "textRaw": "`writableObjectMode` {boolean} Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`. ",
                               "name": "writableObjectMode",
-                              "type": "Boolean",
+                              "type": "boolean",
                               "desc": "Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`."
                             }
                           ],
@@ -1264,15 +1264,15 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`chunk` {Buffer|String} The chunk to be transformed. Will **always** be a buffer unless the `decodeStrings` option was set to `false`. ",
+                          "textRaw": "`chunk` {Buffer|string} The chunk to be transformed. Will **always** be a buffer unless the `decodeStrings` option was set to `false`. ",
                           "name": "chunk",
-                          "type": "Buffer|String",
+                          "type": "Buffer|string",
                           "desc": "The chunk to be transformed. Will **always** be a buffer unless the `decodeStrings` option was set to `false`."
                         },
                         {
-                          "textRaw": "`encoding` {String} If the chunk is a string, then this is the encoding type. If chunk is a buffer, then this is the special value - 'buffer', ignore it in this case. ",
+                          "textRaw": "`encoding` {string} If the chunk is a string, then this is the encoding type. If chunk is a buffer, then this is the special value - 'buffer', ignore it in this case. ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "If the chunk is a string, then this is the encoding type. If chunk is a buffer, then this is the special value - 'buffer', ignore it in this case."
                         },
                         {

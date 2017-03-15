@@ -59,7 +59,7 @@ ENV['ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE'] = '1'
 if Gem.win_platform?
   pid = spawn("call vcbuild.bat release nosign noprojgen nobuild test-ci ignore-flaky ")
   pid, status = Process.wait2(pid)
-  raise "Failed running make run-ci" unless status.success?
+  raise "Failed running call vcbuild.bat release nosign noprojgen nobuild test-ci ignore-flaky" unless status.success?
 else
   ENV['FLAKY_TESTS'] = 'dontcare'
   pid = spawn("make run-ci")

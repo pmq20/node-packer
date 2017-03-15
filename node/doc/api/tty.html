@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TTY | Node.js v7.7.2 Documentation</title>
+  <title>TTY | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="tty" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -108,7 +108,7 @@
 
       <div id="apicontent">
         <h1>TTY<span><a class="mark" href="#tty_tty" id="tty_tty">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.
 In most cases, it will not be necessary or possible to use this module directly.
 However, it can be accessed using:</p>
 <pre><code class="lang-js">const tty = require(&#39;tty&#39;);
@@ -147,7 +147,7 @@ including modifiers. Additionally, all special processing of characters by the
 terminal is disabled, including echoing input characters.
 Note that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>
 <ul>
-<li><code>mode</code> <span class="type">&lt;boolean&gt;</span> If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a
+<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a
 raw device. If <code>false</code>, configures the <code>tty.ReadStream</code> to operate in its
 default mode. The <code>readStream.isRaw</code> property will be set to the resulting
 mode.</li>
@@ -184,7 +184,7 @@ is updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div><ul>
-<li><code>fd</code> <span class="type">&lt;number&gt;</span> A numeric file descriptor</li>
+<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A numeric file descriptor</li>
 </ul>
 <p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with
 a TTY and <code>false</code> if is not.</p>

@@ -153,9 +153,9 @@
                       "type": "Object"
                     },
                     {
-                      "textRaw": "`backlog` {Number} ",
+                      "textRaw": "`backlog` {number} ",
                       "name": "backlog",
-                      "type": "Number",
+                      "type": "number",
                       "optional": true
                     },
                     {
@@ -201,33 +201,33 @@
                       "textRaw": "`options` {Object} - Required. Supports the following properties: ",
                       "options": [
                         {
-                          "textRaw": "`port` {Number} - Optional. ",
+                          "textRaw": "`port` {number} - Optional. ",
                           "name": "port",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`host` {String} - Optional. ",
+                          "textRaw": "`host` {string} - Optional. ",
                           "name": "host",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`backlog` {Number} - Optional. ",
+                          "textRaw": "`backlog` {number} - Optional. ",
                           "name": "backlog",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`path` {String} - Optional. ",
+                          "textRaw": "`path` {string} - Optional. ",
                           "name": "path",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`exclusive` {Boolean} - Optional. ",
+                          "textRaw": "`exclusive` {boolean} - Optional. ",
                           "name": "exclusive",
-                          "type": "Boolean",
+                          "type": "boolean",
                           "desc": "Optional."
                         }
                       ],
@@ -272,14 +272,14 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`path` {String} ",
+                      "textRaw": "`path` {string} ",
                       "name": "path",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`backlog` {Number} ",
+                      "textRaw": "`backlog` {number} ",
                       "name": "backlog",
-                      "type": "Number",
+                      "type": "number",
                       "optional": true
                     },
                     {
@@ -898,7 +898,7 @@
                   }
                 ]
               },
-              "desc": "<p>Emitted after resolving the hostname but before connecting.\nNot applicable to UNIX sockets.</p>\n<ul>\n<li><code>err</code> {Error|Null} The error object.  See <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n<li><code>address</code> {String} The IP address.</li>\n<li><code>family</code> {String|Null} The address type.  See <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n<li><code>host</code> {String} The hostname.</li>\n</ul>\n",
+              "desc": "<p>Emitted after resolving the hostname but before connecting.\nNot applicable to UNIX sockets.</p>\n<ul>\n<li><code>err</code> {Error|null} The error object.  See <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n<li><code>address</code> {string} The IP address.</li>\n<li><code>family</code> {string|null} The address type.  See <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n<li><code>host</code> {string} The hostname.</li>\n</ul>\n",
               "params": []
             },
             {

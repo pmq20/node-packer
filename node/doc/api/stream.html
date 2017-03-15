@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.7.2 Documentation</title>
+  <title>Stream | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -190,7 +190,7 @@
 
       <div id="apicontent">
         <h1>Stream<span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>A stream is an abstract interface for working with streaming data in Node.js.
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>A stream is an abstract interface for working with streaming data in Node.js.
 The <code>stream</code> module provides a base API that makes it easy to build objects
 that implement the stream interface.</p>
 <p>There are many stream objects provided by Node.js. For instance, a
@@ -468,10 +468,10 @@ buffered writes in a more optimized manner.</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;any&gt;</span> Optional data to write. For streams not operating
+<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;any&gt;</span> Optional data to write. For streams not operating
 in object mode, <code>chunk</code> must be a string or a <code>Buffer</code>. For object mode
 streams, <code>chunk</code> may be any JavaScript value other than <code>null</code>.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding, if <code>chunk</code> is a String</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a String</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Optional callback for when the stream is finished</li>
 </ul>
 <p>Calling the <code>writable.end()</code> method signals that no more data will be written
@@ -501,7 +501,7 @@ file.end(&#39;world!&#39;);
 </table>
 </details>
 </div><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The new default encoding</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The new default encoding</li>
 <li>Returns: <code>this</code></li>
 </ul>
 <p>The <code>writable.setDefaultEncoding()</code> method sets the default <code>encoding</code> for a
@@ -548,10 +548,10 @@ process.nextTick(() =&gt; {
 </table>
 </details>
 </div><ul>
-<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The data to write</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding, if <code>chunk</code> is a String</li>
+<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The data to write</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a String</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback for when this chunk of data is flushed</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> <code>false</code> if the stream wishes for the calling code to
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>false</code> if the stream wishes for the calling code to
 wait for the <code>&#39;drain&#39;</code> event to be emitted before continuing to write
 additional data; otherwise <code>true</code>.</li>
 </ul>
@@ -584,7 +584,7 @@ is added.</p>
 recommended to encapsulate the logic into a <a href="#stream_class_stream_readable">Readable</a> and use
 <a href="#stream_readable_pipe_destination_options"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is
 possible to respect backpressure and avoid memory issues using the
-the <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event:</p>
+<a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event:</p>
 <pre><code class="lang-js">function write (data, cb) {
   if (!stream.write(data)) {
     stream.once(&#39;drain&#39;, cb)
@@ -698,7 +698,7 @@ that no more events will be emitted, and no further computation will occur.</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk of data. For streams that are not
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk of data. For streams that are not
 operating in object mode, the chunk will be either a string or <code>Buffer</code>.
 For streams that are in object mode, the chunk can be any JavaScript value
 other than <code>null</code>.</li>
@@ -787,7 +787,7 @@ preferred over the use of the <code>&#39;readable&#39;</code> event.</p>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>The <code>readable.isPaused()</code> method returns the current operating state of the
 Readable. This is used primarily by the mechanism that underlies the
@@ -827,7 +827,7 @@ readable.on(&#39;data&#39;, (chunk) =&gt; {
 </div><ul>
 <li><code>destination</code> <a href="stream.html#stream_class_stream_writable" class="type">&lt;stream.Writable&gt;</a> The destination for writing data</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Pipe options<ul>
-<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> End the writer when the reader ends. Defaults to <code>true</code>.</li>
+<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> End the writer when the reader ends. Defaults to <code>true</code>.</li>
 </ul>
 </li>
 </ul>
@@ -872,8 +872,8 @@ options.</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Optional argument to specify how much data to read.</li>
-<li>Return <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a></li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Optional argument to specify how much data to read.</li>
+<li>Return <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a></li>
 </ul>
 <p>The <code>readable.read()</code> method pulls some data out of the internal buffer and
 returns it. If no data available to be read, <code>null</code> is returned. By default,
@@ -928,7 +928,7 @@ following example:</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The encoding to use.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding to use.</li>
 <li>Returns: <code>this</code></li>
 </ul>
 <p>The <code>readable.setEncoding()</code> method sets the default character encoding for
@@ -979,7 +979,7 @@ setTimeout(() =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.9.11</span>
 </div><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Chunk of data to unshift onto the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to unshift onto the read queue</li>
 </ul>
 <p>The <code>readable.unshift()</code> method pushes a chunk of data back into the internal
 buffer. This is useful in certain situations where a stream is being consumed by
@@ -1199,13 +1199,13 @@ constructor and implement the <code>writable._write()</code> method. The
 <h4>Constructor: new stream.Writable([options])<span><a class="mark" href="#stream_constructor_new_stream_writable_options" id="stream_constructor_new_stream_writable_options">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Buffer level when
+<li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Buffer level when
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> starts returning <code>false</code>. Defaults to
 <code>16384</code> (16kb), or <code>16</code> for <code>objectMode</code> streams.</li>
-<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Whether or not to decode strings into
+<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Whether or not to decode strings into
 Buffers before passing them to <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a>.
 Defaults to <code>true</code></li>
-<li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Whether or not the
+<li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Whether or not the
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write(anyObj)</code></a> is a valid operation. When set,
 it becomes possible to write JavaScript values other than string or
 <code>Buffer</code> if supported by the stream implementation. Defaults to <code>false</code></li>
@@ -1251,9 +1251,9 @@ const myWritable = new Writable({
 </code></pre>
 <h4>writable._write(chunk, encoding, callback)<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback_1" id="stream_writable_write_chunk_encoding_callback_1">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The chunk to be written. Will <strong>always</strong>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be written. Will <strong>always</strong>
 be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If the chunk is a string, then <code>encoding</code> is the
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then <code>encoding</code> is the
 character encoding of that string. If chunk is a <code>Buffer</code>, or if the
 stream is operating in object mode, <code>encoding</code> may be ignored.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Call this function (optionally with an error
@@ -1352,12 +1352,12 @@ constructor and implement the <code>readable._read()</code> method.</p>
 <h4>new stream.Readable([options])<span><a class="mark" href="#stream_new_stream_readable_options" id="stream_new_stream_readable_options">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The maximum number of bytes to store in
+<li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The maximum number of bytes to store in
 the internal buffer before ceasing to read from the underlying
 resource. Defaults to <code>16384</code> (16kb), or <code>16</code> for <code>objectMode</code> streams</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If specified, then buffers will be decoded to
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If specified, then buffers will be decoded to
 strings using the specified encoding. Defaults to <code>null</code></li>
-<li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Whether this stream should behave
+<li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Whether this stream should behave
 as a stream of objects. Meaning that <a href="#stream_readable_read_size"><code>stream.read(n)</code></a> returns
 a single value instead of a Buffer of size n. Defaults to <code>false</code></li>
 <li><code>read</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the <a href="#stream_readable_read_size_1"><code>stream._read()</code></a>
@@ -1397,7 +1397,7 @@ const myReadable = new Readable({
 </code></pre>
 <h4>readable._read(size)<span><a class="mark" href="#stream_readable_read_size_1" id="stream_readable_read_size_1">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Number of bytes to read asynchronously</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Number of bytes to read asynchronously</li>
 </ul>
 </div><p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
 should be implemented by child classes, and called only by the internal Readable
@@ -1422,10 +1422,10 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>readable.push(chunk[, encoding])<span><a class="mark" href="#stream_readable_push_chunk_encoding" id="stream_readable_push_chunk_encoding">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Chunk of data to push into the read queue</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Encoding of String chunks.  Must be a valid
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to push into the read queue</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Encoding of String chunks.  Must be a valid
 Buffer encoding, such as <code>&#39;utf8&#39;</code> or <code>&#39;ascii&#39;</code></li>
-<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> <code>true</code> if additional chunks of data may continued to be
+<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data may continued to be
 pushed; <code>false</code> otherwise.</li>
 </ul>
 </div><p>When <code>chunk</code> is a <code>Buffer</code> or <code>string</code>, the <code>chunk</code> of data will be added to the
@@ -1533,13 +1533,13 @@ constructor and implement <em>both</em> the <code>readable._read()</code> and
 <div class="signature"><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Passed to both Writable and Readable
 constructors. Also has the following fields:<ul>
-<li><code>allowHalfOpen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Defaults to <code>true</code>. If set to <code>false</code>, then
+<li><code>allowHalfOpen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>true</code>. If set to <code>false</code>, then
 the stream will automatically end the readable side when the
 writable side ends and vice versa.</li>
-<li><code>readableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
+<li><code>readableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
 for readable side of the stream. Has no effect if <code>objectMode</code>
 is <code>true</code>.</li>
-<li><code>writableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
+<li><code>writableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
 for writable side of the stream. Has no effect if <code>objectMode</code>
 is <code>true</code>.</li>
 </ul>
@@ -1738,9 +1738,9 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>transform._transform(chunk, encoding, callback)<span><a class="mark" href="#stream_transform_transform_chunk_encoding_callback" id="stream_transform_transform_chunk_encoding_callback">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The chunk to be transformed. Will <strong>always</strong>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be transformed. Will <strong>always</strong>
 be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> If the chunk is a string, then this is the
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then this is the
 encoding type. If chunk is a buffer, then this is the special
 value - &#39;buffer&#39;, ignore it in this case.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function (optionally with an error

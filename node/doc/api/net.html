@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Net | Node.js v7.7.2 Documentation</title>
+  <title>Net | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="net" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -162,7 +162,7 @@
 
       <div id="apicontent">
         <h1>Net<span><a class="mark" href="#net_net" id="net_net">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>net</code> module provides you with an asynchronous network wrapper. It contains
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>net</code> module provides you with an asynchronous network wrapper. It contains
 functions for creating both servers and clients (called streams). You can include
 this module with <code>require(&#39;net&#39;);</code>.</p>
 <h2>Class: net.Server<span><a class="mark" href="#net_class_net_server" id="net_class_net_server">#</a></span></h2>
@@ -231,7 +231,7 @@ was not open when it was closed.</p>
 <h3>server.connections<span><a class="mark" href="#net_server_connections" id="net_server_connections">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.2.0</span><span>Deprecated since: v0.9.7</span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</pre><p>The number of concurrent connections on the server.</p>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</pre><p>The number of concurrent connections on the server.</p>
 <p>This becomes <code>null</code> when sending a socket to a child with
 <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>. To poll forks and get current number of active
 connections use asynchronous <code>server.getConnections</code> instead.</p>
@@ -246,7 +246,7 @@ when sockets were sent to forks.</p>
 <span>Added in: v0.5.10</span>
 </div><ul>
 <li><code>handle</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>The <code>handle</code> object can be set to either a server or socket (anything
@@ -266,11 +266,11 @@ The last parameter <code>callback</code> will be added as a listener for the
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Required. Supports the following properties:<ul>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Optional.</li>
-<li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional.</li>
-<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Optional.</li>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional.</li>
-<li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> - Optional.</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - Optional.</li>
+<li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional.</li>
+<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - Optional.</li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional.</li>
+<li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> - Optional.</li>
 </ul>
 </li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> - Optional.</li>
@@ -296,8 +296,8 @@ subsequent call will <em>re-open</em> the server using the provided options.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
-<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>backlog</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Start a local socket server listening for connections on the given <code>path</code>.</p>
@@ -415,7 +415,7 @@ About <code>allowHalfOpen</code>, refer to <a href="#net_net_createserver_option
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
-<li><code>had_error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> <code>true</code> if the socket had a transmission error.</li>
+<li><code>had_error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the socket had a transmission error.</li>
 </ul>
 <p>Emitted once the socket is fully closed. The argument <code>had_error</code> is a boolean
 which says if the socket was closed due to a transmission error.</p>
@@ -473,10 +473,10 @@ following this event.</p>
 </div><p>Emitted after resolving the hostname but before connecting.
 Not applicable to UNIX sockets.</p>
 <ul>
-<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a> The error object.  See <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</li>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The IP address.</li>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;Null&gt;</a> The address type.  See <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</li>
-<li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The hostname.</li>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> The error object.  See <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The IP address.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> The address type.  See <a href="dns.html#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</li>
+<li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The hostname.</li>
 </ul>
 <h3>Event: &#39;timeout&#39;<span><a class="mark" href="#net_event_timeout" id="net_event_timeout">#</a></span></h3>
 <div class="api_metadata">

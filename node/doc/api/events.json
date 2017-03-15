@@ -211,9 +211,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {String|Symbol} The name of the event being listened for ",
+                      "textRaw": "`eventName` {string|symbol} The name of the event being listened for ",
                       "name": "eventName",
-                      "type": "String|Symbol",
+                      "type": "string|symbol",
                       "desc": "The name of the event being listened for"
                     }
                   ]
@@ -269,9 +269,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
                       "name": "eventName",
-                      "type": "String|Symbol",
+                      "type": "string|symbol",
                       "desc": "The name of the event."
                     },
                     {
@@ -309,9 +309,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
                       "name": "eventName",
-                      "type": "String|Symbol",
+                      "type": "string|symbol",
                       "desc": "The name of the event."
                     },
                     {
@@ -349,9 +349,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
                       "name": "eventName",
-                      "type": "String|Symbol",
+                      "type": "string|symbol",
                       "desc": "The name of the event."
                     },
                     {
@@ -389,9 +389,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {String|Symbol} The name of the event. ",
+                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
                       "name": "eventName",
-                      "type": "String|Symbol",
+                      "type": "string|symbol",
                       "desc": "The name of the event."
                     },
                     {

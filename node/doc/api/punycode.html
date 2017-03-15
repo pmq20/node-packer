@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Punycode | Node.js v7.7.2 Documentation</title>
+  <title>Punycode | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="punycode" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -115,7 +115,7 @@
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated</pre><p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.
 In a future major version of Node.js this module will be removed. Users
 currently depending on the <code>punycode</code> module should switch to using the
 userland-provided <a href="https://mths.be/punycode">Punycode.js</a> module instead.</p>
@@ -139,7 +139,7 @@ the module must be directed to the <a href="https://mths.be/punycode">Punycode.j
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>punycode.decode()</code> method converts a <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only
 characters to the equivalent string of Unicode codepoints.</p>
@@ -150,7 +150,7 @@ punycode.decode(&#39;--dqo34k&#39;); // &#39;☃-⌘&#39;
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>punycode.encode()</code> method converts a string of Unicode codepoints to a
 <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only characters.</p>
@@ -161,7 +161,7 @@ punycode.encode(&#39;☃-⌘&#39;); // &#39;--dqo34k&#39;
 <div class="api_metadata">
 <span>Added in: v0.6.1</span>
 </div><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>punycode.toASCII()</code> method converts a Unicode string representing an
 Internationalized Domain Name to <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>. Only the non-ASCII parts of the
@@ -176,7 +176,7 @@ punycode.toASCII(&#39;example.com&#39;); // &#39;example.com&#39;
 <div class="api_metadata">
 <span>Added in: v0.6.1</span>
 </div><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>punycode.toUnicode()</code> method converts a string representing a domain name
 containing <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> encoded characters into Unicode. Only the <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>
@@ -193,7 +193,7 @@ punycode.toUnicode(&#39;example.com&#39;);       // &#39;example.com&#39;
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>punycode.ucs2.decode()</code> method returns an array containing the numeric
 codepoint values of each Unicode symbol in the string.</p>

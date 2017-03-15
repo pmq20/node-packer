@@ -24,7 +24,7 @@
           "textRaw": "All Together...",
           "name": "All Together...",
           "type": "misc",
-          "desc": "<p>To get the exact filename that will be loaded when <code>require()</code> is called, use\nthe <code>require.resolve()</code> function.</p>\n<p>Putting together all of the above, here is the high-level algorithm\nin pseudocode of what require.resolve does:</p>\n<pre><code class=\"lang-txt\">require(X) from module at path Y\n1. If X is a core module,\n   a. return the core module\n   b. STOP\n2. If X begins with &#39;./&#39; or &#39;/&#39; or &#39;../&#39;\n   a. LOAD_AS_FILE(Y + X)\n   b. LOAD_AS_DIRECTORY(Y + X)\n3. LOAD_NODE_MODULES(X, dirname(Y))\n4. THROW &quot;not found&quot;\n\nLOAD_AS_FILE(X)\n1. If X is a file, load X as JavaScript text.  STOP\n2. If X.js is a file, load X.js as JavaScript text.  STOP\n3. If X.json is a file, parse X.json to a JavaScript Object.  STOP\n4. If X.node is a file, load X.node as binary addon.  STOP\n\nLOAD_AS_DIRECTORY(X)\n1. If X/package.json is a file,\n   a. Parse X/package.json, and look for &quot;main&quot; field.\n   b. let M = X + (json main field)\n   c. LOAD_AS_FILE(M)\n2. If X/index.js is a file, load X/index.js as JavaScript text.  STOP\n3. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP\n4. If X/index.node is a file, load X/index.node as binary addon.  STOP\n\nLOAD_NODE_MODULES(X, START)\n1. let DIRS=NODE_MODULES_PATHS(START)\n2. for each DIR in DIRS:\n   a. LOAD_AS_FILE(DIR/X)\n   b. LOAD_AS_DIRECTORY(DIR/X)\n\nNODE_MODULES_PATHS(START)\n1. let PARTS = path split(START)\n2. let I = count of PARTS - 1\n3. let DIRS = []\n4. while I &gt;= 0,\n   a. if PARTS[I] = &quot;node_modules&quot; CONTINUE\n   b. DIR = path join(PARTS[0 .. I] + &quot;node_modules&quot;)\n   c. DIRS = DIRS + DIR\n   d. let I = I - 1\n5. return DIRS\n</code></pre>\n"
+          "desc": "<p>To get the exact filename that will be loaded when <code>require()</code> is called, use\nthe <code>require.resolve()</code> function.</p>\n<p>Putting together all of the above, here is the high-level algorithm\nin pseudocode of what require.resolve does:</p>\n<pre><code class=\"lang-txt\">require(X) from module at path Y\n1. If X is a core module,\n   a. return the core module\n   b. STOP\n2. If X begins with &#39;./&#39; or &#39;/&#39; or &#39;../&#39;\n   a. LOAD_AS_FILE(Y + X)\n   b. LOAD_AS_DIRECTORY(Y + X)\n3. LOAD_NODE_MODULES(X, dirname(Y))\n4. THROW &quot;not found&quot;\n\nLOAD_AS_FILE(X)\n1. If X is a file, load X as JavaScript text.  STOP\n2. If X.js is a file, load X.js as JavaScript text.  STOP\n3. If X.json is a file, parse X.json to a JavaScript Object.  STOP\n4. If X.node is a file, load X.node as binary addon.  STOP\n\nLOAD_INDEX(X)\n1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP\n2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP\n3. If X/index.node is a file, load X/index.node as binary addon.  STOP\n\nLOAD_AS_DIRECTORY(X)\n1. If X/package.json is a file,\n   a. Parse X/package.json, and look for &quot;main&quot; field.\n   b. let M = X + (json main field)\n   c. LOAD_AS_FILE(M)\n   d. LOAD_INDEX(M)\n2. LOAD_INDEX(X)\n\nLOAD_NODE_MODULES(X, START)\n1. let DIRS=NODE_MODULES_PATHS(START)\n2. for each DIR in DIRS:\n   a. LOAD_AS_FILE(DIR/X)\n   b. LOAD_AS_DIRECTORY(DIR/X)\n\nNODE_MODULES_PATHS(START)\n1. let PARTS = path split(START)\n2. let I = count of PARTS - 1\n3. let DIRS = []\n4. while I &gt;= 0,\n   a. if PARTS[I] = &quot;node_modules&quot; CONTINUE\n   b. DIR = path join(PARTS[0 .. I] + &quot;node_modules&quot;)\n   c. DIRS = DIRS + DIR\n   d. let I = I - 1\n5. return DIRS\n</code></pre>\n"
         },
         {
           "textRaw": "Caching",
@@ -136,8 +136,8 @@
               ]
             },
             {
-              "textRaw": "`filename` {String} ",
-              "type": "String",
+              "textRaw": "`filename` {string} ",
+              "type": "string",
               "name": "filename",
               "meta": {
                 "added": [
@@ -148,8 +148,8 @@
               "desc": "<p>The fully resolved filename to the module.</p>\n"
             },
             {
-              "textRaw": "`id` {String} ",
-              "type": "String",
+              "textRaw": "`id` {string} ",
+              "type": "string",
               "name": "id",
               "meta": {
                 "added": [
@@ -160,8 +160,8 @@
               "desc": "<p>The identifier for the module.  Typically this is the fully resolved\nfilename.</p>\n"
             },
             {
-              "textRaw": "`loaded` {Boolean} ",
-              "type": "Boolean",
+              "textRaw": "`loaded` {boolean} ",
+              "type": "boolean",
               "name": "loaded",
               "meta": {
                 "added": [
@@ -206,9 +206,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`id` {String} ",
+                      "textRaw": "`id` {string} ",
                       "name": "id",
-                      "type": "String"
+                      "type": "string"
                     }
                   ]
                 },

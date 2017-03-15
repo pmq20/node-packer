@@ -194,9 +194,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`query` {String} A statement or query to write to `output`, prepended to the prompt. ",
+                      "textRaw": "`query` {string} A statement or query to write to `output`, prepended to the prompt. ",
                       "name": "query",
-                      "type": "String",
+                      "type": "string",
                       "desc": "A statement or query to write to `output`, prepended to the prompt."
                     },
                     {
@@ -251,9 +251,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`prompt` {String} ",
+                      "textRaw": "`prompt` {string} ",
                       "name": "prompt",
-                      "type": "String"
+                      "type": "string"
                     }
                   ]
                 },
@@ -281,9 +281,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`data` {String} ",
+                      "textRaw": "`data` {string} ",
                       "name": "data",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
                       "textRaw": "`key` {Object} ",
@@ -307,9 +307,9 @@
                           "desc": "`true` to indicate the `<Shift>` key."
                         },
                         {
-                          "textRaw": "`name` {String} The name of the a key. ",
+                          "textRaw": "`name` {string} The name of the a key. ",
                           "name": "name",
-                          "type": "String",
+                          "type": "string",
                           "desc": "The name of the a key."
                         }
                       ],
@@ -625,9 +625,9 @@
                   "type": "number"
                 },
                 {
-                  "textRaw": "`dy` {Number} ",
+                  "textRaw": "`dy` {number} ",
                   "name": "dy",
-                  "type": "Number"
+                  "type": "number"
                 }
               ]
             },

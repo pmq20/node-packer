@@ -22,9 +22,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`str` {String} ",
+                  "textRaw": "`str` {string} ",
                   "name": "str",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },
@@ -63,22 +63,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`str` {String} The URL query string to parse ",
+                  "textRaw": "`str` {string} The URL query string to parse ",
                   "name": "str",
-                  "type": "String",
+                  "type": "string",
                   "desc": "The URL query string to parse"
                 },
                 {
-                  "textRaw": "`sep` {String} The substring used to delimit key and value pairs in the query string. Defaults to `'&'`. ",
+                  "textRaw": "`sep` {string} The substring used to delimit key and value pairs in the query string. Defaults to `'&'`. ",
                   "name": "sep",
-                  "type": "String",
+                  "type": "string",
                   "desc": "The substring used to delimit key and value pairs in the query string. Defaults to `'&'`.",
                   "optional": true
                 },
                 {
-                  "textRaw": "`eq` {String}. The substring used to delimit keys and values in the query string. Defaults to `'='`. ",
+                  "textRaw": "`eq` {string}. The substring used to delimit keys and values in the query string. Defaults to `'='`. ",
                   "name": "eq",
-                  "type": "String",
+                  "type": "string",
                   "desc": ". The substring used to delimit keys and values in the query string. Defaults to `'='`.",
                   "optional": true
                 },
@@ -146,16 +146,16 @@
                   "desc": "The object to serialize into a URL query string"
                 },
                 {
-                  "textRaw": "`sep` {String} The substring used to delimit key and value pairs in the query string. Defaults to `'&'`. ",
+                  "textRaw": "`sep` {string} The substring used to delimit key and value pairs in the query string. Defaults to `'&'`. ",
                   "name": "sep",
-                  "type": "String",
+                  "type": "string",
                   "desc": "The substring used to delimit key and value pairs in the query string. Defaults to `'&'`.",
                   "optional": true
                 },
                 {
-                  "textRaw": "`eq` {String}. The substring used to delimit keys and values in the query string. Defaults to `'='`. ",
+                  "textRaw": "`eq` {string}. The substring used to delimit keys and values in the query string. Defaults to `'='`. ",
                   "name": "eq",
-                  "type": "String",
+                  "type": "string",
                   "desc": ". The substring used to delimit keys and values in the query string. Defaults to `'='`.",
                   "optional": true
                 },
@@ -210,9 +210,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`str` {String} ",
+                  "textRaw": "`str` {string} ",
                   "name": "str",
-                  "type": "String"
+                  "type": "string"
                 }
               ]
             },

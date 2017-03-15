@@ -86,19 +86,19 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`showHidden` {Boolean} ",
+                          "textRaw": "`showHidden` {boolean} ",
                           "name": "showHidden",
-                          "type": "Boolean"
+                          "type": "boolean"
                         },
                         {
-                          "textRaw": "`depth` {Number} ",
+                          "textRaw": "`depth` {number} ",
                           "name": "depth",
-                          "type": "Number"
+                          "type": "number"
                         },
                         {
-                          "textRaw": "`colors` {Boolean} ",
+                          "textRaw": "`colors` {boolean} ",
                           "name": "colors",
-                          "type": "Boolean"
+                          "type": "boolean"
                         }
                       ],
                       "name": "options",
@@ -261,9 +261,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`label` {String} ",
+                      "textRaw": "`label` {string} ",
                       "name": "label",
-                      "type": "String"
+                      "type": "string"
                     }
                   ]
                 },
@@ -297,9 +297,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`label` {String} ",
+                      "textRaw": "`label` {string} ",
                       "name": "label",
-                      "type": "String"
+                      "type": "string"
                     }
                   ]
                 },

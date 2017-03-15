@@ -41,18 +41,18 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`command` {String} The command to run, with space-separated arguments ",
+                      "textRaw": "`command` {string} The command to run, with space-separated arguments ",
                       "name": "command",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The command to run, with space-separated arguments"
                     },
                     {
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
@@ -62,45 +62,46 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`encoding` {String} (Default: `'utf8'`) ",
+                          "textRaw": "`encoding` {string} (Default: `'utf8'`) ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "(Default: `'utf8'`)"
                         },
                         {
-                          "textRaw": "`shell` {String} Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.) ",
+                          "textRaw": "`shell` {string} Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.) ",
                           "name": "shell",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.)"
                         },
                         {
-                          "textRaw": "`timeout` {Number} (Default: `0`) ",
+                          "textRaw": "`timeout` {number} (Default: `0`) ",
                           "name": "timeout",
                           "default": "0",
-                          "type": "Number"
+                          "type": "number"
                         },
                         {
-                          "textRaw": "[`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed (Default: `200*1024`) ",
-                          "name": "[",
+                          "textRaw": "`maxBuffer` {number} Largest amount of data in bytes allowed on stdout or stderr. (Default: `200*1024`) If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]. ",
+                          "name": "maxBuffer",
                           "default": "200*1024",
-                          "desc": "maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed"
+                          "type": "number",
+                          "desc": "Largest amount of data in bytes allowed on stdout or stderr.  If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]."
                         },
                         {
-                          "textRaw": "`killSignal` {String|Integer} (Default: `'SIGTERM'`) ",
+                          "textRaw": "`killSignal` {string|integer} (Default: `'SIGTERM'`) ",
                           "name": "killSignal",
-                          "type": "String|Integer",
+                          "type": "string|integer",
                           "desc": "(Default: `'SIGTERM'`)"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         }
                       ],
@@ -117,14 +118,14 @@
                           "type": "Error"
                         },
                         {
-                          "textRaw": "`stdout` {String|Buffer} ",
+                          "textRaw": "`stdout` {string|Buffer} ",
                           "name": "stdout",
-                          "type": "String|Buffer"
+                          "type": "string|Buffer"
                         },
                         {
-                          "textRaw": "`stderr` {String|Buffer} ",
+                          "textRaw": "`stderr` {string|Buffer} ",
                           "name": "stderr",
-                          "type": "String|Buffer"
+                          "type": "string|Buffer"
                         }
                       ],
                       "name": "callback",
@@ -150,7 +151,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Spawns a shell then executes the <code>command</code> within that shell, buffering any\ngenerated output.</p>\n<p><strong>Note: Never pass unsanitised user input to this function. Any input\ncontaining shell metacharacters may be used to trigger arbitrary command\nexecution.</strong></p>\n<pre><code class=\"lang-js\">const exec = require(&#39;child_process&#39;).exec;\nexec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {\n  if (error) {\n    console.error(`exec error: ${error}`);\n    return;\n  }\n  console.log(`stdout: ${stdout}`);\n  console.log(`stderr: ${stderr}`);\n});\n</code></pre>\n<p>If a <code>callback</code> function is provided, it is called with the arguments\n<code>(error, stdout, stderr)</code>. On success, <code>error</code> will be <code>null</code>.  On error,\n<code>error</code> will be an instance of <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. The <code>error.code</code> property will be\nthe exit code of the child process while <code>error.signal</code> will be set to the\nsignal that terminated the process. Any exit code other than <code>0</code> is considered\nto be an error.</p>\n<p>The <code>stdout</code> and <code>stderr</code> arguments passed to the callback will contain the\nstdout and stderr output of the child process. By default, Node.js will decode\nthe output as UTF-8 and pass strings to the callback. The <code>encoding</code> option\ncan be used to specify the character encoding used to decode the stdout and\nstderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an unrecognized character\nencoding, <code>Buffer</code> objects will be passed to the callback instead.</p>\n<p>The <code>options</code> argument may be passed as the second argument to customize how\nthe process is spawned. The default options are:</p>\n<pre><code class=\"lang-js\">{\n  encoding: &#39;utf8&#39;,\n  timeout: 0,\n  maxBuffer: 200*1024,\n  killSignal: &#39;SIGTERM&#39;,\n  cwd: null,\n  env: null\n}\n</code></pre>\n<p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the the signal\nidentified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the\nchild runs longer than <code>timeout</code> milliseconds.</p>\n<p><em>Note: Unlike the exec(3) POSIX system call, <code>child_process.exec()</code> does not\nreplace the existing process and uses a shell to execute the command.</em></p>\n"
+              "desc": "<p>Spawns a shell then executes the <code>command</code> within that shell, buffering any\ngenerated output.</p>\n<p><strong>Note: Never pass unsanitised user input to this function. Any input\ncontaining shell metacharacters may be used to trigger arbitrary command\nexecution.</strong></p>\n<pre><code class=\"lang-js\">const exec = require(&#39;child_process&#39;).exec;\nexec(&#39;cat *.js bad_file | wc -l&#39;, (error, stdout, stderr) =&gt; {\n  if (error) {\n    console.error(`exec error: ${error}`);\n    return;\n  }\n  console.log(`stdout: ${stdout}`);\n  console.log(`stderr: ${stderr}`);\n});\n</code></pre>\n<p>If a <code>callback</code> function is provided, it is called with the arguments\n<code>(error, stdout, stderr)</code>. On success, <code>error</code> will be <code>null</code>.  On error,\n<code>error</code> will be an instance of <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. The <code>error.code</code> property will be\nthe exit code of the child process while <code>error.signal</code> will be set to the\nsignal that terminated the process. Any exit code other than <code>0</code> is considered\nto be an error.</p>\n<p>The <code>stdout</code> and <code>stderr</code> arguments passed to the callback will contain the\nstdout and stderr output of the child process. By default, Node.js will decode\nthe output as UTF-8 and pass strings to the callback. The <code>encoding</code> option\ncan be used to specify the character encoding used to decode the stdout and\nstderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an unrecognized character\nencoding, <code>Buffer</code> objects will be passed to the callback instead.</p>\n<p>The <code>options</code> argument may be passed as the second argument to customize how\nthe process is spawned. The default options are:</p>\n<pre><code class=\"lang-js\">{\n  encoding: &#39;utf8&#39;,\n  timeout: 0,\n  maxBuffer: 200*1024,\n  killSignal: &#39;SIGTERM&#39;,\n  cwd: null,\n  env: null\n}\n</code></pre>\n<p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the signal\nidentified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the\nchild runs longer than <code>timeout</code> milliseconds.</p>\n<p><em>Note: Unlike the exec(3) POSIX system call, <code>child_process.exec()</code> does not\nreplace the existing process and uses a shell to execute the command.</em></p>\n"
             },
             {
               "textRaw": "child_process.execFile(file[, args][, options][, callback])",
@@ -171,9 +172,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`file` {String} The name or path of the executable file to run ",
+                      "textRaw": "`file` {string} The name or path of the executable file to run ",
                       "name": "file",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The name or path of the executable file to run"
                     },
                     {
@@ -187,9 +188,9 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
@@ -199,39 +200,40 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`encoding` {String} (Default: `'utf8'`) ",
+                          "textRaw": "`encoding` {string} (Default: `'utf8'`) ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "(Default: `'utf8'`)"
                         },
                         {
-                          "textRaw": "`timeout` {Number} (Default: `0`) ",
+                          "textRaw": "`timeout` {number} (Default: `0`) ",
                           "name": "timeout",
                           "default": "0",
-                          "type": "Number"
+                          "type": "number"
                         },
                         {
-                          "textRaw": "[`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed (Default: `200*1024`) ",
-                          "name": "[",
+                          "textRaw": "`maxBuffer` {number} Largest amount of data in bytes allowed on stdout or stderr. (Default: `200*1024`) If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]. ",
+                          "name": "maxBuffer",
                           "default": "200*1024",
-                          "desc": "maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed"
+                          "type": "number",
+                          "desc": "Largest amount of data in bytes allowed on stdout or stderr.  If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]."
                         },
                         {
-                          "textRaw": "`killSignal` {String|Integer} (Default: `'SIGTERM'`) ",
+                          "textRaw": "`killSignal` {string|integer} (Default: `'SIGTERM'`) ",
                           "name": "killSignal",
-                          "type": "String|Integer",
+                          "type": "string|integer",
                           "desc": "(Default: `'SIGTERM'`)"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         }
                       ],
@@ -248,14 +250,14 @@
                           "type": "Error"
                         },
                         {
-                          "textRaw": "`stdout` {String|Buffer} ",
+                          "textRaw": "`stdout` {string|Buffer} ",
                           "name": "stdout",
-                          "type": "String|Buffer"
+                          "type": "string|Buffer"
                         },
                         {
-                          "textRaw": "`stderr` {String|Buffer} ",
+                          "textRaw": "`stderr` {string|Buffer} ",
                           "name": "stderr",
-                          "type": "String|Buffer"
+                          "type": "string|Buffer"
                         }
                       ],
                       "name": "callback",
@@ -312,9 +314,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`modulePath` {String} The module to run in the child ",
+                      "textRaw": "`modulePath` {string} The module to run in the child ",
                       "name": "modulePath",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The module to run in the child"
                     },
                     {
@@ -328,9 +330,9 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
@@ -340,9 +342,9 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`execPath` {String} Executable used to create the child process ",
+                          "textRaw": "`execPath` {string} Executable used to create the child process ",
                           "name": "execPath",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Executable used to create the child process"
                         },
                         {
@@ -353,10 +355,10 @@
                           "desc": "List of string arguments passed to the executable"
                         },
                         {
-                          "textRaw": "`silent` {Boolean} If `true`, stdin, stdout, and stderr of the child will be piped to the parent, otherwise they will be inherited from the parent, see the `'pipe'` and `'inherit'` options for [`child_process.spawn()`][]'s [`stdio`][] for more details (Default: `false`) ",
+                          "textRaw": "`silent` {boolean} If `true`, stdin, stdout, and stderr of the child will be piped to the parent, otherwise they will be inherited from the parent, see the `'pipe'` and `'inherit'` options for [`child_process.spawn()`][]'s [`stdio`][] for more details (Default: `false`) ",
                           "name": "silent",
                           "default": "false",
-                          "type": "Boolean",
+                          "type": "boolean",
                           "desc": "If `true`, stdin, stdout, and stderr of the child will be piped to the parent, otherwise they will be inherited from the parent, see the `'pipe'` and `'inherit'` options for [`child_process.spawn()`][]'s [`stdio`][] for more details"
                         },
                         {
@@ -366,15 +368,15 @@
                           "desc": "Supports the array version of [`child_process.spawn()`][]'s [`stdio`][] option. When this option is provided, it overrides `silent`. The array must contain exactly one item with value `'ipc'` or an error will be thrown. For instance `[0, 1, 2, 'ipc']`."
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         }
                       ],
@@ -432,9 +434,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`command` {String} The command to run ",
+                      "textRaw": "`command` {string} The command to run ",
                       "name": "command",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The command to run"
                     },
                     {
@@ -448,9 +450,9 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
@@ -460,39 +462,39 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`argv0` {String} Explicitly set the value of `argv[0]` sent to the child process. This will be set to `command` if not specified. ",
+                          "textRaw": "`argv0` {string} Explicitly set the value of `argv[0]` sent to the child process. This will be set to `command` if not specified. ",
                           "name": "argv0",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Explicitly set the value of `argv[0]` sent to the child process. This will be set to `command` if not specified."
                         },
                         {
-                          "textRaw": "`stdio` {Array|String} Child's stdio configuration. (See [`options.stdio`][`stdio`]) ",
+                          "textRaw": "`stdio` {Array|string} Child's stdio configuration. (See [`options.stdio`][`stdio`]) ",
                           "name": "stdio",
-                          "type": "Array|String",
+                          "type": "Array|string",
                           "desc": "Child's stdio configuration. (See [`options.stdio`][`stdio`])"
                         },
                         {
-                          "textRaw": "`detached` {Boolean} Prepare child to run independently of its parent process. Specific behavior depends on the platform, see [`options.detached`][]) ",
+                          "textRaw": "`detached` {boolean} Prepare child to run independently of its parent process. Specific behavior depends on the platform, see [`options.detached`][]) ",
                           "name": "detached",
-                          "type": "Boolean",
+                          "type": "boolean",
                           "desc": "Prepare child to run independently of its parent process. Specific behavior depends on the platform, see [`options.detached`][])"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         },
                         {
-                          "textRaw": "`shell` {Boolean|String} If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell). ",
+                          "textRaw": "`shell` {boolean|string} If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell). ",
                           "name": "shell",
-                          "type": "Boolean|String",
+                          "type": "boolean|string",
                           "desc": "If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell)."
                         }
                       ],
@@ -578,16 +580,16 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer|String} The stdout from the command ",
+                    "textRaw": "Returns: {Buffer|string} The stdout from the command ",
                     "name": "return",
-                    "type": "Buffer|String",
+                    "type": "Buffer|string",
                     "desc": "The stdout from the command"
                   },
                   "params": [
                     {
-                      "textRaw": "`file` {String} The name or path of the executable file to run ",
+                      "textRaw": "`file` {string} The name or path of the executable file to run ",
                       "name": "file",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The name or path of the executable file to run"
                     },
                     {
@@ -601,13 +603,13 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
-                          "textRaw": "`input` {String|Buffer} The value which will be passed as stdin to the spawned process ",
+                          "textRaw": "`input` {string|Buffer} The value which will be passed as stdin to the spawned process ",
                           "options": [
                             {
                               "textRaw": "supplying this value will override `stdio[0]` ",
@@ -616,11 +618,11 @@
                             }
                           ],
                           "name": "input",
-                          "type": "String|Buffer",
+                          "type": "string|Buffer",
                           "desc": "The value which will be passed as stdin to the spawned process"
                         },
                         {
-                          "textRaw": "`stdio` {String | Array} Child's stdio configuration. (Default: `'pipe'`) ",
+                          "textRaw": "`stdio` {string|Array} Child's stdio configuration. (Default: `'pipe'`) ",
                           "options": [
                             {
                               "textRaw": "`stderr` by default will be output to the parent process' stderr unless `stdio` is specified ",
@@ -629,7 +631,7 @@
                             }
                           ],
                           "name": "stdio",
-                          "type": "String | Array",
+                          "type": "string|Array",
                           "desc": "Child's stdio configuration. (Default: `'pipe'`)"
                         },
                         {
@@ -639,39 +641,41 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         },
                         {
-                          "textRaw": "`timeout` {Number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
+                          "textRaw": "`timeout` {number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
                           "name": "timeout",
                           "default": "undefined",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "In milliseconds the maximum amount of time the process is allowed to run."
                         },
                         {
-                          "textRaw": "`killSignal` {String|Integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
+                          "textRaw": "`killSignal` {string|integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
                           "name": "killSignal",
-                          "type": "String|Integer",
+                          "type": "string|integer",
                           "desc": "The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`)"
                         },
                         {
-                          "textRaw": "[`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed ",
-                          "name": "[",
-                          "desc": "maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed"
+                          "textRaw": "`maxBuffer` {number} Largest amount of data in bytes allowed on stdout or stderr. (Default: `200*1024`) If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]. ",
+                          "name": "maxBuffer",
+                          "default": "200*1024",
+                          "type": "number",
+                          "desc": "Largest amount of data in bytes allowed on stdout or stderr.  If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]."
                         },
                         {
-                          "textRaw": "`encoding` {String} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
+                          "textRaw": "`encoding` {string} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "The encoding used for all stdio inputs and outputs. (Default: `'buffer'`)"
                         }
                       ],
@@ -712,29 +716,29 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer|String} The stdout from the command ",
+                    "textRaw": "Returns: {Buffer|string} The stdout from the command ",
                     "name": "return",
-                    "type": "Buffer|String",
+                    "type": "Buffer|string",
                     "desc": "The stdout from the command"
                   },
                   "params": [
                     {
-                      "textRaw": "`command` {String} The command to run ",
+                      "textRaw": "`command` {string} The command to run ",
                       "name": "command",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The command to run"
                     },
                     {
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
-                          "textRaw": "`input` {String|Buffer} The value which will be passed as stdin to the spawned process ",
+                          "textRaw": "`input` {string|Buffer} The value which will be passed as stdin to the spawned process ",
                           "options": [
                             {
                               "textRaw": "supplying this value will override `stdio[0]` ",
@@ -743,11 +747,11 @@
                             }
                           ],
                           "name": "input",
-                          "type": "String|Buffer",
+                          "type": "string|Buffer",
                           "desc": "The value which will be passed as stdin to the spawned process"
                         },
                         {
-                          "textRaw": "`stdio` {String | Array} Child's stdio configuration. (Default: `'pipe'`) ",
+                          "textRaw": "`stdio` {string|Array} Child's stdio configuration. (Default: `'pipe'`) ",
                           "options": [
                             {
                               "textRaw": "`stderr` by default will be output to the parent process' stderr unless `stdio` is specified ",
@@ -756,7 +760,7 @@
                             }
                           ],
                           "name": "stdio",
-                          "type": "String | Array",
+                          "type": "string|Array",
                           "desc": "Child's stdio configuration. (Default: `'pipe'`)"
                         },
                         {
@@ -766,45 +770,47 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`shell` {String} Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.) ",
+                          "textRaw": "`shell` {string} Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.) ",
                           "name": "shell",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Shell to execute the command with (Default: `'/bin/sh'` on UNIX, `'cmd.exe'` on Windows, The shell should  understand the `-c` switch on UNIX or `/d /s /c` on Windows. On Windows,  command line parsing should be compatible with `cmd.exe`.)"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         },
                         {
-                          "textRaw": "`timeout` {Number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
+                          "textRaw": "`timeout` {number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
                           "name": "timeout",
                           "default": "undefined",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "In milliseconds the maximum amount of time the process is allowed to run."
                         },
                         {
-                          "textRaw": "`killSignal` {String|Integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
+                          "textRaw": "`killSignal` {string|integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
                           "name": "killSignal",
-                          "type": "String|Integer",
+                          "type": "string|integer",
                           "desc": "The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`)"
                         },
                         {
-                          "textRaw": "[`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed ",
-                          "name": "[",
-                          "desc": "maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed"
+                          "textRaw": "`maxBuffer` {number} Largest amount of data in bytes allowed on stdout or stderr. (Default: `200*1024`) If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]. ",
+                          "name": "maxBuffer",
+                          "default": "200*1024",
+                          "type": "number",
+                          "desc": "Largest amount of data in bytes allowed on stdout or stderr.  If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]."
                         },
                         {
-                          "textRaw": "`encoding` {String} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
+                          "textRaw": "`encoding` {string} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "The encoding used for all stdio inputs and outputs. (Default: `'buffer'`)"
                         }
                       ],
@@ -855,9 +861,9 @@
                     "textRaw": "Returns: {Object} ",
                     "options": [
                       {
-                        "textRaw": "`pid` {Number} Pid of the child process ",
+                        "textRaw": "`pid` {number} Pid of the child process ",
                         "name": "pid",
-                        "type": "Number",
+                        "type": "number",
                         "desc": "Pid of the child process"
                       },
                       {
@@ -867,27 +873,27 @@
                         "desc": "Array of results from stdio output"
                       },
                       {
-                        "textRaw": "`stdout` {Buffer|String} The contents of `output[1]` ",
+                        "textRaw": "`stdout` {Buffer|string} The contents of `output[1]` ",
                         "name": "stdout",
-                        "type": "Buffer|String",
+                        "type": "Buffer|string",
                         "desc": "The contents of `output[1]`"
                       },
                       {
-                        "textRaw": "`stderr` {Buffer|String} The contents of `output[2]` ",
+                        "textRaw": "`stderr` {Buffer|string} The contents of `output[2]` ",
                         "name": "stderr",
-                        "type": "Buffer|String",
+                        "type": "Buffer|string",
                         "desc": "The contents of `output[2]`"
                       },
                       {
-                        "textRaw": "`status` {Number} The exit code of the child process ",
+                        "textRaw": "`status` {number} The exit code of the child process ",
                         "name": "status",
-                        "type": "Number",
+                        "type": "number",
                         "desc": "The exit code of the child process"
                       },
                       {
-                        "textRaw": "`signal` {String} The signal used to kill the child process ",
+                        "textRaw": "`signal` {string} The signal used to kill the child process ",
                         "name": "signal",
-                        "type": "String",
+                        "type": "string",
                         "desc": "The signal used to kill the child process"
                       },
                       {
@@ -902,9 +908,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`command` {String} The command to run ",
+                      "textRaw": "`command` {string} The command to run ",
                       "name": "command",
-                      "type": "String",
+                      "type": "string",
                       "desc": "The command to run"
                     },
                     {
@@ -918,13 +924,13 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`cwd` {String} Current working directory of the child process ",
+                          "textRaw": "`cwd` {string} Current working directory of the child process ",
                           "name": "cwd",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Current working directory of the child process"
                         },
                         {
-                          "textRaw": "`input` {String|Buffer} The value which will be passed as stdin to the spawned process ",
+                          "textRaw": "`input` {string|Buffer} The value which will be passed as stdin to the spawned process ",
                           "options": [
                             {
                               "textRaw": "supplying this value will override `stdio[0]` ",
@@ -933,13 +939,13 @@
                             }
                           ],
                           "name": "input",
-                          "type": "String|Buffer",
+                          "type": "string|Buffer",
                           "desc": "The value which will be passed as stdin to the spawned process"
                         },
                         {
-                          "textRaw": "`stdio` {String | Array} Child's stdio configuration. ",
+                          "textRaw": "`stdio` {string|Array} Child's stdio configuration. ",
                           "name": "stdio",
-                          "type": "String | Array",
+                          "type": "string|Array",
                           "desc": "Child's stdio configuration."
                         },
                         {
@@ -949,45 +955,47 @@
                           "desc": "Environment key-value pairs"
                         },
                         {
-                          "textRaw": "`uid` {Number} Sets the user identity of the process. (See setuid(2).) ",
+                          "textRaw": "`uid` {number} Sets the user identity of the process. (See setuid(2).) ",
                           "name": "uid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the user identity of the process. (See setuid(2).)"
                         },
                         {
-                          "textRaw": "`gid` {Number} Sets the group identity of the process. (See setgid(2).) ",
+                          "textRaw": "`gid` {number} Sets the group identity of the process. (See setgid(2).) ",
                           "name": "gid",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Sets the group identity of the process. (See setgid(2).)"
                         },
                         {
-                          "textRaw": "`timeout` {Number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
+                          "textRaw": "`timeout` {number} In milliseconds the maximum amount of time the process is allowed to run. (Default: `undefined`) ",
                           "name": "timeout",
                           "default": "undefined",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "In milliseconds the maximum amount of time the process is allowed to run."
                         },
                         {
-                          "textRaw": "`killSignal` {String|Integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
+                          "textRaw": "`killSignal` {string|integer} The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`) ",
                           "name": "killSignal",
-                          "type": "String|Integer",
+                          "type": "string|integer",
                           "desc": "The signal value to be used when the spawned process will be killed. (Default: `'SIGTERM'`)"
                         },
                         {
-                          "textRaw": "[`maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed ",
-                          "name": "[",
-                          "desc": "maxBuffer`][] {Number} largest amount of data (in bytes) allowed on stdout or stderr - if exceeded child process is killed"
+                          "textRaw": "`maxBuffer` {number} Largest amount of data in bytes allowed on stdout or stderr. (Default: `200*1024`) If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]. ",
+                          "name": "maxBuffer",
+                          "default": "200*1024",
+                          "type": "number",
+                          "desc": "Largest amount of data in bytes allowed on stdout or stderr.  If exceeded, the child process is terminated. See caveat at [`maxBuffer` and Unicode][]."
                         },
                         {
-                          "textRaw": "`encoding` {String} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
+                          "textRaw": "`encoding` {string} The encoding used for all stdio inputs and outputs. (Default: `'buffer'`) ",
                           "name": "encoding",
-                          "type": "String",
+                          "type": "string",
                           "desc": "The encoding used for all stdio inputs and outputs. (Default: `'buffer'`)"
                         },
                         {
-                          "textRaw": "`shell` {Boolean|String} If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell). ",
+                          "textRaw": "`shell` {boolean|string} If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell). ",
                           "name": "shell",
-                          "type": "Boolean|String",
+                          "type": "boolean|string",
                           "desc": "If `true`, runs `command` inside of a shell. Uses `'/bin/sh'` on UNIX, and `'cmd.exe'` on Windows. A different shell can be specified as a string. The shell should understand the `-c` switch on UNIX, or `/d /s /c` on Windows. Defaults to `false` (no shell)."
                         }
                       ],
@@ -1115,8 +1123,8 @@
               "shortDesc": "A pipe representing the IPC channel to the child process."
             },
             {
-              "textRaw": "`connected` {Boolean} Set to `false` after `child.disconnect()` is called ",
-              "type": "Boolean",
+              "textRaw": "`connected` {boolean} Set to `false` after `child.disconnect()` is called ",
+              "type": "boolean",
               "name": "connected",
               "meta": {
                 "added": [
@@ -1128,8 +1136,8 @@
               "shortDesc": "Set to `false` after `child.disconnect()` is called"
             },
             {
-              "textRaw": "`pid` {Number} Integer ",
-              "type": "Number",
+              "textRaw": "`pid` {number} Integer ",
+              "type": "number",
               "name": "pid",
               "meta": {
                 "added": [
@@ -1221,9 +1229,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`signal` {String} ",
+                      "textRaw": "`signal` {string} ",
                       "name": "signal",
-                      "type": "String",
+                      "type": "string",
                       "optional": true
                     }
                   ]
@@ -1268,9 +1276,9 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Boolean} ",
+                    "textRaw": "Returns: {boolean} ",
                     "name": "return",
-                    "type": "Boolean"
+                    "type": "boolean"
                   },
                   "params": [
                     {

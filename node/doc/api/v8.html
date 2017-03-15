@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>V8 | Node.js v7.7.2 Documentation</title>
+  <title>V8 | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -124,11 +124,11 @@ heap space can be guaranteed as the statistics are provided via the V8
 next.</p>
 <p>The value returned is an array of objects containing the following properties:</p>
 <ul>
-<li><code>space_name</code> <span class="type">&lt;string&gt;</span></li>
-<li><code>space_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>space_used_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>space_available_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>physical_space_size</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>space_name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>space_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>space_used_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>space_available_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>physical_space_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>For example:</p>
 <pre><code class="lang-json">[
@@ -187,15 +187,15 @@ next.</p>
 </details>
 </div><p>Returns an object with the following properties:</p>
 <ul>
-<li><code>total_heap_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_heap_size_executable</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_physical_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>total_available_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>used_heap_size</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>heap_size_limit</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>peak_malloced_memory</code> <span class="type">&lt;number&gt;</span></li>
-<li><code>does_zap_garbage</code> <span class="type">&lt;number&gt;</span></li>
+<li><code>total_heap_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>total_heap_size_executable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>total_physical_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>total_available_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>used_heap_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>heap_size_limit</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>malloced_memory</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>peak_malloced_memory</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>does_zap_garbage</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>
 option is enabled or not. This makes V8 overwrite heap garbage with a bit

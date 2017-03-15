@@ -69,7 +69,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} - The message</li>\n<li><code>rinfo</code> {Object} - Remote address information<ul>\n<li><code>address</code> {String} The sender address</li>\n<li><code>family</code> {String} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>\n<li><code>port</code> {Number} The sender port</li>\n<li><code>size</code> {Number} The message size</li>\n</ul>\n</li>\n</ul>\n",
+              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} - The message</li>\n<li><code>rinfo</code> {Object} - Remote address information<ul>\n<li><code>address</code> {string} The sender address</li>\n<li><code>family</code> {string} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>\n<li><code>port</code> {number} The sender port</li>\n<li><code>size</code> {number} The message size</li>\n</ul>\n</li>\n</ul>\n",
               "params": []
             }
           ],
@@ -88,14 +88,14 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`multicastAddress` {String} ",
+                      "textRaw": "`multicastAddress` {string} ",
                       "name": "multicastAddress",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`multicastInterface` {String}, Optional ",
+                      "textRaw": "`multicastInterface` {string}, Optional ",
                       "name": "multicastInterface",
-                      "type": "String",
+                      "type": "string",
                       "optional": true
                     }
                   ]
@@ -145,16 +145,16 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`port` {Number} - Integer, Optional ",
+                      "textRaw": "`port` {number} - Integer, Optional ",
                       "name": "port",
-                      "type": "Number",
+                      "type": "number",
                       "optional": true,
                       "desc": "Integer"
                     },
                     {
-                      "textRaw": "`address` {String}, Optional ",
+                      "textRaw": "`address` {string}, Optional ",
                       "name": "address",
-                      "type": "String",
+                      "type": "string",
                       "optional": true
                     },
                     {
@@ -202,21 +202,21 @@
                       "textRaw": "`options` {Object} - Required. Supports the following properties: ",
                       "options": [
                         {
-                          "textRaw": "`port` {Number} - Optional. ",
+                          "textRaw": "`port` {number} - Optional. ",
                           "name": "port",
-                          "type": "Number",
+                          "type": "number",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`address` {String} - Optional. ",
+                          "textRaw": "`address` {string} - Optional. ",
                           "name": "address",
-                          "type": "String",
+                          "type": "string",
                           "desc": "Optional."
                         },
                         {
-                          "textRaw": "`exclusive` {Boolean} - Optional. ",
+                          "textRaw": "`exclusive` {boolean} - Optional. ",
                           "name": "exclusive",
-                          "type": "Boolean",
+                          "type": "boolean",
                           "desc": "Optional."
                         }
                       ],
@@ -283,14 +283,14 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`multicastAddress` {String} ",
+                      "textRaw": "`multicastAddress` {string} ",
                       "name": "multicastAddress",
-                      "type": "String"
+                      "type": "string"
                     },
                     {
-                      "textRaw": "`multicastInterface` {String}, Optional ",
+                      "textRaw": "`multicastInterface` {string}, Optional ",
                       "name": "multicastInterface",
-                      "type": "String",
+                      "type": "string",
                       "optional": true
                     }
                   ]
@@ -351,35 +351,35 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`msg` {Buffer|String|Array} Message to be sent ",
+                      "textRaw": "`msg` {Buffer|string|array} Message to be sent ",
                       "name": "msg",
-                      "type": "Buffer|String|Array",
+                      "type": "Buffer|string|array",
                       "desc": "Message to be sent"
                     },
                     {
-                      "textRaw": "`offset` {Number} Integer. Optional. Offset in the buffer where the message starts. ",
+                      "textRaw": "`offset` {number} Integer. Optional. Offset in the buffer where the message starts. ",
                       "name": "offset",
-                      "type": "Number",
+                      "type": "number",
                       "desc": "Integer. Optional. Offset in the buffer where the message starts.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`length` {Number} Integer. Optional. Number of bytes in the message. ",
+                      "textRaw": "`length` {number} Integer. Optional. Number of bytes in the message. ",
                       "name": "length",
-                      "type": "Number",
+                      "type": "number",
                       "desc": "Integer. Optional. Number of bytes in the message.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`port` {Number} Integer. Destination port. ",
+                      "textRaw": "`port` {number} Integer. Destination port. ",
                       "name": "port",
-                      "type": "Number",
+                      "type": "number",
                       "desc": "Integer. Destination port."
                     },
                     {
-                      "textRaw": "`address` {String} Destination hostname or IP address. ",
+                      "textRaw": "`address` {string} Destination hostname or IP address. ",
                       "name": "address",
-                      "type": "String",
+                      "type": "string",
                       "desc": "Destination hostname or IP address."
                     },
                     {
@@ -433,9 +433,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`flag` {Boolean} ",
+                      "textRaw": "`flag` {boolean} ",
                       "name": "flag",
-                      "type": "Boolean"
+                      "type": "boolean"
                     }
                   ]
                 },
@@ -463,9 +463,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`flag` {Boolean} ",
+                      "textRaw": "`flag` {boolean} ",
                       "name": "flag",
-                      "type": "Boolean"
+                      "type": "boolean"
                     }
                   ]
                 },
@@ -493,9 +493,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`ttl` {Number} Integer ",
+                      "textRaw": "`ttl` {number} Integer ",
                       "name": "ttl",
-                      "type": "Number",
+                      "type": "number",
                       "desc": "Integer"
                     }
                   ]
@@ -524,9 +524,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`ttl` {Number} Integer ",
+                      "textRaw": "`ttl` {number} Integer ",
                       "name": "ttl",
-                      "type": "Number",
+                      "type": "number",
                       "desc": "Integer"
                     }
                   ]
@@ -640,9 +640,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`type` {String} - Either 'udp4' or 'udp6' ",
+                      "textRaw": "`type` {string} - Either 'udp4' or 'udp6' ",
                       "name": "type",
-                      "type": "String",
+                      "type": "string",
                       "desc": "Either 'udp4' or 'udp6'"
                     },
                     {

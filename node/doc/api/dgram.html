@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>UDP / Datagram Sockets | Node.js v7.7.2 Documentation</title>
+  <title>UDP / Datagram Sockets | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -122,7 +122,7 @@
 
       <div id="apicontent">
         <h1>UDP / Datagram Sockets<span><a class="mark" href="#dgram_udp_datagram_sockets" id="dgram_udp_datagram_sockets">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!-- name=dgram -->
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!-- name=dgram -->
 <p>The <code>dgram</code> module provides an implementation of UDP Datagram sockets.</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const server = dgram.createSocket(&#39;udp4&#39;);
@@ -177,10 +177,10 @@ The event handler function is passed two arguments: <code>msg</code> and <code>r
 <ul>
 <li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> - The message</li>
 <li><code>rinfo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Remote address information<ul>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The sender address</li>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The sender port</li>
-<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> The message size</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The sender address</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The sender port</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The message size</li>
 </ul>
 </li>
 </ul>
@@ -188,8 +188,8 @@ The event handler function is passed two arguments: <code>msg</code> and <code>r
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div><ul>
-<li><code>multicastAddress</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
-<li><code>multicastInterface</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a>, Optional</li>
+<li><code>multicastAddress</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>multicastInterface</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a>, Optional</li>
 </ul>
 <p>Tells the kernel to join a multicast group at the given <code>multicastAddress</code> and
 <code>multicastInterface</code> using the <code>IP_ADD_MEMBERSHIP</code> socket option. If the
@@ -206,8 +206,8 @@ properties.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div><ul>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Integer, Optional</li>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a>, Optional</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - Integer, Optional</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a>, Optional</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> with no parameters, Optional. Called when
 binding is complete.</li>
 </ul>
@@ -251,9 +251,9 @@ server.bind(41234);
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> - Required. Supports the following properties:<ul>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> - Optional.</li>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional.</li>
-<li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a> - Optional.</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - Optional.</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional.</li>
+<li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> - Optional.</li>
 </ul>
 </li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> - Optional.</li>
@@ -295,8 +295,8 @@ provided, it is added as a listener for the <a href="#dgram_event_close"><code>&
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div><ul>
-<li><code>multicastAddress</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a></li>
-<li><code>multicastInterface</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a>, Optional</li>
+<li><code>multicastAddress</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>multicastInterface</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a>, Optional</li>
 </ul>
 <p>Instructs the kernel to leave a multicast group at <code>multicastAddress</code> using the
 <code>IP_DROP_MEMBERSHIP</code> socket option. This method is automatically called by the
@@ -332,11 +332,11 @@ chained.</p>
 </table>
 </details>
 </div><ul>
-<li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Message to be sent</li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer. Optional. Offset in the buffer where the message starts.</li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer. Optional. Number of bytes in the message.</li>
-<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer. Destination port.</li>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> Destination hostname or IP address.</li>
+<li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;array&gt;</span> Message to be sent</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Optional. Offset in the buffer where the message starts.</li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Optional. Number of bytes in the message.</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Destination port.</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Destination hostname or IP address.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Called when the message has been sent. Optional.</li>
 </ul>
 <p>Broadcasts a datagram on the socket. The destination <code>port</code> and <code>address</code> must
@@ -415,7 +415,7 @@ source that the data did not reach its intended recipient.</p>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div><ul>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Sets or clears the <code>SO_BROADCAST</code> socket option.  When set to <code>true</code>, UDP
 packets may be sent to a local interface&#39;s broadcast address.</p>
@@ -423,7 +423,7 @@ packets may be sent to a local interface&#39;s broadcast address.</p>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
 </div><ul>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Sets or clears the <code>IP_MULTICAST_LOOP</code> socket option.  When set to <code>true</code>,
 multicast packets will also be received on the local interface.</p>
@@ -431,7 +431,7 @@ multicast packets will also be received on the local interface.</p>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
 </div><ul>
-<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer</li>
+<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer</li>
 </ul>
 <p>Sets the <code>IP_MULTICAST_TTL</code> socket option.  While TTL generally stands for
 &quot;Time to Live&quot;, in this context it specifies the number of IP hops that a
@@ -444,7 +444,7 @@ between 0 and 255. The default on most systems is <code>1</code> but can vary.</
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div><ul>
-<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;Number&gt;</a> Integer</li>
+<li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer</li>
 </ul>
 <p>Sets the <code>IP_TTL</code> socket option. While TTL generally stands for &quot;Time to Live&quot;,
 in this context it specifies the number of IP hops that a packet is allowed to
@@ -505,7 +505,7 @@ and <code>udp6</code> sockets). The bound address and port can be retrieved usin
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div><ul>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Either &#39;udp4&#39; or &#39;udp6&#39;</li>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Either &#39;udp4&#39; or &#39;udp6&#39;</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> - Attached as a listener to <code>&#39;message&#39;</code> events.
 Optional</li>
 <li>Returns: <a href="dgram.html#dgram_class_dgram_socket" class="type">&lt;dgram.Socket&gt;</a></li>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Crypto | Node.js v7.7.2 Documentation</title>
+  <title>Crypto | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -205,7 +205,7 @@
 
       <div id="apicontent">
         <h1>Crypto<span><a class="mark" href="#crypto_crypto" id="crypto_crypto">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>The <code>crypto</code> module provides cryptographic functionality that includes a set of
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>crypto</code> module provides cryptographic functionality that includes a set of
 wrappers for OpenSSL&#39;s hash, HMAC, cipher, decipher, sign and verify functions.</p>
 <p>Use <code>require(&#39;crypto&#39;)</code> to access this module.</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
@@ -709,7 +709,7 @@ public point (key) is also generated and set in the ECDH object.</p>
 <h3>ecdh.setPublicKey(public_key[, encoding])<span><a class="mark" href="#crypto_ecdh_setpublickey_public_key_encoding" id="crypto_ecdh_setpublickey_public_key_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span><span>Deprecated since: v5.2.0</span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated</pre><p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>&#39;latin1&#39;</code>,
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>&#39;latin1&#39;</code>,
 <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided <code>public_key</code> is expected to
 be a string; otherwise a <a href="buffer.html"><code>Buffer</code></a> is expected.</p>
 <p>Note that there is not normally a reason to call this method because <code>ECDH</code>
@@ -947,8 +947,8 @@ console.log(sign.sign(privateKey).toString(&#39;hex&#39;));
 string, it is treated as a raw key with no passphrase. If <code>private_key</code> is an
 object, it is interpreted as a hash containing two properties:</p>
 <ul>
-<li><code>key</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - PEM encoded private key</li>
-<li><code>passphrase</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - passphrase for the private key</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded private key</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - passphrase for the private key</li>
 </ul>
 <p>The <code>output_format</code> can specify one of <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If
 <code>output_format</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
@@ -1098,7 +1098,7 @@ available cipher algorithms.</p>
 <h3>crypto.createCredentials(details)<span><a class="mark" href="#crypto_crypto_createcredentials_details" id="crypto_crypto_createcredentials_details">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span><span>Deprecated since: v0.11.13</span>
-</div><pre class="api_stability api_stability_0">Stability: 0 - Deprecated: Use <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> instead.</pre><ul>
 <li><code>details</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Identical to <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>.</li>
 </ul>
 <p>The <code>crypto.createCredentials()</code> method is a deprecated function for creating
@@ -1368,8 +1368,8 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING<
 If <code>private_key</code> is an object, it is interpreted as a hash object with the
 keys:</p>
 <ul>
-<li><code>key</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - PEM encoded private key</li>
-<li><code>passphrase</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional passphrase for the private key</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded private key</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional passphrase for the private key</li>
 <li><code>padding</code> : An optional padding value, one of the following:<ul>
 <li><code>crypto.constants.RSA_NO_PADDING</code></li>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>
@@ -1387,8 +1387,8 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code
 If <code>private_key</code> is an object, it is interpreted as a hash object with the
 keys:</p>
 <ul>
-<li><code>key</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - PEM encoded private key</li>
-<li><code>passphrase</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional passphrase for the private key</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded private key</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional passphrase for the private key</li>
 <li><code>padding</code> : An optional padding value, one of the following:<ul>
 <li><code>crypto.constants.RSA_NO_PADDING</code></li>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>
@@ -1405,8 +1405,8 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code
 If <code>public_key</code> is an object, it is interpreted as a hash object with the
 keys:</p>
 <ul>
-<li><code>key</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - PEM encoded public key</li>
-<li><code>passphrase</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional passphrase for the private key</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded public key</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional passphrase for the private key</li>
 <li><code>padding</code> : An optional padding value, one of the following:<ul>
 <li><code>crypto.constants.RSA_NO_PADDING</code></li>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>
@@ -1426,8 +1426,8 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING<
 If <code>public_key</code> is an object, it is interpreted as a hash object with the
 keys:</p>
 <ul>
-<li><code>key</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - PEM encoded public key</li>
-<li><code>passphrase</code> : <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> - Optional passphrase for the private key</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded public key</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - Optional passphrase for the private key</li>
 <li><code>padding</code> : An optional padding value, one of the following:<ul>
 <li><code>crypto.constants.RSA_NO_PADDING</code></li>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>

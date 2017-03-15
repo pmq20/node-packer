@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>VM (Executing JavaScript) | Node.js v7.7.2 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v7.7.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -73,7 +73,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v7.7.2 Documentation</h1>
+        <h1>Node.js v7.7.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -111,7 +111,7 @@
 
       <div id="apicontent">
         <h1>VM (Executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
-<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=vm-->
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!--name=vm-->
 <p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual
 Machine contexts. It can be accessed using:</p>
 <pre><code class="lang-js">const vm = require(&#39;vm&#39;);
@@ -137,25 +137,25 @@ executed in specific sandboxes (or &quot;contexts&quot;).</p>
 </table>
 </details>
 </div><ul>
-<li><code>code</code> <span class="type">&lt;string&gt;</span> The JavaScript code to compile.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The JavaScript code to compile.</li>
 <li><code>options</code><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 <li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> Provides an optional <code>Buffer</code> with V8&#39;s code cache
 data for the supplied source. When supplied, the <code>cachedDataRejected</code> value
 will be set to either <code>true</code> or <code>false</code> depending on acceptance of the data
 by V8.</li>
-<li><code>produceCachedData</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code> and no <code>cachedData</code> is present, V8
+<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code> and no <code>cachedData</code> is present, V8
 will attempt to produce code cache data for <code>code</code>. Upon success, a
 <code>Buffer</code> with V8&#39;s code cache data will be produced and stored in the
 <code>cachedData</code> property of the returned <code>vm.Script</code> instance.
@@ -185,16 +185,16 @@ each run, just for that run.</p>
 <li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> A <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
 <code>vm.createContext()</code> method.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 <li><code>breakOnSigint</code>: if <code>true</code>, the execution will be terminated when
@@ -237,16 +237,16 @@ console.log(util.inspect(sandbox));
 <li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
 new object will be created.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 </ul>
@@ -277,16 +277,16 @@ console.log(util.inspect(sandboxes));
 <span>Added in: v0.3.1</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 </ul>
@@ -355,20 +355,20 @@ of that sandbox.</p>
 <a href="#vm_vm_createcontext_sandbox"><code>vm.createContext()</code></a>.</p>
 <h2>vm.runInContext(code, contextifiedSandbox[, options])<span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
 <div class="signature"><ul>
-<li><code>code</code> <span class="type">&lt;string&gt;</span> The JavaScript code to compile and run.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The JavaScript code to compile and run.</li>
 <li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
 as the <code>global</code> when the <code>code</code> is compiled and run.</li>
 <li><code>options</code><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 </ul>
@@ -397,7 +397,7 @@ console.log(util.inspect(sandbox));
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div><ul>
-<li><code>code</code> <span class="type">&lt;string&gt;</span> The JavaScript code to compile and run.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The JavaScript code to compile and run.</li>
 </ul>
 <p>The <code>vm.runInDebugContext()</code> method compiles and executes <code>code</code> inside the V8
 debug context. The primary use case is to gain access to the V8 <code>Debug</code> object:</p>
@@ -414,20 +414,20 @@ implementation and may change (or even be removed) without prior warning.</p>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div><ul>
-<li><code>code</code> <span class="type">&lt;string&gt;</span> The JavaScript code to compile and run.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The JavaScript code to compile and run.</li>
 <li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
 new object will be created.</li>
 <li><code>options</code><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 </ul>
@@ -456,18 +456,18 @@ console.log(util.inspect(sandbox));
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div><ul>
-<li><code>code</code> <span class="type">&lt;string&gt;</span> The JavaScript code to compile and run.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The JavaScript code to compile and run.</li>
 <li><code>options</code><ul>
-<li><code>filename</code> <span class="type">&lt;string&gt;</span> Specifies the filename used in stack traces produced
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the filename used in stack traces produced
 by this script.</li>
-<li><code>lineOffset</code> <span class="type">&lt;number&gt;</span> Specifies the line number offset that is displayed
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the line number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <span class="type">&lt;number&gt;</span> Specifies the column number offset that is displayed
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the column number offset that is displayed
 in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <span class="type">&lt;boolean&gt;</span> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
 to the stack trace.</li>
-<li><code>timeout</code> <span class="type">&lt;number&gt;</span> Specifies the number of milliseconds to execute <code>code</code>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown.</li>
 </ul>

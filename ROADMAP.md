@@ -2,8 +2,7 @@
 
 ## v1.0.0
 
-- Collect dll's along with exe for C++ extensions
-- Benchmark and tweet cache size and block size
+- Statically link modules with C++ extensions with the exe
 - Compile web apps
 
 ## v2.0.0

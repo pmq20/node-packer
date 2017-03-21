@@ -3,7 +3,7 @@
 ## v0.9.5
 
 - upgrade Node.js runtime to v7.7.3
-- upgrade libsquash to v0.3.0
+- upgrade libsquash to https://github.com/pmq20/libsquash/commit/ec44808a0170edb8c8ff2cd5f337d5f8f317098a
 - let Master CI use the correct Node.js version
 - add Black-box Test
 - add RAM Test

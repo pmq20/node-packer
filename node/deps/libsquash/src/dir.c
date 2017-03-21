@@ -274,6 +274,42 @@ sqfs_err sqfs_dir_lookup(sqfs *fs, sqfs_inode *inode,
 	return err;
 }
 
+static sqfs_err clear_dot_dot(char *path)
+{
+	char *dot_dot, *dot_dot_left;
+	
+	// we might get a path like /a/b/../../c/d
+	// in which case we need to interpret dot-dot's
+	while ((dot_dot = strstr(path, "/../"))) {
+		dot_dot_left = dot_dot - 1;
+		do {
+			if (dot_dot_left < path) {
+				return SQFS_ERR;
+			}
+			if ('/' == *dot_dot_left) {
+				break;
+			}
+			--dot_dot_left;
+		} while (1);
+		memmove(dot_dot_left, dot_dot + 3, strlen(dot_dot + 3) + 1);
+	}
+	// what about /a/b/c/d/..
+	if (strlen(path) >= 3 && 0 == strcmp(path + strlen(path) - 3, "/..")) {
+		dot_dot_left = path + strlen(path) - 4;
+		do {
+			if (dot_dot_left < path) {
+				return SQFS_ERR;
+			}
+			if ('/' == *dot_dot_left) {
+				break;
+			}
+			--dot_dot_left;
+		} while (1);
+		*dot_dot_left = '\0';
+	}
+	return SQFS_OK;
+}
+
 sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 
 	sqfs_err error;
@@ -299,8 +335,8 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				if (SQFS_OK != error) {
 					return error;
 				}
-                                error = sqfs_lookup_path(fs, node, buf_link, &found);
-                                strncpy(new_path, buf_link, SQUASHFS_PATH_LEN);
+				error = sqfs_lookup_path(fs, node, buf_link, &found);
+				strncpy(new_path, buf_link, SQUASHFS_PATH_LEN);
 				if (SQFS_OK != error) {
 					return error;
 				} else if (!found) {
@@ -309,7 +345,6 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				}
 			} else { // is Relative Path
 				size_t pos = strlen(base_path) - 1;
-				char *dot_dot, *dot_dot_left;
 				// find the last /  "/a/b/cb"
 				while (base_path[pos--] != '/') { }
 
@@ -317,37 +352,10 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 				memcpy(new_path + pos + 2, buf_link, link_length);
 				new_path[pos + 2 + link_length] = '\0';
 				
-				// we might get a new_path like /a/b/../../c/d
-				// in which case we need to interpret dot-dot's
-				while ((dot_dot = strstr(new_path, "/../"))) {
-					dot_dot_left = dot_dot - 1;
-					do {
-						if (dot_dot_left < new_path) {
-							errno = ENOENT;
-							return SQFS_ERR;
-						}
-						if ('/' == *dot_dot_left) {
-							break;
-						}
-						--dot_dot_left;
-					} while (1);
-					memmove(dot_dot_left, dot_dot + 3, strlen(dot_dot + 3) + 1);
-				}
-				// what about /a/b/c/d/..
-				if (strlen(new_path) >= 3 &&
-				    0 == strcmp(new_path + strlen(new_path) - 3, "/..")) {
-					dot_dot_left = new_path + strlen(new_path) - 4;
-					do {
-						if (dot_dot_left < new_path) {
-							errno = ENOENT;
-							return SQFS_ERR;
-						}
-						if ('/' == *dot_dot_left) {
-							break;
-						}
-						--dot_dot_left;
-					} while (1);
-					*dot_dot_left = '\0';
+				error = clear_dot_dot(new_path);
+				if (SQFS_OK != error) {
+					errno = ENOENT;
+					return SQFS_ERR;
 				}
 				
 				// find node from /
@@ -381,21 +389,32 @@ sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node) {
 	return SQFS_OK;
 }
 
-sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *path,
+sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *incoming_path,
 		short *found, short follow_link) {
-	sqfs_err err;
+	sqfs_err err, ret;
 	sqfs_name buf;
 	sqfs_path path_here;
 	sqfs_dir_entry entry;
-	const char* path0;
-        short is_last_component;
+	char *path, *path0;
+	short is_last_component;
 	memset(&buf, 0, sizeof(sqfs_name));
 	memset(&entry, 0, sizeof(sqfs_dir_entry));
 
 	*found = 0;
 	sqfs_dentry_init(&entry, buf);
 
+	path = strdup(incoming_path);
+	if (NULL == path) {
+		return SQFS_ERR;
+	}
 	path0 = path;
+
+	err = clear_dot_dot(path);
+	if (SQFS_OK != err) {
+		ret = SQFS_OK; /* not found */
+		goto exit;
+	}
+	
 	while (*path) {
 		const char *name;
 		size_t size;
@@ -416,41 +435,49 @@ sqfs_err sqfs_lookup_path_inner(sqfs *fs, sqfs_inode *inode, const char *path,
 			/* interpret dot */
 			continue;
 		}
-		if ((err = sqfs_dir_lookup(fs, inode, name, size, &entry, found)))
-			return err;
-		if (!(*found))
-			return SQFS_OK; /* not found */
-		
-		if ((err = sqfs_inode_get(fs, inode, sqfs_dentry_inode(&entry))))
-			return err;
-                
-                if (!*path) {
-                        is_last_component = 1;
-                } else if (path0 + strlen(path0) - 1 == path) {
-                        assert('/' == *path);
-                        is_last_component = 1;
-                } else {
-                        is_last_component = 0;
-                }
+		if ((err = sqfs_dir_lookup(fs, inode, name, size, &entry, found))) {
+			ret = err;
+			goto exit;
+		}
+		if (!(*found)) {
+			ret = SQFS_OK; /* not found */
+			goto exit;
+		}
+		if ((err = sqfs_inode_get(fs, inode, sqfs_dentry_inode(&entry)))) {
+			ret = err;
+			goto exit;
+		}
+		if (!*path) {
+			is_last_component = 1;
+		} else if (path0 + strlen(path0) - 1 == path) {
+			assert('/' == *path);
+			is_last_component = 1;
+		} else {
+			is_last_component = 0;
+		}
 
 		if (S_ISLNK(inode->base.mode)) {
-                        if (!(is_last_component && !follow_link)) {
-                                size_t size_here = path - path0;
-                                if (size_here > SQUASHFS_PATH_LEN) {
-                                        size_here = SQUASHFS_PATH_LEN;
-                                }
-                                memcpy(path_here, path0, size_here);
-                                path_here[size_here] = '\0';
-                                err = squash_follow_link(fs, path_here, inode);
-                                if (SQFS_OK != err) {
-                                        return err;
-                                }
-                        }
+			if (!(is_last_component && !follow_link)) {
+				size_t size_here = path - path0;
+				if (size_here > SQUASHFS_PATH_LEN) {
+					size_here = SQUASHFS_PATH_LEN;
+				}
+				memcpy(path_here, path0, size_here);
+				path_here[size_here] = '\0';
+				err = squash_follow_link(fs, path_here, inode);
+				if (SQFS_OK != err) {
+					ret = err;
+					goto exit;
+				}
+			}
 		}
 	}
 	
 	*found = 1;
-	return SQFS_OK;
+	ret = SQFS_OK;
+exit:
+	free(path0);
+	return ret;
 }
 
 sqfs_err sqfs_lookup_path(sqfs *fs, sqfs_inode *inode, const char *path,

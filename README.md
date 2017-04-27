@@ -2,6 +2,8 @@
 
 Compiling your Node.js application into a single executable.
 
+[How it works?](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable)
+
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
 
 ## Download

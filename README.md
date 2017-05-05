@@ -1,10 +1,24 @@
 # Node.js Compiler
 
-Compiling your Node.js application into a single executable.
-
-[How it works?](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable)
+Compiling your Node.js application into a single executable. 
 
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
+
+## How it works
+
+## Presentation
+
+[Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable)
+
+## Comparing with Similar Projects
+
+| Project   | Difference                                                                                                                                                                                                                                                                                           |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [pkg](https://github.com/zeit/pkg)       | pkg hacked `fs.*` standard API on the JavaScript level, whereas Node.js Compiler keeps them untouched while works on a deeper level via libsquash. pkg uses a big JSON to store in-package files while Node.js Compiler uses the more sophisticated and widely used SquashFS as its data structure. |
+| [EncloseJS](http://enclosejs.com/) | EncloseJS only allows 5 fs functions to access in-package files, whereas Node.js Compiler supports all fs.* APIs. EncloseJS is proprietary licensed and charge your money when used while Node.js Compiler is MIT-licensed and you are both free to use it and free to modify it.                    |
+| [Nexe](https://github.com/nexe/nexe)      | Nexe does not support dynamic `require` because of its use of browserify, whereas Node.js Compiler supports all kinds of require including require.resolve by using libsquash that hacks on a much deeper layer.                                                                                     |
+| [asar](https://github.com/electron/asar) | asar uses JSON to store files' information while Node.js Compiler uses the more sophisticated and widely used SquashFS as its data structure. asar keeps the code archive and the executable seperate while Node.js Compiler links your JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. |
+| [AppImage](http://appimage.org/)  | AppImage supports only Linux with a kernel that enabled support for SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, without any special feature requirements about the kernel.                                                                                                                                                                                       |
 
 ## Download
 

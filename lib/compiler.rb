@@ -59,10 +59,11 @@ class Compiler
     expectation = "v#{self.class.node_version}"
     got = `node -v`.to_s.strip
     unless got.include?(expectation)
-      msg  = "Please make sure to have installed the correct version of node in your environment.\n"
-      msg  = "It should match the enclosed Node.js runtime version of the compiler.\n"
+      msg =  "=== WARNING ==="
+      msg += "Please make sure to have installed the correct version of node in your environment.\n"
+      msg += "It should match the enclosed Node.js runtime version of the compiler.\n"
       msg += "Expecting #{expectation}; yet got #{got}."
-      raise Error, msg
+      STDERR.puts msg
     end
   end
 

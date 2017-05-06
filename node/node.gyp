@@ -143,6 +143,7 @@
 
       'dependencies': [
         'node_js2c#host',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
       ],
 
       'includes': [
@@ -153,6 +154,8 @@
         'src',
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
+        'deps/libsquash/include',
+        'deps/libsquash/sample',
         '<(SHARED_INTERMEDIATE_DIR)',
       ],
 
@@ -564,6 +567,7 @@
       'dependencies': [
         '<(node_core_target_name)',
         'deps/gtest/gtest.gyp:gtest',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
         'node_js2c#host',
         'node_dtrace_header',
         'node_dtrace_ustack',

@@ -47,6 +47,12 @@
     if (global.__coverage__)
       NativeModule.require('internal/process/write-coverage').setup();
 
+    if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
+      if (!process.env.ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE) {
+        delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
+      }
+    }
+
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.
     if (process.argv[1] !== '--debug-agent')

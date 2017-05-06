@@ -59,10 +59,10 @@ class Compiler
     expectation = "v#{self.class.node_version}"
     got = `node -v`.to_s.strip
     unless got.include?(expectation)
-      msg =  "=== WARNING ==="
+      msg =  "=== WARNING ===\n"
       msg += "Please make sure to have installed the correct version of node in your environment.\n"
       msg += "It should match the enclosed Node.js runtime version of the compiler.\n"
-      msg += "Expecting #{expectation}; yet got #{got}."
+      msg += "Expecting #{expectation}; yet got #{got}.\n\n"
       STDERR.puts msg
     end
   end
@@ -173,7 +173,17 @@ class Compiler
     Utils.chdir(@tmpdir_node) do
       Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
       Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
-      Utils.run("mksquashfs -version")
+      begin
+        Utils.run("mksquashfs -version")
+      rescue => e
+        msg =  "=== HINT ===\n"
+        msg += "Failed exectuing mksquashfs. Have you installed SquashFS Tools?\n"
+        msg += "- On Windows, you could download it from https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip\n"
+        msg += "- On macOS, you could install by using brew: brew install squashfs\n"
+        msg += "- On Linux, you could install via apt or yum, or build from source after downloading source from http://squashfs.sourceforge.net/\n\n"
+        STDERR.puts msg
+        raise e
+      end
       Utils.run("mksquashfs #{Utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
       bytes = IO.binread('deps/libsquash/sample/enclose_io_memfs.squashfs').bytes
       # remember to change libsquash's sample/enclose_io_memfs.c as well

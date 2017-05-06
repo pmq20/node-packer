@@ -4,6 +4,7 @@
 
 - relax node.js version requirement: https://github.com/pmq20/node-compiler/issues/27
 - upgrade Node.js runtime to v7.10.0
+- add hints about installing SquashFS Tools
 
 ## v0.9.5
 

@@ -76,7 +76,7 @@ function urlParse(url, parseQueryString, slashesDenoteHost) {
   return u;
 }
 
-Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
+Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
   if (typeof url !== 'string') {
     throw new TypeError('Parameter "url" must be a string, not ' + typeof url);
   }
@@ -557,7 +557,7 @@ function urlFormat(obj, options) {
   return obj.format();
 }
 
-Url.prototype.format = function() {
+Url.prototype.format = function format() {
   var auth = this.auth || '';
   if (auth) {
     auth = encodeAuth(auth);
@@ -642,7 +642,7 @@ function urlResolve(source, relative) {
   return urlParse(source, false, true).resolve(relative);
 }
 
-Url.prototype.resolve = function(relative) {
+Url.prototype.resolve = function resolve(relative) {
   return this.resolveObject(urlParse(relative, false, true)).format();
 };
 
@@ -651,7 +651,7 @@ function urlResolveObject(source, relative) {
   return urlParse(source, false, true).resolveObject(relative);
 }
 
-Url.prototype.resolveObject = function(relative) {
+Url.prototype.resolveObject = function resolveObject(relative) {
   if (typeof relative === 'string') {
     var rel = new Url();
     rel.parse(relative, false, true);
@@ -755,14 +755,14 @@ Url.prototype.resolveObject = function(relative) {
   var removeAllDots = mustEndAbs;
   var srcPath = result.pathname && result.pathname.split('/') || [];
   var relPath = relative.pathname && relative.pathname.split('/') || [];
-  var psychotic = result.protocol && !slashedProtocol[result.protocol];
+  var noLeadingSlashes = result.protocol && !slashedProtocol[result.protocol];
 
   // if the url is a non-slashed url, then relative
   // links like ../.. should be able
   // to crawl up to the hostname, as well.  This is strange.
   // result.protocol has already been set by now.
   // Later on, put the first path part into the host field.
-  if (psychotic) {
+  if (noLeadingSlashes) {
     result.hostname = '';
     result.port = null;
     if (result.host) {
@@ -810,7 +810,7 @@ Url.prototype.resolveObject = function(relative) {
     // just pull out the search.
     // like href='?foo'.
     // Put this after the other two cases because it simplifies the booleans
-    if (psychotic) {
+    if (noLeadingSlashes) {
       result.hostname = result.host = srcPath.shift();
       //occasionally the auth can get stuck only in host
       //this especially happens in cases like
@@ -891,7 +891,7 @@ Url.prototype.resolveObject = function(relative) {
       (srcPath[0] && srcPath[0].charAt(0) === '/');
 
   // put the host back
-  if (psychotic) {
+  if (noLeadingSlashes) {
     result.hostname = result.host = isAbsolute ? '' :
                                     srcPath.length ? srcPath.shift() : '';
     //occasionally the auth can get stuck only in host
@@ -929,7 +929,7 @@ Url.prototype.resolveObject = function(relative) {
   return result;
 };
 
-Url.prototype.parseHost = function() {
+Url.prototype.parseHost = function parseHost() {
   var host = this.host;
   var port = portPattern.exec(host);
   if (port) {

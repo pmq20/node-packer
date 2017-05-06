@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v7.7.3 Documentation</title>
+  <title>Buffer | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -221,7 +222,7 @@ const buf4 = Buffer.from([1, 2, 3]);
 const buf5 = Buffer.from(&#39;tést&#39;);
 
 // Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].
-const buf6 = Buffer.from(&#39;tést&#39;, &#39;latin-1&#39;);
+const buf6 = Buffer.from(&#39;tést&#39;, &#39;latin1&#39;);
 </code></pre>
 <h2><code>Buffer.from()</code>, <code>Buffer.alloc()</code>, and <code>Buffer.allocUnsafe()</code><span><a class="mark" href="#buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe" id="buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe">#</a></span></h2>
 <p>In versions of Node.js prior to v6, <code>Buffer</code> instances were created using the
@@ -847,6 +848,9 @@ instances in the <code>list</code> together.</p>
 in <code>list</code>. This however causes an additional loop to be executed in order to
 calculate the <code>totalLength</code>, so it is faster to provide the length explicitly if
 it is already known.</p>
+<p>If <code>totalLength</code> is provided, it is coerced to an unsigned integer. If the
+combined length of the <code>Buffer</code>s in <code>list</code> exceeds <code>totalLength</code>, the result is
+truncated to <code>totalLength</code>.</p>
 <p>Example: Create a single <code>Buffer</code> from a list of three <code>Buffer</code> instances</p>
 <pre><code class="lang-js">const buf1 = Buffer.alloc(10);
 const buf2 = Buffer.alloc(14);
@@ -994,6 +998,9 @@ otherwise.</p>
 </div><p>The index operator <code>[index]</code> can be used to get and set the octet at position
 <code>index</code> in <code>buf</code>. The values refer to individual bytes, so the legal value
 range is between <code>0x00</code> and <code>0xFF</code> (hex) or <code>0</code> and <code>255</code> (decimal).</p>
+<p>This operator is inherited from <code>Uint8Array</code>, so its behavior on out-of-bounds
+access is the same as <code>UInt8Array</code> - that is, getting returns <code>undefined</code> and
+setting does nothing.</p>
 <p>Example: Copy an ASCII string into a <code>Buffer</code>, one byte at a time</p>
 <pre><code class="lang-js">const str = &#39;Node.js&#39;;
 const buf = Buffer.allocUnsafe(str.length);

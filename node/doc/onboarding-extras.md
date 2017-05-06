@@ -13,11 +13,11 @@
 | `lib/{crypto,tls,https}` | @nodejs/crypto |
 | `lib/dgram` | @cjihrig, @mcollina |
 | `lib/domains` | @misterdjules |
-| `lib/fs`, `src/{fs|file}` | @nodejs/fs |
+| `lib/fs`, `src/{fs,file}` | @nodejs/fs |
 | `lib/internal/url`, `src/node_url` | @nodejs/url |
 | `lib/{_}http{*}` | @nodejs/http |
 | `lib/net` | @bnoordhuis, @indutny, @nodejs/streams |
-| `lib/{_}stream{s|*}` | @nodejs/streams |
+| `lib/{_}stream{*}` | @nodejs/streams |
 | `lib/repl` | @addaleax, @fishrock123 |
 | `lib/timers` | @fishrock123, @misterdjules |
 | `lib/util` | @bnoordhuis, @cjihrig, @evanlucas |
@@ -27,6 +27,7 @@
 | `test/*` | @nodejs/testing |
 | `tools/eslint`, `.eslintrc` | @not-an-aardvark, @silverwind, @trott |
 | async_hooks | @nodejs/diagnostics |
+| performance | @nodejs/performance |
 | upgrading V8 | @nodejs/v8, @nodejs/post-mortem |
 | upgrading npm | @fishrock123, @MylesBorins |
 | upgrading c-ares | @jbergstroem |
@@ -100,16 +101,6 @@ to update from nodejs/node:
 * `git checkout master`
 * `git remote update -p` OR `git fetch --all` (I prefer the former)
 * `git merge --ff-only upstream/master` (or `REMOTENAME/BRANCH`)
-
-
-## If `git am` fails
-
-* if `git am` fails – use `git am --abort`
-  * this usually means the PR needs updated
-  * prefer to make the originating user update the code, since they have it fresh in mind
-* first, reattempt with `git am -3` (3-way merge)`
-* if `-3` still fails, and you need to get it merged:
-  * `git fetch upstream pull/N/head:pr-N && git checkout pr-N && git rebase master`
 
 
 ## best practices

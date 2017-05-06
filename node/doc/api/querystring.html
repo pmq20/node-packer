@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Query String | Node.js v7.7.3 Documentation</title>
+  <title>Query String | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="querystring" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -188,11 +189,14 @@ URL-unsafe characters to percent-encoding in the query string. Defaults to
 </ul>
 <p>The <code>querystring.stringify()</code> method produces a URL query string from a
 given <code>obj</code> by iterating through the object&#39;s &quot;own properties&quot;.</p>
+<p>It serializes the following types of values passed in <code>obj</code>:
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean[]&gt;</a>
+Any other input values will be coerced to empty strings.</p>
 <p>For example:</p>
 <pre><code class="lang-js">querystring.stringify({ foo: &#39;bar&#39;, baz: [&#39;qux&#39;, &#39;quux&#39;], corge: &#39;&#39; })
 // returns &#39;foo=bar&amp;baz=qux&amp;baz=quux&amp;corge=&#39;
 
-querystring.stringify({foo: &#39;bar&#39;, baz: &#39;qux&#39;}, &#39;;&#39;, &#39;:&#39;)
+querystring.stringify({ foo: &#39;bar&#39;, baz: &#39;qux&#39; }, &#39;;&#39;, &#39;:&#39;)
 // returns &#39;foo:bar;baz:qux&#39;
 </code></pre>
 <p>By default, characters requiring percent-encoding within the query string will

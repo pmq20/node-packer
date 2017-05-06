@@ -41,17 +41,66 @@
               }
             ]
           },
-          "desc": "<p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or\nAAAA (IPv6) record. <code>options</code> can be an object or integer. If <code>options</code> is\nnot provided, then IPv4 and IPv6 addresses are both valid. If <code>options</code> is\nan integer, then it must be <code>4</code> or <code>6</code>.</p>\n<p>Alternatively, <code>options</code> can be an object containing these properties:</p>\n<ul>\n<li><code>family</code> {number} - The record family. If present, must be the integer\n<code>4</code> or <code>6</code>. If not provided, both IP v4 and v6 addresses are accepted.</li>\n<li><code>hints</code>: {number} - If present, it should be one or more of the supported\n<code>getaddrinfo</code> flags. If <code>hints</code> is not provided, then no flags are passed to\n<code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by bitwise\n<code>OR</code>ing their values.\nSee <a href=\"#dns_supported_getaddrinfo_flags\">supported <code>getaddrinfo</code> flags</a> for more information on supported\nflags.</li>\n<li><code>all</code>: {boolean} - When <code>true</code>, the callback returns all resolved addresses\nin an array, otherwise returns a single address. Defaults to <code>false</code>.</li>\n</ul>\n<p>All properties are optional.</p>\n<p>The <code>callback</code> function has arguments <code>(err, address, family)</code>. <code>address</code> is a\nstring representation of an IPv4 or IPv6 address. <code>family</code> is either the\ninteger <code>4</code> or <code>6</code> and denotes the family of <code>address</code> (not necessarily the\nvalue initially passed to <code>lookup</code>).</p>\n<p>With the <code>all</code> option set to <code>true</code>, the arguments change to\n<code>(err, addresses)</code>, with <code>addresses</code> being an array of objects with the\nproperties <code>address</code> and <code>family</code>.</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is the error code.\nKeep in mind that <code>err.code</code> will be set to <code>&#39;ENOENT&#39;</code> not only when\nthe hostname does not exist but also when the lookup fails in other ways\nsuch as no available file descriptors.</p>\n<p><code>dns.lookup()</code> does not necessarily have anything to do with the DNS protocol.\nThe implementation uses an operating system facility that can associate names\nwith addresses, and vice versa. This implementation can have subtle but\nimportant consequences on the behavior of any Node.js program. Please take some\ntime to consult the <a href=\"#dns_implementation_considerations\">Implementation considerations section</a> before using\n<code>dns.lookup()</code>.</p>\n<p>Example usage:</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\nconst options = {\n  family: 6,\n  hints: dns.ADDRCONFIG | dns.V4MAPPED,\n};\ndns.lookup(&#39;example.com&#39;, options, (err, address, family) =&gt;\n  console.log(&#39;address: %j family: IPv%s&#39;, address, family));\n// address: &quot;2606:2800:220:1:248:1893:25c8:1946&quot; family: IPv6\n\n// When options.all is true, the result will be an Array.\noptions.all = true;\ndns.lookup(&#39;example.com&#39;, options, (err, addresses) =&gt;\n  console.log(&#39;addresses: %j&#39;, addresses));\n// addresses: [{&quot;address&quot;:&quot;2606:2800:220:1:248:1893:25c8:1946&quot;,&quot;family&quot;:6}]\n</code></pre>\n",
-          "modules": [
-            {
-              "textRaw": "Supported getaddrinfo flags",
-              "name": "supported_getaddrinfo_flags",
-              "desc": "<p>The following flags can be passed as hints to <a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</p>\n<ul>\n<li><code>dns.ADDRCONFIG</code>: Returned address types are determined by the types\nof addresses supported by the current system. For example, IPv4 addresses\nare only returned if the current system has at least one IPv4 address\nconfigured. Loopback addresses are not considered.</li>\n<li><code>dns.V4MAPPED</code>: If the IPv6 family was specified, but no IPv6 addresses were\nfound, then return IPv4 mapped IPv6 addresses. Note that it is not supported\non some operating systems (e.g FreeBSD 10.1).</li>\n</ul>\n",
-              "type": "module",
-              "displayName": "Supported getaddrinfo flags"
-            }
-          ],
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`options` {integer | Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`family` {integer} The record family. Must be `4` or `6`. IPv4 and IPv6 addresses are both returned by default. ",
+                      "name": "family",
+                      "type": "integer",
+                      "desc": "The record family. Must be `4` or `6`. IPv4 and IPv6 addresses are both returned by default."
+                    },
+                    {
+                      "textRaw": "`hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple flags may be passed by bitwise `OR`ing their values. ",
+                      "name": "hints",
+                      "type": "number",
+                      "desc": "One or more [supported `getaddrinfo` flags][]. Multiple flags may be passed by bitwise `OR`ing their values."
+                    },
+                    {
+                      "textRaw": "`all` {boolean} When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address. Defaults to `false`. ",
+                      "name": "all",
+                      "type": "boolean",
+                      "desc": "When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address. Defaults to `false`."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "integer | Object",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`address` {string} A string representation of an IPv4 or IPv6 address. ",
+                      "name": "address",
+                      "type": "string",
+                      "desc": "A string representation of an IPv4 or IPv6 address."
+                    },
+                    {
+                      "textRaw": "`family` {integer} `4` or `6`, denoting the family of `address`. ",
+                      "name": "family",
+                      "type": "integer",
+                      "desc": "`4` or `6`, denoting the family of `address`."
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -66,6 +115,16 @@
                 }
               ]
             }
+          ],
+          "desc": "<p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or\nAAAA (IPv6) record. All <code>option</code> properties are optional. If <code>options</code> is an\ninteger, then it must be <code>4</code> or <code>6</code> – if <code>options</code> is not provided, then IPv4\nand IPv6 addresses are both returned if found.</p>\n<p>With the <code>all</code> option set to <code>true</code>, the arguments for <code>callback</code> change to\n<code>(err, addresses)</code>, with <code>addresses</code> being an array of objects with the\nproperties <code>address</code> and <code>family</code>.</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is the error code.\nKeep in mind that <code>err.code</code> will be set to <code>&#39;ENOENT&#39;</code> not only when\nthe hostname does not exist but also when the lookup fails in other ways\nsuch as no available file descriptors.</p>\n<p><code>dns.lookup()</code> does not necessarily have anything to do with the DNS protocol.\nThe implementation uses an operating system facility that can associate names\nwith addresses, and vice versa. This implementation can have subtle but\nimportant consequences on the behavior of any Node.js program. Please take some\ntime to consult the <a href=\"#dns_implementation_considerations\">Implementation considerations section</a> before using\n<code>dns.lookup()</code>.</p>\n<p>Example usage:</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\nconst options = {\n  family: 6,\n  hints: dns.ADDRCONFIG | dns.V4MAPPED,\n};\ndns.lookup(&#39;example.com&#39;, options, (err, address, family) =&gt;\n  console.log(&#39;address: %j family: IPv%s&#39;, address, family));\n// address: &quot;2606:2800:220:1:248:1893:25c8:1946&quot; family: IPv6\n\n// When options.all is true, the result will be an Array.\noptions.all = true;\ndns.lookup(&#39;example.com&#39;, options, (err, addresses) =&gt;\n  console.log(&#39;addresses: %j&#39;, addresses));\n// addresses: [{&quot;address&quot;:&quot;2606:2800:220:1:248:1893:25c8:1946&quot;,&quot;family&quot;:6}]\n</code></pre>\n",
+          "modules": [
+            {
+              "textRaw": "Supported getaddrinfo flags",
+              "name": "supported_getaddrinfo_flags",
+              "desc": "<p>The following flags can be passed as hints to <a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</p>\n<ul>\n<li><code>dns.ADDRCONFIG</code>: Returned address types are determined by the types\nof addresses supported by the current system. For example, IPv4 addresses\nare only returned if the current system has at least one IPv4 address\nconfigured. Loopback addresses are not considered.</li>\n<li><code>dns.V4MAPPED</code>: If the IPv6 family was specified, but no IPv6 addresses were\nfound, then return IPv4 mapped IPv6 addresses. Note that it is not supported\non some operating systems (e.g FreeBSD 10.1).</li>\n</ul>\n",
+              "type": "module",
+              "displayName": "Supported getaddrinfo flags"
+            }
           ]
         },
         {
@@ -78,8 +137,45 @@
             ],
             "changes": []
           },
-          "desc": "<p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using\nthe operating system&#39;s underlying <code>getnameinfo</code> implementation.</p>\n<p>If <code>address</code> is not a valid IP address, a <code>TypeError</code> will be thrown.\nThe <code>port</code> will be coerced to a number. If it is not a legal port, a <code>TypeError</code>\nwill be thrown.</p>\n<p>The callback has arguments <code>(err, hostname, service)</code>. The <code>hostname</code> and\n<code>service</code> arguments are strings (e.g. <code>&#39;localhost&#39;</code> and <code>&#39;http&#39;</code> respectively).</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\ndns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {\n  console.log(hostname, service);\n  // Prints: localhost ssh\n});\n</code></pre>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`address` {string} ",
+                  "name": "address",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`port` {number} ",
+                  "name": "port",
+                  "type": "number"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`hostname` {string} e.g. `example.com` ",
+                      "name": "hostname",
+                      "type": "string",
+                      "desc": "e.g. `example.com`"
+                    },
+                    {
+                      "textRaw": "`service` {string} e.g. `http` ",
+                      "name": "service",
+                      "type": "string",
+                      "desc": "e.g. `http`"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -93,7 +189,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using\nthe operating system&#39;s underlying <code>getnameinfo</code> implementation.</p>\n<p>If <code>address</code> is not a valid IP address, a <code>TypeError</code> will be thrown.\nThe <code>port</code> will be coerced to a number. If it is not a legal port, a <code>TypeError</code>\nwill be thrown.</p>\n<p>On an error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\ndns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {\n  console.log(hostname, service);\n  // Prints: localhost ssh\n});\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolve(hostname[, rrtype], callback)",
@@ -105,8 +202,41 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an\narray of the record types specified by <code>rrtype</code>.</p>\n<p>Valid values for <code>rrtype</code> are:</p>\n<ul>\n<li><code>&#39;A&#39;</code> - IPV4 addresses, default</li>\n<li><code>&#39;AAAA&#39;</code> - IPV6 addresses</li>\n<li><code>&#39;MX&#39;</code> - mail exchange records</li>\n<li><code>&#39;TXT&#39;</code> - text records</li>\n<li><code>&#39;SRV&#39;</code> - SRV records</li>\n<li><code>&#39;PTR&#39;</code> - PTR records</li>\n<li><code>&#39;NS&#39;</code> - name server records</li>\n<li><code>&#39;CNAME&#39;</code> - canonical name records</li>\n<li><code>&#39;SOA&#39;</code> - start of authority record</li>\n<li><code>&#39;NAPTR&#39;</code> - name authority pointer record</li>\n</ul>\n<p>The <code>callback</code> function has arguments <code>(err, addresses)</code>. When successful,\n<code>addresses</code> will be an array, except when resolving an SOA record which returns\nan object structured in the same manner as one returned by the\n<a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>dns.resolveSoa()</code></a> method. The type of each item in <code>addresses</code> is\ndetermined by the record type, and described in the documentation for the\ncorresponding lookup methods.</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is\none of the error codes listed <a href=\"#dns_error_codes\">here</a>.</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} Hostname to resolve. ",
+                  "name": "hostname",
+                  "type": "string",
+                  "desc": "Hostname to resolve."
+                },
+                {
+                  "textRaw": "`rrtype` {string} Resource record type. Default: `'A'`. ",
+                  "name": "rrtype",
+                  "type": "string",
+                  "desc": "Resource record type. Default: `'A'`.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`records` {string[] | Object[] | string[][] | Object} ",
+                      "name": "records",
+                      "type": "string[] | Object[] | string[][] | Object"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -121,7 +251,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an array\nof the resource records. The <code>callback</code> function has arguments\n<code>(err, records)</code>. When successful, <code>records</code> will be an array of resource\nrecords. The type and structure of individual results varies based on <code>rrtype</code>:</p>\n<table>\n<thead>\n<tr>\n<th><code>rrtype</code></th>\n<th><code>records</code> contains</th>\n<th>Result type</th>\n<th>Shorthand method</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;A&#39;</code></td>\n<td>IPv4 addresses (default)</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve4_hostname_options_callback\"><code>dns.resolve4()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;AAAA&#39;</code></td>\n<td>IPv6 addresses</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve6_hostname_options_callback\"><code>dns.resolve6()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;CNAME&#39;</code></td>\n<td>canonical name records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvecname_hostname_callback\"><code>dns.resolveCname()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;MX&#39;</code></td>\n<td>mail exchange records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvemx_hostname_callback\"><code>dns.resolveMx()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NAPTR&#39;</code></td>\n<td>name authority pointer records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvenaptr_hostname_callback\"><code>dns.resolveNaptr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NS&#39;</code></td>\n<td>name server records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvens_hostname_callback\"><code>dns.resolveNs()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;PTR&#39;</code></td>\n<td>pointer records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolveptr_hostname_callback\"><code>dns.resolvePtr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SOA&#39;</code></td>\n<td>start of authority records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>dns.resolveSoa()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SRV&#39;</code></td>\n<td>service records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesrv_hostname_callback\"><code>dns.resolveSrv()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;TXT&#39;</code></td>\n<td>text records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvetxt_hostname_callback\"><code>dns.resolveTxt()</code></a></td>\n</tr>\n</tbody>\n</table>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is one of the\n<a href=\"#dns_error_codes\">DNS error codes</a>.</p>\n"
         },
         {
           "textRaw": "dns.resolve4(hostname[, options], callback)",
@@ -139,8 +270,48 @@
               }
             ]
           },
-          "desc": "<p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of IPv4 addresses (e.g.\n<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>\n<ul>\n<li><code>hostname</code> {string} Hostname to resolve.</li>\n<li><code>options</code> {Object}<ul>\n<li><code>ttl</code> {boolean} Retrieve the Time-To-Live value (TTL) of each record.\nThe callback receives an array of <code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects\nrather than an array of strings.  The TTL is expressed in seconds.</li>\n</ul>\n</li>\n<li><code>callback</code> {Function} An <code>(err, result)</code> callback function.</li>\n</ul>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} Hostname to resolve. ",
+                  "name": "hostname",
+                  "type": "string",
+                  "desc": "Hostname to resolve."
+                },
+                {
+                  "textRaw": "`options` {Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record. When `true`, the callback receives an array of `{ address: '1.2.3.4', ttl: 60 }` objects rather than an array of strings, with the TTL expressed in seconds. ",
+                      "name": "ttl",
+                      "type": "boolean",
+                      "desc": "Retrieve the Time-To-Live value (TTL) of each record. When `true`, the callback receives an array of `{ address: '1.2.3.4', ttl: 60 }` objects rather than an array of strings, with the TTL expressed in seconds."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "Object",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[] | Object[]} ",
+                      "name": "addresses",
+                      "type": "string[] | Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -155,7 +326,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of IPv4 addresses (e.g.\n<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>\n"
         },
         {
           "textRaw": "dns.resolve6(hostname[, options], callback)",
@@ -173,8 +345,48 @@
               }
             ]
           },
-          "desc": "<p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of IPv6 addresses.</p>\n<ul>\n<li><code>hostname</code> {string} Hostname to resolve.</li>\n<li><code>options</code> {Object}<ul>\n<li><code>ttl</code> {boolean} Retrieve the Time-To-Live value (TTL) of each record.\nThe callback receives an array of <code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code>\nobjects rather than an array of strings.  The TTL is expressed in seconds.</li>\n</ul>\n</li>\n<li><code>callback</code> {Function} An <code>(err, result)</code> callback function.</li>\n</ul>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} Hostname to resolve. ",
+                  "name": "hostname",
+                  "type": "string",
+                  "desc": "Hostname to resolve."
+                },
+                {
+                  "textRaw": "`options` {Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record. When `true`, the callback receives an array of `{ address: '0:1:2:3:4:5:6:7', ttl: 60 }` objects rather than an array of strings, with the TTL expressed in seconds. ",
+                      "name": "ttl",
+                      "type": "boolean",
+                      "desc": "Retrieve the Time-To-Live value (TTL) of each record. When `true`, the callback receives an array of `{ address: '0:1:2:3:4:5:6:7', ttl: 60 }` objects rather than an array of strings, with the TTL expressed in seconds."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "Object",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[] | Object[]} ",
+                      "name": "addresses",
+                      "type": "string[] | Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -189,7 +401,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of IPv6 addresses.</p>\n"
         },
         {
           "textRaw": "dns.resolveCname(hostname, callback)",
@@ -201,8 +414,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The\n<code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of canonical name records available for the <code>hostname</code>\n(e.g. <code>[&#39;bar.example.com&#39;]</code>).</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[]} ",
+                      "name": "addresses",
+                      "type": "string[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -213,7 +451,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The\n<code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of canonical name records available for the <code>hostname</code>\n(e.g. <code>[&#39;bar.example.com&#39;]</code>).</p>\n"
         },
         {
           "textRaw": "dns.resolveMx(hostname, callback)",
@@ -225,8 +464,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\ncontain an array of objects containing both a <code>priority</code> and <code>exchange</code>\nproperty (e.g. <code>[{priority: 10, exchange: &#39;mx.example.com&#39;}, ...]</code>).</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {Object[]} ",
+                      "name": "addresses",
+                      "type": "Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -237,7 +501,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\ncontain an array of objects containing both a <code>priority</code> and <code>exchange</code>\nproperty (e.g. <code>[{priority: 10, exchange: &#39;mx.example.com&#39;}, ...]</code>).</p>\n"
         },
         {
           "textRaw": "dns.resolveNaptr(hostname, callback)",
@@ -249,8 +514,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>\nrecords) for the <code>hostname</code>. The <code>callback</code> function has arguments\n<code>(err, addresses)</code>.  The <code>addresses</code> argument passed to the <code>callback</code> function\nwill contain an array of objects with the following properties:</p>\n<ul>\n<li><code>flags</code></li>\n<li><code>service</code></li>\n<li><code>regexp</code></li>\n<li><code>replacement</code></li>\n<li><code>order</code></li>\n<li><code>preference</code></li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"lang-js\">{\n  flags: &#39;s&#39;,\n  service: &#39;SIP+D2U&#39;,\n  regexp: &#39;&#39;,\n  replacement: &#39;_sip._udp.example.com&#39;,\n  order: 30,\n  preference: 100\n}\n</code></pre>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {Object[]} ",
+                      "name": "addresses",
+                      "type": "Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -261,7 +551,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>\nrecords) for the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code>\nfunction will contain an array of objects with the following properties:</p>\n<ul>\n<li><code>flags</code></li>\n<li><code>service</code></li>\n<li><code>regexp</code></li>\n<li><code>replacement</code></li>\n<li><code>order</code></li>\n<li><code>preference</code></li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"lang-js\">{\n  flags: &#39;s&#39;,\n  service: &#39;SIP+D2U&#39;,\n  regexp: &#39;&#39;,\n  replacement: &#39;_sip._udp.example.com&#39;,\n  order: 30,\n  preference: 100\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveNs(hostname, callback)",
@@ -273,8 +564,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\ncontain an array of name server records available for <code>hostname</code>\n(e.g. <code>[&#39;ns1.example.com&#39;, &#39;ns2.example.com&#39;]</code>).</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[]} ",
+                      "name": "addresses",
+                      "type": "string[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -285,7 +601,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\ncontain an array of name server records available for <code>hostname</code>\n(e.g. <code>[&#39;ns1.example.com&#39;, &#39;ns2.example.com&#39;]</code>).</p>\n"
         },
         {
           "textRaw": "dns.resolvePtr(hostname, callback)",
@@ -297,8 +614,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of strings containing the reply records.</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[]} ",
+                      "name": "addresses",
+                      "type": "string[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -309,7 +651,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of strings containing the reply records.</p>\n"
         },
         {
           "textRaw": "dns.resolveSoa(hostname, callback)",
@@ -321,8 +664,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for\nthe <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an object with the following properties:</p>\n<ul>\n<li><code>nsname</code></li>\n<li><code>hostmaster</code></li>\n<li><code>serial</code></li>\n<li><code>refresh</code></li>\n<li><code>retry</code></li>\n<li><code>expire</code></li>\n<li><code>minttl</code></li>\n</ul>\n<pre><code class=\"lang-js\">{\n  nsname: &#39;ns.example.com&#39;,\n  hostmaster: &#39;root.example.com&#39;,\n  serial: 2013101809,\n  refresh: 10000,\n  retry: 2400,\n  expire: 604800,\n  minttl: 3600\n}\n</code></pre>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`address` {Object} ",
+                      "name": "address",
+                      "type": "Object"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -333,7 +701,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for\nthe <code>hostname</code>. The <code>address</code> argument passed to the <code>callback</code> function will\nbe an object with the following properties:</p>\n<ul>\n<li><code>nsname</code></li>\n<li><code>hostmaster</code></li>\n<li><code>serial</code></li>\n<li><code>refresh</code></li>\n<li><code>retry</code></li>\n<li><code>expire</code></li>\n<li><code>minttl</code></li>\n</ul>\n<pre><code class=\"lang-js\">{\n  nsname: &#39;ns.example.com&#39;,\n  hostmaster: &#39;root.example.com&#39;,\n  serial: 2013101809,\n  refresh: 10000,\n  retry: 2400,\n  expire: 604800,\n  minttl: 3600\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveSrv(hostname, callback)",
@@ -345,8 +714,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of objects with the following properties:</p>\n<ul>\n<li><code>priority</code></li>\n<li><code>weight</code></li>\n<li><code>port</code></li>\n<li><code>name</code></li>\n</ul>\n<pre><code class=\"lang-js\">{\n  priority: 10,\n  weight: 5,\n  port: 21223,\n  name: &#39;service.example.com&#39;\n}\n</code></pre>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {Object[]} ",
+                      "name": "addresses",
+                      "type": "Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -357,7 +751,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of objects with the following properties:</p>\n<ul>\n<li><code>priority</code></li>\n<li><code>weight</code></li>\n<li><code>port</code></li>\n<li><code>name</code></li>\n</ul>\n<pre><code class=\"lang-js\">{\n  priority: 10,\n  weight: 5,\n  port: 21223,\n  name: &#39;service.example.com&#39;\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveTxt(hostname, callback)",
@@ -369,8 +764,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function is\nis a two-dimensional array of the text records available for <code>hostname</code> (e.g.,\n<code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of\none record. Depending on the use case, these could be either joined together or\ntreated separately.</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`addresses` {string[][]} ",
+                      "name": "addresses",
+                      "type": "string[][]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -381,7 +801,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function is\nis a two-dimensional array of the text records available for <code>hostname</code> (e.g.,\n<code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of\none record. Depending on the use case, these could be either joined together or\ntreated separately.</p>\n"
         },
         {
           "textRaw": "dns.reverse(ip, callback)",
@@ -393,8 +814,33 @@
             ],
             "changes": []
           },
-          "desc": "<p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an\narray of hostnames.</p>\n<p>The <code>callback</code> function has arguments <code>(err, hostnames)</code>, where <code>hostnames</code>\nis an array of resolved hostnames for the given <code>ip</code>.</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is\none of the <a href=\"#dns_error_codes\">DNS error codes</a>.</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`ip` {string} ",
+                  "name": "ip",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`hostnames` {string[]} ",
+                      "name": "hostnames",
+                      "type": "string[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -405,7 +851,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an\narray of hostnames.</p>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is\none of the <a href=\"#dns_error_codes\">DNS error codes</a>.</p>\n"
         },
         {
           "textRaw": "dns.setServers(servers)",
@@ -417,8 +864,16 @@
             ],
             "changes": []
           },
-          "desc": "<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>\nargument is an array of IPv4 or IPv6 addresses.</p>\n<p>If a port specified on the address it will be removed.</p>\n<p>An error will be thrown if an invalid address is provided.</p>\n<p>The <code>dns.setServers()</code> method must not be called while a DNS query is in\nprogress.</p>\n",
           "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`servers` {string[]} ",
+                  "name": "servers",
+                  "type": "string[]"
+                }
+              ]
+            },
             {
               "params": [
                 {
@@ -426,7 +881,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>\nargument is an array of IPv4 or IPv6 addresses.</p>\n<p>If a port is specified on the address, it will be removed.</p>\n<p>An error will be thrown if an invalid address is provided.</p>\n<p>The <code>dns.setServers()</code> method must not be called while a DNS query is in\nprogress.</p>\n"
         }
       ],
       "modules": [

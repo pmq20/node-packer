@@ -89,6 +89,22 @@ exports.format = function(f) {
           str += Number(arguments[a++]);
           lastPos = i = i + 2;
           continue;
+        case 105: // 'i'
+          if (a >= argLen)
+            break;
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += parseInt(arguments[a++]);
+          lastPos = i = i + 2;
+          continue;
+        case 102: // 'f'
+          if (a >= argLen)
+            break;
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += parseFloat(arguments[a++]);
+          lastPos = i = i + 2;
+          continue;
         case 106: // 'j'
           if (a >= argLen)
             break;
@@ -682,12 +698,13 @@ function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
   if (remaining > 0) {
     output.push(`... ${remaining} more item${remaining > 1 ? 's' : ''}`);
   }
-  keys.forEach(function(key) {
+  for (var n = 0; n < keys.length; n++) {
+    var key = keys[n];
     if (typeof key === 'symbol' || !key.match(/^\d+$/)) {
       output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
                                  key, true));
     }
-  });
+  }
   return output;
 }
 
@@ -718,10 +735,10 @@ function formatSet(ctx, value, recurseTimes, visibleKeys, keys) {
     var str = formatValue(ctx, v, nextRecurseTimes);
     output.push(str);
   });
-  keys.forEach(function(key) {
+  for (var n = 0; n < keys.length; n++) {
     output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               key, false));
-  });
+                               keys[n], false));
+  }
   return output;
 }
 
@@ -735,10 +752,10 @@ function formatMap(ctx, value, recurseTimes, visibleKeys, keys) {
     str += formatValue(ctx, v, nextRecurseTimes);
     output.push(str);
   });
-  keys.forEach(function(key) {
+  for (var n = 0; n < keys.length; n++) {
     output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               key, false));
-  });
+                               keys[n], false));
+  }
   return output;
 }
 
@@ -768,10 +785,10 @@ function formatPromise(ctx, value, recurseTimes, visibleKeys, keys) {
       output.push(str);
     }
   }
-  keys.forEach(function(key) {
+  for (var n = 0; n < keys.length; n++) {
     output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               key, false));
-  });
+                               keys[n], false));
+  }
   return output;
 }
 

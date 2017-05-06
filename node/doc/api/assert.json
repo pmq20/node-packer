@@ -46,7 +46,7 @@
               ]
             }
           ],
-          "desc": "<p>An alias of <a href=\"#assert_assert_ok_value_message\"><code>assert.ok()</code></a> .</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert(true);\n// OK\nassert(1);\n// OK\nassert(false);\n// throws &quot;AssertionError: false == true&quot;\nassert(0);\n// throws &quot;AssertionError: 0 == true&quot;\nassert(false, &#39;it\\&#39;s false&#39;);\n// throws &quot;AssertionError: it&#39;s false&quot;\n</code></pre>\n"
+          "desc": "<p>An alias of <a href=\"#assert_assert_ok_value_message\"><code>assert.ok()</code></a>.</p>\n"
         },
         {
           "textRaw": "assert.deepEqual(actual, expected[, message])",

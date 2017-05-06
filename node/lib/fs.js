@@ -60,8 +60,8 @@ function getOptions(options, defaultOptions) {
 }
 
 function copyObject(source) {
-  const target = {};
-  for (const key in source)
+  var target = {};
+  for (var key in source)
     target[key] = source[key];
   return target;
 }
@@ -200,10 +200,11 @@ fs.Stats.prototype.isSocket = function() {
 };
 
 // Don't allow mode to accidentally be overwritten.
-['F_OK', 'R_OK', 'W_OK', 'X_OK'].forEach(function(key) {
-  Object.defineProperty(fs, key, {
-    enumerable: true, value: constants[key] || 0, writable: false
-  });
+Object.defineProperties(fs, {
+  F_OK: {enumerable: true, value: constants.F_OK || 0},
+  R_OK: {enumerable: true, value: constants.R_OK || 0},
+  W_OK: {enumerable: true, value: constants.W_OK || 0},
+  X_OK: {enumerable: true, value: constants.X_OK || 0},
 });
 
 function handleError(val, callback) {
@@ -272,7 +273,7 @@ fs.existsSync = function(path) {
 };
 
 fs.readFile = function(path, options, callback) {
-  callback = maybeCallback(arguments[arguments.length - 1]);
+  callback = maybeCallback(callback || options);
   options = getOptions(options, { flag: 'r' });
 
   if (handleError((path = getPathFromURL(path)), callback))
@@ -1248,9 +1249,7 @@ fs.futimesSync = function(fd, atime, mtime) {
   binding.futimes(fd, atime, mtime);
 };
 
-function writeAll(fd, isUserFd, buffer, offset, length, position, callback_) {
-  var callback = maybeCallback(arguments[arguments.length - 1]);
-
+function writeAll(fd, isUserFd, buffer, offset, length, position, callback) {
   // write(fd, buffer, offset, length, position, callback)
   fs.write(fd, buffer, offset, length, position, function(writeErr, written) {
     if (writeErr) {
@@ -1281,7 +1280,7 @@ function writeAll(fd, isUserFd, buffer, offset, length, position, callback_) {
 }
 
 fs.writeFile = function(path, data, options, callback) {
-  callback = maybeCallback(arguments[arguments.length - 1]);
+  callback = maybeCallback(callback || options);
   options = getOptions(options, { encoding: 'utf8', mode: 0o666, flag: 'w' });
   const flag = options.flag || 'w';
 

@@ -28,13 +28,6 @@
 #include "uv.h"
 #include "internal.h"
 
-// ======= [Enclose.io Hack start] =========
-#ifndef __cplusplus
-#define ENCLOSE_IO_WINAPI_H_VD6Y96RT
-#include "enclose_io.h"
-#endif
-// ======= [Enclose.io Hack end] =========
-
 
 #define DECREASE_ACTIVE_COUNT(loop, handle)                             \
   do {                                                                  \

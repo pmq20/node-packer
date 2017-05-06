@@ -123,6 +123,32 @@
               "displayName": "`-r`, `--require module`"
             },
             {
+              "textRaw": "`--inspect[=[host:]port]`",
+              "name": "`--inspect[=[host:]port]`",
+              "meta": {
+                "added": [
+                  "v6.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Activate inspector on host:port. Default is 127.0.0.1:9229.</p>\n<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug\nand profile Node.js instances. The tools attach to Node.js instances via a\ntcp port and communicate using the <a href=\"https://chromedevtools.github.io/debugger-protocol-viewer\">Chrome Debugging Protocol</a>.</p>\n",
+              "type": "module",
+              "displayName": "`--inspect[=[host:]port]`"
+            },
+            {
+              "textRaw": "`--inspect-brk[=[host:]port]`",
+              "name": "`--inspect-brk[=[host:]port]`",
+              "meta": {
+                "added": [
+                  "v7.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Activate inspector on host:port and break at start of user script.</p>\n",
+              "type": "module",
+              "displayName": "`--inspect-brk[=[host:]port]`"
+            },
+            {
               "textRaw": "`--no-deprecation`",
               "name": "`--no-deprecation`",
               "meta": {

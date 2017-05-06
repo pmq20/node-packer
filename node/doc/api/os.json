@@ -388,7 +388,7 @@
               "params": []
             }
           ],
-          "desc": "<p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>\n<p><em>Note</em>: Within Node.js&#39; internals, this number is represented as a <code>double</code>.\nHowever, fractional seconds are not returned and the value can typically be\ntreated as an integer.</p>\n"
+          "desc": "<p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>\n<p><em>Note</em>: On Windows the returned value includes fractions of a second.\nUse <code>Math.floor()</code> to get whole seconds.</p>\n"
         },
         {
           "textRaw": "os.userInfo([options])",

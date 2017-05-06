@@ -19,11 +19,11 @@ test('display and navigate backtrace', (t) => {
     .then(() => cli.stepCommand('c'))
     .then(() => cli.command('bt'))
     .then(() => {
-      t.match(cli.output, `#0 topFn ${script}:8:2`);
+      t.match(cli.output, `#0 topFn ${script}:7:2`);
     })
     .then(() => cli.command('backtrace'))
     .then(() => {
-      t.match(cli.output, `#0 topFn ${script}:8:2`);
+      t.match(cli.output, `#0 topFn ${script}:7:2`);
     })
     .then(() => cli.quit())
     .then(null, onFatal);

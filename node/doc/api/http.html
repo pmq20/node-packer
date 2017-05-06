@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTP | Node.js v7.7.3 Documentation</title>
+  <title>HTTP | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -132,9 +133,9 @@
 <li><span class="stability_undefined"><a href="#http_server_listen_path_callback">server.listen(path[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listen_port_hostname_backlog_callback">server.listen([port][, hostname][, backlog][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listening">server.listening</a></span></li>
-<li><span class="stability_undefined"><a href="#http_server_maxheaderscount_limit">server.maxHeadersCount([limit])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_maxheaderscount">server.maxHeadersCount</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
-<li><span class="stability_undefined"><a href="#http_server_timeout_msecs">server.timeout([msecs])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_timeout">server.timeout</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http_class_http_serverresponse">Class: http.ServerResponse</a></span><ul>
@@ -292,7 +293,7 @@ Defaults to <code>256</code>.</li>
 of these values set to their respective defaults.</p>
 <p>To configure any of them, a custom <a href="#http_class_http_agent"><code>http.Agent</code></a> instance must be created.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
-var keepAliveAgent = new http.Agent({ keepAlive: true });
+const keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
 http.request(options, onResponseCallback);
 </code></pre>
@@ -433,14 +434,14 @@ const net = require(&#39;net&#39;);
 const url = require(&#39;url&#39;);
 
 // Create an HTTP tunneling proxy
-var proxy = http.createServer( (req, res) =&gt; {
+const proxy = http.createServer( (req, res) =&gt; {
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
   res.end(&#39;okay&#39;);
 });
 proxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {
   // connect to an origin server
-  var srvUrl = url.parse(`http://${req.url}`);
-  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {
+  const srvUrl = url.parse(`http://${req.url}`);
+  const srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {
     cltSocket.write(&#39;HTTP/1.1 200 Connection Established\r\n&#39; +
                     &#39;Proxy-agent: Node.js-Proxy\r\n&#39; +
                     &#39;\r\n&#39;);
@@ -454,14 +455,14 @@ proxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {
 proxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
 
   // make a request to a tunneling proxy
-  var options = {
+  const options = {
     port: 1337,
     hostname: &#39;127.0.0.1&#39;,
     method: &#39;CONNECT&#39;,
     path: &#39;www.google.com:80&#39;
   };
 
-  var req = http.request(options);
+  const req = http.request(options);
   req.end();
 
   req.on(&#39;connect&#39;, (res, socket, head) =&gt; {
@@ -517,7 +518,7 @@ their connections closed.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 
 // Create an HTTP server
-var srv = http.createServer( (req, res) =&gt; {
+const srv = http.createServer( (req, res) =&gt; {
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
   res.end(&#39;okay&#39;);
 });
@@ -534,7 +535,7 @@ srv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {
 srv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
 
   // make a request
-  var options = {
+  const options = {
     port: 1337,
     hostname: &#39;127.0.0.1&#39;,
     headers: {
@@ -543,7 +544,7 @@ srv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
     }
   };
 
-  var req = http.request(options);
+  const req = http.request(options);
   req.end();
 
   req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {
@@ -829,13 +830,13 @@ subsequent call will <em>re-open</em> the server using the provided options.</p>
 </ul>
 <p>A Boolean indicating whether or not the server is listening for
 connections.</p>
-<h3>server.maxHeadersCount([limit])<span><a class="mark" href="#http_server_maxheaderscount_limit" id="http_server_maxheaderscount_limit">#</a></span></h3>
+<h3>server.maxHeadersCount<span><a class="mark" href="#http_server_maxheaderscount" id="http_server_maxheaderscount">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div><ul>
-<li><code>limit</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 1000.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 2000.</li>
 </ul>
-<p>Limits maximum incoming headers count, equal to 1000 by default. If set to 0 -
+<p>Limits maximum incoming headers count, equal to 2000 by default. If set to 0 -
 no limit will be applied.</p>
 <h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
@@ -853,11 +854,11 @@ will be called with the timed-out socket as an argument.</p>
 destroyed automatically if they time out.  However, if a callback is assigned
 to the Server&#39;s <code>&#39;timeout&#39;</code> event, timeouts must be handled explicitly.</p>
 <p>Returns <code>server</code>.</p>
-<h3>server.timeout([msecs])<span><a class="mark" href="#http_server_timeout_msecs" id="http_server_timeout_msecs">#</a></span></h3>
+<h3>server.timeout<span><a class="mark" href="#http_server_timeout" id="http_server_timeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
 </div><ul>
-<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
 </ul>
 <p>The number of milliseconds of inactivity before a socket is presumed
 to have timed out.</p>
@@ -940,7 +941,7 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 <p>Reads out a header that&#39;s already been queued but not sent to the client.
 Note that the name is case insensitive.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var contentType = response.getHeader(&#39;content-type&#39;);
+<pre><code class="lang-js">const contentType = response.getHeader(&#39;content-type&#39;);
 </code></pre>
 <h3>response.getHeaderNames()<span><a class="mark" href="#http_response_getheadernames" id="http_response_getheadernames">#</a></span></h3>
 <div class="api_metadata">
@@ -954,7 +955,7 @@ All header names are lowercase.</p>
 <pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
 response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
 
-var headerNames = response.getHeaderNames();
+const headerNames = response.getHeaderNames();
 // headerNames === [&#39;foo&#39;, &#39;set-cookie&#39;]
 </code></pre>
 <h3>response.getHeaders()<span><a class="mark" href="#http_response_getheaders" id="http_response_getheaders">#</a></span></h3>
@@ -972,7 +973,7 @@ are lowercase.</p>
 <pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
 response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
 
-var headers = response.getHeaders();
+const headers = response.getHeaders();
 // headers === { foo: &#39;bar&#39;, &#39;set-cookie&#39;: [&#39;foo=bar&#39;, &#39;bar=baz&#39;] }
 </code></pre>
 <h3>response.hasHeader(name)<span><a class="mark" href="#http_response_hasheader_name" id="http_response_hasheader_name">#</a></span></h3>
@@ -985,7 +986,7 @@ var headers = response.getHeaders();
 <p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the
 outgoing headers. Note that the header name matching is case-insensitive.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var hasContentType = response.hasHeader(&#39;content-type&#39;);
+<pre><code class="lang-js">const hasContentType = response.hasHeader(&#39;content-type&#39;);
 </code></pre>
 <h3>response.headersSent<span><a class="mark" href="#http_response_headerssent" id="http_response_headerssent">#</a></span></h3>
 <div class="api_metadata">
@@ -1036,7 +1037,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 any headers passed to <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed to
 <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
 <pre><code class="lang-js">// returns content-type = text/plain
-const server = http.createServer((req,res) =&gt; {
+const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
@@ -1100,6 +1101,9 @@ status message which was sent out.</p>
 it will switch to implicit header mode and flush the implicit headers.</p>
 <p>This sends a chunk of the response body. This method may
 be called multiple times to provide successive parts of the body.</p>
+<p>Note that in the <code>http</code> module, the response body is omitted when the
+request is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses
+<em>must not</em> include a message body.</p>
 <p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,
 the second parameter specifies how to encode it into a byte stream.
 By default the <code>encoding</code> is <code>&#39;utf8&#39;</code>. <code>callback</code> will be called when this chunk
@@ -1142,7 +1146,7 @@ status code, like <code>404</code>. The last argument, <code>headers</code>, are
 Optionally one can give a human-readable <code>statusMessage</code> as the second
 argument.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var body = &#39;hello world&#39;;
+<pre><code class="lang-js">const body = &#39;hello world&#39;;
 response.writeHead(200, {
   &#39;Content-Length&#39;: Buffer.byteLength(body),
   &#39;Content-Type&#39;: &#39;text/plain&#39; });
@@ -1155,7 +1159,7 @@ this, the implicit/mutable headers will be calculated and call this function.</p
 any headers passed to <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed to
 <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
 <pre><code class="lang-js">// returns content-type = text/plain
-const server = http.createServer((req,res) =&gt; {
+const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
@@ -1336,12 +1340,19 @@ Accept: text/plain\r\n
 can be used.  Example:</p>
 <pre><code class="lang-txt">$ node
 &gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;)
-{
-  href: &#39;/status?name=ryan&#39;,
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: null,
   search: &#39;?name=ryan&#39;,
   query: &#39;name=ryan&#39;,
-  pathname: &#39;/status&#39;
-}
+  pathname: &#39;/status&#39;,
+  path: &#39;/status?name=ryan&#39;,
+  href: &#39;/status?name=ryan&#39; }
 </code></pre>
 <p>To extract the parameters from the query string, the
 <code>require(&#39;querystring&#39;).parse</code> function can be used, or
@@ -1349,12 +1360,19 @@ can be used.  Example:</p>
 Example:</p>
 <pre><code class="lang-txt">$ node
 &gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;, true)
-{
-  href: &#39;/status?name=ryan&#39;,
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: null,
   search: &#39;?name=ryan&#39;,
-  query: {name: &#39;ryan&#39;},
-  pathname: &#39;/status&#39;
-}
+  query: { name: &#39;ryan&#39; },
+  pathname: &#39;/status&#39;,
+  path: &#39;/status?name=ryan&#39;,
+  href: &#39;/status?name=ryan&#39; }
 </code></pre>
 <h2>http.METHODS<span><a class="mark" href="#http_http_methods" id="http_http_methods">#</a></span></h2>
 <div class="api_metadata">
@@ -1389,7 +1407,8 @@ added to the <a href="#http_event_request"><code>&#39;request&#39;</code></a> ev
 <span>Added in: v0.3.6</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Accepts the same <code>options</code> as
-<a href="#http_http_request_options_callback"><code>http.request()</code></a>, with the <code>method</code> always set to <code>GET</code>.</li>
+<a href="#http_http_request_options_callback"><code>http.request()</code></a>, with the <code>method</code> always set to <code>GET</code>.
+Properties that are inherited from the prototype are ignored.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li>Returns: <a href="http.html#http_class_http_clientrequest" class="type">&lt;http.ClientRequest&gt;</a></li>
 </ul>
@@ -1402,7 +1421,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 <a href="#http_class_http_incomingmessage"><code>http.IncomingMessage</code></a></p>
 <p>JSON Fetching Example:</p>
 <pre><code class="lang-js">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {
-  const statusCode = res.statusCode;
+  const { statusCode } = res;
   const contentType = res.headers[&#39;content-type&#39;];
 
   let error;
@@ -1414,7 +1433,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
                       `Expected application/json but received ${contentType}`);
   }
   if (error) {
-    console.log(error.message);
+    console.error(error.message);
     // consume response data to free up memory
     res.resume();
     return;
@@ -1422,17 +1441,17 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 
   res.setEncoding(&#39;utf8&#39;);
   let rawData = &#39;&#39;;
-  res.on(&#39;data&#39;, (chunk) =&gt; rawData += chunk);
+  res.on(&#39;data&#39;, (chunk) =&gt; { rawData += chunk; });
   res.on(&#39;end&#39;, () =&gt; {
     try {
-      let parsedData = JSON.parse(rawData);
+      const parsedData = JSON.parse(rawData);
       console.log(parsedData);
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
     }
   });
 }).on(&#39;error&#39;, (e) =&gt; {
-  console.log(`Got error: ${e.message}`);
+  console.error(`Got error: ${e.message}`);
 });
 </code></pre>
 <h2>http.globalAgent<span><a class="mark" href="#http_http_globalagent" id="http_http_globalagent">#</a></span></h2>
@@ -1497,11 +1516,11 @@ the <a href="#http_event_response"><code>&#39;response&#39;</code></a> event.</p
 class. The <code>ClientRequest</code> instance is a writable stream. If one needs to
 upload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var postData = querystring.stringify({
-  &#39;msg&#39; : &#39;Hello World!&#39;
+<pre><code class="lang-js">const postData = querystring.stringify({
+  &#39;msg&#39;: &#39;Hello World!&#39;
 });
 
-var options = {
+const options = {
   hostname: &#39;www.google.com&#39;,
   port: 80,
   path: &#39;/upload&#39;,
@@ -1512,7 +1531,7 @@ var options = {
   }
 };
 
-var req = http.request(options, (res) =&gt; {
+const req = http.request(options, (res) =&gt; {
   console.log(`STATUS: ${res.statusCode}`);
   console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
   res.setEncoding(&#39;utf8&#39;);
@@ -1525,7 +1544,7 @@ var req = http.request(options, (res) =&gt; {
 });
 
 req.on(&#39;error&#39;, (e) =&gt; {
-  console.log(`problem with request: ${e.message}`);
+  console.error(`problem with request: ${e.message}`);
 });
 
 // write data to request body

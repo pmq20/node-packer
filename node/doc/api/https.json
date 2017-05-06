@@ -74,10 +74,12 @@
                 }
               ],
               "desc": "<p>See <a href=\"http.html#http_server_settimeout_msecs_callback\"><code>http.Server#setTimeout()</code></a>.</p>\n"
-            },
+            }
+          ],
+          "properties": [
             {
-              "textRaw": "server.timeout([msecs])",
-              "type": "method",
+              "textRaw": "`timeout` {number} Defaults to 120000 (2 minutes). ",
+              "type": "number",
               "name": "timeout",
               "meta": {
                 "added": [
@@ -85,28 +87,8 @@
                 ],
                 "changes": []
               },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`msecs` {number} Defaults to 120000 (2 minutes). ",
-                      "name": "msecs",
-                      "type": "number",
-                      "desc": "Defaults to 120000 (2 minutes).",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "msecs",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>See <a href=\"http.html#http_server_timeout\"><code>http.Server#timeout</code></a>.</p>\n"
+              "desc": "<p>See <a href=\"http.html#http_server_timeout\"><code>http.Server#timeout</code></a>.</p>\n",
+              "shortDesc": "Defaults to 120000 (2 minutes)."
             }
           ]
         }
@@ -152,7 +134,7 @@
               ]
             }
           ],
-          "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">// curl -k https://localhost:8000/\nconst https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;server.pfx&#39;)\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n",
+          "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">// curl -k https://localhost:8000/\nconst https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;test/fixtures/test_cert.pfx&#39;),\n  passphrase: &#39;sample&#39;\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "server.close([callback])",
@@ -375,7 +357,7 @@
               ]
             }
           ],
-          "desc": "<p>Makes a request to a secure web server.</p>\n<p>The following additional <code>options</code> from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> are also accepted when using a\n  custom <a href=\"#https_class_https_agent\"><code>Agent</code></a>:\n  <code>pfx</code>, <code>key</code>, <code>passphrase</code>, <code>cert</code>, <code>ca</code>, <code>ciphers</code>, <code>rejectUnauthorized</code>, <code>secureProtocol</code>, <code>servername</code></p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nvar options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;\n};\n\nvar req = https.request(options, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\nreq.end();\n</code></pre>\n<p>Example using options from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>:</p>\n<pre><code class=\"lang-js\">var options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\noptions.agent = new https.Agent(options);\n\nvar req = https.request(options, (res) =&gt; {\n  ...\n});\n</code></pre>\n<p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;),\n  agent: false\n};\n\nvar req = https.request(options, (res) =&gt; {\n  ...\n});\n</code></pre>\n"
+          "desc": "<p>Makes a request to a secure web server.</p>\n<p>The following additional <code>options</code> from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> are also accepted when using a\n  custom <a href=\"#https_class_https_agent\"><code>Agent</code></a>:\n  <code>pfx</code>, <code>key</code>, <code>passphrase</code>, <code>cert</code>, <code>ca</code>, <code>ciphers</code>, <code>rejectUnauthorized</code>, <code>secureProtocol</code>, <code>servername</code></p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nconst options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;\n};\n\nconst req = https.request(options, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\nreq.end();\n</code></pre>\n<p>Example using options from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\noptions.agent = new https.Agent(options);\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n<p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;),\n  agent: false\n};\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n"
         }
       ],
       "properties": [

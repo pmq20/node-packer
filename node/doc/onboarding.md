@@ -32,7 +32,7 @@ onboarding session.
 ## Local setup
 
   * git:
-    * make sure you have whitespace=fix: `git config --global --add core.whitespace fix`
+    * make sure you have whitespace=fix: `git config --global --add apply.whitespace fix`
     * usually PR from your own github fork
     * [See "Updating Node.js from Upstream"](./onboarding-extras.md#updating-nodejs-from-upstream)
     * make new branches for all commits you make!
@@ -132,7 +132,7 @@ onboarding session.
 
 ## Landing PRs
 
-  * [See the Collaborator Guide: Technical HOWTO](https://github.com/nodejs/node/blob/master/COLLABORATOR_GUIDE.md#technical-howto)
+  * [See the Collaborator Guide: Landing Pull Requests](https://github.com/nodejs/node/blob/master/COLLABORATOR_GUIDE.md#landing-pull-requests)
 
 ## Exercise: Make a PR adding yourself to the README
 

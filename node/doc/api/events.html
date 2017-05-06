@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Events | Node.js v7.7.3 Documentation</title>
+  <title>Events | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="events" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -194,7 +195,7 @@ myEmitter.emit(&#39;event&#39;, &#39;a&#39;, &#39;b&#39;);
 <p>When a listener is registered using the <code>eventEmitter.on()</code> method, that
 listener will be invoked <em>every time</em> the named event is emitted.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
-var m = 0;
+let m = 0;
 myEmitter.on(&#39;event&#39;, () =&gt; {
   console.log(++m);
 });
@@ -207,7 +208,7 @@ myEmitter.emit(&#39;event&#39;);
 that is called at most once for a particular event. Once the event is emitted,
 the listener is unregistered and <em>then</em> called.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
-var m = 0;
+let m = 0;
 myEmitter.once(&#39;event&#39;, () =&gt; {
   console.log(++m);
 });
@@ -233,7 +234,7 @@ can be used. (<em>Note, however, that the <code>domain</code> module has been de
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 
 process.on(&#39;uncaughtException&#39;, (err) =&gt; {
-  console.log(&#39;whoops! there was an error&#39;);
+  console.error(&#39;whoops! there was an error&#39;);
 });
 
 myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
@@ -242,7 +243,7 @@ myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
 <p>As a best practice, listeners should always be added for the <code>&#39;error&#39;</code> events.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 myEmitter.on(&#39;error&#39;, (err) =&gt; {
-  console.log(&#39;whoops! there was an error&#39;);
+  console.error(&#39;whoops! there was an error&#39;);
 });
 myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
 // Prints: whoops! there was an error
@@ -259,7 +260,7 @@ added and <code>&#39;removeListener&#39;</code> when existing listeners are remo
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event being listened for</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event being listened for</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>EventEmitter</code> instance will emit its own <code>&#39;newListener&#39;</code> event <em>before</em>
@@ -302,7 +303,7 @@ myEmitter.emit(&#39;event&#39;);
 </table>
 </details>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The event name</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The event name</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>&#39;removeListener&#39;</code> event is emitted <em>after</em> the <code>listener</code> is removed.</p>
@@ -350,11 +351,19 @@ Its <code>name</code> property is set to <code>&#39;MaxListenersExceededWarning&
 <h3>emitter.addListener(eventName, listener)<span><a class="mark" href="#events_emitter_addlistener_eventname_listener" id="events_emitter_addlistener_eventname_listener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Alias for <code>emitter.on(eventName, listener)</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>
 <h3>emitter.emit(eventName[, ...args])<span><a class="mark" href="#events_emitter_emit_eventname_args" id="events_emitter_emit_eventname_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Synchronously calls each of the listeners registered for the event named
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Synchronously calls each of the listeners registered for the event named
 <code>eventName</code>, in the order they were registered, passing the supplied arguments
 to each.</p>
 <p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>
@@ -384,7 +393,7 @@ set by <a href="#events_emitter_setmaxlisteners_n"><code>emitter.setMaxListeners
 <div class="api_metadata">
 <span>Added in: v3.2.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event being listened for</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event being listened for</li>
 </ul>
 <p>Returns the number of listeners listening to the event named <code>eventName</code>.</p>
 <h3>emitter.listeners(eventName)<span><a class="mark" href="#events_emitter_listeners_eventname" id="events_emitter_listeners_eventname">#</a></span></h3>
@@ -400,7 +409,10 @@ set by <a href="#events_emitter_setmaxlisteners_n"><code>emitter.setMaxListeners
 </td></tr>
 </table>
 </details>
-</div><p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>
 <pre><code class="lang-js">server.on(&#39;connection&#39;, (stream) =&gt; {
   console.log(&#39;someone connected!&#39;);
 });
@@ -411,7 +423,7 @@ console.log(util.inspect(server.listeners(&#39;connection&#39;)));
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the end of the listeners array for the
@@ -439,7 +451,7 @@ myEE.emit(&#39;foo&#39;);
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code>. The
@@ -464,7 +476,7 @@ myEE.emit(&#39;foo&#39;);
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the <em>beginning</em> of the listeners array for the
@@ -481,7 +493,7 @@ times.</p>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code> to the
@@ -495,7 +507,10 @@ listener is removed, and then invoked.</p>
 <h3>emitter.removeAllListeners([eventName])<span><a class="mark" href="#events_emitter_removealllisteners_eventname" id="events_emitter_removealllisteners_eventname">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Removes all listeners, or those of the specified <code>eventName</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>
 <p>Note that it is bad practice to remove listeners added elsewhere in the code,
 particularly when the <code>EventEmitter</code> instance was created by some other
 component or module (e.g. sockets or file streams).</p>
@@ -503,9 +518,13 @@ component or module (e.g. sockets or file streams).</p>
 <h3>emitter.removeListener(eventName, listener)<span><a class="mark" href="#events_emitter_removelistener_eventname_listener" id="events_emitter_removelistener_eventname_listener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Removes the specified <code>listener</code> from the listener array for the event named
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Removes the specified <code>listener</code> from the listener array for the event named
 <code>eventName</code>.</p>
-<pre><code class="lang-js">var callback = (stream) =&gt; {
+<pre><code class="lang-js">const callback = (stream) =&gt; {
   console.log(&#39;someone connected!&#39;);
 };
 server.on(&#39;connection&#39;, callback);
@@ -523,12 +542,12 @@ finishes execution will not remove them from <code>emit()</code> in progress. Su
 events will behave as expected.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 
-var callbackA = () =&gt; {
+const callbackA = () =&gt; {
   console.log(&#39;A&#39;);
   myEmitter.removeListener(&#39;event&#39;, callbackB);
 };
 
-var callbackB = () =&gt; {
+const callbackB = () =&gt; {
   console.log(&#39;B&#39;);
 };
 
@@ -558,7 +577,10 @@ the <code>emitter.listeners()</code> method will need to be recreated.</p>
 <h3>emitter.setMaxListeners(n)<span><a class="mark" href="#events_emitter_setmaxlisteners_n" id="events_emitter_setmaxlisteners_n">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.5</span>
-</div><p>By default EventEmitters will print a warning if more than <code>10</code> listeners are
+</div><ul>
+<li><code>n</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+</ul>
+<p>By default EventEmitters will print a warning if more than <code>10</code> listeners are
 added for a particular event. This is a useful default that helps finding
 memory leaks. Obviously, not all events should be limited to just 10 listeners.
 The <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this

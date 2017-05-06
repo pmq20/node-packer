@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v7.7.3 Documentation</title>
+  <title>DNS | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns active" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -181,29 +182,29 @@ resolution.</p>
 </td></tr>
 </table>
 </details>
-</div><p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or
-AAAA (IPv6) record. <code>options</code> can be an object or integer. If <code>options</code> is
-not provided, then IPv4 and IPv6 addresses are both valid. If <code>options</code> is
-an integer, then it must be <code>4</code> or <code>6</code>.</p>
-<p>Alternatively, <code>options</code> can be an object containing these properties:</p>
-<ul>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - The record family. If present, must be the integer
-<code>4</code> or <code>6</code>. If not provided, both IP v4 and v6 addresses are accepted.</li>
-<li><code>hints</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - If present, it should be one or more of the supported
-<code>getaddrinfo</code> flags. If <code>hints</code> is not provided, then no flags are passed to
-<code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by bitwise
-<code>OR</code>ing their values.
-See <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a> for more information on supported
-flags.</li>
-<li><code>all</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> - When <code>true</code>, the callback returns all resolved addresses
-in an array, otherwise returns a single address. Defaults to <code>false</code>.</li>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The record family. Must be <code>4</code> or <code>6</code>. IPv4
+and IPv6 addresses are both returned by default.</li>
+<li><code>hints</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> One or more <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a>. Multiple
+flags may be passed by bitwise <code>OR</code>ing their values.</li>
+<li><code>all</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the callback returns all resolved addresses in
+an array. Otherwise, returns a single address. Defaults to <code>false</code>.</li>
 </ul>
-<p>All properties are optional.</p>
-<p>The <code>callback</code> function has arguments <code>(err, address, family)</code>. <code>address</code> is a
-string representation of an IPv4 or IPv6 address. <code>family</code> is either the
-integer <code>4</code> or <code>6</code> and denotes the family of <code>address</code> (not necessarily the
-value initially passed to <code>lookup</code>).</p>
-<p>With the <code>all</code> option set to <code>true</code>, the arguments change to
+</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string representation of an IPv4 or IPv6 address.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>4</code> or <code>6</code>, denoting the family of <code>address</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or
+AAAA (IPv6) record. All <code>option</code> properties are optional. If <code>options</code> is an
+integer, then it must be <code>4</code> or <code>6</code> – if <code>options</code> is not provided, then IPv4
+and IPv6 addresses are both returned if found.</p>
+<p>With the <code>all</code> option set to <code>true</code>, the arguments for <code>callback</code> change to
 <code>(err, addresses)</code>, with <code>addresses</code> being an array of objects with the
 properties <code>address</code> and <code>family</code>.</p>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.
@@ -246,14 +247,22 @@ on some operating systems (e.g FreeBSD 10.1).</li>
 <h2>dns.lookupService(address, port, callback)<span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
-</div><p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using
+</div><ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> e.g. <code>example.com</code></li>
+<li><code>service</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> e.g. <code>http</code></li>
+</ul>
+</li>
+</ul>
+<p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using
 the operating system&#39;s underlying <code>getnameinfo</code> implementation.</p>
 <p>If <code>address</code> is not a valid IP address, a <code>TypeError</code> will be thrown.
 The <code>port</code> will be coerced to a number. If it is not a legal port, a <code>TypeError</code>
 will be thrown.</p>
-<p>The callback has arguments <code>(err, hostname, service)</code>. The <code>hostname</code> and
-<code>service</code> arguments are strings (e.g. <code>&#39;localhost&#39;</code> and <code>&#39;http&#39;</code> respectively).</p>
-<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>
+<p>On an error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>
 <pre><code class="lang-js">const dns = require(&#39;dns&#39;);
 dns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {
   console.log(hostname, service);
@@ -263,29 +272,93 @@ dns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {
 <h2>dns.resolve(hostname[, rrtype], callback)<span><a class="mark" href="#dns_dns_resolve_hostname_rrtype_callback" id="dns_dns_resolve_hostname_rrtype_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an
-array of the record types specified by <code>rrtype</code>.</p>
-<p>Valid values for <code>rrtype</code> are:</p>
-<ul>
-<li><code>&#39;A&#39;</code> - IPV4 addresses, default</li>
-<li><code>&#39;AAAA&#39;</code> - IPV6 addresses</li>
-<li><code>&#39;MX&#39;</code> - mail exchange records</li>
-<li><code>&#39;TXT&#39;</code> - text records</li>
-<li><code>&#39;SRV&#39;</code> - SRV records</li>
-<li><code>&#39;PTR&#39;</code> - PTR records</li>
-<li><code>&#39;NS&#39;</code> - name server records</li>
-<li><code>&#39;CNAME&#39;</code> - canonical name records</li>
-<li><code>&#39;SOA&#39;</code> - start of authority record</li>
-<li><code>&#39;NAPTR&#39;</code> - name authority pointer record</li>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
+<li><code>rrtype</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Resource record type. Default: <code>&#39;A&#39;</code>.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <span class="type">&lt;string[][]&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
-<p>The <code>callback</code> function has arguments <code>(err, addresses)</code>. When successful,
-<code>addresses</code> will be an array, except when resolving an SOA record which returns
-an object structured in the same manner as one returned by the
-<a href="#dns_dns_resolvesoa_hostname_callback"><code>dns.resolveSoa()</code></a> method. The type of each item in <code>addresses</code> is
-determined by the record type, and described in the documentation for the
-corresponding lookup methods.</p>
-<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is
-one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an array
+of the resource records. The <code>callback</code> function has arguments
+<code>(err, records)</code>. When successful, <code>records</code> will be an array of resource
+records. The type and structure of individual results varies based on <code>rrtype</code>:</p>
+<table>
+<thead>
+<tr>
+<th><code>rrtype</code></th>
+<th><code>records</code> contains</th>
+<th>Result type</th>
+<th>Shorthand method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;A&#39;</code></td>
+<td>IPv4 addresses (default)</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolve4_hostname_options_callback"><code>dns.resolve4()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;AAAA&#39;</code></td>
+<td>IPv6 addresses</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolve6_hostname_options_callback"><code>dns.resolve6()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;CNAME&#39;</code></td>
+<td>canonical name records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvecname_hostname_callback"><code>dns.resolveCname()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;MX&#39;</code></td>
+<td>mail exchange records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvemx_hostname_callback"><code>dns.resolveMx()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;NAPTR&#39;</code></td>
+<td>name authority pointer records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvenaptr_hostname_callback"><code>dns.resolveNaptr()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;NS&#39;</code></td>
+<td>name server records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvens_hostname_callback"><code>dns.resolveNs()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;PTR&#39;</code></td>
+<td>pointer records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolveptr_hostname_callback"><code>dns.resolvePtr()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;SOA&#39;</code></td>
+<td>start of authority records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvesoa_hostname_callback"><code>dns.resolveSoa()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;SRV&#39;</code></td>
+<td>service records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvesrv_hostname_callback"><code>dns.resolveSrv()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;TXT&#39;</code></td>
+<td>text records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvetxt_hostname_callback"><code>dns.resolveTxt()</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is one of the
+<a href="#dns_error_codes">DNS error codes</a>.</p>
 <h2>dns.resolve4(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve4_hostname_options_callback" id="dns_dns_resolve4_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -299,20 +372,25 @@ one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
 </td></tr>
 </table>
 </details>
-</div><p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the
-<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of IPv4 addresses (e.g.
-<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>
-<ul>
+</div><ul>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
-The callback receives an array of <code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects
-rather than an array of strings.  The TTL is expressed in seconds.</li>
+When <code>true</code>, the callback receives an array of
+<code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects rather than an array of strings,
+with the TTL expressed in seconds.</li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>(err, result)</code> callback function.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the
+<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
+will contain an array of IPv4 addresses (e.g.
+<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>
 <h2>dns.resolve6(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve6_hostname_options_callback" id="dns_dns_resolve6_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -326,40 +404,68 @@ rather than an array of strings.  The TTL is expressed in seconds.</li>
 </td></tr>
 </table>
 </details>
-</div><p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the
-<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of IPv6 addresses.</p>
-<ul>
+</div><ul>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
-The callback receives an array of <code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code>
-objects rather than an array of strings.  The TTL is expressed in seconds.</li>
+When <code>true</code>, the callback receives an array of
+<code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code> objects rather than an array of
+strings, with the TTL expressed in seconds.</li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>(err, result)</code> callback function.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the
+<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
+will contain an array of IPv6 addresses.</p>
 <h2>dns.resolveCname(hostname, callback)<span><a class="mark" href="#dns_dns_resolvecname_hostname_callback" id="dns_dns_resolvecname_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
-</div><p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The
 <code>addresses</code> argument passed to the <code>callback</code> function
 will contain an array of canonical name records available for the <code>hostname</code>
 (e.g. <code>[&#39;bar.example.com&#39;]</code>).</p>
 <h2>dns.resolveMx(hostname, callback)<span><a class="mark" href="#dns_dns_resolvemx_hostname_callback" id="dns_dns_resolvemx_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 contain an array of objects containing both a <code>priority</code> and <code>exchange</code>
 property (e.g. <code>[{priority: 10, exchange: &#39;mx.example.com&#39;}, ...]</code>).</p>
 <h2>dns.resolveNaptr(hostname, callback)<span><a class="mark" href="#dns_dns_resolvenaptr_hostname_callback" id="dns_dns_resolvenaptr_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
-</div><p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>
-records) for the <code>hostname</code>. The <code>callback</code> function has arguments
-<code>(err, addresses)</code>.  The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of objects with the following properties:</p>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>
+records) for the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code>
+function will contain an array of objects with the following properties:</p>
 <ul>
 <li><code>flags</code></li>
 <li><code>service</code></li>
@@ -381,21 +487,45 @@ will contain an array of objects with the following properties:</p>
 <h2>dns.resolveNs(hostname, callback)<span><a class="mark" href="#dns_dns_resolvens_hostname_callback" id="dns_dns_resolvens_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
-</div><p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 contain an array of name server records available for <code>hostname</code>
 (e.g. <code>[&#39;ns1.example.com&#39;, &#39;ns2.example.com&#39;]</code>).</p>
 <h2>dns.resolvePtr(hostname, callback)<span><a class="mark" href="#dns_dns_resolveptr_hostname_callback" id="dns_dns_resolveptr_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
-</div><p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 be an array of strings containing the reply records.</p>
 <h2>dns.resolveSoa(hostname, callback)<span><a class="mark" href="#dns_dns_resolvesoa_hostname_callback" id="dns_dns_resolvesoa_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.10</span>
-</div><p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for
-the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for
+the <code>hostname</code>. The <code>address</code> argument passed to the <code>callback</code> function will
 be an object with the following properties:</p>
 <ul>
 <li><code>nsname</code></li>
@@ -419,7 +549,15 @@ be an object with the following properties:</p>
 <h2>dns.resolveSrv(hostname, callback)<span><a class="mark" href="#dns_dns_resolvesrv_hostname_callback" id="dns_dns_resolvesrv_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 be an array of objects with the following properties:</p>
 <ul>
@@ -438,7 +576,15 @@ be an array of objects with the following properties:</p>
 <h2>dns.resolveTxt(hostname, callback)<span><a class="mark" href="#dns_dns_resolvetxt_hostname_callback" id="dns_dns_resolvetxt_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <span class="type">&lt;string[][]&gt;</span></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function is
 is a two-dimensional array of the text records available for <code>hostname</code> (e.g.,
 <code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of
@@ -447,18 +593,27 @@ treated separately.</p>
 <h2>dns.reverse(ip, callback)<span><a class="mark" href="#dns_dns_reverse_ip_callback" id="dns_dns_reverse_ip_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
-</div><p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
+</div><ul>
+<li><code>ip</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>hostnames</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
 array of hostnames.</p>
-<p>The <code>callback</code> function has arguments <code>(err, hostnames)</code>, where <code>hostnames</code>
-is an array of resolved hostnames for the given <code>ip</code>.</p>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is
 one of the <a href="#dns_error_codes">DNS error codes</a>.</p>
 <h2>dns.setServers(servers)<span><a class="mark" href="#dns_dns_setservers_servers" id="dns_dns_setservers_servers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
-</div><p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>
+</div><ul>
+<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>
 argument is an array of IPv4 or IPv6 addresses.</p>
-<p>If a port specified on the address it will be removed.</p>
+<p>If a port is specified on the address, it will be removed.</p>
 <p>An error will be thrown if an invalid address is provided.</p>
 <p>The <code>dns.setServers()</code> method must not be called while a DNS query is in
 progress.</p>

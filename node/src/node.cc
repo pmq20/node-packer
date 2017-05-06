@@ -53,6 +53,7 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>  // _O_RDWR
 #include <limits.h>  // PATH_MAX
 #include <locale.h>
 #include <signal.h>
@@ -63,6 +64,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
 #include <unicode/uvernum.h>
@@ -153,7 +155,7 @@ static node_module* modlist_builtin;
 static node_module* modlist_linked;
 static node_module* modlist_addon;
 static bool trace_enabled = false;
-static const char* trace_enabled_categories = nullptr;
+static std::string trace_enabled_categories;  // NOLINT(runtime/string)
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
 // Path to ICU data (for i18n / Intl)
@@ -891,8 +893,6 @@ Local<Value> UVException(Isolate* isolate,
 
   Local<Object> e = Exception::Error(js_msg)->ToObject(isolate);
 
-  // TODO(piscisaureus) errno should probably go; the user has no way of
-  // knowing which uv errno value maps to which error.
   e->Set(env->errno_string(), Integer::New(isolate, errorno));
   e->Set(env->code_string(), js_code);
   e->Set(env->syscall_string(), js_syscall);
@@ -1442,6 +1442,8 @@ enum encoding ParseEncoding(const char* encoding,
 enum encoding ParseEncoding(Isolate* isolate,
                             Local<Value> encoding_v,
                             enum encoding default_encoding) {
+  CHECK(!encoding_v.IsEmpty());
+
   if (!encoding_v->IsString())
     return default_encoding;
 
@@ -3481,9 +3483,10 @@ static void PrintHelp() {
          "  -r, --require              module to preload (option can be "
          "repeated)\n"
 #if HAVE_INSPECTOR
-         "  --inspect[=host:port]      activate inspector on host:port\n"
+         "  --inspect[=[host:]port]    activate inspector on host:port\n"
          "                             (default: 127.0.0.1:9229)\n"
-         "  --inspect-brk[=host:port]  activate inspector on host:port\n"
+         "  --inspect-brk[=[host:]port]\n"
+         "                             activate inspector on host:port\n"
          "                             and break at start of user script\n"
 #endif
          "  --no-deprecation           silence deprecation warnings\n"
@@ -4161,6 +4164,19 @@ inline void PlatformInit() {
     } while (min + 1 < max);
   }
 #endif  // __POSIX__
+#ifdef _WIN32
+  for (int fd = 0; fd <= 2; ++fd) {
+    auto handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+    if (handle == INVALID_HANDLE_VALUE ||
+        GetFileType(handle) == FILE_TYPE_UNKNOWN) {
+      // Ignore _close result. If it fails or not depends on used Windows
+      // version. We will just check _open result.
+      _close(fd);
+      if (fd != _open("nul", _O_RDWR))
+        ABORT();
+    }
+  }
+#endif  // _WIN32
 }
 
 
@@ -4276,34 +4292,24 @@ void Init(int* argc,
 
 
 struct AtExitCallback {
-  AtExitCallback* next_;
   void (*cb_)(void* arg);
   void* arg_;
 };
 
-static AtExitCallback* at_exit_functions_;
+static std::list<AtExitCallback> at_exit_functions;
 
 
 // TODO(bnoordhuis) Turn into per-context event.
 void RunAtExit(Environment* env) {
-  AtExitCallback* p = at_exit_functions_;
-  at_exit_functions_ = nullptr;
-
-  while (p) {
-    AtExitCallback* q = p->next_;
-    p->cb_(p->arg_);
-    delete p;
-    p = q;
+  for (AtExitCallback at_exit : at_exit_functions) {
+    at_exit.cb_(at_exit.arg_);
   }
+  at_exit_functions.clear();
 }
 
 
 void AtExit(void (*cb)(void* arg), void* arg) {
-  AtExitCallback* p = new AtExitCallback;
-  p->cb_ = cb;
-  p->arg_ = arg;
-  p->next_ = at_exit_functions_;
-  at_exit_functions_ = p;
+  at_exit_functions.push_back(AtExitCallback{cb, arg});
 }
 
 

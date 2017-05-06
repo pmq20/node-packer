@@ -103,7 +103,9 @@ Each placeholder token is replaced with the converted value from the
 corresponding argument. Supported placeholders are:
 
 * `%s` - String.
-* `%d` - Number (both integer and float).
+* `%d` - Number (integer or floating point value).
+* `%i` - Integer.
+* `%f` - Floating point value.
 * `%j` - JSON.  Replaced with the string `'[Circular]'` if the argument
 contains circular references.
 * `%%` - single percent sign (`'%'`). This does not consume an argument.
@@ -131,6 +133,13 @@ Each argument is converted to a string using `util.inspect()`.
 
 ```js
 util.format(1, 2, 3); // '1 2 3'
+```
+
+If only one argument is passed to `util.format()`, it is returned as it is
+without any formatting.
+
+```js
+util.format('%% %s'); // '%% %s'
 ```
 
 ## util.inherits(constructor, superConstructor)

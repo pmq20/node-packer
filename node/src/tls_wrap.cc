@@ -64,6 +64,7 @@ TLSWrap::TLSWrap(Environment* env,
   stream_->set_after_write_cb({ OnAfterWriteImpl, this });
   stream_->set_alloc_cb({ OnAllocImpl, this });
   stream_->set_read_cb({ OnReadImpl, this });
+  stream_->set_destruct_cb({ OnDestructImpl, this });
 
   set_alloc_cb({ OnAllocSelf, this });
   set_read_cb({ OnReadSelf, this });
@@ -425,6 +426,12 @@ void TLSWrap::ClearOut() {
       memcpy(buf.base, current, avail);
       OnRead(avail, &buf);
 
+      // Caveat emptor: OnRead() calls into JS land which can result in
+      // the SSL context object being destroyed.  We have to carefully
+      // check that ssl_ != nullptr afterwards.
+      if (ssl_ == nullptr)
+        return;
+
       read -= avail;
       current += avail;
     }
@@ -522,7 +529,7 @@ int TLSWrap::GetFD() {
 
 
 bool TLSWrap::IsAlive() {
-  return ssl_ != nullptr && stream_->IsAlive();
+  return ssl_ != nullptr && stream_ != nullptr && stream_->IsAlive();
 }
 
 
@@ -657,6 +664,12 @@ void TLSWrap::OnReadImpl(ssize_t nread,
                          void* ctx) {
   TLSWrap* wrap = static_cast<TLSWrap*>(ctx);
   wrap->DoRead(nread, buf, pending);
+}
+
+
+void TLSWrap::OnDestructImpl(void* ctx) {
+  TLSWrap* wrap = static_cast<TLSWrap*>(ctx);
+  wrap->clear_stream();
 }
 
 

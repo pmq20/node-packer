@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Crypto | Node.js v7.7.3 Documentation</title>
+  <title>Crypto | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto active" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -180,6 +181,8 @@
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicdecrypt_public_key_buffer">crypto.publicDecrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicencrypt_public_key_buffer">crypto.publicEncrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_randombytes_size_callback">crypto.randomBytes(size[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_crypto_randomfillsync_buffer_offset_size">crypto.randomFillSync(buffer[, offset][, size])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_crypto_randomfill_buffer_offset_size_callback">crypto.randomFill(buffer[, offset][, size], callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_setengine_engine_flags">crypto.setEngine(engine[, flags])</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_timingsafeequal_a_b">crypto.timingSafeEqual(a, b)</a></span></li>
 </ul>
@@ -1466,6 +1469,56 @@ console.log(
 This should normally never take longer than a few milliseconds. The only time
 when generating the random bytes may conceivably block for a longer period of
 time is right after boot, when the whole system is still low on entropy.</p>
+<h3>crypto.randomFillSync(buffer[, offset][, size])<span><a class="mark" href="#crypto_crypto_randomfillsync_buffer_offset_size" id="crypto_crypto_randomfillsync_buffer_offset_size">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>0</code>.</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>buffer.length - offset</code>.</li>
+</ul>
+<p>Synchronous version of <a href="#crypto_crypto_randomfill_buffer_offset_size_callback"><code>crypto.randomFill()</code></a>.</p>
+<p>Returns <code>buffer</code></p>
+<pre><code class="lang-js">const buf = Buffer.alloc(10);
+console.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));
+
+crypto.randomFillSync(buf, 5);
+console.log(buf.toString(&#39;hex&#39;));
+
+// The above is equivalent to the following:
+crypto.randomFillSync(buf, 5, 5);
+console.log(buf.toString(&#39;hex&#39;));
+</code></pre>
+<h3>crypto.randomFill(buffer[, offset][, size], callback)<span><a class="mark" href="#crypto_crypto_randomfill_buffer_offset_size_callback" id="crypto_crypto_randomfill_buffer_offset_size_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>0</code>.</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>buffer.length - offset</code>.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> <code>function(err, buf) {}</code>.</li>
+</ul>
+<p>This function is similar to <a href="#crypto_crypto_randombytes_size_callback"><code>crypto.randomBytes()</code></a> but requires the first
+argument to be a <a href="buffer.html"><code>Buffer</code></a> that will be filled. It also
+requires that a callback is passed in.</p>
+<p>If the <code>callback</code> function is not provided, an error will be thrown.</p>
+<pre><code class="lang-js">const buf = Buffer.alloc(10);
+crypto.randomFill(buf, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+
+crypto.randomFill(buf, 5, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+
+// The above is equivalent to the following:
+crypto.randomFill(buf, 5, 5, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+</code></pre>
 <h3>crypto.setEngine(engine[, flags])<span><a class="mark" href="#crypto_crypto_setengine_engine_flags" id="crypto_crypto_setengine_engine_flags">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.11</span>

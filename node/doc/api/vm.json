@@ -6,7 +6,7 @@
       "name": "vm",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n</code></pre>\n<p>JavaScript code can be compiled and run immediately or compiled, saved, and run\nlater.</p>\n",
+      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n</code></pre>\n<p>JavaScript code can be compiled and run immediately or compiled, saved, and run\nlater.</p>\n<p><em>Note</em>: The vm module is not a security mechanism.\n<strong>Do not use it to run untrusted code</strong>.</p>\n",
       "classes": [
         {
           "textRaw": "Class: vm.Script",

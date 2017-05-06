@@ -23,27 +23,27 @@ Add tests when:
 Let's analyze this basic test from the Node.js test suite:
 
 ```javascript
-1   'use strict';
-2   const common = require('../common');
-3
-4   // This test ensures that the http-parser can handle UTF-8 characters
-5   // in the http header.
-6
-7   const assert = require('assert');
-8   const http = require('http');
-9
-10  const server = http.createServer(common.mustCall((req, res) => {
-11    res.end('ok');
-12  }));
-13  server.listen(0, () => {
-14   http.get({
-15     port: server.address().port,
-16     headers: {'Test': 'Düsseldorf'}
-17   }, common.mustCall((res) => {
-18     assert.strictEqual(res.statusCode, 200);
-19     server.close();
-20   }));
-21 });
+'use strict';                                                          // 1
+const common = require('../common');                                   // 2
+                                                                       // 3
+// This test ensures that the http-parser can handle UTF-8 characters  // 4
+// in the http header.                                                 // 5
+                                                                       // 6
+const assert = require('assert');                                      // 7
+const http = require('http');                                          // 8
+                                                                       // 9
+const server = http.createServer(common.mustCall((req, res) => {       // 10
+  res.end('ok');                                                       // 11
+}));                                                                   // 12
+server.listen(0, () => {                                               // 13
+  http.get({                                                           // 14
+    port: server.address().port,                                       // 15
+    headers: {'Test': 'Düsseldorf'}                                    // 16
+  }, common.mustCall((res) => {                                        // 17
+    assert.strictEqual(res.statusCode, 200);                           // 18
+    server.close();                                                    // 19
+  }));                                                                 // 20
+});                                                                    // 21
 ```
 
 ### **Lines 1-2**
@@ -279,3 +279,65 @@ If you want to improve tests that have been imported this way, please send
 a PR to the upstream project first. When your proposed change is merged in
 the upstream project, send another PR here to update Node.js accordingly.
 Be sure to update the hash in the URL following `WPT Refs:`.
+
+## C++ Unit test
+C++ code can be tested using [Google Test][]. Most features in Node.js can be
+tested using the methods described previously in this document. But there are
+cases where these might not be enough, for example writing code for Node.js
+that will only be called when Node.js is embedded.
+
+### Adding a new test
+The unit test should be placed in `test/cctest` and be named with the prefix
+`test` followed by the name of unit being tested. For example, the code below
+would be placed in `test/cctest/test_env.cc`:
+
+```c++
+#include "gtest/gtest.h"
+#include "node_test_fixture.h"
+#include "env.h"
+#include "node.h"
+#include "v8.h"
+
+static bool called_cb = false;
+static void at_exit_callback(void* arg);
+
+class EnvTest : public NodeTestFixture { };
+
+TEST_F(EnvTest, RunAtExit) {
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  node::IsolateData* isolateData = node::CreateIsolateData(isolate_, uv_default_loop());
+  Argv argv{"node", "-e", ";"};
+  auto env = Environment:CreateEnvironment(isolateData, context, 1, *argv, 2, *argv);
+  node::AtExit(at_exit_callback);
+  node::RunAtExit(env);
+  EXPECT_TRUE(called_cb);
+}
+
+static void at_exit_callback(void* arg) {
+  called_cb = true;
+}
+```
+
+Next add the test to the `sources` in the `cctest` target in node.gyp:
+```
+'sources': [
+  'test/cctest/test_env.cc',
+  ...
+],
+```
+The test can be executed by running the `cctest` target:
+```
+$ make cctest
+```
+
+### Node test fixture
+There is a [test fixture] named `node_test_fixture.h` which can be included by
+unit tests. The fixture takes care of setting up the Node.js environment
+and tearing it down after the tests have finished.
+
+It also contains a helper to create arguments to be passed into Node.js. It
+will depend on what is being tested if this is required or not.
+
+[Google Test]: https://github.com/google/googletest
+[Test fixture]: https://github.com/google/googletest/blob/master/googletest/docs/Primer.md#test-fixtures-using-the-same-data-configuration-for-multiple-tests

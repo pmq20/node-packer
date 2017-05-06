@@ -13,10 +13,9 @@
     const EventEmitter = NativeModule.require('events');
     process._eventsCount = 0;
 
+    const origProcProto = Object.getPrototypeOf(process);
     Object.setPrototypeOf(process, Object.create(EventEmitter.prototype, {
-      constructor: {
-        value: process.constructor
-      }
+      constructor: Object.getOwnPropertyDescriptor(origProcProto, 'constructor')
     }));
 
     EventEmitter.call(process);
@@ -48,18 +47,16 @@
     if (global.__coverage__)
       NativeModule.require('internal/process/write-coverage').setup();
 
-    if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
-      if (!process.env.ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE) {
-        delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
-      }
-    }
-
     // Do not initialize channel in debugger agent, it deletes env variable
     // and the main thread won't see it.
     if (process.argv[1] !== '--debug-agent')
       _process.setupChannel();
 
     _process.setupRawDebug();
+
+    // Ensure setURLConstructor() is called before the native
+    // URL::ToObject() method is used.
+    NativeModule.require('internal/url');
 
     Object.defineProperty(process, 'argv0', {
       enumerable: true,
@@ -87,7 +84,9 @@
 
     } else if (process.argv[1] === 'inspect') {
       // Start the debugger agent
-      NativeModule.require('node-inspect/lib/_inspect').start();
+      process.nextTick(function() {
+        NativeModule.require('node-inspect/lib/_inspect').start();
+      });
 
     } else if (process.argv[1] === '--remote_debugging_server') {
       // Start the debugging server
@@ -389,13 +388,10 @@
                    'return require("vm").runInThisContext(' +
                    `${JSON.stringify(body)}, { filename: ` +
                    `${JSON.stringify(name)}, displayErrors: true });\n`;
-    // Defer evaluation for a tick.  This is a workaround for deferred
-    // events not firing when evaluating scripts from the command line,
-    // see https://github.com/nodejs/node/issues/1600.
-    setImmediate(function() {
-      const result = module._compile(script, `${name}-wrapper`);
-      if (process._print_eval) console.log(result);
-    });
+    const result = module._compile(script, `${name}-wrapper`);
+    if (process._print_eval) console.log(result);
+    // Handle any nextTicks added in the first tick of the program.
+    process._tickCallback();
   }
 
   // Load preload modules

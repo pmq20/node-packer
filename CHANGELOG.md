@@ -1,5 +1,10 @@
 # Node.js Compiler Changelog
 
+## v0.9.6
+
+- relax node.js version requirement: https://github.com/pmq20/node-compiler/issues/27
+- upgrade Node.js runtime to v7.10.0
+
 ## v0.9.5
 
 - upgrade Node.js runtime to v7.7.3

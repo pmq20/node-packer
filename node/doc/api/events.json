@@ -26,14 +26,14 @@
         {
           "textRaw": "Handling events only once",
           "name": "handling_events_only_once",
-          "desc": "<p>When a listener is registered using the <code>eventEmitter.on()</code> method, that\nlistener will be invoked <em>every time</em> the named event is emitted.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nvar m = 0;\nmyEmitter.on(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 2\n</code></pre>\n<p>Using the <code>eventEmitter.once()</code> method, it is possible to register a listener\nthat is called at most once for a particular event. Once the event is emitted,\nthe listener is unregistered and <em>then</em> called.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nvar m = 0;\nmyEmitter.once(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Ignored\n</code></pre>\n",
+          "desc": "<p>When a listener is registered using the <code>eventEmitter.on()</code> method, that\nlistener will be invoked <em>every time</em> the named event is emitted.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nlet m = 0;\nmyEmitter.on(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 2\n</code></pre>\n<p>Using the <code>eventEmitter.once()</code> method, it is possible to register a listener\nthat is called at most once for a particular event. Once the event is emitted,\nthe listener is unregistered and <em>then</em> called.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nlet m = 0;\nmyEmitter.once(&#39;event&#39;, () =&gt; {\n  console.log(++m);\n});\nmyEmitter.emit(&#39;event&#39;);\n// Prints: 1\nmyEmitter.emit(&#39;event&#39;);\n// Ignored\n</code></pre>\n",
           "type": "module",
           "displayName": "Handling events only once"
         },
         {
           "textRaw": "Error events",
           "name": "error_events",
-          "desc": "<p>When an error occurs within an <code>EventEmitter</code> instance, the typical action is\nfor an <code>&#39;error&#39;</code> event to be emitted. These are treated as special cases\nwithin Node.js.</p>\n<p>If an <code>EventEmitter</code> does <em>not</em> have at least one listener registered for the\n<code>&#39;error&#39;</code> event, and an <code>&#39;error&#39;</code> event is emitted, the error is thrown, a\nstack trace is printed, and the Node.js process exits.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Throws and crashes Node.js\n</code></pre>\n<p>To guard against crashing the Node.js process, a listener can be registered\non the <a href=\"process.html#process_event_uncaughtexception\"><code>process</code> object&#39;s <code>uncaughtException</code> event</a> or the <a href=\"domain.html\"><code>domain</code></a> module\ncan be used. (<em>Note, however, that the <code>domain</code> module has been deprecated</em>)</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nprocess.on(&#39;uncaughtException&#39;, (err) =&gt; {\n  console.log(&#39;whoops! there was an error&#39;);\n});\n\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n<p>As a best practice, listeners should always be added for the <code>&#39;error&#39;</code> events.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;error&#39;, (err) =&gt; {\n  console.log(&#39;whoops! there was an error&#39;);\n});\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n",
+          "desc": "<p>When an error occurs within an <code>EventEmitter</code> instance, the typical action is\nfor an <code>&#39;error&#39;</code> event to be emitted. These are treated as special cases\nwithin Node.js.</p>\n<p>If an <code>EventEmitter</code> does <em>not</em> have at least one listener registered for the\n<code>&#39;error&#39;</code> event, and an <code>&#39;error&#39;</code> event is emitted, the error is thrown, a\nstack trace is printed, and the Node.js process exits.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Throws and crashes Node.js\n</code></pre>\n<p>To guard against crashing the Node.js process, a listener can be registered\non the <a href=\"process.html#process_event_uncaughtexception\"><code>process</code> object&#39;s <code>uncaughtException</code> event</a> or the <a href=\"domain.html\"><code>domain</code></a> module\ncan be used. (<em>Note, however, that the <code>domain</code> module has been deprecated</em>)</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nprocess.on(&#39;uncaughtException&#39;, (err) =&gt; {\n  console.error(&#39;whoops! there was an error&#39;);\n});\n\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n<p>As a best practice, listeners should always be added for the <code>&#39;error&#39;</code> events.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(&#39;error&#39;, (err) =&gt; {\n  console.error(&#39;whoops! there was an error&#39;);\n});\nmyEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));\n// Prints: whoops! there was an error\n</code></pre>\n",
           "type": "module",
           "displayName": "Error events"
         }
@@ -124,8 +124,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {any} ",
+                      "name": "eventName",
+                      "type": "any"
+                    },
+                    {
+                      "textRaw": "`listener` {Function} ",
+                      "name": "listener",
+                      "type": "Function"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -136,7 +149,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>\n"
             },
             {
               "textRaw": "emitter.emit(eventName[, ...args])",
@@ -148,8 +162,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {any} ",
+                      "name": "eventName",
+                      "type": "any"
+                    },
+                    {
+                      "textRaw": "`...args` {any} ",
+                      "name": "...args",
+                      "type": "any",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -161,7 +189,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n"
             },
             {
               "textRaw": "emitter.eventNames()",
@@ -211,9 +240,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {string|symbol} The name of the event being listened for ",
+                      "textRaw": "`eventName` {any} The name of the event being listened for ",
                       "name": "eventName",
-                      "type": "string|symbol",
+                      "type": "any",
                       "desc": "The name of the event being listened for"
                     }
                   ]
@@ -244,8 +273,16 @@
                   }
                 ]
               },
-              "desc": "<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>\n<pre><code class=\"lang-js\">server.on(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n});\nconsole.log(util.inspect(server.listeners(&#39;connection&#39;)));\n// Prints: [ [Function] ]\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {any} ",
+                      "name": "eventName",
+                      "type": "any"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -253,7 +290,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>\n<pre><code class=\"lang-js\">server.on(&#39;connection&#39;, (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n});\nconsole.log(util.inspect(server.listeners(&#39;connection&#39;)));\n// Prints: [ [Function] ]\n</code></pre>\n"
             },
             {
               "textRaw": "emitter.on(eventName, listener)",
@@ -269,9 +307,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
+                      "textRaw": "`eventName` {any} The name of the event. ",
                       "name": "eventName",
-                      "type": "string|symbol",
+                      "type": "any",
                       "desc": "The name of the event."
                     },
                     {
@@ -309,9 +347,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
+                      "textRaw": "`eventName` {any} The name of the event. ",
                       "name": "eventName",
-                      "type": "string|symbol",
+                      "type": "any",
                       "desc": "The name of the event."
                     },
                     {
@@ -349,9 +387,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
+                      "textRaw": "`eventName` {any} The name of the event. ",
                       "name": "eventName",
-                      "type": "string|symbol",
+                      "type": "any",
                       "desc": "The name of the event."
                     },
                     {
@@ -389,9 +427,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`eventName` {string|symbol} The name of the event. ",
+                      "textRaw": "`eventName` {any} The name of the event. ",
                       "name": "eventName",
-                      "type": "string|symbol",
+                      "type": "any",
                       "desc": "The name of the event."
                     },
                     {
@@ -425,8 +463,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>\n<p>Note that it is bad practice to remove listeners added elsewhere in the code,\nparticularly when the <code>EventEmitter</code> instance was created by some other\ncomponent or module (e.g. sockets or file streams).</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {any} ",
+                      "name": "eventName",
+                      "type": "any",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -435,7 +482,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>\n<p>Note that it is bad practice to remove listeners added elsewhere in the code,\nparticularly when the <code>EventEmitter</code> instance was created by some other\ncomponent or module (e.g. sockets or file streams).</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
             },
             {
               "textRaw": "emitter.removeListener(eventName, listener)",
@@ -447,8 +495,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"lang-js\">var callback = (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n};\nserver.on(&#39;connection&#39;, callback);\n// ...\nserver.removeListener(&#39;connection&#39;, callback);\n</code></pre>\n<p><code>removeListener</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Note that once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any <code>removeListener()</code>\nor <code>removeAllListeners()</code> calls <em>after</em> emitting and <em>before</em> the last listener\nfinishes execution will not remove them from <code>emit()</code> in progress. Subsequent\nevents will behave as expected.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nvar callbackA = () =&gt; {\n  console.log(&#39;A&#39;);\n  myEmitter.removeListener(&#39;event&#39;, callbackB);\n};\n\nvar callbackB = () =&gt; {\n  console.log(&#39;B&#39;);\n};\n\nmyEmitter.on(&#39;event&#39;, callbackA);\n\nmyEmitter.on(&#39;event&#39;, callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`eventName` {any} ",
+                      "name": "eventName",
+                      "type": "any"
+                    },
+                    {
+                      "textRaw": "`listener` {Function} ",
+                      "name": "listener",
+                      "type": "Function"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -459,7 +520,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"lang-js\">const callback = (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n};\nserver.on(&#39;connection&#39;, callback);\n// ...\nserver.removeListener(&#39;connection&#39;, callback);\n</code></pre>\n<p><code>removeListener</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Note that once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any <code>removeListener()</code>\nor <code>removeAllListeners()</code> calls <em>after</em> emitting and <em>before</em> the last listener\nfinishes execution will not remove them from <code>emit()</code> in progress. Subsequent\nevents will behave as expected.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nconst callbackA = () =&gt; {\n  console.log(&#39;A&#39;);\n  myEmitter.removeListener(&#39;event&#39;, callbackB);\n};\n\nconst callbackB = () =&gt; {\n  console.log(&#39;B&#39;);\n};\n\nmyEmitter.on(&#39;event&#39;, callbackA);\n\nmyEmitter.on(&#39;event&#39;, callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
             },
             {
               "textRaw": "emitter.setMaxListeners(n)",
@@ -471,8 +533,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>By default EventEmitters will print a warning if more than <code>10</code> listeners are\nadded for a particular event. This is a useful default that helps finding\nmemory leaks. Obviously, not all events should be limited to just 10 listeners.\nThe <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this\nspecific <code>EventEmitter</code> instance. The value can be set to <code>Infinity</code> (or <code>0</code>)\nto indicate an unlimited number of listeners.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`n` {integer} ",
+                      "name": "n",
+                      "type": "integer"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -480,7 +550,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>By default EventEmitters will print a warning if more than <code>10</code> listeners are\nadded for a particular event. This is a useful default that helps finding\nmemory leaks. Obviously, not all events should be limited to just 10 listeners.\nThe <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this\nspecific <code>EventEmitter</code> instance. The value can be set to <code>Infinity</code> (or <code>0</code>)\nto indicate an unlimited number of listeners.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
             }
           ],
           "properties": [

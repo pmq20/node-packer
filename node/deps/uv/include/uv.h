@@ -27,14 +27,6 @@
 extern "C" {
 #endif
 
-// ======= [Enclose.io Hack start] =========
-#ifndef __cplusplus
-#ifndef _WIN32
-#include "enclose_io.h"
-#endif
-#endif
-// ======= [Enclose.io Hack end] =========
-
 #ifdef _WIN32
   /* Windows - set up dll import/export decorators. */
 # if defined(BUILDING_UV_SHARED)

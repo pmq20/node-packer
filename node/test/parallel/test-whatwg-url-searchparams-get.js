@@ -42,4 +42,13 @@ test(function() {
   assert.throws(() => {
     params.get();
   }, /^TypeError: "name" argument must be specified$/);
+
+  const obj = {
+    toString() { throw new Error('toString'); },
+    valueOf() { throw new Error('valueOf'); }
+  };
+  const sym = Symbol();
+  assert.throws(() => params.get(obj), /^Error: toString$/);
+  assert.throws(() => params.get(sym),
+                /^TypeError: Cannot convert a Symbol value to a string$/);
 }

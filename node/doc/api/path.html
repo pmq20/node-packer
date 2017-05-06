@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Path | Node.js v7.7.3 Documentation</title>
+  <title>Path | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="path" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -162,7 +163,8 @@ operating system, use <a href="#path_path_posix"><code>path.posix</code></a>:</p
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>path.basename()</code> methods returns the last portion of a <code>path</code>, similar to
-the Unix <code>basename</code> command.</p>
+the Unix <code>basename</code> command. Trailing directory separators are ignored, see
+<a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>For example:</p>
 <pre><code class="lang-js">path.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;)
 // Returns: &#39;quux.html&#39;
@@ -215,7 +217,8 @@ process.env.PATH.split(path.delimiter)
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>path.dirname()</code> method returns the directory name of a <code>path</code>, similar to
-the Unix <code>dirname</code> command.</p>
+the Unix <code>dirname</code> command. Trailing directory separators are ignored, see
+<a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>For example:</p>
 <pre><code class="lang-js">path.dirname(&#39;/foo/bar/baz/asdf/quux&#39;)
 // Returns: &#39;/foo/bar/baz/asdf&#39;
@@ -313,8 +316,8 @@ path.format({
 </code></pre>
 <p>On Windows:</p>
 <pre><code class="lang-js">path.format({
-  dir : &quot;C:\\path\\dir&quot;,
-  base : &quot;file.txt&quot;
+  dir: &#39;C:\\path\\dir&#39;,
+  base: &#39;file.txt&#39;
 });
 // Returns: &#39;C:\\path\\dir\\file.txt&#39;
 </code></pre>
@@ -360,7 +363,7 @@ working directory.</p>
 // Returns: &#39;/foo/bar/baz/asdf&#39;
 
 path.join(&#39;foo&#39;, {}, &#39;bar&#39;)
-// throws TypeError: Arguments to path.join must be strings
+// throws &#39;TypeError: Path must be a string. Received {}&#39;
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>
 <h2>path.normalize(path)<span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
@@ -382,7 +385,7 @@ current working directory.</p>
 // Returns: &#39;/foo/bar/baz/asdf&#39;
 </code></pre>
 <p>On Windows:</p>
-<pre><code class="lang-js">path.normalize(&#39;C:\\temp\\\\foo\\bar\\..\\&#39;);
+<pre><code class="lang-js">path.normalize(&#39;C:\\temp\\\\foo\\bar\\..\\&#39;)
 // Returns: &#39;C:\\temp\\foo\\&#39;
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
@@ -394,7 +397,8 @@ current working directory.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>path.parse()</code> method returns an object whose properties represent
-significant elements of the <code>path</code>.</p>
+significant elements of the <code>path</code>. Trailing directory separators are ignored,
+see <a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>The returned object will have the following properties:</p>
 <ul>
 <li><code>root</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -406,13 +410,11 @@ significant elements of the <code>path</code>.</p>
 <p>For example on POSIX:</p>
 <pre><code class="lang-js">path.parse(&#39;/home/user/dir/file.txt&#39;)
 // Returns:
-// {
-//    root : &quot;/&quot;,
-//    dir : &quot;/home/user/dir&quot;,
-//    base : &quot;file.txt&quot;,
-//    ext : &quot;.txt&quot;,
-//    name : &quot;file&quot;
-// }
+// { root: &#39;/&#39;,
+//   dir: &#39;/home/user/dir&#39;,
+//   base: &#39;file.txt&#39;,
+//   ext: &#39;.txt&#39;,
+//   name: &#39;file&#39; }
 </code></pre>
 <pre><code class="lang-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
@@ -425,13 +427,11 @@ significant elements of the <code>path</code>.</p>
 <p>On Windows:</p>
 <pre><code class="lang-js">path.parse(&#39;C:\\path\\dir\\file.txt&#39;)
 // Returns:
-// {
-//    root : &quot;C:\\&quot;,
-//    dir : &quot;C:\\path\\dir&quot;,
-//    base : &quot;file.txt&quot;,
-//    ext : &quot;.txt&quot;,
-//    name : &quot;file&quot;
-// }
+// { root: &#39;C:\\&#39;,
+//   dir: &#39;C:\\path\\dir&#39;,
+//   base: &#39;file.txt&#39;,
+//   ext: &#39;.txt&#39;,
+//   name: &#39;file&#39; }
 </code></pre>
 <pre><code class="lang-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
@@ -533,6 +533,9 @@ path.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.g
 <pre><code class="lang-js">&#39;foo\\bar\\baz&#39;.split(path.sep)
 // Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]
 </code></pre>
+<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>) are
+accepted as path segment separators; however, the <code>path</code> methods only add
+backward slashes (<code>\</code>).</p>
 <h2>path.win32<span><a class="mark" href="#path_path_win32" id="path_path_win32">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
@@ -541,9 +544,6 @@ path.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.g
 </ul>
 <p>The <code>path.win32</code> property provides access to Windows-specific implementations
 of the <code>path</code> methods.</p>
-<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>)
-characters are accepted as path delimiters; however, only the backward slash
-(<code>\</code>) will be used in return values.</p>
 
       </div>
     </div>

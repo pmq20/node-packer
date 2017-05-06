@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Deprecated APIs | Node.js v7.7.3 Documentation</title>
+  <title>Deprecated APIs | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations active" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="deprecations" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -91,6 +92,7 @@
 <li><span class="stability_undefined"><a href="#deprecations_un_deprecation">Un-deprecation</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_list_of_deprecated_apis">List of Deprecated APIs</a></span><ul>
 <li><span class="stability_undefined"><a href="#deprecations_dep0062_node_debug">DEP0062: node --debug</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0063_serverresponse_prototype_writeheader">DEP0063: ServerResponse.prototype.writeHeader()</a></span></li>
 </ul>
 </li>
 </ul>
@@ -130,6 +132,13 @@ this document will be updated with information relevant to the decision.
 <p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as
 of V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>
 instead.</p>
+<p><a id="DEP0063"></a></p>
+<h3>DEP0063: ServerResponse.prototype.writeHeader()<span><a class="mark" href="#deprecations_dep0063_serverresponse_prototype_writeheader" id="deprecations_dep0063_serverresponse_prototype_writeheader">#</a></span></h3>
+<p>Type: Documentation-only</p>
+<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API has been
+deprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>
+<p><em>Note</em>: The <code>ServerResponse.prototype.writeHeader()</code> method was never documented
+as an officially supported API.</p>
 
       </div>
     </div>

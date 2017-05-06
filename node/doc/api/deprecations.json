@@ -21,9 +21,16 @@
             {
               "textRaw": "DEP0062: node --debug",
               "name": "dep0062:_node_--debug",
-              "desc": "<p>Type: Runtime</p>\n<p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as\nof V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>\ninstead.</p>\n",
+              "desc": "<p>Type: Runtime</p>\n<p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as\nof V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>\ninstead.</p>\n<p><a id=\"DEP0063\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0062: node --debug"
+            },
+            {
+              "textRaw": "DEP0063: ServerResponse.prototype.writeHeader()",
+              "name": "dep0063:_serverresponse.prototype.writeheader()",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API has been\ndeprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>\n<p><em>Note</em>: The <code>ServerResponse.prototype.writeHeader()</code> method was never documented\nas an officially supported API.</p>\n",
+              "type": "module",
+              "displayName": "DEP0063: ServerResponse.prototype.writeHeader()"
             }
           ],
           "type": "module",

@@ -19,8 +19,9 @@ const PipeConnectWrap = process.binding('pipe_wrap').PipeConnectWrap;
 const ShutdownWrap = process.binding('stream_wrap').ShutdownWrap;
 const WriteWrap = process.binding('stream_wrap').WriteWrap;
 
-
 var cluster;
+var dns;
+
 const errnoException = util._errnoException;
 const exceptionWithHostPort = util._exceptionWithHostPort;
 const isLegalPort = internalNet.isLegalPort;
@@ -41,9 +42,9 @@ function isPipeName(s) {
   return typeof s === 'string' && toNumber(s) === false;
 }
 
-exports.createServer = function(options, connectionListener) {
+function createServer(options, connectionListener) {
   return new Server(options, connectionListener);
-};
+}
 
 
 // Target API:
@@ -58,23 +59,23 @@ exports.createServer = function(options, connectionListener) {
 // connect(port, [host], [cb])
 // connect(path, [cb]);
 //
-exports.connect = exports.createConnection = function() {
-  const args = new Array(arguments.length);
+function connect() {
+  var args = new Array(arguments.length);
   for (var i = 0; i < arguments.length; i++)
     args[i] = arguments[i];
   // TODO(joyeecheung): use destructuring when V8 is fast enough
-  const normalized = normalizeArgs(args);
-  const options = normalized[0];
-  const cb = normalized[1];
+  var normalized = normalizeArgs(args);
+  var options = normalized[0];
+  var cb = normalized[1];
   debug('createConnection', normalized);
-  const socket = new Socket(options);
+  var socket = new Socket(options);
 
   if (options.timeout) {
     socket.setTimeout(options.timeout);
   }
 
-  return Socket.prototype.connect.call(socket, options, cb);
-};
+  return realConnect.call(socket, options, cb);
+}
 
 
 // Returns an array [options, cb], where options is an object,
@@ -114,7 +115,6 @@ function normalizeArgs(args) {
   else
     return [options, cb];
 }
-exports._normalizeArgs = normalizeArgs;
 
 
 // called when creating new Socket, or when re-using a closed Socket
@@ -312,9 +312,6 @@ function writeAfterFIN(chunk, encoding, cb) {
   }
 }
 
-exports.Socket = Socket;
-exports.Stream = Socket; // Legacy naming.
-
 Socket.prototype.read = function(n) {
   if (n === 0)
     return stream.Readable.prototype.read.call(this, n);
@@ -325,10 +322,11 @@ Socket.prototype.read = function(n) {
 };
 
 
+// FIXME(joyeecheung): this method is neither documented nor tested
 Socket.prototype.listen = function() {
   debug('socket.listen');
   this.on('connection', arguments[0]);
-  listen(this, null, null, null);
+  listenInCluster(this, null, null, null);
 };
 
 
@@ -479,7 +477,7 @@ Socket.prototype.destroySoon = function() {
 Socket.prototype._destroy = function(exception, cb) {
   debug('destroy');
 
-  function fireErrorCallbacks(self) {
+  function fireErrorCallbacks(self, exception, cb) {
     if (cb) cb(exception);
     if (exception && !self._writableState.errorEmitted) {
       process.nextTick(emitErrorNT, self, exception);
@@ -489,7 +487,7 @@ Socket.prototype._destroy = function(exception, cb) {
 
   if (this.destroyed) {
     debug('already destroyed, fire error callbacks');
-    fireErrorCallbacks(this);
+    fireErrorCallbacks(this, exception, cb);
     return;
   }
 
@@ -521,7 +519,7 @@ Socket.prototype._destroy = function(exception, cb) {
   // to make it re-entrance safe in case Socket.prototype.destroy()
   // is called within callbacks
   this.destroyed = true;
-  fireErrorCallbacks(this);
+  fireErrorCallbacks(this, exception, cb);
 
   if (this._server) {
     COUNTER_NET_SERVER_CONNECTION_CLOSE(this);
@@ -829,7 +827,8 @@ function afterWrite(status, handle, req, err) {
 }
 
 
-function connect(self, address, port, addressType, localAddress, localPort) {
+function internalConnect(
+  self, address, port, addressType, localAddress, localPort) {
   // TODO return promise from Socket.prototype.connect which
   // wraps _connectReq.
 
@@ -838,25 +837,19 @@ function connect(self, address, port, addressType, localAddress, localPort) {
   var err;
 
   if (localAddress || localPort) {
-    var bind;
+    debug('binding to localAddress: %s and localPort: %d (addressType: %d)',
+          localAddress, localPort, addressType);
 
     if (addressType === 4) {
       localAddress = localAddress || '0.0.0.0';
-      bind = self._handle.bind;
+      err = self._handle.bind(localAddress, localPort);
     } else if (addressType === 6) {
       localAddress = localAddress || '::';
-      bind = self._handle.bind6;
+      err = self._handle.bind6(localAddress, localPort);
     } else {
       self._destroy(new TypeError('Invalid addressType: ' + addressType));
       return;
     }
-
-    debug('binding to localAddress: %s and localPort: %d',
-          localAddress,
-          localPort);
-
-    bind = bind.bind(self._handle);
-    err = bind(localAddress, localPort);
 
     if (err) {
       const ex = exceptionWithHostPort(err, 'bind', localAddress, localPort);
@@ -900,14 +893,18 @@ function connect(self, address, port, addressType, localAddress, localPort) {
 
 
 Socket.prototype.connect = function() {
-  const args = new Array(arguments.length);
+  var args = new Array(arguments.length);
   for (var i = 0; i < arguments.length; i++)
     args[i] = arguments[i];
   // TODO(joyeecheung): use destructuring when V8 is fast enough
-  const normalized = normalizeArgs(args);
-  const options = normalized[0];
-  const cb = normalized[1];
+  var normalized = normalizeArgs(args);
+  var options = normalized[0];
+  var cb = normalized[1];
+  return realConnect.call(this, options, cb);
+};
 
+
+function realConnect(options, cb) {
   if (this.write !== Socket.prototype.write)
     this.write = Socket.prototype.write;
 
@@ -943,22 +940,22 @@ Socket.prototype.connect = function() {
   this.writable = true;
 
   if (pipe) {
-    connect(this, options.path);
+    internalConnect(this, options.path);
   } else {
     lookupAndConnect(this, options);
   }
   return this;
-};
+}
 
 
 function lookupAndConnect(self, options) {
-  const dns = require('dns');
+  const dns = lazyDns();
   var host = options.host || 'localhost';
   var port = options.port;
   var localAddress = options.localAddress;
   var localPort = options.localPort;
 
-  if (localAddress && !exports.isIP(localAddress))
+  if (localAddress && !cares.isIP(localAddress))
     throw new TypeError('"localAddress" option must be a valid IP: ' +
                         localAddress);
 
@@ -975,12 +972,9 @@ function lookupAndConnect(self, options) {
   port |= 0;
 
   // If host is an IP, skip performing a lookup
-  var addressType = exports.isIP(host);
+  var addressType = cares.isIP(host);
   if (addressType) {
-    process.nextTick(function() {
-      if (self.connecting)
-        connect(self, host, port, addressType, localAddress, localPort);
-    });
+    internalConnect(self, host, port, addressType, localAddress, localPort);
     return;
   }
 
@@ -996,7 +990,7 @@ function lookupAndConnect(self, options) {
     dnsopts.hints = dns.ADDRCONFIG;
   }
 
-  debug('connect: find host ' + host);
+  debug('connect: find host', host);
   debug('connect: dns options', dnsopts);
   self._host = host;
   var lookup = options.lookup || dns.lookup;
@@ -1019,12 +1013,12 @@ function lookupAndConnect(self, options) {
       process.nextTick(connectErrorNT, self, err);
     } else {
       self._unrefTimer();
-      connect(self,
-              ip,
-              port,
-              addressType,
-              localAddress,
-              localPort);
+      internalConnect(self,
+                      ip,
+                      port,
+                      addressType,
+                      localAddress,
+                      localPort);
     }
   });
 }
@@ -1155,18 +1149,11 @@ function Server(options, connectionListener) {
   this.pauseOnConnect = !!options.pauseOnConnect;
 }
 util.inherits(Server, EventEmitter);
-exports.Server = Server;
 
 
 function toNumber(x) { return (x = Number(x)) >= 0 ? x : false; }
 
-function _listen(handle, backlog) {
-  // Use a backlog of 512 entries. We pass 511 to the listen() call because
-  // the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
-  // which will thus give us a backlog of 512 entries.
-  return handle.listen(backlog || 511);
-}
-
+// Returns handle if it can be created, or error code if it can't
 function createServerHandle(address, port, addressType, fd) {
   var err = 0;
   // assign handle in listen, and clean up if bind or listen fails
@@ -1178,7 +1165,7 @@ function createServerHandle(address, port, addressType, fd) {
       handle = createHandle(fd);
     } catch (e) {
       // Not a fd we can listen on.  This will trigger an error.
-      debug('listen invalid fd=' + fd + ': ' + e.message);
+      debug('listen invalid fd=%d:', fd, e.message);
       return uv.UV_EINVAL;
     }
     handle.open(fd);
@@ -1199,7 +1186,7 @@ function createServerHandle(address, port, addressType, fd) {
   }
 
   if (address || port || isTCP) {
-    debug('bind to ' + (address || 'anycast'));
+    debug('bind to', address || 'any');
     if (!address) {
       // Try binding to ipv6 first
       err = handle.bind6('::', port);
@@ -1222,21 +1209,20 @@ function createServerHandle(address, port, addressType, fd) {
 
   return handle;
 }
-exports._createServerHandle = createServerHandle;
 
-
-Server.prototype._listen2 = function(address, port, addressType, backlog, fd) {
-  debug('listen2', address, port, addressType, backlog, fd);
+function setupListenHandle(address, port, addressType, backlog, fd) {
+  debug('setupListenHandle', address, port, addressType, backlog, fd);
 
   // If there is not yet a handle, we need to create one and bind.
   // In the case of a server sent via IPC, we don't need to do this.
   if (this._handle) {
-    debug('_listen2: have a handle already');
+    debug('setupListenHandle: have a handle already');
   } else {
-    debug('_listen2: create a handle');
+    debug('setupListenHandle: create a handle');
 
     var rval = null;
 
+    // Try to bind to the unspecified IPv6 address, see if IPv6 is available
     if (!address && typeof fd !== 'number') {
       rval = createServerHandle('::', port, 6, fd);
 
@@ -1264,7 +1250,10 @@ Server.prototype._listen2 = function(address, port, addressType, backlog, fd) {
   this._handle.onconnection = onconnection;
   this._handle.owner = this;
 
-  var err = _listen(this._handle, backlog);
+  // Use a backlog of 512 entries. We pass 511 to the listen() call because
+  // the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
+  // which will thus give us a backlog of 512 entries.
+  var err = this._handle.listen(backlog || 511);
 
   if (err) {
     var ex = exceptionWithHostPort(err, 'listen', address, port);
@@ -1282,8 +1271,9 @@ Server.prototype._listen2 = function(address, port, addressType, backlog, fd) {
     this.unref();
 
   process.nextTick(emitListeningNT, this);
-};
+}
 
+Server.prototype._listen2 = setupListenHandle;  // legacy alias
 
 function emitErrorNT(self, err) {
   self.emit('error', err);
@@ -1297,25 +1287,39 @@ function emitListeningNT(self) {
 }
 
 
-function listen(self, address, port, addressType, backlog, fd, exclusive) {
+function lazyDns() {
+  if (dns === undefined)
+    dns = require('dns');
+  return dns;
+}
+
+
+function listenInCluster(server, address, port, addressType,
+                         backlog, fd, exclusive) {
   exclusive = !!exclusive;
 
   if (!cluster) cluster = require('cluster');
 
   if (cluster.isMaster || exclusive) {
-    self._listen2(address, port, addressType, backlog, fd);
+    // Will create a new handle
+    // _listen2 sets up the listened handle, it is still named like this
+    // to avoid breaking code that wraps this method
+    server._listen2(address, port, addressType, backlog, fd);
     return;
   }
 
-  cluster._getServer(self, {
+  const serverQuery = {
     address: address,
     port: port,
     addressType: addressType,
     fd: fd,
     flags: 0
-  }, cb);
+  };
 
-  function cb(err, handle) {
+  // Get the master's server handle, and listen on it
+  cluster._getServer(server, serverQuery, listenOnMasterHandle);
+
+  function listenOnMasterHandle(err, handle) {
     // EADDRINUSE may not be reported until we call listen(). To complicate
     // matters, a failed bind() followed by listen() will implicitly bind to
     // a random port. Ergo, check that the socket is bound to the expected
@@ -1333,29 +1337,32 @@ function listen(self, address, port, addressType, backlog, fd, exclusive) {
 
     if (err) {
       var ex = exceptionWithHostPort(err, 'bind', address, port);
-      return self.emit('error', ex);
+      return server.emit('error', ex);
     }
 
-    self._handle = handle;
-    self._listen2(address, port, addressType, backlog, fd);
+    // Reuse master's server handle
+    server._handle = handle;
+    // _listen2 sets up the listened handle, it is still named like this
+    // to avoid breaking code that wraps this method
+    server._listen2(address, port, addressType, backlog, fd);
   }
 }
 
 
 Server.prototype.listen = function() {
-  const args = new Array(arguments.length);
+  var args = new Array(arguments.length);
   for (var i = 0; i < arguments.length; i++)
     args[i] = arguments[i];
   // TODO(joyeecheung): use destructuring when V8 is fast enough
-  const normalized = normalizeArgs(args);
+  var normalized = normalizeArgs(args);
   var options = normalized[0];
-  const cb = normalized[1];
+  var cb = normalized[1];
 
   var hasCallback = (cb !== null);
   if (hasCallback) {
     this.once('listening', cb);
   }
-  const backlogFromArgs =
+  var backlogFromArgs =
     // (handle, backlog) or (path, backlog) or (port, backlog)
     toNumber(args.length > 1 && args[1]) ||
     toNumber(args.length > 2 && args[2]);  // (port, host, backlog)
@@ -1364,12 +1371,12 @@ Server.prototype.listen = function() {
   // (handle[, backlog][, cb]) where handle is an object with a handle
   if (options instanceof TCP) {
     this._handle = options;
-    listen(this, null, -1, -1, backlogFromArgs);
+    listenInCluster(this, null, -1, -1, backlogFromArgs);
     return this;
   }
   // (handle[, backlog][, cb]) where handle is an object with a fd
   if (typeof options.fd === 'number' && options.fd >= 0) {
-    listen(this, null, null, null, backlogFromArgs, options.fd);
+    listenInCluster(this, null, null, null, backlogFromArgs, options.fd);
     return this;
   }
 
@@ -1384,18 +1391,20 @@ Server.prototype.listen = function() {
   // ([port][, host][, backlog][, cb]) where port is specified
   // or (options[, cb]) where options.port is specified
   // or if options.port is normalized as 0 before
+  var backlog;
   if (typeof options.port === 'number' || typeof options.port === 'string') {
     if (!isLegalPort(options.port)) {
       throw new RangeError('"port" argument must be >= 0 and < 65536');
     }
-    const backlog = options.backlog || backlogFromArgs;
+    backlog = options.backlog || backlogFromArgs;
     // start TCP server listening on host:port
     if (options.host) {
       lookupAndListen(this, options.port | 0, options.host, backlog,
                       options.exclusive);
     } else { // Undefined host, listens on unspecified address
-      listen(this, null, options.port | 0, 4, // addressType will be ignored
-             backlog, undefined, options.exclusive);
+      // Default addressType 4 will be used to search for master server
+      listenInCluster(this, null, options.port | 0, 4,
+                      backlog, undefined, options.exclusive);
     }
     return this;
   }
@@ -1403,9 +1412,10 @@ Server.prototype.listen = function() {
   // (path[, backlog][, cb]) or (options[, cb])
   // where path or options.path is a UNIX domain socket or Windows pipe
   if (options.path && isPipeName(options.path)) {
-    const pipeName = this._pipeName = options.path;
-    const backlog = options.backlog || backlogFromArgs;
-    listen(this, pipeName, -1, -1, backlog, undefined, options.exclusive);
+    var pipeName = this._pipeName = options.path;
+    backlog = options.backlog || backlogFromArgs;
+    listenInCluster(this, pipeName, -1, -1,
+                    backlog, undefined, options.exclusive);
     return this;
   }
 
@@ -1413,12 +1423,14 @@ Server.prototype.listen = function() {
 };
 
 function lookupAndListen(self, port, address, backlog, exclusive) {
-  require('dns').lookup(address, function doListening(err, ip, addressType) {
+  const dns = lazyDns();
+  dns.lookup(address, function doListen(err, ip, addressType) {
     if (err) {
       self.emit('error', err);
     } else {
       addressType = ip ? addressType : 4;
-      listen(self, ip, port, addressType, backlog, undefined, exclusive);
+      listenInCluster(self, ip, port, addressType,
+                      backlog, undefined, exclusive);
     }
   });
 }
@@ -1502,20 +1514,13 @@ Server.prototype.getConnections = function(cb) {
     if (--left === 0) return end(null, total);
   }
 
-  this._slaves.forEach(function(slave) {
-    slave.getConnections(oncount);
-  });
+  for (var n = 0; n < this._slaves.length; n++) {
+    this._slaves[n].getConnections(oncount);
+  }
 };
 
 
 Server.prototype.close = function(cb) {
-  function onSlaveClose() {
-    if (--left !== 0) return;
-
-    self._connections = 0;
-    self._emitCloseIfDrained();
-  }
-
   if (typeof cb === 'function') {
     if (!this._handle) {
       this.once('close', function close() {
@@ -1532,17 +1537,21 @@ Server.prototype.close = function(cb) {
   }
 
   if (this._usingSlaves) {
-    var self = this;
     var left = this._slaves.length;
+    const onSlaveClose = () => {
+      if (--left !== 0) return;
+
+      this._connections = 0;
+      this._emitCloseIfDrained();
+    };
 
     // Increment connections to be sure that, even if all sockets will be closed
     // during polling of slaves, `close` event will be emitted only once.
     this._connections++;
 
     // Poll slaves
-    this._slaves.forEach(function(slave) {
-      slave.close(onSlaveClose);
-    });
+    for (var n = 0; n < this._slaves.length; n++)
+      this._slaves[n].close(onSlaveClose);
   } else {
     this._emitCloseIfDrained();
   }
@@ -1596,20 +1605,12 @@ Server.prototype.unref = function() {
   return this;
 };
 
-
-exports.isIP = cares.isIP;
-
-
-exports.isIPv4 = cares.isIPv4;
-
-
-exports.isIPv6 = cares.isIPv6;
-
+var _setSimultaneousAccepts;
 
 if (process.platform === 'win32') {
   var simultaneousAccepts;
 
-  exports._setSimultaneousAccepts = function(handle) {
+  _setSimultaneousAccepts = function(handle) {
     if (handle === undefined) {
       return;
     }
@@ -1625,5 +1626,20 @@ if (process.platform === 'win32') {
     }
   };
 } else {
-  exports._setSimultaneousAccepts = function(handle) {};
+  _setSimultaneousAccepts = function(handle) {};
 }
+
+module.exports = {
+  _createServerHandle: createServerHandle,
+  _normalizeArgs: normalizeArgs,
+  _setSimultaneousAccepts,
+  connect,
+  createConnection: connect,
+  createServer,
+  isIP: cares.isIP,
+  isIPv4: cares.isIPv4,
+  isIPv6: cares.isIPv6,
+  Server,
+  Socket,
+  Stream: Socket, // Legacy naming
+};

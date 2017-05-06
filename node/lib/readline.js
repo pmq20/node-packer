@@ -39,6 +39,7 @@ function Interface(input, output, completer, terminal) {
 
   EventEmitter.call(this);
   var historySize;
+  var removeHistoryDuplicates = false;
   let crlfDelay;
   let prompt = '> ';
 
@@ -48,6 +49,7 @@ function Interface(input, output, completer, terminal) {
     completer = input.completer;
     terminal = input.terminal;
     historySize = input.historySize;
+    removeHistoryDuplicates = input.removeHistoryDuplicates;
     if (input.prompt !== undefined) {
       prompt = input.prompt;
     }
@@ -80,6 +82,7 @@ function Interface(input, output, completer, terminal) {
   this.output = output;
   this.input = input;
   this.historySize = historySize;
+  this.removeHistoryDuplicates = !!removeHistoryDuplicates;
   this.crlfDelay = Math.max(kMincrlfDelay,
                             Math.min(kMaxcrlfDelay, crlfDelay >>> 0));
 
@@ -257,6 +260,12 @@ Interface.prototype._addHistory = function() {
   if (this.line.trim().length === 0) return this.line;
 
   if (this.history.length === 0 || this.history[0] !== this.line) {
+    if (this.removeHistoryDuplicates) {
+      // Remove older history line if identical to new one
+      const dupIndex = this.history.indexOf(this.line);
+      if (dupIndex !== -1) this.history.splice(dupIndex, 1);
+    }
+
     this.history.unshift(this.line);
 
     // Only store so many
@@ -371,9 +380,8 @@ Interface.prototype._normalWrite = function(b) {
     // either '' or (conceivably) the unfinished portion of the next line
     string = lines.pop();
     this._line_buffer = string;
-    lines.forEach(function(line) {
-      this._onLine(line);
-    }, this);
+    for (var n = 0; n < lines.length; n++)
+      this._onLine(lines[n]);
   } else if (string) {
     // no newlines this time, save what we have for next time
     this._line_buffer = string;
@@ -441,8 +449,8 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
       }
 
       // If there is a common prefix to all matches, then apply that portion.
-      const f = completions.filter(function(e) { if (e) return e; });
-      const prefix = commonPrefix(f);
+      var f = completions.filter(function(e) { if (e) return e; });
+      var prefix = commonPrefix(f);
       if (prefix.length > completeOn.length) {
         self._insertString(prefix.slice(completeOn.length));
       }

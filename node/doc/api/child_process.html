@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Child Process | Node.js v7.7.3 Documentation</title>
+  <title>Child Process | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -223,8 +224,8 @@ bat.stderr.on(&#39;data&#39;, (data) =&gt; {
 bat.on(&#39;exit&#39;, (code) =&gt; {
   console.log(`Child exited with code ${code}`);
 });
-
-// OR...
+</code></pre>
+<pre><code class="lang-js">// OR...
 const exec = require(&#39;child_process&#39;).exec;
 exec(&#39;my.bat&#39;, (err, stdout, stderr) =&gt; {
   if (err) {
@@ -300,14 +301,14 @@ stderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an 
 encoding, <code>Buffer</code> objects will be passed to the callback instead.</p>
 <p>The <code>options</code> argument may be passed as the second argument to customize how
 the process is spawned. The default options are:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   encoding: &#39;utf8&#39;,
   timeout: 0,
   maxBuffer: 200*1024,
   killSignal: &#39;SIGTERM&#39;,
   cwd: null,
   env: null
-}
+};
 </code></pre>
 <p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the signal
 identified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the
@@ -464,10 +465,10 @@ to an empty array.</p>
 this function. Any input containing shell metacharacters may be used to
 trigger arbitrary command execution.</strong></p>
 <p>A third argument may be used to specify additional options, with these defaults:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   cwd: undefined,
   env: process.env
-}
+};
 </code></pre>
 <p>Use <code>cwd</code> to specify the working directory from which the process is spawned.
 If not given, the default is to inherit the current working directory.</p>
@@ -1151,7 +1152,7 @@ this occurs.</p>
 </ul>
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stderr</code>.</p>
 <p>If the child was spawned with <code>stdio[2]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stderr</code> is an alias for <code>child.stdio[2]</code>. Both properties will refer to
 the same value.</p>
 <h3>child.stdin<span><a class="mark" href="#child_process_child_stdin" id="child_process_child_stdin">#</a></span></h3>
@@ -1164,7 +1165,7 @@ the same value.</p>
 <p><em>Note that if a child process waits to read all of its input, the child will not
 continue until this stream has been closed via <code>end()</code>.</em></p>
 <p>If the child was spawned with <code>stdio[0]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stdin</code> is an alias for <code>child.stdio[0]</code>. Both properties will refer to
 the same value.</p>
 <h3>child.stdio<span><a class="mark" href="#child_process_child_stdio" id="child_process_child_stdio">#</a></span></h3>
@@ -1210,7 +1211,7 @@ assert.strictEqual(child.stdio[2], child.stderr);
 </ul>
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stdout</code>.</p>
 <p>If the child was spawned with <code>stdio[1]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stdout</code> is an alias for <code>child.stdio[1]</code>. Both properties will refer
 to the same value.</p>
 <h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>

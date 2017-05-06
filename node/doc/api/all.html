@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v7.7.3 Documentation</title>
+  <title>About this Documentation | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -324,6 +325,8 @@
 <li><span class="stability_undefined"><a href="#cli_c_check"><code>-c</code>, <code>--check</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_i_interactive"><code>-i</code>, <code>--interactive</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_r_require_module"><code>-r</code>, <code>--require module</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_inspect_host_port"><code>--inspect[=[host:]port]</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_inspect_brk_host_port"><code>--inspect-brk[=[host:]port]</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_deprecation"><code>--trace-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_throw_deprecation"><code>--throw-deprecation</code></a></span></li>
@@ -472,6 +475,8 @@
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicdecrypt_public_key_buffer">crypto.publicDecrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_publicencrypt_public_key_buffer">crypto.publicEncrypt(public_key, buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_randombytes_size_callback">crypto.randomBytes(size[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_crypto_randomfillsync_buffer_offset_size">crypto.randomFillSync(buffer[, offset][, size])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_crypto_randomfill_buffer_offset_size_callback">crypto.randomFill(buffer[, offset][, size], callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_setengine_engine_flags">crypto.setEngine(engine[, flags])</a></span></li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_timingsafeequal_a_b">crypto.timingSafeEqual(a, b)</a></span></li>
 </ul>
@@ -501,14 +506,18 @@
 <li><span class="stability_undefined"><a href="#debugger_various">Various</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#debugger_advanced_usage">Advanced Usage</a></span></li>
+<li><span class="stability_undefined"><a href="#debugger_advanced_usage">Advanced Usage</a></span><ul>
+<li><span class="stability_0"><a href="#debugger_tcp_based_protocol">TCP-based protocol</a></span></li>
 <li><span class="stability_undefined"><a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector Integration for Node.js</a></span></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#deprecations_deprecated_apis">Deprecated APIs</a></span><ul>
 <li><span class="stability_undefined"><a href="#deprecations_un_deprecation">Un-deprecation</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_list_of_deprecated_apis">List of Deprecated APIs</a></span><ul>
 <li><span class="stability_undefined"><a href="#deprecations_dep0062_node_debug">DEP0062: node --debug</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0063_serverresponse_prototype_writeheader">DEP0063: ServerResponse.prototype.writeHeader()</a></span></li>
 </ul>
 </li>
 </ul>
@@ -814,9 +823,9 @@
 <li><span class="stability_undefined"><a href="#http_server_listen_path_callback">server.listen(path[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listen_port_hostname_backlog_callback">server.listen([port][, hostname][, backlog][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listening">server.listening</a></span></li>
-<li><span class="stability_undefined"><a href="#http_server_maxheaderscount_limit">server.maxHeadersCount([limit])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_maxheaderscount">server.maxHeadersCount</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
-<li><span class="stability_undefined"><a href="#http_server_timeout_msecs">server.timeout([msecs])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_timeout">server.timeout</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http_class_http_serverresponse">Class: http.ServerResponse</a></span><ul>
@@ -870,7 +879,7 @@
 <li><span class="stability_undefined"><a href="#https_class_https_agent">Class: https.Agent</a></span></li>
 <li><span class="stability_undefined"><a href="#https_class_https_server">Class: https.Server</a></span><ul>
 <li><span class="stability_undefined"><a href="#https_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
-<li><span class="stability_undefined"><a href="#https_server_timeout_msecs">server.timeout([msecs])</a></span></li>
+<li><span class="stability_undefined"><a href="#https_server_timeout">server.timeout</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#https_https_createserver_options_requestlistener">https.createServer(options[, requestListener])</a></span><ul>
@@ -1447,6 +1456,8 @@
 <li><span class="stability_undefined"><a href="#url_urlobject_slashes">urlObject.slashes</a></span></li>
 </ul>
 </li>
+<li><span class="stability_1"><a href="#url_url_domaintoascii_domain">url.domainToASCII(domain)</a></span></li>
+<li><span class="stability_1"><a href="#url_url_domaintounicode_domain">url.domainToUnicode(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_url_format_urlobject">url.format(urlObject)</a></span></li>
 <li><span class="stability_1"><a href="#url_url_format_url_options">url.format(URL[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost">url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</a></span></li>
@@ -1472,7 +1483,10 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#url_class_urlsearchparams">Class: URLSearchParams</a></span><ul>
-<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams_init">Constructor: new URLSearchParams([init])</a></span></li>
+<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams">Constructor: new URLSearchParams()</a></span></li>
+<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams_string">Constructor: new URLSearchParams(string)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams_obj">Constructor: new URLSearchParams(obj)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_constructor_new_urlsearchparams_iterable">Constructor: new URLSearchParams(iterable)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_append_name_value">urlSearchParams.append(name, value)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_delete_name">urlSearchParams.delete(name)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_entries">urlSearchParams.entries()</a></span></li>
@@ -1488,8 +1502,6 @@
 <li><span class="stability_undefined"><a href="#url_urlsearchparams_iterator">urlSearchParams[@@iterator]()</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#url_require_url_domaintoascii_domain">require(&#39;url&#39;).domainToASCII(domain)</a></span></li>
-<li><span class="stability_undefined"><a href="#url_require_url_domaintounicode_domain">require(&#39;url&#39;).domainToUnicode(domain)</a></span></li>
 <li><span class="stability_undefined"><a href="#url_percent_encoding_in_the_whatwg_url_standard">Percent-Encoding in the WHATWG URL Standard</a></span></li>
 </ul>
 </li>
@@ -1695,20 +1707,7 @@ test invariants.</p>
 <li><code>value</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a> .</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
-
-assert(true);
-// OK
-assert(1);
-// OK
-assert(false);
-// throws &quot;AssertionError: false == true&quot;
-assert(0);
-// throws &quot;AssertionError: 0 == true&quot;
-assert(false, &#39;it\&#39;s false&#39;);
-// throws &quot;AssertionError: it&#39;s false&quot;
-</code></pre>
+<p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a>.</p>
 <h2>assert.deepEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2200,7 +2199,7 @@ const buf4 = Buffer.from([1, 2, 3]);
 const buf5 = Buffer.from(&#39;tést&#39;);
 
 // Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].
-const buf6 = Buffer.from(&#39;tést&#39;, &#39;latin-1&#39;);
+const buf6 = Buffer.from(&#39;tést&#39;, &#39;latin1&#39;);
 </code></pre>
 <h2><code>Buffer.from()</code>, <code>Buffer.alloc()</code>, and <code>Buffer.allocUnsafe()</code><span><a class="mark" href="#buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe" id="buffer_buffer_from_buffer_alloc_and_buffer_allocunsafe">#</a></span></h2>
 <p>In versions of Node.js prior to v6, <code>Buffer</code> instances were created using the
@@ -2232,12 +2231,12 @@ and replaced by separate <code>Buffer.from()</code>, <a href="#buffer_class_meth
 <p><em>Developers should migrate all existing uses of the <code>new Buffer()</code> constructors
 to one of these new APIs.</em></p>
 <ul>
-<li><a href="#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the provided
+<li><a href="buffer.html#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the provided
 octets.</li>
 <li><a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>
 returns a new <code>Buffer</code> that <em>shares</em> the same allocated memory as the given
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a>.</li>
-<li><a href="#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the
+<li><a href="buffer.html#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the
 contents of the given <code>Buffer</code>.</li>
 <li><a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> returns a new <code>Buffer</code>
 containing a <em>copy</em> of the provided string.</li>
@@ -2414,8 +2413,8 @@ typed array:</p>
 <p>The <code>Buffer.from()</code> method, however, does not support the use of a mapping
 function:</p>
 <ul>
-<li><a href="#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a></li>
-<li><a href="#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a></li>
+<li><a href="buffer.html#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a></li>
+<li><a href="buffer.html#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a></li>
 <li><a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a></li>
 <li><a href="#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a></li>
 </ul>
@@ -2454,7 +2453,7 @@ It can be constructed in a variety of ways.</p>
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="buffer.html#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> instead.</pre><ul>
 <li><code>array</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> An array of bytes to copy from</li>
 </ul>
 <p>Allocates a new <code>Buffer</code> using an <code>array</code> of octets.</p>
@@ -2531,7 +2530,7 @@ console.log(buf);
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> instead.</pre><ul>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="buffer.html#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> instead.</pre><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> An existing <code>Buffer</code> to copy data from</li>
 </ul>
 <p>Copies the passed <code>buffer</code> data onto a new <code>Buffer</code> instance.</p>
@@ -2826,6 +2825,9 @@ instances in the <code>list</code> together.</p>
 in <code>list</code>. This however causes an additional loop to be executed in order to
 calculate the <code>totalLength</code>, so it is faster to provide the length explicitly if
 it is already known.</p>
+<p>If <code>totalLength</code> is provided, it is coerced to an unsigned integer. If the
+combined length of the <code>Buffer</code>s in <code>list</code> exceeds <code>totalLength</code>, the result is
+truncated to <code>totalLength</code>.</p>
 <p>Example: Create a single <code>Buffer</code> from a list of three <code>Buffer</code> instances</p>
 <pre><code class="lang-js">const buf1 = Buffer.alloc(10);
 const buf2 = Buffer.alloc(14);
@@ -2973,6 +2975,9 @@ otherwise.</p>
 </div><p>The index operator <code>[index]</code> can be used to get and set the octet at position
 <code>index</code> in <code>buf</code>. The values refer to individual bytes, so the legal value
 range is between <code>0x00</code> and <code>0xFF</code> (hex) or <code>0</code> and <code>255</code> (decimal).</p>
+<p>This operator is inherited from <code>Uint8Array</code>, so its behavior on out-of-bounds
+access is the same as <code>UInt8Array</code> - that is, getting returns <code>undefined</code> and
+setting does nothing.</p>
 <p>Example: Copy an ASCII string into a <code>Buffer</code>, one byte at a time</p>
 <pre><code class="lang-js">const str = &#39;Node.js&#39;;
 const buf = Buffer.allocUnsafe(str.length);
@@ -5394,8 +5399,8 @@ bat.stderr.on(&#39;data&#39;, (data) =&gt; {
 bat.on(&#39;exit&#39;, (code) =&gt; {
   console.log(`Child exited with code ${code}`);
 });
-
-// OR...
+</code></pre>
+<pre><code class="lang-js">// OR...
 const exec = require(&#39;child_process&#39;).exec;
 exec(&#39;my.bat&#39;, (err, stdout, stderr) =&gt; {
   if (err) {
@@ -5471,14 +5476,14 @@ stderr output. If <code>encoding</code> is <code>&#39;buffer&#39;</code>, or an 
 encoding, <code>Buffer</code> objects will be passed to the callback instead.</p>
 <p>The <code>options</code> argument may be passed as the second argument to customize how
 the process is spawned. The default options are:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   encoding: &#39;utf8&#39;,
   timeout: 0,
   maxBuffer: 200*1024,
   killSignal: &#39;SIGTERM&#39;,
   cwd: null,
   env: null
-}
+};
 </code></pre>
 <p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the signal
 identified by the <code>killSignal</code> property (the default is <code>&#39;SIGTERM&#39;</code>) if the
@@ -5635,10 +5640,10 @@ to an empty array.</p>
 this function. Any input containing shell metacharacters may be used to
 trigger arbitrary command execution.</strong></p>
 <p>A third argument may be used to specify additional options, with these defaults:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   cwd: undefined,
   env: process.env
-}
+};
 </code></pre>
 <p>Use <code>cwd</code> to specify the working directory from which the process is spawned.
 If not given, the default is to inherit the current working directory.</p>
@@ -6322,7 +6327,7 @@ this occurs.</p>
 </ul>
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stderr</code>.</p>
 <p>If the child was spawned with <code>stdio[2]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stderr</code> is an alias for <code>child.stdio[2]</code>. Both properties will refer to
 the same value.</p>
 <h3>child.stdin<span><a class="mark" href="#child_process_child_stdin" id="child_process_child_stdin">#</a></span></h3>
@@ -6335,7 +6340,7 @@ the same value.</p>
 <p><em>Note that if a child process waits to read all of its input, the child will not
 continue until this stream has been closed via <code>end()</code>.</em></p>
 <p>If the child was spawned with <code>stdio[0]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stdin</code> is an alias for <code>child.stdio[0]</code>. Both properties will refer to
 the same value.</p>
 <h3>child.stdio<span><a class="mark" href="#child_process_child_stdio" id="child_process_child_stdio">#</a></span></h3>
@@ -6381,7 +6386,7 @@ assert.strictEqual(child.stdio[2], child.stderr);
 </ul>
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stdout</code>.</p>
 <p>If the child was spawned with <code>stdio[1]</code> set to anything other than <code>&#39;pipe&#39;</code>,
-then this will be <code>undefined</code>.</p>
+then this will be <code>null</code>.</p>
 <p><code>child.stdout</code> is an alias for <code>child.stdio[1]</code>. Both properties will refer
 to the same value.</p>
 <h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
@@ -6780,7 +6785,7 @@ accidental disconnection.</p>
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a> instead.</pre><p>An alias to <a href="#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a>.</p>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="cluster.html#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a> instead.</pre><p>An alias to <a href="cluster.html#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a>.</p>
 <p>Set by calling <code>.kill()</code> or <code>.disconnect()</code>. Until then, it is <code>undefined</code>.</p>
 <p>The boolean <code>worker.suicide</code> lets you distinguish between voluntary
 and accidental exit, the master may choose not to respawn a worker based on
@@ -7183,6 +7188,17 @@ predefined in the REPL can also be used in <code>script</code>.</p>
 </div><p>Preload the specified module at startup.</p>
 <p>Follows <code>require()</code>&#39;s module resolution
 rules. <code>module</code> may be either a path to a file, or a node module name.</p>
+<h3><code>--inspect[=[host:]port]</code><span><a class="mark" href="#cli_inspect_host_port" id="cli_inspect_host_port">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v6.3.0</span>
+</div><p>Activate inspector on host:port. Default is 127.0.0.1:9229.</p>
+<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug
+and profile Node.js instances. The tools attach to Node.js instances via a
+tcp port and communicate using the <a href="https://chromedevtools.github.io/debugger-protocol-viewer/">Chrome Debugging Protocol</a>.</p>
+<h3><code>--inspect-brk[=[host:]port]</code><span><a class="mark" href="#cli_inspect_brk_host_port" id="cli_inspect_brk_host_port">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.6.0</span>
+</div><p>Activate inspector on host:port and break at start of user script.</p>
 <h3><code>--no-deprecation</code><span><a class="mark" href="#cli_no_deprecation" id="cli_no_deprecation">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.8.0</span>
@@ -7439,7 +7455,8 @@ myConsole.warn(`Danger ${name}! Danger!`);
 output streams and can be accessed using either <code>require(&#39;console&#39;).Console</code>
 or <code>console.Console</code>:</p>
 <pre><code class="lang-js">const Console = require(&#39;console&#39;).Console;
-const Console = console.Console;
+</code></pre>
+<pre><code class="lang-js">const Console = console.Console;
 </code></pre>
 <h3>new Console(stdout[, stderr])<span><a class="mark" href="#console_new_console_stdout_stderr" id="console_new_console_stdout_stderr">#</a></span></h3>
 <div class="signature"><ul>
@@ -8544,7 +8561,7 @@ non-cryptographically secure hash algorithm allow passwords to be tested very
 rapidly.</p>
 <p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of
 <a href="https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on
-their own using <a href="#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback"><code>crypto.pbkdf2()</code></a> and to use <a href="#crypto_crypto_createcipheriv_algorithm_key_iv"><code>crypto.createCipheriv()</code></a>
+their own using <a href="crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback"><code>crypto.pbkdf2()</code></a> and to use <a href="#crypto_crypto_createcipheriv_algorithm_key_iv"><code>crypto.createCipheriv()</code></a>
 to create the <code>Cipher</code> object.</p>
 <h3>crypto.createCipheriv(algorithm, key, iv)<span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv" id="crypto_crypto_createcipheriv_algorithm_key_iv">#</a></span></h3>
 <p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and
@@ -8580,7 +8597,7 @@ non-cryptographically secure hash algorithm allow passwords to be tested very
 rapidly.</p>
 <p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of
 <a href="https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on
-their own using <a href="#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback"><code>crypto.pbkdf2()</code></a> and to use <a href="#crypto_crypto_createdecipheriv_algorithm_key_iv"><code>crypto.createDecipheriv()</code></a>
+their own using <a href="crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback"><code>crypto.pbkdf2()</code></a> and to use <a href="#crypto_crypto_createdecipheriv_algorithm_key_iv"><code>crypto.createDecipheriv()</code></a>
 to create the <code>Decipher</code> object.</p>
 <h3>crypto.createDecipheriv(algorithm, key, iv)<span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv" id="crypto_crypto_createdecipheriv_algorithm_key_iv">#</a></span></h3>
 <div class="api_metadata">
@@ -8926,6 +8943,56 @@ console.log(
 This should normally never take longer than a few milliseconds. The only time
 when generating the random bytes may conceivably block for a longer period of
 time is right after boot, when the whole system is still low on entropy.</p>
+<h3>crypto.randomFillSync(buffer[, offset][, size])<span><a class="mark" href="#crypto_crypto_randomfillsync_buffer_offset_size" id="crypto_crypto_randomfillsync_buffer_offset_size">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>0</code>.</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>buffer.length - offset</code>.</li>
+</ul>
+<p>Synchronous version of <a href="#crypto_crypto_randomfill_buffer_offset_size_callback"><code>crypto.randomFill()</code></a>.</p>
+<p>Returns <code>buffer</code></p>
+<pre><code class="lang-js">const buf = Buffer.alloc(10);
+console.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));
+
+crypto.randomFillSync(buf, 5);
+console.log(buf.toString(&#39;hex&#39;));
+
+// The above is equivalent to the following:
+crypto.randomFillSync(buf, 5, 5);
+console.log(buf.toString(&#39;hex&#39;));
+</code></pre>
+<h3>crypto.randomFill(buffer[, offset][, size], callback)<span><a class="mark" href="#crypto_crypto_randomfill_buffer_offset_size_callback" id="crypto_crypto_randomfill_buffer_offset_size_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
+<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>0</code>.</li>
+<li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to <code>buffer.length - offset</code>.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> <code>function(err, buf) {}</code>.</li>
+</ul>
+<p>This function is similar to <a href="#crypto_crypto_randombytes_size_callback"><code>crypto.randomBytes()</code></a> but requires the first
+argument to be a <a href="buffer.html"><code>Buffer</code></a> that will be filled. It also
+requires that a callback is passed in.</p>
+<p>If the <code>callback</code> function is not provided, an error will be thrown.</p>
+<pre><code class="lang-js">const buf = Buffer.alloc(10);
+crypto.randomFill(buf, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+
+crypto.randomFill(buf, 5, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+
+// The above is equivalent to the following:
+crypto.randomFill(buf, 5, 5, (err, buf) =&gt; {
+  if (err) throw err;
+  console.log(buf.toString(&#39;hex&#39;));
+});
+</code></pre>
 <h3>crypto.setEngine(engine[, flags])<span><a class="mark" href="#crypto_crypto_setengine_engine_flags" id="crypto_crypto_setengine_engine_flags">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.11</span>
@@ -8977,10 +9044,10 @@ and the associated public point (key) will be computed and stored in the object.
 This allows code to only store and provide the private part of the EC key pair.
 <a href="#crypto_ecdh_setprivatekey_private_key_encoding"><code>ecdh.setPrivateKey()</code></a> now also validates that the private key is valid for
 the selected curve.</p>
-<p>The <a href="#crypto_ecdh_setpublickey_public_key_encoding"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the
+<p>The <a href="crypto.html#crypto_ecdh_setpublickey_public_key_encoding"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the
 API is not useful. Either a previously stored private key should be set, which
 automatically generates the associated public key, or <a href="#crypto_ecdh_generatekeys_encoding_format"><code>ecdh.generateKeys()</code></a>
-should be called. The main drawback of using <a href="#crypto_ecdh_setpublickey_public_key_encoding"><code>ecdh.setPublicKey()</code></a> is that
+should be called. The main drawback of using <a href="crypto.html#crypto_ecdh_setpublickey_public_key_encoding"><code>ecdh.setPublicKey()</code></a> is that
 it can be used to put the ECDH key pair into an inconsistent state.</p>
 <h3>Support for weak or compromised algorithms<span><a class="mark" href="#crypto_support_for_weak_or_compromised_algorithms" id="crypto_support_for_weak_or_compromised_algorithms">#</a></span></h3>
 <p>The <code>crypto</code> module still supports some algorithms which are already
@@ -9309,7 +9376,7 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
 <h1>Debugger<span><a class="mark" href="#debugger_debugger" id="debugger_debugger">#</a></span></h1>
 <pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!-- type=misc -->
 <p>Node.js includes an out-of-process debugging utility accessible via a
-<a href="https://github.com/v8/v8/wiki/Debugging-Protocol">TCP-based protocol</a> and built-in debugging client. To use it, start Node.js
+<a href="#debugger_tcp_based_protocol">TCP-based protocol</a> and built-in debugging client. To use it, start Node.js
 with the <code>debug</code> argument followed by the path to the script to debug; a prompt
 will be displayed indicating successful launch of the debugger:</p>
 <pre><code class="lang-txt">$ node debug myscript.js
@@ -9451,7 +9518,8 @@ breakpoint)</li>
 <li><code>version</code> - Display V8&#39;s version</li>
 </ul>
 </div><h2>Advanced Usage<span><a class="mark" href="#debugger_advanced_usage" id="debugger_advanced_usage">#</a></span></h2>
-<p>An alternative way of enabling and accessing the debugger is to start
+<h3>TCP-based protocol<span><a class="mark" href="#debugger_tcp_based_protocol" id="debugger_tcp_based_protocol">#</a></span></h3>
+<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector Integration</a> instead. The debug protocol used by the <code>--debug</code> flag was removed from V8.</pre><p>An alternative way of enabling and accessing the debugger is to start
 Node.js with the <code>--debug</code> command-line flag or by signaling an existing
 Node.js process with <code>SIGUSR1</code>.</p>
 <p>Once a process has been set in debug mode this way, it can be inspected
@@ -9462,18 +9530,18 @@ process or via URI reference to the listening debugger:</p>
 <li><code>node debug &lt;URI&gt;</code> - Connects to the process via the URI such as
 localhost:5858</li>
 </ul>
-<h2>V8 Inspector Integration for Node.js<span><a class="mark" href="#debugger_v8_inspector_integration_for_node_js" id="debugger_v8_inspector_integration_for_node_js">#</a></span></h2>
+<h3>V8 Inspector Integration for Node.js<span><a class="mark" href="#debugger_v8_inspector_integration_for_node_js" id="debugger_v8_inspector_integration_for_node_js">#</a></span></h3>
 <p><strong>NOTE: This is an experimental feature.</strong></p>
 <p>V8 Inspector integration allows attaching Chrome DevTools to Node.js
-instances for debugging and profiling.</p>
+instances for debugging and profiling.
+It uses the <a href="https://chromedevtools.github.io/debugger-protocol-viewer/">Chrome Debugging Protocol</a>.</p>
 <p>V8 Inspector can be enabled by passing the <code>--inspect</code> flag when starting a
 Node.js application. It is also possible to supply a custom port with that flag,
 e.g. <code>--inspect=9222</code> will accept DevTools connections on port 9222.</p>
 <p>To break on the first line of the application code, pass the <code>--inspect-brk</code>
 flag instead of <code>--inspect</code>.</p>
 <pre><code class="lang-txt">$ node --inspect index.js
-Debugger listening on port 9229.
-Warning: This is an experimental feature and could change at any time.
+Debugger listening on 127.0.0.1:9229.
 To start debugging, open the following URL in Chrome:
     chrome-devtools://devtools/remote/serve_file/@60cd6e859b9f557d2312f5bf532f6aec5f284980/inspector.html?experiments=true&amp;v8only=true&amp;ws=localhost:9229/node
 </code></pre>
@@ -9509,6 +9577,13 @@ this document will be updated with information relevant to the decision.
 <p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as
 of V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>
 instead.</p>
+<p><a id="DEP0063"></a></p>
+<h3>DEP0063: ServerResponse.prototype.writeHeader()<span><a class="mark" href="#deprecations_dep0063_serverresponse_prototype_writeheader" id="deprecations_dep0063_serverresponse_prototype_writeheader">#</a></span></h3>
+<p>Type: Documentation-only</p>
+<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API has been
+deprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>
+<p><em>Note</em>: The <code>ServerResponse.prototype.writeHeader()</code> method was never documented
+as an officially supported API.</p>
 <!-- [end-include:deprecations.md] -->
 <!-- [start-include:dns.md] -->
 <h1>DNS<span><a class="mark" href="#dns_dns" id="dns_dns">#</a></span></h1>
@@ -9572,29 +9647,29 @@ resolution.</p>
 </td></tr>
 </table>
 </details>
-</div><p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or
-AAAA (IPv6) record. <code>options</code> can be an object or integer. If <code>options</code> is
-not provided, then IPv4 and IPv6 addresses are both valid. If <code>options</code> is
-an integer, then it must be <code>4</code> or <code>6</code>.</p>
-<p>Alternatively, <code>options</code> can be an object containing these properties:</p>
-<ul>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - The record family. If present, must be the integer
-<code>4</code> or <code>6</code>. If not provided, both IP v4 and v6 addresses are accepted.</li>
-<li><code>hints</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> - If present, it should be one or more of the supported
-<code>getaddrinfo</code> flags. If <code>hints</code> is not provided, then no flags are passed to
-<code>getaddrinfo</code>. Multiple flags can be passed through <code>hints</code> by bitwise
-<code>OR</code>ing their values.
-See <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a> for more information on supported
-flags.</li>
-<li><code>all</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> - When <code>true</code>, the callback returns all resolved addresses
-in an array, otherwise returns a single address. Defaults to <code>false</code>.</li>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The record family. Must be <code>4</code> or <code>6</code>. IPv4
+and IPv6 addresses are both returned by default.</li>
+<li><code>hints</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> One or more <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a>. Multiple
+flags may be passed by bitwise <code>OR</code>ing their values.</li>
+<li><code>all</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the callback returns all resolved addresses in
+an array. Otherwise, returns a single address. Defaults to <code>false</code>.</li>
 </ul>
-<p>All properties are optional.</p>
-<p>The <code>callback</code> function has arguments <code>(err, address, family)</code>. <code>address</code> is a
-string representation of an IPv4 or IPv6 address. <code>family</code> is either the
-integer <code>4</code> or <code>6</code> and denotes the family of <code>address</code> (not necessarily the
-value initially passed to <code>lookup</code>).</p>
-<p>With the <code>all</code> option set to <code>true</code>, the arguments change to
+</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string representation of an IPv4 or IPv6 address.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <code>4</code> or <code>6</code>, denoting the family of <code>address</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Resolves a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into the first found A (IPv4) or
+AAAA (IPv6) record. All <code>option</code> properties are optional. If <code>options</code> is an
+integer, then it must be <code>4</code> or <code>6</code> – if <code>options</code> is not provided, then IPv4
+and IPv6 addresses are both returned if found.</p>
+<p>With the <code>all</code> option set to <code>true</code>, the arguments for <code>callback</code> change to
 <code>(err, addresses)</code>, with <code>addresses</code> being an array of objects with the
 properties <code>address</code> and <code>family</code>.</p>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.
@@ -9637,14 +9712,22 @@ on some operating systems (e.g FreeBSD 10.1).</li>
 <h2>dns.lookupService(address, port, callback)<span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
-</div><p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using
+</div><ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> e.g. <code>example.com</code></li>
+<li><code>service</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> e.g. <code>http</code></li>
+</ul>
+</li>
+</ul>
+<p>Resolves the given <code>address</code> and <code>port</code> into a hostname and service using
 the operating system&#39;s underlying <code>getnameinfo</code> implementation.</p>
 <p>If <code>address</code> is not a valid IP address, a <code>TypeError</code> will be thrown.
 The <code>port</code> will be coerced to a number. If it is not a legal port, a <code>TypeError</code>
 will be thrown.</p>
-<p>The callback has arguments <code>(err, hostname, service)</code>. The <code>hostname</code> and
-<code>service</code> arguments are strings (e.g. <code>&#39;localhost&#39;</code> and <code>&#39;http&#39;</code> respectively).</p>
-<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>
+<p>On an error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.</p>
 <pre><code class="lang-js">const dns = require(&#39;dns&#39;);
 dns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {
   console.log(hostname, service);
@@ -9654,29 +9737,93 @@ dns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {
 <h2>dns.resolve(hostname[, rrtype], callback)<span><a class="mark" href="#dns_dns_resolve_hostname_rrtype_callback" id="dns_dns_resolve_hostname_rrtype_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an
-array of the record types specified by <code>rrtype</code>.</p>
-<p>Valid values for <code>rrtype</code> are:</p>
-<ul>
-<li><code>&#39;A&#39;</code> - IPV4 addresses, default</li>
-<li><code>&#39;AAAA&#39;</code> - IPV6 addresses</li>
-<li><code>&#39;MX&#39;</code> - mail exchange records</li>
-<li><code>&#39;TXT&#39;</code> - text records</li>
-<li><code>&#39;SRV&#39;</code> - SRV records</li>
-<li><code>&#39;PTR&#39;</code> - PTR records</li>
-<li><code>&#39;NS&#39;</code> - name server records</li>
-<li><code>&#39;CNAME&#39;</code> - canonical name records</li>
-<li><code>&#39;SOA&#39;</code> - start of authority record</li>
-<li><code>&#39;NAPTR&#39;</code> - name authority pointer record</li>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
+<li><code>rrtype</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Resource record type. Default: <code>&#39;A&#39;</code>.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <span class="type">&lt;string[][]&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
-<p>The <code>callback</code> function has arguments <code>(err, addresses)</code>. When successful,
-<code>addresses</code> will be an array, except when resolving an SOA record which returns
-an object structured in the same manner as one returned by the
-<a href="#dns_dns_resolvesoa_hostname_callback"><code>dns.resolveSoa()</code></a> method. The type of each item in <code>addresses</code> is
-determined by the record type, and described in the documentation for the
-corresponding lookup methods.</p>
-<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is
-one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an array
+of the resource records. The <code>callback</code> function has arguments
+<code>(err, records)</code>. When successful, <code>records</code> will be an array of resource
+records. The type and structure of individual results varies based on <code>rrtype</code>:</p>
+<table>
+<thead>
+<tr>
+<th><code>rrtype</code></th>
+<th><code>records</code> contains</th>
+<th>Result type</th>
+<th>Shorthand method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;A&#39;</code></td>
+<td>IPv4 addresses (default)</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolve4_hostname_options_callback"><code>dns.resolve4()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;AAAA&#39;</code></td>
+<td>IPv6 addresses</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolve6_hostname_options_callback"><code>dns.resolve6()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;CNAME&#39;</code></td>
+<td>canonical name records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvecname_hostname_callback"><code>dns.resolveCname()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;MX&#39;</code></td>
+<td>mail exchange records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvemx_hostname_callback"><code>dns.resolveMx()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;NAPTR&#39;</code></td>
+<td>name authority pointer records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvenaptr_hostname_callback"><code>dns.resolveNaptr()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;NS&#39;</code></td>
+<td>name server records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvens_hostname_callback"><code>dns.resolveNs()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;PTR&#39;</code></td>
+<td>pointer records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolveptr_hostname_callback"><code>dns.resolvePtr()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;SOA&#39;</code></td>
+<td>start of authority records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvesoa_hostname_callback"><code>dns.resolveSoa()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;SRV&#39;</code></td>
+<td>service records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolvesrv_hostname_callback"><code>dns.resolveSrv()</code></a></td>
+</tr>
+<tr>
+<td><code>&#39;TXT&#39;</code></td>
+<td>text records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
+<td><a href="#dns_dns_resolvetxt_hostname_callback"><code>dns.resolveTxt()</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is one of the
+<a href="#dns_error_codes">DNS error codes</a>.</p>
 <h2>dns.resolve4(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve4_hostname_options_callback" id="dns_dns_resolve4_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -9690,20 +9837,25 @@ one of the error codes listed <a href="#dns_error_codes">here</a>.</p>
 </td></tr>
 </table>
 </details>
-</div><p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the
-<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of IPv4 addresses (e.g.
-<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>
-<ul>
+</div><ul>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
-The callback receives an array of <code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects
-rather than an array of strings.  The TTL is expressed in seconds.</li>
+When <code>true</code>, the callback receives an array of
+<code>{ address: &#39;1.2.3.4&#39;, ttl: 60 }</code> objects rather than an array of strings,
+with the TTL expressed in seconds.</li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>(err, result)</code> callback function.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a IPv4 addresses (<code>A</code> records) for the
+<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
+will contain an array of IPv4 addresses (e.g.
+<code>[&#39;74.125.79.104&#39;, &#39;74.125.79.105&#39;, &#39;74.125.79.106&#39;]</code>).</p>
 <h2>dns.resolve6(hostname[, options], callback)<span><a class="mark" href="#dns_dns_resolve6_hostname_options_callback" id="dns_dns_resolve6_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -9717,40 +9869,68 @@ rather than an array of strings.  The TTL is expressed in seconds.</li>
 </td></tr>
 </table>
 </details>
-</div><p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the
-<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of IPv6 addresses.</p>
-<ul>
+</div><ul>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Hostname to resolve.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>ttl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Retrieve the Time-To-Live value (TTL) of each record.
-The callback receives an array of <code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code>
-objects rather than an array of strings.  The TTL is expressed in seconds.</li>
+When <code>true</code>, the callback receives an array of
+<code>{ address: &#39;0:1:2:3:4:5:6:7&#39;, ttl: 60 }</code> objects rather than an array of
+strings, with the TTL expressed in seconds.</li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>(err, result)</code> callback function.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a IPv6 addresses (<code>AAAA</code> records) for the
+<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function
+will contain an array of IPv6 addresses.</p>
 <h2>dns.resolveCname(hostname, callback)<span><a class="mark" href="#dns_dns_resolvecname_hostname_callback" id="dns_dns_resolvecname_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
-</div><p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve <code>CNAME</code> records for the <code>hostname</code>. The
 <code>addresses</code> argument passed to the <code>callback</code> function
 will contain an array of canonical name records available for the <code>hostname</code>
 (e.g. <code>[&#39;bar.example.com&#39;]</code>).</p>
 <h2>dns.resolveMx(hostname, callback)<span><a class="mark" href="#dns_dns_resolvemx_hostname_callback" id="dns_dns_resolvemx_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve mail exchange records (<code>MX</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 contain an array of objects containing both a <code>priority</code> and <code>exchange</code>
 property (e.g. <code>[{priority: 10, exchange: &#39;mx.example.com&#39;}, ...]</code>).</p>
 <h2>dns.resolveNaptr(hostname, callback)<span><a class="mark" href="#dns_dns_resolvenaptr_hostname_callback" id="dns_dns_resolvenaptr_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
-</div><p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>
-records) for the <code>hostname</code>. The <code>callback</code> function has arguments
-<code>(err, addresses)</code>.  The <code>addresses</code> argument passed to the <code>callback</code> function
-will contain an array of objects with the following properties:</p>
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>
+records) for the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code>
+function will contain an array of objects with the following properties:</p>
 <ul>
 <li><code>flags</code></li>
 <li><code>service</code></li>
@@ -9772,21 +9952,45 @@ will contain an array of objects with the following properties:</p>
 <h2>dns.resolveNs(hostname, callback)<span><a class="mark" href="#dns_dns_resolvens_hostname_callback" id="dns_dns_resolvens_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
-</div><p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve name server records (<code>NS</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 contain an array of name server records available for <code>hostname</code>
 (e.g. <code>[&#39;ns1.example.com&#39;, &#39;ns2.example.com&#39;]</code>).</p>
 <h2>dns.resolvePtr(hostname, callback)<span><a class="mark" href="#dns_dns_resolveptr_hostname_callback" id="dns_dns_resolveptr_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
-</div><p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve pointer records (<code>PTR</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 be an array of strings containing the reply records.</p>
 <h2>dns.resolveSoa(hostname, callback)<span><a class="mark" href="#dns_dns_resolvesoa_hostname_callback" id="dns_dns_resolvesoa_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.10</span>
-</div><p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for
-the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for
+the <code>hostname</code>. The <code>address</code> argument passed to the <code>callback</code> function will
 be an object with the following properties:</p>
 <ul>
 <li><code>nsname</code></li>
@@ -9810,7 +10014,15 @@ be an object with the following properties:</p>
 <h2>dns.resolveSrv(hostname, callback)<span><a class="mark" href="#dns_dns_resolvesrv_hostname_callback" id="dns_dns_resolvesrv_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will
 be an array of objects with the following properties:</p>
 <ul>
@@ -9829,7 +10041,15 @@ be an array of objects with the following properties:</p>
 <h2>dns.resolveTxt(hostname, callback)<span><a class="mark" href="#dns_dns_resolvetxt_hostname_callback" id="dns_dns_resolvetxt_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
-</div><p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the
+</div><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>addresses</code> <span class="type">&lt;string[][]&gt;</span></li>
+</ul>
+</li>
+</ul>
+<p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the
 <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function is
 is a two-dimensional array of the text records available for <code>hostname</code> (e.g.,
 <code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of
@@ -9838,18 +10058,27 @@ treated separately.</p>
 <h2>dns.reverse(ip, callback)<span><a class="mark" href="#dns_dns_reverse_ip_callback" id="dns_dns_reverse_ip_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
-</div><p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
+</div><ul>
+<li><code>ip</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>hostnames</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+</li>
+</ul>
+<p>Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
 array of hostnames.</p>
-<p>The <code>callback</code> function has arguments <code>(err, hostnames)</code>, where <code>hostnames</code>
-is an array of resolved hostnames for the given <code>ip</code>.</p>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is
 one of the <a href="#dns_error_codes">DNS error codes</a>.</p>
 <h2>dns.setServers(servers)<span><a class="mark" href="#dns_dns_setservers_servers" id="dns_dns_setservers_servers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
-</div><p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>
+</div><ul>
+<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>
 argument is an array of IPv4 or IPv6 addresses.</p>
-<p>If a port specified on the address it will be removed.</p>
+<p>If a port is specified on the address, it will be removed.</p>
 <p>An error will be thrown if an invalid address is provided.</p>
 <p>The <code>dns.setServers()</code> method must not be called while a DNS query is in
 progress.</p>
@@ -10343,20 +10572,22 @@ accept a <code>callback</code> function, such as <a href="fs.html#fs_fs_readfile
 to report errors.</p>
 <p>Errors that occur within <em>Asynchronous APIs</em> may be reported in multiple ways:</p>
 <ul>
-<li><p>Most asynchronous methods that accept a <code>callback</code> function will accept an
+<li>Most asynchronous methods that accept a <code>callback</code> function will accept an
 <code>Error</code> object passed as the first argument to that function. If that first
 argument is not <code>null</code> and is an instance of <code>Error</code>, then an error occurred
-that should be handled.</p>
-<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
-fs.readFile(&#39;a file that does not exist&#39;, (err, data) =&gt; {
-  if (err) {
-    console.error(&#39;There was an error reading the file!&#39;, err);
-    return;
-  }
-  // Otherwise handle the data
-});
+that should be handled.</li>
+</ul>
+<!-- eslint-disable no-useless-return -->
+<pre><code class="lang-js">  const fs = require(&#39;fs&#39;);
+  fs.readFile(&#39;a file that does not exist&#39;, (err, data) =&gt; {
+    if (err) {
+      console.error(&#39;There was an error reading the file!&#39;, err);
+      return;
+    }
+    // Otherwise handle the data
+  });
 </code></pre>
-</li>
+<ul>
 <li><p>When an asynchronous method is called on an object that is an <code>EventEmitter</code>,
 errors can be routed to that object&#39;s <code>&#39;error&#39;</code> event.</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
@@ -10827,7 +11058,7 @@ myEmitter.emit(&#39;event&#39;, &#39;a&#39;, &#39;b&#39;);
 <p>When a listener is registered using the <code>eventEmitter.on()</code> method, that
 listener will be invoked <em>every time</em> the named event is emitted.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
-var m = 0;
+let m = 0;
 myEmitter.on(&#39;event&#39;, () =&gt; {
   console.log(++m);
 });
@@ -10840,7 +11071,7 @@ myEmitter.emit(&#39;event&#39;);
 that is called at most once for a particular event. Once the event is emitted,
 the listener is unregistered and <em>then</em> called.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
-var m = 0;
+let m = 0;
 myEmitter.once(&#39;event&#39;, () =&gt; {
   console.log(++m);
 });
@@ -10866,7 +11097,7 @@ can be used. (<em>Note, however, that the <code>domain</code> module has been de
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 
 process.on(&#39;uncaughtException&#39;, (err) =&gt; {
-  console.log(&#39;whoops! there was an error&#39;);
+  console.error(&#39;whoops! there was an error&#39;);
 });
 
 myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
@@ -10875,7 +11106,7 @@ myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
 <p>As a best practice, listeners should always be added for the <code>&#39;error&#39;</code> events.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 myEmitter.on(&#39;error&#39;, (err) =&gt; {
-  console.log(&#39;whoops! there was an error&#39;);
+  console.error(&#39;whoops! there was an error&#39;);
 });
 myEmitter.emit(&#39;error&#39;, new Error(&#39;whoops!&#39;));
 // Prints: whoops! there was an error
@@ -10892,7 +11123,7 @@ added and <code>&#39;removeListener&#39;</code> when existing listeners are remo
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event being listened for</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event being listened for</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>EventEmitter</code> instance will emit its own <code>&#39;newListener&#39;</code> event <em>before</em>
@@ -10935,7 +11166,7 @@ myEmitter.emit(&#39;event&#39;);
 </table>
 </details>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The event name</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The event name</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>&#39;removeListener&#39;</code> event is emitted <em>after</em> the <code>listener</code> is removed.</p>
@@ -10983,11 +11214,19 @@ Its <code>name</code> property is set to <code>&#39;MaxListenersExceededWarning&
 <h3>emitter.addListener(eventName, listener)<span><a class="mark" href="#events_emitter_addlistener_eventname_listener" id="events_emitter_addlistener_eventname_listener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Alias for <code>emitter.on(eventName, listener)</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>
 <h3>emitter.emit(eventName[, ...args])<span><a class="mark" href="#events_emitter_emit_eventname_args" id="events_emitter_emit_eventname_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Synchronously calls each of the listeners registered for the event named
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Synchronously calls each of the listeners registered for the event named
 <code>eventName</code>, in the order they were registered, passing the supplied arguments
 to each.</p>
 <p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>
@@ -11017,7 +11256,7 @@ set by <a href="#events_emitter_setmaxlisteners_n"><code>emitter.setMaxListeners
 <div class="api_metadata">
 <span>Added in: v3.2.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event being listened for</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event being listened for</li>
 </ul>
 <p>Returns the number of listeners listening to the event named <code>eventName</code>.</p>
 <h3>emitter.listeners(eventName)<span><a class="mark" href="#events_emitter_listeners_eventname" id="events_emitter_listeners_eventname">#</a></span></h3>
@@ -11033,7 +11272,10 @@ set by <a href="#events_emitter_setmaxlisteners_n"><code>emitter.setMaxListeners
 </td></tr>
 </table>
 </details>
-</div><p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>
 <pre><code class="lang-js">server.on(&#39;connection&#39;, (stream) =&gt; {
   console.log(&#39;someone connected!&#39;);
 });
@@ -11044,7 +11286,7 @@ console.log(util.inspect(server.listeners(&#39;connection&#39;)));
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the end of the listeners array for the
@@ -11072,7 +11314,7 @@ myEE.emit(&#39;foo&#39;);
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code>. The
@@ -11097,7 +11339,7 @@ myEE.emit(&#39;foo&#39;);
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the <em>beginning</em> of the listeners array for the
@@ -11114,7 +11356,7 @@ times.</p>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>eventName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> The name of the event.</li>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one time</strong> <code>listener</code> function for the event named <code>eventName</code> to the
@@ -11128,7 +11370,10 @@ listener is removed, and then invoked.</p>
 <h3>emitter.removeAllListeners([eventName])<span><a class="mark" href="#events_emitter_removealllisteners_eventname" id="events_emitter_removealllisteners_eventname">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Removes all listeners, or those of the specified <code>eventName</code>.</p>
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>
 <p>Note that it is bad practice to remove listeners added elsewhere in the code,
 particularly when the <code>EventEmitter</code> instance was created by some other
 component or module (e.g. sockets or file streams).</p>
@@ -11136,9 +11381,13 @@ component or module (e.g. sockets or file streams).</p>
 <h3>emitter.removeListener(eventName, listener)<span><a class="mark" href="#events_emitter_removelistener_eventname_listener" id="events_emitter_removelistener_eventname_listener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.26</span>
-</div><p>Removes the specified <code>listener</code> from the listener array for the event named
+</div><ul>
+<li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Removes the specified <code>listener</code> from the listener array for the event named
 <code>eventName</code>.</p>
-<pre><code class="lang-js">var callback = (stream) =&gt; {
+<pre><code class="lang-js">const callback = (stream) =&gt; {
   console.log(&#39;someone connected!&#39;);
 };
 server.on(&#39;connection&#39;, callback);
@@ -11156,12 +11405,12 @@ finishes execution will not remove them from <code>emit()</code> in progress. Su
 events will behave as expected.</p>
 <pre><code class="lang-js">const myEmitter = new MyEmitter();
 
-var callbackA = () =&gt; {
+const callbackA = () =&gt; {
   console.log(&#39;A&#39;);
   myEmitter.removeListener(&#39;event&#39;, callbackB);
 };
 
-var callbackB = () =&gt; {
+const callbackB = () =&gt; {
   console.log(&#39;B&#39;);
 };
 
@@ -11191,7 +11440,10 @@ the <code>emitter.listeners()</code> method will need to be recreated.</p>
 <h3>emitter.setMaxListeners(n)<span><a class="mark" href="#events_emitter_setmaxlisteners_n" id="events_emitter_setmaxlisteners_n">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.5</span>
-</div><p>By default EventEmitters will print a warning if more than <code>10</code> listeners are
+</div><ul>
+<li><code>n</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+</ul>
+<p>By default EventEmitters will print a warning if more than <code>10</code> listeners are
 added for a particular event. This is a useful default that helps finding
 memory leaks. Obviously, not all events should be limited to just 10 listeners.
 The <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this
@@ -11359,7 +11611,7 @@ synchronous counterparts are of this type.</p>
 </ul>
 <p>For a regular file <a href="util.html#util_util_inspect_object_options"><code>util.inspect(stats)</code></a> would return a string very
 similar to this:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-txt">Stats {
   dev: 2114,
   ino: 48064969,
   mode: 33188,
@@ -11373,8 +11625,7 @@ similar to this:</p>
   atime: Mon, 10 Oct 2011 23:24:11 GMT,
   mtime: Mon, 10 Oct 2011 23:24:11 GMT,
   ctime: Mon, 10 Oct 2011 23:24:11 GMT,
-  birthtime: Mon, 10 Oct 2011 23:24:11 GMT
-}
+  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
 </code></pre>
 <p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are
 instances of <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object and to compare the values of
@@ -11488,12 +11739,12 @@ file directly and handle the error raised if the file is not accessible.</p>
 <p><strong>write (RECOMMENDED)</strong></p>
 <pre><code class="lang-js">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {
   if (err) {
-    if (err.code === &quot;EEXIST&quot;) {
+    if (err.code === &#39;EEXIST&#39;) {
       console.error(&#39;myfile already exists&#39;);
       return;
-    } else {
-      throw err;
     }
+
+    throw err;
   }
 
   writeMyData(fd);
@@ -11502,12 +11753,12 @@ file directly and handle the error raised if the file is not accessible.</p>
 <p><strong>read (NOT RECOMMENDED)</strong></p>
 <pre><code class="lang-js">fs.access(&#39;myfile&#39;, (err) =&gt; {
   if (err) {
-    if (err.code === &quot;ENOENT&quot;) {
+    if (err.code === &#39;ENOENT&#39;) {
       console.error(&#39;myfile does not exist&#39;);
       return;
-    } else {
-      throw err;
     }
+
+    throw err;
   }
 
   fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {
@@ -11519,12 +11770,12 @@ file directly and handle the error raised if the file is not accessible.</p>
 <p><strong>read (RECOMMENDED)</strong></p>
 <pre><code class="lang-js">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {
   if (err) {
-    if (err.code === &quot;ENOENT&quot;) {
+    if (err.code === &#39;ENOENT&#39;) {
       console.error(&#39;myfile does not exist&#39;);
       return;
-    } else {
-      throw err;
     }
+
+    throw err;
   }
 
   readMyData(fd);
@@ -11738,13 +11989,13 @@ operations. The specific constants currently defined are described in
 readable stream (16 kb), the stream returned by this method has a
 default value of 64 kb for the same parameter.</p>
 <p><code>options</code> is an object or string with the following defaults:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   flags: &#39;r&#39;,
   encoding: null,
   fd: null,
   mode: 0o666,
   autoClose: true
-}
+};
 </code></pre>
 <p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from
 the file instead of the entire file.  Both <code>start</code> and <code>end</code> are inclusive and
@@ -11799,13 +12050,13 @@ file was created.</p>
 </ul>
 <p>Returns a new <a href="#fs_class_fs_writestream"><code>WriteStream</code></a> object. (See <a href="stream.html#stream_class_stream_writable">Writable Stream</a>).</p>
 <p><code>options</code> is an object or string with the following defaults:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-js">const defaults = {
   flags: &#39;w&#39;,
   defaultEncoding: &#39;utf8&#39;,
   fd: null,
   mode: 0o666,
   autoClose: true
-}
+};
 </code></pre>
 <p><code>options</code> may also include a <code>start</code> option to allow writing data at
 some position past the beginning of the file.  Modifying a file rather
@@ -11861,13 +12112,14 @@ file directly and handle the error raised if the file does not exist.</p>
 <p><strong>write (RECOMMENDED)</strong></p>
 <pre><code class="lang-js">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {
   if (err) {
-    if (err.code === &quot;EEXIST&quot;) {
+    if (err.code === &#39;EEXIST&#39;) {
       console.error(&#39;myfile already exists&#39;);
       return;
-    } else {
-      throw err;
     }
+
+    throw err;
   }
+
   writeMyData(fd);
 });
 </code></pre>
@@ -11885,15 +12137,15 @@ file directly and handle the error raised if the file does not exist.</p>
 <p><strong>read (RECOMMENDED)</strong></p>
 <pre><code class="lang-js">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {
   if (err) {
-    if (err.code === &quot;ENOENT&quot;) {
+    if (err.code === &#39;ENOENT&#39;) {
       console.error(&#39;myfile does not exist&#39;);
       return;
-    } else {
-      throw err;
     }
-  } else {
-    readMyData(fd);
+
+    throw err;
   }
+
+  readMyData(fd);
 });
 </code></pre>
 <p>The &quot;not recommended&quot; examples above check for existence and then use the
@@ -12097,7 +12349,7 @@ const fd = fs.openSync(&#39;temp.txt&#39;, &#39;r+&#39;);
 
 // truncate the file to 10 bytes, whereas the actual size is 7 bytes
 fs.ftruncate(fd, 10, (err) =&gt; {
-  assert.ifError(!err);
+  assert.ifError(err);
   console.log(fs.readFileSync(&#39;temp.txt&#39;));
 });
 // Prints: &lt;Buffer 4e 6f 64 65 2e 6a 73 00 00 00&gt;
@@ -12355,8 +12607,8 @@ fs.mkdtemp(tmpDir, (err, folder) =&gt; {
 });
 
 // This method is *CORRECT*:
-const path = require(&#39;path&#39;);
-fs.mkdtemp(tmpDir + path.sep, (err, folder) =&gt; {
+const { sep } = require(&#39;path&#39;);
+fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {
   if (err) throw err;
   console.log(folder);
   // Will print something similar to `/tmp/abc123`.
@@ -12480,7 +12732,7 @@ descriptor.</p>
 </details>
 </div><ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
@@ -12500,6 +12752,9 @@ If <code>position</code> is <code>null</code>, data will be read from the curren
 <tr><th>Version</th><th>Changes</th></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
+</td></tr>
+<tr><td>v6.0.0</td>
+<td><p>The <code>options</code> parameter was added.</p>
 </td></tr>
 <tr><td>v0.1.8</td>
 <td><p><span>Added in: v0.1.8</span></p>
@@ -12833,7 +13088,7 @@ Windows (ignored on other platforms). Note that Windows junction points require
 the destination path to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code>
 argument will automatically be normalized to absolute path.</p>
 <p>Here is an example below:</p>
-<pre><code class="lang-js">fs.symlink(&#39;./foo&#39;, &#39;./new-port&#39;);
+<pre><code class="lang-js">fs.symlink(&#39;./foo&#39;, &#39;./new-port&#39;, callback);
 </code></pre>
 <p>It creates a symbolic link named &quot;new-port&quot; that points to &quot;foo&quot;.</p>
 <h2>fs.symlinkSync(target, path[, type])<span><a class="mark" href="#fs_fs_symlinksync_target_path_type" id="fs_fs_symlinksync_target_path_type">#</a></span></h2>
@@ -12987,7 +13242,7 @@ converted to the corresponding number.</li>
 <li><code>persistent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether the process should continue to run
 as long as files are being watched. default = <code>true</code></li>
 <li><code>recursive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether all subdirectories should be
-watched, or only the current directory. The applies when a directory is
+watched, or only the current directory. This applies when a directory is
 specified, and only on supported platforms (See <a href="#fs_caveats">Caveats</a>). default =
 <code>false</code></li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the character encoding to be used for the
@@ -13217,7 +13472,7 @@ to <code>&#39;utf8&#39;</code>.</p>
 <p>Example:</p>
 <pre><code class="lang-js">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, (err) =&gt; {
   if (err) throw err;
-  console.log(&#39;It\&#39;s saved!&#39;);
+  console.log(&#39;The file has been saved!&#39;);
 });
 </code></pre>
 <p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
@@ -13801,7 +14056,7 @@ Defaults to <code>256</code>.</li>
 of these values set to their respective defaults.</p>
 <p>To configure any of them, a custom <a href="http.html#http_class_http_agent"><code>http.Agent</code></a> instance must be created.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
-var keepAliveAgent = new http.Agent({ keepAlive: true });
+const keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
 http.request(options, onResponseCallback);
 </code></pre>
@@ -13942,14 +14197,14 @@ const net = require(&#39;net&#39;);
 const url = require(&#39;url&#39;);
 
 // Create an HTTP tunneling proxy
-var proxy = http.createServer( (req, res) =&gt; {
+const proxy = http.createServer( (req, res) =&gt; {
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
   res.end(&#39;okay&#39;);
 });
 proxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {
   // connect to an origin server
-  var srvUrl = url.parse(`http://${req.url}`);
-  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {
+  const srvUrl = url.parse(`http://${req.url}`);
+  const srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {
     cltSocket.write(&#39;HTTP/1.1 200 Connection Established\r\n&#39; +
                     &#39;Proxy-agent: Node.js-Proxy\r\n&#39; +
                     &#39;\r\n&#39;);
@@ -13963,14 +14218,14 @@ proxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {
 proxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
 
   // make a request to a tunneling proxy
-  var options = {
+  const options = {
     port: 1337,
     hostname: &#39;127.0.0.1&#39;,
     method: &#39;CONNECT&#39;,
     path: &#39;www.google.com:80&#39;
   };
 
-  var req = http.request(options);
+  const req = http.request(options);
   req.end();
 
   req.on(&#39;connect&#39;, (res, socket, head) =&gt; {
@@ -14026,7 +14281,7 @@ their connections closed.</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 
 // Create an HTTP server
-var srv = http.createServer( (req, res) =&gt; {
+const srv = http.createServer( (req, res) =&gt; {
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
   res.end(&#39;okay&#39;);
 });
@@ -14043,7 +14298,7 @@ srv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {
 srv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
 
   // make a request
-  var options = {
+  const options = {
     port: 1337,
     hostname: &#39;127.0.0.1&#39;,
     headers: {
@@ -14052,7 +14307,7 @@ srv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {
     }
   };
 
-  var req = http.request(options);
+  const req = http.request(options);
   req.end();
 
   req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {
@@ -14338,13 +14593,13 @@ subsequent call will <em>re-open</em> the server using the provided options.</p>
 </ul>
 <p>A Boolean indicating whether or not the server is listening for
 connections.</p>
-<h3>server.maxHeadersCount([limit])<span><a class="mark" href="#http_server_maxheaderscount_limit" id="http_server_maxheaderscount_limit">#</a></span></h3>
+<h3>server.maxHeadersCount<span><a class="mark" href="#http_server_maxheaderscount" id="http_server_maxheaderscount">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div><ul>
-<li><code>limit</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 1000.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 2000.</li>
 </ul>
-<p>Limits maximum incoming headers count, equal to 1000 by default. If set to 0 -
+<p>Limits maximum incoming headers count, equal to 2000 by default. If set to 0 -
 no limit will be applied.</p>
 <h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
@@ -14362,11 +14617,11 @@ will be called with the timed-out socket as an argument.</p>
 destroyed automatically if they time out.  However, if a callback is assigned
 to the Server&#39;s <code>&#39;timeout&#39;</code> event, timeouts must be handled explicitly.</p>
 <p>Returns <code>server</code>.</p>
-<h3>server.timeout([msecs])<span><a class="mark" href="#http_server_timeout_msecs" id="http_server_timeout_msecs">#</a></span></h3>
+<h3>server.timeout<span><a class="mark" href="#http_server_timeout" id="http_server_timeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
 </div><ul>
-<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
 </ul>
 <p>The number of milliseconds of inactivity before a socket is presumed
 to have timed out.</p>
@@ -14449,7 +14704,7 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 <p>Reads out a header that&#39;s already been queued but not sent to the client.
 Note that the name is case insensitive.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var contentType = response.getHeader(&#39;content-type&#39;);
+<pre><code class="lang-js">const contentType = response.getHeader(&#39;content-type&#39;);
 </code></pre>
 <h3>response.getHeaderNames()<span><a class="mark" href="#http_response_getheadernames" id="http_response_getheadernames">#</a></span></h3>
 <div class="api_metadata">
@@ -14463,7 +14718,7 @@ All header names are lowercase.</p>
 <pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
 response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
 
-var headerNames = response.getHeaderNames();
+const headerNames = response.getHeaderNames();
 // headerNames === [&#39;foo&#39;, &#39;set-cookie&#39;]
 </code></pre>
 <h3>response.getHeaders()<span><a class="mark" href="#http_response_getheaders" id="http_response_getheaders">#</a></span></h3>
@@ -14481,7 +14736,7 @@ are lowercase.</p>
 <pre><code class="lang-js">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);
 response.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);
 
-var headers = response.getHeaders();
+const headers = response.getHeaders();
 // headers === { foo: &#39;bar&#39;, &#39;set-cookie&#39;: [&#39;foo=bar&#39;, &#39;bar=baz&#39;] }
 </code></pre>
 <h3>response.hasHeader(name)<span><a class="mark" href="#http_response_hasheader_name" id="http_response_hasheader_name">#</a></span></h3>
@@ -14494,7 +14749,7 @@ var headers = response.getHeaders();
 <p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the
 outgoing headers. Note that the header name matching is case-insensitive.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var hasContentType = response.hasHeader(&#39;content-type&#39;);
+<pre><code class="lang-js">const hasContentType = response.hasHeader(&#39;content-type&#39;);
 </code></pre>
 <h3>response.headersSent<span><a class="mark" href="#http_response_headerssent" id="http_response_headerssent">#</a></span></h3>
 <div class="api_metadata">
@@ -14545,7 +14800,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 any headers passed to <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed to
 <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
 <pre><code class="lang-js">// returns content-type = text/plain
-const server = http.createServer((req,res) =&gt; {
+const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
@@ -14609,6 +14864,9 @@ status message which was sent out.</p>
 it will switch to implicit header mode and flush the implicit headers.</p>
 <p>This sends a chunk of the response body. This method may
 be called multiple times to provide successive parts of the body.</p>
+<p>Note that in the <code>http</code> module, the response body is omitted when the
+request is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses
+<em>must not</em> include a message body.</p>
 <p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,
 the second parameter specifies how to encode it into a byte stream.
 By default the <code>encoding</code> is <code>&#39;utf8&#39;</code>. <code>callback</code> will be called when this chunk
@@ -14651,7 +14909,7 @@ status code, like <code>404</code>. The last argument, <code>headers</code>, are
 Optionally one can give a human-readable <code>statusMessage</code> as the second
 argument.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var body = &#39;hello world&#39;;
+<pre><code class="lang-js">const body = &#39;hello world&#39;;
 response.writeHead(200, {
   &#39;Content-Length&#39;: Buffer.byteLength(body),
   &#39;Content-Type&#39;: &#39;text/plain&#39; });
@@ -14664,7 +14922,7 @@ this, the implicit/mutable headers will be calculated and call this function.</p
 any headers passed to <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed to
 <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
 <pre><code class="lang-js">// returns content-type = text/plain
-const server = http.createServer((req,res) =&gt; {
+const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
   res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
@@ -14845,12 +15103,19 @@ Accept: text/plain\r\n
 can be used.  Example:</p>
 <pre><code class="lang-txt">$ node
 &gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;)
-{
-  href: &#39;/status?name=ryan&#39;,
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: null,
   search: &#39;?name=ryan&#39;,
   query: &#39;name=ryan&#39;,
-  pathname: &#39;/status&#39;
-}
+  pathname: &#39;/status&#39;,
+  path: &#39;/status?name=ryan&#39;,
+  href: &#39;/status?name=ryan&#39; }
 </code></pre>
 <p>To extract the parameters from the query string, the
 <code>require(&#39;querystring&#39;).parse</code> function can be used, or
@@ -14858,12 +15123,19 @@ can be used.  Example:</p>
 Example:</p>
 <pre><code class="lang-txt">$ node
 &gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;, true)
-{
-  href: &#39;/status?name=ryan&#39;,
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: null,
   search: &#39;?name=ryan&#39;,
-  query: {name: &#39;ryan&#39;},
-  pathname: &#39;/status&#39;
-}
+  query: { name: &#39;ryan&#39; },
+  pathname: &#39;/status&#39;,
+  path: &#39;/status?name=ryan&#39;,
+  href: &#39;/status?name=ryan&#39; }
 </code></pre>
 <h2>http.METHODS<span><a class="mark" href="#http_http_methods" id="http_http_methods">#</a></span></h2>
 <div class="api_metadata">
@@ -14898,7 +15170,8 @@ added to the <a href="#http_event_request"><code>&#39;request&#39;</code></a> ev
 <span>Added in: v0.3.6</span>
 </div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Accepts the same <code>options</code> as
-<a href="http.html#http_http_request_options_callback"><code>http.request()</code></a>, with the <code>method</code> always set to <code>GET</code>.</li>
+<a href="http.html#http_http_request_options_callback"><code>http.request()</code></a>, with the <code>method</code> always set to <code>GET</code>.
+Properties that are inherited from the prototype are ignored.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li>Returns: <a href="http.html#http_class_http_clientrequest" class="type">&lt;http.ClientRequest&gt;</a></li>
 </ul>
@@ -14911,7 +15184,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 <a href="#http_class_http_incomingmessage"><code>http.IncomingMessage</code></a></p>
 <p>JSON Fetching Example:</p>
 <pre><code class="lang-js">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {
-  const statusCode = res.statusCode;
+  const { statusCode } = res;
   const contentType = res.headers[&#39;content-type&#39;];
 
   let error;
@@ -14923,7 +15196,7 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
                       `Expected application/json but received ${contentType}`);
   }
   if (error) {
-    console.log(error.message);
+    console.error(error.message);
     // consume response data to free up memory
     res.resume();
     return;
@@ -14931,17 +15204,17 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 
   res.setEncoding(&#39;utf8&#39;);
   let rawData = &#39;&#39;;
-  res.on(&#39;data&#39;, (chunk) =&gt; rawData += chunk);
+  res.on(&#39;data&#39;, (chunk) =&gt; { rawData += chunk; });
   res.on(&#39;end&#39;, () =&gt; {
     try {
-      let parsedData = JSON.parse(rawData);
+      const parsedData = JSON.parse(rawData);
       console.log(parsedData);
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
     }
   });
 }).on(&#39;error&#39;, (e) =&gt; {
-  console.log(`Got error: ${e.message}`);
+  console.error(`Got error: ${e.message}`);
 });
 </code></pre>
 <h2>http.globalAgent<span><a class="mark" href="#http_http_globalagent" id="http_http_globalagent">#</a></span></h2>
@@ -15006,11 +15279,11 @@ the <a href="#http_event_response"><code>&#39;response&#39;</code></a> event.</p
 class. The <code>ClientRequest</code> instance is a writable stream. If one needs to
 upload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var postData = querystring.stringify({
-  &#39;msg&#39; : &#39;Hello World!&#39;
+<pre><code class="lang-js">const postData = querystring.stringify({
+  &#39;msg&#39;: &#39;Hello World!&#39;
 });
 
-var options = {
+const options = {
   hostname: &#39;www.google.com&#39;,
   port: 80,
   path: &#39;/upload&#39;,
@@ -15021,7 +15294,7 @@ var options = {
   }
 };
 
-var req = http.request(options, (res) =&gt; {
+const req = http.request(options, (res) =&gt; {
   console.log(`STATUS: ${res.statusCode}`);
   console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
   res.setEncoding(&#39;utf8&#39;);
@@ -15034,7 +15307,7 @@ var req = http.request(options, (res) =&gt; {
 });
 
 req.on(&#39;error&#39;, (e) =&gt; {
-  console.log(`problem with request: ${e.message}`);
+  console.error(`problem with request: ${e.message}`);
 });
 
 // write data to request body
@@ -15087,11 +15360,11 @@ for more information.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>See <a href="http.html#http_server_settimeout_msecs_callback"><code>http.Server#setTimeout()</code></a>.</p>
-<h3>server.timeout([msecs])<span><a class="mark" href="#https_server_timeout_msecs" id="https_server_timeout_msecs">#</a></span></h3>
+<h3>server.timeout<span><a class="mark" href="#https_server_timeout" id="https_server_timeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
 </div><ul>
-<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
 </ul>
 <p>See <a href="http.html#http_server_timeout"><code>http.Server#timeout</code></a>.</p>
 <h2>https.createServer(options[, requestListener])<span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
@@ -15121,7 +15394,8 @@ https.createServer(options, (req, res) =&gt; {
 const fs = require(&#39;fs&#39;);
 
 const options = {
-  pfx: fs.readFileSync(&#39;server.pfx&#39;)
+  pfx: fs.readFileSync(&#39;test/fixtures/test_cert.pfx&#39;),
+  passphrase: &#39;sample&#39;
 };
 
 https.createServer(options, (req, res) =&gt; {
@@ -15206,14 +15480,14 @@ automatically parsed with <a href="#url_url_parse_urlstring_parsequerystring_sla
 <p>Example:</p>
 <pre><code class="lang-js">const https = require(&#39;https&#39;);
 
-var options = {
+const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
   method: &#39;GET&#39;
 };
 
-var req = https.request(options, (res) =&gt; {
+const req = https.request(options, (res) =&gt; {
   console.log(&#39;statusCode:&#39;, res.statusCode);
   console.log(&#39;headers:&#39;, res.headers);
 
@@ -15228,7 +15502,7 @@ req.on(&#39;error&#39;, (e) =&gt; {
 req.end();
 </code></pre>
 <p>Example using options from <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>:</p>
-<pre><code class="lang-js">var options = {
+<pre><code class="lang-js">const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
@@ -15238,13 +15512,13 @@ req.end();
 };
 options.agent = new https.Agent(options);
 
-var req = https.request(options, (res) =&gt; {
-  ...
+const req = https.request(options, (res) =&gt; {
+  // ...
 });
 </code></pre>
 <p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var options = {
+<pre><code class="lang-js">const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
@@ -15254,8 +15528,8 @@ var req = https.request(options, (res) =&gt; {
   agent: false
 };
 
-var req = https.request(options, (res) =&gt; {
-  ...
+const req = https.request(options, (res) =&gt; {
+  // ...
 });
 </code></pre>
 <!-- [end-include:https.md] -->
@@ -15271,9 +15545,9 @@ console.log(`The area of a circle of radius 4 is ${circle.area(4)}`);
 <p>On the first line, <code>foo.js</code> loads the module <code>circle.js</code> that is in the same
 directory as <code>foo.js</code>.</p>
 <p>Here are the contents of <code>circle.js</code>:</p>
-<pre><code class="lang-js">const PI = Math.PI;
+<pre><code class="lang-js">const { PI } = Math;
 
-exports.area = (r) =&gt; PI * r * r;
+exports.area = (r) =&gt; PI * r ** 2;
 
 exports.circumference = (r) =&gt; 2 * PI * r;
 </code></pre>
@@ -15289,18 +15563,18 @@ instead of building it one property at a time, assign it to <code>module.exports
 instead of <code>exports</code>.</p>
 <p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a constructor:</p>
 <pre><code class="lang-js">const square = require(&#39;./square.js&#39;);
-var mySquare = square(2);
+const mySquare = square(2);
 console.log(`The area of my square is ${mySquare.area()}`);
 </code></pre>
 <p>The <code>square</code> module is defined in <code>square.js</code>:</p>
 <pre><code class="lang-js">// assigning to exports will not modify module, must use module.exports
 module.exports = (width) =&gt; {
   return {
-    area: () =&gt; width * width
+    area: () =&gt; width ** 2
   };
-}
+};
 </code></pre>
-<p>The module system is implemented in the <code>require(&quot;module&quot;)</code> module.</p>
+<p>The module system is implemented in the <code>require(&#39;module&#39;)</code> module.</p>
 <h2>Accessing the main module<span><a class="mark" href="#modules_accessing_the_main_module" id="modules_accessing_the_main_module">#</a></span></h2>
 <!-- type=misc -->
 <p>When a file is run directly from Node.js, <code>require.main</code> is set to its
@@ -15362,16 +15636,18 @@ relative, and based on the real path of the files making the calls to
 <p>To get the exact filename that will be loaded when <code>require()</code> is called, use
 the <code>require.resolve()</code> function.</p>
 <p>Putting together all of the above, here is the high-level algorithm
-in pseudocode of what require.resolve does:</p>
+in pseudocode of what <code>require.resolve()</code> does:</p>
 <pre><code class="lang-txt">require(X) from module at path Y
 1. If X is a core module,
    a. return the core module
    b. STOP
-2. If X begins with &#39;./&#39; or &#39;/&#39; or &#39;../&#39;
+2. If X begins with &#39;/&#39;
+   a. set Y to be the filesystem root
+3. If X begins with &#39;./&#39; or &#39;/&#39; or &#39;../&#39;
    a. LOAD_AS_FILE(Y + X)
    b. LOAD_AS_DIRECTORY(Y + X)
-3. LOAD_NODE_MODULES(X, dirname(Y))
-4. THROW &quot;not found&quot;
+4. LOAD_NODE_MODULES(X, dirname(Y))
+5. THROW &quot;not found&quot;
 
 LOAD_AS_FILE(X)
 1. If X is a file, load X as JavaScript text.  STOP
@@ -15677,20 +15953,21 @@ exports = { hello: false };  // Not exported, only available in the module
 <p>When the <code>module.exports</code> property is being completely replaced by a new
 object, it is common to also reassign <code>exports</code>, for example:</p>
 <pre><code class="lang-js">module.exports = exports = function Constructor() {
-    // ... etc.
+  // ... etc.
+};
 </code></pre>
 <p>To illustrate the behavior, imagine this hypothetical implementation of
 <code>require()</code>, which is quite similar to what is actually done by <code>require()</code>:</p>
-<pre><code class="lang-js">function require(...) {
-  var module = { exports: {} };
+<pre><code class="lang-js">function require(/* ... */) {
+  const module = { exports: {} };
   ((module, exports) =&gt; {
     // Your module code here. In this example, define a function.
-    function some_func() {};
-    exports = some_func;
+    function someFunc() {}
+    exports = someFunc;
     // At this point, exports is no longer a shortcut to module.exports, and
     // this module will still export an empty default object.
-    module.exports = some_func;
-    // At this point, the module will now export some_func, instead of the
+    module.exports = someFunc;
+    // At this point, the module will now export someFunc, instead of the
     // default object.
   })(module, module.exports);
   return module.exports;
@@ -15786,7 +16063,7 @@ Useful to find which port was assigned when getting an OS-assigned address.
 Returns an object with <code>port</code>, <code>family</code>, and <code>address</code> properties:
 <code>{ port: 12346, family: &#39;IPv4&#39;, address: &#39;127.0.0.1&#39; }</code></p>
 <p>Example:</p>
-<pre><code class="lang-js">var server = net.createServer((socket) =&gt; {
+<pre><code class="lang-js">const server = net.createServer((socket) =&gt; {
   socket.end(&#39;goodbye\n&#39;);
 }).on(&#39;error&#39;, (err) =&gt; {
   // handle errors here
@@ -15899,7 +16176,7 @@ persist</em>, they are removed when the last reference to them is closed. Do not
 forget JavaScript string escaping requires paths to be specified with
 double-backslashes, such as:</p>
 <pre><code class="lang-js">net.createServer().listen(
-    path.join(&#39;\\\\?\\pipe&#39;, process.cwd(), &#39;myctl&#39;))
+    path.join(&#39;\\\\?\\pipe&#39;, process.cwd(), &#39;myctl&#39;));
 </code></pre>
 <p>The parameter <code>backlog</code> behaves the same as in
 <a href="#net_server_listen_port_hostname_backlog_callback"><code>server.listen([port][, hostname][, backlog][, callback])</code></a>.</p>
@@ -16314,7 +16591,8 @@ connects with the supplied <code>options</code>.</p>
 <p>Passing <code>timeout</code> as an option will call <a href="#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> after the socket is created, but before it is connecting.</p>
 <p>The <code>connectListener</code> parameter will be added as a listener for the
 <a href="#net_event_connect"><code>&#39;connect&#39;</code></a> event once.</p>
-<p>Here is an example of a client of the previously described echo server:</p>
+<p>Following is an example of a client of the echo server described
+in the <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> section:</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
 const client = net.createConnection({port: 8124}, () =&gt; {
   //&#39;connect&#39; listener
@@ -16387,7 +16665,7 @@ server.listen(8124, () =&gt; {
 });
 </code></pre>
 <p>Test this by using <code>telnet</code>:</p>
-<pre><code class="lang-sh">telnet localhost 8124
+<pre><code class="lang-console">$ telnet localhost 8124
 </code></pre>
 <p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would
 just be changed to</p>
@@ -16396,7 +16674,7 @@ just be changed to</p>
 });
 </code></pre>
 <p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>
-<pre><code class="lang-js">nc -U /tmp/echo.sock
+<pre><code class="lang-console">$ nc -U /tmp/echo.sock
 </code></pre>
 <h2>net.isIP(input)<span><a class="mark" href="#net_net_isip_input" id="net_net_isip_input">#</a></span></h2>
 <div class="api_metadata">
@@ -16748,9 +17026,8 @@ information about the output of running <a href="http://man7.org/linux/man-pages
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>
-<p><em>Note</em>: Within Node.js&#39; internals, this number is represented as a <code>double</code>.
-However, fractional seconds are not returned and the value can typically be
-treated as an integer.</p>
+<p><em>Note</em>: On Windows the returned value includes fractions of a second.
+Use <code>Math.floor()</code> to get whole seconds.</p>
 <h2>os.userInfo(<a href="#zlib_class_options">options</a>)<span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -17587,7 +17864,8 @@ operating system, use <a href="#path_path_posix"><code>path.posix</code></a>:</p
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>path.basename()</code> methods returns the last portion of a <code>path</code>, similar to
-the Unix <code>basename</code> command.</p>
+the Unix <code>basename</code> command. Trailing directory separators are ignored, see
+<a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>For example:</p>
 <pre><code class="lang-js">path.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;)
 // Returns: &#39;quux.html&#39;
@@ -17640,7 +17918,8 @@ process.env.PATH.split(path.delimiter)
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>path.dirname()</code> method returns the directory name of a <code>path</code>, similar to
-the Unix <code>dirname</code> command.</p>
+the Unix <code>dirname</code> command. Trailing directory separators are ignored, see
+<a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>For example:</p>
 <pre><code class="lang-js">path.dirname(&#39;/foo/bar/baz/asdf/quux&#39;)
 // Returns: &#39;/foo/bar/baz/asdf&#39;
@@ -17738,8 +18017,8 @@ path.format({
 </code></pre>
 <p>On Windows:</p>
 <pre><code class="lang-js">path.format({
-  dir : &quot;C:\\path\\dir&quot;,
-  base : &quot;file.txt&quot;
+  dir: &#39;C:\\path\\dir&#39;,
+  base: &#39;file.txt&#39;
 });
 // Returns: &#39;C:\\path\\dir\\file.txt&#39;
 </code></pre>
@@ -17785,7 +18064,7 @@ working directory.</p>
 // Returns: &#39;/foo/bar/baz/asdf&#39;
 
 path.join(&#39;foo&#39;, {}, &#39;bar&#39;)
-// throws TypeError: Arguments to path.join must be strings
+// throws &#39;TypeError: Path must be a string. Received {}&#39;
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>
 <h2>path.normalize(path)<span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
@@ -17807,7 +18086,7 @@ current working directory.</p>
 // Returns: &#39;/foo/bar/baz/asdf&#39;
 </code></pre>
 <p>On Windows:</p>
-<pre><code class="lang-js">path.normalize(&#39;C:\\temp\\\\foo\\bar\\..\\&#39;);
+<pre><code class="lang-js">path.normalize(&#39;C:\\temp\\\\foo\\bar\\..\\&#39;)
 // Returns: &#39;C:\\temp\\foo\\&#39;
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
@@ -17819,7 +18098,8 @@ current working directory.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>path.parse()</code> method returns an object whose properties represent
-significant elements of the <code>path</code>.</p>
+significant elements of the <code>path</code>. Trailing directory separators are ignored,
+see <a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <p>The returned object will have the following properties:</p>
 <ul>
 <li><code>root</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -17831,13 +18111,11 @@ significant elements of the <code>path</code>.</p>
 <p>For example on POSIX:</p>
 <pre><code class="lang-js">path.parse(&#39;/home/user/dir/file.txt&#39;)
 // Returns:
-// {
-//    root : &quot;/&quot;,
-//    dir : &quot;/home/user/dir&quot;,
-//    base : &quot;file.txt&quot;,
-//    ext : &quot;.txt&quot;,
-//    name : &quot;file&quot;
-// }
+// { root: &#39;/&#39;,
+//   dir: &#39;/home/user/dir&#39;,
+//   base: &#39;file.txt&#39;,
+//   ext: &#39;.txt&#39;,
+//   name: &#39;file&#39; }
 </code></pre>
 <pre><code class="lang-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
@@ -17850,13 +18128,11 @@ significant elements of the <code>path</code>.</p>
 <p>On Windows:</p>
 <pre><code class="lang-js">path.parse(&#39;C:\\path\\dir\\file.txt&#39;)
 // Returns:
-// {
-//    root : &quot;C:\\&quot;,
-//    dir : &quot;C:\\path\\dir&quot;,
-//    base : &quot;file.txt&quot;,
-//    ext : &quot;.txt&quot;,
-//    name : &quot;file&quot;
-// }
+// { root: &#39;C:\\&#39;,
+//   dir: &#39;C:\\path\\dir&#39;,
+//   base: &#39;file.txt&#39;,
+//   ext: &#39;.txt&#39;,
+//   name: &#39;file&#39; }
 </code></pre>
 <pre><code class="lang-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
@@ -17958,6 +18234,9 @@ path.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.g
 <pre><code class="lang-js">&#39;foo\\bar\\baz&#39;.split(path.sep)
 // Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]
 </code></pre>
+<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>) are
+accepted as path segment separators; however, the <code>path</code> methods only add
+backward slashes (<code>\</code>).</p>
 <h2>path.win32<span><a class="mark" href="#path_path_win32" id="path_path_win32">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
@@ -17966,9 +18245,6 @@ path.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.g
 </ul>
 <p>The <code>path.win32</code> property provides access to Windows-specific implementations
 of the <code>path</code> methods.</p>
-<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>)
-characters are accepted as path delimiters; however, only the backward slash
-(<code>\</code>) will be used in return values.</p>
 <!-- [end-include:path.md] -->
 <!-- [start-include:process.md] -->
 <h1>Process<span><a class="mark" href="#process_process" id="process_process">#</a></span></h1>
@@ -18204,7 +18480,7 @@ command-line option can be used to suppress the default console output but the
 <p>The following example illustrates the warning that is printed to <code>stderr</code> when
 too many listeners have been added to an event</p>
 <pre><code class="lang-txt">$ node
-&gt; event.defaultMaxListeners = 1;
+&gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; (node:38638) Warning: Possible EventEmitter memory leak detected. 2 foo
@@ -18214,7 +18490,7 @@ too many listeners have been added to an event</p>
 adds a custom handler to the <code>&#39;warning&#39;</code> event:</p>
 <pre><code class="lang-txt">$ node --no-warnings
 &gt; var p = process.on(&#39;warning&#39;, (warning) =&gt; console.warn(&#39;Do not do that!&#39;));
-&gt; event.defaultMaxListeners = 1;
+&gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; Do not do that!
@@ -18383,7 +18659,7 @@ representation of the configure options used to compile the current Node.js
 executable. This is the same as the <code>config.gypi</code> file that was produced when
 running the <code>./configure</code> script.</p>
 <p>An example of the possible output looks like:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-txt">{
   target_defaults:
    { cflags: [],
      default_configuration: &#39;Release&#39;,
@@ -18941,9 +19217,12 @@ function maybeSync(arg, cb) {
 }
 </code></pre>
 <p>This API is hazardous because in the following case:</p>
-<pre><code class="lang-js">maybeSync(true, () =&gt; {
+<pre><code class="lang-js">const maybeTrue = Math.random() &gt; 0.5;
+
+maybeSync(maybeTrue, () =&gt; {
   foo();
 });
+
 bar();
 </code></pre>
 <p>It is not clear whether <code>foo()</code> or <code>bar()</code> will be called first.</p>
@@ -19148,16 +19427,20 @@ Android)</p>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stderr</code> property returns a <a href="#stream_class_stream_writable">Writable</a> stream connected to
-<code>stderr</code> (fd <code>2</code>).</p>
+</div><p>The <code>process.stderr</code> property returns a stream connected to
+<code>stderr</code> (fd <code>2</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="#stream_class_stream_duplex">Duplex</a>
+stream) unless fd <code>2</code> refers to a file, in which case it is
+a <a href="#stream_class_stream_writable">Writable</a> stream.</p>
 <p>Note: <code>process.stderr</code> differs from other Node.js streams in important ways,
 see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdin</code> property returns a <a href="#stream_class_stream_readable">Readable</a> stream equivalent to or
-associated with <code>stdin</code> (fd <code>0</code>).</p>
+</div><p>The <code>process.stdin</code> property returns a stream connected to
+<code>stdin</code> (fd <code>0</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="#stream_class_stream_duplex">Duplex</a>
+stream) unless fd <code>0</code> refers to a file, in which case it is
+a <a href="#stream_class_stream_readable">Readable</a> stream.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.stdin.setEncoding(&#39;utf8&#39;);
 
@@ -19172,7 +19455,7 @@ process.stdin.on(&#39;end&#39;, () =&gt; {
   process.stdout.write(&#39;end&#39;);
 });
 </code></pre>
-<p>As a <a href="#stream_class_stream_readable">Readable</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
+<p>As a <a href="#stream_class_stream_duplex">Duplex</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
 is compatible with scripts written for Node.js prior to v0.10.
 For more information see <a href="stream.html#stream_compatibility_with_older_node_js_versions">Stream compatibility</a>.</p>
 <p><em>Note</em>: In &quot;old&quot; streams mode the <code>stdin</code> stream is paused by default, so one
@@ -19182,8 +19465,10 @@ must call <code>process.stdin.resume()</code> to read from it. Note also that ca
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdout</code> property returns a <a href="#stream_class_stream_writable">Writable</a> stream connected to
-<code>stdout</code> (fd <code>2</code>).</p>
+</div><p>The <code>process.stdout</code> property returns a stream connected to
+<code>stdout</code> (fd <code>1</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="#stream_class_stream_duplex">Duplex</a>
+stream) unless fd <code>1</code> refers to a file, in which case it is
+a <a href="#stream_class_stream_writable">Writable</a> stream.</p>
 <p>For example, to copy process.stdin to process.stdout:</p>
 <pre><code class="lang-js">process.stdin.pipe(process.stdout);
 </code></pre>
@@ -19208,7 +19493,7 @@ and whether the system is Windows or Unix:<ul>
 <p>These behaviours are partly for historical reasons, as changing them would
 create backwards incompatibility, but they are also expected by some users.</p>
 <p>Synchronous writes avoid problems such as output written with <code>console.log()</code> or
-<code>console.write()</code> being unexpectedly interleaved, or not written at all if
+<code>console.error()</code> being unexpectedly interleaved, or not written at all if
 <code>process.exit()</code> is called before an asynchronous write completes. See
 <a href="#process_process_exit_code"><code>process.exit()</code></a> for more information.</p>
 <p><strong><em>Warning</em></strong>: Synchronous writes block the event loop until the write has
@@ -19273,6 +19558,8 @@ console.log(
 </ul>
 <p>The <code>process.uptime()</code> method returns the number of seconds the current Node.js
 process has been running.</p>
+<p><em>Note</em>: the return value includes fractions of a second. Use <code>Math.floor()</code>
+to get whole seconds.</p>
 <h2>process.version<span><a class="mark" href="#process_process_version" id="process_process_version">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.3</span>
@@ -19304,7 +19591,7 @@ ABI version, which is increased whenever a C++ API changes. Node.js will refuse
 to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
-<p>Will generate output similar to:</p>
+<p>Will generate an object similar to:</p>
 <pre><code class="lang-js">{
   http_parser: &#39;2.3.0&#39;,
   node: &#39;1.1.1&#39;,
@@ -19568,11 +19855,14 @@ URL-unsafe characters to percent-encoding in the query string. Defaults to
 </ul>
 <p>The <code>querystring.stringify()</code> method produces a URL query string from a
 given <code>obj</code> by iterating through the object&#39;s &quot;own properties&quot;.</p>
+<p>It serializes the following types of values passed in <code>obj</code>:
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean[]&gt;</a>
+Any other input values will be coerced to empty strings.</p>
 <p>For example:</p>
 <pre><code class="lang-js">querystring.stringify({ foo: &#39;bar&#39;, baz: [&#39;qux&#39;, &#39;quux&#39;], corge: &#39;&#39; })
 // returns &#39;foo=bar&amp;baz=qux&amp;baz=quux&amp;corge=&#39;
 
-querystring.stringify({foo: &#39;bar&#39;, baz: &#39;qux&#39;}, &#39;;&#39;, &#39;:&#39;)
+querystring.stringify({ foo: &#39;bar&#39;, baz: &#39;qux&#39; }, &#39;;&#39;, &#39;:&#39;)
 // returns &#39;foo:bar;baz:qux&#39;
 </code></pre>
 <p>By default, characters requiring percent-encoding within the query string will
@@ -19882,6 +20172,9 @@ check, otherwise the history caching mechanism is not initialized at all.</li>
 <code>crlfDelay</code> milliseconds, both <code>\r</code> and <code>\n</code> will be treated as separate
 end-of-line input. Default to <code>100</code> milliseconds.
 <code>crlfDelay</code> will be coerced to <code>[100, 2000]</code> range.</li>
+<li><code>removeHistoryDuplicates</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, when a new input line added
+to the history list duplicates an older one, this removes the older line
+from the list. Defaults to <code>false</code>.</li>
 </ul>
 </li>
 </ul>
@@ -19905,8 +20198,8 @@ the best compatibility if it defines an <code>output.columns</code> property and
 a <code>&#39;resize&#39;</code> event on the <code>output</code> if or when the columns ever change
 (<a href="process.html#process_process_stdout"><code>process.stdout</code></a> does this automatically when it is a TTY).</p>
 <h3>Use of the <code>completer</code> Function<span><a class="mark" href="#readline_use_of_the_completer_function" id="readline_use_of_the_completer_function">#</a></span></h3>
-<p>When called, the <code>completer</code> function is provided the current line entered by
-the user, and is expected to return an Array with 2 entries:</p>
+<p>The <code>completer</code> function takes the current line entered by the user
+as an argument, and returns an Array with 2 entries:</p>
 <ul>
 <li>An Array with matching entries for the completion.</li>
 <li>The substring that was used for the matching.</li>
@@ -20271,7 +20564,7 @@ replServer.defineCommand(&#39;sayhello&#39;, {
     this.displayPrompt();
   }
 });
-replServer.defineCommand(&#39;saybye&#39;, () =&gt; {
+replServer.defineCommand(&#39;saybye&#39;, function saybye() {
   console.log(&#39;Goodbye!&#39;);
   this.close();
 });
@@ -20369,6 +20662,8 @@ for executing JavaScript. This can be used by executing the Node.js binary
 without passing any arguments (or by passing the <code>-i</code> argument):</p>
 <pre><code class="lang-js">$ node
 &gt; const a = [1, 2, 3];
+undefined
+&gt; a
 [ 1, 2, 3 ]
 &gt; a.forEach((v) =&gt; {
 ...   console.log(v);
@@ -20684,7 +20979,7 @@ data. The listener callback is passed a single <code>Error</code> argument when 
 has been called, and all data has been flushed to the underlying system.</p>
 <pre><code class="lang-js">const writer = getWritableStreamSomehow();
 for (var i = 0; i &lt; 100; i ++) {
-  writer.write(&#39;hello, #${i}!\n&#39;);
+  writer.write(`hello, #${i}!\n`);
 }
 writer.end(&#39;This is the end\n&#39;);
 writer.on(&#39;finish&#39;, () =&gt; {
@@ -20921,7 +21216,7 @@ destinations, then calling <a href="#stream_readable_pause"><code>stream.pause()
 that the stream will <em>remain</em> paused once those destinations drain and ask for
 more data.</p>
 <p><em>Note</em>: If a <a href="#stream_class_stream_readable">Readable</a> is switched into flowing mode and there are no
-consumers available handle the data, that data will be lost. This can occur,
+consumers available to handle the data, that data will be lost. This can occur,
 for instance, when the <code>readable.resume()</code> method is called without a listener
 attached to the <code>&#39;data&#39;</code> event, or when a <code>&#39;data&#39;</code> event handler is removed
 from the stream.</p>
@@ -21253,7 +21548,7 @@ setTimeout(() =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.9.11</span>
 </div><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to unshift onto the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to unshift onto the read queue</li>
 </ul>
 <p>The <code>readable.unshift()</code> method pushes a chunk of data back into the internal
 buffer. This is useful in certain situations where a stream is being consumed by
@@ -21284,7 +21579,7 @@ function parseHeader(stream, callback) {
         const remaining = split.join(&#39;\n\n&#39;);
         const buf = Buffer.from(remaining, &#39;utf8&#39;);
         stream.removeListener(&#39;error&#39;, callback);
-        // set the readable listener before unshifting
+        // remove the readable listener before unshifting
         stream.removeListener(&#39;readable&#39;, onReadable);
         if (buf.length)
           stream.unshift(buf);
@@ -21373,7 +21668,7 @@ implement both the <a href="#stream_class_stream_readable">Readable</a> and <a h
 implement streams using JavaScript&#39;s prototypal inheritance model.</p>
 <p>First, a stream developer would declare a new JavaScript class that extends one
 of the four basic stream classes (<code>stream.Writable</code>, <code>stream.Readable</code>,
-<code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure the call the appropriate
+<code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure they call the appropriate
 parent class constructor:</p>
 <pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
 
@@ -21525,8 +21820,9 @@ const myWritable = new Writable({
 </code></pre>
 <h4>writable._write(chunk, encoding, callback)<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback_1" id="stream_writable_write_chunk_encoding_callback_1">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be written. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk to be written. Will <strong>always</strong>
+be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
+or the stream is operating in object mode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then <code>encoding</code> is the
 character encoding of that string. If chunk is a <code>Buffer</code>, or if the
 stream is operating in object mode, <code>encoding</code> may be ignored.</li>
@@ -21696,13 +21992,13 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>readable.push(chunk[, encoding])<span><a class="mark" href="#stream_readable_push_chunk_encoding" id="stream_readable_push_chunk_encoding">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to push into the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to push into the read queue</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Encoding of String chunks.  Must be a valid
 Buffer encoding, such as <code>&#39;utf8&#39;</code> or <code>&#39;ascii&#39;</code></li>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data may continued to be
 pushed; <code>false</code> otherwise.</li>
 </ul>
-</div><p>When <code>chunk</code> is a <code>Buffer</code> or <code>string</code>, the <code>chunk</code> of data will be added to the
+</div><p>When <code>chunk</code> is not <code>null</code>, the <code>chunk</code> of data will be added to the
 internal queue for users of the stream to consume. Passing <code>chunk</code> as <code>null</code>
 signals the end of the stream (EOF), after which no more data can be written.</p>
 <p>When the Readable is operating in paused mode, the data added with
@@ -21753,6 +22049,7 @@ being thrown. Throwing an Error from within <code>readable._read()</code> can re
 unexpected and inconsistent behavior depending on whether the stream is
 operating in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures
 consistent and predictable handling of errors.</p>
+<!-- eslint-disable no-useless-return -->
 <pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
 
 const myReadable = new Readable({
@@ -22012,8 +22309,9 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>transform._transform(chunk, encoding, callback)<span><a class="mark" href="#stream_transform_transform_chunk_encoding_callback" id="stream_transform_transform_chunk_encoding_callback">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be transformed. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk to be transformed. Will <strong>always</strong>
+be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
+or the stream is operating in object mode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then this is the
 encoding type. If chunk is a buffer, then this is the special
 value - &#39;buffer&#39;, ignore it in this case.</li>
@@ -22249,9 +22547,7 @@ event loop is doing.</p>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass when the <code>callback</code> is called.</li>
 </ul>
 <p>Schedules the &quot;immediate&quot; execution of the <code>callback</code> after I/O events&#39;
-callbacks and before timers created using <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> and
-<a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a> are triggered. Returns an <code>Immediate</code> for use with
-<a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a>.</p>
+callbacks. Returns an <code>Immediate</code> for use with <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a>.</p>
 <p>When multiple calls to <code>setImmediate()</code> are made, the <code>callback</code> functions are
 queued for execution in the order in which they are created. The entire callback
 queue is processed every event loop iteration. If an immediate timer is queued
@@ -23335,7 +23631,7 @@ stream.</p>
 <p><em>Note</em>: <code>cleartext</code> has the same API as <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a>.</p>
 <p><em>Note</em>: The <code>tls.createSecurePair()</code> method is now deprecated in favor of
 <code>tls.TLSSocket()</code>. For example, the code:</p>
-<pre><code class="lang-js">pair = tls.createSecurePair( ... );
+<pre><code class="lang-js">pair = tls.createSecurePair(/* ... */);
 pair.encrypted.pipe(socket);
 socket.pipe(pair.encrypted);
 </code></pre>
@@ -23853,19 +24149,19 @@ accessed using:</p>
 When parsed, a URL object is returned containing properties for each of these
 components.</p>
 <p>The following details each of the components of a parsed URL. The example
-<code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code> is used to
+<code>&#39;http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash&#39;</code> is used to
 illustrate each.</p>
-<pre><code class="lang-txt">┌─────────────────────────────────────────────────────────────────────────────┐
-│                                    href                                     │
-├──────────┬┬───────────┬─────────────────┬───────────────────────────┬───────┤
-│ protocol ││   auth    │      host       │           path            │ hash  │
-│          ││           ├──────────┬──────┼──────────┬────────────────┤       │
-│          ││           │ hostname │ port │ pathname │     search     │       │
-│          ││           │          │      │          ├─┬──────────────┤       │
-│          ││           │          │      │          │ │    query     │       │
-&quot;  http:   // user:pass @ host.com : 8080   /p/a/t/h  ?  query=string   #hash &quot;
-│          ││           │          │      │          │ │              │       │
-└──────────┴┴───────────┴──────────┴──────┴──────────┴─┴──────────────┴───────┘
+<pre><code class="lang-txt">┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                      href                                       │
+├──────────┬┬───────────┬─────────────────────┬───────────────────────────┬───────┤
+│ protocol ││   auth    │        host         │           path            │ hash  │
+│          ││           ├──────────────┬──────┼──────────┬────────────────┤       │
+│          ││           │   hostname   │ port │ pathname │     search     │       │
+│          ││           │              │      │          ├─┬──────────────┤       │
+│          ││           │              │      │          │ │    query     │       │
+&quot;  http:   // user:pass @ sub.host.com : 8080   /p/a/t/h  ?  query=string   #hash &quot;
+│          ││           │              │      │          │ │              │       │
+└──────────┴┴───────────┴──────────────┴──────┴──────────┴─┴──────────────┴───────┘
 (all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
 </code></pre>
 <h3>urlObject.auth<span><a class="mark" href="#url_urlobject_auth" id="url_urlobject_auth">#</a></span></h3>
@@ -23882,15 +24178,15 @@ the leading ASCII hash (<code>#</code>) character.</p>
 <h3>urlObject.host<span><a class="mark" href="#url_urlobject_host" id="url_urlobject_host">#</a></span></h3>
 <p>The <code>host</code> property is the full lower-cased host portion of the URL, including
 the <code>port</code> if specified.</p>
-<p>For example: <code>&#39;host.com:8080&#39;</code></p>
+<p>For example: <code>&#39;sub.host.com:8080&#39;</code></p>
 <h3>urlObject.hostname<span><a class="mark" href="#url_urlobject_hostname" id="url_urlobject_hostname">#</a></span></h3>
 <p>The <code>hostname</code> property is the lower-cased host name portion of the <code>host</code>
 component <em>without</em> the <code>port</code> included.</p>
-<p>For example: <code>&#39;host.com&#39;</code></p>
+<p>For example: <code>&#39;sub.host.com&#39;</code></p>
 <h3>urlObject.href<span><a class="mark" href="#url_urlobject_href" id="url_urlobject_href">#</a></span></h3>
 <p>The <code>href</code> property is the full URL string that was parsed with both the
 <code>protocol</code> and <code>host</code> components converted to lower-case.</p>
-<p>For example: <code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code></p>
+<p>For example: <code>&#39;http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash&#39;</code></p>
 <h3>urlObject.path<span><a class="mark" href="#url_urlobject_path" id="url_urlobject_path">#</a></span></h3>
 <p>The <code>path</code> property is a concatenation of the <code>pathname</code> and <code>search</code>
 components.</p>
@@ -23926,6 +24222,42 @@ URL, including the leading ASCII question mark (<code>?</code>) character.</p>
 <p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
 forward-slash characters (<code>/</code>) are required following the colon in the
 <code>protocol</code>.</p>
+<h2>url.domainToASCII(domain)<span><a class="mark" href="#url_url_domaintoascii_domain" id="url_url_domaintoascii_domain">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v7.4.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><ul>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
+invalid domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_url_domaintounicode_domain"><code>url.domainToUnicode()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToASCII(&#39;español.com&#39;));
+  // Prints xn--espaol-zwa.com
+console.log(url.domainToASCII(&#39;中文.com&#39;));
+  // Prints xn--fiq228c.com
+console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
+<h2>url.domainToUnicode(domain)<span><a class="mark" href="#url_url_domaintounicode_domain" id="url_url_domaintounicode_domain">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v7.4.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><ul>
+<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
+domain, the empty string is returned.</p>
+<p>It performs the inverse operation to <a href="#url_url_domaintoascii_domain"><code>url.domainToASCII()</code></a>.</p>
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+console.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));
+  // Prints español.com
+console.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));
+  // Prints 中文.com
+console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
+  // Prints an empty string
+</code></pre>
 <h2>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.25</span>
@@ -24003,7 +24335,9 @@ string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is th
 <li><code>result</code> is returned.</li>
 </ul>
 <h2>url.format(URL[, options])<span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h2>
-<pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><div class="signature"><ul>
+<div class="api_metadata">
+<span>Added in: v7.6.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><ul>
 <li><code>URL</code> <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> A <a href="#url_the_whatwg_url_api">WHATWG URL</a> object</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>auth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
@@ -24012,13 +24346,13 @@ username and password, <code>false</code> otherwise. Defaults to <code>true</cod
 fragment, <code>false</code> otherwise. Defaults to <code>true</code>.</li>
 <li><code>search</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
 search query, <code>false</code> otherwise. Defaults to <code>true</code>.</li>
-<li><code>unicode</code> (Boolean) <code>true</code> if Unicode characters appearing in the host
+<li><code>unicode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if Unicode characters appearing in the host
 component of the URL string should be encoded directly as opposed to being
 Punycode encoded. Defaults to <code>false</code>.</li>
 </ul>
 </li>
 </ul>
-</div><p>Returns a customizable serialization of a URL String representation of a
+<p>Returns a customizable serialization of a URL String representation of a
 <a href="#url_the_whatwg_url_api">WHATWG URL</a> object.</p>
 <p>The URL object has both a <code>toString()</code> method and <code>href</code> property that return
 string serializations of the URL. These are not, however, customizable in
@@ -24094,7 +24428,9 @@ properties of URL objects:</p>
 <p>For example, the ASCII space character (<code>&#39; &#39;</code>) is encoded as <code>%20</code>. The ASCII
 forward slash (<code>/</code>) character is encoded as <code>%3C</code>.</p>
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
-<pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>The <code>url</code> module provides an <em>experimental</em> implementation of the
+<div class="api_metadata">
+<span>Added in: v7.0.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>The <code>url</code> module provides an <em>experimental</em> implementation of the
 <a href="https://url.spec.whatwg.org/">WHATWG URL Standard</a> as an alternative to the existing <code>url.parse()</code> API.</p>
 <pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
 const myURL = new URL(&#39;https://example.org/foo&#39;);
@@ -24107,28 +24443,28 @@ console.log(myURL.pathname); // /foo
 <p><em>Note</em>: Using the <code>delete</code> keyword (e.g. <code>delete myURL.protocol</code>,
 <code>delete myURL.pathname</code>, etc) has no effect but will still return <code>true</code>.</p>
 <p>A comparison between this API and <code>url.parse()</code> is given below. Above the URL
-<code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code>, properties of an
+<code>&#39;http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash&#39;</code>, properties of an
 object returned by <code>url.parse()</code> are shown. Below it are properties of a WHATWG
 <code>URL</code> object.</p>
 <p><em>Note</em>: WHATWG URL&#39;s <code>origin</code> property includes <code>protocol</code> and <code>host</code>, but not
 <code>username</code> or <code>password</code>.</p>
-<pre><code class="lang-txt">┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          href                                           │
-├──────────┬──┬─────────────────────┬─────────────────┬───────────────────────────┬───────┤
-│ protocol │  │        auth         │      host       │           path            │ hash  │
-│          │  │                     ├──────────┬──────┼──────────┬────────────────┤       │
-│          │  │                     │ hostname │ port │ pathname │     search     │       │
-│          │  │                     │          │      │          ├─┬──────────────┤       │
-│          │  │                     │          │      │          │ │    query     │       │
-&quot;  http:    //    user   :   pass   @ host.com : 8080   /p/a/t/h  ?  query=string   #hash &quot;
-│          │  │          │          │ hostname │ port │          │                │       │
-│          │  │          │          ├──────────┴──────┤          │                │       │
-│ protocol │  │ username │ password │      host       │          │                │       │
-├──────────┴──┼──────────┴──────────┼─────────────────┤          │                │       │
-│   origin    │                     │     origin      │ pathname │     search     │ hash  │
-├─────────────┴─────────────────────┴─────────────────┴──────────┴────────────────┴───────┤
-│                                          href                                           │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
+<pre><code class="lang-txt">┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                            href                                             │
+├──────────┬──┬─────────────────────┬─────────────────────┬───────────────────────────┬───────┤
+│ protocol │  │        auth         │        host         │           path            │ hash  │
+│          │  │                     ├──────────────┬──────┼──────────┬────────────────┤       │
+│          │  │                     │   hostname   │ port │ pathname │     search     │       │
+│          │  │                     │              │      │          ├─┬──────────────┤       │
+│          │  │                     │              │      │          │ │    query     │       │
+&quot;  http:    //    user   :   pass   @ sub.host.com : 8080   /p/a/t/h  ?  query=string   #hash &quot;
+│          │  │          │          │   hostname   │ port │          │                │       │
+│          │  │          │          ├──────────────┴──────┤          │                │       │
+│ protocol │  │ username │ password │        host         │          │                │       │
+├──────────┴──┼──────────┴──────────┼─────────────────────┤          │                │       │
+│   origin    │                     │       origin        │ pathname │     search     │ hash  │
+├─────────────┴─────────────────────┴─────────────────────┴──────────┴────────────────┴───────┤
+│                                            href                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
 (all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
 </code></pre>
 <h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
@@ -24405,13 +24741,17 @@ console.log(JSON.stringify(myURLs));
   // Prints [&quot;https://www.example.com/&quot;,&quot;https://test.example.org/&quot;]
 </code></pre>
 <h3>Class: URLSearchParams<span><a class="mark" href="#url_class_urlsearchparams" id="url_class_urlsearchparams">#</a></span></h3>
-<p>The <code>URLSearchParams</code> API provides read and write access to the query of a
-<code>URL</code>.</p>
+<div class="api_metadata">
+<span>Added in: v7.5.0</span>
+</div><p>The <code>URLSearchParams</code> API provides read and write access to the query of a
+<code>URL</code>. The <code>URLSearchParams</code> class can also be used standalone with one of the
+four following constructors.</p>
 <p>The WHATWG <code>URLSearchParams</code> interface and the <a href="querystring.html"><code>querystring</code></a> module have
 similar purpose, but the purpose of the <a href="querystring.html"><code>querystring</code></a> module is more
 general, as it allows the customization of delimiter characters (<code>&amp;</code> and <code>=</code>).
 On the other hand, this API is designed purely for URL query strings.</p>
-<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+<pre><code class="lang-js">const { URL, URLSearchParams } = require(&#39;url&#39;);
+
 const myURL = new URL(&#39;https://example.org/?abc=123&#39;);
 console.log(myURL.searchParams.get(&#39;abc&#39;));
   // Prints 123
@@ -24424,12 +24764,117 @@ myURL.searchParams.delete(&#39;abc&#39;);
 myURL.searchParams.set(&#39;a&#39;, &#39;b&#39;);
 console.log(myURL.href);
   // Prints https://example.org/?a=b
+
+const newSearchParams = new URLSearchParams(myURL.searchParams);
+// The above is equivalent to
+// const newSearchParams = new URLSearchParams(myURL.search);
+
+newSearchParams.append(&#39;a&#39;, &#39;c&#39;);
+console.log(myURL.href);
+  // Prints https://example.org/?a=b
+console.log(newSearchParams.toString());
+  // Prints a=b&amp;a=c
+
+// newSearchParams.toString() is implicitly called
+myURL.search = newSearchParams;
+console.log(myURL.href);
+  // Prints https://example.org/?a=b&amp;a=c
+newSearchParams.delete(&#39;a&#39;);
+console.log(myURL.href);
+  // Prints https://example.org/?a=b&amp;a=c
 </code></pre>
-<h4>Constructor: new URLSearchParams([init])<span><a class="mark" href="#url_constructor_new_urlsearchparams_init" id="url_constructor_new_urlsearchparams_init">#</a></span></h4>
+<h4>Constructor: new URLSearchParams()<span><a class="mark" href="#url_constructor_new_urlsearchparams" id="url_constructor_new_urlsearchparams">#</a></span></h4>
+<p>Instantiate a new empty <code>URLSearchParams</code> object.</p>
+<h4>Constructor: new URLSearchParams(string)<span><a class="mark" href="#url_constructor_new_urlsearchparams_string" id="url_constructor_new_urlsearchparams_string">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>init</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;String&gt;</a> The URL query</li>
+<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A query string</li>
 </ul>
-</div><h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
+</div><p>Parse the <code>string</code> as a query string, and use it to instantiate a new
+<code>URLSearchParams</code> object. A leading <code>&#39;?&#39;</code>, if present, is ignored.</p>
+<pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
+let params;
+
+params = new URLSearchParams(&#39;user=abc&amp;query=xyz&#39;);
+console.log(params.get(&#39;user&#39;));
+  // Prints &#39;abc&#39;
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=xyz&#39;
+
+params = new URLSearchParams(&#39;?user=abc&amp;query=xyz&#39;);
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=xyz&#39;
+</code></pre>
+<h4>Constructor: new URLSearchParams(obj)<span><a class="mark" href="#url_constructor_new_urlsearchparams_obj" id="url_constructor_new_urlsearchparams_obj">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>obj</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object representing a collection of key-value pairs</li>
+</ul>
+<p>Instantiate a new <code>URLSearchParams</code> object with a query hash map. The key and
+value of each property of <code>obj</code> are always coerced to strings.</p>
+<p><em>Note</em>: Unlike <a href="querystring.html"><code>querystring</code></a> module, duplicate keys in the form of array
+values are not allowed. Arrays are stringified using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString"><code>array.toString()</code></a>,
+which simply joins all array elements with commas.</p>
+<pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
+const params = new URLSearchParams({
+  user: &#39;abc&#39;,
+  query: [&#39;first&#39;, &#39;second&#39;]
+});
+console.log(params.getAll(&#39;query&#39;));
+  // Prints [&#39;first,second&#39;]
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=first%2Csecond&#39;
+</code></pre>
+<h4>Constructor: new URLSearchParams(iterable)<span><a class="mark" href="#url_constructor_new_urlsearchparams_iterable" id="url_constructor_new_urlsearchparams_iterable">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v7.10.0</span>
+</div><ul>
+<li><code>iterable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol" class="type">&lt;Iterable&gt;</a> An iterable object whose elements are key-value pairs</li>
+</ul>
+<p>Instantiate a new <code>URLSearchParams</code> object with an iterable map in a way that
+is similar to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map"><code>Map</code></a>&#39;s constructor. <code>iterable</code> can be an Array or any
+iterable object. That means <code>iterable</code> can be another <code>URLSearchParams</code>, in
+which case the constructor will simply create a clone of the provided
+<code>URLSearchParams</code>.  Elements of <code>iterable</code> are key-value pairs, and can
+themselves be any iterable object.</p>
+<p>Duplicate keys are allowed.</p>
+<pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
+let params;
+
+// Using an array
+params = new URLSearchParams([
+  [&#39;user&#39;, &#39;abc&#39;],
+  [&#39;query&#39;, &#39;first&#39;],
+  [&#39;query&#39;, &#39;second&#39;]
+]);
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
+
+// Using a Map object
+const map = new Map();
+map.set(&#39;user&#39;, &#39;abc&#39;);
+map.set(&#39;query&#39;, &#39;xyz&#39;);
+params = new URLSearchParams(map);
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=xyz&#39;
+
+// Using a generator function
+function* getQueryPairs() {
+  yield [&#39;user&#39;, &#39;abc&#39;];
+  yield [&#39;query&#39;, &#39;first&#39;];
+  yield [&#39;query&#39;, &#39;second&#39;];
+}
+params = new URLSearchParams(getQueryPairs());
+console.log(params.toString());
+  // Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
+
+// Each key-value pair must have exactly two elements
+new URLSearchParams([
+  [&#39;user&#39;, &#39;abc&#39;, &#39;error&#39;]
+]);
+  // Throws TypeError: Each query pair must be a name/value tuple
+</code></pre>
+<h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -24522,7 +24967,9 @@ console.log(params.toString());
   // Prints foo=def&amp;abc=def&amp;xyz=opq
 </code></pre>
 <h4>urlSearchParams.sort()<span><a class="mark" href="#url_urlsearchparams_sort" id="url_urlsearchparams_sort">#</a></span></h4>
-<p>Sort all existing name-value pairs in-place by their names. Sorting is done
+<div class="api_metadata">
+<span>Added in: v7.7.0</span>
+</div><p>Sort all existing name-value pairs in-place by their names. Sorting is done
 with a <a href="https://en.wikipedia.org/wiki/Sorting_algorithm#Stability">stable sorting algorithm</a>, so relative order between name-value pairs
 with the same name is preserved.</p>
 <p>This method can be used, in particular, to increase cache hits.</p>
@@ -24559,42 +25006,6 @@ for (const [name, value] of params) {
   // foo bar
   // xyz baz
 </code></pre>
-<h3>require(&#39;url&#39;).domainToASCII(domain)<span><a class="mark" href="#url_require_url_domaintoascii_domain" id="url_require_url_domaintoascii_domain">#</a></span></h3>
-<div class="signature"><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-</ul>
-</div><p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
-invalid domain, the empty string is returned.</p>
-<p>It performs the inverse operation to <a href="#url_require_url_domaintounicode_domain"><code>require(&#39;url&#39;).domainToUnicode()</code></a>.</p>
-<pre><code class="lang-js">const url = require(&#39;url&#39;);
-console.log(url.domainToASCII(&#39;español.com&#39;));
-  // Prints xn--espaol-zwa.com
-console.log(url.domainToASCII(&#39;中文.com&#39;));
-  // Prints xn--fiq228c.com
-console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
-  // Prints an empty string
-</code></pre>
-<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToASCII()</code> method is introduced as part of
-the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
-<h3>require(&#39;url&#39;).domainToUnicode(domain)<span><a class="mark" href="#url_require_url_domaintounicode_domain" id="url_require_url_domaintounicode_domain">#</a></span></h3>
-<div class="signature"><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-</ul>
-</div><p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
-domain, the empty string is returned.</p>
-<p>It performs the inverse operation to <a href="#url_require_url_domaintoascii_domain"><code>require(&#39;url&#39;).domainToASCII()</code></a>.</p>
-<pre><code class="lang-js">const url = require(&#39;url&#39;);
-console.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));
-  // Prints español.com
-console.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));
-  // Prints 中文.com
-console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
-  // Prints an empty string
-</code></pre>
-<p><em>Note</em>: The <code>require(&#39;url&#39;).domainToUnicode()</code> API is introduced as part of the
-the new <code>URL</code> implementation but is not part of the WHATWG URL standard.</p>
 <p><a id="whatwg-percent-encoding"></a></p>
 <h3>Percent-Encoding in the WHATWG URL Standard<span><a class="mark" href="#url_percent_encoding_in_the_whatwg_url_standard" id="url_percent_encoding_in_the_whatwg_url_standard">#</a></span></h3>
 <p>URLs are permitted to only contain a certain range of characters. Any character
@@ -24603,24 +25014,26 @@ and which characters to encode depends entirely on where the character is
 located within the structure of the URL. The WHATWG URL Standard uses a more
 selective and fine grained approach to selecting encoded characters than that
 used by the older <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods.</p>
-<p>The WHATWG algorithm defines three &quot;encoding sets&quot; that describe ranges of
-characters that must be percent-encoded:</p>
+<p>The WHATWG algorithm defines three &quot;percent-encode sets&quot; that describe ranges
+of characters that must be percent-encoded:</p>
 <ul>
-<li><p>The <em>simple encode set</em> includes code points in range U+0000 to U+001F
-(inclusive) and all code points greater than U+007E.</p>
+<li><p>The <em>C0 control percent-encode set</em> includes code points in range U+0000 to
+U+001F (inclusive) and all code points greater than U+007E.</p>
 </li>
-<li><p>The <em>default encode set</em> includes the <em>simple encode set</em> and code points
-U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060, U+007B, and U+007D.</p>
+<li><p>The <em>path percent-encode set</em> includes the <em>C0 control percent-encode set</em>
+and code points U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060,
+U+007B, and U+007D.</p>
 </li>
-<li><p>The <em>userinfo encode set</em> includes the <em>default encode set</em> and code points
-U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D, U+005E, and
-U+007C.</p>
+<li><p>The <em>userinfo encode set</em> includes the <em>path percent-encode set</em> and code
+points U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D,
+U+005E, and U+007C.</p>
 </li>
 </ul>
-<p>The <em>simple encode set</em> is used primary for URL fragments and certain specific
-conditions for the path. The <em>userinfo encode set</em> is used specifically for
-username and passwords encoded within the URL. The <em>default encode set</em> is used
-for all other cases.</p>
+<p>The <em>userinfo percent-encode set</em> is used exclusively for username and
+passwords encoded within the URL. The <em>path percent-encode set</em> is used for the
+path of most URLs. The <em>C0 control percent-encode set</em> is used for all
+other cases, including URL fragments in particular, but also host and path
+under certain specific conditions.</p>
 <p>When non-ASCII characters appear within a hostname, the hostname is encoded
 using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
 <em>both</em> Punycode encoded and percent-encoded characters. For example:</p>
@@ -24710,7 +25123,9 @@ Each placeholder token is replaced with the converted value from the
 corresponding argument. Supported placeholders are:</p>
 <ul>
 <li><code>%s</code> - String.</li>
-<li><code>%d</code> - Number (both integer and float).</li>
+<li><code>%d</code> - Number (integer or floating point value).</li>
+<li><code>%i</code> - Integer.</li>
+<li><code>%f</code> - Floating point value.</li>
 <li><code>%j</code> - JSON.  Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument
 contains circular references.</li>
 <li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>
@@ -24730,6 +25145,10 @@ returned string, each delimited by a space.</p>
 a string that is the concatenation of all arguments separated by spaces.
 Each argument is converted to a string using <code>util.inspect()</code>.</p>
 <pre><code class="lang-js">util.format(1, 2, 3); // &#39;1 2 3&#39;
+</code></pre>
+<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is
+without any formatting.</p>
+<pre><code class="lang-js">util.format(&#39;%% %s&#39;); // &#39;%% %s&#39;
 </code></pre>
 <h2>util.inherits(constructor, superConstructor)<span><a class="mark" href="#util_util_inherits_constructor_superconstructor" id="util_util_inherits_constructor_superconstructor">#</a></span></h2>
 <div class="api_metadata">
@@ -25429,6 +25848,8 @@ Machine contexts. It can be accessed using:</p>
 </code></pre>
 <p>JavaScript code can be compiled and run immediately or compiled, saved, and run
 later.</p>
+<p><em>Note</em>: The vm module is not a security mechanism.
+<strong>Do not use it to run untrusted code</strong>.</p>
 <h2>Class: vm.Script<span><a class="mark" href="#vm_class_vm_script" id="vm_class_vm_script">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
@@ -25922,8 +26343,8 @@ request.on(&#39;response&#39;, (response) =&gt; {
       break;
   }
 });
-
-// server example
+</code></pre>
+<pre><code class="lang-js">// server example
 // Running a gzip operation on every request is quite expensive.
 // It would be much more efficient to cache the compressed buffer.
 const zlib = require(&#39;zlib&#39;);
@@ -25983,7 +26404,7 @@ decompressed result is valid.</p>
 (default values) plus a few kilobytes for small objects.</p>
 <p>For example, to reduce the default memory requirements from 256K to 128K, the
 options should be set to:</p>
-<pre><code class="lang-js">{ windowBits: 14, memLevel: 7 }
+<pre><code class="lang-js">const options = { windowBits: 14, memLevel: 7 };
 </code></pre>
 <p>This will, however, generally degrade compression.</p>
 <p>The memory requirements for inflate are (in bytes)</p>

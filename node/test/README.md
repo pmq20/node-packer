@@ -90,8 +90,12 @@ On how to run tests in this direcotry, see
     </tr>
     <tr>
       <td>known_issues</td>
-      <td>No</td>
-      <td>Tests reproducing known issues within the system.</td>
+      <td>Yes</td>
+      <td>
+        Tests reproducing known issues within the system. All tests inside of
+        this directory are expected to fail consistently. If a test doesn't fail
+        on certain platforms, those should be skipped via `known_issues.status`.
+      </td>
     </tr>
     <tr>
       <td>message</td>
@@ -181,6 +185,13 @@ symlinks. On Windows, this returns false if the process running
 doesn't have privileges to create symlinks (specifically
 [SeCreateSymbolicLinkPrivilege](https://msdn.microsoft.com/en-us/library/windows/desktop/bb530716(v=vs.85).aspx)).
 On non-Windows platforms, this currently returns true.
+
+### crashOnUnhandledRejection()
+
+Installs a `process.on('unhandledRejection')` handler that crashes the process
+after a tick. This is useful for tests that use Promises and need to make sure
+no unexpected rejections occur, because currently they result in silent
+failures.
 
 ### ddCommand(filename, kilobytes)
 * return [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
@@ -376,23 +387,11 @@ Path to the 'root' directory. either `/` or `c:\\` (windows)
 
 Logs '1..0 # Skipped: ' + `msg`
 
-### spawnCat(options)
-* `options` [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-* return [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-Platform normalizes the `cat` command.
-
 ### spawnPwd(options)
 * `options` [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 * return [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 Platform normalizes the `pwd` command.
-
-### spawnSyncCat(options)
-* `options` [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-* return [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-Synchronous version of `spawnCat`.
 
 ### spawnSyncPwd(options)
 * `options` [&lt;Object>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)

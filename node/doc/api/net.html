@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Net | Node.js v7.7.3 Documentation</title>
+  <title>Net | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="net" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -206,7 +207,7 @@ Useful to find which port was assigned when getting an OS-assigned address.
 Returns an object with <code>port</code>, <code>family</code>, and <code>address</code> properties:
 <code>{ port: 12346, family: &#39;IPv4&#39;, address: &#39;127.0.0.1&#39; }</code></p>
 <p>Example:</p>
-<pre><code class="lang-js">var server = net.createServer((socket) =&gt; {
+<pre><code class="lang-js">const server = net.createServer((socket) =&gt; {
   socket.end(&#39;goodbye\n&#39;);
 }).on(&#39;error&#39;, (err) =&gt; {
   // handle errors here
@@ -319,7 +320,7 @@ persist</em>, they are removed when the last reference to them is closed. Do not
 forget JavaScript string escaping requires paths to be specified with
 double-backslashes, such as:</p>
 <pre><code class="lang-js">net.createServer().listen(
-    path.join(&#39;\\\\?\\pipe&#39;, process.cwd(), &#39;myctl&#39;))
+    path.join(&#39;\\\\?\\pipe&#39;, process.cwd(), &#39;myctl&#39;));
 </code></pre>
 <p>The parameter <code>backlog</code> behaves the same as in
 <a href="#net_server_listen_port_hostname_backlog_callback"><code>server.listen([port][, hostname][, backlog][, callback])</code></a>.</p>
@@ -734,7 +735,8 @@ connects with the supplied <code>options</code>.</p>
 <p>Passing <code>timeout</code> as an option will call <a href="#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> after the socket is created, but before it is connecting.</p>
 <p>The <code>connectListener</code> parameter will be added as a listener for the
 <a href="#net_event_connect"><code>&#39;connect&#39;</code></a> event once.</p>
-<p>Here is an example of a client of the previously described echo server:</p>
+<p>Following is an example of a client of the echo server described
+in the <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> section:</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
 const client = net.createConnection({port: 8124}, () =&gt; {
   //&#39;connect&#39; listener
@@ -807,7 +809,7 @@ server.listen(8124, () =&gt; {
 });
 </code></pre>
 <p>Test this by using <code>telnet</code>:</p>
-<pre><code class="lang-sh">telnet localhost 8124
+<pre><code class="lang-console">$ telnet localhost 8124
 </code></pre>
 <p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would
 just be changed to</p>
@@ -816,7 +818,7 @@ just be changed to</p>
 });
 </code></pre>
 <p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>
-<pre><code class="lang-js">nc -U /tmp/echo.sock
+<pre><code class="lang-console">$ nc -U /tmp/echo.sock
 </code></pre>
 <h2>net.isIP(input)<span><a class="mark" href="#net_net_isip_input" id="net_net_isip_input">#</a></span></h2>
 <div class="api_metadata">

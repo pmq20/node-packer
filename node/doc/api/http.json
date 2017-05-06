@@ -240,7 +240,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, a custom <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance must be created.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
+              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, a custom <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance must be created.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
             },
             {
               "params": [
@@ -249,7 +249,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, a custom <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance must be created.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nvar keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
+              "desc": "<p>The default <a href=\"#http_http_globalagent\"><code>http.globalAgent</code></a> that is used by <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> has all\nof these values set to their respective defaults.</p>\n<p>To configure any of them, a custom <a href=\"#http_class_http_agent\"><code>http.Agent</code></a> instance must be created.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst keepAliveAgent = new http.Agent({ keepAlive: true });\noptions.agent = keepAliveAgent;\nhttp.request(options, onResponseCallback);\n</code></pre>\n"
             }
           ]
         },
@@ -302,7 +302,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this\nevent is not being listened for, clients receiving a <code>CONNECT</code> method will have\ntheir connections closed.</p>\n<p>A client and server pair demonstrating how to listen for the <code>&#39;connect&#39;</code> event:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst net = require(&#39;net&#39;);\nconst url = require(&#39;url&#39;);\n\n// Create an HTTP tunneling proxy\nvar proxy = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nproxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {\n  // connect to an origin server\n  var srvUrl = url.parse(`http://${req.url}`);\n  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {\n    cltSocket.write(&#39;HTTP/1.1 200 Connection Established\\r\\n&#39; +\n                    &#39;Proxy-agent: Node.js-Proxy\\r\\n&#39; +\n                    &#39;\\r\\n&#39;);\n    srvSocket.write(head);\n    srvSocket.pipe(cltSocket);\n    cltSocket.pipe(srvSocket);\n  });\n});\n\n// now that proxy is running\nproxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request to a tunneling proxy\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    method: &#39;CONNECT&#39;,\n    path: &#39;www.google.com:80&#39;\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;connect&#39;, (res, socket, head) =&gt; {\n    console.log(&#39;got connected!&#39;);\n\n    // make a request over an HTTP tunnel\n    socket.write(&#39;GET / HTTP/1.1\\r\\n&#39; +\n                 &#39;Host: www.google.com:80\\r\\n&#39; +\n                 &#39;Connection: close\\r\\n&#39; +\n                 &#39;\\r\\n&#39;);\n    socket.on(&#39;data&#39;, (chunk) =&gt; {\n      console.log(chunk.toString());\n    });\n    socket.on(&#39;end&#39;, () =&gt; {\n      proxy.close();\n    });\n  });\n});\n</code></pre>\n"
+              "desc": "<p>Emitted each time a server responds to a request with a <code>CONNECT</code> method. If this\nevent is not being listened for, clients receiving a <code>CONNECT</code> method will have\ntheir connections closed.</p>\n<p>A client and server pair demonstrating how to listen for the <code>&#39;connect&#39;</code> event:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst net = require(&#39;net&#39;);\nconst url = require(&#39;url&#39;);\n\n// Create an HTTP tunneling proxy\nconst proxy = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nproxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {\n  // connect to an origin server\n  const srvUrl = url.parse(`http://${req.url}`);\n  const srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () =&gt; {\n    cltSocket.write(&#39;HTTP/1.1 200 Connection Established\\r\\n&#39; +\n                    &#39;Proxy-agent: Node.js-Proxy\\r\\n&#39; +\n                    &#39;\\r\\n&#39;);\n    srvSocket.write(head);\n    srvSocket.pipe(cltSocket);\n    cltSocket.pipe(srvSocket);\n  });\n});\n\n// now that proxy is running\nproxy.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request to a tunneling proxy\n  const options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    method: &#39;CONNECT&#39;,\n    path: &#39;www.google.com:80&#39;\n  };\n\n  const req = http.request(options);\n  req.end();\n\n  req.on(&#39;connect&#39;, (res, socket, head) =&gt; {\n    console.log(&#39;got connected!&#39;);\n\n    // make a request over an HTTP tunnel\n    socket.write(&#39;GET / HTTP/1.1\\r\\n&#39; +\n                 &#39;Host: www.google.com:80\\r\\n&#39; +\n                 &#39;Connection: close\\r\\n&#39; +\n                 &#39;\\r\\n&#39;);\n    socket.on(&#39;data&#39;, (chunk) =&gt; {\n      console.log(chunk.toString());\n    });\n    socket.on(&#39;end&#39;, () =&gt; {\n      proxy.close();\n    });\n  });\n});\n</code></pre>\n"
             },
             {
               "textRaw": "Event: 'continue'",
@@ -354,7 +354,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Emitted each time a server responds to a request with an upgrade. If this\nevent is not being listened for, clients receiving an upgrade header will have\ntheir connections closed.</p>\n<p>A client server pair demonstrating how to listen for the <code>&#39;upgrade&#39;</code> event.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\n// Create an HTTP server\nvar srv = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nsrv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {\n  socket.write(&#39;HTTP/1.1 101 Web Socket Protocol Handshake\\r\\n&#39; +\n               &#39;Upgrade: WebSocket\\r\\n&#39; +\n               &#39;Connection: Upgrade\\r\\n&#39; +\n               &#39;\\r\\n&#39;);\n\n  socket.pipe(socket); // echo back\n});\n\n// now that server is running\nsrv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request\n  var options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    headers: {\n      &#39;Connection&#39;: &#39;Upgrade&#39;,\n      &#39;Upgrade&#39;: &#39;websocket&#39;\n    }\n  };\n\n  var req = http.request(options);\n  req.end();\n\n  req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {\n    console.log(&#39;got upgraded!&#39;);\n    socket.end();\n    process.exit(0);\n  });\n});\n</code></pre>\n"
+              "desc": "<p>Emitted each time a server responds to a request with an upgrade. If this\nevent is not being listened for, clients receiving an upgrade header will have\ntheir connections closed.</p>\n<p>A client server pair demonstrating how to listen for the <code>&#39;upgrade&#39;</code> event.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\n// Create an HTTP server\nconst srv = http.createServer( (req, res) =&gt; {\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;okay&#39;);\n});\nsrv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {\n  socket.write(&#39;HTTP/1.1 101 Web Socket Protocol Handshake\\r\\n&#39; +\n               &#39;Upgrade: WebSocket\\r\\n&#39; +\n               &#39;Connection: Upgrade\\r\\n&#39; +\n               &#39;\\r\\n&#39;);\n\n  socket.pipe(socket); // echo back\n});\n\n// now that server is running\nsrv.listen(1337, &#39;127.0.0.1&#39;, () =&gt; {\n\n  // make a request\n  const options = {\n    port: 1337,\n    hostname: &#39;127.0.0.1&#39;,\n    headers: {\n      &#39;Connection&#39;: &#39;Upgrade&#39;,\n      &#39;Upgrade&#39;: &#39;websocket&#39;\n    }\n  };\n\n  const req = http.request(options);\n  req.end();\n\n  req.on(&#39;upgrade&#39;, (res, socket, upgradeHead) =&gt; {\n    console.log(&#39;got upgraded!&#39;);\n    socket.end();\n    process.exit(0);\n  });\n});\n</code></pre>\n"
             }
           ],
           "methods": [
@@ -924,39 +924,6 @@
               "desc": "<p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the\n<code>hostname</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: in most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system\nassign a random port, which can be retrieved by using <code>server.address().port</code>\nafter the <code>&#39;listening&#39;</code> event has been emitted.</p>\n<p>To listen to a unix socket, supply a filename instead of port and hostname.</p>\n<p><code>backlog</code> is the maximum length of the queue of pending connections.\nThe actual length will be determined by the OS through sysctl settings such as\n<code>tcp_max_syn_backlog</code> and <code>somaxconn</code> on linux. The default value of this\nparameter is 511 (not 512).</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event.  See also <a href=\"net.html#net_server_listen_port_hostname_backlog_callback\"><code>net.Server.listen(port)</code></a>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
             },
             {
-              "textRaw": "server.maxHeadersCount([limit])",
-              "type": "method",
-              "name": "maxHeadersCount",
-              "meta": {
-                "added": [
-                  "v0.7.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`limit` {number} Defaults to 1000. ",
-                      "name": "limit",
-                      "type": "number",
-                      "desc": "Defaults to 1000.",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "limit",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Limits maximum incoming headers count, equal to 1000 by default. If set to 0 -\nno limit will be applied.</p>\n"
-            },
-            {
               "textRaw": "server.setTimeout([msecs][, callback])",
               "type": "method",
               "name": "setTimeout",
@@ -998,39 +965,6 @@
                 }
               ],
               "desc": "<p>Sets the timeout value for sockets, and emits a <code>&#39;timeout&#39;</code> event on\nthe Server object, passing the socket as an argument, if a timeout\noccurs.</p>\n<p>If there is a <code>&#39;timeout&#39;</code> event listener on the Server object, then it\nwill be called with the timed-out socket as an argument.</p>\n<p>By default, the Server&#39;s timeout value is 2 minutes, and sockets are\ndestroyed automatically if they time out.  However, if a callback is assigned\nto the Server&#39;s <code>&#39;timeout&#39;</code> event, timeouts must be handled explicitly.</p>\n<p>Returns <code>server</code>.</p>\n"
-            },
-            {
-              "textRaw": "server.timeout([msecs])",
-              "type": "method",
-              "name": "timeout",
-              "meta": {
-                "added": [
-                  "v0.9.12"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`msecs` {number} Defaults to 120000 (2 minutes). ",
-                      "name": "msecs",
-                      "type": "number",
-                      "desc": "Defaults to 120000 (2 minutes).",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "msecs",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>The number of milliseconds of inactivity before a socket is presumed\nto have timed out.</p>\n<p>Note that the socket timeout logic is set up on connection, so\nchanging this value only affects <em>new</em> connections to the server, not\nany existing connections.</p>\n<p>Set to 0 to disable any kind of automatic timeout behavior on incoming\nconnections.</p>\n"
             }
           ],
           "properties": [
@@ -1045,6 +979,32 @@
                 "changes": []
               },
               "desc": "<p>A Boolean indicating whether or not the server is listening for\nconnections.</p>\n"
+            },
+            {
+              "textRaw": "`maxHeadersCount` {number} Defaults to 2000. ",
+              "type": "number",
+              "name": "maxHeadersCount",
+              "meta": {
+                "added": [
+                  "v0.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Limits maximum incoming headers count, equal to 2000 by default. If set to 0 -\nno limit will be applied.</p>\n",
+              "shortDesc": "Defaults to 2000."
+            },
+            {
+              "textRaw": "`timeout` {number} Defaults to 120000 (2 minutes). ",
+              "type": "number",
+              "name": "timeout",
+              "meta": {
+                "added": [
+                  "v0.9.12"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The number of milliseconds of inactivity before a socket is presumed\nto have timed out.</p>\n<p>Note that the socket timeout logic is set up on connection, so\nchanging this value only affects <em>new</em> connections to the server, not\nany existing connections.</p>\n<p>Set to 0 to disable any kind of automatic timeout behavior on incoming\nconnections.</p>\n",
+              "shortDesc": "Defaults to 120000 (2 minutes)."
             }
           ]
         },
@@ -1203,7 +1163,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Reads out a header that&#39;s already been queued but not sent to the client.\nNote that the name is case insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var contentType = response.getHeader(&#39;content-type&#39;);\n</code></pre>\n"
+              "desc": "<p>Reads out a header that&#39;s already been queued but not sent to the client.\nNote that the name is case insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const contentType = response.getHeader(&#39;content-type&#39;);\n</code></pre>\n"
             },
             {
               "textRaw": "response.getHeaderNames()",
@@ -1228,7 +1188,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns an array containing the unique names of the current outgoing headers.\nAll header names are lowercase.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);\nresponse.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);\n\nvar headerNames = response.getHeaderNames();\n// headerNames === [&#39;foo&#39;, &#39;set-cookie&#39;]\n</code></pre>\n"
+              "desc": "<p>Returns an array containing the unique names of the current outgoing headers.\nAll header names are lowercase.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);\nresponse.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);\n\nconst headerNames = response.getHeaderNames();\n// headerNames === [&#39;foo&#39;, &#39;set-cookie&#39;]\n</code></pre>\n"
             },
             {
               "textRaw": "response.getHeaders()",
@@ -1253,7 +1213,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns a shallow copy of the current outgoing headers. Since a shallow copy\nis used, array values may be mutated without additional calls to various\nheader-related http module methods. The keys of the returned object are the\nheader names and the values are the respective header values. All header names\nare lowercase.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);\nresponse.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);\n\nvar headers = response.getHeaders();\n// headers === { foo: &#39;bar&#39;, &#39;set-cookie&#39;: [&#39;foo=bar&#39;, &#39;bar=baz&#39;] }\n</code></pre>\n"
+              "desc": "<p>Returns a shallow copy of the current outgoing headers. Since a shallow copy\nis used, array values may be mutated without additional calls to various\nheader-related http module methods. The keys of the returned object are the\nheader names and the values are the respective header values. All header names\nare lowercase.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Foo&#39;, &#39;bar&#39;);\nresponse.setHeader(&#39;Set-Cookie&#39;, [&#39;foo=bar&#39;, &#39;bar=baz&#39;]);\n\nconst headers = response.getHeaders();\n// headers === { foo: &#39;bar&#39;, &#39;set-cookie&#39;: [&#39;foo=bar&#39;, &#39;bar=baz&#39;] }\n</code></pre>\n"
             },
             {
               "textRaw": "response.hasHeader(name)",
@@ -1288,7 +1248,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the\noutgoing headers. Note that the header name matching is case-insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var hasContentType = response.hasHeader(&#39;content-type&#39;);\n</code></pre>\n"
+              "desc": "<p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the\noutgoing headers. Note that the header name matching is case-insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const hasContentType = response.hasHeader(&#39;content-type&#39;);\n</code></pre>\n"
             },
             {
               "textRaw": "response.removeHeader(name)",
@@ -1356,7 +1316,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Sets a single header value for implicit headers.  If this header already exists\nin the to-be-sent headers, its value will be replaced.  Use an array of strings\nhere to send multiple headers with the same name.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n</code></pre>\n<p>or</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Set-Cookie&#39;, [&#39;type=ninja&#39;, &#39;language=javascript&#39;]);\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n<p>When headers have been set with <a href=\"#http_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged with\nany headers passed to <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed to\n<a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"lang-js\">// returns content-type = text/plain\nconst server = http.createServer((req,res) =&gt; {\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n  res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;ok&#39;);\n});\n</code></pre>\n"
+              "desc": "<p>Sets a single header value for implicit headers.  If this header already exists\nin the to-be-sent headers, its value will be replaced.  Use an array of strings\nhere to send multiple headers with the same name.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n</code></pre>\n<p>or</p>\n<pre><code class=\"lang-js\">response.setHeader(&#39;Set-Cookie&#39;, [&#39;type=ninja&#39;, &#39;language=javascript&#39;]);\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n<p>When headers have been set with <a href=\"#http_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged with\nany headers passed to <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed to\n<a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"lang-js\">// returns content-type = text/plain\nconst server = http.createServer((req, res) =&gt; {\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n  res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;ok&#39;);\n});\n</code></pre>\n"
             },
             {
               "textRaw": "response.setTimeout(msecs[, callback])",
@@ -1451,7 +1411,7 @@
                   ]
                 }
               ],
-              "desc": "<p>If this method is called and <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> has not been called,\nit will switch to implicit header mode and flush the implicit headers.</p>\n<p>This sends a chunk of the response body. This method may\nbe called multiple times to provide successive parts of the body.</p>\n<p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,\nthe second parameter specifies how to encode it into a byte stream.\nBy default the <code>encoding</code> is <code>&#39;utf8&#39;</code>. <code>callback</code> will be called when this chunk\nof data is flushed.</p>\n<p><strong>Note</strong>: This is the raw HTTP body and has nothing to do with\nhigher-level multi-part body encodings that may be used.</p>\n<p>The first time <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, it will send the buffered\nheader information and the first chunk of the body to the client. The second\ntime <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, Node.js assumes data will be streamed,\nand sends the new data separately. That is, the response is buffered up to the\nfirst chunk of the body.</p>\n<p>Returns <code>true</code> if the entire data was flushed successfully to the kernel\nbuffer. Returns <code>false</code> if all or part of the data was queued in user memory.\n<code>&#39;drain&#39;</code> will be emitted when the buffer is free again.</p>\n"
+              "desc": "<p>If this method is called and <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> has not been called,\nit will switch to implicit header mode and flush the implicit headers.</p>\n<p>This sends a chunk of the response body. This method may\nbe called multiple times to provide successive parts of the body.</p>\n<p>Note that in the <code>http</code> module, the response body is omitted when the\nrequest is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses\n<em>must not</em> include a message body.</p>\n<p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,\nthe second parameter specifies how to encode it into a byte stream.\nBy default the <code>encoding</code> is <code>&#39;utf8&#39;</code>. <code>callback</code> will be called when this chunk\nof data is flushed.</p>\n<p><strong>Note</strong>: This is the raw HTTP body and has nothing to do with\nhigher-level multi-part body encodings that may be used.</p>\n<p>The first time <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, it will send the buffered\nheader information and the first chunk of the body to the client. The second\ntime <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, Node.js assumes data will be streamed,\nand sends the new data separately. That is, the response is buffered up to the\nfirst chunk of the body.</p>\n<p>Returns <code>true</code> if the entire data was flushed successfully to the kernel\nbuffer. Returns <code>false</code> if all or part of the data was queued in user memory.\n<code>&#39;drain&#39;</code> will be emitted when the buffer is free again.</p>\n"
             },
             {
               "textRaw": "response.writeContinue()",
@@ -1524,7 +1484,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Sends a response header to the request. The status code is a 3-digit HTTP\nstatus code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.\nOptionally one can give a human-readable <code>statusMessage</code> as the second\nargument.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var body = &#39;hello world&#39;;\nresponse.writeHead(200, {\n  &#39;Content-Length&#39;: Buffer.byteLength(body),\n  &#39;Content-Type&#39;: &#39;text/plain&#39; });\n</code></pre>\n<p>This method must only be called once on a message and it must\nbe called before <a href=\"#http_response_end_data_encoding_callback\"><code>response.end()</code></a> is called.</p>\n<p>If <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> or <a href=\"#http_response_end_data_encoding_callback\"><code>response.end()</code></a> are called before calling\nthis, the implicit/mutable headers will be calculated and call this function.</p>\n<p>When headers have been set with <a href=\"#http_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged with\nany headers passed to <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed to\n<a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"lang-js\">// returns content-type = text/plain\nconst server = http.createServer((req,res) =&gt; {\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n  res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;ok&#39;);\n});\n</code></pre>\n<p>Note that Content-Length is given in bytes not characters. The above example\nworks because the string <code>&#39;hello world&#39;</code> contains only single byte characters.\nIf the body contains higher coded characters then <code>Buffer.byteLength()</code>\nshould be used to determine the number of bytes in a given encoding.\nAnd Node.js does not check whether Content-Length and the length of the body\nwhich has been transmitted are equal or not.</p>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n"
+              "desc": "<p>Sends a response header to the request. The status code is a 3-digit HTTP\nstatus code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.\nOptionally one can give a human-readable <code>statusMessage</code> as the second\nargument.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const body = &#39;hello world&#39;;\nresponse.writeHead(200, {\n  &#39;Content-Length&#39;: Buffer.byteLength(body),\n  &#39;Content-Type&#39;: &#39;text/plain&#39; });\n</code></pre>\n<p>This method must only be called once on a message and it must\nbe called before <a href=\"#http_response_end_data_encoding_callback\"><code>response.end()</code></a> is called.</p>\n<p>If <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> or <a href=\"#http_response_end_data_encoding_callback\"><code>response.end()</code></a> are called before calling\nthis, the implicit/mutable headers will be calculated and call this function.</p>\n<p>When headers have been set with <a href=\"#http_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged with\nany headers passed to <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed to\n<a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"lang-js\">// returns content-type = text/plain\nconst server = http.createServer((req, res) =&gt; {\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);\n  res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);\n  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n  res.end(&#39;ok&#39;);\n});\n</code></pre>\n<p>Note that Content-Length is given in bytes not characters. The above example\nworks because the string <code>&#39;hello world&#39;</code> contains only single byte characters.\nIf the body contains higher coded characters then <code>Buffer.byteLength()</code>\nshould be used to determine the number of bytes in a given encoding.\nAnd Node.js does not check whether Content-Length and the length of the body\nwhich has been transmitted are equal or not.</p>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n"
             }
           ],
           "properties": [
@@ -1820,7 +1780,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p><strong>Only valid for request obtained from <a href=\"#http_class_http_server\"><code>http.Server</code></a>.</strong></p>\n<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"lang-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<pre><code class=\"lang-js\">&#39;/status?name=ryan&#39;\n</code></pre>\n<p>To parse the url into its parts <code>require(&#39;url&#39;).parse(request.url)</code>\ncan be used.  Example:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;)\n{\n  href: &#39;/status?name=ryan&#39;,\n  search: &#39;?name=ryan&#39;,\n  query: &#39;name=ryan&#39;,\n  pathname: &#39;/status&#39;\n}\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require(&#39;querystring&#39;).parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require(&#39;url&#39;).parse</code>.\nExample:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;, true)\n{\n  href: &#39;/status?name=ryan&#39;,\n  search: &#39;?name=ryan&#39;,\n  query: {name: &#39;ryan&#39;},\n  pathname: &#39;/status&#39;\n}\n</code></pre>\n"
+              "desc": "<p><strong>Only valid for request obtained from <a href=\"#http_class_http_server\"><code>http.Server</code></a>.</strong></p>\n<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"lang-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<pre><code class=\"lang-js\">&#39;/status?name=ryan&#39;\n</code></pre>\n<p>To parse the url into its parts <code>require(&#39;url&#39;).parse(request.url)</code>\ncan be used.  Example:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: &#39;?name=ryan&#39;,\n  query: &#39;name=ryan&#39;,\n  pathname: &#39;/status&#39;,\n  path: &#39;/status?name=ryan&#39;,\n  href: &#39;/status?name=ryan&#39; }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require(&#39;querystring&#39;).parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require(&#39;url&#39;).parse</code>.\nExample:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;, true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: &#39;?name=ryan&#39;,\n  query: { name: &#39;ryan&#39; },\n  pathname: &#39;/status&#39;,\n  path: &#39;/status?name=ryan&#39;,\n  href: &#39;/status?name=ryan&#39; }\n</code></pre>\n"
             }
           ]
         }
@@ -1920,10 +1880,10 @@
               },
               "params": [
                 {
-                  "textRaw": "`options` {Object | string} Accepts the same `options` as [`http.request()`][], with the `method` always set to `GET`. ",
+                  "textRaw": "`options` {Object | string} Accepts the same `options` as [`http.request()`][], with the `method` always set to `GET`. Properties that are inherited from the prototype are ignored. ",
                   "name": "options",
                   "type": "Object | string",
-                  "desc": "Accepts the same `options` as [`http.request()`][], with the `method` always set to `GET`."
+                  "desc": "Accepts the same `options` as [`http.request()`][], with the `method` always set to `GET`. Properties that are inherited from the prototype are ignored."
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1945,7 +1905,7 @@
               ]
             }
           ],
-          "desc": "<p>Since most requests are GET requests without bodies, Node.js provides this\nconvenience method. The only difference between this method and\n<a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> is that it sets the method to GET and calls <code>req.end()</code>\nautomatically. Note that response data must be consumed in the callback\nfor reasons stated in <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a> section.</p>\n<p>The <code>callback</code> is invoked with a single argument that is an instance of\n<a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a></p>\n<p>JSON Fetching Example:</p>\n<pre><code class=\"lang-js\">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {\n  const statusCode = res.statusCode;\n  const contentType = res.headers[&#39;content-type&#39;];\n\n  let error;\n  if (statusCode !== 200) {\n    error = new Error(`Request Failed.\\n` +\n                      `Status Code: ${statusCode}`);\n  } else if (!/^application\\/json/.test(contentType)) {\n    error = new Error(`Invalid content-type.\\n` +\n                      `Expected application/json but received ${contentType}`);\n  }\n  if (error) {\n    console.log(error.message);\n    // consume response data to free up memory\n    res.resume();\n    return;\n  }\n\n  res.setEncoding(&#39;utf8&#39;);\n  let rawData = &#39;&#39;;\n  res.on(&#39;data&#39;, (chunk) =&gt; rawData += chunk);\n  res.on(&#39;end&#39;, () =&gt; {\n    try {\n      let parsedData = JSON.parse(rawData);\n      console.log(parsedData);\n    } catch (e) {\n      console.log(e.message);\n    }\n  });\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.log(`Got error: ${e.message}`);\n});\n</code></pre>\n"
+          "desc": "<p>Since most requests are GET requests without bodies, Node.js provides this\nconvenience method. The only difference between this method and\n<a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> is that it sets the method to GET and calls <code>req.end()</code>\nautomatically. Note that response data must be consumed in the callback\nfor reasons stated in <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a> section.</p>\n<p>The <code>callback</code> is invoked with a single argument that is an instance of\n<a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a></p>\n<p>JSON Fetching Example:</p>\n<pre><code class=\"lang-js\">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {\n  const { statusCode } = res;\n  const contentType = res.headers[&#39;content-type&#39;];\n\n  let error;\n  if (statusCode !== 200) {\n    error = new Error(`Request Failed.\\n` +\n                      `Status Code: ${statusCode}`);\n  } else if (!/^application\\/json/.test(contentType)) {\n    error = new Error(`Invalid content-type.\\n` +\n                      `Expected application/json but received ${contentType}`);\n  }\n  if (error) {\n    console.error(error.message);\n    // consume response data to free up memory\n    res.resume();\n    return;\n  }\n\n  res.setEncoding(&#39;utf8&#39;);\n  let rawData = &#39;&#39;;\n  res.on(&#39;data&#39;, (chunk) =&gt; { rawData += chunk; });\n  res.on(&#39;end&#39;, () =&gt; {\n    try {\n      const parsedData = JSON.parse(rawData);\n      console.log(parsedData);\n    } catch (e) {\n      console.error(e.message);\n    }\n  });\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.error(`Got error: ${e.message}`);\n});\n</code></pre>\n"
         },
         {
           "textRaw": "http.request(options[, callback])",
@@ -2094,7 +2054,7 @@
               ]
             }
           ],
-          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">var postData = querystring.stringify({\n  &#39;msg&#39; : &#39;Hello World!&#39;\n});\n\nvar options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nvar req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.log(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify the end of the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, both a timeout and a listener\nfor the <code>continue</code> event should be set. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n"
+          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const postData = querystring.stringify({\n  &#39;msg&#39;: &#39;Hello World!&#39;\n});\n\nconst options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nconst req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify the end of the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, both a timeout and a listener\nfor the <code>continue</code> event should be set. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n"
         }
       ],
       "type": "module",

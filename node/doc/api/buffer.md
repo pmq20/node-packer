@@ -42,7 +42,7 @@ const buf4 = Buffer.from([1, 2, 3]);
 const buf5 = Buffer.from('tést');
 
 // Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].
-const buf6 = Buffer.from('tést', 'latin-1');
+const buf6 = Buffer.from('tést', 'latin1');
 ```
 
 ## `Buffer.from()`, `Buffer.alloc()`, and `Buffer.allocUnsafe()`
@@ -747,6 +747,10 @@ in `list`. This however causes an additional loop to be executed in order to
 calculate the `totalLength`, so it is faster to provide the length explicitly if
 it is already known.
 
+If `totalLength` is provided, it is coerced to an unsigned integer. If the
+combined length of the `Buffer`s in `list` exceeds `totalLength`, the result is
+truncated to `totalLength`.
+
 Example: Create a single `Buffer` from a list of three `Buffer` instances
 
 ```js
@@ -934,6 +938,10 @@ name: [index]
 The index operator `[index]` can be used to get and set the octet at position
 `index` in `buf`. The values refer to individual bytes, so the legal value
 range is between `0x00` and `0xFF` (hex) or `0` and `255` (decimal).
+
+This operator is inherited from `Uint8Array`, so its behavior on out-of-bounds
+access is the same as `UInt8Array` - that is, getting returns `undefined` and
+setting does nothing.
 
 Example: Copy an ASCII string into a `Buffer`, one byte at a time
 

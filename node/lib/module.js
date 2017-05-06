@@ -251,8 +251,8 @@ if (process.platform === 'win32') {
       // The path segment separator check ('\' and '/') was used to get
       // node_modules path for every path segment.
       // Use colon as an extra condition since we can get node_modules
-      // path for dirver root like 'C:\node_modules' and don't need to
-      // parse driver name.
+      // path for drive root like 'C:\node_modules' and don't need to
+      // parse drive name.
       if (code === 92/*\*/ || code === 47/*/*/ || code === 58/*:*/) {
         if (p !== nmLen)
           paths.push(from.slice(0, last) + '\\node_modules');
@@ -661,9 +661,8 @@ Module._preloadModules = function(requests) {
       throw e;
     }
   }
-  requests.forEach(function(request) {
-    parent.require(request);
-  });
+  for (var n = 0; n < requests.length; n++)
+    parent.require(requests[n]);
 };
 
 Module._initPaths();

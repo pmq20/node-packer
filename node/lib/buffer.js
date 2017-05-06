@@ -1,4 +1,3 @@
-/* eslint-disable require-buffer */
 'use strict';
 
 const binding = process.binding('buffer');
@@ -229,7 +228,9 @@ function fromArrayLike(obj) {
 }
 
 function fromArrayBuffer(obj, byteOffset, length) {
-  byteOffset = internalUtil.toInteger(byteOffset);
+  // convert byteOffset to integer
+  byteOffset = +byteOffset;
+  byteOffset = byteOffset ? Math.trunc(byteOffset) : 0;
 
   const maxLength = obj.byteLength - byteOffset;
 
@@ -239,7 +240,11 @@ function fromArrayBuffer(obj, byteOffset, length) {
   if (length === undefined) {
     length = maxLength;
   } else {
-    length = internalUtil.toLength(length);
+    // convert length to non-negative integer
+    length = +length;
+    length = length ? Math.trunc(length) : 0;
+    length = length <= 0 ? 0 : Math.min(length, Number.MAX_SAFE_INTEGER);
+
     if (length > maxLength)
       throw new RangeError("'length' is out of bounds");
   }
@@ -597,7 +602,8 @@ function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
   // Coerce to Number. Values like null and [] become 0.
   byteOffset = +byteOffset;
   // If the offset is undefined, "foo", {}, coerces to NaN, search whole buffer.
-  if (Number.isNaN(byteOffset)) {
+  // `x !== x`-style conditionals are a faster form of `isNaN(x)`
+  if (byteOffset !== byteOffset) {
     byteOffset = dir ? 0 : (buffer.length - 1);
   }
   dir = !!dir;  // Cast to bool.
@@ -723,9 +729,7 @@ Buffer.prototype.fill = function fill(val, start, end, encoding) {
 Buffer.prototype.write = function(string, offset, length, encoding) {
   // Buffer#write(string);
   if (offset === undefined) {
-    encoding = 'utf8';
-    length = this.length;
-    offset = 0;
+    return this.utf8Write(string, 0, this.length);
 
   // Buffer#write(string, encoding)
   } else if (length === undefined && typeof offset === 'string') {
@@ -738,12 +742,17 @@ Buffer.prototype.write = function(string, offset, length, encoding) {
     offset = offset >>> 0;
     if (isFinite(length)) {
       length = length >>> 0;
-      if (encoding === undefined)
-        encoding = 'utf8';
     } else {
       encoding = length;
       length = undefined;
     }
+
+    var remaining = this.length - offset;
+    if (length === undefined || length > remaining)
+      length = remaining;
+
+    if (string.length > 0 && (length < 0 || offset < 0))
+      throw new RangeError('Attempt to write outside buffer bounds');
   } else {
     // if someone is still calling the obsolete form of write(), tell them.
     // we don't want eg buf.write("foo", "utf8", 10) to silently turn into
@@ -752,56 +761,57 @@ Buffer.prototype.write = function(string, offset, length, encoding) {
                     'is no longer supported');
   }
 
-  var remaining = this.length - offset;
-  if (length === undefined || length > remaining)
-    length = remaining;
+  if (!encoding) return this.utf8Write(string, offset, length);
 
-  if (string.length > 0 && (length < 0 || offset < 0))
-    throw new RangeError('Attempt to write outside buffer bounds');
-
-  if (!encoding)
-    encoding = 'utf8';
-
-  var loweredCase = false;
-  for (;;) {
-    switch (encoding) {
-      case 'hex':
-        return this.hexWrite(string, offset, length);
-
-      case 'utf8':
-      case 'utf-8':
-        return this.utf8Write(string, offset, length);
-
-      case 'ascii':
-        return this.asciiWrite(string, offset, length);
-
-      case 'latin1':
-      case 'binary':
-        return this.latin1Write(string, offset, length);
-
-      case 'base64':
-        // Warning: maxLength not taken into account in base64Write
-        return this.base64Write(string, offset, length);
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
+  encoding += '';
+  switch (encoding.length) {
+    case 4:
+      if (encoding === 'utf8') return this.utf8Write(string, offset, length);
+      if (encoding === 'ucs2') return this.ucs2Write(string, offset, length);
+      encoding = encoding.toLowerCase();
+      if (encoding === 'utf8') return this.utf8Write(string, offset, length);
+      if (encoding === 'ucs2') return this.ucs2Write(string, offset, length);
+      break;
+    case 5:
+      if (encoding === 'utf-8') return this.utf8Write(string, offset, length);
+      if (encoding === 'ascii') return this.asciiWrite(string, offset, length);
+      if (encoding === 'ucs-2') return this.ucs2Write(string, offset, length);
+      encoding = encoding.toLowerCase();
+      if (encoding === 'utf-8') return this.utf8Write(string, offset, length);
+      if (encoding === 'ascii') return this.asciiWrite(string, offset, length);
+      if (encoding === 'ucs-2') return this.ucs2Write(string, offset, length);
+      break;
+    case 7:
+      if (encoding === 'utf16le' || encoding.toLowerCase() === 'utf16le')
         return this.ucs2Write(string, offset, length);
-
-      default:
-        if (loweredCase)
-          throw new TypeError('Unknown encoding: ' + encoding);
-        encoding = ('' + encoding).toLowerCase();
-        loweredCase = true;
-    }
+      break;
+    case 8:
+      if (encoding === 'utf-16le' || encoding.toLowerCase() === 'utf-16le')
+        return this.ucs2Write(string, offset, length);
+      break;
+    case 6:
+      if (encoding === 'latin1' || encoding === 'binary')
+        return this.latin1Write(string, offset, length);
+      if (encoding === 'base64')
+        return this.base64Write(string, offset, length);
+      encoding = encoding.toLowerCase();
+      if (encoding === 'latin1' || encoding === 'binary')
+        return this.latin1Write(string, offset, length);
+      if (encoding === 'base64')
+        return this.base64Write(string, offset, length);
+      break;
+    case 3:
+      if (encoding === 'hex' || encoding.toLowerCase() === 'hex')
+        return this.hexWrite(string, offset, length);
+      break;
   }
+  throw new TypeError('Unknown encoding: ' + encoding);
 };
 
 
 Buffer.prototype.toJSON = function() {
-  if (this.length) {
-    const data = [];
+  if (this.length > 0) {
+    const data = new Array(this.length);
     for (var i = 0; i < this.length; ++i)
       data[i] = this[i];
     return { type: 'Buffer', data };
@@ -815,7 +825,8 @@ function adjustOffset(offset, length) {
   // Use Math.trunc() to convert offset to an integer value that can be larger
   // than an Int32. Hence, don't use offset | 0 or similar techniques.
   offset = Math.trunc(offset);
-  if (offset === 0 || Number.isNaN(offset)) {
+  // `x !== x`-style conditionals are a faster form of `isNaN(x)`
+  if (offset === 0 || offset !== offset) {
     return 0;
   } else if (offset < 0) {
     offset += length;

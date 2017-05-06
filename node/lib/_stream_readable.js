@@ -13,6 +13,8 @@ var StringDecoder;
 
 util.inherits(Readable, Stream);
 
+const kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
+
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
   // event emitter implementation with them.
@@ -492,7 +494,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
               dest !== process.stdout &&
               dest !== process.stderr;
 
-  var endFn = doEnd ? onend : cleanup;
+  var endFn = doEnd ? onend : unpipe;
   if (state.endEmitted)
     process.nextTick(endFn);
   else
@@ -528,7 +530,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     dest.removeListener('error', onerror);
     dest.removeListener('unpipe', onunpipe);
     src.removeListener('end', onend);
-    src.removeListener('end', cleanup);
+    src.removeListener('end', unpipe);
     src.removeListener('data', ondata);
 
     cleanedUp = true;
@@ -667,7 +669,7 @@ Readable.prototype.unpipe = function(dest) {
   }
 
   // try to find the right one.
-  const index = state.pipes.indexOf(dest);
+  var index = state.pipes.indexOf(dest);
   if (index === -1)
     return this;
 
@@ -811,10 +813,9 @@ Readable.prototype.wrap = function(stream) {
   }
 
   // proxy certain important events.
-  const events = ['error', 'close', 'destroy', 'pause', 'resume'];
-  events.forEach(function(ev) {
-    stream.on(ev, self.emit.bind(self, ev));
-  });
+  for (var n = 0; n < kProxyEvents.length; n++) {
+    stream.on(kProxyEvents[n], self.emit.bind(self, kProxyEvents[n]));
+  }
 
   // when we try to consume some more bytes, simply unpause the
   // underlying stream.

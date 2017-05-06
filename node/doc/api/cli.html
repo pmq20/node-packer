@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Command Line Options | Node.js v7.7.3 Documentation</title>
+  <title>Command Line Options | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -97,6 +98,8 @@
 <li><span class="stability_undefined"><a href="#cli_c_check"><code>-c</code>, <code>--check</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_i_interactive"><code>-i</code>, <code>--interactive</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_r_require_module"><code>-r</code>, <code>--require module</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_inspect_host_port"><code>--inspect[=[host:]port]</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_inspect_brk_host_port"><code>--inspect-brk[=[host:]port]</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_deprecation"><code>--trace-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_throw_deprecation"><code>--throw-deprecation</code></a></span></li>
@@ -205,6 +208,17 @@ predefined in the REPL can also be used in <code>script</code>.</p>
 </div><p>Preload the specified module at startup.</p>
 <p>Follows <code>require()</code>&#39;s module resolution
 rules. <code>module</code> may be either a path to a file, or a node module name.</p>
+<h3><code>--inspect[=[host:]port]</code><span><a class="mark" href="#cli_inspect_host_port" id="cli_inspect_host_port">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v6.3.0</span>
+</div><p>Activate inspector on host:port. Default is 127.0.0.1:9229.</p>
+<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug
+and profile Node.js instances. The tools attach to Node.js instances via a
+tcp port and communicate using the <a href="https://chromedevtools.github.io/debugger-protocol-viewer">Chrome Debugging Protocol</a>.</p>
+<h3><code>--inspect-brk[=[host:]port]</code><span><a class="mark" href="#cli_inspect_brk_host_port" id="cli_inspect_brk_host_port">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v7.6.0</span>
+</div><p>Activate inspector on host:port and break at start of user script.</p>
 <h3><code>--no-deprecation</code><span><a class="mark" href="#cli_no_deprecation" id="cli_no_deprecation">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.8.0</span>

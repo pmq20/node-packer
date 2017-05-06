@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTPS | Node.js v7.7.3 Documentation</title>
+  <title>HTTPS | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="https" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -91,7 +92,7 @@
 <li><span class="stability_undefined"><a href="#https_class_https_agent">Class: https.Agent</a></span></li>
 <li><span class="stability_undefined"><a href="#https_class_https_server">Class: https.Server</a></span><ul>
 <li><span class="stability_undefined"><a href="#https_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
-<li><span class="stability_undefined"><a href="#https_server_timeout_msecs">server.timeout([msecs])</a></span></li>
+<li><span class="stability_undefined"><a href="#https_server_timeout">server.timeout</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#https_https_createserver_options_requestlistener">https.createServer(options[, requestListener])</a></span><ul>
@@ -132,11 +133,11 @@ for more information.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>See <a href="http.html#http_server_settimeout_msecs_callback"><code>http.Server#setTimeout()</code></a>.</p>
-<h3>server.timeout([msecs])<span><a class="mark" href="#https_server_timeout_msecs" id="https_server_timeout_msecs">#</a></span></h3>
+<h3>server.timeout<span><a class="mark" href="#https_server_timeout" id="https_server_timeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
 </div><ul>
-<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Defaults to 120000 (2 minutes).</li>
 </ul>
 <p>See <a href="http.html#http_server_timeout"><code>http.Server#timeout</code></a>.</p>
 <h2>https.createServer(options[, requestListener])<span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
@@ -166,7 +167,8 @@ https.createServer(options, (req, res) =&gt; {
 const fs = require(&#39;fs&#39;);
 
 const options = {
-  pfx: fs.readFileSync(&#39;server.pfx&#39;)
+  pfx: fs.readFileSync(&#39;test/fixtures/test_cert.pfx&#39;),
+  passphrase: &#39;sample&#39;
 };
 
 https.createServer(options, (req, res) =&gt; {
@@ -251,14 +253,14 @@ automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequeryst
 <p>Example:</p>
 <pre><code class="lang-js">const https = require(&#39;https&#39;);
 
-var options = {
+const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
   method: &#39;GET&#39;
 };
 
-var req = https.request(options, (res) =&gt; {
+const req = https.request(options, (res) =&gt; {
   console.log(&#39;statusCode:&#39;, res.statusCode);
   console.log(&#39;headers:&#39;, res.headers);
 
@@ -273,7 +275,7 @@ req.on(&#39;error&#39;, (e) =&gt; {
 req.end();
 </code></pre>
 <p>Example using options from <a href="tls.html#tls_tls_connect_options_callback"><code>tls.connect()</code></a>:</p>
-<pre><code class="lang-js">var options = {
+<pre><code class="lang-js">const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
@@ -283,13 +285,13 @@ req.end();
 };
 options.agent = new https.Agent(options);
 
-var req = https.request(options, (res) =&gt; {
-  ...
+const req = https.request(options, (res) =&gt; {
+  // ...
 });
 </code></pre>
 <p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>
 <p>Example:</p>
-<pre><code class="lang-js">var options = {
+<pre><code class="lang-js">const options = {
   hostname: &#39;encrypted.google.com&#39;,
   port: 443,
   path: &#39;/&#39;,
@@ -299,8 +301,8 @@ var req = https.request(options, (res) =&gt; {
   agent: false
 };
 
-var req = https.request(options, (res) =&gt; {
-  ...
+const req = https.request(options, (res) =&gt; {
+  // ...
 });
 </code></pre>
 

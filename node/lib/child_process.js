@@ -30,9 +30,9 @@ exports.fork = function(modulePath /*, args, options*/) {
   if (pos < arguments.length && arguments[pos] != null) {
     if (typeof arguments[pos] !== 'object') {
       throw new TypeError('Incorrect value of args option');
-    } else {
-      options = util._extend({}, arguments[pos++]);
     }
+
+    options = util._extend({}, arguments[pos++]);
   }
 
   // Prepare arguments for fork:
@@ -79,16 +79,10 @@ exports._forkChild = function(fd) {
 };
 
 
-function normalizeExecArgs(command /*, options, callback*/) {
-  let options;
-  let callback;
-
-  if (typeof arguments[1] === 'function') {
+function normalizeExecArgs(command, options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
     options = undefined;
-    callback = arguments[1];
-  } else {
-    options = arguments[1];
-    callback = arguments[2];
   }
 
   // Make a shallow copy so we don't clobber the user's options object.
@@ -142,7 +136,7 @@ exports.execFile = function(file /*, args, options, callback*/) {
     callback = arguments[pos++];
   }
 
-  if (!callback && arguments[pos] != null) {
+  if (!callback && pos < arguments.length && arguments[pos] != null) {
     throw new TypeError('Incorrect value of args option');
   }
 
@@ -175,6 +169,8 @@ exports.execFile = function(file /*, args, options, callback*/) {
 
   var ex = null;
 
+  var cmd = file;
+
   function exithandler(code, signal) {
     if (exited) return;
     exited = true;
@@ -202,7 +198,6 @@ exports.execFile = function(file /*, args, options, callback*/) {
       return;
     }
 
-    var cmd = file;
     if (args.length !== 0)
       cmd += ' ' + args.join(' ');
 
@@ -311,18 +306,15 @@ function _convertCustomFds(options) {
   }
 }
 
-function normalizeSpawnArguments(file /*, args, options*/) {
-  var args, options;
-
-  if (Array.isArray(arguments[1])) {
-    args = arguments[1].slice(0);
-    options = arguments[2];
-  } else if (arguments[1] !== undefined &&
-             (arguments[1] === null || typeof arguments[1] !== 'object')) {
+function normalizeSpawnArguments(file, args, options) {
+  if (Array.isArray(args)) {
+    args = args.slice(0);
+  } else if (args !== undefined &&
+             (args === null || typeof args !== 'object')) {
     throw new TypeError('Incorrect value of args option');
   } else {
+    options = args;
     args = [];
-    options = arguments[1];
   }
 
   if (options === undefined)
@@ -383,22 +375,6 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
 
   debug('spawn', opts.args, options);
 
-  if (opts.file === process.execPath || -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
-    opts.args.unshift(process.execPath);
-    opts.file = process.execPath;
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
-
   child.spawn({
     file: opts.file,
     args: opts.args,
@@ -428,22 +404,6 @@ function lookupSignal(signal) {
 
 function spawnSync(/*file, args, options*/) {
   var opts = normalizeSpawnArguments.apply(null, arguments);
-
-  if (opts.file === process.execPath || -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
-    opts.args.unshift(process.execPath);
-    opts.file = process.execPath;
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
 
   var options = opts.options;
 
@@ -542,8 +502,8 @@ function execFileSync(/*command, args, options*/) {
 
   if (err)
     throw err;
-  else
-    return ret.stdout;
+
+  return ret.stdout;
 }
 exports.execFileSync = execFileSync;
 
@@ -562,7 +522,7 @@ function execSync(command /*, options*/) {
 
   if (err)
     throw err;
-  else
-    return ret.stdout;
+
+  return ret.stdout;
 }
 exports.execSync = execSync;

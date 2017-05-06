@@ -4,14 +4,14 @@
 
 * [Issues and Pull Requests](#issues-and-pull-requests)
 * [Accepting Modifications](#accepting-modifications)
- - [Internal vs. Public API](#internal-vs-public-api)
- - [Breaking Changes](#breaking-changes)
- - [Deprecations](#deprecations)
- - [Involving the CTC](#involving-the-ctc)
+   - [Internal vs. Public API](#internal-vs-public-api)
+   - [Breaking Changes](#breaking-changes)
+   - [Deprecations](#deprecations)
+   - [Involving the CTC](#involving-the-ctc)
 * [Landing Pull Requests](#landing-pull-requests)
- - [Technical HOWTO](#technical-howto)
- - [I Just Made a Mistake](#i-just-made-a-mistake)
- - [Long Term Support](#long-term-support)
+   - [Technical HOWTO](#technical-howto)
+   - [I Just Made a Mistake](#i-just-made-a-mistake)
+   - [Long Term Support](#long-term-support)
 
 This document contains information for Collaborators of the Node.js
 project regarding maintaining the code, documentation and issues.
@@ -345,7 +345,7 @@ Additionally:
 
 ### Technical HOWTO
 
-_Optional:_ ensure that you are not in a borked `am`/`rebase` state
+Clear any `am`/`rebase` that may already be underway.
 
 ```text
 $ git am --abort
@@ -358,11 +358,12 @@ Checkout proper target branch
 $ git checkout master
 ```
 
-Update the tree
+Update the tree (assumes your repo is set up as detailed in
+[CONTRIBUTING.md](CONTRIBUTING.md#step-1-fork))
 
 ```text
-$ git fetch origin
-$ git merge --ff-only origin/master
+$ git fetch upstream
+$ git merge --ff-only upstream/master
 ```
 
 Apply external patches
@@ -371,16 +372,28 @@ Apply external patches
 $ curl -L https://github.com/nodejs/node/pull/xxx.patch | git am --whitespace=fix
 ```
 
+If the merge fails even though recent CI runs were successful, then a 3-way merge may
+be required.  In this case try:
+
+```text
+$ git am --abort
+$ curl -L https://github.com/nodejs/node/pull/xxx.patch | git am -3 --whitespace=fix
+```
+If the 3-way merge succeeds you can proceed, but make sure to check the changes
+against the original PR carefully and build/test on at least one platform
+before landing. If the 3-way merge fails, then it is most likely that a conflicting
+PR has landed since the CI run and you will have to ask the author to rebase.
+
 Check and re-review the changes
 
 ```text
-$ git diff origin/master
+$ git diff upstream/master
 ```
 
 Check number of commits and commit messages
 
 ```text
-$ git log origin/master...master
+$ git log upstream/master...master
 ```
 
 If there are multiple commits that relate to the same feature or
@@ -388,7 +401,7 @@ one with a feature and separate with a test for that feature,
 you'll need to use `squash` or `fixup`:
 
 ```text
-$ git rebase -i origin/master
+$ git rebase -i upstream/master
 ```
 
 This will open a screen like this (in the default shell editor):
@@ -444,10 +457,14 @@ commit logs, ensure that they are properly formatted, and add
 * The commit message text must conform to the
 [commit message guidelines](./CONTRIBUTING.md#step-3-commit).
 
+Run tests (`make -j4 test` or `vcbuild test`). Even though there was a
+successful continuous integration run, other changes may have landed on master
+since then, so running the tests one last time locally is a good practice.
+
 Time to push it:
 
 ```text
-$ git push origin master
+$ git push upstream master
 ```
 * Optional: Force push the amended commit to the branch you used to
 open the pull request. If your branch is called `bugfix`, then the
@@ -461,11 +478,6 @@ landing your own contributions.
 your pull request shows the purple merged status then you should still
 add the "Landed in <commit hash>..<commit hash>" comment if you added
 multiple commits.
-
-* `./configure && make -j8 test`
-  * `-j8` builds node in parallel with 8 threads. Adjust to the number
-  of cores or processor-level threads your processor has (or slightly
-  more) for best results.
 
 ### I Just Made a Mistake
 
@@ -540,7 +552,8 @@ LTS release.
 
 When you send your pull request, consider including information about
 whether your change is breaking. If you think your patch can be backported,
-please feel free to include that information in the PR thread.
+please feel free to include that information in the PR thread. For more
+information on backporting, please see the [backporting guide][].
 
 Several LTS related issue and PR labels have been provided:
 
@@ -567,3 +580,5 @@ When the LTS working group determines that a new LTS release is required,
 selected commits will be picked from the staging branch to be included in the
 release. This process of making a release will be a collaboration between the
 LTS working group and the Release team.
+
+[backporting guide]: doc/guides/backporting-to-release-lines.md

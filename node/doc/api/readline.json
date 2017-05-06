@@ -489,6 +489,12 @@
                       "name": "crlfDelay",
                       "type": "number",
                       "desc": "If the delay between `\\r` and `\\n` exceeds `crlfDelay` milliseconds, both `\\r` and `\\n` will be treated as separate end-of-line input. Default to `100` milliseconds. `crlfDelay` will be coerced to `[100, 2000]` range."
+                    },
+                    {
+                      "textRaw": "`removeHistoryDuplicates` {boolean} If `true`, when a new input line added to the history list duplicates an older one, this removes the older line from the list. Defaults to `false`. ",
+                      "name": "removeHistoryDuplicates",
+                      "type": "boolean",
+                      "desc": "If `true`, when a new input line added to the history list duplicates an older one, this removes the older line from the list. Defaults to `false`."
                     }
                   ],
                   "name": "options",
@@ -509,7 +515,7 @@
             {
               "textRaw": "Use of the `completer` Function",
               "name": "use_of_the_`completer`_function",
-              "desc": "<p>When called, the <code>completer</code> function is provided the current line entered by\nthe user, and is expected to return an Array with 2 entries:</p>\n<ul>\n<li>An Array with matching entries for the completion.</li>\n<li>The substring that was used for the matching.</li>\n</ul>\n<p>For instance: <code>[[substr1, substr2, ...], originalsubstring]</code>.</p>\n<pre><code class=\"lang-js\">function completer(line) {\n  const completions = &#39;.help .error .exit .quit .q&#39;.split(&#39; &#39;);\n  const hits = completions.filter((c) =&gt; { return c.indexOf(line) === 0 });\n  // show all completions if none found\n  return [hits.length ? hits : completions, line];\n}\n</code></pre>\n<p>The <code>completer</code> function can be called asynchronously if it accepts two\narguments:</p>\n<pre><code class=\"lang-js\">function completer(linePartial, callback) {\n  callback(null, [[&#39;123&#39;], linePartial]);\n}\n</code></pre>\n",
+              "desc": "<p>The <code>completer</code> function takes the current line entered by the user\nas an argument, and returns an Array with 2 entries:</p>\n<ul>\n<li>An Array with matching entries for the completion.</li>\n<li>The substring that was used for the matching.</li>\n</ul>\n<p>For instance: <code>[[substr1, substr2, ...], originalsubstring]</code>.</p>\n<pre><code class=\"lang-js\">function completer(line) {\n  const completions = &#39;.help .error .exit .quit .q&#39;.split(&#39; &#39;);\n  const hits = completions.filter((c) =&gt; { return c.indexOf(line) === 0 });\n  // show all completions if none found\n  return [hits.length ? hits : completions, line];\n}\n</code></pre>\n<p>The <code>completer</code> function can be called asynchronously if it accepts two\narguments:</p>\n<pre><code class=\"lang-js\">function completer(linePartial, callback) {\n  callback(null, [[&#39;123&#39;], linePartial]);\n}\n</code></pre>\n",
               "type": "module",
               "displayName": "Use of the `completer` Function"
             }

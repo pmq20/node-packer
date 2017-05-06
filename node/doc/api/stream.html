@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.7.3 Documentation</title>
+  <title>Stream | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -410,7 +411,7 @@ data. The listener callback is passed a single <code>Error</code> argument when 
 has been called, and all data has been flushed to the underlying system.</p>
 <pre><code class="lang-js">const writer = getWritableStreamSomehow();
 for (var i = 0; i &lt; 100; i ++) {
-  writer.write(&#39;hello, #${i}!\n&#39;);
+  writer.write(`hello, #${i}!\n`);
 }
 writer.end(&#39;This is the end\n&#39;);
 writer.on(&#39;finish&#39;, () =&gt; {
@@ -647,7 +648,7 @@ destinations, then calling <a href="#stream_readable_pause"><code>stream.pause()
 that the stream will <em>remain</em> paused once those destinations drain and ask for
 more data.</p>
 <p><em>Note</em>: If a <a href="#stream_class_stream_readable">Readable</a> is switched into flowing mode and there are no
-consumers available handle the data, that data will be lost. This can occur,
+consumers available to handle the data, that data will be lost. This can occur,
 for instance, when the <code>readable.resume()</code> method is called without a listener
 attached to the <code>&#39;data&#39;</code> event, or when a <code>&#39;data&#39;</code> event handler is removed
 from the stream.</p>
@@ -979,7 +980,7 @@ setTimeout(() =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.9.11</span>
 </div><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to unshift onto the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to unshift onto the read queue</li>
 </ul>
 <p>The <code>readable.unshift()</code> method pushes a chunk of data back into the internal
 buffer. This is useful in certain situations where a stream is being consumed by
@@ -1010,7 +1011,7 @@ function parseHeader(stream, callback) {
         const remaining = split.join(&#39;\n\n&#39;);
         const buf = Buffer.from(remaining, &#39;utf8&#39;);
         stream.removeListener(&#39;error&#39;, callback);
-        // set the readable listener before unshifting
+        // remove the readable listener before unshifting
         stream.removeListener(&#39;readable&#39;, onReadable);
         if (buf.length)
           stream.unshift(buf);
@@ -1099,7 +1100,7 @@ implement both the <a href="#stream_class_stream_readable">Readable</a> and <a h
 implement streams using JavaScript&#39;s prototypal inheritance model.</p>
 <p>First, a stream developer would declare a new JavaScript class that extends one
 of the four basic stream classes (<code>stream.Writable</code>, <code>stream.Readable</code>,
-<code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure the call the appropriate
+<code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure they call the appropriate
 parent class constructor:</p>
 <pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
 
@@ -1251,8 +1252,9 @@ const myWritable = new Writable({
 </code></pre>
 <h4>writable._write(chunk, encoding, callback)<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback_1" id="stream_writable_write_chunk_encoding_callback_1">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be written. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk to be written. Will <strong>always</strong>
+be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
+or the stream is operating in object mode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then <code>encoding</code> is the
 character encoding of that string. If chunk is a <code>Buffer</code>, or if the
 stream is operating in object mode, <code>encoding</code> may be ignored.</li>
@@ -1422,13 +1424,13 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>readable.push(chunk[, encoding])<span><a class="mark" href="#stream_readable_push_chunk_encoding" id="stream_readable_push_chunk_encoding">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Chunk of data to push into the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to push into the read queue</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Encoding of String chunks.  Must be a valid
 Buffer encoding, such as <code>&#39;utf8&#39;</code> or <code>&#39;ascii&#39;</code></li>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data may continued to be
 pushed; <code>false</code> otherwise.</li>
 </ul>
-</div><p>When <code>chunk</code> is a <code>Buffer</code> or <code>string</code>, the <code>chunk</code> of data will be added to the
+</div><p>When <code>chunk</code> is not <code>null</code>, the <code>chunk</code> of data will be added to the
 internal queue for users of the stream to consume. Passing <code>chunk</code> as <code>null</code>
 signals the end of the stream (EOF), after which no more data can be written.</p>
 <p>When the Readable is operating in paused mode, the data added with
@@ -1479,6 +1481,7 @@ being thrown. Throwing an Error from within <code>readable._read()</code> can re
 unexpected and inconsistent behavior depending on whether the stream is
 operating in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures
 consistent and predictable handling of errors.</p>
+<!-- eslint-disable no-useless-return -->
 <pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
 
 const myReadable = new Readable({
@@ -1738,8 +1741,9 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>transform._transform(chunk, encoding, callback)<span><a class="mark" href="#stream_transform_transform_chunk_encoding_callback" id="stream_transform_transform_chunk_encoding_callback">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The chunk to be transformed. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> The chunk to be transformed. Will <strong>always</strong>
+be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
+or the stream is operating in object mode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If the chunk is a string, then this is the
 encoding type. If chunk is a buffer, then this is the special
 value - &#39;buffer&#39;, ignore it in this case.</li>

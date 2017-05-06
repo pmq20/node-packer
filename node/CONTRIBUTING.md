@@ -4,7 +4,7 @@
 
 The Code of Conduct explains the *bare minimum* behavior
 expectations the Node Foundation requires of its contributors.
-[Please read it before participating.](./CODE_OF_CONDUCT.md)
+[Please read it before participating.](https://github.com/nodejs/TSC/blob/master/CODE_OF_CONDUCT.md)
 
 ## Issue Contributions
 
@@ -62,7 +62,7 @@ does not align with the project team. (Node.js has two IRC channels:
 [#Node.js](http://webchat.freenode.net/?channels=node.js) for general help and
 questions, and
 [#Node-dev](http://webchat.freenode.net/?channels=node-dev) for development of
-Node.js core specifically.
+Node.js core specifically).
 
 For instructions on updating the version of V8 included in the *deps/*
 directory, please refer to [the Maintaining V8 in Node.js guide](https://github.com/nodejs/node/blob/master/doc/guides/maintaining-V8.md).
@@ -95,18 +95,33 @@ $ git add my/changed/files
 $ git commit
 ```
 
+### Commit guidelines
+
 Writing good commit logs is important. A commit log should describe what
 changed and why. Follow these guidelines when writing one:
 
-1. The first line should be 50 characters or less and contain a short
-   description of the change. All words in the description should be in
-   lowercase with the exception of proper nouns, acronyms, and the ones that
-   refer to code, like function/variable names. The description should
-   be prefixed with the name of the changed subsystem and start with an
-   imperative verb. Example: "net: add localAddress and localPort
-   to Socket"
+1. The first line should:
+   - contain a short description of the change
+   - be 50 characters or less
+   - be entirely in lowercase with the exception of proper nouns, acronyms, and
+   the words that refer to code, like function/variable names
+   - be prefixed with the name of the changed subsystem and start with an
+   imperative verb. Examples: "net: add localAddress and localPort
+   to Socket", "src: fix typos in node_lttng_provider.h"
+   - be meaningful; it is what other people see when they
+   run `git shortlog` or `git log --oneline`.<br>
+   Check the output of `git log --oneline files/you/changed` to find out
+   what subsystem (or subsystems) your changes touch
 2. Keep the second line blank.
 3. Wrap all other lines at 72 columns.
+   - If your patch fixes an open issue, you can add a reference to it at the end
+    of the log. Use the `Fixes:` prefix and the full issue URL. For other references
+    use `Refs:`. For example:
+    ```txt
+    Fixes: https://github.com/nodejs/node/issues/1337
+    Refs: http://eslint.org/docs/rules/space-in-parens.html
+    Refs: https://github.com/nodejs/node/pull/3615
+    ```
 
 A good commit log can look something like this:
 
@@ -121,22 +136,9 @@ The body of the commit message can be several paragraphs, and
 please do proper word-wrap and keep columns shorter than about
 72 characters or so. That way, `git log` will show things
 nicely even when it is indented.
-```
 
-The header line should be meaningful; it is what other people see when they
-run `git shortlog` or `git log --oneline`.
-
-Check the output of `git log --oneline files_that_you_changed` to find out
-what subsystem (or subsystems) your changes touch.
-
-If your patch fixes an open issue, you can add a reference to it at the end
-of the log. Use the `Fixes:` prefix and the full issue URL. For other references
-use `Refs:`. For example:
-
-```txt
 Fixes: https://github.com/nodejs/node/issues/1337
 Refs: http://eslint.org/docs/rules/space-in-parens.html
-Refs: https://github.com/nodejs/node/pull/3615
 ```
 
 ### Step 4: Rebase
@@ -176,8 +178,7 @@ Running `make test`/`vcbuild test` will run the linter as well unless one or
 more tests fail.
 
 If you want to run the linter without running tests, use
-`make lint`/`vcbuild jslint`. At this time, only JavaScript linting is
-available on Windows. `make lint` on POSIX will run both JavaScript linting and
+`make lint`/`vcbuild lint`. It will run both JavaScript linting and
 C++ linting.
 
 If you are updating tests and just want to run a single test to check it, you
@@ -201,9 +202,6 @@ core modules.
 ```text
 $ git push origin my-branch
 ```
-
-Go to https://github.com/yourusername/node and select your branch.
-Click the 'Pull Request' button and fill out the form.
 
 Pull requests are usually reviewed within a few days.
 

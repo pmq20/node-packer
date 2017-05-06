@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Process | Node.js v7.7.3 Documentation</title>
+  <title>Process | Node.js v7.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -32,6 +32,7 @@
 <li><a class="nav-console" href="console.html">Console</a></li>
 <li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
 <li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
@@ -73,7 +74,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v7.7.3 Documentation</h1>
+        <h1>Node.js v7.10.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -398,7 +399,7 @@ command-line option can be used to suppress the default console output but the
 <p>The following example illustrates the warning that is printed to <code>stderr</code> when
 too many listeners have been added to an event</p>
 <pre><code class="lang-txt">$ node
-&gt; event.defaultMaxListeners = 1;
+&gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; (node:38638) Warning: Possible EventEmitter memory leak detected. 2 foo
@@ -408,7 +409,7 @@ too many listeners have been added to an event</p>
 adds a custom handler to the <code>&#39;warning&#39;</code> event:</p>
 <pre><code class="lang-txt">$ node --no-warnings
 &gt; var p = process.on(&#39;warning&#39;, (warning) =&gt; console.warn(&#39;Do not do that!&#39;));
-&gt; event.defaultMaxListeners = 1;
+&gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; Do not do that!
@@ -577,7 +578,7 @@ representation of the configure options used to compile the current Node.js
 executable. This is the same as the <code>config.gypi</code> file that was produced when
 running the <code>./configure</code> script.</p>
 <p>An example of the possible output looks like:</p>
-<pre><code class="lang-js">{
+<pre><code class="lang-txt">{
   target_defaults:
    { cflags: [],
      default_configuration: &#39;Release&#39;,
@@ -1135,9 +1136,12 @@ function maybeSync(arg, cb) {
 }
 </code></pre>
 <p>This API is hazardous because in the following case:</p>
-<pre><code class="lang-js">maybeSync(true, () =&gt; {
+<pre><code class="lang-js">const maybeTrue = Math.random() &gt; 0.5;
+
+maybeSync(maybeTrue, () =&gt; {
   foo();
 });
+
 bar();
 </code></pre>
 <p>It is not clear whether <code>foo()</code> or <code>bar()</code> will be called first.</p>
@@ -1342,16 +1346,20 @@ Android)</p>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stderr</code> property returns a <a href="stream.html#stream_writable_streams">Writable</a> stream connected to
-<code>stderr</code> (fd <code>2</code>).</p>
+</div><p>The <code>process.stderr</code> property returns a stream connected to
+<code>stderr</code> (fd <code>2</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
+stream) unless fd <code>2</code> refers to a file, in which case it is
+a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 <p>Note: <code>process.stderr</code> differs from other Node.js streams in important ways,
 see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdin</code> property returns a <a href="stream.html#stream_readable_streams">Readable</a> stream equivalent to or
-associated with <code>stdin</code> (fd <code>0</code>).</p>
+</div><p>The <code>process.stdin</code> property returns a stream connected to
+<code>stdin</code> (fd <code>0</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
+stream) unless fd <code>0</code> refers to a file, in which case it is
+a <a href="stream.html#stream_readable_streams">Readable</a> stream.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.stdin.setEncoding(&#39;utf8&#39;);
 
@@ -1366,7 +1374,7 @@ process.stdin.on(&#39;end&#39;, () =&gt; {
   process.stdout.write(&#39;end&#39;);
 });
 </code></pre>
-<p>As a <a href="stream.html#stream_readable_streams">Readable</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
+<p>As a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a> stream, <code>process.stdin</code> can also be used in &quot;old&quot; mode that
 is compatible with scripts written for Node.js prior to v0.10.
 For more information see <a href="stream.html#stream_compatibility_with_older_node_js_versions">Stream compatibility</a>.</p>
 <p><em>Note</em>: In &quot;old&quot; streams mode the <code>stdin</code> stream is paused by default, so one
@@ -1376,8 +1384,10 @@ must call <code>process.stdin.resume()</code> to read from it. Note also that ca
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
-</div><p>The <code>process.stdout</code> property returns a <a href="stream.html#stream_writable_streams">Writable</a> stream connected to
-<code>stdout</code> (fd <code>2</code>).</p>
+</div><p>The <code>process.stdout</code> property returns a stream connected to
+<code>stdout</code> (fd <code>1</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
+stream) unless fd <code>1</code> refers to a file, in which case it is
+a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 <p>For example, to copy process.stdin to process.stdout:</p>
 <pre><code class="lang-js">process.stdin.pipe(process.stdout);
 </code></pre>
@@ -1402,7 +1412,7 @@ and whether the system is Windows or Unix:<ul>
 <p>These behaviours are partly for historical reasons, as changing them would
 create backwards incompatibility, but they are also expected by some users.</p>
 <p>Synchronous writes avoid problems such as output written with <code>console.log()</code> or
-<code>console.write()</code> being unexpectedly interleaved, or not written at all if
+<code>console.error()</code> being unexpectedly interleaved, or not written at all if
 <code>process.exit()</code> is called before an asynchronous write completes. See
 <a href="#process_process_exit_code"><code>process.exit()</code></a> for more information.</p>
 <p><strong><em>Warning</em></strong>: Synchronous writes block the event loop until the write has
@@ -1467,6 +1477,8 @@ console.log(
 </ul>
 <p>The <code>process.uptime()</code> method returns the number of seconds the current Node.js
 process has been running.</p>
+<p><em>Note</em>: the return value includes fractions of a second. Use <code>Math.floor()</code>
+to get whole seconds.</p>
 <h2>process.version<span><a class="mark" href="#process_process_version" id="process_process_version">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.3</span>
@@ -1498,7 +1510,7 @@ ABI version, which is increased whenever a C++ API changes. Node.js will refuse
 to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
-<p>Will generate output similar to:</p>
+<p>Will generate an object similar to:</p>
 <pre><code class="lang-js">{
   http_parser: &#39;2.3.0&#39;,
   node: &#39;1.1.1&#39;,

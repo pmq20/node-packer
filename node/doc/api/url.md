@@ -16,21 +16,21 @@ When parsed, a URL object is returned containing properties for each of these
 components.
 
 The following details each of the components of a parsed URL. The example
-`'http://user:pass@host.com:8080/p/a/t/h?query=string#hash'` is used to
+`'http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash'` is used to
 illustrate each.
 
 ```txt
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                    href                                     │
-├──────────┬┬───────────┬─────────────────┬───────────────────────────┬───────┤
-│ protocol ││   auth    │      host       │           path            │ hash  │
-│          ││           ├──────────┬──────┼──────────┬────────────────┤       │
-│          ││           │ hostname │ port │ pathname │     search     │       │
-│          ││           │          │      │          ├─┬──────────────┤       │
-│          ││           │          │      │          │ │    query     │       │
-"  http:   // user:pass @ host.com : 8080   /p/a/t/h  ?  query=string   #hash "
-│          ││           │          │      │          │ │              │       │
-└──────────┴┴───────────┴──────────┴──────┴──────────┴─┴──────────────┴───────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                      href                                       │
+├──────────┬┬───────────┬─────────────────────┬───────────────────────────┬───────┤
+│ protocol ││   auth    │        host         │           path            │ hash  │
+│          ││           ├──────────────┬──────┼──────────┬────────────────┤       │
+│          ││           │   hostname   │ port │ pathname │     search     │       │
+│          ││           │              │      │          ├─┬──────────────┤       │
+│          ││           │              │      │          │ │    query     │       │
+"  http:   // user:pass @ sub.host.com : 8080   /p/a/t/h  ?  query=string   #hash "
+│          ││           │              │      │          │ │              │       │
+└──────────┴┴───────────┴──────────────┴──────┴──────────┴─┴──────────────┴───────┘
 (all spaces in the "" line should be ignored -- they are purely for formatting)
 ```
 
@@ -56,21 +56,21 @@ For example: `'#hash'`
 The `host` property is the full lower-cased host portion of the URL, including
 the `port` if specified.
 
-For example: `'host.com:8080'`
+For example: `'sub.host.com:8080'`
 
 ### urlObject.hostname
 
 The `hostname` property is the lower-cased host name portion of the `host`
 component *without* the `port` included.
 
-For example: `'host.com'`
+For example: `'sub.host.com'`
 
 ### urlObject.href
 
 The `href` property is the full URL string that was parsed with both the
 `protocol` and `host` components converted to lower-case.
 
-For example: `'http://user:pass@host.com:8080/p/a/t/h?query=string#hash'`
+For example: `'http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash'`
 
 ### urlObject.path
 
@@ -130,6 +130,56 @@ No decoding of the query string is performed.
 The `slashes` property is a `boolean` with a value of `true` if two ASCII
 forward-slash characters (`/`) are required following the colon in the
 `protocol`.
+
+## url.domainToASCII(domain)
+<!-- YAML
+added: v7.4.0
+-->
+
+> Stability: 1 - Experimental
+
+* `domain` {string}
+* Returns: {string}
+
+Returns the [Punycode][] ASCII serialization of the `domain`. If `domain` is an
+invalid domain, the empty string is returned.
+
+It performs the inverse operation to [`url.domainToUnicode()`][].
+
+```js
+const url = require('url');
+console.log(url.domainToASCII('español.com'));
+  // Prints xn--espaol-zwa.com
+console.log(url.domainToASCII('中文.com'));
+  // Prints xn--fiq228c.com
+console.log(url.domainToASCII('xn--iñvalid.com'));
+  // Prints an empty string
+```
+
+## url.domainToUnicode(domain)
+<!-- YAML
+added: v7.4.0
+-->
+
+> Stability: 1 - Experimental
+
+* `domain` {string}
+* Returns: {string}
+
+Returns the Unicode serialization of the `domain`. If `domain` is an invalid
+domain, the empty string is returned.
+
+It performs the inverse operation to [`url.domainToASCII()`][].
+
+```js
+const url = require('url');
+console.log(url.domainToUnicode('xn--espaol-zwa.com'));
+  // Prints español.com
+console.log(url.domainToUnicode('xn--fiq228c.com'));
+  // Prints 中文.com
+console.log(url.domainToUnicode('xn--iñvalid.com'));
+  // Prints an empty string
+```
 
 ## url.format(urlObject)
 <!-- YAML
@@ -199,6 +249,9 @@ The formatting process operates as follows:
 * `result` is returned.
 
 ## url.format(URL[, options])
+<!-- YAML
+added: v7.6.0
+-->
 
 > Stability: 1 - Experimental
 
@@ -210,7 +263,7 @@ The formatting process operates as follows:
     fragment, `false` otherwise. Defaults to `true`.
   * `search` {boolean} `true` if the serialized URL string should include the
     search query, `false` otherwise. Defaults to `true`.
-  * `unicode` (Boolean) `true` if Unicode characters appearing in the host
+  * `unicode` {boolean} `true` if Unicode characters appearing in the host
     component of the URL string should be encoded directly as opposed to being
     Punycode encoded. Defaults to `false`.
 
@@ -304,6 +357,9 @@ For example, the ASCII space character (`' '`) is encoded as `%20`. The ASCII
 forward slash (`/`) character is encoded as `%3C`.
 
 ## The WHATWG URL API
+<!-- YAML
+added: v7.0.0
+-->
 
 > Stability: 1 - Experimental
 
@@ -324,7 +380,7 @@ console.log(myURL.pathname); // /foo
 `delete myURL.pathname`, etc) has no effect but will still return `true`.
 
 A comparison between this API and `url.parse()` is given below. Above the URL
-`'http://user:pass@host.com:8080/p/a/t/h?query=string#hash'`, properties of an
+`'http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash'`, properties of an
 object returned by `url.parse()` are shown. Below it are properties of a WHATWG
 `URL` object.
 
@@ -332,23 +388,23 @@ object returned by `url.parse()` are shown. Below it are properties of a WHATWG
 `username` or `password`.
 
 ```txt
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          href                                           │
-├──────────┬──┬─────────────────────┬─────────────────┬───────────────────────────┬───────┤
-│ protocol │  │        auth         │      host       │           path            │ hash  │
-│          │  │                     ├──────────┬──────┼──────────┬────────────────┤       │
-│          │  │                     │ hostname │ port │ pathname │     search     │       │
-│          │  │                     │          │      │          ├─┬──────────────┤       │
-│          │  │                     │          │      │          │ │    query     │       │
-"  http:    //    user   :   pass   @ host.com : 8080   /p/a/t/h  ?  query=string   #hash "
-│          │  │          │          │ hostname │ port │          │                │       │
-│          │  │          │          ├──────────┴──────┤          │                │       │
-│ protocol │  │ username │ password │      host       │          │                │       │
-├──────────┴──┼──────────┴──────────┼─────────────────┤          │                │       │
-│   origin    │                     │     origin      │ pathname │     search     │ hash  │
-├─────────────┴─────────────────────┴─────────────────┴──────────┴────────────────┴───────┤
-│                                          href                                           │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                            href                                             │
+├──────────┬──┬─────────────────────┬─────────────────────┬───────────────────────────┬───────┤
+│ protocol │  │        auth         │        host         │           path            │ hash  │
+│          │  │                     ├──────────────┬──────┼──────────┬────────────────┤       │
+│          │  │                     │   hostname   │ port │ pathname │     search     │       │
+│          │  │                     │              │      │          ├─┬──────────────┤       │
+│          │  │                     │              │      │          │ │    query     │       │
+"  http:    //    user   :   pass   @ sub.host.com : 8080   /p/a/t/h  ?  query=string   #hash "
+│          │  │          │          │   hostname   │ port │          │                │       │
+│          │  │          │          ├──────────────┴──────┤          │                │       │
+│ protocol │  │ username │ password │        host         │          │                │       │
+├──────────┴──┼──────────┴──────────┼─────────────────────┤          │                │       │
+│   origin    │                     │       origin        │ pathname │     search     │ hash  │
+├─────────────┴─────────────────────┴─────────────────────┴──────────┴────────────────┴───────┤
+│                                            href                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
 (all spaces in the "" line should be ignored -- they are purely for formatting)
 ```
 
@@ -691,9 +747,13 @@ console.log(JSON.stringify(myURLs));
 ```
 
 ### Class: URLSearchParams
+<!-- YAML
+added: v7.5.0
+-->
 
 The `URLSearchParams` API provides read and write access to the query of a
-`URL`.
+`URL`. The `URLSearchParams` class can also be used standalone with one of the
+four following constructors.
 
 The WHATWG `URLSearchParams` interface and the [`querystring`][] module have
 similar purpose, but the purpose of the [`querystring`][] module is more
@@ -701,7 +761,8 @@ general, as it allows the customization of delimiter characters (`&` and `=`).
 On the other hand, this API is designed purely for URL query strings.
 
 ```js
-const URL = require('url').URL;
+const { URL, URLSearchParams } = require('url');
+
 const myURL = new URL('https://example.org/?abc=123');
 console.log(myURL.searchParams.get('abc'));
   // Prints 123
@@ -714,11 +775,131 @@ myURL.searchParams.delete('abc');
 myURL.searchParams.set('a', 'b');
 console.log(myURL.href);
   // Prints https://example.org/?a=b
+
+const newSearchParams = new URLSearchParams(myURL.searchParams);
+// The above is equivalent to
+// const newSearchParams = new URLSearchParams(myURL.search);
+
+newSearchParams.append('a', 'c');
+console.log(myURL.href);
+  // Prints https://example.org/?a=b
+console.log(newSearchParams.toString());
+  // Prints a=b&a=c
+
+// newSearchParams.toString() is implicitly called
+myURL.search = newSearchParams;
+console.log(myURL.href);
+  // Prints https://example.org/?a=b&a=c
+newSearchParams.delete('a');
+console.log(myURL.href);
+  // Prints https://example.org/?a=b&a=c
 ```
 
-#### Constructor: new URLSearchParams([init])
+#### Constructor: new URLSearchParams()
 
-* `init` {String} The URL query
+Instantiate a new empty `URLSearchParams` object.
+
+#### Constructor: new URLSearchParams(string)
+
+* `string` {string} A query string
+
+Parse the `string` as a query string, and use it to instantiate a new
+`URLSearchParams` object. A leading `'?'`, if present, is ignored.
+
+```js
+const { URLSearchParams } = require('url');
+let params;
+
+params = new URLSearchParams('user=abc&query=xyz');
+console.log(params.get('user'));
+  // Prints 'abc'
+console.log(params.toString());
+  // Prints 'user=abc&query=xyz'
+
+params = new URLSearchParams('?user=abc&query=xyz');
+console.log(params.toString());
+  // Prints 'user=abc&query=xyz'
+```
+
+#### Constructor: new URLSearchParams(obj)
+<!-- YAML
+added: v7.10.0
+-->
+
+* `obj` {Object} An object representing a collection of key-value pairs
+
+Instantiate a new `URLSearchParams` object with a query hash map. The key and
+value of each property of `obj` are always coerced to strings.
+
+*Note*: Unlike [`querystring`][] module, duplicate keys in the form of array
+values are not allowed. Arrays are stringified using [`array.toString()`][],
+which simply joins all array elements with commas.
+
+```js
+const { URLSearchParams } = require('url');
+const params = new URLSearchParams({
+  user: 'abc',
+  query: ['first', 'second']
+});
+console.log(params.getAll('query'));
+  // Prints ['first,second']
+console.log(params.toString());
+  // Prints 'user=abc&query=first%2Csecond'
+```
+
+#### Constructor: new URLSearchParams(iterable)
+<!-- YAML
+added: v7.10.0
+-->
+
+* `iterable` {Iterable} An iterable object whose elements are key-value pairs
+
+Instantiate a new `URLSearchParams` object with an iterable map in a way that
+is similar to [`Map`][]'s constructor. `iterable` can be an Array or any
+iterable object. That means `iterable` can be another `URLSearchParams`, in
+which case the constructor will simply create a clone of the provided
+`URLSearchParams`.  Elements of `iterable` are key-value pairs, and can
+themselves be any iterable object.
+
+Duplicate keys are allowed.
+
+```js
+const { URLSearchParams } = require('url');
+let params;
+
+// Using an array
+params = new URLSearchParams([
+  ['user', 'abc'],
+  ['query', 'first'],
+  ['query', 'second']
+]);
+console.log(params.toString());
+  // Prints 'user=abc&query=first&query=second'
+
+// Using a Map object
+const map = new Map();
+map.set('user', 'abc');
+map.set('query', 'xyz');
+params = new URLSearchParams(map);
+console.log(params.toString());
+  // Prints 'user=abc&query=xyz'
+
+// Using a generator function
+function* getQueryPairs() {
+  yield ['user', 'abc'];
+  yield ['query', 'first'];
+  yield ['query', 'second'];
+}
+params = new URLSearchParams(getQueryPairs());
+console.log(params.toString());
+  // Prints 'user=abc&query=first&query=second'
+
+// Each key-value pair must have exactly two elements
+new URLSearchParams([
+  ['user', 'abc', 'error']
+]);
+  // Throws TypeError: Each query pair must be a name/value tuple
+```
 
 #### urlSearchParams.append(name, value)
 
@@ -829,6 +1010,9 @@ console.log(params.toString());
 ```
 
 #### urlSearchParams.sort()
+<!-- YAML
+added: v7.7.0
+-->
 
 Sort all existing name-value pairs in-place by their names. Sorting is done
 with a [stable sorting algorithm][], so relative order between name-value pairs
@@ -877,52 +1061,6 @@ for (const [name, value] of params) {
   // xyz baz
 ```
 
-### require('url').domainToASCII(domain)
-
-* `domain` {string}
-* Returns: {string}
-
-Returns the [Punycode][] ASCII serialization of the `domain`. If `domain` is an
-invalid domain, the empty string is returned.
-
-It performs the inverse operation to [`require('url').domainToUnicode()`][].
-
-```js
-const url = require('url');
-console.log(url.domainToASCII('español.com'));
-  // Prints xn--espaol-zwa.com
-console.log(url.domainToASCII('中文.com'));
-  // Prints xn--fiq228c.com
-console.log(url.domainToASCII('xn--iñvalid.com'));
-  // Prints an empty string
-```
-
-*Note*: The `require('url').domainToASCII()` method is introduced as part of
-the new `URL` implementation but is not part of the WHATWG URL standard.
-
-### require('url').domainToUnicode(domain)
-
-* `domain` {string}
-* Returns: {string}
-
-Returns the Unicode serialization of the `domain`. If `domain` is an invalid
-domain, the empty string is returned.
-
-It performs the inverse operation to [`require('url').domainToASCII()`][].
-
-```js
-const url = require('url');
-console.log(url.domainToUnicode('xn--espaol-zwa.com'));
-  // Prints español.com
-console.log(url.domainToUnicode('xn--fiq228c.com'));
-  // Prints 中文.com
-console.log(url.domainToUnicode('xn--iñvalid.com'));
-  // Prints an empty string
-```
-
-*Note*: The `require('url').domainToUnicode()` API is introduced as part of the
-the new `URL` implementation but is not part of the WHATWG URL standard.
-
 <a id="whatwg-percent-encoding"></a>
 ### Percent-Encoding in the WHATWG URL Standard
 
@@ -933,23 +1071,25 @@ located within the structure of the URL. The WHATWG URL Standard uses a more
 selective and fine grained approach to selecting encoded characters than that
 used by the older [`url.parse()`][] and [`url.format()`][] methods.
 
-The WHATWG algorithm defines three "encoding sets" that describe ranges of
-characters that must be percent-encoded:
+The WHATWG algorithm defines three "percent-encode sets" that describe ranges
+of characters that must be percent-encoded:
 
-* The *simple encode set* includes code points in range U+0000 to U+001F
-  (inclusive) and all code points greater than U+007E.
+* The *C0 control percent-encode set* includes code points in range U+0000 to
+  U+001F (inclusive) and all code points greater than U+007E.
 
-* The *default encode set* includes the *simple encode set* and code points
-  U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060, U+007B, and U+007D.
+* The *path percent-encode set* includes the *C0 control percent-encode set*
+  and code points U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060,
+  U+007B, and U+007D.
 
-* The *userinfo encode set* includes the *default encode set* and code points
-  U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D, U+005E, and
-  U+007C.
+* The *userinfo encode set* includes the *path percent-encode set* and code
+  points U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D,
+  U+005E, and U+007C.
 
-The *simple encode set* is used primary for URL fragments and certain specific
-conditions for the path. The *userinfo encode set* is used specifically for
-username and passwords encoded within the URL. The *default encode set* is used
-for all other cases.
+The *userinfo percent-encode set* is used exclusively for username and
+passwords encoded within the URL. The *path percent-encode set* is used for the
+path of most URLs. The *C0 control percent-encode set* is used for all
+other cases, including URL fragments in particular, but also host and path
+under certain specific conditions.
 
 When non-ASCII characters appear within a hostname, the hostname is encoded
 using the [Punycode][] algorithm. Note, however, that a hostname *may* contain
@@ -970,11 +1110,15 @@ console.log(myURL.origin);
 [`TypeError`]: errors.html#errors_class_typeerror
 [WHATWG URL Standard]: https://url.spec.whatwg.org/
 [examples of parsed URLs]: https://url.spec.whatwg.org/#example-url-parsing
+[`url.domainToASCII()`]: #url_url_domaintoascii_domain
+[`url.domainToUnicode()`]: #url_url_domaintounicode_domain
 [`url.parse()`]: #url_url_parse_urlstring_parsequerystring_slashesdenotehost
 [`url.format()`]: #url_url_format_urlobject
 [`require('url').format()`]: #url_url_format_url_options
 [`url.toString()`]: #url_url_tostring
 [Punycode]: https://tools.ietf.org/html/rfc5891#section-4.4
+[`Map`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+[`array.toString()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
 [WHATWG URL]: #url_the_whatwg_url_api
 [`new URL()`]: #url_constructor_new_url_input_base
 [`url.href`]: #url_url_href
@@ -983,8 +1127,6 @@ console.log(myURL.origin);
 [`URLSearchParams`]: #url_class_urlsearchparams
 [`urlSearchParams.entries()`]: #url_urlsearchparams_entries
 [`urlSearchParams@@iterator()`]: #url_urlsearchparams_iterator
-[`require('url').domainToASCII()`]: #url_require_url_domaintoascii_domain
-[`require('url').domainToUnicode()`]: #url_require_url_domaintounicode_domain
 [stable sorting algorithm]: https://en.wikipedia.org/wiki/Sorting_algorithm#Stability
 [`JSON.stringify()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 [`url.toJSON()`]: #url_url_tojson

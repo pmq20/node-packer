@@ -143,6 +143,16 @@
     },
     {
       "type": "text",
+      "text": "[Deprecated APIs](deprecations.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[DNS](dns.html)"
     },
     {

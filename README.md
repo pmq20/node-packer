@@ -8,9 +8,9 @@ Compiling your Node.js application into a single executable.
 
 |                       |                                                       Master&#160;CI                                                                                                  |                                                                    [RAM&#160;Test](https://github.com/pmq20/node-compiler-ram)                                                                                          |                                                             [Black&#x2011;box&#160;Test](https://github.com/pmq20/node-compiler-blbt)                                                         |                              Latest&#160;Stable                                        |
 |:---------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------|
-|      **Windows**      |  [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  | https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec.exe/download         |
-|       **macOS**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec-darwin-x64/download  |
-|       **Linux**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec-linux-x64/download   |
+|      **Windows**      |  [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download         |
+|       **macOS**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download  |
+|       **Linux**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download   |
 
 ## How it works?
 
@@ -40,7 +40,7 @@ First install the prerequisites:
   including the Community edition (remember to select
   "Common Tools for Visual C++ 2015" feature during installation).
 
-Then download the executable [nodec.exe](https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec.exe/download) and run it from the VC++ or VS Command Prompt.
+Then download the executable [nodec.exe](https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ### macOS
 
@@ -56,7 +56,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec-darwin-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -72,7 +72,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.5/nodec-linux-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
 

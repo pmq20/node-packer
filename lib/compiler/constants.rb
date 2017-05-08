@@ -4,7 +4,7 @@
 # For full terms see the included LICENSE file
 
 class Compiler
-  VERSION = '0.9.6'
+  VERSION = '0.9.7'
   PRJ_ROOT = File.expand_path('../../..', __FILE__)
   MEMFS = '/__enclose_io_memfs__'
 end

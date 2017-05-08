@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v0.9.7
+
+(work in progress)
+
 ## v0.9.6
 
 - relax node.js version requirement: https://github.com/pmq20/node-compiler/issues/27

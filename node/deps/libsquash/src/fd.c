@@ -206,6 +206,7 @@ sqfs_err squash_halt()
 {
 	free(squash_global_fdtable.fds);
 	MUTEX_DESTORY(&squash_global_fdtable_mutex);
+	squash_extract_clear_cache();
 	return SQFS_OK;
 }
 

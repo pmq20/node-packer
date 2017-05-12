@@ -162,6 +162,8 @@ static void test_stat()
 	struct stat st;
 	int ret;
 	int fd;
+    SQUASH_OS_PATH path;
+    SQUASH_OS_PATH path2;
 
 	fprintf(stderr, "Testing stat functions\n");
 	fflush(stderr);
@@ -188,7 +190,16 @@ static void test_stat()
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");
 	expect(S_ISREG(st.st_mode), "/bombing is a regular file");
 	squash_close(fd);
-	
+    
+    // extract "/bombing"
+    path = squash_extract(&fs, "/bombing");
+    expect(NULL != path, "sucecssfully extracts the file");
+    ret = stat(path, &st);
+    expect(0 == ret, "system stat - a value of 0 is returned");
+    expect(S_ISREG(st.st_mode), "system stat - a regular file");
+    path2 = squash_extract(&fs, "/bombing");
+    expect(path == path2, "cache works");
+    
 	//stat /dir/something4
 	ret = squash_lstat(&fs, "/dir1/something4", &st);
 	expect(0 == ret, "Upon successful completion a value of 0 is returned");

@@ -8,6 +8,7 @@
 - Seperate headers into private headers and public headers
 - Make intercepting system calls a core functionality instead of in the sample/
 - Test under ARM architecture as well
+- Support Unicode paths
 
 ## v2.0.0
 

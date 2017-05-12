@@ -194,6 +194,22 @@ ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt)
 	}
 }
 
+void* enclose_io_dlopen(const char* path, int mode)
+{
+    if (enclose_io_cwd[0] && '/' != *path) {
+        sqfs_path enclose_io_expanded;
+        size_t enclose_io_cwd_len;
+        size_t memcpy_len;
+        ENCLOSE_IO_GEN_EXPANDED_NAME(path);
+        return dlopen(squash_extract(enclose_io_fs, path), mode);
+    }
+    else if (enclose_io_is_path(path)) {
+        return dlopen(squash_extract(enclose_io_fs, path), mode);
+    }
+    else {
+        return dlopen(path, mode);
+    }
+}
 #endif // !_WIN32
 
 void enclose_io_chdir_helper(const char *path)

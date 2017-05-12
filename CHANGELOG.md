@@ -2,7 +2,7 @@
 
 ## v0.9.7
 
-(work in progress)
+- add support for native modules
 
 ## v0.9.6
 

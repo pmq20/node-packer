@@ -29,6 +29,7 @@
         'include/squash/util.h',
         'include/squash/windows.h',
         'include/squash/mutex.h',
+        'src/extract.c',
         'src/cache.c',
         'src/decompress.c',
         'src/dir.c',

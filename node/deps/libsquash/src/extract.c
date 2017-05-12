@@ -56,7 +56,7 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 	const int squash_win32_buf_sz = 32767;
 	wchar_t squash_win32_buf[squash_win32_buf_sz + 1];
 	int ret, try = 0;
-	srand(time(NULL));
+	srand(time(NULL) * getpid());
 	while (try < 3) {
 		ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d", tmpdir, rand());
 		if (-1 == ret) {
@@ -107,7 +107,7 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 	int ret, try = 0;
     struct stat statbuf;
 
-	srand(time(NULL));
+	srand(time(NULL) * getpid());
 	while (try < 3) {
 		ret = snprintf(squash_buf, squash_buf_sz, "%s/nodec-runtime-%d", tmpdir, rand());
 		if (-1 == ret) {

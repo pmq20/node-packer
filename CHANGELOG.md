@@ -4,6 +4,7 @@
 
 - add runtime support for native modules
 - add CI tests for native modules
+- on Windows, build the corresponding arch. with the node under use
 
 ## v0.9.6
 

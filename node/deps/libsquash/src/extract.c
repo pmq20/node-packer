@@ -12,23 +12,24 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <Shlwapi.h>
 static SQUASH_OS_PATH squash_tmpdir()
 {
 	const int squash_win32_buf_sz = 32767;
-	wchar_t squash_win32_buf[squash_win32_buf_sz + 1];
+	wchar_t squash_win32_buf[32767 + 1];
 	DWORD length;
 
-	length = GetEnvironmentVariable(L"TEMP", squash_win32_buf, squash_win32_buf_sz);
+	length = GetEnvironmentVariableW(L"TEMP", squash_win32_buf, squash_win32_buf_sz);
 	if (length) {
 		goto out;
 	}
-	length = GetEnvironmentVariable(L"TMP", squash_win32_buf, squash_win32_buf_sz);
+	length = GetEnvironmentVariableW(L"TMP", squash_win32_buf, squash_win32_buf_sz);
 	if (length) {
 		goto out;
 	}
-	length = GetEnvironmentVariable(L"SystemRoot", squash_win32_buf, squash_win32_buf_sz);
+	length = GetEnvironmentVariableW(L"SystemRoot", squash_win32_buf, squash_win32_buf_sz);
 	if (!length) {
-		length = GetEnvironmentVariable(L"windir", squash_win32_buf, squash_win32_buf_sz);
+		length = GetEnvironmentVariableW(L"windir", squash_win32_buf, squash_win32_buf_sz);
 	}
 	if (length) {
 		if (length + 5 >= squash_win32_buf_sz) {
@@ -54,7 +55,7 @@ out:
 static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 {
 	const int squash_win32_buf_sz = 32767;
-	wchar_t squash_win32_buf[squash_win32_buf_sz + 1];
+	wchar_t squash_win32_buf[32767 + 1];
 	int ret, try = 0;
 	srand(time(NULL) * getpid());
 	while (try < 3) {
@@ -122,7 +123,7 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 }
 #endif // _WIN32
 
-static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, SQUASH_OS_PATH path)
+static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, const char *path)
 {
 	FILE *fp;
 	int fd;
@@ -148,7 +149,11 @@ static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, SQUASH_OS_PATH path)
 	if (NULL == tmpf) {
 		return NULL;
 	}
-	fp = fopen(tmpf, "w");
+#ifdef _WIN32
+	fp = _wfopen(tmpf, L"wb");
+#else
+	fp = fopen(tmpf, "wb");
+#endif
 	if (NULL == fp) {
 		free(tmpf);
 		return NULL;
@@ -177,14 +182,14 @@ static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, SQUASH_OS_PATH path)
 
 struct SquashExtractEntry {
 	sqfs *fs;
-	SQUASH_OS_PATH path;
+	const char *path;
 	SQUASH_OS_PATH ret;
 	struct SquashExtractEntry *next;
 };
 
 static struct SquashExtractEntry* squash_extract_cache = NULL;
 
-static const struct SquashExtractEntry* squash_extract_cache_find(sqfs *fs, SQUASH_OS_PATH path)
+static const struct SquashExtractEntry* squash_extract_cache_find(sqfs *fs, const char *path)
 {
 	struct SquashExtractEntry* ptr = squash_extract_cache;
 	while (NULL != ptr) {
@@ -195,7 +200,7 @@ static const struct SquashExtractEntry* squash_extract_cache_find(sqfs *fs, SQUA
 	}
 	return ptr;
 }
-static void squash_extract_cache_insert(sqfs *fs, SQUASH_OS_PATH path, SQUASH_OS_PATH ret)
+static void squash_extract_cache_insert(sqfs *fs, const char *path, SQUASH_OS_PATH ret)
 {
 	struct SquashExtractEntry* ptr = malloc(sizeof(struct SquashExtractEntry));
 	if (NULL == ptr) {
@@ -208,7 +213,7 @@ static void squash_extract_cache_insert(sqfs *fs, SQUASH_OS_PATH path, SQUASH_OS
 	squash_extract_cache = ptr;
 }
 
-SQUASH_OS_PATH squash_extract(sqfs *fs, SQUASH_OS_PATH path)
+SQUASH_OS_PATH squash_extract(sqfs *fs, const char *path)
 {
 	SQUASH_OS_PATH ret;
 	static struct SquashExtractEntry* found;

@@ -713,74 +713,73 @@ EncloseIODeviceIoControl(
 )
 {
 	struct squash_file *sqf = squash_find_entry((void *)hDevice);
-        int ret;
+	int ret;
 
 	if (sqf) {
-                char the_path[SQUASHFS_PATH_LEN + 1];
-                wchar_t the_wpath[SQUASHFS_PATH_LEN + 1];
-                struct stat st;
-                sqfs_inode *node;
-                size_t retlen;
+		char the_path[SQUASHFS_PATH_LEN + 1];
+		wchar_t the_wpath[SQUASHFS_PATH_LEN + 1];
+		struct stat st;
+		size_t retlen;
 		REPARSE_DATA_BUFFER* reparse_data = (REPARSE_DATA_BUFFER*)lpOutBuffer;
 
-                // TODO handle the overlapped
-                assert(NULL == lpOverlapped);
+		// TODO handle the overlapped
+		assert(NULL == lpOverlapped);
 
-                // TODO support more than FSCTL_GET_REPARSE_POINT
+		// TODO support more than FSCTL_GET_REPARSE_POINT
 		assert(0 == nInBufferSize);
 
 		// FSCTL_GET_REPARSE_POINT
 		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364571(v=vs.85).aspx
-                assert(dwIoControlCode == FSCTL_GET_REPARSE_POINT);
+		assert(dwIoControlCode == FSCTL_GET_REPARSE_POINT);
 		assert(NULL == lpInBuffer);
 		st = sqf->st;
-                if (!S_ISLNK(st.st_mode)) {
-                        errno = EINVAL;
-                        SetLastError(ERROR_NOT_A_REPARSE_POINT);
-                        _doserrno = ERROR_NOT_A_REPARSE_POINT;
-                        return FALSE;
-                }
-                ret = squash_readlink_inode(
-                        enclose_io_fs,
-                        &sqf->node,
-                        the_path,
-                        SQUASHFS_PATH_LEN
-                      );
-                if (-1 == ret) {
-                        ENCLOSE_IO_SET_LAST_ERROR;
-                        return FALSE;
-                }
+		if (!S_ISLNK(st.st_mode)) {
+			errno = EINVAL;
+			SetLastError(ERROR_NOT_A_REPARSE_POINT);
+			_doserrno = ERROR_NOT_A_REPARSE_POINT;
+			return FALSE;
+		}
+		ret = squash_readlink_inode(
+			enclose_io_fs,
+			&sqf->node,
+			the_path,
+			SQUASHFS_PATH_LEN
+		);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return FALSE;
+		}
                 
 		retlen = mbstowcs(the_wpath, the_path, SQUASHFS_PATH_LEN);
 		if ((size_t)-1 == retlen) {
-                        errno = ENAMETOOLONG;
-                        ENCLOSE_IO_SET_LAST_ERROR;
+			errno = ENAMETOOLONG;
+			ENCLOSE_IO_SET_LAST_ERROR;
 			return FALSE;
 		}
-                the_wpath[retlen] = L'\0';
-                *lpBytesReturned = sizeof(REPARSE_DATA_BUFFER) + retlen * sizeof(wchar_t);
-                if (*lpBytesReturned > nOutBufferSize) {
-                        *lpBytesReturned = 0;
-                        errno = ENAMETOOLONG;
-                        ENCLOSE_IO_SET_LAST_ERROR;
+		the_wpath[retlen] = L'\0';
+		*lpBytesReturned = sizeof(REPARSE_DATA_BUFFER) + retlen * sizeof(wchar_t);
+		if (*lpBytesReturned > nOutBufferSize) {
+			*lpBytesReturned = 0;
+			errno = ENAMETOOLONG;
+			ENCLOSE_IO_SET_LAST_ERROR;
 			return FALSE;
-                }
-                reparse_data->ReparseTag = IO_REPARSE_TAG_SYMLINK;
-                memcpy(reparse_data->SymbolicLinkReparseBuffer.PathBuffer, the_wpath, (retlen + 1) * sizeof(wchar_t));
-                reparse_data->SymbolicLinkReparseBuffer.SubstituteNameLength = retlen * sizeof(wchar_t);
-                reparse_data->SymbolicLinkReparseBuffer.SubstituteNameOffset = 0;
-                return TRUE;
+		}
+		reparse_data->ReparseTag = IO_REPARSE_TAG_SYMLINK;
+		memcpy(reparse_data->SymbolicLinkReparseBuffer.PathBuffer, the_wpath, (retlen + 1) * sizeof(wchar_t));
+		reparse_data->SymbolicLinkReparseBuffer.SubstituteNameLength = retlen * sizeof(wchar_t);
+		reparse_data->SymbolicLinkReparseBuffer.SubstituteNameOffset = 0;
+		return TRUE;
 	} else {
-                return DeviceIoControl(
-                        hDevice,
-                        dwIoControlCode,
-                        lpInBuffer,
-                        nInBufferSize,
-                        lpOutBuffer,
-                        nOutBufferSize,
-                        lpBytesReturned,
-                        lpOverlapped
-                );
+		return DeviceIoControl(
+			hDevice,
+			dwIoControlCode,
+			lpInBuffer,
+			nInBufferSize,
+			lpOutBuffer,
+			nOutBufferSize,
+			lpBytesReturned,
+			lpOverlapped
+		);
 	}
 }
 
@@ -793,20 +792,19 @@ EncloseIOCreateIoCompletionPort(
 )
 {
 	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
-        int ret;
 
 	if (sqf) {
-                // do nothing
-                assert(NULL != ExistingCompletionPort);
-                return ExistingCompletionPort;
-        } else {
-                return CreateIoCompletionPort(
-                        FileHandle,
-                        ExistingCompletionPort,
-                        CompletionKey,
-                        NumberOfConcurrentThreads
-                );
-        }
+		// do nothing
+		assert(NULL != ExistingCompletionPort);
+		return ExistingCompletionPort;
+	} else {
+		return CreateIoCompletionPort(
+			FileHandle,
+			ExistingCompletionPort,
+			CompletionKey,
+			NumberOfConcurrentThreads
+		);
+	}
 }
 
 BOOL
@@ -822,24 +820,69 @@ EncloseIOReadDirectoryChangesW(
 )
 {
 	struct squash_file *sqf = squash_find_entry((void *)hDirectory);
-        int ret;
 
 	if (sqf) {
-                // do nothing
-                assert(lpOverlapped);
-                return TRUE;
-        } else {
-                return ReadDirectoryChangesW(
-                        hDirectory,
-                        lpBuffer,
-                        nBufferLength,
-                        bWatchSubtree,
-                        dwNotifyFilter,
-                        lpBytesReturned,
-                        lpOverlapped,
-                        lpCompletionRoutine
-                );
-        }
+		// do nothing
+		assert(lpOverlapped);
+		return TRUE;
+	} else {
+		return ReadDirectoryChangesW(
+			hDirectory,
+			lpBuffer,
+			nBufferLength,
+			bWatchSubtree,
+			dwNotifyFilter,
+			lpBytesReturned,
+			lpOverlapped,
+			lpCompletionRoutine
+		);
+	}
+}
+
+HMODULE
+EncloseIOLoadLibraryExW(
+	LPCWSTR lpLibFileName,
+	HANDLE hFile,
+	DWORD dwFlags
+)
+{
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpLibFileName)) {
+		sqfs_path enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		sqfs_path enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
+		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+		return LoadLibraryExW(
+			squash_extract(enclose_io_fs, enclose_io_expanded),
+			hFile,
+			dwFlags
+		);
+	}
+	else if (enclose_io_is_path_w(lpLibFileName)) {
+		sqfs_path enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
+		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
+		return LoadLibraryExW(
+			squash_extract(enclose_io_fs, enclose_io_converted),
+			hFile,
+			dwFlags
+		);
+	}
+	else {
+		return LoadLibraryExW(
+			lpLibFileName,
+			hFile,
+			dwFlags
+		);
+	}
 }
 
 #ifndef RUBY_EXPORT

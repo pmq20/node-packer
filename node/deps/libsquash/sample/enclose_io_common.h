@@ -273,6 +273,13 @@ EncloseIOReadDirectoryChangesW(
         LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
 );
 
+HMODULE
+EncloseIOLoadLibraryExW(
+	LPCWSTR lpLibFileName,
+	HANDLE hFile,
+	DWORD dwFlags
+);
+
 #else
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);

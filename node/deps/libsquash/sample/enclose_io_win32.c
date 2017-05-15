@@ -857,11 +857,7 @@ EncloseIOLoadLibraryExW(
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_expanded),
-			hFile,
-			dwFlags
-		);
+		return LoadLibraryW(squash_extract(enclose_io_fs, enclose_io_expanded));
 	}
 	else if (enclose_io_is_path_w(lpLibFileName)) {
 		sqfs_path enclose_io_converted_storage;
@@ -870,11 +866,7 @@ EncloseIOLoadLibraryExW(
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
-		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_converted),
-			hFile,
-			dwFlags
-		);
+		return LoadLibraryW(squash_extract(enclose_io_fs, enclose_io_converted));
 	}
 	else {
 		return LoadLibraryExW(

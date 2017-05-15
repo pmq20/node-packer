@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+# 
+# This file is part of Node.js Compiler, distributed under the MIT License
+# For full terms see the included LICENSE file
+
+STDERR.puts "Testing microtime"
+
+require 'shellwords'
+require 'fileutils'
+require 'tmpdir'
+
+def escape(arg)
+  if Gem.win_platform?
+    if arg.include?('"')
+      raise NotImplementedError
+    end
+    %Q{"#{arg}"}
+  else
+    Shellwords.escape(arg)
+  end
+end
+
+if ENV['NODEC_TESTS_TMPDIR'] && ENV['NODEC_TESTS_TMPDIR'].length > 0
+  STDERR.puts "Using ENV['NODEC_TESTS_TMPDIR'] #{ENV['NODEC_TESTS_TMPDIR']}"
+else
+  raise "Please set ENV['NODEC_TESTS_TMPDIR']"
+end
+tmpdir = ENV['NODEC_TESTS_TMPDIR']
+tmpdir_node = File.join(tmpdir, 'node')
+
+Dir.mkdir('microtime')
+Dir.chdir('microtime') do
+  File.open('package.json', 'w') do |f|
+    f.puts '{"dependencies":{"microtime":"latest"}}'
+  end
+  File.open('index.js', 'w') do |f|
+    f.puts %q{
+      var microtime = require('microtime');
+      console.log(microtime.now())
+    }
+  end
+end
+Dir.chdir('microtime')
+
+outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
+FileUtils.rm_f(outpath)
+
+pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} index.js")
+pid, status = Process.wait2(pid)
+raise "Failed running nodec for microtime" unless status.success?
+
+raise unless File.exist?(outpath)
+raise unless File.size(outpath) >= 10_000_000
+
+if Gem.win_platform?
+  outpath = %Q{"#{outpath}"}
+else
+  File.chmod(0777, outpath)
+  outpath = escape(outpath)
+end
+
+microtime = `#{outpath}`.to_i
+raise unless $?.success?
+raise unless microtime > 1494821628147271
+STDERR.puts "microtime Passed."

@@ -29,4 +29,6 @@ before_script:
   - npm --version
 
 script:
-  - ruby tests/coffeescript || exit $?
+  - rm -rf /tmp/nodec_tests_tmpdir && mkdir /tmp/nodec_tests_tmpdir
+  - NODEC_TESTS_TMPDIR=/tmp/nodec_tests_tmpdir ruby tests/coffeescript || exit $?
+  - NODEC_TESTS_TMPDIR=/tmp/nodec_tests_tmpdir ruby tests/microtime || exit $?

@@ -2,7 +2,8 @@
 
 ## v0.9.7
 
-- add support for native modules
+- add runtime support for native modules
+- add CI tests for native modules
 
 ## v0.9.6
 

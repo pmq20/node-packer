@@ -5,6 +5,8 @@
 # This file is part of Node.js Compiler, distributed under the MIT License
 # For full terms see the included LICENSE file
 
+STDERR.puts "Testing coffeescript"
+
 require 'shellwords'
 require 'fileutils'
 require 'tmpdir'
@@ -20,7 +22,12 @@ def escape(arg)
   end
 end
 
-tmpdir = File.expand_path("nodec", Dir.tmpdir)
+if ENV['NODEC_TESTS_TMPDIR'] && ENV['NODEC_TESTS_TMPDIR'].length > 0
+  STDERR.puts "Using ENV['NODEC_TESTS_TMPDIR'] #{ENV['NODEC_TESTS_TMPDIR']}"
+else
+  raise "Please set ENV['NODEC_TESTS_TMPDIR']"
+end
+tmpdir = ENV['NODEC_TESTS_TMPDIR']
 tmpdir_node = File.join(tmpdir, 'node')
 
 unless Dir.exist?('coffeescript')
@@ -51,8 +58,10 @@ raise unless `#{outpath} --help`.include?(%q{If called without options, `coffee`
 raise unless $?.success?
 raise unless 64 == `#{outpath} --eval "console.log(((x) -> x * x)(8))"`.to_i
 raise unless $?.success?
+STDERR.puts "coffeescript Passed."
 
 # PART 2
+STDERR.puts "Testing coffeescript with node's official test cases"
 Dir.chdir(tmpdir_node)
 ENV['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1'
 ENV['ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE'] = '1'
@@ -66,4 +75,4 @@ else
   pid, status = Process.wait2(pid)
   raise "Failed running make run-ci" unless status.success?
 end
-
+STDERR.puts "coffeescript with node's official test cases Passed"

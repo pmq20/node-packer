@@ -1063,7 +1063,6 @@ static bool ShouldAbortOnUncaughtException(Isolate* isolate) {
   return isEmittingTopLevelDomainError || !DomainsStackHasErrorHandler(env);
 }
 
-
 void SetupDomainUse(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 
@@ -3362,6 +3361,11 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "_setupNextTick", SetupNextTick);
   env->SetMethod(process, "_setupPromises", SetupPromises);
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
+
+// ======= [Enclose.io Hack start] =========
+  void __enclose_io_memfs__extract(const FunctionCallbackInfo<Value>& args);
+  env->SetMethod(process, "__enclose_io_memfs__extract", __enclose_io_memfs__extract);
+// ======= [Enclose.io Hack end] =========
 
   // pre-set _events object for faster emit checks
   Local<Object> events_obj = Object::New(env->isolate());

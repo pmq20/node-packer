@@ -325,6 +325,21 @@ function normalizeSpawnArguments(file, args, options) {
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
 
+  // Allow executing files within the enclosed packag
+  if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
+    file = process.__enclose_io_memfs__extract(file);
+    fs.chmodSync(file, 0755);
+  }
+  if (args && args.map) {
+    args = args.map(function(obj) {
+      if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+        return process.__enclose_io_memfs__extract(obj);
+      } else {
+        return obj;
+      }
+    });
+  }
+
   if (options.shell) {
     const command = [file].concat(args).join(' ');
 
@@ -348,6 +363,11 @@ function normalizeSpawnArguments(file, args, options) {
     args.unshift(options.argv0);
   } else {
     args.unshift(file);
+  }
+
+  if ((file === process.execPath) || (args && args.indexOf && -1 !== args.indexOf(process.execPath))) {
+    options.env = Object.create( options.env || process.env );
+    options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
   }
 
   var env = options.env || process.env;
@@ -374,22 +394,6 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
   var child = new ChildProcess();
 
   debug('spawn', opts.args, options);
-
-  if (opts.file === process.execPath || -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
-    opts.args.unshift(process.execPath);
-    opts.file = process.execPath;
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
 
   child.spawn({
     file: opts.file,
@@ -420,22 +424,6 @@ function lookupSignal(signal) {
 
 function spawnSync(/*file, args, options*/) {
   var opts = normalizeSpawnArguments.apply(null, arguments);
-
-  if (opts.file === process.execPath || -1 !== opts.args.join().indexOf(process.execPath)) {
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  } else if (opts.file && opts.file.indexOf && 0 === opts.file.indexOf('/__enclose_io_memfs__')) {
-    opts.args.unshift(process.execPath);
-    opts.file = process.execPath;
-    if (!opts.options.env) {
-      opts.options.env = Object.create( process.env );
-    }
-    opts.options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-    opts.envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
 
   var options = opts.options;
 

@@ -1,11 +1,5 @@
 # Node.js Compiler Road Map
 
-## v1.0.0
-
-- Compile web apps
-- Statically link modules with C++ extensions with the exe
-- Simultaneously support multiple node versions and even alinode
-
 ## v2.0.0
 
 - Compile to bytecode via v8 Ignition

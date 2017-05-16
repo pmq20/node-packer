@@ -1,6 +1,6 @@
 # Node.js Compiler Changelog
 
-## v0.9.7
+## v1.0.0
 
 - add runtime support for native modules
 - add CI tests for native modules

@@ -194,20 +194,27 @@ off_t squash_lseek(int vfd, off_t offset, int whence)
 	return file->pos;
 }
 
+static void squash_halt()
+{
+	if (squash_global_fdtable.fds) {
+		free(squash_global_fdtable.fds);
+	}
+	MUTEX_DESTORY(&squash_global_fdtable_mutex);
+	squash_extract_clear_cache();
+}
+
 sqfs_err squash_start()
 {
+	int ret;
 	squash_global_fdtable.nr = 0;
 	squash_global_fdtable.fds = NULL;
 	MUTEX_INIT(&squash_global_fdtable_mutex);
-	return SQFS_OK;
-}
-
-sqfs_err squash_halt()
-{
-	free(squash_global_fdtable.fds);
-	MUTEX_DESTORY(&squash_global_fdtable_mutex);
-	squash_extract_clear_cache();
-	return SQFS_OK;
+	ret = atexit(squash_halt);
+	if (0 == ret) {
+		return SQFS_OK;
+	} else {
+		return SQFS_ERR;
+	}
 }
 
 struct squash_file * squash_find_entry(void *ptr)

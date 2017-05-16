@@ -4,35 +4,6 @@
 extern "C" {
   #include "enclose_io.h"
 }
-void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	node::Environment* env = node::Environment::GetCurrent(args);
-
-	if (args.Length() != 1 || !args[0]->IsString()) {
-		return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
-	}
-
-	node::Utf8Value path(args.GetIsolate(), args[0]);
-	SQUASH_OS_PATH ret = squash_extract(enclose_io_fs, *path);
-	if (!ret) {
-		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
-	}
-
-#ifdef _WIN32
-	int length = sizeof(wchar_t) * (wcslen(ret) + 1);
-#else
-	int length = strlen(ret) + 1;
-#endif
-
-	v8::MaybeLocal<v8::String> str = String::NewFromUtf8(
-		env->isolate(),
-		reinterpret_cast<const char*>(ret),
-		String::kNormalString,
-		length);
-	if (str.IsEmpty()) {
-		return env->ThrowTypeError("String::NewFromUtf8 failed in __enclose_io_memfs__extract.");
-	}
-	args.GetReturnValue().Set(str.ToLocalChecked());
-}
 // ======= [Enclose.io Hack end] =========
 
 #ifdef _WIN32
@@ -111,9 +82,7 @@ int wmain(int argc, wchar_t *wargv[]) {
   }
   argv[argc] = nullptr;
   // Now that conversion is done, we can finally start.
-  int ret = node::Start(argc, argv);
-  squash_halt();
-  return ret;
+  return node::Start(argc, argv);
 }
 #else
 // UNIX
@@ -164,8 +133,6 @@ int main(int argc, char *argv[]) {
   // calls elsewhere in the program (e.g., any logging from V8.)
   setvbuf(stdout, nullptr, _IONBF, 0);
   setvbuf(stderr, nullptr, _IONBF, 0);
-  int ret = node::Start(argc, argv);
-  squash_halt();
-  return ret;
+  return node::Start(argc, argv);
 }
 #endif

@@ -537,6 +537,5 @@ int main(int argc, char const *argv[])
 	test_squash_readlink();
 	test_open_read_with_links();
 
-	squash_halt();
 	return 0;
 }

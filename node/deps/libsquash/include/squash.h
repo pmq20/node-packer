@@ -55,7 +55,6 @@
 extern sqfs_err squash_errno;
 
 sqfs_err squash_start();
-sqfs_err squash_halt();
 ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufsize);
 sqfs_err squash_follow_link(sqfs *fs, const char *path, sqfs_inode *node);
 struct squash_file * squash_find_entry(void *ptr);

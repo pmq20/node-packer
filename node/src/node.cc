@@ -1811,6 +1811,49 @@ static void Abort(const FunctionCallbackInfo<Value>& args) {
   Abort();
 }
 
+// ======= [Enclose.io Hack start] =========
+#include <wchar.h>
+extern "C" {
+  #include "enclose_io_prelude.h"
+  #include "enclose_io_common.h"
+}
+static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	node::Environment* env = node::Environment::GetCurrent(args);
+
+	if (args.Length() != 1 || !args[0]->IsString()) {
+		return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
+	}
+
+	node::Utf8Value path(args.GetIsolate(), args[0]);
+
+#ifdef _WIN32
+	const wchar_t *ret = squash_extract(enclose_io_fs, *path);
+	if (!ret) {
+		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
+	}
+	char mbs_buf[(32767+1)*2+1];
+	int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
+	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
+								 reinterpret_cast<const char*>(mbs_buf),
+								 v8::String::kNormalString,
+								 length);
+#else
+	const char *ret = squash_extract(enclose_io_fs, *path);
+	if (!ret) {
+		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
+	}
+	int length = strlen(ret);
+	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
+								 reinterpret_cast<const char*>(ret),
+								 v8::String::kNormalString,
+								 length);
+#endif
+	if (str.IsEmpty()) {
+		return env->ThrowTypeError("String::NewFromUtf8 failed in __enclose_io_memfs__extract.");
+	}
+	args.GetReturnValue().Set(str.ToLocalChecked());
+}
+// ======= [Enclose.io Hack end] =========
 
 static void Chdir(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
@@ -3363,7 +3406,6 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
 
 // ======= [Enclose.io Hack start] =========
-  void __enclose_io_memfs__extract(const FunctionCallbackInfo<Value>& args);
   env->SetMethod(process, "__enclose_io_memfs__extract", __enclose_io_memfs__extract);
 // ======= [Enclose.io Hack end] =========
 

@@ -328,7 +328,7 @@ function normalizeSpawnArguments(file, args, options) {
   // Allow executing files within the enclosed packag
   if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
     file = process.__enclose_io_memfs__extract(file);
-    fs.chmodSync(file, 0755);
+    fs.chmodSync(file, '755');
   }
   if (args && args.map) {
     args = args.map(function(obj) {

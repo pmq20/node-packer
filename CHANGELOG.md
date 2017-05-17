@@ -7,6 +7,7 @@
 - on Windows, build the corresponding arch. with the node under use
 - allow executing files within the enclosed package
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/f5b1a8d
+- remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
 
 ## v0.9.6
 

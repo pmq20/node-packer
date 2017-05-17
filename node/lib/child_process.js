@@ -326,7 +326,6 @@ function normalizeSpawnArguments(file, args, options) {
   options = Object.assign({}, options);
 
   // ======= [Enclose.io Hack start] =========
-  var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
   // allow executing files within the enclosed package
   if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
     file = process.__enclose_io_memfs__extract(file, 'exe');
@@ -342,30 +341,25 @@ function normalizeSpawnArguments(file, args, options) {
     });
   }
   // allow reusing the package itself as an Node.js interpreter
-  if ([file].concat(args).join(' ').indexOf(process.execPath)) {
-    flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true
-  }
+  var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
+  var command_outer = [file].concat(args).join(' ');
+  var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+  [
+    new RegExp(`^${command_regexp_execPath}$`),
+    new RegExp(`^${command_regexp_execPath}\\s`),
+    new RegExp(`\\s${command_regexp_execPath}$`),
+    new RegExp(`\\s${command_regexp_execPath}\\s`),
+    new RegExp(`"${command_regexp_execPath}"`),
+    new RegExp(`'${command_regexp_execPath}'`),
+  ].forEach(function(element) {
+    if (command_outer.match(element) !== null) {
+      flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
+    }
+  });
   // ======= [Enclose.io Hack end] =========
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
-
-    // ======= [Enclose.io Hack start] =========
-    // allow reusing the package itself as an Node.js interpreter
-    var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
-    [
-      new RegExp(`^${command_regexp_execPath}$`),
-      new RegExp(`^${command_regexp_execPath}\\s`),
-      new RegExp(`\\s${command_regexp_execPath}$`),
-      new RegExp(`\\s${command_regexp_execPath}\\s`),
-      new RegExp(`"${command_regexp_execPath}"`),
-      new RegExp(`'${command_regexp_execPath}'`),
-    ].forEach(function(element) {
-      if (command.match(element) !== null) {
-        flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
-      }
-    });
-    // ======= [Enclose.io Hack end] =========
 
     if (process.platform === 'win32') {
       file = typeof options.shell === 'string' ? options.shell :

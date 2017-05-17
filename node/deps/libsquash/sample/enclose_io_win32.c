@@ -858,7 +858,7 @@ EncloseIOLoadLibraryExW(
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_expanded),
+			squash_extract(enclose_io_fs, enclose_io_expanded, "dll"),
 			hFile,
 			dwFlags
 		);
@@ -871,7 +871,7 @@ EncloseIOLoadLibraryExW(
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
 		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_converted),
+			squash_extract(enclose_io_fs, enclose_io_converted, "dll"),
 			hFile,
 			dwFlags
 		);

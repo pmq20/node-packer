@@ -52,16 +52,29 @@ out:
 	}
 	return wcsdup(squash_win32_buf);
 }
-static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
+static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 {
 	const int squash_win32_buf_sz = 32767;
 	wchar_t squash_win32_buf[32767 + 1];
+	size_t curlen, size_ret;
 	int ret, try = 0;
 	srand(time(NULL) * getpid());
 	while (try < 3) {
-		ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d.bin", tmpdir, rand());
+		if (ext_name) {
+			ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d.", tmpdir, rand());
+		} else {
+			ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d", tmpdir, rand());
+		}
 		if (-1 == ret) {
 			return NULL;
+		}
+		if (ext_name) {
+			curlen = wcslen(squash_win32_buf);
+			size_ret = mbstowcs((wchar_t*)(squash_win32_buf) + curlen, ext_name, squash_win32_buf_sz - curlen);
+			if ((size_t)-1 == size_ret) {
+				return NULL;
+			}
+			*((wchar_t*)(squash_win32_buf) + curlen + size_ret) = 0;
 		}
 		if (!PathFileExistsW(squash_win32_buf)) {
 			return wcsdup(squash_win32_buf);
@@ -101,7 +114,7 @@ out:
 	}
 	return try;
 }
-static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
+static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 {
 	const int squash_buf_sz = 32767;
 	char squash_buf[squash_buf_sz + 1];
@@ -110,7 +123,11 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 
 	srand(time(NULL) * getpid());
 	while (try < 3) {
-		ret = snprintf(squash_buf, squash_buf_sz, "%s/nodec-runtime-%d", tmpdir, rand());
+		if (ext_name) {
+			ret = snprintf(squash_buf, squash_buf_sz, "%s/nodec-runtime-%d.%s", tmpdir, rand(), ext_name);
+		} else {
+			ret = snprintf(squash_buf, squash_buf_sz, "%s/nodec-runtime-%d", tmpdir, rand());
+		}
 		if (-1 == ret) {
 			return NULL;
 		}
@@ -123,12 +140,12 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir)
 }
 #endif // _WIN32
 
-static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, const char *path)
+static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, const char *path, const char *ext_name)
 {
 	static SQUASH_OS_PATH tmpdir = NULL;
 	FILE *fp;
 	int fd;
-    SQUASH_OS_PATH tmpf;
+	SQUASH_OS_PATH tmpf;
 	size_t size;
 	ssize_t ssize;
 	char buffer[16 * 1024];
@@ -139,13 +156,13 @@ static SQUASH_OS_PATH squash_uncached_extract(sqfs *fs, const char *path)
 	if (-1 == fd) {
 		return NULL;
 	}
-    if (NULL == tmpdir) {
-        tmpdir = squash_tmpdir();
-    }
+	if (NULL == tmpdir) {
+		tmpdir = squash_tmpdir();
+	}
 	if (NULL == tmpdir) {
 		return NULL;
 	}
-	tmpf = squash_tmpf(tmpdir);
+	tmpf = squash_tmpf(tmpdir, ext_name);
 	if (NULL == tmpf) {
 		return NULL;
 	}
@@ -213,7 +230,7 @@ static void squash_extract_cache_insert(sqfs *fs, const char *path, SQUASH_OS_PA
 	squash_extract_cache = ptr;
 }
 
-SQUASH_OS_PATH squash_extract(sqfs *fs, const char *path)
+SQUASH_OS_PATH squash_extract(sqfs *fs, const char *path, const char *ext_name)
 {
 	SQUASH_OS_PATH ret;
 	static struct SquashExtractEntry* found;
@@ -222,7 +239,7 @@ SQUASH_OS_PATH squash_extract(sqfs *fs, const char *path)
 	if (NULL != found) {
 		return found->ret;
 	}
-	ret = squash_uncached_extract(fs, path);
+	ret = squash_uncached_extract(fs, path, ext_name);
 	if (NULL != ret) {
 		squash_extract_cache_insert(fs, path, ret);
 	}

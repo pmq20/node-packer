@@ -4,10 +4,11 @@
 
 - add runtime support for native modules
 - add CI tests for native modules
-- on Windows, build the corresponding arch. with the node under use
 - allow executing files within the enclosed package
-- upgrade libsquash to https://github.com/pmq20/libsquash/commit/f5b1a8d
+- allow reusing the package itself as an Node.js interpreter
+- on Windows, build the corresponding arch. with the node under use
 - remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
+- upgrade libsquash to https://github.com/pmq20/libsquash/commit/f5b1a8d
 
 ## v0.9.6
 

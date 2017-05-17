@@ -1819,18 +1819,29 @@ extern "C" {
 }
 static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	node::Environment* env = node::Environment::GetCurrent(args);
+	bool has_ext_name = false;
 
-	if (args.Length() != 1 || !args[0]->IsString()) {
+	if (2 == args.Length() && args[0]->IsString() && args[1]->IsString()) {
+		has_ext_name = true;
+	} else if (1 == args.Length() && args[0]->IsString()) {
+		has_ext_name = false;
+	} else {
 		return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
 	}
 
 	node::Utf8Value path(args.GetIsolate(), args[0]);
-
-#ifdef _WIN32
-	const wchar_t *ret = squash_extract(enclose_io_fs, *path);
+	SQUASH_OS_PATH ret;
+	if (has_ext_name) {
+		node::Utf8Value ext_name(args.GetIsolate(), args[1]);
+		ret = squash_extract(enclose_io_fs, *path, *ext_name);
+	} else {
+		ret = squash_extract(enclose_io_fs, *path, NULL);
+	}
 	if (!ret) {
 		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
 	}
+
+#ifdef _WIN32
 	char mbs_buf[(32767+1)*2+1];
 	int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
 	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
@@ -1838,10 +1849,6 @@ static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value
 								 v8::String::kNormalString,
 								 length);
 #else
-	const char *ret = squash_extract(enclose_io_fs, *path);
-	if (!ret) {
-		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
-	}
 	int length = strlen(ret);
 	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
 								 reinterpret_cast<const char*>(ret),
@@ -3405,9 +3412,9 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "_setupPromises", SetupPromises);
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
 
-// ======= [Enclose.io Hack start] =========
+  // ======= [Enclose.io Hack start] =========
   env->SetMethod(process, "__enclose_io_memfs__extract", __enclose_io_memfs__extract);
-// ======= [Enclose.io Hack end] =========
+  // ======= [Enclose.io Hack end] =========
 
   // pre-set _events object for faster emit checks
   Local<Object> events_obj = Object::New(env->isolate());

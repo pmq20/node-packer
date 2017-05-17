@@ -201,10 +201,10 @@ void* enclose_io_dlopen(const char* path, int mode)
         size_t enclose_io_cwd_len;
         size_t memcpy_len;
         ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-        return dlopen(squash_extract(enclose_io_fs, path), mode);
+        return dlopen(squash_extract(enclose_io_fs, path, NULL), mode);
     }
     else if (enclose_io_is_path(path)) {
-        return dlopen(squash_extract(enclose_io_fs, path), mode);
+        return dlopen(squash_extract(enclose_io_fs, path, NULL), mode);
     }
     else {
         return dlopen(path, mode);

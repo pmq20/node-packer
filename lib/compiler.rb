@@ -238,7 +238,7 @@ class Compiler
       # --without-intl=none fixes: icutrim.py - it tries to run a binary made for linux on mac
       # --cross-compiling is required require host executables rather than target ones
       # --without-snapshot avoids mksnapshot to run on host platform after build
-      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:os] ? '--cross-compiling --without-snapshot  --with-intl=none': ''} #{@options[:os] ? '--dest-os=' + @options[:os]: ''} #{@options[:arch] ? '--dest-cpu=' + @options[:arch]: ''}")
+      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
     src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
     Utils.cp(src, @options[:output])

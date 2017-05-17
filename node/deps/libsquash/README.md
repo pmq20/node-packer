@@ -162,7 +162,7 @@ The `compar` argument is a pointer to a user supplied subroutine
 which is passed to `qsort` to sort the completed array.
 If this pointer is `NULL`, then the array is not sorted.
 
-### `squash_extract(fs, path)`
+### `squash_extract(fs, path, ext_name)`
 
 Extracts the file `path` from `fs` to a temporary file inside the temporary folder.
 Upon successful completion the path of the extracted temporary file is returned.

@@ -64,7 +64,6 @@ STDERR.puts "coffeescript Passed."
 STDERR.puts "Testing coffeescript with node's official test cases"
 Dir.chdir(tmpdir_node)
 ENV['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1'
-ENV['ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE'] = '1'
 if Gem.win_platform?
   pid = spawn("call vcbuild.bat release nosign noprojgen nobuild test-ci ignore-flaky ")
   pid, status = Process.wait2(pid)

@@ -325,10 +325,11 @@ function normalizeSpawnArguments(file, args, options) {
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
 
-  // Allow executing files within the enclosed packag
+  // ======= [Enclose.io Hack start] =========
+  // allow executing files within the enclosed package
   if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-    file = process.__enclose_io_memfs__extract(file);
-    fs.chmodSync(file, '755');
+    file = process.__enclose_io_memfs__extract(file, 'exe');
+    fs.chmodSync(file, '0755');
   }
   if (args && args.map) {
     args = args.map(function(obj) {
@@ -339,6 +340,23 @@ function normalizeSpawnArguments(file, args, options) {
       }
     });
   }
+  // allow reusing the package itself as an Node.js interpreter
+  var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
+  var command_outer = [file].concat(args).join(' ');
+  var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+  [
+    new RegExp(`^${command_regexp_execPath}$`),
+    new RegExp(`^${command_regexp_execPath}\\s`),
+    new RegExp(`\\s${command_regexp_execPath}$`),
+    new RegExp(`\\s${command_regexp_execPath}\\s`),
+    new RegExp(`"${command_regexp_execPath}"`),
+    new RegExp(`'${command_regexp_execPath}'`),
+  ].forEach(function(element) {
+    if (command_outer.match(element) !== null) {
+      flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
+    }
+  });
+  // ======= [Enclose.io Hack end] =========
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
@@ -365,10 +383,12 @@ function normalizeSpawnArguments(file, args, options) {
     args.unshift(file);
   }
 
-  if ((file === process.execPath) || (args && args.indexOf && -1 !== args.indexOf(process.execPath))) {
+  // ======= [Enclose.io Hack start] =========
+  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
     options.env = Object.create( options.env || process.env );
     options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
   }
+  // ======= [Enclose.io Hack end] =========
 
   var env = options.env || process.env;
   var envPairs = [];

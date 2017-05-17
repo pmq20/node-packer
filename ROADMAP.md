@@ -11,3 +11,4 @@
 - Support writing those options down to package.json
 - Support ARM architecture
 - Support cross compiling
+- detect simultaneous runs of nodec: https://github.com/pmq20/node-compiler/issues/31

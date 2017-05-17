@@ -342,10 +342,7 @@ function normalizeSpawnArguments(file, args, options) {
     });
   }
   // allow reusing the package itself as an Node.js interpreter
-  if (file === process.execPath) {
-    flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true
-  }
-  if (args && args.indexOf && -1 !== args.indexOf(process.execPath)) {
+  if ([file].concat(args).join(' ').indexOf(process.execPath)) {
     flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true
   }
   // ======= [Enclose.io Hack end] =========

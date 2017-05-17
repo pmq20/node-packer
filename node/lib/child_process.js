@@ -355,7 +355,7 @@ function normalizeSpawnArguments(file, args, options) {
 
     // ======= [Enclose.io Hack start] =========
     // allow reusing the package itself as an Node.js interpreter
-    command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+    var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
     [
       new RegExp(`^${command_regexp_execPath}$`),
       new RegExp(`^${command_regexp_execPath}\\s`),

@@ -15,6 +15,13 @@ Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_vers
 }.strip
 STDERR.puts
 
+# took directly from https://github.com/nodejs/node/blob/master/configure#L47,L50
+VALID_OS = ['win', 'mac', 'solaris', 'freebsd', 'openbsd', 'linux', 'android', 'aix']
+VALID_CPU = [
+  'arm', 'arm64', 'ia32', 'mips', 'mipsel', 'ppc', 'ppc64', 'x32', 'x64', 'x86',
+  's390', 's390x'
+]
+
 USAGE = %Q{
 
 Compiling your Node.js application into a single executable.
@@ -92,6 +99,24 @@ OptionParser.new do |opts|
 
   opts.on("--debug", "Enable debug mode") do
     options[:debug] = true
+  end
+
+  opts.on('-osOS', "--dest-os=OS", "Destination operating system (enum: #{VALID_OS.join(' ')})") do |os|
+    unless VALID_OS.include? os
+      puts "Invalid destination (got: --dest-os=#{os}), pick one of: #{VALID_OS.join(' ')}"
+      exit 1
+    end
+
+    options[:os] = os
+  end
+
+  opts.on('-archARCH', "--dest-arch=ARCH", "Destination CPU architecture (enum: #{VALID_CPU.join(' ')})") do |arch|
+    unless VALID_CPU.include? arch
+      puts "Invalid destination (got: --dest-arch=#{arch}), pick one of: #{VALID_CPU.join(' ')}"
+      exit 1
+    end
+
+    options[:arch] = arch
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do

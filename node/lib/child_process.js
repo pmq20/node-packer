@@ -306,7 +306,44 @@ function _convertCustomFds(options) {
   }
 }
 
+function __enclose_io_memfs__node_shebang(file) {
+  const fs = require('fs');
+  const fd = fs.openSync(file, 'r');
+  if (fd < 0) {
+    return false;
+  }
+  var buffer = new Buffer(2);
+  var bytesRead = fs.readSync(fd, buffer, 0, 2, 0);
+  if (2 != bytesRead) {
+    fs.closeSync(fd);
+    return false;
+  }
+  if ('#'.charCodeAt(0) === buffer[0] && '!'.charCodeAt(0) === buffer[1]) {
+    var line = '';
+    var index = 0;
+    do {
+      var bytesRead = fs.readSync(fd, buffer, 0, 1, index);
+      if (1 != bytesRead) {
+        fs.closeSync(fd);
+        return false;
+      }
+      ++index;
+      line += String.fromCharCode(buffer[0]);
+    } while ('\n' !== line[line.length - 1]);
+    var result = line.match(new RegExp("#!/usr/bin/env node(\\n|\\b.*\\n)"));
+    if (null !== result) {
+      fs.closeSync(fd);
+      return result[1];
+    }
+  }
+  fs.closeSync(fd);
+  return false;
+}
+
 function normalizeSpawnArguments(file, args, options) {
+  // ======= [Enclose.io Hack start] =========
+  debug('normalizeSpawnArguments started with', file, args, options);
+  // ======= [Enclose.io Hack end] =========
   if (Array.isArray(args)) {
     args = args.slice(0);
   } else if (args !== undefined &&
@@ -327,18 +364,36 @@ function normalizeSpawnArguments(file, args, options) {
 
   // ======= [Enclose.io Hack start] =========
   // allow executing files within the enclosed package
+  args = args.map(function(obj) {
+    if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+      var file_extracted = process.__enclose_io_memfs__extract(obj);
+      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
+      return file_extracted;
+    } else {
+      return obj;
+    }
+  });
   if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-    file = process.__enclose_io_memfs__extract(file, 'exe');
-    fs.chmodSync(file, '0755');
-  }
-  if (args && args.map) {
-    args = args.map(function(obj) {
-      if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-        return process.__enclose_io_memfs__extract(obj);
+    // shebang: looking at the two bytes at the start of an executable file
+    var shebang_args = __enclose_io_memfs__node_shebang(file);
+    if (false === shebang_args) {
+      var file_extracted;
+      if (/^win/.test(process.platform)) {
+        file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
       } else {
-        return obj;
+        file_extracted = process.__enclose_io_memfs__extract(file);
       }
-    });
+      debug('process.__enclose_io_memfs__extract', file, file_extracted);
+      file = file_extracted;
+      require('fs').chmodSync(file, '0755');
+    } else {
+      debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
+      args.unshift(file);
+      if ('' !== shebang_args.trim()) {
+        args.unshift(shebang_args.trim());
+      }
+      file = process.execPath;
+    }
   }
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
@@ -383,13 +438,6 @@ function normalizeSpawnArguments(file, args, options) {
     args.unshift(file);
   }
 
-  // ======= [Enclose.io Hack start] =========
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
-    options.env = Object.create( options.env || process.env );
-    options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-  }
-  // ======= [Enclose.io Hack end] =========
-
   var env = options.env || process.env;
   var envPairs = [];
 
@@ -398,6 +446,18 @@ function normalizeSpawnArguments(file, args, options) {
   }
 
   _convertCustomFds(options);
+
+  // ======= [Enclose.io Hack start] =========
+  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
+    envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
+  }
+  debug('normalizeSpawnArguments ends with', {
+    file: file,
+    args: args,
+    options: options,
+    envPairs: envPairs
+  });
+  // ======= [Enclose.io Hack end] =========
 
   return {
     file: file,

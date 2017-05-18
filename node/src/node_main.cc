@@ -22,6 +22,9 @@ int wmain(int argc, wchar_t *wargv[]) {
   #ifdef ENCLOSE_IO_ROOT_ALIAS
   enclose_io_fs->root_alias = ENCLOSE_IO_ROOT_ALIAS;
   #endif
+  #ifdef ENCLOSE_IO_ROOT_ALIAS2
+  enclose_io_fs->root_alias2 = ENCLOSE_IO_ROOT_ALIAS2;
+  #endif
 
   #ifdef ENCLOSE_IO_ENTRANCE
   int new_argc = argc;

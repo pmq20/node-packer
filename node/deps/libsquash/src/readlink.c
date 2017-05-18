@@ -42,6 +42,13 @@ ssize_t squash_readlink_inode(sqfs *fs, sqfs_inode *node, char *buf, size_t bufs
                 assert('/' == buf_ptr[0]); // still is Absolute Path
                 memmove(buf, buf_ptr, strlen(buf_ptr) + 1);
                 want = strlen(buf);
+        } else if (fs->root_alias2 &&
+            strlen(buf) >= strlen(fs->root_alias2) &&
+            buf == strstr(buf, fs->root_alias2)) {
+                char *buf_ptr = buf + strlen(fs->root_alias2) - 1;
+                assert('/' == buf_ptr[0]); // still is Absolute Path
+                memmove(buf, buf_ptr, strlen(buf_ptr) + 1);
+                want = strlen(buf);
         }
         return want;
 }

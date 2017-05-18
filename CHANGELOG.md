@@ -4,6 +4,7 @@
 
 - add runtime support for native modules
 - add CI tests for native modules
+- make sure that we are able to compile web apps
 - allow executing files within the enclosed package
 - allow reusing the package itself as an Node.js interpreter
 - on Windows, build the corresponding arch. with the node under use

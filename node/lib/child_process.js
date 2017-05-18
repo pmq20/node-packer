@@ -364,15 +364,6 @@ function normalizeSpawnArguments(file, args, options) {
 
   // ======= [Enclose.io Hack start] =========
   // allow executing files within the enclosed package
-  args = args.map(function(obj) {
-    if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-      var file_extracted = process.__enclose_io_memfs__extract(obj);
-      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
-      return file_extracted;
-    } else {
-      return obj;
-    }
-  });
   if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
     // shebang: looking at the two bytes at the start of an executable file
     var shebang_args = __enclose_io_memfs__node_shebang(file);
@@ -394,6 +385,17 @@ function normalizeSpawnArguments(file, args, options) {
       }
       file = process.execPath;
     }
+  }
+  if (file !== process.execPath) {
+    args = args.map(function(obj) {
+      if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+        var file_extracted = process.__enclose_io_memfs__extract(obj);
+        debug('process.__enclose_io_memfs__extract', obj, file_extracted);
+        return file_extracted;
+      } else {
+        return obj;
+      }
+    });
   }
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;

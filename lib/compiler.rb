@@ -224,7 +224,7 @@ class Compiler
           raise 'logic error' unless ':/' == squash_root_alias[1..2]
           squash_root_alias = "/cygdrive/#{squash_root_alias[0].downcase}/#{squash_root_alias[3..-1]}"
           f.puts "#define ENCLOSE_IO_ROOT_ALIAS #{squash_root_alias.inspect}"
-          squash_root_alias2 = squash_root_alias2[11..-1]
+          squash_root_alias2 = squash_root_alias[11..-1]
           if squash_root_alias2 && squash_root_alias2.length > 1
             f.puts "#define ENCLOSE_IO_ROOT_ALIAS2 #{squash_root_alias2.inspect}"
           end

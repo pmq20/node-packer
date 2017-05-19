@@ -89,6 +89,8 @@ Then,
       -n, --npm=FILE                   Specifies the path of npm
           --npm-package=NAME           Downloads and compiles the specified npm package
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
+          --update-url=URL             Enables auto-update and specifies the URL to get the latest version
+          --update-base-url=URL        Enables auto-update and specifies the base URL to compare with
           --debug                      Enable debug mode
       -v, --version                    Prints the version of nodec and exit
           --node-version               Prints the version of the Node.js runtime and exit

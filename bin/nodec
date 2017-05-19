@@ -100,6 +100,14 @@ OptionParser.new do |opts|
     options[:npm_package_version] = ver
   end
 
+  opts.on("--update-url=URL", "Enables auto-update and specifies the URL to get the latest version") do |url|
+    options[:update_url] = url
+  end
+
+  opts.on("--update-base-url=URL", "Enables auto-update and specifies the base URL to compare with") do |url|
+    options[:update_base_url] = url
+  end
+
   opts.on("--debug", "Enable debug mode") do
     options[:debug] = true
   end

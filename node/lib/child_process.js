@@ -406,7 +406,8 @@ function normalizeSpawnArguments(file, args, options) {
     } else {
       return obj;
     }
-  }
+  });
+
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
   var command_outer = [file].concat(args).join(' ');

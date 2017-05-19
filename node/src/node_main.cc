@@ -10,8 +10,18 @@ extern "C" {
 #include <VersionHelpers.h>
 #include <WinError.h>
 
+#if ENCLOSE_IO_AUTO_UPDATE
+	void enclose_io_autoupdate()
+	{
+		// TODO
+	}
+#endif
+
 int wmain(int argc, wchar_t *wargv[]) {
   // ======= [Enclose.io Hack start] =========
+  #if ENCLOSE_IO_AUTO_UPDATE
+    enclose_io_autoupdate();
+  #endif
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);
@@ -89,8 +99,96 @@ int wmain(int argc, wchar_t *wargv[]) {
 }
 #else
 // UNIX
+
+#if ENCLOSE_IO_AUTO_UPDATE
+	#include <stdio.h> /* printf, sprintf */
+	#include <stdlib.h> /* exit */
+	#include <unistd.h> /* read, write, close */
+	#include <string.h> /* memcpy, memset */
+	#include <sys/socket.h> /* socket, connect */
+	#include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
+	#include <netdb.h> /* struct hostent, gethostbyname */
+	void enclose_io_autoupdate()
+	{
+		struct hostent *server;
+		struct sockaddr_in serv_addr;
+		int sockfd, bytes, sent, received, total;
+		char response[1024 * 10];
+
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd < 0) {
+			return;
+		}
+		server = gethostbyname(ENCLOSE_IO_AUTO_UPDATE_URL_Host);
+		if (server == NULL) {
+			return;
+		}
+		memset(&serv_addr, 0, sizeof(serv_addr));
+		serv_addr.sin_family = AF_INET;
+		serv_addr.sin_port = htons(ENCLOSE_IO_AUTO_UPDATE_URL_Port);
+		memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
+		if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+			return;
+		}
+		if (5 != write(sockfd, "HEAD ", 5)) {
+			return;
+		}
+		if (strlen(ENCLOSE_IO_AUTO_UPDATE_URL_Path) != write(sockfd, ENCLOSE_IO_AUTO_UPDATE_URL_Path, strlen(ENCLOSE_IO_AUTO_UPDATE_URL_Path))) {
+			return;
+		}
+		if (13 != write(sockfd, " HTTP/1.0\r\n\r\n", 13)) {
+			return;
+		}
+		total = sizeof(response) - 1;
+		response[sizeof(response) - 1] = 0;
+		received = 0;
+		do {
+			bytes = read(sockfd, response + received, total - received);
+			if (bytes < 0) {
+				return;
+			}
+			if (bytes == 0) {
+				*(response + received) = 0;
+				break;
+			}
+			received += bytes;
+		} while (received < total);
+		if (received >= total) {
+			return;
+		}
+		close(sockfd);
+		size_t len = strlen(response);
+		assert(len <= total);
+		char *new_line = NULL;
+		char *found = NULL;
+		size_t i = 0;
+		while (i < len) {
+			new_line = strstr(response + i, "\r\n");
+			if (NULL == new_line) {
+				break;
+			}
+			*new_line = 0;
+			if (0 == strncmp(response + i, "Location: ", 10)) {
+				found = response + i + 10;
+				break;
+			}
+			*new_line = '\n';
+			i = new_line - response + 2;
+		}
+		if (!found) {
+			return;
+		}
+		if (strstr(found, ENCLOSE_IO_AUTO_UPDATE_BASE)) {
+			return;
+		}
+	}
+#endif
+
 int main(int argc, char *argv[]) {
   // ======= [Enclose.io Hack start] =========
+  #if ENCLOSE_IO_AUTO_UPDATE
+    enclose_io_autoupdate();
+  #endif
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);

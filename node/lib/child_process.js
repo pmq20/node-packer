@@ -364,7 +364,11 @@ function normalizeSpawnArguments(file, args, options) {
 
   // ======= [Enclose.io Hack start] =========
   // allow executing files within the enclosed package
-  if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
+  var will_extract = true;
+  if ('node' === file || process.execPath === file) {
+    will_extract = false;
+    file = process.execPath;
+  } else if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
     // shebang: looking at the two bytes at the start of an executable file
     var shebang_args = __enclose_io_memfs__node_shebang(file);
     if (false === shebang_args) {
@@ -384,18 +388,24 @@ function normalizeSpawnArguments(file, args, options) {
         args.unshift(shebang_args.trim());
       }
       file = process.execPath;
+      will_extract = false;
     }
   }
-  if (file !== process.execPath) {
-    args = args.map(function(obj) {
-      if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-        var file_extracted = process.__enclose_io_memfs__extract(obj);
-        debug('process.__enclose_io_memfs__extract', obj, file_extracted);
-        return file_extracted;
-      } else {
-        return obj;
-      }
-    });
+
+  args = args.map(function(obj) {
+    if (!will_extract) {
+      return obj;
+    }
+    if ('node' === obj || process.execPath === obj) {
+      will_extract = false;
+      return process.execPath;
+    } else if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+      var file_extracted = process.__enclose_io_memfs__extract(obj);
+      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
+      return file_extracted;
+    } else {
+      return obj;
+    }
   }
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;

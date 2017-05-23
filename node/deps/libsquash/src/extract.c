@@ -13,7 +13,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
-static SQUASH_OS_PATH squash_tmpdir()
+SQUASH_OS_PATH squash_tmpdir()
 {
 	const int squash_win32_buf_sz = 32767;
 	wchar_t squash_win32_buf[32767 + 1];
@@ -52,7 +52,7 @@ out:
 	}
 	return wcsdup(squash_win32_buf);
 }
-static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
+SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 {
 	const int squash_win32_buf_sz = 32767;
 	wchar_t squash_win32_buf[32767 + 1];
@@ -89,7 +89,7 @@ static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 #include <sys/stat.h>
 #include <unistd.h>
 
-static SQUASH_OS_PATH squash_tmpdir()
+SQUASH_OS_PATH squash_tmpdir()
 {
 	char *try;
 	size_t length;
@@ -114,7 +114,7 @@ out:
 	}
 	return try;
 }
-static SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
+SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 {
 	const int squash_buf_sz = 32767;
 	char squash_buf[squash_buf_sz + 1];

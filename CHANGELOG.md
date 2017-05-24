@@ -2,8 +2,8 @@
 
 ## v1.0.0
 
-- upgrade libsquash to v0.4.0
 - upgrade Node.js runtime to v8.0.0
+- upgrade libsquash to v0.4.0
 - add runtime support for native modules
 - add CI tests for native modules
 - make sure that we are able to compile web apps

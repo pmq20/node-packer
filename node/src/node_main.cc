@@ -128,7 +128,23 @@ int wmain(int argc, wchar_t *wargv[]) {
 #include <functional>
 #include <cctype>
 #include <locale>
-
+#include <stdint.h>
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+PACK(
+	struct ZIPLocalFileHeader
+{
+	uint32_t signature;
+	uint16_t versionNeededToExtract; // unsupported
+	uint16_t generalPurposeBitFlag; // unsupported
+	uint16_t compressionMethod;
+	uint16_t lastModFileTime;
+	uint16_t lastModFileDate;
+	uint32_t crc32;
+	uint32_t compressedSize;
+	uint32_t uncompressedSize;
+	uint16_t fileNameLength;
+	uint16_t extraFieldLength; // unsupported
+});
 void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 {
         WSADATA wsaData;
@@ -195,7 +211,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 		return;
 	}
 
-	char response[1024 * 10 + 1], backup_char; // 10KB
+	char response[1024 * 10 + 1]; // 10KB
 	int bytes, received, total;
 	total = sizeof(response) - 2;
 	received = 0;
@@ -414,15 +430,11 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 			*(response + received) = 0;
 			break;
 		}
-		backup_char = *(response + received + bytes);
 		*(response + received + bytes) = 0;
 		header_end = strstr(response + received, "\r\n\r\n");
+		received += bytes;
 		if (header_end) {
-			received += bytes;
 			break;
-		} else {
-			*(response + received + bytes) = backup_char;
-			received += bytes;
 		}
 	} while (received < total);
 	if (NULL == header_end) {
@@ -523,6 +535,128 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 		WSACleanup();
 		return;
 	}
+	// Inflate to a file
+	std::cerr << "Inflating" << std::flush;
+	ZIPLocalFileHeader *h = (ZIPLocalFileHeader *)body_buffer;
+	if (!(0x04034b50 == h->signature && 8 == h->compressionMethod)) {
+		std::cerr << "AutoUpdate Failed: We only support a zip file containing" << std::endl;
+		std::cerr << "                   one Deflate compressed file for the moment" << std::endl;
+		std::cerr << "                   Pull requests are welcome on GitHub at" << std::endl;
+		std::cerr << "                   https://github.com/pmq20/node-compiler" << std::endl;
+	}
+	// skip the Local File Header
+	unsigned full_length = found_length - sizeof(ZIPLocalFileHeader) - h->fileNameLength;
+	unsigned half_length = full_length / 2;
+	unsigned uncompLength = full_length;
+
+	/* windowBits is passed < 0 to tell that there is no zlib header.
+	* Note that in this case inflate *requires* an extra "dummy" byte
+	* after the compressed stream in order to complete decompression and
+	* return Z_STREAM_END.
+	*/
+	char* uncomp = (char*)calloc(sizeof(char), uncompLength + 1);
+	if (NULL == uncomp) {
+		std::cerr << "AutoUpdate Failed: Insufficient memory" << std::endl;
+		free(body_buffer);
+		return;
+	}
+
+	z_stream strm;
+	strm.next_in = (z_const Bytef *)(body_buffer + sizeof(ZIPLocalFileHeader) + h->fileNameLength);
+	strm.avail_in = found_length;
+	strm.total_out = 0;
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+
+	bool done = false;
+
+	if (inflateInit2(&strm, -MAX_WBITS) != Z_OK) {
+		free(uncomp);
+		free(body_buffer);
+		std::cerr << "AutoUpdate Failed: inflateInit2 failed" << std::endl;
+		return;
+	}
+
+	while (!done) {
+		// If our output buffer is too small
+		if (strm.total_out >= uncompLength) {
+			// Increase size of output buffer
+			char* uncomp2 = (char*)calloc(sizeof(char), uncompLength + half_length + 1);
+			if (NULL == uncomp2) {
+				free(uncomp);
+				free(body_buffer);
+				std::cerr << "AutoUpdate Failed: calloc failed" << std::endl;
+				return;
+			}
+			memcpy(uncomp2, uncomp, uncompLength);
+			uncompLength += half_length;
+			free(uncomp);
+			uncomp = uncomp2;
+		}
+
+		strm.next_out = (Bytef *)(uncomp + strm.total_out);
+		strm.avail_out = uncompLength - strm.total_out;
+
+		// Inflate another chunk.
+		int err = inflate(&strm, Z_SYNC_FLUSH);
+		if (err == Z_STREAM_END) {
+			done = true;
+		}
+		else if (err != Z_OK) {
+			std::cerr << "AutoUpdate Failed: inflate failed with " << err << std::endl;
+			free(uncomp);
+			free(body_buffer);
+			return;
+		}
+	}
+
+	if (inflateEnd(&strm) != Z_OK) {
+		std::cerr << "AutoUpdate Failed: inflateInit2 failed" << std::endl;
+		free(uncomp);
+		free(body_buffer);
+		return;
+	}
+
+	SQUASH_OS_PATH tmpdir = squash_tmpdir();
+	if (NULL == tmpdir) {
+		std::cerr << "AutoUpdate Failed: no temporary folder found" << std::endl;
+		free(uncomp);
+		free(body_buffer);
+		return;
+	}
+	SQUASH_OS_PATH tmpf = squash_tmpf(tmpdir, "exe");
+	if (NULL == tmpf) {
+		std::cerr << "AutoUpdate Failed: no temporary file found" << std::endl;
+		free((void*)(tmpdir));
+		free(uncomp);
+		free(body_buffer);
+		return;
+	}
+	FILE *fp = _wfopen(tmpf, L"wb");
+	if (NULL == fp) {
+		std::cerr << "AutoUpdate Failed: cannot open temporary file " << tmpf << std::endl;
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		free(uncomp);
+		free(body_buffer);
+		return;
+	}
+	std::cerr << " to ";
+	std::wcerr << tmpf << std::endl;
+	size_t fwrite_ret = fwrite(uncomp, sizeof(char), strm.total_out, fp);
+	if (fwrite_ret != strm.total_out) {
+		std::cerr << "AutoUpdate Failed: fwrite failed " << tmpf << std::endl;
+		fclose(fp);
+		DeleteFileW(tmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		free(uncomp);
+		free(body_buffer);
+		return;
+	}
+	fclose(fp);
+	free(uncomp);
+	free(body_buffer);
 
 }
 #endif // ENCLOSE_IO_AUTO_UPDATE
@@ -607,7 +741,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
 	int sockfd, bytes, received, total;
-	char response[1024 * 10 + 1], backup_char; // 10KB
+	char response[1024 * 10 + 1]; // 10KB
 	
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
@@ -795,15 +929,11 @@ void enclose_io_autoupdate(int argc, char *argv[])
 			*(response + received) = 0;
 			break;
 		}
-                backup_char = *(response + received + bytes);
-                *(response + received + bytes) = 0;
+		*(response + received + bytes) = 0;
 		header_end = strstr(response + received, "\r\n\r\n");
+		received += bytes;
 		if (header_end) {
-			received += bytes;
 			break;
-		} else {
-                        *(response + received + bytes) = backup_char;
-			received += bytes;
 		}
 	} while (received < total);
 	if (NULL == header_end) {
@@ -942,7 +1072,10 @@ void enclose_io_autoupdate(int argc, char *argv[])
 		int err = inflate (&strm, Z_SYNC_FLUSH);
 		if (err == Z_STREAM_END) done = true;
 		else if (err != Z_OK)  {
-			break;
+                        std::cerr << "AutoUpdate Failed: inflate failed with " << err << std::endl;
+                        free(uncomp);
+                        free(body_buffer);
+                        return;
 		}
 	}
 

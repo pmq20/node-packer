@@ -116,9 +116,414 @@ int wmain(int argc, wchar_t *wargv[]) {
   return node::Start(argc, argv);
 }
 #if ENCLOSE_IO_AUTO_UPDATE
+#include <string.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+#include <conio.h>
+#include "zlib.h"
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <functional>
+#include <cctype>
+#include <locale>
+
 void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 {
-	// TODO
+        WSADATA wsaData;
+
+        // Initialize Winsock
+        int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+        if (iResult != 0) {
+		std::cerr << "AutoUpdate Failed: WSAStartup failed with " << iResult << std::endl;
+		return;
+        }
+
+	struct addrinfo *result = NULL,
+		*ptr = NULL,
+		hints;
+
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	// Resolve the server address and port
+	iResult = getaddrinfo(ENCLOSE_IO_AUTO_UPDATE_URL_Host, ENCLOSE_IO_AUTO_UPDATE_URL_Port, &hints, &result);
+	if (iResult != 0) {
+		std::cerr << "AutoUpdate Failed: getaddrinfo failed with " << iResult << std::endl;
+		WSACleanup();
+		return;
+	}
+
+	SOCKET ConnectSocket = INVALID_SOCKET;
+
+	// Attempt to connect to the first address returned by
+	// the call to getaddrinfo
+	ptr = result;
+
+	// Create a SOCKET for connecting to server
+	ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
+		ptr->ai_protocol);
+
+	if (ConnectSocket == INVALID_SOCKET) {
+		std::cerr << "AutoUpdate Failed: Error at socket() with " << WSAGetLastError() << std::endl;
+		freeaddrinfo(result);
+		WSACleanup();
+		return;
+	}
+
+	// Connect to server.
+	iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+	if (iResult == SOCKET_ERROR) {
+		closesocket(ConnectSocket);
+		ConnectSocket = INVALID_SOCKET;
+	}
+	freeaddrinfo(result);
+	if (ConnectSocket == INVALID_SOCKET) {
+		std::cerr << "AutoUpdate Failed: connect failed on " << ENCLOSE_IO_AUTO_UPDATE_URL_Host << " and port " << ENCLOSE_IO_AUTO_UPDATE_URL_Port << std::endl;
+		WSACleanup();
+		return;
+	}
+	if (5 != send(ConnectSocket, "HEAD ", 5, 0) ||
+	    strlen(ENCLOSE_IO_AUTO_UPDATE_URL_Path) != send(ConnectSocket, ENCLOSE_IO_AUTO_UPDATE_URL_Path, strlen(ENCLOSE_IO_AUTO_UPDATE_URL_Path), 0) ||
+	    13 != send(ConnectSocket, " HTTP/1.0\r\n\r\n", 13, 0)) {
+		std::cerr << "AutoUpdate Failed: send failed with " << WSAGetLastError() << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+
+	char response[1024 * 10 + 1], backup_char; // 10KB
+	int bytes, received, total;
+	total = sizeof(response) - 2;
+	received = 0;
+	do {
+		bytes = recv(ConnectSocket, response + received, total - received, 0);
+		if (bytes < 0) {
+			std::cerr << "AutoUpdate Failed: recv failed with " << WSAGetLastError() << std::endl;
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return;
+		}
+		if (bytes == 0) {
+			/* EOF */
+			*(response + received) = 0;
+			break;
+		}
+		received += bytes;
+	} while (received < total);
+	if (received == total) {
+		std::cerr << "AutoUpdate Failed: read causes buffer full" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+
+	// shutdown the connection for sending since no more data will be sent
+	// the client can still use the ConnectSocket for receiving data
+	iResult = shutdown(ConnectSocket, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+		std::cerr << "AutoUpdate Failed: shutdown failed with " << WSAGetLastError() << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+
+	assert(received < total);
+	size_t len = strlen(response);
+	assert(len <= total);
+	char *new_line = NULL;
+	char *found = NULL;
+	size_t i = 0;
+	response[sizeof(response) - 1] = 0;
+	while (i < len) {
+		new_line = strstr(response + i, "\r\n");
+		if (NULL == new_line) {
+			break;
+		}
+		*new_line = 0;
+		if (0 == strncmp(response + i, "Location: ", 10)) {
+			found = response + i + 10;
+			break;
+		}
+		*new_line = '\r';
+		i = new_line - response + 2;
+	}
+	if (!found) {
+		std::cerr << "AutoUpdate Failed: failed to find a Location header" << std::endl;
+		return;
+	}
+	if (strstr(found, ENCLOSE_IO_AUTO_UPDATE_BASE)) {
+		/* Latest version confirmed. No need to update */
+		return;
+	}
+	std::string s;
+	std::cerr << "New version detected. Would you like to update? [y/N]: " << std::flush;
+
+
+	static HANDLE stdinHandle;
+	// Get the IO handles
+	// getc(stdin);
+	stdinHandle = GetStdHandle(STD_INPUT_HANDLE);
+	bool cont = true;
+	while (cont)
+	{
+		switch (WaitForSingleObject(stdinHandle, 10000))
+		{
+		case(WAIT_TIMEOUT):
+			std::cerr << std::endl;
+			std::cerr << "10 seconds timed out. Will not update." << std::endl;
+			return;
+		case(WAIT_OBJECT_0):
+			if (_kbhit()) // _kbhit() always returns immediately
+			{
+				std::getline(std::cin, s);
+				s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+					std::not1(std::ptr_fun<int, int>(std::isspace))));
+				s.erase(std::find_if(s.rbegin(), s.rend(),
+					std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+				if ("Y" != s && "y" != s) {
+					/* The user refused to update */
+					return;
+				}
+				cont = false;
+			} else { // some sort of other events , we need to clear it from the queue
+				// clear events
+				INPUT_RECORD r[512];
+				DWORD read;
+				ReadConsoleInput(stdinHandle, r, 512, &read);
+			}
+			break;
+		case(WAIT_FAILED):
+			std::cerr << std::endl;
+			std::cerr << "AutoUpdate Failed: WaitForSingleObject failed. WAIT FAILED." << std::endl;
+			return;
+		case(WAIT_ABANDONED):
+			std::cerr << std::endl;
+			std::cerr << "AutoUpdate Failed: WaitForSingleObject failed. WAIT ABANDONED." << std::endl;
+			return;
+		default:
+			std::cerr << std::endl;
+			std::cerr << "AutoUpdate Failed: WaitForSingleObject failed. Someting unexpected was returned." << std::endl;
+			return;
+		}
+	}
+
+	std::string url{ found };
+	std::cerr << "Downloading from " << url << std::endl;
+	if (url.size() >= 8 && "https://" == url.substr(0, 8)) {
+		std::cerr << "AutoUpdate Failed: HTTPS is not supported yet." << std::endl;
+		std::cerr << "Pull requests are welcome on GitHub at" << std::endl;
+		std::cerr << "https://github.com/pmq20/node-compiler" << std::endl;
+		return;
+	}
+	if (url.size() >= 7 && "http://" != url.substr(0, 7)) {
+		std::cerr << "AutoUpdate Failed: failed to find http:// at the beginning of URL " << url << std::endl;
+		return;
+	}
+	std::string host = url.substr(7);
+	std::size_t found_slash = host.find('/');
+	std::string request_path;
+	if (std::string::npos == found_slash) {
+		request_path = '/';
+	}
+	else {
+		request_path = host.substr(found_slash);
+		host = host.substr(0, found_slash);
+	}
+	std::size_t found_colon = host.find(':');
+	std::string port;
+	if (std::string::npos == found_colon) {
+		port = "80";
+	}
+	else {
+		port = host.substr(found_colon + 1);
+		host = host.substr(0, found_colon);
+	}
+
+	result = NULL;
+	ptr = NULL;
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	// Resolve the server address and port
+	iResult = getaddrinfo(host.c_str(), port.c_str(), &hints, &result);
+	if (iResult != 0) {
+		std::cerr << "AutoUpdate Failed: getaddrinfo failed with " << iResult << std::endl;
+		WSACleanup();
+		return;
+	}
+
+	ConnectSocket = INVALID_SOCKET;
+
+	// Attempt to connect to the first address returned by
+	// the call to getaddrinfo
+	ptr = result;
+
+	// Create a SOCKET for connecting to server
+	ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+
+	if (ConnectSocket == INVALID_SOCKET) {
+		std::cerr << "AutoUpdate Failed: Error at socket() with " << WSAGetLastError() << std::endl;
+		freeaddrinfo(result);
+		WSACleanup();
+		return;
+	}
+	// Connect to server.
+	iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+	if (iResult == SOCKET_ERROR) {
+		closesocket(ConnectSocket);
+		ConnectSocket = INVALID_SOCKET;
+	}
+	freeaddrinfo(result);
+	if (ConnectSocket == INVALID_SOCKET) {
+		std::cerr << "AutoUpdate Failed: connect failed on " << host << " and port " << port << std::endl;
+		WSACleanup();
+		return;
+	}
+	if (4 != send(ConnectSocket, "GET ", 4, 0) ||
+		request_path.size() != send(ConnectSocket, request_path.c_str(), request_path.size(), 0) ||
+		11 != send(ConnectSocket, " HTTP/1.0\r\n", 11, 0) ||
+		6 != send(ConnectSocket, "Host: ", 6, 0) ||
+		host.size() != send(ConnectSocket, host.c_str(), host.size(), 0) ||
+		4 != send(ConnectSocket, "\r\n\r\n", 4, 0)) {
+		std::cerr << "AutoUpdate Failed: send failed with " << WSAGetLastError() << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+	// Read the header
+	total = sizeof(response) - 2;
+	response[sizeof(response) - 1] = 0;
+	received = 0;
+	char *header_end = NULL;
+	do {
+		bytes = recv(ConnectSocket, response + received, total - received, 0);
+		if (bytes < 0) {
+			std::cerr << "AutoUpdate Failed: recv failed with " << WSAGetLastError() << std::endl;
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return;
+		}
+		if (bytes == 0) {
+			/* EOF */
+			*(response + received) = 0;
+			break;
+		}
+		backup_char = *(response + received + bytes);
+		*(response + received + bytes) = 0;
+		header_end = strstr(response + received, "\r\n\r\n");
+		if (header_end) {
+			received += bytes;
+			break;
+		} else {
+			*(response + received + bytes) = backup_char;
+			received += bytes;
+		}
+	} while (received < total);
+	if (NULL == header_end) {
+		std::cerr << "AutoUpdate Failed: failed to find the end of the response header" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+	assert(received <= total);
+	// Parse the header
+	len = received;
+	assert(len <= total);
+	new_line = NULL;
+	long long found_length = -1;
+	i = 0;
+	response[sizeof(response) - 1] = 0;
+	while (i < len) {
+		new_line = strstr(response + i, "\r\n");
+		if (NULL == new_line) {
+			break;
+		}
+		*new_line = 0;
+		if (0 == strncmp(response + i, "Content-Length: ", 16)) {
+			found_length = std::stoll(response + i + 16);
+			break;
+		}
+		*new_line = '\r';
+		i = new_line - response + 2;
+	}
+	if (-1 == found_length) {
+		std::cerr << "AutoUpdate Failed: failed to find a Content-Length header" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+	if (0 == found_length) {
+		std::cerr << "AutoUpdate Failed: found a Content-Length header of zero" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+	assert(found_length > 0);
+	// Read the body
+	// header_end -> \r\n\r\n
+	assert(header_end);
+	assert(header_end + 4 <= response + received);
+	// put the rest of over-read content when reading header
+	size_t the_rest = response + received - (header_end + 4);
+	char *body_buffer = static_cast<char *>(malloc(found_length));
+	if (NULL == body_buffer) {
+		std::cerr << "AutoUpdate Failed: Insufficient memory" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+	memcpy(body_buffer, (header_end + 4), the_rest);
+	char *body_buffer_ptr = body_buffer + the_rest;
+	char *body_buffer_end = body_buffer + found_length;
+	// read the remaining body
+	received = the_rest;
+	std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100 / found_length << "%)";
+	while (received < found_length) {
+		size_t space = 100 * 1024;
+		if (space > body_buffer_end - body_buffer_ptr) {
+			space = body_buffer_end - body_buffer_ptr;
+		}
+		bytes = recv(ConnectSocket, body_buffer_ptr, space, 0);
+		if (bytes < 0) {
+			std::cerr << "AutoUpdate Failed: read failed" << std::endl;
+			free(body_buffer);
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return;
+		}
+		if (bytes == 0) {
+			/* EOF */
+			break;
+		}
+		received += bytes;
+		body_buffer_ptr += bytes;
+		std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100 / found_length << "%)";
+	}
+	if (received != found_length) {
+		assert(received < found_length);
+		std::cerr << "AutoUpdate Failed: prematurely reached EOF after reading " << received << " bytes" << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		free(body_buffer);
+		return;
+	}
+	std::cerr << std::endl;
+	// shutdown the connection for sending since no more data will be sent
+	// the client can still use the ConnectSocket for receiving data
+	iResult = shutdown(ConnectSocket, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+		std::cerr << "AutoUpdate Failed: shutdown failed with " << WSAGetLastError() << std::endl;
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
+
 }
 #endif // ENCLOSE_IO_AUTO_UPDATE
 #else
@@ -202,7 +607,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
 	int sockfd, bytes, received, total;
-	char response[1024 * 10]; // 10KB
+	char response[1024 * 10 + 1], backup_char; // 10KB
 	
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
@@ -239,9 +644,8 @@ void enclose_io_autoupdate(int argc, char *argv[])
 		std::cerr << "AutoUpdate Failed: write failed" << std::endl;
 		return;
 	}
-	total = sizeof(response) - 1;
+	total = sizeof(response) - 2;
 	received = 0;
-	response[sizeof(response) - 1] = 0;
 	do {
 		bytes = read(sockfd, response + received, total - received);
 		if (bytes < 0) {
@@ -268,8 +672,9 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	char *new_line = NULL;
 	char *found = NULL;
 	size_t i = 0;
+	response[sizeof(response) - 1] = 0;
 	while (i < len) {
-		new_line = strnstr(response + i, "\r\n", len - i);
+		new_line = strstr(response + i, "\r\n");
 		if (NULL == new_line) {
 			break;
 		}
@@ -278,7 +683,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 			found = response + i + 10;
 			break;
 		}
-		*new_line = '\n';
+		*new_line = '\r';
 		i = new_line - response + 2;
 	}
 	if (!found) {
@@ -374,7 +779,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 		return;
 	}
 	// Read the header
-	total = sizeof(response) - 1;
+	total = sizeof(response) - 2;
 	response[sizeof(response) - 1] = 0;
 	received = 0;
 	char *header_end = NULL;
@@ -390,33 +795,32 @@ void enclose_io_autoupdate(int argc, char *argv[])
 			*(response + received) = 0;
 			break;
 		}
-		header_end = strnstr(response + received, "\r\n\r\n", bytes);
+                backup_char = *(response + received + bytes);
+                *(response + received + bytes) = 0;
+		header_end = strstr(response + received, "\r\n\r\n");
 		if (header_end) {
 			received += bytes;
 			break;
 		} else {
+                        *(response + received + bytes) = backup_char;
 			received += bytes;
 		}
 	} while (received < total);
-	if (received == total) {
-		close(sockfd);
-		std::cerr << "AutoUpdate Failed: read causes buffer full" << std::endl;
-		return;
-	}
 	if (NULL == header_end) {
 		close(sockfd);
 		std::cerr << "AutoUpdate Failed: failed to find the end of the response header" << std::endl;
 		return;
 	}
-	assert(received < total);
+	assert(received <= total);
 	// Parse the header
 	len = received;
 	assert(len <= total);
 	new_line = NULL;
 	long long found_length = -1;
 	i = 0;
+	response[sizeof(response) - 1] = 0;
 	while (i < len) {
-		new_line = strnstr(response + i, "\r\n", len - i);
+		new_line = strstr(response + i, "\r\n");
 		if (NULL == new_line) {
 			break;
 		}
@@ -425,7 +829,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 			found_length = std::stoll(response + i + 16);
 			break;
 		}
-		*new_line = '\n';
+		*new_line = '\r';
 		i = new_line - response + 2;
 	}
 	if (-1 == found_length) {

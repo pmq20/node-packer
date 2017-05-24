@@ -94,7 +94,7 @@ class Compiler
   def init_options
     @options[:npm] ||= 'npm'
     @options[:make_args] ||= '-j4'
-    @options[:vcbuild_args] ||= "#{`node -pe process.arch`.to_s.strip} nosign"
+    @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     if Gem.win_platform?
       @options[:output] ||= 'a.exe'
     else

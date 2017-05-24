@@ -1,0 +1,31 @@
+Statistical profiling result from v8.log, (3 ticks, 0 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+      3  100.0%  100.0%  LazyCompile: DrawLine 3d-cube.js:17
+
+ [C++]:
+   ticks  total  nonlib   name
+
+ [Summary]:
+   ticks  total  nonlib   name
+      3  100.0%  100.0%  JavaScript
+      0    0.0%    0.0%  C++
+      0    0.0%    0.0%  GC
+      0    0.0%          Shared libraries
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 2.0% are not shown.
+
+   ticks parent  name
+      3  100.0%  LazyCompile: DrawLine 3d-cube.js:17
+      3  100.0%    LazyCompile: DrawQube 3d-cube.js:188
+

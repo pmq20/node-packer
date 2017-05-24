@@ -13,8 +13,10 @@
 #include "src/ast/prettyprinter.h"
 #include "src/bootstrapper.h"
 #include "src/compilation-info.h"
+#include "src/counters.h"
 #include "src/debug/debug.h"
 #include "src/eh-frame.h"
+#include "src/objects-inl.h"
 #include "src/runtime/runtime.h"
 
 namespace v8 {
@@ -132,13 +134,103 @@ Handle<Code> CodeGenerator::MakeCodeEpilogue(MacroAssembler* masm,
       info->prologue_offset(), info->is_debug() && !is_crankshafted);
   isolate->counters()->total_compiled_code_size()->Increment(
       code->instruction_size());
-  isolate->heap()->IncrementCodeGeneratedBytes(is_crankshafted,
-      code->instruction_size());
   return code;
 }
 
+// Print function's source if it was not printed before.
+// Return a sequential id under which this function was printed.
+static int PrintFunctionSource(CompilationInfo* info,
+                               std::vector<Handle<SharedFunctionInfo>>* printed,
+                               int inlining_id,
+                               Handle<SharedFunctionInfo> shared) {
+  // Outermost function has source id -1 and inlined functions take
+  // source ids starting from 0.
+  int source_id = -1;
+  if (inlining_id != SourcePosition::kNotInlined) {
+    for (unsigned i = 0; i < printed->size(); i++) {
+      if (printed->at(i).is_identical_to(shared)) {
+        return i;
+      }
+    }
+    source_id = static_cast<int>(printed->size());
+    printed->push_back(shared);
+  }
+
+  Isolate* isolate = info->isolate();
+  if (!shared->script()->IsUndefined(isolate)) {
+    Handle<Script> script(Script::cast(shared->script()), isolate);
+
+    if (!script->source()->IsUndefined(isolate)) {
+      CodeTracer::Scope tracing_scope(isolate->GetCodeTracer());
+      Object* source_name = script->name();
+      OFStream os(tracing_scope.file());
+      os << "--- FUNCTION SOURCE (";
+      if (source_name->IsString()) {
+        os << String::cast(source_name)->ToCString().get() << ":";
+      }
+      os << shared->DebugName()->ToCString().get() << ") id{";
+      os << info->optimization_id() << "," << source_id << "} start{";
+      os << shared->start_position() << "} ---\n";
+      {
+        DisallowHeapAllocation no_allocation;
+        int start = shared->start_position();
+        int len = shared->end_position() - start;
+        String::SubStringRange source(String::cast(script->source()), start,
+                                      len);
+        for (const auto& c : source) {
+          os << AsReversiblyEscapedUC16(c);
+        }
+      }
+
+      os << "\n--- END ---\n";
+    }
+  }
+
+  return source_id;
+}
+
+// Print information for the given inlining: which function was inlined and
+// where the inlining occured.
+static void PrintInlinedFunctionInfo(
+    CompilationInfo* info, int source_id, int inlining_id,
+    const CompilationInfo::InlinedFunctionHolder& h) {
+  CodeTracer::Scope tracing_scope(info->isolate()->GetCodeTracer());
+  OFStream os(tracing_scope.file());
+  os << "INLINE (" << h.shared_info->DebugName()->ToCString().get() << ") id{"
+     << info->optimization_id() << "," << source_id << "} AS " << inlining_id
+     << " AT ";
+  const SourcePosition position = h.position.position;
+  if (position.IsKnown()) {
+    os << "<" << position.InliningId() << ":" << position.ScriptOffset() << ">";
+  } else {
+    os << "<?>";
+  }
+  os << std::endl;
+}
+
+// Print the source of all functions that participated in this optimizing
+// compilation. For inlined functions print source position of their inlining.
+static void DumpParticipatingSource(CompilationInfo* info) {
+  AllowDeferredHandleDereference allow_deference_for_print_code;
+
+  std::vector<Handle<SharedFunctionInfo>> printed;
+  printed.reserve(info->inlined_functions().size());
+
+  PrintFunctionSource(info, &printed, SourcePosition::kNotInlined,
+                      info->shared_info());
+  const auto& inlined = info->inlined_functions();
+  for (unsigned id = 0; id < inlined.size(); id++) {
+    const int source_id =
+        PrintFunctionSource(info, &printed, id, inlined[id].shared_info);
+    PrintInlinedFunctionInfo(info, source_id, id, inlined[id]);
+  }
+}
 
 void CodeGenerator::PrintCode(Handle<Code> code, CompilationInfo* info) {
+  if (FLAG_print_opt_source && info->IsOptimizing()) {
+    DumpParticipatingSource(info);
+  }
+
 #ifdef ENABLE_DISASSEMBLER
   AllowDeferredHandleDereference allow_deference_for_print_code;
   Isolate* isolate = info->isolate();
@@ -147,7 +239,8 @@ void CodeGenerator::PrintCode(Handle<Code> code, CompilationInfo* info) {
           ? FLAG_print_builtin_code
           : (FLAG_print_code || (info->IsStub() && FLAG_print_code_stubs) ||
              (info->IsOptimizing() && FLAG_print_opt_code &&
-              info->shared_info()->PassesFilter(FLAG_print_opt_code_filter)));
+              info->shared_info()->PassesFilter(FLAG_print_opt_code_filter)) ||
+             (info->IsWasm() && FLAG_print_wasm_code));
   if (print_code) {
     std::unique_ptr<char[]> debug_name = info->GetDebugName();
     CodeTracer::Scope tracing_scope(info->isolate()->GetCodeTracer());

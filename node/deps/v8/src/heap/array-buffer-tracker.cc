@@ -19,8 +19,7 @@ void LocalArrayBufferTracker::Free() {
   for (TrackingData::iterator it = array_buffers_.begin();
        it != array_buffers_.end();) {
     JSArrayBuffer* buffer = reinterpret_cast<JSArrayBuffer*>(it->first);
-    if ((free_mode == kFreeAll) ||
-        Marking::IsWhite(ObjectMarking::MarkBitFrom(buffer))) {
+    if ((free_mode == kFreeAll) || ObjectMarking::IsWhite(buffer)) {
       const size_t len = it->second;
       heap_->isolate()->array_buffer_allocator()->Free(buffer->backing_store(),
                                                        len);
@@ -78,8 +77,8 @@ void LocalArrayBufferTracker::Process(Callback callback) {
 
 void ArrayBufferTracker::FreeDeadInNewSpace(Heap* heap) {
   DCHECK_EQ(heap->gc_state(), Heap::HeapState::SCAVENGE);
-  for (Page* page : NewSpacePageRange(heap->new_space()->FromSpaceStart(),
-                                      heap->new_space()->FromSpaceEnd())) {
+  for (Page* page : PageRange(heap->new_space()->FromSpaceStart(),
+                              heap->new_space()->FromSpaceEnd())) {
     bool empty = ProcessBuffers(page, kUpdateForwardedRemoveOthers);
     CHECK(empty);
   }
@@ -128,7 +127,7 @@ bool ArrayBufferTracker::ProcessBuffers(Page* page, ProcessingMode mode) {
 bool ArrayBufferTracker::IsTracked(JSArrayBuffer* buffer) {
   Page* page = Page::FromAddress(buffer->address());
   {
-    base::LockGuard<base::Mutex> guard(page->mutex());
+    base::LockGuard<base::RecursiveMutex> guard(page->mutex());
     LocalArrayBufferTracker* tracker = page->local_tracker();
     if (tracker == nullptr) return false;
     return tracker->IsTracked(buffer);

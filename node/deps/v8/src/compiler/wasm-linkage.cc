@@ -5,6 +5,7 @@
 #include "src/assembler.h"
 #include "src/base/lazy-instance.h"
 #include "src/macro-assembler.h"
+#include "src/objects-inl.h"
 #include "src/register-configuration.h"
 
 #include "src/wasm/wasm-module.h"
@@ -24,17 +25,17 @@ using compiler::LinkageLocation;
 
 namespace {
 
-MachineType MachineTypeFor(LocalType type) {
+MachineType MachineTypeFor(ValueType type) {
   switch (type) {
-    case kAstI32:
+    case kWasmI32:
       return MachineType::Int32();
-    case kAstI64:
+    case kWasmI64:
       return MachineType::Int64();
-    case kAstF64:
+    case kWasmF64:
       return MachineType::Float64();
-    case kAstF32:
+    case kWasmF32:
       return MachineType::Float32();
-    case kAstS128:
+    case kWasmS128:
       return MachineType::Simd128();
     default:
       UNREACHABLE();
@@ -173,11 +174,22 @@ struct Allocator {
 
   int stack_offset;
 
-  LinkageLocation Next(LocalType type) {
+  LinkageLocation Next(ValueType type) {
     if (IsFloatingPoint(type)) {
       // Allocate a floating point register/stack location.
       if (fp_offset < fp_count) {
         DoubleRegister reg = fp_regs[fp_offset++];
+#if V8_TARGET_ARCH_ARM
+        // Allocate floats using a double register, but modify the code to
+        // reflect how ARM FP registers alias.
+        // TODO(bbudge) Modify wasm linkage to allow use of all float regs.
+        if (type == kWasmF32) {
+          int float_reg_code = reg.code() * 2;
+          DCHECK(float_reg_code < RegisterConfiguration::kMaxFPRegisters);
+          return regloc(DoubleRegister::from_code(float_reg_code),
+                        MachineTypeFor(type));
+        }
+#endif
         return regloc(reg, MachineTypeFor(type));
       } else {
         int offset = -1 - stack_offset;
@@ -195,11 +207,11 @@ struct Allocator {
       }
     }
   }
-  bool IsFloatingPoint(LocalType type) {
-    return type == kAstF32 || type == kAstF64;
+  bool IsFloatingPoint(ValueType type) {
+    return type == kWasmF32 || type == kWasmF64;
   }
-  int Words(LocalType type) {
-    if (kPointerSize < 8 && (type == kAstI64 || type == kAstF64)) {
+  int Words(ValueType type) {
+    if (kPointerSize < 8 && (type == kWasmI64 || type == kWasmF64)) {
       return 2;
     }
     return 1;
@@ -274,7 +286,7 @@ CallDescriptor* ModuleEnv::GetWasmCallDescriptor(Zone* zone,
   // Add return location(s).
   const int return_count = static_cast<int>(locations.return_count_);
   for (int i = 0; i < return_count; i++) {
-    LocalType ret = fsig->GetReturn(i);
+    ValueType ret = fsig->GetReturn(i);
     locations.AddReturn(rets.Next(ret));
   }
 
@@ -283,7 +295,7 @@ CallDescriptor* ModuleEnv::GetWasmCallDescriptor(Zone* zone,
   // Add register and/or stack parameter(s).
   const int parameter_count = static_cast<int>(fsig->parameter_count());
   for (int i = 0; i < parameter_count; i++) {
-    LocalType param = fsig->GetParam(i);
+    ValueType param = fsig->GetParam(i);
     locations.AddParam(params.Next(param));
   }
 
@@ -307,26 +319,23 @@ CallDescriptor* ModuleEnv::GetWasmCallDescriptor(Zone* zone,
       "wasm-call");
 }
 
-CallDescriptor* ModuleEnv::GetI32WasmCallDescriptor(
-    Zone* zone, CallDescriptor* descriptor) {
+CallDescriptor* ReplaceTypeInCallDescriptorWith(
+    Zone* zone, CallDescriptor* descriptor, size_t num_replacements,
+    MachineType input_type, MachineRepresentation output_type) {
   size_t parameter_count = descriptor->ParameterCount();
   size_t return_count = descriptor->ReturnCount();
   for (size_t i = 0; i < descriptor->ParameterCount(); i++) {
-    if (descriptor->GetParameterType(i) == MachineType::Int64()) {
-      // For each int64 input we get two int32 inputs.
-      parameter_count++;
+    if (descriptor->GetParameterType(i) == input_type) {
+      parameter_count += num_replacements - 1;
     }
   }
   for (size_t i = 0; i < descriptor->ReturnCount(); i++) {
-    if (descriptor->GetReturnType(i) == MachineType::Int64()) {
-      // For each int64 return we get two int32 returns.
-      return_count++;
+    if (descriptor->GetReturnType(i) == input_type) {
+      return_count += num_replacements - 1;
     }
   }
   if (parameter_count == descriptor->ParameterCount() &&
       return_count == descriptor->ReturnCount()) {
-    // If there is no int64 parameter or return value, we can just return the
-    // original descriptor.
     return descriptor;
   }
 
@@ -335,10 +344,10 @@ CallDescriptor* ModuleEnv::GetI32WasmCallDescriptor(
   Allocator rets = return_registers.Get();
 
   for (size_t i = 0; i < descriptor->ReturnCount(); i++) {
-    if (descriptor->GetReturnType(i) == MachineType::Int64()) {
-      // For each int64 return we get two int32 returns.
-      locations.AddReturn(rets.Next(MachineRepresentation::kWord32));
-      locations.AddReturn(rets.Next(MachineRepresentation::kWord32));
+    if (descriptor->GetReturnType(i) == input_type) {
+      for (size_t j = 0; j < num_replacements; j++) {
+        locations.AddReturn(rets.Next(output_type));
+      }
     } else {
       locations.AddReturn(
           rets.Next(descriptor->GetReturnType(i).representation()));
@@ -348,10 +357,10 @@ CallDescriptor* ModuleEnv::GetI32WasmCallDescriptor(
   Allocator params = parameter_registers.Get();
 
   for (size_t i = 0; i < descriptor->ParameterCount(); i++) {
-    if (descriptor->GetParameterType(i) == MachineType::Int64()) {
-      // For each int64 input we get two int32 inputs.
-      locations.AddParam(params.Next(MachineRepresentation::kWord32));
-      locations.AddParam(params.Next(MachineRepresentation::kWord32));
+    if (descriptor->GetParameterType(i) == input_type) {
+      for (size_t j = 0; j < num_replacements; j++) {
+        locations.AddParam(params.Next(output_type));
+      }
     } else {
       locations.AddParam(
           params.Next(descriptor->GetParameterType(i).representation()));
@@ -369,8 +378,20 @@ CallDescriptor* ModuleEnv::GetI32WasmCallDescriptor(
       descriptor->CalleeSavedFPRegisters(),  // callee-saved fp regs
       descriptor->flags(),                   // flags
       descriptor->debug_name());
+}
 
-  return descriptor;
+CallDescriptor* ModuleEnv::GetI32WasmCallDescriptor(
+    Zone* zone, CallDescriptor* descriptor) {
+  return ReplaceTypeInCallDescriptorWith(zone, descriptor, 2,
+                                         MachineType::Int64(),
+                                         MachineRepresentation::kWord32);
+}
+
+CallDescriptor* ModuleEnv::GetI32WasmCallDescriptorForSimd(
+    Zone* zone, CallDescriptor* descriptor) {
+  return ReplaceTypeInCallDescriptorWith(zone, descriptor, 4,
+                                         MachineType::Simd128(),
+                                         MachineRepresentation::kWord32);
 }
 
 }  // namespace wasm

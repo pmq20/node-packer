@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
 
@@ -488,6 +509,23 @@ extern "C" NODE_EXTERN void node_module_register(void* mod);
  * Callbacks are run in reverse order of registration, i.e. newest first.
  */
 NODE_EXTERN void AtExit(void (*cb)(void* arg), void* arg = 0);
+
+/* Registers a callback with the passed-in Environment instance. The callback
+ * is called after the event loop exits, but before the VM is disposed.
+ * Callbacks are run in reverse order of registration, i.e. newest first.
+ */
+NODE_EXTERN void AtExit(Environment* env, void (*cb)(void* arg), void* arg = 0);
+
+typedef void (*promise_hook_func) (v8::PromiseHookType type,
+                                   v8::Local<v8::Promise> promise,
+                                   v8::Local<v8::Value> parent,
+                                   void* arg);
+
+/* Registers an additional v8::PromiseHook wrapper. This API exists because V8
+ * itself supports only a single PromiseHook. */
+NODE_EXTERN void AddPromiseHook(v8::Isolate* isolate,
+                                promise_hook_func fn,
+                                void* arg);
 
 }  // namespace node
 

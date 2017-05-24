@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const EventEmitter = require('events');
@@ -18,6 +39,9 @@ const TCPConnectWrap = process.binding('tcp_wrap').TCPConnectWrap;
 const PipeConnectWrap = process.binding('pipe_wrap').PipeConnectWrap;
 const ShutdownWrap = process.binding('stream_wrap').ShutdownWrap;
 const WriteWrap = process.binding('stream_wrap').WriteWrap;
+const async_id_symbol = process.binding('async_wrap').async_id_symbol;
+const { newUid, setInitTriggerId } = require('async_hooks');
+const nextTick = require('internal/process/next_tick').nextTick;
 
 var cluster;
 var dns;
@@ -25,6 +49,7 @@ var dns;
 const errnoException = util._errnoException;
 const exceptionWithHostPort = util._exceptionWithHostPort;
 const isLegalPort = internalNet.isLegalPort;
+const normalizedArgsSymbol = internalNet.normalizedArgsSymbol;
 
 function noop() {}
 
@@ -33,6 +58,12 @@ function createHandle(fd) {
   if (type === 'PIPE') return new Pipe();
   if (type === 'TCP') return new TCP();
   throw new TypeError('Unsupported fd type: ' + type);
+}
+
+
+function getNewAsyncId(handle) {
+  return (!handle || typeof handle.getAsyncId !== 'function') ?
+      newUid() : handle.getAsyncId();
 }
 
 
@@ -66,7 +97,6 @@ function connect() {
   // TODO(joyeecheung): use destructuring when V8 is fast enough
   var normalized = normalizeArgs(args);
   var options = normalized[0];
-  var cb = normalized[1];
   debug('createConnection', normalized);
   var socket = new Socket(options);
 
@@ -74,7 +104,7 @@ function connect() {
     socket.setTimeout(options.timeout);
   }
 
-  return realConnect.call(socket, options, cb);
+  return Socket.prototype.connect.call(socket, normalized);
 }
 
 
@@ -89,8 +119,12 @@ function connect() {
 // For Server.prototype.listen(), the [...] part is [, backlog]
 // but will not be handled here (handled in listen())
 function normalizeArgs(args) {
+  var arr;
+
   if (args.length === 0) {
-    return [{}, null];
+    arr = [{}, null];
+    arr[normalizedArgsSymbol] = true;
+    return arr;
   }
 
   const arg0 = args[0];
@@ -111,9 +145,12 @@ function normalizeArgs(args) {
 
   var cb = args[args.length - 1];
   if (typeof cb !== 'function')
-    return [options, null];
+    arr = [options, null];
   else
-    return [options, cb];
+    arr = [options, cb];
+
+  arr[normalizedArgsSymbol] = true;
+  return arr;
 }
 
 
@@ -127,6 +164,7 @@ function initSocketHandle(self) {
   if (self._handle) {
     self._handle.owner = self;
     self._handle.onread = onread;
+    self[async_id_symbol] = getNewAsyncId(self._handle);
 
     // If handle doesn't support writev - neither do we
     if (!self._handle.writev)
@@ -142,6 +180,10 @@ function Socket(options) {
   if (!(this instanceof Socket)) return new Socket(options);
 
   this.connecting = false;
+  // Problem with this is that users can supply their own handle, that may not
+  // have _handle.getAsyncId(). In this case an[async_id_symbol] should
+  // probably be supplied by async_hooks.
+  this[async_id_symbol] = -1;
   this._hadError = false;
   this._handle = null;
   this._parent = null;
@@ -156,12 +198,15 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle; // private
+    this[async_id_symbol] = getNewAsyncId(this._handle);
   } else if (options.fd !== undefined) {
     this._handle = createHandle(options.fd);
     this._handle.open(options.fd);
-    // options.fd can be string (since it user-defined),
+    this[async_id_symbol] = this._handle.getAsyncId();
+    // options.fd can be string (since it is user-defined),
     // so changing this to === would be semver-major
     // See: https://github.com/nodejs/node/pull/11513
+    // eslint-disable-next-line eqeqeq
     if ((options.fd == 1 || options.fd == 2) &&
         (this._handle instanceof Pipe) &&
         process.platform === 'win32') {
@@ -243,6 +288,10 @@ function onSocketFinish() {
   var req = new ShutdownWrap();
   req.oncomplete = afterShutdown;
   req.handle = this._handle;
+  // node::ShutdownWrap isn't instantiated and attached to the JS instance of
+  // ShutdownWrap above until shutdown() is called. So don't set the init
+  // trigger id until now.
+  setInitTriggerId(this[async_id_symbol]);
   var err = this._handle.shutdown(req);
 
   if (err)
@@ -308,7 +357,7 @@ function writeAfterFIN(chunk, encoding, cb) {
   // TODO: defer error events consistently everywhere, not just the cb
   this.emit('error', er);
   if (typeof cb === 'function') {
-    process.nextTick(cb, er);
+    nextTick(this[async_id_symbol], cb, er);
   }
 }
 
@@ -728,7 +777,7 @@ Socket.prototype._writeGeneric = function(writev, data, encoding, cb) {
 
   // If it was entirely flushed, we can write some more right now.
   // However, if more is left in the queue, then wait until that clears.
-  if (req.async && this._handle.writeQueueSize != 0)
+  if (req.async && this._handle.writeQueueSize !== 0)
     req.cb = cb;
   else
     cb();
@@ -866,6 +915,10 @@ function internalConnect(
     req.localAddress = localAddress;
     req.localPort = localPort;
 
+    // node::TCPConnectWrap isn't instantiated and attached to the JS instance
+    // of TCPConnectWrap above until connect() is called. So don't set the init
+    // trigger id until now.
+    setInitTriggerId(self[async_id_symbol]);
     if (addressType === 4)
       err = self._handle.connect(req, address, port);
     else
@@ -875,6 +928,10 @@ function internalConnect(
     const req = new PipeConnectWrap();
     req.address = address;
     req.oncomplete = afterConnect;
+    // node::PipeConnectWrap isn't instantiated and attached to the JS instance
+    // of PipeConnectWrap above until connect() is called. So don't set the
+    // init trigger id until now.
+    setInitTriggerId(self[async_id_symbol]);
     err = self._handle.connect(req, address, afterConnect);
   }
 
@@ -893,18 +950,23 @@ function internalConnect(
 
 
 Socket.prototype.connect = function() {
-  var args = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++)
-    args[i] = arguments[i];
-  // TODO(joyeecheung): use destructuring when V8 is fast enough
-  var normalized = normalizeArgs(args);
-  var options = normalized[0];
-  var cb = normalized[1];
-  return realConnect.call(this, options, cb);
-};
+  let normalized;
+  // If passed an array, it's treated as an array of arguments that have
+  // already been normalized (so we don't normalize more than once). This has
+  // been solved before in https://github.com/nodejs/node/pull/12342, but was
+  // reverted as it had unintended side effects.
+  if (Array.isArray(arguments[0]) && arguments[0][normalizedArgsSymbol]) {
+    normalized = arguments[0];
+  } else {
+    var args = new Array(arguments.length);
+    for (var i = 0; i < arguments.length; i++)
+      args[i] = arguments[i];
+    // TODO(joyeecheung): use destructuring when V8 is fast enough
+    normalized = normalizeArgs(args);
+  }
+  const options = normalized[0];
+  const cb = normalized[1];
 
-
-function realConnect(options, cb) {
   if (this.write !== Socket.prototype.write)
     this.write = Socket.prototype.write;
 
@@ -945,7 +1007,7 @@ function realConnect(options, cb) {
     lookupAndConnect(this, options);
   }
   return this;
-}
+};
 
 
 function lookupAndConnect(self, options) {
@@ -974,7 +1036,10 @@ function lookupAndConnect(self, options) {
   // If host is an IP, skip performing a lookup
   var addressType = cares.isIP(host);
   if (addressType) {
-    internalConnect(self, host, port, addressType, localAddress, localPort);
+    nextTick(self[async_id_symbol], function() {
+      if (self.connecting)
+        internalConnect(self, host, port, addressType, localAddress, localPort);
+    });
     return;
   }
 
@@ -994,6 +1059,7 @@ function lookupAndConnect(self, options) {
   debug('connect: dns options', dnsopts);
   self._host = host;
   var lookup = options.lookup || dns.lookup;
+  setInitTriggerId(self[async_id_symbol]);
   lookup(host, dnsopts, function emitLookup(err, ip, addressType) {
     self.emit('lookup', err, ip, addressType, host);
 
@@ -1134,12 +1200,14 @@ function Server(options, connectionListener) {
       }
       return this._connections;
     }, 'Server.connections property is deprecated. ' +
-       'Use Server.getConnections method instead.'),
+       'Use Server.getConnections method instead.', 'DEP0020'),
     set: internalUtil.deprecate((val) => (this._connections = val),
-                                'Server.connections property is deprecated.'),
+                                'Server.connections property is deprecated.',
+                                'DEP0020'),
     configurable: true, enumerable: false
   });
 
+  this[async_id_symbol] = -1;
   this._handle = null;
   this._usingSlaves = false;
   this._slaves = [];
@@ -1247,6 +1315,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
     this._handle = rval;
   }
 
+  this[async_id_symbol] = getNewAsyncId(this._handle);
   this._handle.onconnection = onconnection;
   this._handle.owner = this;
 
@@ -1259,7 +1328,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
     var ex = exceptionWithHostPort(err, 'listen', address, port);
     this._handle.close();
     this._handle = null;
-    process.nextTick(emitErrorNT, this, ex);
+    nextTick(this[async_id_symbol], emitErrorNT, this, ex);
     return;
   }
 
@@ -1270,7 +1339,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
   if (this._unref)
     this.unref();
 
-  process.nextTick(emitListeningNT, this);
+  nextTick(this[async_id_symbol], emitListeningNT, this);
 }
 
 Server.prototype._listen2 = setupListenHandle;  // legacy alias
@@ -1371,6 +1440,7 @@ Server.prototype.listen = function() {
   // (handle[, backlog][, cb]) where handle is an object with a handle
   if (options instanceof TCP) {
     this._handle = options;
+    this[async_id_symbol] = this._handle.getAsyncId();
     listenInCluster(this, null, -1, -1, backlogFromArgs);
     return this;
   }
@@ -1419,7 +1489,7 @@ Server.prototype.listen = function() {
     return this;
   }
 
-  throw new Error('Invalid listen argument: ' + options);
+  throw new Error('Invalid listen argument: ' + util.inspect(options));
 };
 
 function lookupAndListen(self, port, address, backlog, exclusive) {
@@ -1446,8 +1516,10 @@ Object.defineProperty(Server.prototype, 'listening', {
 Server.prototype.address = function() {
   if (this._handle && this._handle.getsockname) {
     var out = {};
-    this._handle.getsockname(out);
-    // TODO(bnoordhuis) Check err and throw?
+    var err = this._handle.getsockname(out);
+    if (err) {
+      throw errnoException(err, 'address');
+    }
     return out;
   } else if (this._pipeName) {
     return this._pipeName;
@@ -1492,8 +1564,10 @@ function onconnection(err, clientHandle) {
 
 
 Server.prototype.getConnections = function(cb) {
+  const self = this;
+
   function end(err, connections) {
-    process.nextTick(cb, err, connections);
+    nextTick(self[async_id_symbol], cb, err, connections);
   }
 
   if (!this._usingSlaves) {
@@ -1568,7 +1642,8 @@ Server.prototype._emitCloseIfDrained = function() {
     return;
   }
 
-  process.nextTick(emitCloseNT, this);
+  const asyncId = this._handle ? this[async_id_symbol] : null;
+  nextTick(asyncId, emitCloseNT, this);
 };
 
 
@@ -1580,7 +1655,8 @@ function emitCloseNT(self) {
 
 Server.prototype.listenFD = internalUtil.deprecate(function(fd, type) {
   return this.listen({ fd: fd });
-}, 'Server.listenFD is deprecated. Use Server.listen({fd: <number>}) instead.');
+}, 'Server.listenFD is deprecated. Use Server.listen({fd: <number>}) instead.',
+                                                   'DEP0021');
 
 Server.prototype._setupSlave = function(socketList) {
   this._usingSlaves = true;

@@ -19,6 +19,7 @@ function main(conf) {
   const len = +conf.len;
 
   const msg = `"${'.'.repeat(len)}"`;
+  // eslint-disable-next-line no-unescaped-regexp-dot
   msg.match(/./);
   const options = {'stdio': ['ignore', 'pipe', 'ignore']};
   const child = exec(`yes ${msg}`, options);

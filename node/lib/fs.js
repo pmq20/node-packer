@@ -1,9 +1,31 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 // Maintainers, keep in mind that ES1-style octal literals (`0666`) are not
 // allowed in strict mode. Use ES6-style octal literals instead (`0o666`).
 
 'use strict';
 
 const constants = process.binding('constants').fs;
+const { S_IFMT, S_IFREG, S_IFLNK } = constants;
 const util = require('util');
 const pathModule = require('path');
 const { isUint8Array } = process.binding('util');
@@ -17,9 +39,9 @@ const FSReqWrap = binding.FSReqWrap;
 const FSEvent = process.binding('fs_event_wrap').FSEvent;
 const internalFS = require('internal/fs');
 const internalURL = require('internal/url');
+const internalUtil = require('internal/util');
 const assertEncoding = internalFS.assertEncoding;
 const stringToFlags = internalFS.stringToFlags;
-const SyncWriteStream = internalFS.SyncWriteStream;
 const getPathFromURL = internalURL.getPathFromURL;
 
 Object.defineProperty(exports, 'constants', {
@@ -70,8 +92,7 @@ function rethrow() {
   // TODO(thefourtheye) Throw error instead of warning in major version > 7
   process.emitWarning(
     'Calling an asynchronous function without callback is deprecated.',
-    'DeprecationWarning',
-    rethrow
+    'DeprecationWarning', 'DEP0013', rethrow
   );
 
   // Only enable in debug mode. A backtrace uses ~1000 bytes of heap space and
@@ -115,6 +136,24 @@ function makeCallback(cb) {
   };
 }
 
+// Special case of `makeCallback()` that is specific to async `*stat()` calls as
+// an optimization, since the data passed back to the callback needs to be
+// transformed anyway.
+function makeStatsCallback(cb) {
+  if (cb === undefined) {
+    return rethrow();
+  }
+
+  if (typeof cb !== 'function') {
+    throw new TypeError('"callback" argument must be a function');
+  }
+
+  return function(err) {
+    if (err) return cb(err);
+    cb(err, statsFromValues());
+  };
+}
+
 function nullCheck(path, callback) {
   if (('' + path).indexOf('\u0000') !== -1) {
     var er = new Error('Path must be a string without null bytes');
@@ -131,7 +170,7 @@ function isFd(path) {
   return (path >>> 0) === path;
 }
 
-// Static method to set the stats properties on a Stats object.
+// Constructor for file stats.
 function Stats(
     dev,
     mode,
@@ -157,47 +196,121 @@ function Stats(
   this.ino = ino;
   this.size = size;
   this.blocks = blocks;
-  this.atime = new Date(atim_msec);
-  this.mtime = new Date(mtim_msec);
-  this.ctime = new Date(ctim_msec);
-  this.birthtime = new Date(birthtim_msec);
+  this._atim_msec = atim_msec;
+  this._mtim_msec = mtim_msec;
+  this._ctim_msec = ctim_msec;
+  this._birthtim_msec = birthtim_msec;
 }
 fs.Stats = Stats;
 
-// Create a C++ binding to the function which creates a Stats object.
-binding.FSInitialize(fs.Stats);
+// defining the properties in this fashion (explicitly with no loop or factory)
+// has been shown to be the most performant on V8 contemp.
+// Ref: https://github.com/nodejs/node/pull/12818
+Object.defineProperties(Stats.prototype, {
+  atime: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this._atime !== undefined ?
+          this._atime :
+          (this._atime = new Date(this._atim_msec + 0.5));
+    },
+    set(value) { return this._atime = value; }
+  },
+  mtime: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this._mtime !== undefined ?
+          this._mtime :
+          (this._mtime = new Date(this._mtim_msec + 0.5));
+    },
+    set(value) { return this._mtime = value; }
+  },
+  ctime: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this._ctime !== undefined ?
+        this._ctime :
+        (this._ctime = new Date(this._ctim_msec + 0.5));
+    },
+    set(value) { return this._ctime = value; }
+  },
+  birthtime: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this._birthtime !== undefined ?
+        this._birthtime :
+        (this._birthtime = new Date(this._birthtim_msec + 0.5));
+    },
+    set(value) { return this._birthtime = value; }
+  },
+});
 
-fs.Stats.prototype._checkModeProperty = function(property) {
-  return ((this.mode & constants.S_IFMT) === property);
+Stats.prototype.toJSON = function toJSON() {
+  return {
+    dev: this.dev,
+    mode: this.mode,
+    nlink: this.nlink,
+    uid: this.uid,
+    gid: this.gid,
+    rdev: this.rdev,
+    blksize: this.blksize,
+    ino: this.ino,
+    size: this.size,
+    blocks: this.blocks,
+    atime: this.atime,
+    ctime: this.ctime,
+    mtime: this.mtime,
+    birthtime: this.birthtime
+  };
 };
 
-fs.Stats.prototype.isDirectory = function() {
+
+Stats.prototype._checkModeProperty = function(property) {
+  return ((this.mode & S_IFMT) === property);
+};
+
+Stats.prototype.isDirectory = function() {
   return this._checkModeProperty(constants.S_IFDIR);
 };
 
-fs.Stats.prototype.isFile = function() {
-  return this._checkModeProperty(constants.S_IFREG);
+Stats.prototype.isFile = function() {
+  return this._checkModeProperty(S_IFREG);
 };
 
-fs.Stats.prototype.isBlockDevice = function() {
+Stats.prototype.isBlockDevice = function() {
   return this._checkModeProperty(constants.S_IFBLK);
 };
 
-fs.Stats.prototype.isCharacterDevice = function() {
+Stats.prototype.isCharacterDevice = function() {
   return this._checkModeProperty(constants.S_IFCHR);
 };
 
-fs.Stats.prototype.isSymbolicLink = function() {
-  return this._checkModeProperty(constants.S_IFLNK);
+Stats.prototype.isSymbolicLink = function() {
+  return this._checkModeProperty(S_IFLNK);
 };
 
-fs.Stats.prototype.isFIFO = function() {
+Stats.prototype.isFIFO = function() {
   return this._checkModeProperty(constants.S_IFIFO);
 };
 
-fs.Stats.prototype.isSocket = function() {
+Stats.prototype.isSocket = function() {
   return this._checkModeProperty(constants.S_IFSOCK);
 };
+
+const statValues = binding.getStatValues();
+
+function statsFromValues() {
+  return new Stats(statValues[0], statValues[1], statValues[2], statValues[3],
+                   statValues[4], statValues[5],
+                   statValues[6] < 0 ? undefined : statValues[6], statValues[7],
+                   statValues[8], statValues[9] < 0 ? undefined : statValues[9],
+                   statValues[10], statValues[11], statValues[12],
+                   statValues[13]);
+}
 
 // Don't allow mode to accidentally be overwritten.
 Object.defineProperties(fs, {
@@ -256,7 +369,7 @@ fs.exists = function(path, callback) {
   var req = new FSReqWrap();
   req.oncomplete = cb;
   binding.stat(pathModule._makeLong(path), req);
-  function cb(err, stats) {
+  function cb(err) {
     if (callback) callback(err ? false : true);
   }
 };
@@ -265,7 +378,7 @@ fs.existsSync = function(path) {
   try {
     handleError((path = getPathFromURL(path)));
     nullCheck(path);
-    binding.stat(pathModule._makeLong(path), statValues);
+    binding.stat(pathModule._makeLong(path));
     return true;
   } catch (e) {
     return false;
@@ -368,13 +481,19 @@ function readFileAfterOpen(err, fd) {
   binding.fstat(fd, req);
 }
 
-function readFileAfterStat(err, st) {
+function readFileAfterStat(err) {
   var context = this.context;
 
   if (err)
     return context.close(err);
 
-  var size = context.size = st.isFile() ? st.size : 0;
+  // Use stats array directly to avoid creating an fs.Stats instance just for
+  // our internal use.
+  var size;
+  if ((statValues[1/*mode*/] & S_IFMT) === S_IFREG)
+    size = context.size = statValues[8/*size*/];
+  else
+    size = context.size = 0;
 
   if (size === 0) {
     context.buffers = [];
@@ -420,8 +539,8 @@ function readFileAfterClose(err) {
   var buffer = null;
   var callback = context.callback;
 
-  if (context.err)
-    return callback(context.err);
+  if (context.err || err)
+    return callback(context.err || err);
 
   if (context.size === 0)
     buffer = Buffer.concat(context.buffers, context.pos);
@@ -429,8 +548,6 @@ function readFileAfterClose(err) {
     buffer = context.buffer.slice(0, context.pos);
   else
     buffer = context.buffer;
-
-  if (err) return callback(err, buffer);
 
   if (context.encoding) {
     return tryToString(buffer, context.encoding, callback);
@@ -440,25 +557,23 @@ function readFileAfterClose(err) {
 }
 
 function tryToString(buf, encoding, callback) {
-  var e = null;
   try {
     buf = buf.toString(encoding);
   } catch (err) {
-    e = err;
+    return callback(err);
   }
-  callback(e, buf);
+  callback(null, buf);
 }
 
 function tryStatSync(fd, isUserFd) {
   var threw = true;
-  var st;
   try {
-    st = fs.fstatSync(fd);
+    binding.fstat(fd);
     threw = false;
   } finally {
     if (threw && !isUserFd) fs.closeSync(fd);
   }
-  return st;
+  return !threw;
 }
 
 function tryCreateBuffer(size, fd, isUserFd) {
@@ -490,8 +605,13 @@ fs.readFileSync = function(path, options) {
   var isUserFd = isFd(path); // file descriptor ownership
   var fd = isUserFd ? path : fs.openSync(path, options.flag || 'r', 0o666);
 
-  var st = tryStatSync(fd, isUserFd);
-  var size = st.isFile() ? st.size : 0;
+  // Use stats array directly to avoid creating an fs.Stats instance just for
+  // our internal use.
+  var size;
+  if (tryStatSync(fd, isUserFd) && (statValues[1/*mode*/] & S_IFMT) === S_IFREG)
+    size = statValues[8/*size*/];
+  else
+    size = 0;
   var pos = 0;
   var buffer; // single buffer with file data
   var buffers; // list for when size is unknown
@@ -584,40 +704,7 @@ fs.openSync = function(path, flags, mode) {
   return binding.open(pathModule._makeLong(path), stringToFlags(flags), mode);
 };
 
-var readWarned = false;
 fs.read = function(fd, buffer, offset, length, position, callback) {
-  if (!isUint8Array(buffer)) {
-    // legacy string interface (fd, length, position, encoding, callback)
-    if (!readWarned) {
-      readWarned = true;
-      process.emitWarning(
-        'fs.read\'s legacy String interface is deprecated. Use the Buffer ' +
-        'API as mentioned in the documentation instead.',
-        'DeprecationWarning');
-    }
-
-    const cb = arguments[4];
-    const encoding = arguments[3];
-
-    assertEncoding(encoding);
-
-    position = arguments[2];
-    length = arguments[1];
-    buffer = Buffer.allocUnsafe(length);
-    offset = 0;
-
-    callback = function(err, bytesRead) {
-      if (!cb) return;
-      if (err) return cb(err);
-
-      if (bytesRead > 0) {
-        tryToStringWithEnd(buffer, encoding, bytesRead, cb);
-      } else {
-        (cb)(err, '', bytesRead);
-      }
-    };
-  }
-
   if (length === 0) {
     return process.nextTick(function() {
       callback && callback(null, 0, buffer);
@@ -635,57 +722,15 @@ fs.read = function(fd, buffer, offset, length, position, callback) {
   binding.read(fd, buffer, offset, length, position, req);
 };
 
-function tryToStringWithEnd(buf, encoding, end, callback) {
-  var e;
-  try {
-    buf = buf.toString(encoding, 0, end);
-  } catch (err) {
-    e = err;
-  }
-  callback(e, buf, end);
-}
+Object.defineProperty(fs.read, internalUtil.customPromisifyArgs,
+                      { value: ['bytesRead', 'buffer'], enumerable: false });
 
-var readSyncWarned = false;
 fs.readSync = function(fd, buffer, offset, length, position) {
-  var legacy = false;
-  var encoding;
-
-  if (!isUint8Array(buffer)) {
-    // legacy string interface (fd, length, position, encoding, callback)
-    if (!readSyncWarned) {
-      readSyncWarned = true;
-      process.emitWarning(
-        'fs.readSync\'s legacy String interface is deprecated. Use the ' +
-        'Buffer API as mentioned in the documentation instead.',
-        'DeprecationWarning');
-    }
-    legacy = true;
-    encoding = arguments[3];
-
-    assertEncoding(encoding);
-
-    position = arguments[2];
-    length = arguments[1];
-    buffer = Buffer.allocUnsafe(length);
-
-    offset = 0;
-  }
-
   if (length === 0) {
-    if (legacy) {
-      return ['', 0];
-    } else {
-      return 0;
-    }
+    return 0;
   }
 
-  var r = binding.read(fd, buffer, offset, length, position);
-  if (!legacy) {
-    return r;
-  }
-
-  var str = (r > 0) ? buffer.toString(encoding, 0, r) : '';
-  return [str, r];
+  return binding.read(fd, buffer, offset, length, position);
 };
 
 // usage:
@@ -729,6 +774,9 @@ fs.write = function(fd, buffer, offset, length, position, callback) {
   callback = maybeCallback(position);
   return binding.writeString(fd, buffer, offset, length, req);
 };
+
+Object.defineProperty(fs.write, internalUtil.customPromisifyArgs,
+                      { value: ['bytesWritten', 'buffer'], enumerable: false });
 
 // usage:
 //  fs.writeSync(fd, buffer[, offset[, length[, position]]]);
@@ -916,12 +964,12 @@ fs.readdirSync = function(path, options) {
 
 fs.fstat = function(fd, callback) {
   var req = new FSReqWrap();
-  req.oncomplete = makeCallback(callback);
+  req.oncomplete = makeStatsCallback(callback);
   binding.fstat(fd, req);
 };
 
 fs.lstat = function(path, callback) {
-  callback = makeCallback(callback);
+  callback = makeStatsCallback(callback);
   if (handleError((path = getPathFromURL(path)), callback))
     return;
   if (!nullCheck(path, callback)) return;
@@ -931,7 +979,7 @@ fs.lstat = function(path, callback) {
 };
 
 fs.stat = function(path, callback) {
-  callback = makeCallback(callback);
+  callback = makeStatsCallback(callback);
   if (handleError((path = getPathFromURL(path)), callback))
     return;
   if (!nullCheck(path, callback)) return;
@@ -940,32 +988,22 @@ fs.stat = function(path, callback) {
   binding.stat(pathModule._makeLong(path), req);
 };
 
-const statValues = new Float64Array(14);
-function statsFromValues() {
-  return new Stats(statValues[0], statValues[1], statValues[2], statValues[3],
-                   statValues[4], statValues[5],
-                   statValues[6] < 0 ? undefined : statValues[6], statValues[7],
-                   statValues[8], statValues[9] < 0 ? undefined : statValues[9],
-                   statValues[10], statValues[11], statValues[12],
-                   statValues[13]);
-}
-
 fs.fstatSync = function(fd) {
-  binding.fstat(fd, statValues);
+  binding.fstat(fd);
   return statsFromValues();
 };
 
 fs.lstatSync = function(path) {
   handleError((path = getPathFromURL(path)));
   nullCheck(path);
-  binding.lstat(pathModule._makeLong(path), statValues);
+  binding.lstat(pathModule._makeLong(path));
   return statsFromValues();
 };
 
 fs.statSync = function(path) {
   handleError((path = getPathFromURL(path)));
   nullCheck(path);
-  binding.stat(pathModule._makeLong(path), statValues);
+  binding.stat(pathModule._makeLong(path));
   return statsFromValues();
 };
 
@@ -1091,7 +1129,7 @@ fs.fchmodSync = function(fd, mode) {
   return binding.fchmod(fd, modeNum(mode));
 };
 
-if (constants.hasOwnProperty('O_SYMLINK')) {
+if (constants.O_SYMLINK !== undefined) {
   fs.lchmod = function(path, mode, callback) {
     callback = maybeCallback(callback);
     fs.open(path, constants.O_WRONLY | constants.O_SYMLINK, function(err, fd) {
@@ -1149,7 +1187,7 @@ fs.chmodSync = function(path, mode) {
   return binding.chmod(pathModule._makeLong(path), modeNum(mode));
 };
 
-if (constants.hasOwnProperty('O_SYMLINK')) {
+if (constants.O_SYMLINK !== undefined) {
   fs.lchown = function(path, uid, gid, callback) {
     callback = maybeCallback(callback);
     fs.open(path, constants.O_WRONLY | constants.O_SYMLINK, function(err, fd) {
@@ -1195,11 +1233,12 @@ fs.chownSync = function(path, uid, gid) {
 
 // converts Date or number to a fractional UNIX timestamp
 function toUnixTimestamp(time) {
+  // eslint-disable-next-line eqeqeq
   if (typeof time === 'string' && +time == time) {
     return +time;
   }
-  if (typeof time === 'number') {
-    if (!Number.isFinite(time) || time < 0) {
+  if (Number.isFinite(time)) {
+    if (time < 0) {
       return Date.now() / 1000;
     }
     return time;
@@ -1440,6 +1479,15 @@ function emitStop(self) {
   self.emit('stop');
 }
 
+function statsFromPrevValues() {
+  return new Stats(statValues[14], statValues[15], statValues[16],
+                   statValues[17], statValues[18], statValues[19],
+                   statValues[20] < 0 ? undefined : statValues[20],
+                   statValues[21], statValues[22],
+                   statValues[23] < 0 ? undefined : statValues[23],
+                   statValues[24], statValues[25], statValues[26],
+                   statValues[27]);
+}
 function StatWatcher() {
   EventEmitter.call(this);
 
@@ -1450,13 +1498,13 @@ function StatWatcher() {
   // the sake of backwards compatibility
   var oldStatus = -1;
 
-  this._handle.onchange = function(current, previous, newStatus) {
+  this._handle.onchange = function(newStatus) {
     if (oldStatus === -1 &&
         newStatus === -1 &&
-        current.nlink === previous.nlink) return;
+        statValues[2/*new nlink*/] === statValues[16/*old nlink*/]) return;
 
     oldStatus = newStatus;
-    self.emit('change', current, previous);
+    self.emit('change', statsFromValues(), statsFromPrevValues());
   };
 
   this._handle.onstop = function() {
@@ -1538,16 +1586,23 @@ fs.unwatchFile = function(filename, listener) {
 };
 
 
-// Regexp that finds the next portion of a (partial) path
-// result is [base_with_slash, base], e.g. ['somedir/', 'somedir']
-const nextPartRe = isWindows ?
-  /(.*?)(?:[/\\]+|$)/g :
-  /(.*?)(?:[/]+|$)/g;
-
-// Regex to find the device root, including trailing slash. E.g. 'c:\\'.
-const splitRootRe = isWindows ?
-  /^(?:[a-zA-Z]:|[\\/]{2}[^\\/]+[\\/][^\\/]+)?[\\/]*/ :
-  /^[/]*/;
+var splitRoot;
+if (isWindows) {
+  // Regex to find the device root on Windows (e.g. 'c:\\'), including trailing
+  // slash.
+  const splitRootRe = /^(?:[a-zA-Z]:|[\\/]{2}[^\\/]+[\\/][^\\/]+)?[\\/]*/;
+  splitRoot = function splitRoot(str) {
+    return splitRootRe.exec(str)[0];
+  };
+} else {
+  splitRoot = function splitRoot(str) {
+    for (var i = 0; i < str.length; ++i) {
+      if (str.charCodeAt(i) !== 47/*'/'*/)
+        return str.slice(0, i);
+    }
+    return str;
+  };
+}
 
 function encodeRealpathResult(result, options) {
   if (!options || !options.encoding || options.encoding === 'utf8')
@@ -1560,23 +1615,44 @@ function encodeRealpathResult(result, options) {
   }
 }
 
-fs.realpathSync = function realpathSync(p, options) {
-  options = getOptions(options, {});
-  handleError((p = getPathFromURL(p)));
-  nullCheck(p);
+// Finds the next portion of a (partial) path, up to the next path delimiter
+var nextPart;
+if (isWindows) {
+  nextPart = function nextPart(p, i) {
+    for (; i < p.length; ++i) {
+      const ch = p.charCodeAt(i);
+      if (ch === 92/*'\'*/ || ch === 47/*'/'*/)
+        return i;
+    }
+    return -1;
+  };
+} else {
+  nextPart = function nextPart(p, i) { return p.indexOf('/', i); };
+}
 
-  p = p.toString('utf8');
+const emptyObj = Object.create(null);
+fs.realpathSync = function realpathSync(p, options) {
+  if (!options)
+    options = emptyObj;
+  else
+    options = getOptions(options, emptyObj);
+  if (typeof p !== 'string') {
+    handleError((p = getPathFromURL(p)));
+    if (typeof p !== 'string')
+      p += '';
+  }
+  nullCheck(p);
   p = pathModule.resolve(p);
 
-  const seenLinks = {};
-  const knownHard = {};
   const cache = options[internalFS.realpathCacheKey];
-  const original = p;
-
   const maybeCachedResult = cache && cache.get(p);
   if (maybeCachedResult) {
     return maybeCachedResult;
   }
+
+  const seenLinks = Object.create(null);
+  const knownHard = Object.create(null);
+  const original = p;
 
   // current character position in p
   var pos;
@@ -1587,21 +1663,14 @@ fs.realpathSync = function realpathSync(p, options) {
   // the partial path scanned in the previous round, with slash
   var previous;
 
-  start();
+  // Skip over roots
+  current = base = splitRoot(p);
+  pos = current.length;
 
-  function start() {
-    // Skip over roots
-    var m = splitRootRe.exec(p);
-    pos = m[0].length;
-    current = m[0];
-    base = m[0];
-    previous = '';
-
-    // On windows, check that the root exists. On unix there is no need.
-    if (isWindows && !knownHard[base]) {
-      fs.lstatSync(base);
-      knownHard[base] = true;
-    }
+  // On windows, check that the root exists. On unix there is no need.
+  if (isWindows && !knownHard[base]) {
+    binding.lstat(pathModule._makeLong(base));
+    knownHard[base] = true;
   }
 
   // walk down the path, swapping out linked pathparts for their real
@@ -1609,12 +1678,18 @@ fs.realpathSync = function realpathSync(p, options) {
   // NB: p.length changes.
   while (pos < p.length) {
     // find the next part
-    nextPartRe.lastIndex = pos;
-    var result = nextPartRe.exec(p);
+    var result = nextPart(p, pos);
     previous = current;
-    current += result[0];
-    base = previous + result[1];
-    pos = nextPartRe.lastIndex;
+    if (result === -1) {
+      var last = p.slice(pos);
+      current += last;
+      base = previous + last;
+      pos = p.length;
+    } else {
+      current += p.slice(pos, result + 1);
+      base = previous + p.slice(pos, result);
+      pos = result + 1;
+    }
 
     // continue if not a symlink
     if (knownHard[base] || (cache && cache.get(base) === base)) {
@@ -1622,12 +1697,17 @@ fs.realpathSync = function realpathSync(p, options) {
     }
 
     var resolvedLink;
-    const maybeCachedResolved = cache && cache.get(base);
+    var maybeCachedResolved = cache && cache.get(base);
     if (maybeCachedResolved) {
       resolvedLink = maybeCachedResolved;
     } else {
-      var stat = fs.lstatSync(base);
-      if (!stat.isSymbolicLink()) {
+      // Use stats array directly to avoid creating an fs.Stats instance just
+      // for our internal use.
+
+      var baseLong = pathModule._makeLong(base);
+      binding.lstat(baseLong);
+
+      if ((statValues[1/*mode*/] & S_IFMT) !== S_IFLNK) {
         knownHard[base] = true;
         if (cache) cache.set(base, base);
         continue;
@@ -1635,17 +1715,19 @@ fs.realpathSync = function realpathSync(p, options) {
 
       // read the link if it wasn't read before
       // dev/ino always return 0 on windows, so skip the check.
-      let linkTarget = null;
-      let id;
+      var linkTarget = null;
+      var id;
       if (!isWindows) {
-        id = `${stat.dev.toString(32)}:${stat.ino.toString(32)}`;
-        if (seenLinks.hasOwnProperty(id)) {
+        var dev = statValues[0/*dev*/].toString(32);
+        var ino = statValues[7/*ino*/].toString(32);
+        id = `${dev}:${ino}`;
+        if (seenLinks[id]) {
           linkTarget = seenLinks[id];
         }
       }
       if (linkTarget === null) {
-        fs.statSync(base);
-        linkTarget = fs.readlinkSync(base);
+        binding.stat(baseLong);
+        linkTarget = binding.readlink(baseLong);
       }
       resolvedLink = pathModule.resolve(previous, linkTarget);
 
@@ -1655,7 +1737,16 @@ fs.realpathSync = function realpathSync(p, options) {
 
     // resolve the link, then start over
     p = pathModule.resolve(resolvedLink, p.slice(pos));
-    start();
+
+    // Skip over roots
+    current = base = splitRoot(p);
+    pos = current.length;
+
+    // On windows, check that the root exists. On unix there is no need.
+    if (isWindows && !knownHard[base]) {
+      binding.lstat(pathModule._makeLong(base));
+      knownHard[base] = true;
+    }
   }
 
   if (cache) cache.set(original, p);
@@ -1665,17 +1756,22 @@ fs.realpathSync = function realpathSync(p, options) {
 
 fs.realpath = function realpath(p, options, callback) {
   callback = maybeCallback(typeof options === 'function' ? options : callback);
-  options = getOptions(options, {});
-  if (handleError((p = getPathFromURL(p)), callback))
-    return;
+  if (!options)
+    options = emptyObj;
+  else
+    options = getOptions(options, emptyObj);
+  if (typeof p !== 'string') {
+    if (handleError((p = getPathFromURL(p)), callback))
+      return;
+    if (typeof p !== 'string')
+      p += '';
+  }
   if (!nullCheck(p, callback))
     return;
-
-  p = p.toString('utf8');
   p = pathModule.resolve(p);
 
-  const seenLinks = {};
-  const knownHard = {};
+  const seenLinks = Object.create(null);
+  const knownHard = Object.create(null);
 
   // current character position in p
   var pos;
@@ -1686,26 +1782,18 @@ fs.realpath = function realpath(p, options, callback) {
   // the partial path scanned in the previous round, with slash
   var previous;
 
-  start();
+  current = base = splitRoot(p);
+  pos = current.length;
 
-  function start() {
-    // Skip over roots
-    var m = splitRootRe.exec(p);
-    pos = m[0].length;
-    current = m[0];
-    base = m[0];
-    previous = '';
-
-    // On windows, check that the root exists. On unix there is no need.
-    if (isWindows && !knownHard[base]) {
-      fs.lstat(base, function(err) {
-        if (err) return callback(err);
-        knownHard[base] = true;
-        LOOP();
-      });
-    } else {
-      process.nextTick(LOOP);
-    }
+  // On windows, check that the root exists. On unix there is no need.
+  if (isWindows && !knownHard[base]) {
+    fs.lstat(base, function(err) {
+      if (err) return callback(err);
+      knownHard[base] = true;
+      LOOP();
+    });
+  } else {
+    process.nextTick(LOOP);
   }
 
   // walk down the path, swapping out linked pathparts for their real
@@ -1717,12 +1805,18 @@ fs.realpath = function realpath(p, options, callback) {
     }
 
     // find the next part
-    nextPartRe.lastIndex = pos;
-    var result = nextPartRe.exec(p);
+    var result = nextPart(p, pos);
     previous = current;
-    current += result[0];
-    base = previous + result[1];
-    pos = nextPartRe.lastIndex;
+    if (result === -1) {
+      var last = p.slice(pos);
+      current += last;
+      base = previous + last;
+      pos = p.length;
+    } else {
+      current += p.slice(pos, result + 1);
+      base = previous + p.slice(pos, result);
+      pos = result + 1;
+    }
 
     // continue if not a symlink
     if (knownHard[base]) {
@@ -1732,11 +1826,14 @@ fs.realpath = function realpath(p, options, callback) {
     return fs.lstat(base, gotStat);
   }
 
-  function gotStat(err, stat) {
+  function gotStat(err) {
     if (err) return callback(err);
 
+    // Use stats array directly to avoid creating an fs.Stats instance just for
+    // our internal use.
+
     // if not a symlink, skip to the next path part
-    if (!stat.isSymbolicLink()) {
+    if ((statValues[1/*mode*/] & S_IFMT) !== S_IFLNK) {
       knownHard[base] = true;
       return process.nextTick(LOOP);
     }
@@ -1746,8 +1843,10 @@ fs.realpath = function realpath(p, options, callback) {
     // dev/ino always return 0 on windows, so skip the check.
     let id;
     if (!isWindows) {
-      id = `${stat.dev.toString(32)}:${stat.ino.toString(32)}`;
-      if (seenLinks.hasOwnProperty(id)) {
+      var dev = statValues[0/*ino*/].toString(32);
+      var ino = statValues[7/*ino*/].toString(32);
+      id = `${dev}:${ino}`;
+      if (seenLinks[id]) {
         return gotTarget(null, seenLinks[id], base);
       }
     }
@@ -1771,7 +1870,19 @@ fs.realpath = function realpath(p, options, callback) {
   function gotResolvedLink(resolvedLink) {
     // resolve the link, then start over
     p = pathModule.resolve(resolvedLink, p.slice(pos));
-    start();
+    current = base = splitRoot(p);
+    pos = current.length;
+
+    // On windows, check that the root exists. On unix there is no need.
+    if (isWindows && !knownHard[base]) {
+      fs.lstat(base, function(err) {
+        if (err) return callback(err);
+        knownHard[base] = true;
+        LOOP();
+      });
+    } else {
+      process.nextTick(LOOP);
+    }
   }
 };
 
@@ -1950,28 +2061,27 @@ ReadStream.prototype.destroy = function() {
 
 
 ReadStream.prototype.close = function(cb) {
-  var self = this;
   if (cb)
     this.once('close', cb);
+
   if (this.closed || typeof this.fd !== 'number') {
     if (typeof this.fd !== 'number') {
-      this.once('open', close);
+      this.once('open', this.close.bind(this, null));
       return;
     }
     return process.nextTick(() => this.emit('close'));
   }
-  this.closed = true;
-  close();
 
-  function close(fd) {
-    fs.close(fd || self.fd, function(er) {
-      if (er)
-        self.emit('error', er);
-      else
-        self.emit('close');
-    });
-    self.fd = null;
-  }
+  this.closed = true;
+
+  fs.close(this.fd, (er) => {
+    if (er)
+      this.emit('error', er);
+    else
+      this.emit('close');
+  });
+
+  this.fd = null;
 };
 
 
@@ -2120,11 +2230,12 @@ WriteStream.prototype.close = ReadStream.prototype.close;
 WriteStream.prototype.destroySoon = WriteStream.prototype.end;
 
 // SyncWriteStream is internal. DO NOT USE.
-// todo(jasnell): "Docs-only" deprecation for now. This was never documented
-// so there's no documentation to modify. In the future, add a runtime
-// deprecation.
+// This undocumented API was never intended to be made public.
+var SyncWriteStream = internalFS.SyncWriteStream;
 Object.defineProperty(fs, 'SyncWriteStream', {
   configurable: true,
-  writable: true,
-  value: SyncWriteStream
+  get: internalUtil.deprecate(() => SyncWriteStream,
+                              'fs.SyncWriteStream is deprecated.', 'DEP0061'),
+  set: internalUtil.deprecate((val) => { SyncWriteStream = val; },
+                              'fs.SyncWriteStream is deprecated.', 'DEP0061')
 });

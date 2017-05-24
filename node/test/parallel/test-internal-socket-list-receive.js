@@ -8,20 +8,21 @@ const SocketListReceive = require('internal/socket_list').SocketListReceive;
 
 const key = 'test-key';
 
-// Verify that the message won't be sent when slave is not connected.
+// Verify that the message won't be sent when child is not connected.
 {
-  const slave = Object.assign(new EventEmitter(), {
+  const child = Object.assign(new EventEmitter(), {
     connected: false,
     send: common.mustNotCall()
   });
 
-  const list = new SocketListReceive(slave, key);
-  list.slave.emit('internalMessage', { key, cmd: 'NODE_SOCKET_NOTIFY_CLOSE' });
+  const list = new SocketListReceive(child, key);
+  list.child.emit('internalMessage', { key, cmd: 'NODE_SOCKET_NOTIFY_CLOSE' });
+  list.child.emit('internalMessage', { key, cmd: 'NODE_SOCKET_GET_COUNT' });
 }
 
 // Verify that a "NODE_SOCKET_ALL_CLOSED" message will be sent.
 {
-  const slave = Object.assign(new EventEmitter(), {
+  const child = Object.assign(new EventEmitter(), {
     connected: true,
     send: common.mustCall((msg) => {
       assert.strictEqual(msg.cmd, 'NODE_SOCKET_ALL_CLOSED');
@@ -29,13 +30,13 @@ const key = 'test-key';
     })
   });
 
-  const list = new SocketListReceive(slave, key);
-  list.slave.emit('internalMessage', { key, cmd: 'NODE_SOCKET_NOTIFY_CLOSE' });
+  const list = new SocketListReceive(child, key);
+  list.child.emit('internalMessage', { key, cmd: 'NODE_SOCKET_NOTIFY_CLOSE' });
 }
 
 // Verify that a "NODE_SOCKET_COUNT" message will be sent.
 {
-  const slave = Object.assign(new EventEmitter(), {
+  const child = Object.assign(new EventEmitter(), {
     connected: true,
     send: common.mustCall((msg) => {
       assert.strictEqual(msg.cmd, 'NODE_SOCKET_COUNT');
@@ -44,17 +45,17 @@ const key = 'test-key';
     })
   });
 
-  const list = new SocketListReceive(slave, key);
-  list.slave.emit('internalMessage', { key, cmd: 'NODE_SOCKET_GET_COUNT' });
+  const list = new SocketListReceive(child, key);
+  list.child.emit('internalMessage', { key, cmd: 'NODE_SOCKET_GET_COUNT' });
 }
 
 // Verify that the connections count is added and an "empty" event
 // will be emitted when all sockets in obj were closed.
 {
-  const slave = new EventEmitter();
+  const child = new EventEmitter();
   const obj = { socket: new EventEmitter() };
 
-  const list = new SocketListReceive(slave, key);
+  const list = new SocketListReceive(child, key);
   assert.strictEqual(list.connections, 0);
 
   list.add(obj);

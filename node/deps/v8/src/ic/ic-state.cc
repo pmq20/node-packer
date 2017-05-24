@@ -4,7 +4,10 @@
 
 #include "src/ic/ic-state.h"
 
+#include "src/ast/ast-types.h"
+#include "src/feedback-vector.h"
 #include "src/ic/ic.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -13,11 +16,6 @@ namespace internal {
 void ICUtility::Clear(Isolate* isolate, Address address,
                       Address constant_pool) {
   IC::Clear(isolate, address, constant_pool);
-}
-
-
-std::ostream& operator<<(std::ostream& os, const CallICState& s) {
-  return os << "(args(" << s.argc() << "), " << s.convert_mode() << ", ";
 }
 
 
@@ -61,6 +59,23 @@ ExtraICState BinaryOpICState::GetExtraICState() const {
   return extra_ic_state;
 }
 
+std::string BinaryOpICState::ToString() const {
+  std::string ret = "(";
+  ret += Token::Name(op_);
+  if (CouldCreateAllocationMementos()) ret += "_CreateAllocationMementos";
+  ret += ":";
+  ret += BinaryOpICState::KindToString(left_kind_);
+  ret += "*";
+  if (fixed_right_arg_.IsJust()) {
+    ret += fixed_right_arg_.FromJust();
+  } else {
+    ret += BinaryOpICState::KindToString(right_kind_);
+  }
+  ret += "->";
+  ret += BinaryOpICState::KindToString(result_kind_);
+  ret += ")";
+  return ret;
+}
 
 // static
 void BinaryOpICState::GenerateAheadOfTime(
@@ -256,10 +271,10 @@ void BinaryOpICState::Update(Handle<Object> left, Handle<Object> right,
 
   if (old_extra_ic_state == GetExtraICState()) {
     // Tagged operations can lead to non-truncating HChanges
-    if (left->IsUndefined(isolate_) || left->IsBoolean()) {
+    if (left->IsOddball()) {
       left_kind_ = GENERIC;
     } else {
-      DCHECK(right->IsUndefined(isolate_) || right->IsBoolean());
+      DCHECK(right->IsOddball());
       right_kind_ = GENERIC;
     }
   }
@@ -270,8 +285,8 @@ BinaryOpICState::Kind BinaryOpICState::UpdateKind(Handle<Object> object,
                                                   Kind kind) const {
   Kind new_kind = GENERIC;
   bool is_truncating = Token::IsTruncatingBinaryOp(op());
-  if (object->IsBoolean() && is_truncating) {
-    // Booleans will be automatically truncated by HChange.
+  if (object->IsOddball() && is_truncating) {
+    // Oddballs will be automatically truncated by HChange.
     new_kind = INT32;
   } else if (object->IsUndefined(isolate_)) {
     // Undefined will be automatically truncated by HChange.

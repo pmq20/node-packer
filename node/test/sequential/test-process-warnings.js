@@ -3,7 +3,7 @@
 const common = require('../common');
 const assert = require('assert');
 const execFile = require('child_process').execFile;
-const warnmod = require.resolve(common.fixturesDir + '/warnings.js');
+const warnmod = require.resolve(`${common.fixturesDir}/warnings.js`);
 const node = process.execPath;
 
 const normal = [warnmod];
@@ -29,5 +29,5 @@ execFile(node, traceWarn, function(er, stdout, stderr) {
   assert.strictEqual(er, null);
   assert.strictEqual(stdout, '');
   assert(/^\(.+\)\sWarning: a bad practice warning/.test(stderr));
-  assert(/at Object\.<anonymous>\s\(.+warnings.js:3:9\)/.test(stderr));
+  assert(/at Object\.<anonymous>\s\(.+warnings\.js:3:9\)/.test(stderr));
 });

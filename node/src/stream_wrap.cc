@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "stream_wrap.h"
 #include "stream_base.h"
 #include "stream_base-inl.h"
@@ -41,11 +62,13 @@ void StreamWrap::Initialize(Local<Object> target,
   auto is_construct_call_callback =
       [](const FunctionCallbackInfo<Value>& args) {
     CHECK(args.IsConstructCall());
+    ClearWrap(args.This());
   };
   Local<FunctionTemplate> sw =
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
   sw->InstanceTemplate()->SetInternalFieldCount(1);
   sw->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "ShutdownWrap"));
+  env->SetProtoMethod(sw, "getAsyncId", AsyncWrap::GetAsyncId);
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "ShutdownWrap"),
               sw->GetFunction());
 
@@ -53,6 +76,7 @@ void StreamWrap::Initialize(Local<Object> target,
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
   ww->InstanceTemplate()->SetInternalFieldCount(1);
   ww->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "WriteWrap"));
+  env->SetProtoMethod(ww, "getAsyncId", AsyncWrap::GetAsyncId);
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "WriteWrap"),
               ww->GetFunction());
   env->set_write_wrap_constructor_function(ww->GetFunction());
@@ -62,13 +86,11 @@ void StreamWrap::Initialize(Local<Object> target,
 StreamWrap::StreamWrap(Environment* env,
                        Local<Object> object,
                        uv_stream_t* stream,
-                       AsyncWrap::ProviderType provider,
-                       AsyncWrap* parent)
+                       AsyncWrap::ProviderType provider)
     : HandleWrap(env,
                  object,
                  reinterpret_cast<uv_handle_t*>(stream),
-                 provider,
-                 parent),
+                 provider),
       StreamBase(env),
       stream_(stream) {
   set_after_write_cb({ OnAfterWriteImpl, this });

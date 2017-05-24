@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const internalUtil = require('internal/util');
@@ -7,6 +28,7 @@ const net = require('net');
 const url = require('url');
 const binding = process.binding('crypto');
 const Buffer = require('buffer').Buffer;
+const { isUint8Array } = process.binding('util');
 
 // Allow {CLIENT_RENEG_LIMIT} client-initiated session renegotiations
 // every {CLIENT_RENEG_WINDOW} seconds. An error event is emitted if more
@@ -50,7 +72,7 @@ exports.convertNPNProtocols = function(protocols, out) {
   // If protocols is Array - translate it into buffer
   if (Array.isArray(protocols)) {
     out.NPNProtocols = convertProtocols(protocols);
-  } else if (protocols instanceof Buffer) {
+  } else if (isUint8Array(protocols)) {
     // Copy new buffer not to be modified by user.
     out.NPNProtocols = Buffer.from(protocols);
   }
@@ -60,7 +82,7 @@ exports.convertALPNProtocols = function(protocols, out) {
   // If protocols is Array - translate it into buffer
   if (Array.isArray(protocols)) {
     out.ALPNProtocols = convertProtocols(protocols);
-  } else if (protocols instanceof Buffer) {
+  } else if (isUint8Array(protocols)) {
     // Copy new buffer not to be modified by user.
     out.ALPNProtocols = Buffer.from(protocols);
   }
@@ -235,4 +257,6 @@ exports.TLSSocket = require('_tls_wrap').TLSSocket;
 exports.Server = require('_tls_wrap').Server;
 exports.createServer = require('_tls_wrap').createServer;
 exports.connect = require('_tls_wrap').connect;
+
+// Deprecated: DEP0064
 exports.createSecurePair = require('_tls_legacy').createSecurePair;

@@ -13,26 +13,23 @@ function main(conf) {
   var n = conf.n | 0;
   var input = inputs[type];
   var i;
-
-  // Optimize querystring.parse() so that the benchmark doesn't get
-  // disrupted by the optimizer kicking in halfway through.
-  if (type !== 'multicharsep') {
-    for (i = 0; i < n; i += 1)
-      querystring.parse(input);
-  } else {
+  // Execute the function a "sufficient" number of times before the timed
+  // loop to ensure the function is optimized just once.
+  if (type === 'multicharsep') {
     for (i = 0; i < n; i += 1)
       querystring.parse(input, '&&&&&&&&&&');
-  }
 
-  if (type !== 'multicharsep') {
     bench.start();
     for (i = 0; i < n; i += 1)
-      querystring.parse(input);
+      querystring.parse(input, '&&&&&&&&&&');
     bench.end(n);
   } else {
+    for (i = 0; i < n; i += 1)
+      querystring.parse(input);
+
     bench.start();
     for (i = 0; i < n; i += 1)
-      querystring.parse(input, '&&&&&&&&&&');
+      querystring.parse(input);
     bench.end(n);
   }
 }

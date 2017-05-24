@@ -17,8 +17,8 @@ namespace internal {
 namespace wasm {
 
 // forward declarations.
+struct ModuleBytesEnv;
 struct WasmFunction;
-struct WasmModuleInstance;
 class WasmInterpreterInternals;
 
 typedef size_t pc_t;
@@ -32,23 +32,23 @@ typedef ZoneMap<pc_t, pcdiff_t> ControlTransferMap;
 
 // Macro for defining union members.
 #define FOREACH_UNION_MEMBER(V) \
-  V(i32, kAstI32, int32_t)      \
-  V(u32, kAstI32, uint32_t)     \
-  V(i64, kAstI64, int64_t)      \
-  V(u64, kAstI64, uint64_t)     \
-  V(f32, kAstF32, float)        \
-  V(f64, kAstF64, double)
+  V(i32, kWasmI32, int32_t)     \
+  V(u32, kWasmI32, uint32_t)    \
+  V(i64, kWasmI64, int64_t)     \
+  V(u64, kWasmI64, uint64_t)    \
+  V(f32, kWasmF32, float)       \
+  V(f64, kWasmF64, double)
 
 // Representation of values within the interpreter.
 struct WasmVal {
-  LocalType type;
+  ValueType type;
   union {
 #define DECLARE_FIELD(field, localtype, ctype) ctype field;
     FOREACH_UNION_MEMBER(DECLARE_FIELD)
 #undef DECLARE_FIELD
   } val;
 
-  WasmVal() : type(kAstStmt) {}
+  WasmVal() : type(kWasmStmt) {}
 
 #define DECLARE_CONSTRUCTOR(field, localtype, ctype) \
   explicit WasmVal(ctype v) : type(localtype) { val.field = v; }
@@ -56,12 +56,21 @@ struct WasmVal {
 #undef DECLARE_CONSTRUCTOR
 
   template <typename T>
-  T to() {
+  inline T to() {
+    UNREACHABLE();
+  }
+
+  template <typename T>
+  inline T to_unchecked() {
     UNREACHABLE();
   }
 };
 
 #define DECLARE_CAST(field, localtype, ctype) \
+  template <>                                 \
+  inline ctype WasmVal::to_unchecked() {      \
+    return val.field;                         \
+  }                                           \
   template <>                                 \
   inline ctype WasmVal::to() {                \
     CHECK_EQ(localtype, type);                \
@@ -70,21 +79,25 @@ struct WasmVal {
 FOREACH_UNION_MEMBER(DECLARE_CAST)
 #undef DECLARE_CAST
 
-template <>
-inline void WasmVal::to() {
-  CHECK_EQ(kAstStmt, type);
-}
-
 // Representation of frames within the interpreter.
-class WasmFrame {
+class InterpretedFrame {
  public:
   const WasmFunction* function() const { return function_; }
   int pc() const { return pc_; }
 
+  //==========================================================================
+  // Stack frame inspection.
+  //==========================================================================
+  int GetParameterCount() const;
+  WasmVal GetLocalVal(int index) const;
+  WasmVal GetExprVal(int pc) const;
+  void SetLocalVal(int index, WasmVal val);
+  void SetExprVal(int pc, WasmVal val);
+
  private:
   friend class WasmInterpreter;
 
-  WasmFrame(const WasmFunction* function, int pc, int fp, int sp)
+  InterpretedFrame(const WasmFunction* function, int pc, int fp, int sp)
       : function_(function), pc_(pc), fp_(fp), sp_(sp) {}
 
   const WasmFunction* function_;
@@ -107,31 +120,53 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
   //                       +------------- Finish -------------> FINISHED
   enum State { STOPPED, RUNNING, PAUSED, FINISHED, TRAPPED };
 
-  // Representation of a thread in the interpreter.
-  class Thread {
-   public:
-    // Execution control.
-    virtual State state() = 0;
-    virtual void PushFrame(const WasmFunction* function, WasmVal* args) = 0;
-    virtual State Run() = 0;
-    virtual State Step() = 0;
-    virtual void Pause() = 0;
-    virtual void Reset() = 0;
-    virtual ~Thread() {}
-
-    // Stack inspection and modification.
-    virtual pc_t GetBreakpointPc() = 0;
-    virtual int GetFrameCount() = 0;
-    virtual const WasmFrame* GetFrame(int index) = 0;
-    virtual WasmFrame* GetMutableFrame(int index) = 0;
-    virtual WasmVal GetReturnValue(int index = 0) = 0;
-
-    // Thread-specific breakpoints.
-    bool SetBreakpoint(const WasmFunction* function, int pc, bool enabled);
-    bool GetBreakpoint(const WasmFunction* function, int pc);
+  // Tells a thread to pause after certain instructions.
+  enum BreakFlag : uint8_t {
+    None = 0,
+    AfterReturn = 1 << 0,
+    AfterCall = 1 << 1
   };
 
-  WasmInterpreter(WasmModuleInstance* instance, AccountingAllocator* allocator);
+  // Representation of a thread in the interpreter.
+  class V8_EXPORT_PRIVATE Thread {
+    // Don't instante Threads; they will be allocated as ThreadImpl in the
+    // interpreter implementation.
+    Thread() = delete;
+
+   public:
+    // Execution control.
+    State state();
+    void PushFrame(const WasmFunction* function, WasmVal* args);
+    State Run();
+    State Step();
+    void Pause();
+    void Reset();
+
+    // Stack inspection and modification.
+    pc_t GetBreakpointPc();
+    int GetFrameCount();
+    const InterpretedFrame GetFrame(int index);
+    InterpretedFrame GetMutableFrame(int index);
+    WasmVal GetReturnValue(int index = 0);
+
+    // Returns true if the thread executed an instruction which may produce
+    // nondeterministic results, e.g. float div, float sqrt, and float mul,
+    // where the sign bit of a NaN is nondeterministic.
+    bool PossibleNondeterminism();
+
+    // Returns the number of calls / function frames executed on this thread.
+    uint64_t NumInterpretedCalls();
+
+    // Thread-specific breakpoints.
+    // TODO(wasm): Implement this once we support multiple threads.
+    // bool SetBreakpoint(const WasmFunction* function, int pc, bool enabled);
+    // bool GetBreakpoint(const WasmFunction* function, int pc);
+
+    void AddBreakFlags(uint8_t flags);
+    void ClearBreakFlags();
+  };
+
+  WasmInterpreter(const ModuleBytesEnv& env, AccountingAllocator* allocator);
   ~WasmInterpreter();
 
   //==========================================================================
@@ -155,14 +190,6 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
   //==========================================================================
   int GetThreadCount();
   Thread* GetThread(int id);
-
-  //==========================================================================
-  // Stack frame inspection.
-  //==========================================================================
-  WasmVal GetLocalVal(const WasmFrame* frame, int index);
-  WasmVal GetExprVal(const WasmFrame* frame, int pc);
-  void SetLocalVal(WasmFrame* frame, int index, WasmVal val);
-  void SetExprVal(WasmFrame* frame, int pc, WasmVal val);
 
   //==========================================================================
   // Memory access.

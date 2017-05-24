@@ -166,6 +166,19 @@ bool Bytecodes::IsRegisterOperandType(OperandType operand_type) {
   return false;
 }
 
+bool Bytecodes::MakesCallAlongCriticalPath(Bytecode bytecode) {
+  if (IsCallOrConstruct(bytecode) || IsCallRuntime(bytecode)) return true;
+  switch (bytecode) {
+    case Bytecode::kCreateWithContext:
+    case Bytecode::kCreateBlockContext:
+    case Bytecode::kCreateCatchContext:
+    case Bytecode::kCreateRegExpLiteral:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // static
 bool Bytecodes::IsRegisterInputOperandType(OperandType operand_type) {
   switch (operand_type) {
@@ -211,6 +224,12 @@ bool Bytecodes::IsStarLookahead(Bytecode bytecode, OperandScale operand_scale) {
       case Bytecode::kLdaNull:
       case Bytecode::kLdaTheHole:
       case Bytecode::kLdaConstant:
+      case Bytecode::kLdaUndefined:
+      case Bytecode::kLdaGlobal:
+      case Bytecode::kLdaNamedProperty:
+      case Bytecode::kLdaKeyedProperty:
+      case Bytecode::kLdaContextSlot:
+      case Bytecode::kLdaCurrentContextSlot:
       case Bytecode::kAdd:
       case Bytecode::kSub:
       case Bytecode::kMul:
@@ -220,7 +239,9 @@ bool Bytecodes::IsStarLookahead(Bytecode bytecode, OperandScale operand_scale) {
       case Bytecode::kDec:
       case Bytecode::kTypeOf:
       case Bytecode::kCall:
-      case Bytecode::kNew:
+      case Bytecode::kCallProperty:
+      case Bytecode::kConstruct:
+      case Bytecode::kConstructWithSpread:
         return true;
       default:
         return false;

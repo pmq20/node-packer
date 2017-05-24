@@ -15,7 +15,7 @@ namespace internal {
 
 RUNTIME_FUNCTION(Runtime_ArrayBufferGetByteLength) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   CONVERT_ARG_CHECKED(JSArrayBuffer, holder, 0);
   return holder->byte_length();
 }
@@ -23,7 +23,7 @@ RUNTIME_FUNCTION(Runtime_ArrayBufferGetByteLength) {
 
 RUNTIME_FUNCTION(Runtime_ArrayBufferSliceImpl) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 4);
+  DCHECK_EQ(4, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSArrayBuffer, source, 0);
   CONVERT_ARG_HANDLE_CHECKED(JSArrayBuffer, target, 1);
   CONVERT_NUMBER_ARG_HANDLE_CHECKED(first, 2);
@@ -56,10 +56,10 @@ RUNTIME_FUNCTION(Runtime_ArrayBufferSliceImpl) {
 
 RUNTIME_FUNCTION(Runtime_ArrayBufferNeuter) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSArrayBuffer, array_buffer, 0);
   if (array_buffer->backing_store() == NULL) {
-    CHECK(Smi::FromInt(0) == array_buffer->byte_length());
+    CHECK(Smi::kZero == array_buffer->byte_length());
     return isolate->heap()->undefined_value();
   }
   // Shared array buffers should never be neutered.
@@ -97,7 +97,7 @@ void Runtime::ArrayIdToTypeAndSize(int arrayId, ExternalArrayType* array_type,
 
 RUNTIME_FUNCTION(Runtime_TypedArrayInitialize) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 6);
+  DCHECK_EQ(6, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, holder, 0);
   CONVERT_SMI_ARG_CHECKED(arrayId, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, maybe_buffer, 2);
@@ -142,7 +142,7 @@ RUNTIME_FUNCTION(Runtime_TypedArrayInitialize) {
   DCHECK_EQ(v8::ArrayBufferView::kInternalFieldCount,
             holder->GetInternalFieldCount());
   for (int i = 0; i < v8::ArrayBufferView::kInternalFieldCount; i++) {
-    holder->SetInternalField(i, Smi::FromInt(0));
+    holder->SetInternalField(i, Smi::kZero);
   }
   Handle<Object> length_obj = isolate->factory()->NewNumberFromSize(length);
   holder->set_length(*length_obj);
@@ -179,7 +179,7 @@ RUNTIME_FUNCTION(Runtime_TypedArrayInitialize) {
 // Returns true if backing store was initialized or false otherwise.
 RUNTIME_FUNCTION(Runtime_TypedArrayInitializeFromArrayLike) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 4);
+  DCHECK_EQ(4, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, holder, 0);
   CONVERT_SMI_ARG_CHECKED(arrayId, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, source, 2);
@@ -215,7 +215,7 @@ RUNTIME_FUNCTION(Runtime_TypedArrayInitializeFromArrayLike) {
   DCHECK_EQ(v8::ArrayBufferView::kInternalFieldCount,
             holder->GetInternalFieldCount());
   for (int i = 0; i < v8::ArrayBufferView::kInternalFieldCount; i++) {
-    holder->SetInternalField(i, Smi::FromInt(0));
+    holder->SetInternalField(i, Smi::kZero);
   }
 
   // NOTE: not initializing backing store.
@@ -241,7 +241,7 @@ RUNTIME_FUNCTION(Runtime_TypedArrayInitializeFromArrayLike) {
   }
 
   holder->set_buffer(*buffer);
-  holder->set_byte_offset(Smi::FromInt(0));
+  holder->set_byte_offset(Smi::kZero);
   Handle<Object> byte_length_obj(
       isolate->factory()->NewNumberFromSize(byte_length));
   holder->set_byte_length(*byte_length_obj);
@@ -310,7 +310,7 @@ enum TypedArraySetResultCodes {
 
 RUNTIME_FUNCTION(Runtime_TypedArraySetFastCases) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 3);
+  DCHECK_EQ(3, args.length());
   if (!args[0]->IsJSTypedArray()) {
     THROW_NEW_ERROR_RETURN_FAILURE(
         isolate, NewTypeError(MessageTemplate::kNotTypedArray));
@@ -367,9 +367,70 @@ RUNTIME_FUNCTION(Runtime_TypedArraySetFastCases) {
   }
 }
 
+namespace {
+
+template <typename T>
+bool CompareNum(T x, T y) {
+  if (x < y) {
+    return true;
+  } else if (x > y) {
+    return false;
+  } else if (!std::is_integral<T>::value) {
+    double _x = x, _y = y;
+    if (x == 0 && x == y) {
+      /* -0.0 is less than +0.0 */
+      return std::signbit(_x) && !std::signbit(_y);
+    } else if (!std::isnan(_x) && std::isnan(_y)) {
+      /* number is less than NaN */
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+RUNTIME_FUNCTION(Runtime_TypedArraySortFast) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+
+  CONVERT_ARG_HANDLE_CHECKED(Object, target_obj, 0);
+
+  Handle<JSTypedArray> array;
+  const char* method = "%TypedArray%.prototype.sort";
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, array, JSTypedArray::Validate(isolate, target_obj, method));
+
+  // This line can be removed when JSTypedArray::Validate throws
+  // if array.[[ViewedArrayBuffer]] is neutered(v8:4648)
+  if (V8_UNLIKELY(array->WasNeutered())) return *array;
+
+  size_t length = array->length_value();
+  if (length <= 1) return *array;
+
+  Handle<FixedTypedArrayBase> elements(
+      FixedTypedArrayBase::cast(array->elements()));
+  switch (array->type()) {
+#define TYPED_ARRAY_SORT(Type, type, TYPE, ctype, size)     \
+  case kExternal##Type##Array: {                            \
+    ctype* data = static_cast<ctype*>(elements->DataPtr()); \
+    if (kExternal##Type##Array == kExternalFloat64Array ||  \
+        kExternal##Type##Array == kExternalFloat32Array)    \
+      std::sort(data, data + length, CompareNum<ctype>);    \
+    else                                                    \
+      std::sort(data, data + length);                       \
+    break;                                                  \
+  }
+
+    TYPED_ARRAYS(TYPED_ARRAY_SORT)
+#undef TYPED_ARRAY_SORT
+  }
+
+  return *array;
+}
 
 RUNTIME_FUNCTION(Runtime_TypedArrayMaxSizeInHeap) {
-  DCHECK(args.length() == 0);
+  DCHECK_EQ(0, args.length());
   DCHECK_OBJECT_SIZE(FLAG_typed_array_max_size_in_heap +
                      FixedTypedArrayBase::kDataOffset);
   return Smi::FromInt(FLAG_typed_array_max_size_in_heap);
@@ -378,14 +439,14 @@ RUNTIME_FUNCTION(Runtime_TypedArrayMaxSizeInHeap) {
 
 RUNTIME_FUNCTION(Runtime_IsTypedArray) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   return isolate->heap()->ToBoolean(args[0]->IsJSTypedArray());
 }
 
 
 RUNTIME_FUNCTION(Runtime_IsSharedTypedArray) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   return isolate->heap()->ToBoolean(
       args[0]->IsJSTypedArray() &&
       JSTypedArray::cast(args[0])->GetBuffer()->is_shared());
@@ -394,7 +455,7 @@ RUNTIME_FUNCTION(Runtime_IsSharedTypedArray) {
 
 RUNTIME_FUNCTION(Runtime_IsSharedIntegerTypedArray) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   if (!args[0]->IsJSTypedArray()) {
     return isolate->heap()->false_value();
   }
@@ -409,7 +470,7 @@ RUNTIME_FUNCTION(Runtime_IsSharedIntegerTypedArray) {
 
 RUNTIME_FUNCTION(Runtime_IsSharedInteger32TypedArray) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   if (!args[0]->IsJSTypedArray()) {
     return isolate->heap()->false_value();
   }

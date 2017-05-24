@@ -43,6 +43,7 @@ import utils
 import multiprocessing
 import errno
 import copy
+import ast
 
 from os.path import join, dirname, abspath, basename, isdir, exists
 from datetime import datetime
@@ -77,7 +78,6 @@ class ProgressIndicator(object):
     self.failed = [ ]
     self.flaky_failed = [ ]
     self.crashed = 0
-    self.flaky_crashed = 0
     self.lock = threading.Lock()
     self.shutdown_event = threading.Event()
 
@@ -155,8 +155,6 @@ class ProgressIndicator(object):
       if output.UnexpectedOutput():
         if FLAKY in output.test.outcomes and self.flaky_tests_mode == DONTCARE:
           self.flaky_failed.append(output)
-          if output.HasCrashed():
-            self.flaky_crashed += 1
         else:
           self.failed.append(output)
           if output.HasCrashed():
@@ -575,9 +573,6 @@ class TestOutput(object):
       outcome = PASS
     return not outcome in self.test.outcomes
 
-  def HasPreciousOutput(self):
-    return self.UnexpectedOutput() and self.store_unexpected_output
-
   def HasCrashed(self):
     if utils.IsWindows():
       return 0x80000000 & self.output.exit_code and not (0x3FFFFF00 & self.output.exit_code)
@@ -804,11 +799,6 @@ class TestSuite(object):
     return self.name
 
 
-# Use this to run several variants of the tests, e.g.:
-# VARIANT_FLAGS = [[], ['--always_compact', '--noflush_code']]
-VARIANT_FLAGS = [[]]
-
-
 class TestRepository(TestSuite):
 
   def __init__(self, path):
@@ -827,10 +817,6 @@ class TestRepository(TestSuite):
       (file, pathname, description) = imp.find_module('testcfg', [ self.path ])
       module = imp.load_module('testcfg', file, pathname, description)
       self.config = module.GetConfiguration(context, self.path)
-      if hasattr(self.config, 'additional_flags'):
-        self.config.additional_flags += context.node_args
-      else:
-        self.config.additional_flags = context.node_args
     finally:
       if file:
         file.close()
@@ -840,13 +826,11 @@ class TestRepository(TestSuite):
     return self.GetConfiguration(context).GetBuildRequirements()
 
   def AddTestsToList(self, result, current_path, path, context, arch, mode):
-    for v in VARIANT_FLAGS:
-      tests = self.GetConfiguration(context).ListTests(current_path, path,
-                                                       arch, mode)
-      for t in tests: t.variant_flags = v
-      result += tests
-      for i in range(1, context.repeat):
-        result += copy.deepcopy(tests)
+    tests = self.GetConfiguration(context).ListTests(current_path, path,
+                                                     arch, mode)
+    result += tests
+    for i in range(1, context.repeat):
+      result += copy.deepcopy(tests)
 
   def GetTestStatus(self, context, sections, defs):
     self.GetConfiguration(context).GetTestStatus(sections, defs)
@@ -882,12 +866,6 @@ class LiteralTestSuite(TestSuite):
       test.GetTestStatus(context, sections, defs)
 
 
-SUFFIX = {
-    'debug'   : '_g',
-    'release' : '' }
-FLAGS = {
-    'debug'   : ['--enable-slow-asserts', '--debug-code', '--verify-heap'],
-    'release' : []}
 TIMEOUT_SCALEFACTOR = {
     'armv6' : { 'debug' : 12, 'release' : 3 },  # The ARM buildbots are slow.
     'arm'   : { 'debug' :  8, 'release' : 2 },
@@ -900,11 +878,11 @@ class Context(object):
 
   def __init__(self, workspace, buildspace, verbose, vm, args, expect_fail,
                timeout, processor, suppress_dialogs,
-               store_unexpected_output, repeat, abort_on_timeout):
+               store_unexpected_output, repeat, abort_on_timeout,
+               v8_enable_inspector):
     self.workspace = workspace
     self.buildspace = buildspace
     self.verbose = verbose
-    self.vm_root = vm
     self.node_args = args
     self.expect_fail = expect_fail
     self.timeout = timeout
@@ -913,6 +891,7 @@ class Context(object):
     self.store_unexpected_output = store_unexpected_output
     self.repeat = repeat
     self.abort_on_timeout = abort_on_timeout
+    self.v8_enable_inspector = v8_enable_inspector
 
   def GetVm(self, arch, mode):
     if arch == 'none':
@@ -933,15 +912,25 @@ class Context(object):
 
     return name
 
-  def GetVmFlags(self, testcase, mode):
-    return testcase.variant_flags + FLAGS[mode]
-
   def GetTimeout(self, mode):
     return self.timeout * TIMEOUT_SCALEFACTOR[ARCH_GUESS or 'ia32'][mode]
 
 def RunTestCases(cases_to_run, progress, tasks, flaky_tests_mode):
   progress = PROGRESS_INDICATORS[progress](cases_to_run, flaky_tests_mode)
   return progress.Run(tasks)
+
+def GetV8InspectorEnabledFlag():
+  # The following block reads config.gypi to extract the v8_enable_inspector
+  # value. This is done to check if the inspector is disabled in which case
+  # the '--inspect' flag cannot be passed to the node process as it will
+  # cause node to exit and report the test as failed. The use case
+  # is currently when Node is configured --without-ssl and the tests should
+  # still be runnable but skip any tests that require ssl (which includes the
+  # inspector related tests).
+  with open('config.gypi', 'r') as f:
+    s = f.read()
+    config_gypi = ast.literal_eval(s)
+    return config_gypi['variables']['v8_enable_inspector']
 
 
 # -------------------------------------------
@@ -1018,18 +1007,6 @@ class ListSet(Set):
 
   def IsEmpty(self):
     return len(self.elms) == 0
-
-
-class Everything(Set):
-
-  def Intersect(self, that):
-    return that
-
-  def Union(self, that):
-    return self
-
-  def IsEmpty(self):
-    return False
 
 
 class Nothing(Set):
@@ -1546,10 +1523,12 @@ BUILT_IN_TESTS = [
   'message',
   'internet',
   'addons',
+  'addons-napi',
   'gc',
   'debugger',
   'doctool',
   'inspector',
+  'async-hooks',
 ]
 
 
@@ -1628,7 +1607,8 @@ def Main():
                     options.suppress_dialogs,
                     options.store_unexpected_output,
                     options.repeat,
-                    options.abort_on_timeout)
+                    options.abort_on_timeout,
+                    GetV8InspectorEnabledFlag())
 
   # Get status for tests
   sections = [ ]

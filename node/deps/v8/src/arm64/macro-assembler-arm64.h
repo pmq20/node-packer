@@ -1099,35 +1099,7 @@ class MacroAssembler : public Assembler {
   void InitializeFieldsWithFiller(Register current_address,
                                   Register end_address, Register filler);
 
-  // Copies a number of bytes from src to dst. All passed registers are
-  // clobbered. On exit src and dst will point to the place just after where the
-  // last byte was read or written and length will be zero. Hint may be used to
-  // determine which is the most efficient algorithm to use for copying.
-  void CopyBytes(Register dst,
-                 Register src,
-                 Register length,
-                 Register scratch,
-                 CopyHint hint = kCopyUnknown);
-
   // ---- String Utilities ----
-
-
-  // Jump to label if either object is not a sequential one-byte string.
-  // Optionally perform a smi check on the objects first.
-  void JumpIfEitherIsNotSequentialOneByteStrings(
-      Register first, Register second, Register scratch1, Register scratch2,
-      Label* failure, SmiCheckType smi_check = DO_SMI_CHECK);
-
-  // Check if instance type is sequential one-byte string and jump to label if
-  // it is not.
-  void JumpIfInstanceTypeIsNotSequentialOneByte(Register type, Register scratch,
-                                                Label* failure);
-
-  // Checks if both instance types are sequential one-byte strings and jumps to
-  // label if either is not.
-  void JumpIfEitherInstanceTypeIsNotSequentialOneByte(
-      Register first_object_instance_type, Register second_object_instance_type,
-      Register scratch1, Register scratch2, Label* failure);
 
   // Checks if both instance types are sequential one-byte strings and jumps to
   // label if either is not.
@@ -1237,9 +1209,11 @@ class MacroAssembler : public Assembler {
                       InvokeFlag flag,
                       bool* definitely_mismatches,
                       const CallWrapper& call_wrapper);
-  void FloodFunctionIfStepping(Register fun, Register new_target,
-                               const ParameterCount& expected,
-                               const ParameterCount& actual);
+
+  // On function call, call into the debugger if necessary.
+  void CheckDebugHook(Register fun, Register new_target,
+                      const ParameterCount& expected,
+                      const ParameterCount& actual);
   void InvokeFunctionCode(Register function, Register new_target,
                           const ParameterCount& expected,
                           const ParameterCount& actual, InvokeFlag flag,
@@ -1326,12 +1300,9 @@ class MacroAssembler : public Assembler {
     MacroAssembler* masm_;
   };
 
-  // ---------------------------------------------------------------------------
-  // Debugger Support
+  // Frame restart support
+  void MaybeDropFrames();
 
-  void DebugBreak();
-
-  // ---------------------------------------------------------------------------
   // Exception handling
 
   // Push a new stack handler and link into stack handler chain.
@@ -1370,32 +1341,6 @@ class MacroAssembler : public Assembler {
   void FastAllocate(int object_size, Register result, Register scratch1,
                     Register scratch2, AllocationFlags flags);
 
-  void AllocateTwoByteString(Register result,
-                             Register length,
-                             Register scratch1,
-                             Register scratch2,
-                             Register scratch3,
-                             Label* gc_required);
-  void AllocateOneByteString(Register result, Register length,
-                             Register scratch1, Register scratch2,
-                             Register scratch3, Label* gc_required);
-  void AllocateTwoByteConsString(Register result,
-                                 Register length,
-                                 Register scratch1,
-                                 Register scratch2,
-                                 Label* gc_required);
-  void AllocateOneByteConsString(Register result, Register length,
-                                 Register scratch1, Register scratch2,
-                                 Label* gc_required);
-  void AllocateTwoByteSlicedString(Register result,
-                                   Register length,
-                                   Register scratch1,
-                                   Register scratch2,
-                                   Label* gc_required);
-  void AllocateOneByteSlicedString(Register result, Register length,
-                                   Register scratch1, Register scratch2,
-                                   Label* gc_required);
-
   // Allocates a heap number or jumps to the gc_required label if the young
   // space is full and a scavenge is needed.
   // All registers are clobbered.
@@ -1422,9 +1367,6 @@ class MacroAssembler : public Assembler {
   // |temp| holds |result|'s map when done, and |temp2| its instance type.
   void GetMapConstructor(Register result, Register map, Register temp,
                          Register temp2);
-
-  void TryGetFunctionPrototype(Register function, Register result,
-                               Register scratch, Label* miss);
 
   // Compare object type for heap object.  heap_object contains a non-Smi
   // whose object type should be compared with the given type.  This both
@@ -1576,31 +1518,6 @@ class MacroAssembler : public Assembler {
                     Label* if_any_set,
                     Label* fall_through);
 
-  // Check if a map for a JSObject indicates that the object has fast elements.
-  // Jump to the specified label if it does not.
-  void CheckFastElements(Register map, Register scratch, Label* fail);
-
-  // Check if a map for a JSObject indicates that the object can have both smi
-  // and HeapObject elements.  Jump to the specified label if it does not.
-  void CheckFastObjectElements(Register map, Register scratch, Label* fail);
-
-  // Check to see if number can be stored as a double in FastDoubleElements.
-  // If it can, store it at the index specified by key_reg in the array,
-  // otherwise jump to fail.
-  void StoreNumberToDoubleElements(Register value_reg,
-                                   Register key_reg,
-                                   Register elements_reg,
-                                   Register scratch1,
-                                   FPRegister fpscratch1,
-                                   Label* fail,
-                                   int elements_offset = 0);
-
-  // Picks out an array index from the hash field.
-  // Register use:
-  //   hash - holds the index's hash. Clobbered.
-  //   index - holds the overwritten index on exit.
-  void IndexFromHash(Register hash, Register index);
-
   // ---------------------------------------------------------------------------
   // Inline caching support.
 
@@ -1610,44 +1527,15 @@ class MacroAssembler : public Assembler {
                                  Register scratch,
                                  uint32_t encoding_mask);
 
-  // Generate code for checking access rights - used for security checks
-  // on access to global objects across environments. The holder register
-  // is left untouched, whereas both scratch registers are clobbered.
-  void CheckAccessGlobalProxy(Register holder_reg,
-                              Register scratch1,
-                              Register scratch2,
-                              Label* miss);
-
   // Hash the interger value in 'key' register.
   // It uses the same algorithm as ComputeIntegerHash in utils.h.
   void GetNumberHash(Register key, Register scratch);
-
-  // Load value from the dictionary.
-  //
-  // elements - holds the slow-case elements of the receiver on entry.
-  //            Unchanged unless 'result' is the same register.
-  //
-  // key      - holds the smi key on entry.
-  //            Unchanged unless 'result' is the same register.
-  //
-  // result   - holds the result on exit if the load succeeded.
-  //            Allowed to be the same as 'key' or 'result'.
-  //            Unchanged on bailout so 'key' or 'result' can be used
-  //            in further computation.
-  void LoadFromNumberDictionary(Label* miss,
-                                Register elements,
-                                Register key,
-                                Register result,
-                                Register scratch0,
-                                Register scratch1,
-                                Register scratch2,
-                                Register scratch3);
 
   // ---------------------------------------------------------------------------
   // Frames.
 
   // Load the type feedback vector from a JavaScript frame.
-  void EmitLoadTypeFeedbackVector(Register vector);
+  void EmitLoadFeedbackVector(Register vector);
 
   // Activation support.
   void EnterFrame(StackFrame::Type type);
@@ -1672,17 +1560,6 @@ class MacroAssembler : public Assembler {
                                        Register scratch1,
                                        Register scratch2,
                                        Label* no_memento_found);
-
-  void JumpIfJSArrayHasAllocationMemento(Register receiver,
-                                         Register scratch1,
-                                         Register scratch2,
-                                         Label* memento_found) {
-    Label no_memento_found;
-    TestJSArrayForAllocationMemento(receiver, scratch1, scratch2,
-                                    &no_memento_found);
-    B(eq, memento_found);
-    Bind(&no_memento_found);
-  }
 
   // The stack pointer has to switch between csp and jssp when setting up and
   // destroying the exit frame. Hence preserving/restoring the registers is
@@ -1951,18 +1828,6 @@ class MacroAssembler : public Assembler {
   // Print a message to stderr and abort execution.
   void Abort(BailoutReason reason);
 
-  // Conditionally load the cached Array transitioned map of type
-  // transitioned_kind from the native context if the map in register
-  // map_in_out is the cached Array map in the native context of
-  // expected_kind.
-  void LoadTransitionedArrayMapConditional(
-      ElementsKind expected_kind,
-      ElementsKind transitioned_kind,
-      Register map_in_out,
-      Register scratch1,
-      Register scratch2,
-      Label* no_map_match);
-
   void LoadNativeContextSlot(int index, Register dst);
 
   // Load the initial map from the global function. The registers function and
@@ -2051,10 +1916,6 @@ class MacroAssembler : public Assembler {
   // sequence is a code age sequence (emitted by EmitCodeAgeSequence).
   static bool IsYoungSequence(Isolate* isolate, byte* sequence);
 
-  // Jumps to found label if a prototype map has dictionary elements.
-  void JumpIfDictionaryInPrototypeChain(Register object, Register scratch0,
-                                        Register scratch1, Label* found);
-
   // Perform necessary maintenance operations before a push or after a pop.
   //
   // Note that size is specified in bytes.
@@ -2134,12 +1995,6 @@ class MacroAssembler : public Assembler {
   // Scratch registers available for use by the MacroAssembler.
   CPURegList tmp_list_;
   CPURegList fptmp_list_;
-
-  void InitializeNewString(Register string,
-                           Register length,
-                           Heap::RootListIndex map_index,
-                           Register scratch1,
-                           Register scratch2);
 
  public:
   // Far branches resolving.
@@ -2290,6 +2145,8 @@ class InlineSmiCheckInfo {
     return smi_check_;
   }
 
+  int SmiCheckDelta() const { return smi_check_delta_; }
+
   // Use MacroAssembler::InlineData to emit information about patchable inline
   // SMI checks. The caller may specify 'reg' as NoReg and an unbound 'site' to
   // indicate that there is no inline SMI check. Note that 'reg' cannot be csp.
@@ -2307,6 +2164,7 @@ class InlineSmiCheckInfo {
 
  private:
   Register reg_;
+  int smi_check_delta_;
   Instruction* smi_check_;
 
   // Fields in the data encoded by InlineData.

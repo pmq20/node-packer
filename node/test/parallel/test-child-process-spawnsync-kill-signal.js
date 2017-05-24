@@ -1,10 +1,10 @@
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 const cp = require('child_process');
 
 if (process.argv[2] === 'child') {
-  setInterval(() => {}, 1000);
+  setInterval(common.noop, 1000);
 } else {
   const { SIGKILL } = process.binding('constants').os.signals;
 
@@ -21,7 +21,7 @@ if (process.argv[2] === 'child') {
   // Verify that an error is thrown for unknown signals.
   assert.throws(() => {
     spawn('SIG_NOT_A_REAL_SIGNAL');
-  }, /Error: Unknown signal: SIG_NOT_A_REAL_SIGNAL/);
+  }, common.expectsError({ code: 'ERR_UNKNOWN_SIGNAL' }));
 
   // Verify that the default kill signal is SIGTERM.
   {

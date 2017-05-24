@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/ast/ast.h"
 #include "src/ast/ast-expression-rewriter.h"
+#include "src/ast/ast.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -19,11 +20,10 @@ namespace internal {
   } while (false)
 #define NOTHING() DCHECK_NULL(replacement_)
 
-
-void AstExpressionRewriter::VisitDeclarations(
-    ZoneList<Declaration*>* declarations) {
-  for (int i = 0; i < declarations->length(); i++) {
-    AST_REWRITE_LIST_ELEMENT(Declaration, declarations, i);
+void AstExpressionRewriter::VisitDeclarations(Declaration::List* declarations) {
+  for (Declaration::List::Iterator it = declarations->begin();
+       it != declarations->end(); ++it) {
+    AST_REWRITE(Declaration, *it, it = replacement);
   }
 }
 
@@ -373,6 +373,9 @@ void AstExpressionRewriter::VisitEmptyParentheses(EmptyParentheses* node) {
   NOTHING();
 }
 
+void AstExpressionRewriter::VisitGetIterator(GetIterator* node) {
+  AST_REWRITE_PROPERTY(Expression, node, iterable);
+}
 
 void AstExpressionRewriter::VisitDoExpression(DoExpression* node) {
   REWRITE_THIS(node);

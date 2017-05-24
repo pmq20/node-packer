@@ -75,7 +75,7 @@ when the child process terminates.
 
 The importance of the distinction between [`child_process.exec()`][] and
 [`child_process.execFile()`][] can vary based on platform. On Unix-type operating
-systems (Unix, Linux, OSX) [`child_process.execFile()`][] can be more efficient
+systems (Unix, Linux, macOS) [`child_process.execFile()`][] can be more efficient
 because it does not spawn a shell. On Windows, however, `.bat` and `.cmd`
 files are not executable on their own without a terminal, and therefore cannot
 be launched using [`child_process.execFile()`][]. When running on Windows, `.bat`
@@ -150,7 +150,18 @@ added: v0.1.90
 * Returns: {ChildProcess}
 
 Spawns a shell then executes the `command` within that shell, buffering any
-generated output.
+generated output. The `command` string passed to the exec function is processed
+directly by the shell and special characters (vary based on
+[shell](https://en.wikipedia.org/wiki/List_of_command-line_interpreters))
+need to be dealt with accordingly:
+```js
+exec('"/path/to/test file/test.sh" arg1 arg2');
+//Double quotes are used so that the space in the path is not interpreted as
+//multiple arguments
+
+exec('echo "The \\$HOME variable is $HOME"');
+//The $HOME variable is escaped in the first instance, but not in the second
+```
 
 **Note: Never pass unsanitised user input to this function. Any input
 containing shell metacharacters may be used to trigger arbitrary command
@@ -189,7 +200,7 @@ the process is spawned. The default options are:
 const defaults = {
   encoding: 'utf8',
   timeout: 0,
-  maxBuffer: 200*1024,
+  maxBuffer: 200 * 1024,
   killSignal: 'SIGTERM',
   cwd: null,
   env: null
@@ -202,6 +213,23 @@ child runs longer than `timeout` milliseconds.
 
 *Note: Unlike the exec(3) POSIX system call, `child_process.exec()` does not
 replace the existing process and uses a shell to execute the command.*
+
+If this method is invoked as its [`util.promisify()`][]ed version, it returns
+a Promise for an object with `stdout` and `stderr` properties.
+
+For example:
+
+```js
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
+async function lsExample() {
+  const {stdout, stderr} = await exec('ls');
+  console.log('stdout:', stdout);
+  console.log('stderr:', stderr);
+}
+lsExample();
+```
 
 ### child_process.execFile(file[, args][, options][, callback])
 <!-- YAML
@@ -252,10 +280,26 @@ can be used to specify the character encoding used to decode the stdout and
 stderr output. If `encoding` is `'buffer'`, or an unrecognized character
 encoding, `Buffer` objects will be passed to the callback instead.
 
+If this method is invoked as its [`util.promisify()`][]ed version, it returns
+a Promise for an object with `stdout` and `stderr` properties.
+
+```js
+const util = require('util');
+const execFile = util.promisify(require('child_process').execFile);
+async function getVersion() {
+  const {stdout} = await execFile('node', ['--version']);
+  console.log(stdout);
+}
+getVersion();
+```
+
 ### child_process.fork(modulePath[, args][, options])
 <!-- YAML
 added: v0.5.0
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/10866
+    description: The `stdio` option can now be a string.
   - version: v6.4.0
     pr-url: https://github.com/nodejs/node/pull/7811
     description: The `stdio` option is supported now.
@@ -273,10 +317,10 @@ changes:
     piped to the parent, otherwise they will be inherited from the parent, see
     the `'pipe'` and `'inherit'` options for [`child_process.spawn()`][]'s
     [`stdio`][] for more details (Default: `false`)
-  * `stdio` {Array} Supports the array version of [`child_process.spawn()`][]'s
-    [`stdio`][] option. When this option is provided, it overrides `silent`.
-    The array must contain exactly one item with value `'ipc'` or an error will
-    be thrown. For instance `[0, 1, 2, 'ipc']`.
+  * `stdio` {Array|string} See [`child_process.spawn()`][]'s [`stdio`][].
+    When this option is provided, it overrides `silent`. If the array variant
+    is used, it must contain exactly one item with value `'ipc'` or an error
+    will be thrown. For instance `[0, 1, 2, 'ipc']`.
   * `uid` {number} Sets the user identity of the process. (See setuid(2).)
   * `gid` {number} Sets the group identity of the process. (See setgid(2).)
 * Returns: {ChildProcess}
@@ -432,7 +476,7 @@ child.on('error', (err) => {
 });
 ```
 
-*Note: Certain platforms (OS X, Linux) will use the value of `argv[0]` for the
+*Note: Certain platforms (macOS, Linux) will use the value of `argv[0]` for the
 process title while others (Windows, SunOS) will use `command`.*
 
 *Note: Node.js currently overwrites `argv[0]` with `process.execPath` on
@@ -594,6 +638,9 @@ configuration at startup.
 <!-- YAML
 added: v0.11.12
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/10653
+    description: The `input` option can now be a `Uint8Array`.
   - version: v6.2.1, v4.5.0
     pr-url: https://github.com/nodejs/node/pull/6939
     description: The `encoding` option can now explicitly be set to `buffer`.
@@ -603,8 +650,8 @@ changes:
 * `args` {Array} List of string arguments
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process
-  * `input` {string|Buffer} The value which will be passed as stdin to the
-    spawned process
+  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
+    to the spawned process
     - supplying this value will override `stdio[0]`
   * `stdio` {string|Array} Child's stdio configuration. (Default: `'pipe'`)
     - `stderr` by default will be output to the parent process' stderr unless
@@ -637,13 +684,17 @@ throw.  The [`Error`][] object will contain the entire result from
 ### child_process.execSync(command[, options])
 <!-- YAML
 added: v0.11.12
+changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/10653
+    description: The `input` option can now be a `Uint8Array`.
 -->
 
 * `command` {string} The command to run
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process
-  * `input` {string|Buffer} The value which will be passed as stdin to the
-    spawned process
+  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
+    to the spawned process
     - supplying this value will override `stdio[0]`
   * `stdio` {string|Array} Child's stdio configuration. (Default: `'pipe'`)
     - `stderr` by default will be output to the parent process' stderr unless
@@ -686,6 +737,9 @@ execution.**
 <!-- YAML
 added: v0.11.12
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/10653
+    description: The `input` option can now be a `Uint8Array`.
   - version: v6.2.1, v4.5.0
     pr-url: https://github.com/nodejs/node/pull/6939
     description: The `encoding` option can now explicitly be set to `buffer`.
@@ -698,8 +752,8 @@ changes:
 * `args` {Array} List of string arguments
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process
-  * `input` {string|Buffer} The value which will be passed as stdin to the
-    spawned process
+  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
+    to the spawned process
     - supplying this value will override `stdio[0]`
   * `stdio` {string|Array} Child's stdio configuration.
   * `env` {Object} Environment key-value pairs
@@ -784,8 +838,8 @@ The `'error'` event is emitted whenever:
 2. The process could not be killed, or
 3. Sending a message to the child process failed.
 
-Note that the `'exit'` event may or may not fire after an error has occurred.
-If you are listening to both the `'exit'` and `'error'` events, it is important
+*Note*: The `'exit'` event may or may not fire after an error has occurred.
+When listening to both the `'exit'` and `'error'` events, it is important
 to guard against accidentally invoking handler functions multiple times.
 
 See also [`child.kill()`][] and [`child.send()`][].
@@ -909,13 +963,17 @@ as in this example:
 'use strict';
 const spawn = require('child_process').spawn;
 
-const child = spawn('sh', ['-c',
-  `node -e "setInterval(() => {
+const child = spawn(
+  'sh',
+  [
+    '-c',
+    `node -e "setInterval(() => {
       console.log(process.pid, 'is alive')
     }, 500);"`
   ], {
     stdio: ['inherit', 'inherit', 'inherit']
-  });
+  }
+);
 
 setTimeout(() => {
   child.kill(); // does not terminate the node process in the shell
@@ -1210,7 +1268,10 @@ to `stdout` although there are only 4 characters.
 [`'error'`]: #child_process_event_error
 [`'exit'`]: #child_process_event_exit
 [`'message'`]: #child_process_event_message
-[`child.channel`]: #child_process_child_channel
+[`ChildProcess`]: #child_process_child_process
+[`Error`]: errors.html#errors_class_error
+[`EventEmitter`]: events.html#events_class_eventemitter
+[`JSON.stringify()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 [`child.connected`]: #child_process_child_connected
 [`child.disconnect()`]: #child_process_child_disconnect
 [`child.kill()`]: #child_process_child_kill_signal
@@ -1225,10 +1286,6 @@ to `stdout` although there are only 4 characters.
 [`child_process.fork()`]: #child_process_child_process_fork_modulepath_args_options
 [`child_process.spawn()`]: #child_process_child_process_spawn_command_args_options
 [`child_process.spawnSync()`]: #child_process_child_process_spawnsync_command_args_options
-[`ChildProcess`]: #child_process_child_process
-[`Error`]: errors.html#errors_class_error
-[`EventEmitter`]: events.html#events_class_eventemitter
-[`JSON.stringify()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 [`maxBuffer` and Unicode]: #child_process_maxbuffer_and_unicode
 [`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
@@ -1240,4 +1297,5 @@ to `stdout` although there are only 4 characters.
 [`process.on('message')`]: process.html#process_event_message
 [`process.send()`]: process.html#process_process_send_message_sendhandle_options_callback
 [`stdio`]: #child_process_options_stdio
+[`util.promisify()`]: util.html#util_util_promisify_original
 [synchronous counterparts]: #child_process_synchronous_process_creation

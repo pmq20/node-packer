@@ -59,7 +59,13 @@ class ValueSerializer {
    * Returns the stored data. This serializer should not be used once the buffer
    * is released. The contents are undefined if a previous write has failed.
    */
-  std::vector<uint8_t> ReleaseBuffer() { return std::move(buffer_); }
+  std::vector<uint8_t> ReleaseBuffer();
+
+  /*
+   * Returns the buffer, allocated via the delegate, and its size.
+   * Caller assumes ownership of the buffer.
+   */
+  std::pair<uint8_t*, size_t> Release();
 
   /*
    * Marks an ArrayBuffer as havings its contents transferred out of band.
@@ -78,7 +84,19 @@ class ValueSerializer {
   void WriteRawBytes(const void* source, size_t length);
   void WriteDouble(double value);
 
+  /*
+   * Indicate whether to treat ArrayBufferView objects as host objects,
+   * i.e. pass them to Delegate::WriteHostObject. This should not be
+   * called when no Delegate was passed.
+   *
+   * The default is not to treat ArrayBufferViews as host objects.
+   */
+  void SetTreatArrayBufferViewsAsHostObjects(bool mode);
+
  private:
+  // Managing allocations of the internal buffer.
+  Maybe<bool> ExpandBuffer(size_t required_capacity);
+
   // Writing the wire format.
   void WriteTag(SerializationTag tag);
   template <typename T>
@@ -87,7 +105,7 @@ class ValueSerializer {
   void WriteZigZag(T value);
   void WriteOneByteString(Vector<const uint8_t> chars);
   void WriteTwoByteString(Vector<const uc16> chars);
-  uint8_t* ReserveRawBytes(size_t bytes);
+  Maybe<uint8_t*> ReserveRawBytes(size_t bytes);
 
   // Writing V8 objects of various kinds.
   void WriteOddball(Oddball* oddball);
@@ -103,8 +121,10 @@ class ValueSerializer {
   void WriteJSRegExp(JSRegExp* regexp);
   Maybe<bool> WriteJSMap(Handle<JSMap> map) WARN_UNUSED_RESULT;
   Maybe<bool> WriteJSSet(Handle<JSSet> map) WARN_UNUSED_RESULT;
-  Maybe<bool> WriteJSArrayBuffer(JSArrayBuffer* array_buffer);
+  Maybe<bool> WriteJSArrayBuffer(Handle<JSArrayBuffer> array_buffer)
+      WARN_UNUSED_RESULT;
   Maybe<bool> WriteJSArrayBufferView(JSArrayBufferView* array_buffer);
+  Maybe<bool> WriteWasmModule(Handle<JSObject> object) WARN_UNUSED_RESULT;
   Maybe<bool> WriteHostObject(Handle<JSObject> object) WARN_UNUSED_RESULT;
 
   /*
@@ -123,19 +143,25 @@ class ValueSerializer {
   V8_NOINLINE void ThrowDataCloneError(MessageTemplate::Template template_index,
                                        Handle<Object> arg0);
 
+  Maybe<bool> ThrowIfOutOfMemory();
+
   Isolate* const isolate_;
   v8::ValueSerializer::Delegate* const delegate_;
-  std::vector<uint8_t> buffer_;
+  bool treat_array_buffer_views_as_host_objects_ = false;
+  uint8_t* buffer_ = nullptr;
+  size_t buffer_size_ = 0;
+  size_t buffer_capacity_ = 0;
+  bool out_of_memory_ = false;
   Zone zone_;
 
   // To avoid extra lookups in the identity map, ID+1 is actually stored in the
   // map (checking if the used identity is zero is the fast way of checking if
   // the entry is new).
-  IdentityMap<uint32_t> id_map_;
+  IdentityMap<uint32_t, ZoneAllocationPolicy> id_map_;
   uint32_t next_id_ = 0;
 
   // A similar map, for transferred array buffers.
-  IdentityMap<uint32_t> array_buffer_transfer_map_;
+  IdentityMap<uint32_t, ZoneAllocationPolicy> array_buffer_transfer_map_;
 
   DISALLOW_COPY_AND_ASSIGN(ValueSerializer);
 };
@@ -213,9 +239,15 @@ class ValueDeserializer {
   // "stack machine".
   MaybeHandle<Object> ReadObjectInternal() WARN_UNUSED_RESULT;
 
+  // Reads a string intended to be part of a more complicated object.
+  // Before v12, these are UTF-8 strings. After, they can be any encoding
+  // permissible for a string (with the relevant tag).
+  MaybeHandle<String> ReadString() WARN_UNUSED_RESULT;
+
   // Reading V8 objects of specific kinds.
   // The tag is assumed to have already been read.
   MaybeHandle<String> ReadUtf8String() WARN_UNUSED_RESULT;
+  MaybeHandle<String> ReadOneByteString() WARN_UNUSED_RESULT;
   MaybeHandle<String> ReadTwoByteString() WARN_UNUSED_RESULT;
   MaybeHandle<JSObject> ReadJSObject() WARN_UNUSED_RESULT;
   MaybeHandle<JSArray> ReadSparseJSArray() WARN_UNUSED_RESULT;
@@ -230,6 +262,7 @@ class ValueDeserializer {
       WARN_UNUSED_RESULT;
   MaybeHandle<JSArrayBufferView> ReadJSArrayBufferView(
       Handle<JSArrayBuffer> buffer) WARN_UNUSED_RESULT;
+  MaybeHandle<JSObject> ReadWasmModule() WARN_UNUSED_RESULT;
   MaybeHandle<JSObject> ReadHostObject() WARN_UNUSED_RESULT;
 
   /*

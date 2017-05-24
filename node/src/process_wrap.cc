@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "env.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
@@ -22,6 +43,8 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
+namespace {
+
 class ProcessWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
@@ -31,6 +54,8 @@ class ProcessWrap : public HandleWrap {
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Process"));
+
+    env->SetProtoMethod(constructor, "getAsyncId", AsyncWrap::GetAsyncId);
 
     env->SetProtoMethod(constructor, "close", HandleWrap::Close);
 
@@ -121,35 +146,29 @@ class ProcessWrap : public HandleWrap {
 
     // options.uid
     Local<Value> uid_v = js_options->Get(env->uid_string());
-    if (uid_v->IsInt32()) {
+    if (!uid_v->IsUndefined() && !uid_v->IsNull()) {
+      CHECK(uid_v->IsInt32());
       const int32_t uid = uid_v->Int32Value(env->context()).FromJust();
       options.flags |= UV_PROCESS_SETUID;
       options.uid = static_cast<uv_uid_t>(uid);
-    } else if (!uid_v->IsUndefined() && !uid_v->IsNull()) {
-      return env->ThrowTypeError("options.uid should be a number");
     }
 
     // options.gid
     Local<Value> gid_v = js_options->Get(env->gid_string());
-    if (gid_v->IsInt32()) {
+    if (!gid_v->IsUndefined() && !gid_v->IsNull()) {
+      CHECK(gid_v->IsInt32());
       const int32_t gid = gid_v->Int32Value(env->context()).FromJust();
       options.flags |= UV_PROCESS_SETGID;
       options.gid = static_cast<uv_gid_t>(gid);
-    } else if (!gid_v->IsUndefined() && !gid_v->IsNull()) {
-      return env->ThrowTypeError("options.gid should be a number");
     }
 
     // TODO(bnoordhuis) is this possible to do without mallocing ?
 
     // options.file
     Local<Value> file_v = js_options->Get(env->file_string());
-    node::Utf8Value file(env->isolate(),
-                         file_v->IsString() ? file_v : Local<Value>());
-    if (file.length() > 0) {
-      options.file = *file;
-    } else {
-      return env->ThrowTypeError("Bad argument");
-    }
+    CHECK(file_v->IsString());
+    node::Utf8Value file(env->isolate(), file_v);
+    options.file = *file;
 
     // options.args
     Local<Value> argv_v = js_options->Get(env->args_string());
@@ -258,6 +277,7 @@ class ProcessWrap : public HandleWrap {
 };
 
 
+}  // anonymous namespace
 }  // namespace node
 
 NODE_MODULE_CONTEXT_AWARE_BUILTIN(process_wrap, node::ProcessWrap::Initialize)

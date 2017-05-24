@@ -4,6 +4,7 @@
 
 #include "src/type-info.h"
 
+#include "src/assembler-inl.h"
 #include "src/ast/ast.h"
 #include "src/code-stubs.h"
 #include "src/ic/ic.h"
@@ -13,10 +14,10 @@
 namespace v8 {
 namespace internal {
 
-
-TypeFeedbackOracle::TypeFeedbackOracle(
-    Isolate* isolate, Zone* zone, Handle<Code> code,
-    Handle<TypeFeedbackVector> feedback_vector, Handle<Context> native_context)
+TypeFeedbackOracle::TypeFeedbackOracle(Isolate* isolate, Zone* zone,
+                                       Handle<Code> code,
+                                       Handle<FeedbackVector> feedback_vector,
+                                       Handle<Context> native_context)
     : native_context_(native_context), isolate_(isolate), zone_(zone) {
   BuildDictionary(code);
   DCHECK(dictionary_->IsUnseededNumberDictionary());
@@ -24,7 +25,7 @@ TypeFeedbackOracle::TypeFeedbackOracle(
   // the type feedback info contained therein.
   // TODO(mvstanton): revisit the decision to copy when we weakly
   // traverse the feedback vector at GC time.
-  feedback_vector_ = TypeFeedbackVector::Copy(isolate, feedback_vector);
+  feedback_vector_ = FeedbackVector::Copy(isolate, feedback_vector);
 }
 
 
@@ -47,8 +48,7 @@ Handle<Object> TypeFeedbackOracle::GetInfo(TypeFeedbackId ast_id) {
   return Handle<Object>::cast(isolate()->factory()->undefined_value());
 }
 
-
-Handle<Object> TypeFeedbackOracle::GetInfo(FeedbackVectorSlot slot) {
+Handle<Object> TypeFeedbackOracle::GetInfo(FeedbackSlot slot) {
   DCHECK(slot.ToInt() >= 0 && slot.ToInt() < feedback_vector_->length());
   Handle<Object> undefined =
       Handle<Object>::cast(isolate()->factory()->undefined_value());
@@ -62,23 +62,20 @@ Handle<Object> TypeFeedbackOracle::GetInfo(FeedbackVectorSlot slot) {
     obj = cell->value();
   }
 
-  if (obj->IsJSFunction() || obj->IsAllocationSite() || obj->IsSymbol() ||
-      obj->IsSimd128Value()) {
+  if (obj->IsJSFunction() || obj->IsAllocationSite() || obj->IsSymbol()) {
     return Handle<Object>(obj, isolate());
   }
 
   return undefined;
 }
 
-
-InlineCacheState TypeFeedbackOracle::LoadInlineCacheState(
-    FeedbackVectorSlot slot) {
+InlineCacheState TypeFeedbackOracle::LoadInlineCacheState(FeedbackSlot slot) {
   if (!slot.IsInvalid()) {
-    FeedbackVectorSlotKind kind = feedback_vector_->GetKind(slot);
-    if (kind == FeedbackVectorSlotKind::LOAD_IC) {
+    FeedbackSlotKind kind = feedback_vector_->GetKind(slot);
+    if (IsLoadICKind(kind)) {
       LoadICNexus nexus(feedback_vector_, slot);
       return nexus.StateFromFeedback();
-    } else if (kind == FeedbackVectorSlotKind::KEYED_LOAD_IC) {
+    } else if (IsKeyedLoadICKind(kind)) {
       KeyedLoadICNexus nexus(feedback_vector_, slot);
       return nexus.StateFromFeedback();
     }
@@ -89,14 +86,13 @@ InlineCacheState TypeFeedbackOracle::LoadInlineCacheState(
   return PREMONOMORPHIC;
 }
 
-
-bool TypeFeedbackOracle::StoreIsUninitialized(FeedbackVectorSlot slot) {
+bool TypeFeedbackOracle::StoreIsUninitialized(FeedbackSlot slot) {
   if (!slot.IsInvalid()) {
-    FeedbackVectorSlotKind kind = feedback_vector_->GetKind(slot);
-    if (kind == FeedbackVectorSlotKind::STORE_IC) {
+    FeedbackSlotKind kind = feedback_vector_->GetKind(slot);
+    if (IsStoreICKind(kind)) {
       StoreICNexus nexus(feedback_vector_, slot);
       return nexus.StateFromFeedback() == UNINITIALIZED;
-    } else if (kind == FeedbackVectorSlotKind::KEYED_STORE_IC) {
+    } else if (IsKeyedStoreICKind(kind)) {
       KeyedStoreICNexus nexus(feedback_vector_, slot);
       return nexus.StateFromFeedback() == UNINITIALIZED;
     }
@@ -104,42 +100,34 @@ bool TypeFeedbackOracle::StoreIsUninitialized(FeedbackVectorSlot slot) {
   return true;
 }
 
-
-bool TypeFeedbackOracle::CallIsUninitialized(FeedbackVectorSlot slot) {
+bool TypeFeedbackOracle::CallIsUninitialized(FeedbackSlot slot) {
   Handle<Object> value = GetInfo(slot);
   return value->IsUndefined(isolate()) ||
          value.is_identical_to(
-             TypeFeedbackVector::UninitializedSentinel(isolate()));
+             FeedbackVector::UninitializedSentinel(isolate()));
 }
 
-
-bool TypeFeedbackOracle::CallIsMonomorphic(FeedbackVectorSlot slot) {
+bool TypeFeedbackOracle::CallIsMonomorphic(FeedbackSlot slot) {
   Handle<Object> value = GetInfo(slot);
   return value->IsAllocationSite() || value->IsJSFunction();
 }
 
-
-bool TypeFeedbackOracle::CallNewIsMonomorphic(FeedbackVectorSlot slot) {
+bool TypeFeedbackOracle::CallNewIsMonomorphic(FeedbackSlot slot) {
   Handle<Object> info = GetInfo(slot);
   return info->IsAllocationSite() || info->IsJSFunction();
 }
 
-
-byte TypeFeedbackOracle::ForInType(FeedbackVectorSlot feedback_vector_slot) {
+byte TypeFeedbackOracle::ForInType(FeedbackSlot feedback_vector_slot) {
   Handle<Object> value = GetInfo(feedback_vector_slot);
-  return value.is_identical_to(
-             TypeFeedbackVector::UninitializedSentinel(isolate()))
+  return value.is_identical_to(FeedbackVector::UninitializedSentinel(isolate()))
              ? ForInStatement::FAST_FOR_IN
              : ForInStatement::SLOW_FOR_IN;
 }
 
-
 void TypeFeedbackOracle::GetStoreModeAndKeyType(
-    FeedbackVectorSlot slot, KeyedAccessStoreMode* store_mode,
+    FeedbackSlot slot, KeyedAccessStoreMode* store_mode,
     IcCheckType* key_type) {
-  if (!slot.IsInvalid() &&
-      feedback_vector_->GetKind(slot) ==
-          FeedbackVectorSlotKind::KEYED_STORE_IC) {
+  if (!slot.IsInvalid() && feedback_vector_->IsKeyedStoreIC(slot)) {
     KeyedStoreICNexus nexus(feedback_vector_, slot);
     *store_mode = nexus.GetKeyedAccessStoreMode();
     *key_type = nexus.GetKeyType();
@@ -149,8 +137,7 @@ void TypeFeedbackOracle::GetStoreModeAndKeyType(
   }
 }
 
-
-Handle<JSFunction> TypeFeedbackOracle::GetCallTarget(FeedbackVectorSlot slot) {
+Handle<JSFunction> TypeFeedbackOracle::GetCallTarget(FeedbackSlot slot) {
   Handle<Object> info = GetInfo(slot);
   if (info->IsAllocationSite()) {
     return Handle<JSFunction>(isolate()->native_context()->array_function());
@@ -159,9 +146,7 @@ Handle<JSFunction> TypeFeedbackOracle::GetCallTarget(FeedbackVectorSlot slot) {
   return Handle<JSFunction>::cast(info);
 }
 
-
-Handle<JSFunction> TypeFeedbackOracle::GetCallNewTarget(
-    FeedbackVectorSlot slot) {
+Handle<JSFunction> TypeFeedbackOracle::GetCallNewTarget(FeedbackSlot slot) {
   Handle<Object> info = GetInfo(slot);
   if (info->IsJSFunction()) {
     return Handle<JSFunction>::cast(info);
@@ -171,9 +156,8 @@ Handle<JSFunction> TypeFeedbackOracle::GetCallNewTarget(
   return Handle<JSFunction>(isolate()->native_context()->array_function());
 }
 
-
 Handle<AllocationSite> TypeFeedbackOracle::GetCallAllocationSite(
-    FeedbackVectorSlot slot) {
+    FeedbackSlot slot) {
   Handle<Object> info = GetInfo(slot);
   if (info->IsAllocationSite()) {
     return Handle<AllocationSite>::cast(info);
@@ -181,9 +165,8 @@ Handle<AllocationSite> TypeFeedbackOracle::GetCallAllocationSite(
   return Handle<AllocationSite>::null();
 }
 
-
 Handle<AllocationSite> TypeFeedbackOracle::GetCallNewAllocationSite(
-    FeedbackVectorSlot slot) {
+    FeedbackSlot slot) {
   Handle<Object> info = GetInfo(slot);
   if (info->IsAllocationSite()) {
     return Handle<AllocationSite>::cast(info);
@@ -203,6 +186,12 @@ AstType* CompareOpHintToType(CompareOperationHint hint) {
       return AstType::Number();
     case CompareOperationHint::kNumberOrOddball:
       return AstType::NumberOrOddball();
+    case CompareOperationHint::kInternalizedString:
+      return AstType::InternalizedString();
+    case CompareOperationHint::kString:
+      return AstType::String();
+    case CompareOperationHint::kReceiver:
+      return AstType::Receiver();
     case CompareOperationHint::kAny:
       return AstType::Any();
   }
@@ -210,19 +199,20 @@ AstType* CompareOpHintToType(CompareOperationHint hint) {
   return AstType::None();
 }
 
-AstType* BinaryOpHintToType(BinaryOperationHint hint) {
+AstType* BinaryOpFeedbackToType(int hint) {
   switch (hint) {
-    case BinaryOperationHint::kNone:
+    case BinaryOperationFeedback::kNone:
       return AstType::None();
-    case BinaryOperationHint::kSignedSmall:
+    case BinaryOperationFeedback::kSignedSmall:
       return AstType::SignedSmall();
-    case BinaryOperationHint::kSigned32:
-      return AstType::Signed32();
-    case BinaryOperationHint::kNumberOrOddball:
+    case BinaryOperationFeedback::kNumber:
       return AstType::Number();
-    case BinaryOperationHint::kString:
+    case BinaryOperationFeedback::kString:
       return AstType::String();
-    case BinaryOperationHint::kAny:
+    case BinaryOperationFeedback::kNumberOrOddball:
+      return AstType::NumberOrOddball();
+    case BinaryOperationFeedback::kAny:
+    default:
       return AstType::Any();
   }
   UNREACHABLE();
@@ -231,7 +221,7 @@ AstType* BinaryOpHintToType(BinaryOperationHint hint) {
 
 }  // end anonymous namespace
 
-void TypeFeedbackOracle::CompareType(TypeFeedbackId id, FeedbackVectorSlot slot,
+void TypeFeedbackOracle::CompareType(TypeFeedbackId id, FeedbackSlot slot,
                                      AstType** left_type, AstType** right_type,
                                      AstType** combined_type) {
   Handle<Object> info = GetInfo(id);
@@ -262,18 +252,37 @@ void TypeFeedbackOracle::CompareType(TypeFeedbackId id, FeedbackVectorSlot slot,
     CompareICStub stub(code->stub_key(), isolate());
     AstType* left_type_from_ic =
         CompareICState::StateToType(zone(), stub.left());
-    *left_type = AstType::Union(*left_type, left_type_from_ic, zone());
     AstType* right_type_from_ic =
         CompareICState::StateToType(zone(), stub.right());
-    *right_type = AstType::Union(*right_type, right_type_from_ic, zone());
     AstType* combined_type_from_ic =
         CompareICState::StateToType(zone(), stub.state(), map);
-    *combined_type =
-        AstType::Union(*combined_type, combined_type_from_ic, zone());
+    // Full-codegen collects lhs and rhs feedback seperately and Crankshaft
+    // could use this information to optimize better. So if combining the
+    // feedback has made the feedback less precise, we should use the feedback
+    // only from Full-codegen. If the union of the feedback from Full-codegen
+    // is same as that of Ignition, there is no need to combine feedback from
+    // from Ignition.
+    AstType* combined_type_from_fcg = AstType::Union(
+        left_type_from_ic,
+        AstType::Union(right_type_from_ic, combined_type_from_ic, zone()),
+        zone());
+    if (combined_type_from_fcg == *left_type) {
+      // Full-codegen collects information about lhs, rhs and result types
+      // seperately. So just retain that information.
+      *left_type = left_type_from_ic;
+      *right_type = right_type_from_ic;
+      *combined_type = combined_type_from_ic;
+    } else {
+      // Combine Ignition and Full-codegen feedbacks.
+      *left_type = AstType::Union(*left_type, left_type_from_ic, zone());
+      *right_type = AstType::Union(*right_type, right_type_from_ic, zone());
+      *combined_type =
+          AstType::Union(*combined_type, combined_type_from_ic, zone());
+    }
   }
 }
 
-void TypeFeedbackOracle::BinaryType(TypeFeedbackId id, FeedbackVectorSlot slot,
+void TypeFeedbackOracle::BinaryType(TypeFeedbackId id, FeedbackSlot slot,
                                     AstType** left, AstType** right,
                                     AstType** result,
                                     Maybe<int>* fixed_right_arg,
@@ -299,7 +308,7 @@ void TypeFeedbackOracle::BinaryType(TypeFeedbackId id, FeedbackVectorSlot slot,
   DCHECK(!slot.IsInvalid());
   BinaryOpICNexus nexus(feedback_vector_, slot);
   *left = *right = *result =
-      BinaryOpHintToType(nexus.GetBinaryOperationFeedback());
+      BinaryOpFeedbackToType(Smi::cast(nexus.GetFeedback())->value());
   *fixed_right_arg = Nothing<int>();
   *allocation_site = Handle<AllocationSite>::null();
 
@@ -311,9 +320,29 @@ void TypeFeedbackOracle::BinaryType(TypeFeedbackId id, FeedbackVectorSlot slot,
   BinaryOpICState state(isolate(), code->extra_ic_state());
   DCHECK_EQ(op, state.op());
 
-  *left = AstType::Union(*left, state.GetLeftType(), zone());
-  *right = AstType::Union(*right, state.GetRightType(), zone());
-  *result = AstType::Union(*result, state.GetResultType(), zone());
+  // Full-codegen collects lhs and rhs feedback seperately and Crankshaft
+  // could use this information to optimize better. So if combining the
+  // feedback has made the feedback less precise, we should use the feedback
+  // only from Full-codegen. If the union of the feedback from Full-codegen
+  // is same as that of Ignition, there is no need to combine feedback from
+  // from Ignition.
+  AstType* combined_type_from_fcg = AstType::Union(
+      state.GetLeftType(),
+      AstType::Union(state.GetRightType(), state.GetResultType(), zone()),
+      zone());
+  if (combined_type_from_fcg == *left) {
+    // Full-codegen collects information about lhs, rhs and result types
+    // seperately. So just retain that information.
+    *left = state.GetLeftType();
+    *right = state.GetRightType();
+    *result = state.GetResultType();
+  } else {
+    // Combine Ignition and Full-codegen feedback.
+    *left = AstType::Union(*left, state.GetLeftType(), zone());
+    *right = AstType::Union(*right, state.GetRightType(), zone());
+    *result = AstType::Union(*result, state.GetResultType(), zone());
+  }
+  // Ignition does not collect this feedback.
   *fixed_right_arg = state.fixed_right_arg();
 
   AllocationSite* first_allocation_site = code->FindFirstAllocationSite();
@@ -324,8 +353,7 @@ void TypeFeedbackOracle::BinaryType(TypeFeedbackId id, FeedbackVectorSlot slot,
   }
 }
 
-AstType* TypeFeedbackOracle::CountType(TypeFeedbackId id,
-                                       FeedbackVectorSlot slot) {
+AstType* TypeFeedbackOracle::CountType(TypeFeedbackId id, FeedbackSlot slot) {
   Handle<Object> object = GetInfo(id);
   if (slot.IsInvalid()) {
     DCHECK(!object->IsCode());
@@ -334,7 +362,8 @@ AstType* TypeFeedbackOracle::CountType(TypeFeedbackId id,
 
   DCHECK(!slot.IsInvalid());
   BinaryOpICNexus nexus(feedback_vector_, slot);
-  AstType* type = BinaryOpHintToType(nexus.GetBinaryOperationFeedback());
+  AstType* type =
+      BinaryOpFeedbackToType(Smi::cast(nexus.GetFeedback())->value());
 
   if (!object->IsCode()) return type;
 
@@ -353,8 +382,7 @@ bool TypeFeedbackOracle::HasOnlyStringMaps(SmallMapList* receiver_types) {
   return all_strings;
 }
 
-
-void TypeFeedbackOracle::PropertyReceiverTypes(FeedbackVectorSlot slot,
+void TypeFeedbackOracle::PropertyReceiverTypes(FeedbackSlot slot,
                                                Handle<Name> name,
                                                SmallMapList* receiver_types) {
   receiver_types->Clear();
@@ -365,9 +393,8 @@ void TypeFeedbackOracle::PropertyReceiverTypes(FeedbackVectorSlot slot,
   }
 }
 
-
 void TypeFeedbackOracle::KeyedPropertyReceiverTypes(
-    FeedbackVectorSlot slot, SmallMapList* receiver_types, bool* is_string,
+    FeedbackSlot slot, SmallMapList* receiver_types, bool* is_string,
     IcCheckType* key_type) {
   receiver_types->Clear();
   if (slot.IsInvalid()) {
@@ -381,8 +408,7 @@ void TypeFeedbackOracle::KeyedPropertyReceiverTypes(
   }
 }
 
-
-void TypeFeedbackOracle::AssignmentReceiverTypes(FeedbackVectorSlot slot,
+void TypeFeedbackOracle::AssignmentReceiverTypes(FeedbackSlot slot,
                                                  Handle<Name> name,
                                                  SmallMapList* receiver_types) {
   receiver_types->Clear();
@@ -390,24 +416,22 @@ void TypeFeedbackOracle::AssignmentReceiverTypes(FeedbackVectorSlot slot,
                        receiver_types);
 }
 
-
 void TypeFeedbackOracle::KeyedAssignmentReceiverTypes(
-    FeedbackVectorSlot slot, SmallMapList* receiver_types,
+    FeedbackSlot slot, SmallMapList* receiver_types,
     KeyedAccessStoreMode* store_mode, IcCheckType* key_type) {
   receiver_types->Clear();
   CollectReceiverTypes(slot, receiver_types);
   GetStoreModeAndKeyType(slot, store_mode, key_type);
 }
 
-
-void TypeFeedbackOracle::CountReceiverTypes(FeedbackVectorSlot slot,
+void TypeFeedbackOracle::CountReceiverTypes(FeedbackSlot slot,
                                             SmallMapList* receiver_types) {
   receiver_types->Clear();
   if (!slot.IsInvalid()) CollectReceiverTypes(slot, receiver_types);
 }
 
 void TypeFeedbackOracle::CollectReceiverTypes(StubCache* stub_cache,
-                                              FeedbackVectorSlot slot,
+                                              FeedbackSlot slot,
                                               Handle<Name> name,
                                               SmallMapList* types) {
   StoreICNexus nexus(feedback_vector_, slot);
@@ -427,15 +451,14 @@ void TypeFeedbackOracle::CollectReceiverTypes(StubCache* stub_cache,
   }
 }
 
-
-void TypeFeedbackOracle::CollectReceiverTypes(FeedbackVectorSlot slot,
+void TypeFeedbackOracle::CollectReceiverTypes(FeedbackSlot slot,
                                               SmallMapList* types) {
-  FeedbackVectorSlotKind kind = feedback_vector_->GetKind(slot);
-  if (kind == FeedbackVectorSlotKind::STORE_IC) {
+  FeedbackSlotKind kind = feedback_vector_->GetKind(slot);
+  if (IsStoreICKind(kind) || IsStoreOwnICKind(kind)) {
     StoreICNexus nexus(feedback_vector_, slot);
     CollectReceiverTypes(&nexus, types);
   } else {
-    DCHECK_EQ(FeedbackVectorSlotKind::KEYED_STORE_IC, kind);
+    DCHECK(IsKeyedStoreICKind(kind));
     KeyedStoreICNexus nexus(feedback_vector_, slot);
     CollectReceiverTypes(&nexus, types);
   }

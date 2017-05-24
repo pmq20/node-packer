@@ -1,5 +1,27 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
-require('../common');
+
+const common = require('../common');
 const R = require('_stream_readable');
 const assert = require('assert');
 
@@ -300,10 +322,8 @@ test('multipipe', function(t) {
 });
 
 test('back pressure respected', function(t) {
-  function noop() {}
-
   const r = new R({ objectMode: true });
-  r._read = noop;
+  r._read = common.noop;
   let counter = 0;
   r.push(['one']);
   r.push(['two']);
@@ -321,7 +341,7 @@ test('back pressure respected', function(t) {
       r.pipe(w3);
     });
   };
-  w1.end = noop;
+  w1.end = common.noop;
 
   r.pipe(w1);
 
@@ -347,7 +367,7 @@ test('back pressure respected', function(t) {
 
     return false;
   };
-  w2.end = noop;
+  w2.end = common.noop;
 
   const w3 = new R();
   w3.write = function(chunk) {
@@ -380,7 +400,7 @@ test('read(0) for ended streams', function(t) {
   const r = new R();
   let written = false;
   let ended = false;
-  r._read = function(n) {};
+  r._read = common.noop;
 
   r.push(Buffer.from('foo'));
   r.push(null);
@@ -451,7 +471,7 @@ test('adding readable triggers data flow', function(t) {
 
 test('chainable', function(t) {
   const r = new R();
-  r._read = function() {};
+  r._read = common.noop;
   const r2 = r.setEncoding('utf8').pause().resume().pause();
   t.equal(r, r2);
   t.end();

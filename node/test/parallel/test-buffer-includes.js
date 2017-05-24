@@ -1,5 +1,5 @@
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 
 const Buffer = require('buffer').Buffer;
@@ -29,10 +29,10 @@ assert(b.includes('bc', -Infinity));
 assert(!b.includes('bc', Infinity));
 assert(b.includes('f'), b.length - 1);
 assert(!b.includes('z'));
-assert(!b.includes(''));
-assert(!b.includes('', 1));
-assert(!b.includes('', b.length + 1));
-assert(!b.includes('', Infinity));
+assert(b.includes(''));
+assert(b.includes('', 1));
+assert(b.includes('', b.length + 1));
+assert(b.includes('', Infinity));
 assert(b.includes(buf_a));
 assert(!b.includes(buf_a, 1));
 assert(!b.includes(buf_a, -1));
@@ -51,10 +51,10 @@ assert(b.includes(buf_bc, -Infinity));
 assert(!b.includes(buf_bc, Infinity));
 assert(b.includes(buf_f), b.length - 1);
 assert(!b.includes(buf_z));
-assert(!b.includes(buf_empty));
-assert(!b.includes(buf_empty, 1));
-assert(!b.includes(buf_empty, b.length + 1));
-assert(!b.includes(buf_empty, Infinity));
+assert(b.includes(buf_empty));
+assert(b.includes(buf_empty, 1));
+assert(b.includes(buf_empty, b.length + 1));
+assert(b.includes(buf_empty, Infinity));
 assert(b.includes(0x61));
 assert(!b.includes(0x61, 1));
 assert(!b.includes(0x61, -1));
@@ -199,7 +199,7 @@ const longBufferString = Buffer.from(longString);
 let pattern = 'ABACABADABACABA';
 for (let i = 0; i < longBufferString.length - pattern.length; i += 7) {
   const includes = longBufferString.includes(pattern, i);
-  assert(includes, 'Long ABACABA...-string at index ' + i);
+  assert(includes, `Long ABACABA...-string at index ${i}`);
 }
 assert(longBufferString.includes('AJABACA'), 'Long AJABACA, First J');
 assert(longBufferString.includes('AJABACA', 511), 'Long AJABACA, Second J');
@@ -273,15 +273,17 @@ for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
   }
 }
 
-assert.throws(function() {
-  b.includes(function() { });
-});
-assert.throws(function() {
+const expectedError =
+  /^TypeError: "val" argument must be string, number, Buffer or Uint8Array$/;
+assert.throws(() => {
+  b.includes(common.noop);
+}, expectedError);
+assert.throws(() => {
   b.includes({});
-});
-assert.throws(function() {
+}, expectedError);
+assert.throws(() => {
   b.includes([]);
-});
+}, expectedError);
 
 // test truncation of Number arguments to uint8
 {

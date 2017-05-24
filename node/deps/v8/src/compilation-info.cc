@@ -7,8 +7,11 @@
 #include "src/api.h"
 #include "src/ast/ast.h"
 #include "src/ast/scopes.h"
+#include "src/debug/debug.h"
 #include "src/isolate.h"
+#include "src/objects-inl.h"
 #include "src/parsing/parse-info.h"
+#include "src/source-position.h"
 
 namespace v8 {
 namespace internal {
@@ -32,14 +35,28 @@ PARSE_INFO_GETTER(Handle<SharedFunctionInfo>, shared_info)
 #undef PARSE_INFO_GETTER
 #undef PARSE_INFO_GETTER_WITH_DEFAULT
 
+bool CompilationInfo::is_debug() const {
+  return parse_info() ? parse_info()->is_debug() : false;
+}
+
+void CompilationInfo::set_is_debug() {
+  CHECK(parse_info());
+  parse_info()->set_is_debug();
+}
+
+void CompilationInfo::PrepareForSerializing() {
+  if (parse_info()) parse_info()->set_will_serialize();
+  SetFlag(kSerializing);
+}
+
 bool CompilationInfo::has_shared_info() const {
   return parse_info_ && !parse_info_->shared_info().is_null();
 }
 
-CompilationInfo::CompilationInfo(ParseInfo* parse_info,
+CompilationInfo::CompilationInfo(Zone* zone, ParseInfo* parse_info,
                                  Handle<JSFunction> closure)
     : CompilationInfo(parse_info, {}, Code::ComputeFlags(Code::FUNCTION), BASE,
-                      parse_info->isolate(), parse_info->zone()) {
+                      parse_info->isolate(), zone) {
   closure_ = closure;
 
   // Compiling for the snapshot typically results in different code than
@@ -51,8 +68,14 @@ CompilationInfo::CompilationInfo(ParseInfo* parse_info,
   if (isolate_->serializer_enabled()) EnableDeoptimizationSupport();
 
   if (FLAG_function_context_specialization) MarkAsFunctionContextSpecializing();
-  if (FLAG_turbo_source_positions) MarkAsSourcePositionsEnabled();
   if (FLAG_turbo_splitting) MarkAsSplittingEnabled();
+
+  // Collect source positions for optimized code when profiling or if debugger
+  // is active, to be able to get more precise source positions at the price of
+  // more memory consumption.
+  if (isolate_->NeedsSourcePositionsForProfiling()) {
+    MarkAsSourcePositionsEnabled();
+  }
 }
 
 CompilationInfo::CompilationInfo(Vector<const char> debug_name,
@@ -85,7 +108,6 @@ CompilationInfo::~CompilationInfo() {
     shared_info()->DisableOptimization(bailout_reason());
   }
   dependencies()->Rollback();
-  delete deferred_handles_;
 }
 
 int CompilationInfo::num_parameters() const {
@@ -102,15 +124,28 @@ bool CompilationInfo::is_this_defined() const { return !IsStub(); }
 // profiler, so they trigger their own optimization when they're called
 // for the SharedFunctionInfo::kCallsUntilPrimitiveOptimization-th time.
 bool CompilationInfo::ShouldSelfOptimize() {
-  return FLAG_crankshaft &&
+  return FLAG_opt && FLAG_crankshaft &&
          !(literal()->flags() & AstProperties::kDontSelfOptimize) &&
          !literal()->dont_optimize() &&
          literal()->scope()->AllowsLazyCompilation() &&
          !shared_info()->optimization_disabled();
 }
 
+void CompilationInfo::set_deferred_handles(
+    std::shared_ptr<DeferredHandles> deferred_handles) {
+  DCHECK(deferred_handles_.get() == nullptr);
+  deferred_handles_.swap(deferred_handles);
+}
+
+void CompilationInfo::set_deferred_handles(DeferredHandles* deferred_handles) {
+  DCHECK(deferred_handles_.get() == nullptr);
+  deferred_handles_.reset(deferred_handles);
+}
+
 void CompilationInfo::ReopenHandlesInNewHandleScope() {
-  closure_ = Handle<JSFunction>(*closure_);
+  if (!closure_.is_null()) {
+    closure_ = Handle<JSFunction>(*closure_);
+  }
 }
 
 bool CompilationInfo::has_simple_parameters() {
@@ -144,11 +179,13 @@ StackFrame::Type CompilationInfo::GetOutputStackFrameType() const {
 #undef CASE_KIND
       return StackFrame::STUB;
     case Code::WASM_FUNCTION:
-      return StackFrame::WASM;
+      return StackFrame::WASM_COMPILED;
     case Code::JS_TO_WASM_FUNCTION:
       return StackFrame::JS_TO_WASM;
     case Code::WASM_TO_JS_FUNCTION:
       return StackFrame::WASM_TO_JS;
+    case Code::WASM_INTERPRETER_ENTRY:
+      return StackFrame::WASM_INTERPRETER_ENTRY;
     default:
       UNIMPLEMENTED();
       return StackFrame::NONE;
@@ -200,10 +237,12 @@ void CompilationInfo::SetOptimizing() {
   code_flags_ = Code::KindField::update(code_flags_, Code::OPTIMIZED_FUNCTION);
 }
 
-void CompilationInfo::AddInlinedFunction(
-    Handle<SharedFunctionInfo> inlined_function) {
+int CompilationInfo::AddInlinedFunction(
+    Handle<SharedFunctionInfo> inlined_function, SourcePosition pos) {
+  int id = static_cast<int>(inlined_functions_.size());
   inlined_functions_.push_back(InlinedFunctionHolder(
-      inlined_function, handle(inlined_function->code())));
+      inlined_function, handle(inlined_function->code()), pos));
+  return id;
 }
 
 Code::Kind CompilationInfo::output_code_kind() const {

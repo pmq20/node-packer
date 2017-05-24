@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/builtins/builtins.h"
 #include "src/builtins/builtins-utils.h"
-
+#include "src/builtins/builtins.h"
 #include "src/code-factory.h"
+#include "src/code-stub-assembler.h"
+#include "src/counters.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -13,316 +15,313 @@ namespace internal {
 // -----------------------------------------------------------------------------
 // ES6 section 20.2.2 Function Properties of the Math Object
 
+class MathBuiltinsAssembler : public CodeStubAssembler {
+ public:
+  explicit MathBuiltinsAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
+
+ protected:
+  void MathRoundingOperation(Node* (CodeStubAssembler::*float64op)(Node*));
+  void MathUnaryOperation(Node* (CodeStubAssembler::*float64op)(Node*));
+};
+
 // ES6 section - 20.2.2.1 Math.abs ( x )
-void Builtins::Generate_MathAbs(CodeStubAssembler* assembler) {
-  using compiler::Node;
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Abs(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAbs, CodeStubAssembler) {
+  Node* context = Parameter(4);
+
+  // We might need to loop once for ToNumber conversion.
+  Variable var_x(this, MachineRepresentation::kTagged);
+  Label loop(this, &var_x);
+  var_x.Bind(Parameter(1));
+  Goto(&loop);
+  Bind(&loop);
+  {
+    // Load the current {x} value.
+    Node* x = var_x.value();
+
+    // Check if {x} is a Smi or a HeapObject.
+    Label if_xissmi(this), if_xisnotsmi(this);
+    Branch(TaggedIsSmi(x), &if_xissmi, &if_xisnotsmi);
+
+    Bind(&if_xissmi);
+    {
+      // Check if {x} is already positive.
+      Label if_xispositive(this), if_xisnotpositive(this);
+      BranchIfSmiLessThanOrEqual(SmiConstant(Smi::FromInt(0)), x,
+                                 &if_xispositive, &if_xisnotpositive);
+
+      Bind(&if_xispositive);
+      {
+        // Just return the input {x}.
+        Return(x);
+      }
+
+      Bind(&if_xisnotpositive);
+      {
+        // Try to negate the {x} value.
+        Node* pair =
+            IntPtrSubWithOverflow(IntPtrConstant(0), BitcastTaggedToWord(x));
+        Node* overflow = Projection(1, pair);
+        Label if_overflow(this, Label::kDeferred), if_notoverflow(this);
+        Branch(overflow, &if_overflow, &if_notoverflow);
+
+        Bind(&if_notoverflow);
+        {
+          // There is a Smi representation for negated {x}.
+          Node* result = Projection(0, pair);
+          Return(BitcastWordToTagged(result));
+        }
+
+        Bind(&if_overflow);
+        { Return(NumberConstant(0.0 - Smi::kMinValue)); }
+      }
+    }
+
+    Bind(&if_xisnotsmi);
+    {
+      // Check if {x} is a HeapNumber.
+      Label if_xisheapnumber(this), if_xisnotheapnumber(this, Label::kDeferred);
+      Branch(IsHeapNumberMap(LoadMap(x)), &if_xisheapnumber,
+             &if_xisnotheapnumber);
+
+      Bind(&if_xisheapnumber);
+      {
+        Node* x_value = LoadHeapNumberValue(x);
+        Node* value = Float64Abs(x_value);
+        Node* result = AllocateHeapNumberWithValue(value);
+        Return(result);
+      }
+
+      Bind(&if_xisnotheapnumber);
+      {
+        // Need to convert {x} to a Number first.
+        Callable callable = CodeFactory::NonNumberToNumber(isolate());
+        var_x.Bind(CallStub(callable, context, x));
+        Goto(&loop);
+      }
+    }
+  }
+}
+
+void MathBuiltinsAssembler::MathRoundingOperation(
+    Node* (CodeStubAssembler::*float64op)(Node*)) {
+  Node* context = Parameter(4);
+
+  // We might need to loop once for ToNumber conversion.
+  Variable var_x(this, MachineRepresentation::kTagged);
+  Label loop(this, &var_x);
+  var_x.Bind(Parameter(1));
+  Goto(&loop);
+  Bind(&loop);
+  {
+    // Load the current {x} value.
+    Node* x = var_x.value();
+
+    // Check if {x} is a Smi or a HeapObject.
+    Label if_xissmi(this), if_xisnotsmi(this);
+    Branch(TaggedIsSmi(x), &if_xissmi, &if_xisnotsmi);
+
+    Bind(&if_xissmi);
+    {
+      // Nothing to do when {x} is a Smi.
+      Return(x);
+    }
+
+    Bind(&if_xisnotsmi);
+    {
+      // Check if {x} is a HeapNumber.
+      Label if_xisheapnumber(this), if_xisnotheapnumber(this, Label::kDeferred);
+      Branch(IsHeapNumberMap(LoadMap(x)), &if_xisheapnumber,
+             &if_xisnotheapnumber);
+
+      Bind(&if_xisheapnumber);
+      {
+        Node* x_value = LoadHeapNumberValue(x);
+        Node* value = (this->*float64op)(x_value);
+        Node* result = ChangeFloat64ToTagged(value);
+        Return(result);
+      }
+
+      Bind(&if_xisnotheapnumber);
+      {
+        // Need to convert {x} to a Number first.
+        Callable callable = CodeFactory::NonNumberToNumber(isolate());
+        var_x.Bind(CallStub(callable, context, x));
+        Goto(&loop);
+      }
+    }
+  }
+}
+
+void MathBuiltinsAssembler::MathUnaryOperation(
+    Node* (CodeStubAssembler::*float64op)(Node*)) {
+  Node* x = Parameter(1);
+  Node* context = Parameter(4);
+  Node* x_value = TruncateTaggedToFloat64(context, x);
+  Node* value = (this->*float64op)(x_value);
+  Node* result = AllocateHeapNumberWithValue(value);
+  Return(result);
 }
 
 // ES6 section 20.2.2.2 Math.acos ( x )
-void Builtins::Generate_MathAcos(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Acos(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAcos, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Acos);
 }
 
 // ES6 section 20.2.2.3 Math.acosh ( x )
-void Builtins::Generate_MathAcosh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Acosh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAcosh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Acosh);
 }
 
 // ES6 section 20.2.2.4 Math.asin ( x )
-void Builtins::Generate_MathAsin(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Asin(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAsin, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Asin);
 }
 
 // ES6 section 20.2.2.5 Math.asinh ( x )
-void Builtins::Generate_MathAsinh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Asinh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAsinh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Asinh);
 }
-
 // ES6 section 20.2.2.6 Math.atan ( x )
-void Builtins::Generate_MathAtan(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Atan(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAtan, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Atan);
 }
 
 // ES6 section 20.2.2.7 Math.atanh ( x )
-void Builtins::Generate_MathAtanh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Atanh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathAtanh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Atanh);
 }
 
 // ES6 section 20.2.2.8 Math.atan2 ( y, x )
-void Builtins::Generate_MathAtan2(CodeStubAssembler* assembler) {
-  using compiler::Node;
+TF_BUILTIN(MathAtan2, CodeStubAssembler) {
+  Node* y = Parameter(1);
+  Node* x = Parameter(2);
+  Node* context = Parameter(5);
 
-  Node* y = assembler->Parameter(1);
-  Node* x = assembler->Parameter(2);
-  Node* context = assembler->Parameter(5);
-  Node* y_value = assembler->TruncateTaggedToFloat64(context, y);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Atan2(y_value, x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+  Node* y_value = TruncateTaggedToFloat64(context, y);
+  Node* x_value = TruncateTaggedToFloat64(context, x);
+  Node* value = Float64Atan2(y_value, x_value);
+  Node* result = AllocateHeapNumberWithValue(value);
+  Return(result);
 }
-
-namespace {
-
-void Generate_MathRoundingOperation(
-    CodeStubAssembler* assembler,
-    compiler::Node* (CodeStubAssembler::*float64op)(compiler::Node*)) {
-  typedef CodeStubAssembler::Label Label;
-  typedef compiler::Node Node;
-  typedef CodeStubAssembler::Variable Variable;
-
-  Node* context = assembler->Parameter(4);
-
-  // We might need to loop once for ToNumber conversion.
-  Variable var_x(assembler, MachineRepresentation::kTagged);
-  Label loop(assembler, &var_x);
-  var_x.Bind(assembler->Parameter(1));
-  assembler->Goto(&loop);
-  assembler->Bind(&loop);
-  {
-    // Load the current {x} value.
-    Node* x = var_x.value();
-
-    // Check if {x} is a Smi or a HeapObject.
-    Label if_xissmi(assembler), if_xisnotsmi(assembler);
-    assembler->Branch(assembler->WordIsSmi(x), &if_xissmi, &if_xisnotsmi);
-
-    assembler->Bind(&if_xissmi);
-    {
-      // Nothing to do when {x} is a Smi.
-      assembler->Return(x);
-    }
-
-    assembler->Bind(&if_xisnotsmi);
-    {
-      // Check if {x} is a HeapNumber.
-      Label if_xisheapnumber(assembler),
-          if_xisnotheapnumber(assembler, Label::kDeferred);
-      assembler->Branch(
-          assembler->WordEqual(assembler->LoadMap(x),
-                               assembler->HeapNumberMapConstant()),
-          &if_xisheapnumber, &if_xisnotheapnumber);
-
-      assembler->Bind(&if_xisheapnumber);
-      {
-        Node* x_value = assembler->LoadHeapNumberValue(x);
-        Node* value = (assembler->*float64op)(x_value);
-        Node* result = assembler->ChangeFloat64ToTagged(value);
-        assembler->Return(result);
-      }
-
-      assembler->Bind(&if_xisnotheapnumber);
-      {
-        // Need to convert {x} to a Number first.
-        Callable callable =
-            CodeFactory::NonNumberToNumber(assembler->isolate());
-        var_x.Bind(assembler->CallStub(callable, context, x));
-        assembler->Goto(&loop);
-      }
-    }
-  }
-}
-
-}  // namespace
 
 // ES6 section 20.2.2.10 Math.ceil ( x )
-void Builtins::Generate_MathCeil(CodeStubAssembler* assembler) {
-  Generate_MathRoundingOperation(assembler, &CodeStubAssembler::Float64Ceil);
+TF_BUILTIN(MathCeil, MathBuiltinsAssembler) {
+  MathRoundingOperation(&CodeStubAssembler::Float64Ceil);
 }
 
 // ES6 section 20.2.2.9 Math.cbrt ( x )
-void Builtins::Generate_MathCbrt(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Cbrt(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathCbrt, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Cbrt);
 }
 
 // ES6 section 20.2.2.11 Math.clz32 ( x )
-void Builtins::Generate_MathClz32(CodeStubAssembler* assembler) {
-  typedef CodeStubAssembler::Label Label;
-  typedef compiler::Node Node;
-  typedef CodeStubAssembler::Variable Variable;
-
-  Node* context = assembler->Parameter(4);
+TF_BUILTIN(MathClz32, CodeStubAssembler) {
+  Node* context = Parameter(4);
 
   // Shared entry point for the clz32 operation.
-  Variable var_clz32_x(assembler, MachineRepresentation::kWord32);
-  Label do_clz32(assembler);
+  Variable var_clz32_x(this, MachineRepresentation::kWord32);
+  Label do_clz32(this);
 
   // We might need to loop once for ToNumber conversion.
-  Variable var_x(assembler, MachineRepresentation::kTagged);
-  Label loop(assembler, &var_x);
-  var_x.Bind(assembler->Parameter(1));
-  assembler->Goto(&loop);
-  assembler->Bind(&loop);
+  Variable var_x(this, MachineRepresentation::kTagged);
+  Label loop(this, &var_x);
+  var_x.Bind(Parameter(1));
+  Goto(&loop);
+  Bind(&loop);
   {
     // Load the current {x} value.
     Node* x = var_x.value();
 
     // Check if {x} is a Smi or a HeapObject.
-    Label if_xissmi(assembler), if_xisnotsmi(assembler);
-    assembler->Branch(assembler->WordIsSmi(x), &if_xissmi, &if_xisnotsmi);
+    Label if_xissmi(this), if_xisnotsmi(this);
+    Branch(TaggedIsSmi(x), &if_xissmi, &if_xisnotsmi);
 
-    assembler->Bind(&if_xissmi);
+    Bind(&if_xissmi);
     {
-      var_clz32_x.Bind(assembler->SmiToWord32(x));
-      assembler->Goto(&do_clz32);
+      var_clz32_x.Bind(SmiToWord32(x));
+      Goto(&do_clz32);
     }
 
-    assembler->Bind(&if_xisnotsmi);
+    Bind(&if_xisnotsmi);
     {
       // Check if {x} is a HeapNumber.
-      Label if_xisheapnumber(assembler),
-          if_xisnotheapnumber(assembler, Label::kDeferred);
-      assembler->Branch(
-          assembler->WordEqual(assembler->LoadMap(x),
-                               assembler->HeapNumberMapConstant()),
-          &if_xisheapnumber, &if_xisnotheapnumber);
+      Label if_xisheapnumber(this), if_xisnotheapnumber(this, Label::kDeferred);
+      Branch(IsHeapNumberMap(LoadMap(x)), &if_xisheapnumber,
+             &if_xisnotheapnumber);
 
-      assembler->Bind(&if_xisheapnumber);
+      Bind(&if_xisheapnumber);
       {
-        var_clz32_x.Bind(assembler->TruncateHeapNumberValueToWord32(x));
-        assembler->Goto(&do_clz32);
+        var_clz32_x.Bind(TruncateHeapNumberValueToWord32(x));
+        Goto(&do_clz32);
       }
 
-      assembler->Bind(&if_xisnotheapnumber);
+      Bind(&if_xisnotheapnumber);
       {
         // Need to convert {x} to a Number first.
-        Callable callable =
-            CodeFactory::NonNumberToNumber(assembler->isolate());
-        var_x.Bind(assembler->CallStub(callable, context, x));
-        assembler->Goto(&loop);
+        Callable callable = CodeFactory::NonNumberToNumber(isolate());
+        var_x.Bind(CallStub(callable, context, x));
+        Goto(&loop);
       }
     }
   }
 
-  assembler->Bind(&do_clz32);
+  Bind(&do_clz32);
   {
     Node* x_value = var_clz32_x.value();
-    Node* value = assembler->Word32Clz(x_value);
-    Node* result = assembler->ChangeInt32ToTagged(value);
-    assembler->Return(result);
+    Node* value = Word32Clz(x_value);
+    Node* result = ChangeInt32ToTagged(value);
+    Return(result);
   }
 }
 
 // ES6 section 20.2.2.12 Math.cos ( x )
-void Builtins::Generate_MathCos(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Cos(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathCos, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Cos);
 }
 
 // ES6 section 20.2.2.13 Math.cosh ( x )
-void Builtins::Generate_MathCosh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Cosh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathCosh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Cosh);
 }
 
 // ES6 section 20.2.2.14 Math.exp ( x )
-void Builtins::Generate_MathExp(CodeStubAssembler* assembler) {
-  using compiler::Node;
+TF_BUILTIN(MathExp, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Exp);
+}
 
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Exp(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+// ES6 section 20.2.2.15 Math.expm1 ( x )
+TF_BUILTIN(MathExpm1, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Expm1);
 }
 
 // ES6 section 20.2.2.16 Math.floor ( x )
-void Builtins::Generate_MathFloor(CodeStubAssembler* assembler) {
-  Generate_MathRoundingOperation(assembler, &CodeStubAssembler::Float64Floor);
+TF_BUILTIN(MathFloor, MathBuiltinsAssembler) {
+  MathRoundingOperation(&CodeStubAssembler::Float64Floor);
 }
 
 // ES6 section 20.2.2.17 Math.fround ( x )
-void Builtins::Generate_MathFround(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value32 = assembler->TruncateFloat64ToFloat32(x_value);
-  Node* value = assembler->ChangeFloat32ToFloat64(value32);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathFround, CodeStubAssembler) {
+  Node* x = Parameter(1);
+  Node* context = Parameter(4);
+  Node* x_value = TruncateTaggedToFloat64(context, x);
+  Node* value32 = TruncateFloat64ToFloat32(x_value);
+  Node* value = ChangeFloat32ToFloat64(value32);
+  Node* result = AllocateHeapNumberWithValue(value);
+  Return(result);
 }
 
 // ES6 section 20.2.2.18 Math.hypot ( value1, value2, ...values )
 BUILTIN(MathHypot) {
   HandleScope scope(isolate);
   int const length = args.length() - 1;
-  if (length == 0) return Smi::FromInt(0);
+  if (length == 0) return Smi::kZero;
   DCHECK_LT(0, length);
   double max = 0;
   bool one_arg_is_nan = false;
   List<double> abs_values(length);
   for (int i = 0; i < length; i++) {
-    Handle<Object> x = args.at<Object>(i + 1);
+    Handle<Object> x = args.at(i + 1);
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, x, Object::ToNumber(x));
     double abs_value = std::abs(x->Number());
 
@@ -341,11 +340,11 @@ BUILTIN(MathHypot) {
   }
 
   if (one_arg_is_nan) {
-    return *isolate->factory()->nan_value();
+    return isolate->heap()->nan_value();
   }
 
   if (max == 0) {
-    return Smi::FromInt(0);
+    return Smi::kZero;
   }
   DCHECK_GT(max, 0);
 
@@ -365,188 +364,134 @@ BUILTIN(MathHypot) {
 }
 
 // ES6 section 20.2.2.19 Math.imul ( x, y )
-void Builtins::Generate_MathImul(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* y = assembler->Parameter(2);
-  Node* context = assembler->Parameter(5);
-  Node* x_value = assembler->TruncateTaggedToWord32(context, x);
-  Node* y_value = assembler->TruncateTaggedToWord32(context, y);
-  Node* value = assembler->Int32Mul(x_value, y_value);
-  Node* result = assembler->ChangeInt32ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathImul, CodeStubAssembler) {
+  Node* x = Parameter(1);
+  Node* y = Parameter(2);
+  Node* context = Parameter(5);
+  Node* x_value = TruncateTaggedToWord32(context, x);
+  Node* y_value = TruncateTaggedToWord32(context, y);
+  Node* value = Int32Mul(x_value, y_value);
+  Node* result = ChangeInt32ToTagged(value);
+  Return(result);
 }
 
 // ES6 section 20.2.2.20 Math.log ( x )
-void Builtins::Generate_MathLog(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Log(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathLog, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Log);
 }
 
 // ES6 section 20.2.2.21 Math.log1p ( x )
-void Builtins::Generate_MathLog1p(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Log1p(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathLog1p, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Log1p);
 }
 
 // ES6 section 20.2.2.22 Math.log10 ( x )
-void Builtins::Generate_MathLog10(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Log10(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathLog10, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Log10);
 }
 
 // ES6 section 20.2.2.23 Math.log2 ( x )
-void Builtins::Generate_MathLog2(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Log2(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
-}
-
-// ES6 section 20.2.2.15 Math.expm1 ( x )
-void Builtins::Generate_MathExpm1(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Expm1(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathLog2, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Log2);
 }
 
 // ES6 section 20.2.2.26 Math.pow ( x, y )
-void Builtins::Generate_MathPow(CodeStubAssembler* assembler) {
-  using compiler::Node;
+TF_BUILTIN(MathPow, CodeStubAssembler) {
+  Node* x = Parameter(1);
+  Node* y = Parameter(2);
+  Node* context = Parameter(5);
+  Node* x_value = TruncateTaggedToFloat64(context, x);
+  Node* y_value = TruncateTaggedToFloat64(context, y);
+  Node* value = Float64Pow(x_value, y_value);
+  Node* result = ChangeFloat64ToTagged(value);
+  Return(result);
+}
 
-  Node* x = assembler->Parameter(1);
-  Node* y = assembler->Parameter(2);
-  Node* context = assembler->Parameter(5);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* y_value = assembler->TruncateTaggedToFloat64(context, y);
-  Node* value = assembler->Float64Pow(x_value, y_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+// ES6 section 20.2.2.27 Math.random ( )
+TF_BUILTIN(MathRandom, CodeStubAssembler) {
+  Node* context = Parameter(3);
+  Node* native_context = LoadNativeContext(context);
+
+  // Load cache index.
+  Variable smi_index(this, MachineRepresentation::kTagged);
+  smi_index.Bind(
+      LoadContextElement(native_context, Context::MATH_RANDOM_INDEX_INDEX));
+
+  // Cached random numbers are exhausted if index is 0. Go to slow path.
+  Label if_cached(this);
+  GotoIf(SmiAbove(smi_index.value(), SmiConstant(Smi::kZero)), &if_cached);
+
+  // Cache exhausted, populate the cache. Return value is the new index.
+  smi_index.Bind(CallRuntime(Runtime::kGenerateRandomNumbers, context));
+  Goto(&if_cached);
+
+  // Compute next index by decrement.
+  Bind(&if_cached);
+  Node* new_smi_index = SmiSub(smi_index.value(), SmiConstant(Smi::FromInt(1)));
+  StoreContextElement(native_context, Context::MATH_RANDOM_INDEX_INDEX,
+                      new_smi_index);
+
+  // Load and return next cached random number.
+  Node* array =
+      LoadContextElement(native_context, Context::MATH_RANDOM_CACHE_INDEX);
+  Node* random = LoadFixedDoubleArrayElement(
+      array, new_smi_index, MachineType::Float64(), 0, SMI_PARAMETERS);
+  Return(AllocateHeapNumberWithValue(random));
 }
 
 // ES6 section 20.2.2.28 Math.round ( x )
-void Builtins::Generate_MathRound(CodeStubAssembler* assembler) {
-  Generate_MathRoundingOperation(assembler, &CodeStubAssembler::Float64Round);
+TF_BUILTIN(MathRound, MathBuiltinsAssembler) {
+  MathRoundingOperation(&CodeStubAssembler::Float64Round);
 }
 
 // ES6 section 20.2.2.29 Math.sign ( x )
-void Builtins::Generate_MathSign(CodeStubAssembler* assembler) {
-  typedef CodeStubAssembler::Label Label;
-  using compiler::Node;
-
+TF_BUILTIN(MathSign, CodeStubAssembler) {
   // Convert the {x} value to a Number.
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
+  Node* x = Parameter(1);
+  Node* context = Parameter(4);
+  Node* x_value = TruncateTaggedToFloat64(context, x);
 
   // Return -1 if {x} is negative, 1 if {x} is positive, or {x} itself.
-  Label if_xisnegative(assembler), if_xispositive(assembler);
-  assembler->GotoIf(
-      assembler->Float64LessThan(x_value, assembler->Float64Constant(0.0)),
-      &if_xisnegative);
-  assembler->GotoIf(
-      assembler->Float64LessThan(assembler->Float64Constant(0.0), x_value),
-      &if_xispositive);
-  assembler->Return(assembler->ChangeFloat64ToTagged(x_value));
+  Label if_xisnegative(this), if_xispositive(this);
+  GotoIf(Float64LessThan(x_value, Float64Constant(0.0)), &if_xisnegative);
+  GotoIf(Float64LessThan(Float64Constant(0.0), x_value), &if_xispositive);
+  Return(ChangeFloat64ToTagged(x_value));
 
-  assembler->Bind(&if_xisnegative);
-  assembler->Return(assembler->SmiConstant(Smi::FromInt(-1)));
+  Bind(&if_xisnegative);
+  Return(SmiConstant(Smi::FromInt(-1)));
 
-  assembler->Bind(&if_xispositive);
-  assembler->Return(assembler->SmiConstant(Smi::FromInt(1)));
+  Bind(&if_xispositive);
+  Return(SmiConstant(Smi::FromInt(1)));
 }
 
 // ES6 section 20.2.2.30 Math.sin ( x )
-void Builtins::Generate_MathSin(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Sin(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathSin, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Sin);
 }
 
 // ES6 section 20.2.2.31 Math.sinh ( x )
-void Builtins::Generate_MathSinh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Sinh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathSinh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Sinh);
 }
 
 // ES6 section 20.2.2.32 Math.sqrt ( x )
-void Builtins::Generate_MathSqrt(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Sqrt(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathSqrt, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Sqrt);
 }
 
 // ES6 section 20.2.2.33 Math.tan ( x )
-void Builtins::Generate_MathTan(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Tan(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathTan, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Tan);
 }
 
 // ES6 section 20.2.2.34 Math.tanh ( x )
-void Builtins::Generate_MathTanh(CodeStubAssembler* assembler) {
-  using compiler::Node;
-
-  Node* x = assembler->Parameter(1);
-  Node* context = assembler->Parameter(4);
-  Node* x_value = assembler->TruncateTaggedToFloat64(context, x);
-  Node* value = assembler->Float64Tanh(x_value);
-  Node* result = assembler->ChangeFloat64ToTagged(value);
-  assembler->Return(result);
+TF_BUILTIN(MathTanh, MathBuiltinsAssembler) {
+  MathUnaryOperation(&CodeStubAssembler::Float64Tanh);
 }
 
 // ES6 section 20.2.2.35 Math.trunc ( x )
-void Builtins::Generate_MathTrunc(CodeStubAssembler* assembler) {
-  Generate_MathRoundingOperation(assembler, &CodeStubAssembler::Float64Trunc);
+TF_BUILTIN(MathTrunc, MathBuiltinsAssembler) {
+  MathRoundingOperation(&CodeStubAssembler::Float64Trunc);
 }
 
 void Builtins::Generate_MathMax(MacroAssembler* masm) {

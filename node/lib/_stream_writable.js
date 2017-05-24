@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
@@ -15,13 +36,6 @@ const Buffer = require('buffer').Buffer;
 util.inherits(Writable, Stream);
 
 function nop() {}
-
-function WriteReq(chunk, encoding, cb) {
-  this.chunk = chunk;
-  this.encoding = encoding;
-  this.callback = cb;
-  this.next = null;
-}
 
 function WritableState(options, stream) {
   options = options || {};
@@ -41,7 +55,7 @@ function WritableState(options, stream) {
   this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
 
   // cast to ints.
-  this.highWaterMark = ~~this.highWaterMark;
+  this.highWaterMark = Math.floor(this.highWaterMark);
 
   // drain event flag.
   this.needDrain = false;
@@ -113,7 +127,9 @@ function WritableState(options, stream) {
 
   // allocate the first CorkedRequest, there is always
   // one allocated and free to use, and we maintain at most two
-  this.corkedRequestsFree = new CorkedRequest(this);
+  var corkReq = { next: null, entry: null, finish: undefined };
+  corkReq.finish = onCorkedFinish.bind(undefined, corkReq, this);
+  this.corkedRequestsFree = corkReq;
 }
 
 WritableState.prototype.getBuffer = function getBuffer() {
@@ -130,7 +146,7 @@ Object.defineProperty(WritableState.prototype, 'buffer', {
   get: internalUtil.deprecate(function() {
     return this.getBuffer();
   }, '_writableState.buffer is deprecated. Use _writableState.getBuffer ' +
-     'instead.')
+     'instead.', 'DEP0003')
 });
 
 // Test _writableState for inheritance to account for Duplex streams,
@@ -289,9 +305,11 @@ function decodeChunk(state, chunk, encoding) {
 // If we return false, then we need a drain event, so set that flag.
 function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
   if (!isBuf) {
-    chunk = decodeChunk(state, chunk, encoding);
-    if (chunk instanceof Buffer)
+    var newChunk = decodeChunk(state, chunk, encoding);
+    if (chunk !== newChunk) {
       encoding = 'buffer';
+      chunk = newChunk;
+    }
   }
   var len = state.objectMode ? 1 : chunk.length;
 
@@ -304,7 +322,7 @@ function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
 
   if (state.writing || state.corked) {
     var last = state.lastBufferedRequest;
-    state.lastBufferedRequest = new WriteReq(chunk, encoding, cb);
+    state.lastBufferedRequest = { chunk, encoding, callback: cb, next: null };
     if (last) {
       last.next = state.lastBufferedRequest;
     } else {
@@ -423,7 +441,9 @@ function clearBuffer(stream, state) {
       state.corkedRequestsFree = holder.next;
       holder.next = null;
     } else {
-      state.corkedRequestsFree = new CorkedRequest(state);
+      var corkReq = { next: null, entry: null, finish: undefined };
+      corkReq.finish = onCorkedFinish.bind(undefined, corkReq, state);
+      state.corkedRequestsFree = corkReq;
     }
   } else {
     // Slow case, write chunks one-by-one
@@ -526,14 +546,6 @@ function endWritable(stream, state, cb) {
   }
   state.ended = true;
   stream.writable = false;
-}
-
-// It seems a linked list but it is not
-// there will be only 2 of these for each stream
-function CorkedRequest(state) {
-  this.next = null;
-  this.entry = null;
-  this.finish = onCorkedFinish.bind(undefined, this, state);
 }
 
 function onCorkedFinish(corkReq, state, err) {

@@ -1,12 +1,11 @@
 'use strict';
 
+const errors = require('internal/errors');
 const StringDecoder = require('string_decoder').StringDecoder;
-const Buffer = require('buffer').Buffer;
 const EventEmitter = require('events');
 const net = require('net');
 const dgram = require('dgram');
 const util = require('util');
-const constants = process.binding('constants').os.signals;
 const assert = require('assert');
 
 const Process = process.binding('process_wrap').Process;
@@ -17,17 +16,12 @@ const TTY = process.binding('tty_wrap').TTY;
 const TCP = process.binding('tcp_wrap').TCP;
 const UDP = process.binding('udp_wrap').UDP;
 const SocketList = require('internal/socket_list');
+const { isUint8Array } = process.binding('util');
+const { convertToValidSignal } = require('internal/util');
 
 const errnoException = util._errnoException;
 const SocketListSend = SocketList.SocketListSend;
 const SocketListReceive = SocketList.SocketListReceive;
-
-module.exports = {
-  ChildProcess,
-  setupChannel,
-  _validateStdio,
-  getSocketList
-};
 
 // this object contain function to convert TCP objects to native handle objects
 // and back again.
@@ -164,8 +158,6 @@ const handleConversion = {
 function ChildProcess() {
   EventEmitter.call(this);
 
-  var self = this;
-
   this._closesNeeded = 1;
   this._closesGot = 0;
   this.connected = false;
@@ -178,41 +170,31 @@ function ChildProcess() {
   this._handle = new Process();
   this._handle.owner = this;
 
-  this._handle.onexit = function(exitCode, signalCode) {
-    //
-    // follow 0.4.x behaviour:
-    //
-    // - normally terminated processes don't touch this.signalCode
-    // - signaled processes don't touch this.exitCode
-    //
-    // new in 0.9.x:
-    //
-    // - spawn failures are reported with exitCode < 0
-    //
-    var syscall = self.spawnfile ? 'spawn ' + self.spawnfile : 'spawn';
-    var err = (exitCode < 0) ? errnoException(exitCode, syscall) : null;
-
+  this._handle.onexit = (exitCode, signalCode) => {
     if (signalCode) {
-      self.signalCode = signalCode;
+      this.signalCode = signalCode;
     } else {
-      self.exitCode = exitCode;
+      this.exitCode = exitCode;
     }
 
-    if (self.stdin) {
-      self.stdin.destroy();
+    if (this.stdin) {
+      this.stdin.destroy();
     }
 
-    self._handle.close();
-    self._handle = null;
+    this._handle.close();
+    this._handle = null;
 
     if (exitCode < 0) {
-      if (self.spawnfile)
-        err.path = self.spawnfile;
+      var syscall = this.spawnfile ? 'spawn ' + this.spawnfile : 'spawn';
+      const err = errnoException(exitCode, syscall);
 
-      err.spawnargs = self.spawnargs.slice(1);
-      self.emit('error', err);
+      if (this.spawnfile)
+        err.path = this.spawnfile;
+
+      err.spawnargs = this.spawnargs.slice(1);
+      this.emit('error', err);
     } else {
-      self.emit('exit', self.exitCode, self.signalCode);
+      this.emit('exit', this.exitCode, this.signalCode);
     }
 
     // if any of the stdio streams have not been touched,
@@ -221,9 +203,9 @@ function ChildProcess() {
     // Do it on nextTick so that the user has one last chance
     // to consume the output, if for example they only want to
     // start reading the data once the process exits.
-    process.nextTick(flushStdio, self);
+    process.nextTick(flushStdio, this);
 
-    maybeClose(self);
+    maybeClose(this);
   };
 }
 util.inherits(ChildProcess, EventEmitter);
@@ -269,10 +251,13 @@ function getHandleWrapType(stream) {
 
 
 ChildProcess.prototype.spawn = function(options) {
-  const self = this;
   var ipc;
   var ipcFd;
   var i;
+
+  if (options === null || typeof options !== 'object')
+    throw new TypeError('"options" must be an object');
+
   // If no `stdio` option was given - use default
   var stdio = options.stdio || 'pipe';
 
@@ -284,12 +269,25 @@ ChildProcess.prototype.spawn = function(options) {
 
   if (ipc !== undefined) {
     // Let child process know about opened IPC channel
-    options.envPairs = options.envPairs || [];
+    if (options.envPairs === undefined)
+      options.envPairs = [];
+    else if (!Array.isArray(options.envPairs))
+      throw new TypeError('"envPairs" must be an array');
+
     options.envPairs.push('NODE_CHANNEL_FD=' + ipcFd);
   }
 
-  this.spawnfile = options.file;
-  this.spawnargs = options.args;
+  if (typeof options.file === 'string')
+    this.spawnfile = options.file;
+  else
+    throw new TypeError('"file" must be a string');
+
+  if (Array.isArray(options.args))
+    this.spawnargs = options.args;
+  else if (options.args === undefined)
+    this.spawnargs = [];
+  else
+    throw new TypeError('"args" must be an array');
 
   var err = this._handle.spawn(options);
 
@@ -298,7 +296,7 @@ ChildProcess.prototype.spawn = function(options) {
       err === uv.UV_EMFILE ||
       err === uv.UV_ENFILE ||
       err === uv.UV_ENOENT) {
-    process.nextTick(onErrorNT, self, err);
+    process.nextTick(onErrorNT, this, err);
     // There is no point in continuing when we've hit EMFILE or ENFILE
     // because we won't be able to set up the stdio file descriptors.
     // It's kind of silly that the de facto spec for ENOENT (the test suite)
@@ -326,20 +324,20 @@ ChildProcess.prototype.spawn = function(options) {
     if (stream.type === 'ignore') continue;
 
     if (stream.ipc) {
-      self._closesNeeded++;
+      this._closesNeeded++;
       continue;
     }
 
     if (stream.handle) {
       // when i === 0 - we're dealing with stdin
       // (which is the only one writable pipe)
-      stream.socket = createSocket(self.pid !== 0 ?
+      stream.socket = createSocket(this.pid !== 0 ?
           stream.handle : null, i > 0);
 
-      if (i > 0 && self.pid !== 0) {
-        self._closesNeeded++;
-        stream.socket.on('close', function() {
-          maybeClose(self);
+      if (i > 0 && this.pid !== 0) {
+        this._closesNeeded++;
+        stream.socket.on('close', () => {
+          maybeClose(this);
         });
       }
     }
@@ -352,9 +350,10 @@ ChildProcess.prototype.spawn = function(options) {
   this.stderr = stdio.length >= 3 && stdio[2].socket !== undefined ?
       stdio[2].socket : null;
 
-  this.stdio = stdio.map(function(stdio) {
-    return stdio.socket === undefined ? null : stdio.socket;
-  });
+  this.stdio = [];
+
+  for (i = 0; i < stdio.length; i++)
+    this.stdio.push(stdio[i].socket === undefined ? null : stdio[i].socket);
 
   // Add .send() method and start listening for IPC data
   if (ipc !== undefined) setupChannel(this, ipc);
@@ -369,19 +368,9 @@ function onErrorNT(self, err) {
 
 
 ChildProcess.prototype.kill = function(sig) {
-  var signal;
 
-  if (sig === 0) {
-    signal = 0;
-  } else if (!sig) {
-    signal = constants['SIGTERM'];
-  } else {
-    signal = constants[sig];
-  }
-
-  if (signal === undefined) {
-    throw new Error('Unknown signal: ' + sig);
-  }
+  const signal = sig === 0 ? sig :
+    convertToValidSignal(sig === undefined ? 'SIGTERM' : sig);
 
   if (this._handle) {
     var err = this._handle.kill(signal);
@@ -551,7 +540,7 @@ function setupChannel(target, channel) {
       options = undefined;
     } else if (options !== undefined &&
                (options === null || typeof options !== 'object')) {
-      throw new TypeError('"options" argument must be an object');
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'Object');
     }
 
     options = Object.assign({swallowErrors: false}, options);
@@ -559,7 +548,7 @@ function setupChannel(target, channel) {
     if (this.connected) {
       return this._send(message, handle, options, callback);
     }
-    const ex = new Error('channel closed');
+    const ex = new errors.Error('ERR_IPC_CHANNEL_CLOSED');
     if (typeof callback === 'function') {
       process.nextTick(callback, ex);
     } else {
@@ -572,7 +561,7 @@ function setupChannel(target, channel) {
     assert(this.connected || this.channel);
 
     if (message === undefined)
-      throw new TypeError('"message" argument cannot be undefined');
+      throw new errors.TypeError('ERR_MISSING_ARGS', 'message');
 
     // Support legacy function signature
     if (typeof options === 'boolean') {
@@ -599,7 +588,7 @@ function setupChannel(target, channel) {
       } else if (handle instanceof UDP) {
         message.type = 'dgram.Native';
       } else {
-        throw new TypeError('This handle type can\'t be sent');
+        throw new errors.TypeError('ERR_INVALID_HANDLE_TYPE');
       }
 
       // Queue-up message and handle if we haven't received ACK yet.
@@ -699,7 +688,7 @@ function setupChannel(target, channel) {
 
   target.disconnect = function() {
     if (!this.connected) {
-      this.emit('error', new Error('IPC channel is already disconnected'));
+      this.emit('error', new errors.Error('ERR_IPC_DISCONNECTED'));
       return;
     }
 
@@ -779,11 +768,12 @@ function _validateStdio(stdio, sync) {
       case 'ignore': stdio = ['ignore', 'ignore', 'ignore']; break;
       case 'pipe': stdio = ['pipe', 'pipe', 'pipe']; break;
       case 'inherit': stdio = [0, 1, 2]; break;
-      default: throw new TypeError('Incorrect value of stdio option: ' + stdio);
+      default:
+        throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'stdio', stdio);
     }
   } else if (!Array.isArray(stdio)) {
-    throw new TypeError('Incorrect value of stdio option: ' +
-        util.inspect(stdio));
+    throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                               'stdio', util.inspect(stdio));
   }
 
   // At least 3 stdio will be created
@@ -796,12 +786,10 @@ function _validateStdio(stdio, sync) {
   // (i.e. PipeWraps or fds)
   stdio = stdio.reduce(function(acc, stdio, i) {
     function cleanup() {
-      acc.filter(function(stdio) {
-        return stdio.type === 'pipe' || stdio.type === 'ipc';
-      }).forEach(function(stdio) {
-        if (stdio.handle)
-          stdio.handle.close();
-      });
+      for (var i = 0; i < acc.length; i++) {
+        if ((acc[i].type === 'pipe' || acc[i].type === 'ipc') && acc[i].handle)
+          acc[i].handle.close();
+      }
     }
 
     // Defaults
@@ -827,9 +815,9 @@ function _validateStdio(stdio, sync) {
         // Cleanup previously created pipes
         cleanup();
         if (!sync)
-          throw new Error('Child process can have only one IPC pipe');
+          throw new errors.Error('ERR_IPC_ONE_PIPE');
         else
-          throw new Error('You cannot use IPC with synchronous forks');
+          throw new errors.Error('ERR_IPC_SYNC_FORK');
       }
 
       ipc = new Pipe(true);
@@ -861,23 +849,23 @@ function _validateStdio(stdio, sync) {
         wrapType: getHandleWrapType(handle),
         handle: handle
       });
-    } else if (stdio instanceof Buffer || typeof stdio === 'string') {
+    } else if (isUint8Array(stdio) || typeof stdio === 'string') {
       if (!sync) {
         cleanup();
-        throw new TypeError('Asynchronous forks do not support Buffer input: ' +
-            util.inspect(stdio));
+        throw new errors.TypeError('ERR_INVALID_SYNC_FORK_INPUT',
+                                   util.inspect(stdio));
       }
     } else {
       // Cleanup
       cleanup();
-      throw new TypeError('Incorrect value for stdio stream: ' +
-          util.inspect(stdio));
+      throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'stdio',
+                                 util.inspect(stdio));
     }
 
     return acc;
   }, []);
 
-  return {stdio: stdio, ipc: ipc, ipcFd: ipcFd};
+  return { stdio, ipc, ipcFd };
 }
 
 
@@ -899,3 +887,10 @@ function maybeClose(subprocess) {
     subprocess.emit('close', subprocess.exitCode, subprocess.signalCode);
   }
 }
+
+module.exports = {
+  ChildProcess,
+  setupChannel,
+  _validateStdio,
+  getSocketList
+};

@@ -82,7 +82,8 @@ std::ostream& operator<<(std::ostream& os, const Result<T>& result) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ErrorCode& error_code);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const ErrorCode& error_code);
 
 // A helper for generating error messages that bubble up to JS exceptions.
 class V8_EXPORT_PRIVATE ErrorThrower {
@@ -91,15 +92,17 @@ class V8_EXPORT_PRIVATE ErrorThrower {
       : isolate_(isolate), context_(context) {}
   ~ErrorThrower();
 
-  PRINTF_FORMAT(2, 3) void Error(const char* fmt, ...);
   PRINTF_FORMAT(2, 3) void TypeError(const char* fmt, ...);
   PRINTF_FORMAT(2, 3) void RangeError(const char* fmt, ...);
+  PRINTF_FORMAT(2, 3) void CompileError(const char* fmt, ...);
+  PRINTF_FORMAT(2, 3) void LinkError(const char* fmt, ...);
+  PRINTF_FORMAT(2, 3) void RuntimeError(const char* fmt, ...);
 
   template <typename T>
-  void Failed(const char* error, Result<T>& result) {
+  void CompileFailed(const char* error, Result<T>& result) {
     std::ostringstream str;
     str << error << result;
-    Error("%s", str.str().c_str());
+    CompileError("%s", str.str().c_str());
   }
 
   i::Handle<i::Object> Reify() {
@@ -109,6 +112,7 @@ class V8_EXPORT_PRIVATE ErrorThrower {
   }
 
   bool error() const { return !exception_.is_null(); }
+  bool wasm_error() { return wasm_error_; }
 
  private:
   void Format(i::Handle<i::JSFunction> constructor, const char* fmt, va_list);
@@ -116,6 +120,7 @@ class V8_EXPORT_PRIVATE ErrorThrower {
   i::Isolate* isolate_;
   const char* context_;
   i::Handle<i::Object> exception_;
+  bool wasm_error_ = false;
 };
 }  // namespace wasm
 }  // namespace internal

@@ -4,32 +4,12 @@ function init(list) {
   list._idleNext = list;
   list._idlePrev = list;
 }
-exports.init = init;
-
-// create a new linked list
-function create() {
-  const list = { _idleNext: null, _idlePrev: null };
-  init(list);
-  return list;
-}
-exports.create = create;
 
 // show the most idle item
 function peek(list) {
   if (list._idlePrev === list) return null;
   return list._idlePrev;
 }
-exports.peek = peek;
-
-
-// remove the most idle item from the list
-function shift(list) {
-  const first = list._idlePrev;
-  remove(first);
-  return first;
-}
-exports.shift = shift;
-
 
 // remove a item from its list
 function remove(item) {
@@ -44,8 +24,6 @@ function remove(item) {
   item._idleNext = null;
   item._idlePrev = null;
 }
-exports.remove = remove;
-
 
 // remove a item from its list and place at the end.
 function append(list, item) {
@@ -62,10 +40,15 @@ function append(list, item) {
   list._idleNext._idlePrev = item;
   list._idleNext = item;
 }
-exports.append = append;
-
 
 function isEmpty(list) {
   return list._idleNext === list;
 }
-exports.isEmpty = isEmpty;
+
+module.exports = {
+  init,
+  peek,
+  remove,
+  append,
+  isEmpty
+};

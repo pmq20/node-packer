@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "src/allocation.h"
@@ -15,6 +16,7 @@
 #include "src/ast/ast-types.h"
 #include "src/ast/ast.h"
 #include "src/effects.h"
+#include "src/messages.h"
 #include "src/type-info.h"
 #include "src/zone/zone-containers.h"
 #include "src/zone/zone.h"
@@ -25,6 +27,7 @@ namespace wasm {
 
 class AsmType;
 class AsmTyperHarnessBuilder;
+class SourceLayoutTracker;
 
 class AsmTyper final {
  public:
@@ -66,15 +69,28 @@ class AsmTyper final {
   };
 
   ~AsmTyper() = default;
-  AsmTyper(Isolate* isolate, Zone* zone, Script* script, FunctionLiteral* root);
+  AsmTyper(Isolate* isolate, Zone* zone, Handle<Script> script,
+           FunctionLiteral* root);
 
   bool Validate();
+  // Do asm.js validation in phases (to interleave with conversion to wasm).
+  bool ValidateBeforeFunctionsPhase();
+  bool ValidateInnerFunction(FunctionDeclaration* decl);
+  bool ValidateAfterFunctionsPhase();
+  void ClearFunctionNodeTypes();
 
-  const char* error_message() const { return error_message_; }
+  Handle<JSMessageObject> error_message() const { return error_message_; }
+  const MessageLocation* message_location() const { return &message_location_; }
+
+  AsmType* TriggerParsingError();
 
   AsmType* TypeOf(AstNode* node) const;
   AsmType* TypeOf(Variable* v) const;
   StandardMember VariableAsStandardMember(Variable* var);
+
+  // Allow the asm-wasm-builder to trigger failures (for interleaved
+  // validating).
+  AsmType* FailWithMessage(const char* text);
 
   typedef std::unordered_set<StandardMember, std::hash<int> > StdlibSet;
 
@@ -102,6 +118,13 @@ class AsmTyper final {
       kInvalidMutability,
       kLocal,
       kMutableGlobal,
+      // *VIOLATION* We support const variables in asm.js, as per the
+      //
+      // https://discourse.wicg.io/t/allow-const-global-variables/684
+      //
+      // Global const variables are treated as if they were numeric literals,
+      // and can be used anywhere a literal can be used.
+      kConstGlobal,
       kImmutableGlobal,
     };
 
@@ -114,7 +137,8 @@ class AsmTyper final {
     }
 
     bool IsGlobal() const {
-      return mutability_ == kImmutableGlobal || mutability_ == kMutableGlobal;
+      return mutability_ == kImmutableGlobal || mutability_ == kConstGlobal ||
+             mutability_ == kMutableGlobal;
     }
 
     bool IsStdlib() const { return standard_member_ == kStdlib; }
@@ -122,7 +146,7 @@ class AsmTyper final {
     bool IsHeap() const { return standard_member_ == kHeap; }
 
     void MarkDefined() { missing_definition_ = false; }
-    void FirstForwardUseIs(VariableProxy* var);
+    void SetFirstForwardUse(const MessageLocation& source_location);
 
     StandardMember standard_member() const { return standard_member_; }
     void set_standard_member(StandardMember standard_member) {
@@ -137,7 +161,7 @@ class AsmTyper final {
 
     bool missing_definition() const { return missing_definition_; }
 
-    VariableProxy* first_forward_use() const { return first_forward_use_; }
+    const MessageLocation* source_location() { return &source_location_; }
 
     static VariableInfo* ForSpecialSymbol(Zone* zone,
                                           StandardMember standard_member);
@@ -149,9 +173,8 @@ class AsmTyper final {
     // missing_definition_ is set to true for forward definition - i.e., use
     // before definition.
     bool missing_definition_ = false;
-    // first_forward_use_ holds the AST node that first referenced this
-    // VariableInfo. Used for error messages.
-    VariableProxy* first_forward_use_ = nullptr;
+    // Used for error messages.
+    MessageLocation source_location_;
   };
 
   // RAII-style manager for the in_function_ member variable.
@@ -191,6 +214,40 @@ class AsmTyper final {
     DISALLOW_IMPLICIT_CONSTRUCTORS(FlattenedStatements);
   };
 
+  class SourceLayoutTracker {
+   public:
+    SourceLayoutTracker() = default;
+    bool IsValid() const;
+    void AddUseAsm(const AstNode& node) { use_asm_.AddNewElement(node); }
+    void AddGlobal(const AstNode& node) { globals_.AddNewElement(node); }
+    void AddFunction(const AstNode& node) { functions_.AddNewElement(node); }
+    void AddTable(const AstNode& node) { tables_.AddNewElement(node); }
+    void AddExport(const AstNode& node) { exports_.AddNewElement(node); }
+
+   private:
+    class Section {
+     public:
+      Section() = default;
+      Section(const Section&) = default;
+      Section& operator=(const Section&) = default;
+
+      void AddNewElement(const AstNode& node);
+      bool IsPrecededBy(const Section& other) const;
+
+     private:
+      int start_ = kNoSourcePosition;
+      int end_ = kNoSourcePosition;
+    };
+
+    Section use_asm_;
+    Section globals_;
+    Section functions_;
+    Section tables_;
+    Section exports_;
+
+    DISALLOW_COPY_AND_ASSIGN(SourceLayoutTracker);
+  };
+
   using ObjectTypeMap = ZoneMap<std::string, VariableInfo*>;
   void InitializeStdlib();
   void SetTypeOf(AstNode* node, AsmType* type);
@@ -212,7 +269,10 @@ class AsmTyper final {
   // validation failure.
 
   // 6.1 ValidateModule
-  AsmType* ValidateModule(FunctionLiteral* fun);
+  AsmType* ValidateModuleBeforeFunctionsPhase(FunctionLiteral* fun);
+  AsmType* ValidateModuleFunction(FunctionDeclaration* fun_decl);
+  AsmType* ValidateModuleFunctions(FunctionLiteral* fun);
+  AsmType* ValidateModuleAfterFunctionsPhase(FunctionLiteral* fun);
   AsmType* ValidateGlobalDeclaration(Assignment* assign);
   // 6.2 ValidateExport
   AsmType* ExportType(VariableProxy* fun_export);
@@ -304,17 +364,18 @@ class AsmTyper final {
   AsmType* ParameterTypeAnnotations(Variable* parameter,
                                     Expression* annotation);
   // 5.2 ReturnTypeAnnotations
-  AsmType* ReturnTypeAnnotations(ReturnStatement* statement);
+  AsmType* ReturnTypeAnnotations(Expression* ret_expr);
   // 5.4 VariableTypeAnnotations
   // 5.5 GlobalVariableTypeAnnotations
-  AsmType* VariableTypeAnnotations(Expression* initializer,
-                                   bool global = false);
+  AsmType* VariableTypeAnnotations(
+      Expression* initializer,
+      VariableInfo::Mutability global = VariableInfo::kLocal);
   AsmType* ImportExpression(Property* import);
   AsmType* NewHeapView(CallNew* new_heap_view);
 
   Isolate* isolate_;
   Zone* zone_;
-  Script* script_;
+  Handle<Script> script_;
   FunctionLiteral* root_;
   bool in_function_ = false;
 
@@ -336,12 +397,18 @@ class AsmTyper final {
 
   std::uintptr_t stack_limit_;
   bool stack_overflow_ = false;
-  ZoneMap<AstNode*, AsmType*> node_types_;
-  static const int kErrorMessageLimit = 100;
+  std::unordered_map<AstNode*, AsmType*> module_node_types_;
+  std::unordered_map<AstNode*, AsmType*> function_node_types_;
+  static const int kErrorMessageLimit = 128;
   AsmType* fround_type_;
   AsmType* ffi_type_;
-  char error_message_[kErrorMessageLimit];
+  Handle<JSMessageObject> error_message_;
+  MessageLocation message_location_;
   StdlibSet stdlib_uses_;
+
+  SourceLayoutTracker source_layout_;
+  ReturnStatement* module_return_;
+  ZoneVector<Assignment*> function_pointer_tables_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(AsmTyper);
 };

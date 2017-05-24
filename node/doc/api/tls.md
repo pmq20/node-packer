@@ -712,7 +712,10 @@ added: v0.11.8
 -->
 
 * `options` {Object}
-  * `rejectUnauthorized` {boolean}
+  * `rejectUnauthorized` {boolean} If not `false`, the server certificate is verified
+    against the list of supplied CAs. An `'error'` event is emitted if
+    verification fails; `err.code` contains the OpenSSL error code. Defaults to
+    `true`.
   * `requestCert`
 * `callback` {Function} A function that will be called when the renegotiation
   request has been completed.
@@ -749,6 +752,13 @@ decrease overall server throughput.
 <!-- YAML
 added: v0.11.3
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/12839
+    description: The `lookup` option is supported now.
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/11984
+    description: The `ALPNProtocols` and `NPNProtocols` options can
+                 be `Uint8Array`s now.
   - version: v5.3.0, v4.7.0
     pr-url: https://github.com/nodejs/node/pull/4246
     description: The `secureContext` option is supported now.
@@ -769,20 +779,22 @@ changes:
     connection/disconnection/destruction of `socket` is the user's
     responsibility, calling `tls.connect()` will not cause `net.connect()` to be
     called.
-  * `rejectUnauthorized` {boolean} If `true`, the server certificate is verified
+  * `rejectUnauthorized` {boolean} If not `false`, the server certificate is verified
     against the list of supplied CAs. An `'error'` event is emitted if
     verification fails; `err.code` contains the OpenSSL error code. Defaults to
     `true`.
-  * `NPNProtocols` {string[]|Buffer[]} An array of strings or `Buffer`s
-    containing supported NPN protocols. `Buffer`s should have the format
-    `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first
-    byte is the length of the next protocol name. Passing an array is usually
-    much simpler, e.g. `['hello', 'world']`.
-  * `ALPNProtocols`: {string[]|Buffer[]} An array of strings or `Buffer`s
-    containing the supported ALPN protocols. `Buffer`s should have the format
-    `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte
-    is the length of the next protocol name. Passing an array is usually much
-    simpler: `['hello', 'world']`.)
+  * `NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array}
+    An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or
+    `Uint8Array` containing supported NPN protocols. `Buffer`s should have the
+    format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the
+    first byte is the length of the next protocol name. Passing an array is
+    usually much simpler, e.g. `['hello', 'world']`.
+  * `ALPNProtocols`: {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array}
+    An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or
+    `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have
+    the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the
+    first byte is the length of the next protocol name. Passing an array is
+    usually much simpler, e.g. `['hello', 'world']`.
   * `servername`: {string} Server name for the SNI (Server Name Indication) TLS
     extension.
   * `checkServerIdentity(servername, cert)` {Function} A callback function
@@ -800,6 +812,7 @@ changes:
     `tls.createSecureContext()`. *Note*: In effect, all
     [`tls.createSecureContext()`][] options can be provided, but they will be
     _completely ignored_ unless the `secureContext` option is missing.
+  * `lookup`: {Function} Custom lookup function. Defaults to [`dns.lookup()`][].
   * ...: Optional [`tls.createSecureContext()`][] options can be provided, see
     the `secureContext` option for more information.
 * `callback` {Function}
@@ -999,6 +1012,10 @@ publicly trusted list of CAs as given in
 <!-- YAML
 added: v0.3.2
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/11984
+    description: The `ALPNProtocols` and `NPNProtocols` options can
+                 be `Uint8Array`s now.
   - version: v5.0.0
     pr-url: https://github.com/nodejs/node/pull/2564
     description: ALPN options are supported now.
@@ -1012,13 +1029,23 @@ changes:
   * `requestCert` {boolean} If `true` the server will request a certificate from
     clients that connect and attempt to verify that certificate. Defaults to
     `false`.
-  * `rejectUnauthorized` {boolean} If `true` the server will reject any
+  * `rejectUnauthorized` {boolean} If not `false` the server will reject any
     connection which is not authorized with the list of supplied CAs. This
-    option only has an effect if `requestCert` is `true`. Defaults to `false`.
-  * `NPNProtocols` {string[]|Buffer} An array of strings or a `Buffer` naming
-    possible NPN protocols. (Protocols should be ordered by their priority.)
-  * `ALPNProtocols` {string[]|Buffer} An array of strings or a `Buffer` naming
-    possible ALPN protocols. (Protocols should be ordered by their priority.)
+    option only has an effect if `requestCert` is `true`. Defaults to `true`.
+  * `NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array}
+    An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or
+    `Uint8Array` containing supported NPN protocols. `Buffer`s should have the
+    format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the
+    first byte is the length of the next protocol name. Passing an array is
+    usually much simpler, e.g. `['hello', 'world']`.
+    (Protocols should be ordered by their priority.)
+  * `ALPNProtocols`: {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array}
+    An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or
+    `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have
+    the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the
+    first byte is the length of the next protocol name. Passing an array is
+    usually much simpler, e.g. `['hello', 'world']`.
+    (Protocols should be ordered by their priority.)
     When the server receives both NPN and ALPN extensions from the client,
     ALPN takes precedence over NPN and the server does not send an NPN
     extension to the client.
@@ -1190,9 +1217,8 @@ changes:
   opened as a server.
 * `requestCert` {boolean} `true` to specify whether a server should request a
   certificate from a connecting client. Only applies when `isServer` is `true`.
-* `rejectUnauthorized` {boolean} `true` to specify whether a server should
-  automatically reject clients with invalid certificates. Only applies when
-  `isServer` is `true`.
+* `rejectUnauthorized` {boolean} If not `false` a server automatically reject clients
+   with invalid certificates. Only applies when `isServer` is `true`.
 * `options`
   * `secureContext`: An optional TLS context object from
      [`tls.createSecureContext()`][]
@@ -1237,6 +1263,19 @@ secure_socket = tls.TLSSocket(socket, options);
 
 where `secure_socket` has the same API as `pair.cleartext`.
 
+[`'secureConnect'`]: #tls_event_secureconnect
+[`'secureConnection'`]: #tls_event_secureconnection
+[`crypto.getCurves()`]: crypto.html#crypto_crypto_getcurves
+[`net.Server.address()`]: net.html#net_server_address
+[`net.Server`]: net.html#net_class_net_server
+[`net.Socket`]: net.html#net_class_net_socket
+[`tls.DEFAULT_ECDH_CURVE`]: #tls_tls_default_ecdh_curve
+[`tls.TLSSocket.getPeerCertificate()`]: #tls_tlssocket_getpeercertificate_detailed
+[`tls.TLSSocket`]: #tls_class_tls_tlssocket
+[`tls.connect()`]: #tls_tls_connect_options_callback
+[`tls.createSecureContext()`]: #tls_tls_createsecurecontext_options
+[`tls.createSecurePair()`]: #tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options
+[`tls.createServer()`]: #tls_tls_createserver_options_secureconnectionlistener
 [Chrome's 'modern cryptography' setting]: https://www.chromium.org/Home/chromium-security/education/tls#TOC-Cipher-Suites
 [DHE]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
 [ECDHE]: https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman
@@ -1252,20 +1291,8 @@ where `secure_socket` has the same API as `pair.cleartext`.
 [Stream]: stream.html#stream_stream
 [TLS Session Tickets]: https://www.ietf.org/rfc/rfc5077.txt
 [TLS recommendations]: https://wiki.mozilla.org/Security/Server_Side_TLS
-[`'secureConnect'`]: #tls_event_secureconnect
-[`'secureConnection'`]: #tls_event_secureconnection
-[`crypto.getCurves()`]: crypto.html#crypto_crypto_getcurves
-[`net.Server.address()`]: net.html#net_server_address
-[`net.Server`]: net.html#net_class_net_server
-[`net.Socket`]: net.html#net_class_net_socket
-[`tls.DEFAULT_ECDH_CURVE`]: #tls_tls_default_ecdh_curve
-[`tls.TLSSocket.getPeerCertificate()`]: #tls_tlssocket_getpeercertificate_detailed
-[`tls.TLSSocket`]: #tls_class_tls_tlssocket
-[`tls.connect()`]: #tls_tls_connect_options_callback
-[`tls.createSecureContext()`]: #tls_tls_createsecurecontext_options
-[`tls.createSecurePair()`]: #tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options
-[`tls.createServer()`]: #tls_tls_createserver_options_secureconnectionlistener
 [asn1.js]: https://npmjs.org/package/asn1.js
 [modifying the default cipher suite]: #tls_modifying_the_default_tls_cipher_suite
 [specific attacks affecting larger AES key sizes]: https://www.schneier.com/blog/archives/2009/07/another_new_aes.html
 [tls.Server]: #tls_class_tls_server
+[`dns.lookup()`]: dns.html#dns_dns_lookup_hostname_options_callback

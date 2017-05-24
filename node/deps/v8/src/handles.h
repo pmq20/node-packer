@@ -5,6 +5,8 @@
 #ifndef V8_HANDLES_H_
 #define V8_HANDLES_H_
 
+#include <type_traits>
+
 #include "include/v8.h"
 #include "src/base/functional.h"
 #include "src/base/macros.h"
@@ -91,11 +93,10 @@ class Handle final : public HandleBase {
  public:
   V8_INLINE explicit Handle(T** location = nullptr)
       : HandleBase(reinterpret_cast<Object**>(location)) {
-    Object* a = nullptr;
-    T* b = nullptr;
-    a = b;  // Fake assignment to enforce type checks.
-    USE(a);
+    // Type check:
+    static_assert(std::is_base_of<Object, T>::value, "static type violation");
   }
+
   V8_INLINE explicit Handle(T* object) : Handle(object, object->GetIsolate()) {}
   V8_INLINE Handle(T* object, Isolate* isolate) : HandleBase(object, isolate) {}
 
@@ -330,7 +331,7 @@ class HandleScope {
 
 
 // Forward declarations for CanonicalHandleScope.
-template <typename V>
+template <typename V, class AllocationPolicy>
 class IdentityMap;
 class RootIndexMap;
 
@@ -340,18 +341,18 @@ class RootIndexMap;
 // This does not apply to nested inner HandleScopes unless a nested
 // CanonicalHandleScope is introduced. Handles are only canonicalized within
 // the same CanonicalHandleScope, but not across nested ones.
-class CanonicalHandleScope final {
+class V8_EXPORT_PRIVATE CanonicalHandleScope final {
  public:
   explicit CanonicalHandleScope(Isolate* isolate);
   ~CanonicalHandleScope();
 
  private:
-  V8_EXPORT_PRIVATE Object** Lookup(Object* object);
+  Object** Lookup(Object* object);
 
   Isolate* isolate_;
   Zone zone_;
   RootIndexMap* root_index_map_;
-  IdentityMap<Object**>* identity_map_;
+  IdentityMap<Object**, ZoneAllocationPolicy>* identity_map_;
   // Ordinary nested handle scopes within the current one are not canonical.
   int canonical_level_;
   // We may have nested canonical scopes. Handles are canonical within each one.
@@ -360,8 +361,7 @@ class CanonicalHandleScope final {
   friend class HandleScope;
 };
 
-
-class DeferredHandleScope final {
+class V8_EXPORT_PRIVATE DeferredHandleScope final {
  public:
   explicit DeferredHandleScope(Isolate* isolate);
   // The DeferredHandles object returned stores the Handles created

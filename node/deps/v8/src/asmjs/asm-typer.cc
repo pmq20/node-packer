@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "include/v8.h"
 #include "src/v8.h"
 
 #include "src/asmjs/asm-types.h"
@@ -17,17 +18,33 @@
 #include "src/base/bits.h"
 #include "src/codegen.h"
 #include "src/globals.h"
+#include "src/messages.h"
+#include "src/objects-inl.h"
 #include "src/utils.h"
+#include "src/vector.h"
 
-#define FAIL(node, msg)                                        \
-  do {                                                         \
-    int line = node->position() == kNoSourcePosition           \
-                   ? -1                                        \
-                   : script_->GetLineNumber(node->position()); \
-    base::OS::SNPrintF(error_message_, sizeof(error_message_), \
-                       "asm: line %d: %s\n", line + 1, msg);   \
-    return AsmType::None();                                    \
+#define FAIL_LOCATION_RAW(location, msg)                               \
+  do {                                                                 \
+    Handle<String> message(                                            \
+        isolate_->factory()->InternalizeOneByteString(msg));           \
+    error_message_ = MessageHandler::MakeMessageObject(                \
+        isolate_, MessageTemplate::kAsmJsInvalid, (location), message, \
+        Handle<JSArray>::null());                                      \
+    error_message_->set_error_level(v8::Isolate::kMessageWarning);     \
+    message_location_ = *(location);                                   \
+    return AsmType::None();                                            \
   } while (false)
+
+#define FAIL_RAW(node, msg)                                                \
+  do {                                                                     \
+    MessageLocation location(script_, node->position(), node->position()); \
+    FAIL_LOCATION_RAW(&location, msg);                                     \
+  } while (false)
+
+#define FAIL_LOCATION(location, msg) \
+  FAIL_LOCATION_RAW(location, STATIC_CHAR_VECTOR(msg))
+
+#define FAIL(node, msg) FAIL_RAW(node, STATIC_CHAR_VECTOR(msg))
 
 #define RECURSE(call)                                             \
   do {                                                            \
@@ -91,6 +108,53 @@ Statement* AsmTyper::FlattenedStatements::Next() {
 }
 
 // ----------------------------------------------------------------------------
+// Implementation of AsmTyper::SourceLayoutTracker
+
+bool AsmTyper::SourceLayoutTracker::IsValid() const {
+  const Section* kAllSections[] = {&use_asm_, &globals_, &functions_, &tables_,
+                                   &exports_};
+  for (size_t ii = 0; ii < arraysize(kAllSections); ++ii) {
+    const auto& curr_section = *kAllSections[ii];
+    for (size_t jj = ii + 1; jj < arraysize(kAllSections); ++jj) {
+      if (curr_section.IsPrecededBy(*kAllSections[jj])) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+void AsmTyper::SourceLayoutTracker::Section::AddNewElement(
+    const AstNode& node) {
+  const int node_pos = node.position();
+  if (start_ == kNoSourcePosition) {
+    start_ = node_pos;
+  } else {
+    start_ = std::min(start_, node_pos);
+  }
+  if (end_ == kNoSourcePosition) {
+    end_ = node_pos;
+  } else {
+    end_ = std::max(end_, node_pos);
+  }
+}
+
+bool AsmTyper::SourceLayoutTracker::Section::IsPrecededBy(
+    const Section& other) const {
+  if (start_ == kNoSourcePosition) {
+    DCHECK_EQ(end_, kNoSourcePosition);
+    return false;
+  }
+  if (other.start_ == kNoSourcePosition) {
+    DCHECK_EQ(other.end_, kNoSourcePosition);
+    return false;
+  }
+  DCHECK_LE(start_, end_);
+  DCHECK_LE(other.start_, other.end_);
+  return other.start_ <= end_;
+}
+
+// ----------------------------------------------------------------------------
 // Implementation of AsmTyper::VariableInfo
 
 AsmTyper::VariableInfo* AsmTyper::VariableInfo::ForSpecialSymbol(
@@ -112,16 +176,16 @@ AsmTyper::VariableInfo* AsmTyper::VariableInfo::Clone(Zone* zone) const {
   return new_var_info;
 }
 
-void AsmTyper::VariableInfo::FirstForwardUseIs(VariableProxy* var) {
-  DCHECK(first_forward_use_ == nullptr);
+void AsmTyper::VariableInfo::SetFirstForwardUse(
+    const MessageLocation& source_location) {
   missing_definition_ = true;
-  first_forward_use_ = var;
+  source_location_ = source_location;
 }
 
 // ----------------------------------------------------------------------------
 // Implementation of AsmTyper
 
-AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Script* script,
+AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Handle<Script> script,
                    FunctionLiteral* root)
     : isolate_(isolate),
       zone_(zone),
@@ -137,9 +201,9 @@ AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Script* script,
       local_scope_(ZoneHashMap::kDefaultHashMapCapacity,
                    ZoneAllocationPolicy(zone)),
       stack_limit_(isolate->stack_guard()->real_climit()),
-      node_types_(zone_),
       fround_type_(AsmType::FroundType(zone_)),
-      ffi_type_(AsmType::FFIType(zone_)) {
+      ffi_type_(AsmType::FFIType(zone_)),
+      function_pointer_tables_(zone_) {
   InitializeStdlib();
 }
 
@@ -283,6 +347,9 @@ void AsmTyper::InitializeStdlib() {
 AsmTyper::VariableInfo* AsmTyper::ImportLookup(Property* import) {
   auto* obj = import->obj();
   auto* key = import->key()->AsLiteral();
+  if (key == nullptr) {
+    return nullptr;
+  }
 
   ObjectTypeMap* stdlib = &stdlib_types_;
   if (auto* obj_as_property = obj->AsProperty()) {
@@ -319,6 +386,10 @@ AsmTyper::VariableInfo* AsmTyper::ImportLookup(Property* import) {
     return obj_info;
   }
 
+  if (!key->IsPropertyName()) {
+    return nullptr;
+  }
+
   std::unique_ptr<char[]> aname = key->AsPropertyName()->ToCString();
   ObjectTypeMap::iterator i = stdlib->find(std::string(aname.get()));
   if (i == stdlib->end()) {
@@ -345,7 +416,8 @@ AsmTyper::VariableInfo* AsmTyper::Lookup(Variable* variable) const {
 }
 
 void AsmTyper::AddForwardReference(VariableProxy* proxy, VariableInfo* info) {
-  info->FirstForwardUseIs(proxy);
+  MessageLocation location(script_, proxy->position(), proxy->position());
+  info->SetFirstForwardUse(location);
   forward_definitions_.push_back(info);
 }
 
@@ -390,21 +462,57 @@ bool AsmTyper::AddLocal(Variable* variable, VariableInfo* info) {
 
 void AsmTyper::SetTypeOf(AstNode* node, AsmType* type) {
   DCHECK_NE(type, AsmType::None());
-  DCHECK(node_types_.find(node) == node_types_.end());
-  node_types_.insert(std::make_pair(node, type));
+  if (in_function_) {
+    DCHECK(function_node_types_.find(node) == function_node_types_.end());
+    function_node_types_.insert(std::make_pair(node, type));
+  } else {
+    DCHECK(module_node_types_.find(node) == module_node_types_.end());
+    module_node_types_.insert(std::make_pair(node, type));
+  }
 }
 
+namespace {
+bool IsLiteralDouble(Literal* literal) {
+  return literal->raw_value()->IsNumber() &&
+         literal->raw_value()->ContainsDot();
+}
+
+bool IsLiteralInt(Literal* literal) {
+  return literal->raw_value()->IsNumber() &&
+         !literal->raw_value()->ContainsDot();
+}
+
+bool IsLiteralMinus1(Literal* literal) {
+  return IsLiteralInt(literal) && literal->raw_value()->AsNumber() == -1.0;
+}
+
+bool IsLiteral1Dot0(Literal* literal) {
+  return IsLiteralDouble(literal) && literal->raw_value()->AsNumber() == 1.0;
+}
+
+bool IsLiteral0(Literal* literal) {
+  return IsLiteralInt(literal) && literal->raw_value()->AsNumber() == 0.0;
+}
+}  // namespace
+
 AsmType* AsmTyper::TypeOf(AstNode* node) const {
-  auto node_type_iter = node_types_.find(node);
-  if (node_type_iter != node_types_.end()) {
+  auto node_type_iter = function_node_types_.find(node);
+  if (node_type_iter != function_node_types_.end()) {
+    return node_type_iter->second;
+  }
+  node_type_iter = module_node_types_.find(node);
+  if (node_type_iter != module_node_types_.end()) {
     return node_type_iter->second;
   }
 
   // Sometimes literal nodes are not added to the node_type_ map simply because
   // their are not visited with ValidateExpression().
   if (auto* literal = node->AsLiteral()) {
-    if (literal->raw_value()->ContainsDot()) {
+    if (IsLiteralDouble(literal)) {
       return AsmType::Double();
+    }
+    if (!IsLiteralInt(literal)) {
+      return AsmType::None();
     }
     uint32_t u;
     if (literal->value()->ToUint32(&u)) {
@@ -433,12 +541,40 @@ AsmTyper::StandardMember AsmTyper::VariableAsStandardMember(Variable* var) {
   return member;
 }
 
+AsmType* AsmTyper::FailWithMessage(const char* text) {
+  FAIL_RAW(root_, OneByteVector(text));
+}
+
 bool AsmTyper::Validate() {
-  if (!AsmType::None()->IsExactly(ValidateModule(root_))) {
+  return ValidateBeforeFunctionsPhase() &&
+         !AsmType::None()->IsExactly(ValidateModuleFunctions(root_)) &&
+         ValidateAfterFunctionsPhase();
+}
+
+bool AsmTyper::ValidateBeforeFunctionsPhase() {
+  if (!AsmType::None()->IsExactly(ValidateModuleBeforeFunctionsPhase(root_))) {
     return true;
   }
   return false;
 }
+
+bool AsmTyper::ValidateInnerFunction(FunctionDeclaration* fun_decl) {
+  if (!AsmType::None()->IsExactly(ValidateModuleFunction(fun_decl))) {
+    return true;
+  }
+  return false;
+}
+
+bool AsmTyper::ValidateAfterFunctionsPhase() {
+  if (!AsmType::None()->IsExactly(ValidateModuleAfterFunctionsPhase(root_))) {
+    return true;
+  }
+  return false;
+}
+
+void AsmTyper::ClearFunctionNodeTypes() { function_node_types_.clear(); }
+
+AsmType* AsmTyper::TriggerParsingError() { FAIL(root_, "Parsing error"); }
 
 namespace {
 bool IsUseAsmDirective(Statement* first_statement) {
@@ -477,97 +613,18 @@ Assignment* ExtractInitializerExpression(Statement* statement) {
 }  // namespace
 
 // 6.1 ValidateModule
-namespace {
-// SourceLayoutTracker keeps track of the start and end positions of each
-// section in the asm.js source. The sections should not overlap, otherwise the
-// asm.js source is invalid.
-class SourceLayoutTracker {
- public:
-  SourceLayoutTracker() = default;
-
-  bool IsValid() const {
-    const Section* kAllSections[] = {&use_asm_, &globals_, &functions_,
-                                     &tables_, &exports_};
-    for (size_t ii = 0; ii < arraysize(kAllSections); ++ii) {
-      const auto& curr_section = *kAllSections[ii];
-      for (size_t jj = ii + 1; jj < arraysize(kAllSections); ++jj) {
-        if (curr_section.OverlapsWith(*kAllSections[jj])) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  void AddUseAsm(const AstNode& node) { use_asm_.AddNewElement(node); }
-
-  void AddGlobal(const AstNode& node) { globals_.AddNewElement(node); }
-
-  void AddFunction(const AstNode& node) { functions_.AddNewElement(node); }
-
-  void AddTable(const AstNode& node) { tables_.AddNewElement(node); }
-
-  void AddExport(const AstNode& node) { exports_.AddNewElement(node); }
-
- private:
-  class Section {
-   public:
-    Section() = default;
-    Section(const Section&) = default;
-    Section& operator=(const Section&) = default;
-
-    void AddNewElement(const AstNode& node) {
-      const int node_pos = node.position();
-      if (start_ == kNoSourcePosition) {
-        start_ = node_pos;
-      } else {
-        start_ = std::max(start_, node_pos);
-      }
-      if (end_ == kNoSourcePosition) {
-        end_ = node_pos;
-      } else {
-        end_ = std::max(end_, node_pos);
-      }
-    }
-
-    bool OverlapsWith(const Section& other) const {
-      if (start_ == kNoSourcePosition) {
-        DCHECK_EQ(end_, kNoSourcePosition);
-        return false;
-      }
-      if (other.start_ == kNoSourcePosition) {
-        DCHECK_EQ(other.end_, kNoSourcePosition);
-        return false;
-      }
-      return other.start_ < end_ || other.end_ < start_;
-    }
-
-   private:
-    int start_ = kNoSourcePosition;
-    int end_ = kNoSourcePosition;
-  };
-
-  Section use_asm_;
-  Section globals_;
-  Section functions_;
-  Section tables_;
-  Section exports_;
-
-  DISALLOW_COPY_AND_ASSIGN(SourceLayoutTracker);
-};
-}  // namespace
-
-AsmType* AsmTyper::ValidateModule(FunctionLiteral* fun) {
-  SourceLayoutTracker source_layout;
-
+AsmType* AsmTyper::ValidateModuleBeforeFunctionsPhase(FunctionLiteral* fun) {
   DeclarationScope* scope = fun->scope();
   if (!scope->is_function_scope()) FAIL(fun, "Not at function scope.");
+  if (scope->inner_scope_calls_eval()) {
+    FAIL(fun, "Invalid asm.js module using eval.");
+  }
   if (!ValidAsmIdentifier(fun->name()))
     FAIL(fun, "Invalid asm.js identifier in module name.");
   module_name_ = fun->name();
 
   // Allowed parameters: Stdlib, FFI, Mem
-  static const uint32_t MaxModuleParameters = 3;
+  static const int MaxModuleParameters = 3;
   if (scope->num_parameters() > MaxModuleParameters) {
     FAIL(fun, "asm.js modules may not have more than three parameters.");
   }
@@ -594,7 +651,6 @@ AsmType* AsmTyper::ValidateModule(FunctionLiteral* fun) {
     }
   }
 
-  ZoneVector<Assignment*> function_pointer_tables(zone_);
   FlattenedStatements iter(zone_, fun->body());
   auto* use_asm_directive = iter.Next();
   if (use_asm_directive == nullptr) {
@@ -616,8 +672,8 @@ AsmType* AsmTyper::ValidateModule(FunctionLiteral* fun) {
   if (!IsUseAsmDirective(use_asm_directive)) {
     FAIL(fun, "Missing \"use asm\".");
   }
-  source_layout.AddUseAsm(*use_asm_directive);
-  ReturnStatement* module_return = nullptr;
+  source_layout_.AddUseAsm(*use_asm_directive);
+  module_return_ = nullptr;
 
   // *VIOLATION* The spec states that globals should be followed by function
   // declarations, which should be followed by function pointer tables, followed
@@ -627,46 +683,58 @@ AsmType* AsmTyper::ValidateModule(FunctionLiteral* fun) {
     if (auto* assign = ExtractInitializerExpression(current)) {
       if (assign->value()->IsArrayLiteral()) {
         // Save function tables for later validation.
-        function_pointer_tables.push_back(assign);
+        function_pointer_tables_.push_back(assign);
       } else {
         RECURSE(ValidateGlobalDeclaration(assign));
-        source_layout.AddGlobal(*assign);
+        source_layout_.AddGlobal(*assign);
       }
       continue;
     }
 
     if (auto* current_as_return = current->AsReturnStatement()) {
-      if (module_return != nullptr) {
+      if (module_return_ != nullptr) {
         FAIL(fun, "Multiple export statements.");
       }
-      module_return = current_as_return;
-      source_layout.AddExport(*module_return);
+      module_return_ = current_as_return;
+      source_layout_.AddExport(*module_return_);
       continue;
     }
 
     FAIL(current, "Invalid top-level statement in asm.js module.");
   }
 
-  ZoneList<Declaration*>* decls = scope->declarations();
+  return AsmType::Int();  // Any type that is not AsmType::None();
+}
 
-  for (int ii = 0; ii < decls->length(); ++ii) {
-    Declaration* decl = decls->at(ii);
+AsmType* AsmTyper::ValidateModuleFunction(FunctionDeclaration* fun_decl) {
+  RECURSE(ValidateFunction(fun_decl));
+  source_layout_.AddFunction(*fun_decl);
 
+  return AsmType::Int();  // Any type that is not AsmType::None();
+}
+
+AsmType* AsmTyper::ValidateModuleFunctions(FunctionLiteral* fun) {
+  DeclarationScope* scope = fun->scope();
+  Declaration::List* decls = scope->declarations();
+  for (Declaration* decl : *decls) {
     if (FunctionDeclaration* fun_decl = decl->AsFunctionDeclaration()) {
-      RECURSE(ValidateFunction(fun_decl));
-      source_layout.AddFunction(*fun_decl);
+      RECURSE(ValidateModuleFunction(fun_decl));
       continue;
     }
   }
 
-  for (auto* function_table : function_pointer_tables) {
+  return AsmType::Int();  // Any type that is not AsmType::None();
+}
+
+AsmType* AsmTyper::ValidateModuleAfterFunctionsPhase(FunctionLiteral* fun) {
+  for (auto* function_table : function_pointer_tables_) {
     RECURSE(ValidateFunctionTable(function_table));
-    source_layout.AddTable(*function_table);
+    source_layout_.AddTable(*function_table);
   }
 
-  for (int ii = 0; ii < decls->length(); ++ii) {
-    Declaration* decl = decls->at(ii);
-
+  DeclarationScope* scope = fun->scope();
+  Declaration::List* decls = scope->declarations();
+  for (Declaration* decl : *decls) {
     if (decl->IsFunctionDeclaration()) {
       continue;
     }
@@ -687,20 +755,20 @@ AsmType* AsmTyper::ValidateModule(FunctionLiteral* fun) {
   }
 
   // 6.2 ValidateExport
-  if (module_return == nullptr) {
+  if (module_return_ == nullptr) {
     FAIL(fun, "Missing asm.js module export.");
   }
 
   for (auto* forward_def : forward_definitions_) {
     if (forward_def->missing_definition()) {
-      FAIL(forward_def->first_forward_use(),
-           "Missing definition for forward declared identifier.");
+      FAIL_LOCATION(forward_def->source_location(),
+                    "Missing definition for forward declared identifier.");
     }
   }
 
-  RECURSE(ValidateExport(module_return));
+  RECURSE(ValidateExport(module_return_));
 
-  if (!source_layout.IsValid()) {
+  if (!source_layout_.IsValid()) {
     FAIL(fun, "Invalid asm.js source code layout.");
   }
 
@@ -719,8 +787,7 @@ bool IsDoubleAnnotation(BinaryOperation* binop) {
     return false;
   }
 
-  return right_as_literal->raw_value()->ContainsDot() &&
-         right_as_literal->raw_value()->AsNumber() == 1.0;
+  return IsLiteral1Dot0(right_as_literal);
 }
 
 bool IsIntAnnotation(BinaryOperation* binop) {
@@ -733,8 +800,7 @@ bool IsIntAnnotation(BinaryOperation* binop) {
     return false;
   }
 
-  return !right_as_literal->raw_value()->ContainsDot() &&
-         right_as_literal->raw_value()->AsNumber() == 0.0;
+  return IsLiteral0(right_as_literal);
 }
 }  // namespace
 
@@ -762,9 +828,15 @@ AsmType* AsmTyper::ValidateGlobalDeclaration(Assignment* assign) {
   bool global_variable = false;
   if (value->IsLiteral() || value->IsCall()) {
     AsmType* type = nullptr;
-    RECURSE(type = VariableTypeAnnotations(value, true));
+    VariableInfo::Mutability mutability;
+    if (target_variable->mode() == CONST) {
+      mutability = VariableInfo::kConstGlobal;
+    } else {
+      mutability = VariableInfo::kMutableGlobal;
+    }
+    RECURSE(type = VariableTypeAnnotations(value, mutability));
     target_info = new (zone_) VariableInfo(type);
-    target_info->set_mutability(VariableInfo::kMutableGlobal);
+    target_info->set_mutability(mutability);
     global_variable = true;
   } else if (value->IsProperty()) {
     target_info = ImportLookup(value->AsProperty());
@@ -828,6 +900,23 @@ AsmType* AsmTyper::ValidateGlobalDeclaration(Assignment* assign) {
     RECURSE(type = NewHeapView(value->AsCallNew()));
     target_info = new (zone_) VariableInfo(type);
     target_info->set_mutability(VariableInfo::kImmutableGlobal);
+  } else if (auto* proxy = value->AsVariableProxy()) {
+    auto* var_info = Lookup(proxy->var());
+
+    if (var_info == nullptr) {
+      FAIL(value, "Undeclared identifier in global initializer");
+    }
+
+    if (var_info->mutability() != VariableInfo::kConstGlobal) {
+      FAIL(value, "Identifier used to initialize a global must be a const");
+    }
+
+    target_info = new (zone_) VariableInfo(var_info->type());
+    if (target_variable->mode() == CONST) {
+      target_info->set_mutability(VariableInfo::kConstGlobal);
+    } else {
+      target_info->set_mutability(VariableInfo::kMutableGlobal);
+    }
   }
 
   if (target_info == nullptr) {
@@ -876,6 +965,10 @@ AsmType* AsmTyper::ExportType(VariableProxy* fun_export) {
     FAIL(fun_export, "Module export is not an asm.js function.");
   }
 
+  if (!fun_export->var()->is_function()) {
+    FAIL(fun_export, "Module exports must be function declarations.");
+  }
+
   return type;
 }
 
@@ -896,6 +989,10 @@ AsmType* AsmTyper::ValidateExport(ReturnStatement* exports) {
         FAIL(prop->key(),
              "Only normal object properties may be used in the export object "
              "literal.");
+      }
+      if (!prop->key()->AsLiteral()->IsPropertyName()) {
+        FAIL(prop->key(),
+             "Exported functions must have valid identifier names.");
       }
 
       auto* export_obj = prop->value()->AsVariableProxy();
@@ -999,7 +1096,7 @@ AsmType* AsmTyper::ValidateFunctionTable(Assignment* assign) {
     FAIL(assign, "Identifier redefined (function table name).");
   }
 
-  if (target_info_table->length() != pointers->length()) {
+  if (static_cast<int>(target_info_table->length()) != pointers->length()) {
     FAIL(assign, "Function table size mismatch.");
   }
 
@@ -1053,7 +1150,7 @@ AsmType* AsmTyper::ValidateFunction(FunctionDeclaration* fun_decl) {
     }
     auto* param = proxy->var();
     if (param->location() != VariableLocation::PARAMETER ||
-        param->index() != annotated_parameters) {
+        param->index() != static_cast<int>(annotated_parameters)) {
       // Done with parameters.
       break;
     }
@@ -1073,9 +1170,10 @@ AsmType* AsmTyper::ValidateFunction(FunctionDeclaration* fun_decl) {
     parameter_types.push_back(type);
     SetTypeOf(proxy, type);
     SetTypeOf(expr, type);
+    SetTypeOf(expr->value(), type);
   }
 
-  if (annotated_parameters != fun->parameter_count()) {
+  if (static_cast<int>(annotated_parameters) != fun->parameter_count()) {
     FAIL(fun_decl, "Incorrect parameter type annotations.");
   }
 
@@ -1128,17 +1226,19 @@ AsmType* AsmTyper::ValidateFunction(FunctionDeclaration* fun_decl) {
       if (as_block != nullptr) {
         statements = as_block->statements();
       } else {
-        // We don't check whether AsReturnStatement() below returns non-null --
-        // we leave that to the ReturnTypeAnnotations method.
-        RECURSE(return_type_ =
-                    ReturnTypeAnnotations(last_statement->AsReturnStatement()));
+        if (auto* ret_statement = last_statement->AsReturnStatement()) {
+          RECURSE(return_type_ =
+                      ReturnTypeAnnotations(ret_statement->expression()));
+        } else {
+          return_type_ = AsmType::Void();
+        }
       }
     }
   } while (return_type_ == AsmType::None());
 
   DCHECK(return_type_->IsReturnType());
 
-  for (auto* decl : *fun->scope()->declarations()) {
+  for (Declaration* decl : *fun->scope()->declarations()) {
     auto* var_decl = decl->AsVariableDeclaration();
     if (var_decl == nullptr) {
       FAIL(decl, "Functions may only define inner variables.");
@@ -1424,7 +1524,7 @@ bool ExtractInt32CaseLabel(CaseClause* clause, int32_t* lbl) {
     return false;
   }
 
-  if (lbl_expr->raw_value()->ContainsDot()) {
+  if (!IsLiteralInt(lbl_expr)) {
     return false;
   }
 
@@ -1521,8 +1621,7 @@ bool IsInvert(BinaryOperation* binop) {
     return false;
   }
 
-  return !right_as_literal->raw_value()->ContainsDot() &&
-         right_as_literal->raw_value()->AsNumber() == -1.0;
+  return IsLiteralMinus1(right_as_literal);
 }
 
 bool IsUnaryMinus(BinaryOperation* binop) {
@@ -1536,8 +1635,7 @@ bool IsUnaryMinus(BinaryOperation* binop) {
     return false;
   }
 
-  return !right_as_literal->raw_value()->ContainsDot() &&
-         right_as_literal->raw_value()->AsNumber() == -1.0;
+  return IsLiteralMinus1(right_as_literal);
 }
 }  // namespace
 
@@ -1642,7 +1740,15 @@ AsmType* AsmTyper::ValidateCommaExpression(BinaryOperation* comma) {
   auto* right = comma->right();
   AsmType* right_type = nullptr;
   if (auto* right_as_call = right->AsCall()) {
-    RECURSE(right_type = ValidateCall(AsmType::Void(), right_as_call));
+    RECURSE(right_type = ValidateFloatCoercion(right_as_call));
+    if (right_type != AsmType::Float()) {
+      // right_type == nullptr <-> right_as_call is not a call to fround.
+      DCHECK(right_type == nullptr);
+      RECURSE(right_type = ValidateCall(AsmType::Void(), right_as_call));
+      // Unnanotated function call to something that's not fround must be a call
+      // to a void function.
+      DCHECK_EQ(right_type, AsmType::Void());
+    }
   } else {
     RECURSE(right_type = ValidateExpression(right));
   }
@@ -1658,7 +1764,7 @@ AsmType* AsmTyper::ValidateNumericLiteral(Literal* literal) {
     return AsmType::Void();
   }
 
-  if (literal->raw_value()->ContainsDot()) {
+  if (IsLiteralDouble(literal)) {
     return AsmType::Double();
   }
 
@@ -1674,7 +1780,7 @@ AsmType* AsmTyper::ValidateNumericLiteral(Literal* literal) {
     if (!literal->value()->ToInt32(&value)) {
       FAIL(literal, "Integer literal is out of range.");
     }
-    // *VIOLATION* Not really a violation, but rather a different in the
+    // *VIOLATION* Not really a violation, but rather a difference in
     // validation. The spec handles -NumericLiteral in ValidateUnaryExpression,
     // but V8's AST represents the negative literals as Literals.
     return AsmType::Signed();
@@ -1838,7 +1944,7 @@ bool IsIntishLiteralFactor(Expression* expr, int32_t* factor) {
     return false;
   }
 
-  if (literal->raw_value()->ContainsDot()) {
+  if (!IsLiteralInt(literal)) {
     return false;
   }
 
@@ -2178,12 +2284,12 @@ AsmType* AsmTyper::ValidateBitwiseORExpression(BinaryOperation* binop) {
       RECURSE(type = ValidateCall(AsmType::Signed(), left_as_call));
       return type;
     }
-
-    // TODO(jpp): at this point we know that binop is expr|0. We could sinply
-    //
-    // RECURSE(t = ValidateExpression(left));
-    // FAIL_IF(t->IsNotA(Intish));
-    // return Signed;
+    AsmType* left_type;
+    RECURSE(left_type = ValidateExpression(left));
+    if (!left_type->IsA(AsmType::Intish())) {
+      FAIL(left, "Left side of |0 annotation must be intish.");
+    }
+    return AsmType::Signed();
   }
 
   auto* right = binop->right();
@@ -2247,7 +2353,7 @@ bool ExtractIndirectCallMask(Expression* expr, uint32_t* value) {
     return false;
   }
 
-  if (as_literal->raw_value()->ContainsDot()) {
+  if (!IsLiteralInt(as_literal)) {
     return false;
   }
 
@@ -2303,6 +2409,9 @@ AsmType* AsmTyper::ValidateCall(AsmType* return_type, Call* call) {
         DCHECK(false);
         FAIL(call, "Redeclared global identifier.");
       }
+      if (call->GetCallType() != Call::OTHER_CALL) {
+        FAIL(call, "Invalid call of existing global function.");
+      }
       SetTypeOf(call_var_proxy, reinterpret_cast<AsmType*>(call_type));
       SetTypeOf(call, return_type);
       return return_type;
@@ -2331,6 +2440,10 @@ AsmType* AsmTyper::ValidateCall(AsmType* return_type, Call* call) {
 
     if (!callee_type->CanBeInvokedWith(return_type, args)) {
       FAIL(call, "Function invocation does not match function type.");
+    }
+
+    if (call->GetCallType() != Call::OTHER_CALL) {
+      FAIL(call, "Invalid forward call of global function.");
     }
 
     SetTypeOf(call_var_proxy, call_var_info->type());
@@ -2391,6 +2504,9 @@ AsmType* AsmTyper::ValidateCall(AsmType* return_type, Call* call) {
         DCHECK(false);
         FAIL(call, "Redeclared global identifier.");
       }
+      if (call->GetCallType() != Call::KEYED_PROPERTY_CALL) {
+        FAIL(call, "Invalid call of existing function table.");
+      }
       SetTypeOf(call_property, reinterpret_cast<AsmType*>(call_type));
       SetTypeOf(call, return_type);
       return return_type;
@@ -2415,6 +2531,9 @@ AsmType* AsmTyper::ValidateCall(AsmType* return_type, Call* call) {
            "signature.");
     }
 
+    if (call->GetCallType() != Call::KEYED_PROPERTY_CALL) {
+      FAIL(call, "Invalid forward call of function table.");
+    }
     SetTypeOf(call_property, previous_type->signature());
     SetTypeOf(call, return_type);
     return return_type;
@@ -2431,7 +2550,7 @@ bool ExtractHeapAccessShift(Expression* expr, uint32_t* value) {
     return false;
   }
 
-  if (as_literal->raw_value()->ContainsDot()) {
+  if (!IsLiteralInt(as_literal)) {
     return false;
   }
 
@@ -2475,7 +2594,7 @@ AsmType* AsmTyper::ValidateHeapAccess(Property* heap,
   SetTypeOf(obj, obj_type);
 
   if (auto* key_as_literal = heap->key()->AsLiteral()) {
-    if (key_as_literal->raw_value()->ContainsDot()) {
+    if (!IsLiteralInt(key_as_literal)) {
       FAIL(key_as_literal, "Heap access index must be int.");
     }
 
@@ -2631,15 +2750,8 @@ AsmType* AsmTyper::ParameterTypeAnnotations(Variable* parameter,
 }
 
 // 5.2 ReturnTypeAnnotations
-AsmType* AsmTyper::ReturnTypeAnnotations(ReturnStatement* statement) {
-  if (statement == nullptr) {
-    return AsmType::Void();
-  }
-
-  auto* ret_expr = statement->expression();
-  if (ret_expr == nullptr) {
-    return AsmType::Void();
-  }
+AsmType* AsmTyper::ReturnTypeAnnotations(Expression* ret_expr) {
+  DCHECK_NOT_NULL(ret_expr);
 
   if (auto* binop = ret_expr->AsBinaryOperation()) {
     if (IsDoubleAnnotation(binop)) {
@@ -2647,21 +2759,21 @@ AsmType* AsmTyper::ReturnTypeAnnotations(ReturnStatement* statement) {
     } else if (IsIntAnnotation(binop)) {
       return AsmType::Signed();
     }
-    FAIL(statement, "Invalid return type annotation.");
+    FAIL(ret_expr, "Invalid return type annotation.");
   }
 
   if (auto* call = ret_expr->AsCall()) {
     if (IsCallToFround(call)) {
       return AsmType::Float();
     }
-    FAIL(statement, "Invalid function call in return statement.");
+    FAIL(ret_expr, "Invalid function call in return statement.");
   }
 
   if (auto* literal = ret_expr->AsLiteral()) {
     int32_t _;
-    if (literal->raw_value()->ContainsDot()) {
+    if (IsLiteralDouble(literal)) {
       return AsmType::Double();
-    } else if (literal->value()->ToInt32(&_)) {
+    } else if (IsLiteralInt(literal) && literal->value()->ToInt32(&_)) {
       return AsmType::Signed();
     } else if (literal->IsUndefinedLiteral()) {
       // *VIOLATION* The parser changes
@@ -2673,41 +2785,105 @@ AsmType* AsmTyper::ReturnTypeAnnotations(ReturnStatement* statement) {
       // return undefined
       return AsmType::Void();
     }
-    FAIL(statement, "Invalid literal in return statement.");
+    FAIL(ret_expr, "Invalid literal in return statement.");
   }
 
-  FAIL(statement, "Invalid return type expression.");
+  if (auto* proxy = ret_expr->AsVariableProxy()) {
+    auto* var_info = Lookup(proxy->var());
+
+    if (var_info == nullptr) {
+      FAIL(ret_expr, "Undeclared identifier in return statement.");
+    }
+
+    if (var_info->mutability() != VariableInfo::kConstGlobal) {
+      FAIL(ret_expr, "Identifier in return statement is not const.");
+    }
+
+    if (!var_info->type()->IsReturnType()) {
+      FAIL(ret_expr, "Constant in return must be signed, float, or double.");
+    }
+
+    return var_info->type();
+  }
+
+  // NOTE: This is not strictly valid asm.js, but is emitted by some versions of
+  // Emscripten.
+  if (auto* cond = ret_expr->AsConditional()) {
+    AsmType* a = AsmType::None();
+    AsmType* b = AsmType::None();
+    RECURSE(a = ReturnTypeAnnotations(cond->then_expression()));
+    if (a->IsA(AsmType::None())) {
+      return a;
+    }
+    RECURSE(b = ReturnTypeAnnotations(cond->else_expression()));
+    if (b->IsA(AsmType::None())) {
+      return b;
+    }
+    if (a->IsExactly(b)) {
+      return a;
+    }
+  }
+
+  FAIL(ret_expr, "Invalid return type expression.");
 }
 
 // 5.4 VariableTypeAnnotations
 // Also used for 5.5 GlobalVariableTypeAnnotations
-AsmType* AsmTyper::VariableTypeAnnotations(Expression* initializer,
-                                           bool global) {
+AsmType* AsmTyper::VariableTypeAnnotations(
+    Expression* initializer, VariableInfo::Mutability mutability_type) {
   if (auto* literal = initializer->AsLiteral()) {
-    if (literal->raw_value()->ContainsDot()) {
+    if (IsLiteralDouble(literal)) {
       SetTypeOf(initializer, AsmType::Double());
       return AsmType::Double();
     }
+    if (!IsLiteralInt(literal)) {
+      FAIL(initializer, "Invalid type annotation - forbidden literal.");
+    }
     int32_t i32;
     uint32_t u32;
+    AsmType* initializer_type = nullptr;
     if (literal->value()->ToUint32(&u32)) {
       if (u32 > LargestFixNum) {
-        SetTypeOf(initializer, AsmType::Unsigned());
+        initializer_type = AsmType::Unsigned();
+        SetTypeOf(initializer, initializer_type);
       } else {
-        SetTypeOf(initializer, AsmType::FixNum());
+        initializer_type = AsmType::FixNum();
+        SetTypeOf(initializer, initializer_type);
+        initializer_type = AsmType::Signed();
       }
     } else if (literal->value()->ToInt32(&i32)) {
-      SetTypeOf(initializer, AsmType::Signed());
+      initializer_type = AsmType::Signed();
+      SetTypeOf(initializer, initializer_type);
     } else {
       FAIL(initializer, "Invalid type annotation - forbidden literal.");
     }
-    return AsmType::Int();
+    if (mutability_type != VariableInfo::kConstGlobal) {
+      return AsmType::Int();
+    }
+    return initializer_type;
+  }
+
+  if (auto* proxy = initializer->AsVariableProxy()) {
+    auto* var_info = Lookup(proxy->var());
+
+    if (var_info == nullptr) {
+      FAIL(initializer,
+           "Undeclared identifier in variable declaration initializer.");
+    }
+
+    if (var_info->mutability() != VariableInfo::kConstGlobal) {
+      FAIL(initializer,
+           "Identifier in variable declaration initializer must be const.");
+    }
+
+    SetTypeOf(initializer, var_info->type());
+    return var_info->type();
   }
 
   auto* call = initializer->AsCall();
   if (call == nullptr) {
     FAIL(initializer,
-         "Invalid variable initialization - it should be a literal, or "
+         "Invalid variable initialization - it should be a literal, const, or "
          "fround(literal).");
   }
 
@@ -2723,13 +2899,17 @@ AsmType* AsmTyper::VariableTypeAnnotations(Expression* initializer,
          "to fround.");
   }
 
-  // Float constants must contain dots in local, but not in globals.
-  if (!global) {
-    if (!src_expr->raw_value()->ContainsDot()) {
-      FAIL(initializer,
-           "Invalid float type annotation - expected literal argument to be a "
-           "floating point literal.");
-    }
+  // ERRATA: 5.4
+  // According to the spec: float constants must contain dots in local,
+  // but not in globals.
+  // However, the errata doc (and actual programs), use integer values
+  // with fround(..).
+  // Skipping the check that would go here to enforce this.
+  // Checking instead the literal expression is at least a number.
+  if (!src_expr->raw_value()->IsNumber()) {
+    FAIL(initializer,
+         "Invalid float type annotation - expected numeric literal for call "
+         "to fround.");
   }
 
   return AsmType::Float();
@@ -2776,19 +2956,6 @@ AsmType* AsmTyper::NewHeapView(CallNew* new_heap_view) {
 
   DCHECK(heap_view_info->type()->IsA(AsmType::Heap()));
   return heap_view_info->type();
-}
-
-bool IsValidAsm(Isolate* isolate, Zone* zone, Script* script,
-                FunctionLiteral* root, std::string* error_message) {
-  error_message->clear();
-
-  AsmTyper typer(isolate, zone, script, root);
-  if (typer.Validate()) {
-    return true;
-  }
-
-  *error_message = typer.error_message();
-  return false;
 }
 
 }  // namespace wasm

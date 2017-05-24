@@ -33,13 +33,13 @@ server.listen(0, common.mustCall(function() {
     path: 'example.com:443'
   }, common.mustNotCall());
 
-  req.on('close', common.mustCall(function() { }));
+  req.on('close', common.mustCall());
 
   req.on('connect', common.mustCall(function(res, socket, firstBodyChunk) {
     console.error('Client got CONNECT request');
 
     // Make sure this request got removed from the pool.
-    const name = 'localhost:' + server.address().port;
+    const name = `localhost:${server.address().port}`;
     assert(!http.globalAgent.sockets.hasOwnProperty(name));
     assert(!http.globalAgent.requests.hasOwnProperty(name));
 

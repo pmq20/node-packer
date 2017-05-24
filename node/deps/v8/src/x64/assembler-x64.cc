@@ -15,7 +15,9 @@
 #include <sys/sysctl.h>
 #endif
 
+#include "src/assembler-inl.h"
 #include "src/base/bits.h"
+#include "src/base/cpu.h"
 #include "src/macro-assembler.h"
 #include "src/v8.h"
 
@@ -135,13 +137,18 @@ uint32_t RelocInfo::wasm_memory_size_reference() {
   return Memory::uint32_at(pc_);
 }
 
+uint32_t RelocInfo::wasm_function_table_size_reference() {
+  DCHECK(IsWasmFunctionTableSizeReference(rmode_));
+  return Memory::uint32_at(pc_);
+}
+
 void RelocInfo::unchecked_update_wasm_memory_reference(
     Address address, ICacheFlushMode flush_mode) {
   Memory::Address_at(pc_) = address;
 }
 
-void RelocInfo::unchecked_update_wasm_memory_size(uint32_t size,
-                                                  ICacheFlushMode flush_mode) {
+void RelocInfo::unchecked_update_wasm_size(uint32_t size,
+                                           ICacheFlushMode flush_mode) {
   Memory::uint32_at(pc_) = size;
 }
 
@@ -402,8 +409,9 @@ void Assembler::GrowBuffer() {
 
   // Some internal data structures overflow for very large buffers,
   // they must ensure that kMaximalBufferSize is not too large.
-  if ((desc.buffer_size > kMaximalBufferSize) ||
-      (desc.buffer_size > isolate()->heap()->MaxOldGenerationSize())) {
+  if (desc.buffer_size > kMaximalBufferSize ||
+      static_cast<size_t>(desc.buffer_size) >
+          isolate()->heap()->MaxOldGenerationSize()) {
     V8::FatalProcessOutOfMemory("Assembler::GrowBuffer");
   }
 
@@ -600,12 +608,9 @@ void Assembler::immediate_arithmetic_op(byte subcode,
                                         int size) {
   EnsureSpace ensure_space(this);
   emit_rex(dst, size);
-  if (is_int8(src.value_)) {
+  if (is_int8(src.value_) && RelocInfo::IsNone(src.rmode_)) {
     emit(0x83);
     emit_operand(subcode, dst);
-    if (!RelocInfo::IsNone(src.rmode_)) {
-      RecordRelocInfo(src.rmode_);
-    }
     emit(src.value_);
   } else {
     emit(0x81);
@@ -2044,158 +2049,142 @@ void Assembler::store_rax(ExternalReference ref) {
 
 void Assembler::testb(Register dst, Register src) {
   EnsureSpace ensure_space(this);
-  if (src.low_bits() == 4) {
-    emit_rex_32(src, dst);
-    emit(0x84);
-    emit_modrm(src, dst);
-  } else {
-    if (!dst.is_byte_register() || !src.is_byte_register()) {
-      // Register is not one of al, bl, cl, dl.  Its encoding needs REX.
-      emit_rex_32(dst, src);
-    }
-    emit(0x84);
-    emit_modrm(dst, src);
-  }
+  emit_test(dst, src, sizeof(int8_t));
 }
-
 
 void Assembler::testb(Register reg, Immediate mask) {
   DCHECK(is_int8(mask.value_) || is_uint8(mask.value_));
-  EnsureSpace ensure_space(this);
-  if (reg.is(rax)) {
-    emit(0xA8);
-    emit(mask.value_);  // Low byte emitted.
-  } else {
-    if (!reg.is_byte_register()) {
-      // Register is not one of al, bl, cl, dl.  Its encoding needs REX.
-      emit_rex_32(reg);
-    }
-    emit(0xF6);
-    emit_modrm(0x0, reg);
-    emit(mask.value_);  // Low byte emitted.
-  }
+  emit_test(reg, mask, sizeof(int8_t));
 }
-
 
 void Assembler::testb(const Operand& op, Immediate mask) {
   DCHECK(is_int8(mask.value_) || is_uint8(mask.value_));
-  EnsureSpace ensure_space(this);
-  emit_optional_rex_32(rax, op);
-  emit(0xF6);
-  emit_operand(rax, op);  // Operation code 0
-  emit(mask.value_);  // Low byte emitted.
+  emit_test(op, mask, sizeof(int8_t));
 }
 
 
 void Assembler::testb(const Operand& op, Register reg) {
-  EnsureSpace ensure_space(this);
-  if (!reg.is_byte_register()) {
-    // Register is not one of al, bl, cl, dl.  Its encoding needs REX.
-    emit_rex_32(reg, op);
-  } else {
-    emit_optional_rex_32(reg, op);
-  }
-  emit(0x84);
-  emit_operand(reg, op);
+  emit_test(op, reg, sizeof(int8_t));
 }
 
 void Assembler::testw(Register dst, Register src) {
-  EnsureSpace ensure_space(this);
-  emit(0x66);
-  if (src.low_bits() == 4) {
-    emit_rex_32(src, dst);
-  }
-  emit(0x85);
-  emit_modrm(src, dst);
+  emit_test(dst, src, sizeof(uint16_t));
 }
 
 void Assembler::testw(Register reg, Immediate mask) {
-  DCHECK(is_int16(mask.value_) || is_uint16(mask.value_));
-  EnsureSpace ensure_space(this);
-  emit(0x66);
-  if (reg.is(rax)) {
-    emit(0xA9);
-    emitw(mask.value_);
-  } else {
-    if (reg.low_bits() == 4) {
-      emit_rex_32(reg);
-    }
-    emit(0xF7);
-    emit_modrm(0x0, reg);
-    emitw(mask.value_);
-  }
+  emit_test(reg, mask, sizeof(int16_t));
 }
 
 void Assembler::testw(const Operand& op, Immediate mask) {
-  DCHECK(is_int16(mask.value_) || is_uint16(mask.value_));
-  EnsureSpace ensure_space(this);
-  emit(0x66);
-  emit_optional_rex_32(rax, op);
-  emit(0xF7);
-  emit_operand(rax, op);
-  emitw(mask.value_);
+  emit_test(op, mask, sizeof(int16_t));
 }
 
 void Assembler::testw(const Operand& op, Register reg) {
-  EnsureSpace ensure_space(this);
-  emit(0x66);
-  emit_optional_rex_32(reg, op);
-  emit(0x85);
-  emit_operand(rax, op);
+  emit_test(op, reg, sizeof(int16_t));
 }
 
 void Assembler::emit_test(Register dst, Register src, int size) {
   EnsureSpace ensure_space(this);
-  if (src.low_bits() == 4) {
-    emit_rex(src, dst, size);
-    emit(0x85);
-    emit_modrm(src, dst);
+  if (src.low_bits() == 4) std::swap(dst, src);
+  if (size == sizeof(int16_t)) {
+    emit(0x66);
+    size = sizeof(int32_t);
+  }
+  bool byte_operand = size == sizeof(int8_t);
+  if (byte_operand) {
+    size = sizeof(int32_t);
+    if (!src.is_byte_register() || !dst.is_byte_register()) {
+      emit_rex_32(dst, src);
+    }
   } else {
     emit_rex(dst, src, size);
-    emit(0x85);
-    emit_modrm(dst, src);
   }
+  emit(byte_operand ? 0x84 : 0x85);
+  emit_modrm(dst, src);
 }
 
 
 void Assembler::emit_test(Register reg, Immediate mask, int size) {
-  // testl with a mask that fits in the low byte is exactly testb.
   if (is_uint8(mask.value_)) {
-    testb(reg, mask);
-    return;
+    size = sizeof(int8_t);
+  } else if (is_uint16(mask.value_)) {
+    size = sizeof(int16_t);
   }
   EnsureSpace ensure_space(this);
-  if (reg.is(rax)) {
-    emit_rex(rax, size);
-    emit(0xA9);
-    emit(mask);
+  bool half_word = size == sizeof(int16_t);
+  if (half_word) {
+    emit(0x66);
+    size = sizeof(int32_t);
+  }
+  bool byte_operand = size == sizeof(int8_t);
+  if (byte_operand) {
+    size = sizeof(int32_t);
+    if (!reg.is_byte_register()) emit_rex_32(reg);
   } else {
     emit_rex(reg, size);
-    emit(0xF7);
+  }
+  if (reg.is(rax)) {
+    emit(byte_operand ? 0xA8 : 0xA9);
+  } else {
+    emit(byte_operand ? 0xF6 : 0xF7);
     emit_modrm(0x0, reg);
+  }
+  if (byte_operand) {
+    emit(mask.value_);
+  } else if (half_word) {
+    emitw(mask.value_);
+  } else {
     emit(mask);
   }
 }
 
-
 void Assembler::emit_test(const Operand& op, Immediate mask, int size) {
-  // testl with a mask that fits in the low byte is exactly testb.
   if (is_uint8(mask.value_)) {
-    testb(op, mask);
-    return;
+    size = sizeof(int8_t);
+  } else if (is_uint16(mask.value_)) {
+    size = sizeof(int16_t);
   }
   EnsureSpace ensure_space(this);
+  bool half_word = size == sizeof(int16_t);
+  if (half_word) {
+    emit(0x66);
+    size = sizeof(int32_t);
+  }
+  bool byte_operand = size == sizeof(int8_t);
+  if (byte_operand) {
+    size = sizeof(int32_t);
+  }
   emit_rex(rax, op, size);
-  emit(0xF7);
+  emit(byte_operand ? 0xF6 : 0xF7);
   emit_operand(rax, op);  // Operation code 0
-  emit(mask);
+  if (byte_operand) {
+    emit(mask.value_);
+  } else if (half_word) {
+    emitw(mask.value_);
+  } else {
+    emit(mask);
+  }
 }
-
 
 void Assembler::emit_test(const Operand& op, Register reg, int size) {
   EnsureSpace ensure_space(this);
-  emit_rex(reg, op, size);
-  emit(0x85);
+  if (size == sizeof(int16_t)) {
+    emit(0x66);
+    size = sizeof(int32_t);
+  }
+  bool byte_operand = size == sizeof(int8_t);
+  if (byte_operand) {
+    size = sizeof(int32_t);
+    if (!reg.is_byte_register()) {
+      // Register is not one of al, bl, cl, dl.  Its encoding needs REX.
+      emit_rex_32(reg, op);
+    } else {
+      emit_optional_rex_32(reg, op);
+    }
+  } else {
+    emit_rex(reg, op, size);
+  }
+  emit(byte_operand ? 0x84 : 0x85);
   emit_operand(reg, op);
 }
 
@@ -3049,7 +3038,7 @@ void Assembler::movaps(XMMRegister dst, XMMRegister src) {
 void Assembler::shufps(XMMRegister dst, XMMRegister src, byte imm8) {
   DCHECK(is_uint8(imm8));
   EnsureSpace ensure_space(this);
-  emit_optional_rex_32(src, dst);
+  emit_optional_rex_32(dst, src);
   emit(0x0F);
   emit(0xC6);
   emit_sse_operand(dst, src);
@@ -4680,6 +4669,14 @@ void Assembler::emit_sse_operand(Register dst, XMMRegister src) {
 
 void Assembler::emit_sse_operand(XMMRegister dst) {
   emit(0xD8 | dst.low_bits());
+}
+
+void Assembler::RecordProtectedInstructionLanding(int pc_offset) {
+  EnsureSpace ensure_space(this);
+  RelocInfo rinfo(isolate(), pc(),
+                  RelocInfo::WASM_PROTECTED_INSTRUCTION_LANDING, pc_offset,
+                  nullptr);
+  reloc_info_writer.Write(&rinfo);
 }
 
 

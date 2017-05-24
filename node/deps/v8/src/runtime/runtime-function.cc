@@ -17,7 +17,7 @@ namespace internal {
 
 RUNTIME_FUNCTION(Runtime_FunctionGetName) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSReceiver, function, 0);
   if (function->IsJSBoundFunction()) {
@@ -32,7 +32,7 @@ RUNTIME_FUNCTION(Runtime_FunctionGetName) {
 
 RUNTIME_FUNCTION(Runtime_FunctionSetName) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, f, 0);
   CONVERT_ARG_HANDLE_CHECKED(String, name, 1);
@@ -45,7 +45,7 @@ RUNTIME_FUNCTION(Runtime_FunctionSetName) {
 
 RUNTIME_FUNCTION(Runtime_FunctionRemovePrototype) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, f, 0);
   CHECK(f->RemovePrototype());
@@ -55,7 +55,7 @@ RUNTIME_FUNCTION(Runtime_FunctionRemovePrototype) {
   return isolate->heap()->undefined_value();
 }
 
-
+// TODO(5530): Remove once uses in debug.js are gone.
 RUNTIME_FUNCTION(Runtime_FunctionGetScript) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
@@ -71,6 +71,20 @@ RUNTIME_FUNCTION(Runtime_FunctionGetScript) {
   return isolate->heap()->undefined_value();
 }
 
+RUNTIME_FUNCTION(Runtime_FunctionGetScriptId) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(JSReceiver, function, 0);
+
+  if (function->IsJSFunction()) {
+    Handle<Object> script(
+        Handle<JSFunction>::cast(function)->shared()->script(), isolate);
+    if (script->IsScript()) {
+      return Smi::FromInt(Handle<Script>::cast(script)->id());
+    }
+  }
+  return Smi::FromInt(-1);
+}
 
 RUNTIME_FUNCTION(Runtime_FunctionGetSourceCode) {
   HandleScope scope(isolate);
@@ -85,7 +99,7 @@ RUNTIME_FUNCTION(Runtime_FunctionGetSourceCode) {
 
 RUNTIME_FUNCTION(Runtime_FunctionGetScriptSourcePosition) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, fun, 0);
   int pos = fun->shared()->start_position();
@@ -94,7 +108,7 @@ RUNTIME_FUNCTION(Runtime_FunctionGetScriptSourcePosition) {
 
 RUNTIME_FUNCTION(Runtime_FunctionGetContextData) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, fun, 0);
   FixedArray* array = fun->native_context()->embedder_data();
@@ -103,7 +117,7 @@ RUNTIME_FUNCTION(Runtime_FunctionGetContextData) {
 
 RUNTIME_FUNCTION(Runtime_FunctionSetInstanceClassName) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, fun, 0);
   CONVERT_ARG_CHECKED(String, name, 1);
@@ -114,7 +128,7 @@ RUNTIME_FUNCTION(Runtime_FunctionSetInstanceClassName) {
 
 RUNTIME_FUNCTION(Runtime_FunctionSetLength) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, fun, 0);
   CONVERT_SMI_ARG_CHECKED(length, 1);
@@ -126,7 +140,7 @@ RUNTIME_FUNCTION(Runtime_FunctionSetLength) {
 
 RUNTIME_FUNCTION(Runtime_FunctionSetPrototype) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 1);
@@ -139,7 +153,7 @@ RUNTIME_FUNCTION(Runtime_FunctionSetPrototype) {
 
 RUNTIME_FUNCTION(Runtime_FunctionIsAPIFunction) {
   SealHandleScope shs(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, f, 0);
   return isolate->heap()->ToBoolean(f->shared()->IsApiFunction());
@@ -148,7 +162,7 @@ RUNTIME_FUNCTION(Runtime_FunctionIsAPIFunction) {
 
 RUNTIME_FUNCTION(Runtime_SetCode) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, target, 0);
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, source, 1);
@@ -176,7 +190,6 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
   target_shared->set_scope_info(source_shared->scope_info());
   target_shared->set_outer_scope_info(source_shared->outer_scope_info());
   target_shared->set_length(source_shared->length());
-  target_shared->set_num_literals(source_shared->num_literals());
   target_shared->set_feedback_metadata(source_shared->feedback_metadata());
   target_shared->set_internal_formal_parameter_count(
       source_shared->internal_formal_parameter_count());
@@ -189,8 +202,14 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
       source_shared->opt_count_and_bailout_reason());
   target_shared->set_native(was_native);
   target_shared->set_profiler_ticks(source_shared->profiler_ticks());
-  SharedFunctionInfo::SetScript(
-      target_shared, Handle<Object>(source_shared->script(), isolate));
+  target_shared->set_function_literal_id(source_shared->function_literal_id());
+
+  Handle<Object> source_script(source_shared->script(), isolate);
+  if (source_script->IsScript()) {
+    SharedFunctionInfo::SetScript(source_shared,
+                                  isolate->factory()->undefined_value());
+  }
+  SharedFunctionInfo::SetScript(target_shared, source_script);
 
   // Set the code of the target function.
   target->ReplaceCode(source_shared->code());
@@ -240,10 +259,10 @@ RUNTIME_FUNCTION(Runtime_IsConstructor) {
 RUNTIME_FUNCTION(Runtime_SetForceInlineFlag) {
   SealHandleScope shs(isolate);
   DCHECK_EQ(1, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
+  CONVERT_ARG_CHECKED(Object, object, 0);
 
   if (object->IsJSFunction()) {
-    JSFunction* func = JSFunction::cast(*object);
+    JSFunction* func = JSFunction::cast(object);
     func->shared()->set_force_inline(true);
   }
   return isolate->heap()->undefined_value();
@@ -258,7 +277,7 @@ RUNTIME_FUNCTION(Runtime_Call) {
   CONVERT_ARG_HANDLE_CHECKED(Object, receiver, 1);
   ScopedVector<Handle<Object>> argv(argc);
   for (int i = 0; i < argc; ++i) {
-    argv[i] = args.at<Object>(2 + i);
+    argv[i] = args.at(2 + i);
   }
   RETURN_RESULT_OR_FAILURE(
       isolate, Execution::Call(isolate, target, receiver, argc, argv.start()));
@@ -268,7 +287,7 @@ RUNTIME_FUNCTION(Runtime_Call) {
 // ES6 section 9.2.1.2, OrdinaryCallBindThis for sloppy callee.
 RUNTIME_FUNCTION(Runtime_ConvertReceiver) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, receiver, 0);
   return *Object::ConvertReceiver(isolate, receiver).ToHandleChecked();
 }

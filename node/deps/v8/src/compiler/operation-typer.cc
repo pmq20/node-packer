@@ -19,18 +19,14 @@ namespace compiler {
 OperationTyper::OperationTyper(Isolate* isolate, Zone* zone)
     : zone_(zone), cache_(TypeCache::Get()) {
   Factory* factory = isolate->factory();
-  infinity_ = Type::Constant(factory->infinity_value(), zone);
-  minus_infinity_ = Type::Constant(factory->minus_infinity_value(), zone);
-  // Unfortunately, the infinities created in other places might be different
-  // ones (eg the result of NewNumber in TypeNumberConstant).
-  Type* truncating_to_zero =
-      Type::Union(Type::Union(infinity_, minus_infinity_, zone),
-                  Type::MinusZeroOrNaN(), zone);
+  infinity_ = Type::NewConstant(factory->infinity_value(), zone);
+  minus_infinity_ = Type::NewConstant(factory->minus_infinity_value(), zone);
+  Type* truncating_to_zero = Type::MinusZeroOrNaN();
   DCHECK(!truncating_to_zero->Maybe(Type::Integral32()));
 
-  singleton_false_ = Type::Constant(factory->false_value(), zone);
-  singleton_true_ = Type::Constant(factory->true_value(), zone);
-  singleton_the_hole_ = Type::Constant(factory->the_hole_value(), zone);
+  singleton_false_ = Type::HeapConstant(factory->false_value(), zone);
+  singleton_true_ = Type::HeapConstant(factory->true_value(), zone);
+  singleton_the_hole_ = Type::HeapConstant(factory->the_hole_value(), zone);
   signed32ish_ = Type::Union(Type::Signed32(), truncating_to_zero, zone);
   unsigned32ish_ = Type::Union(Type::Unsigned32(), truncating_to_zero, zone);
 }
@@ -370,8 +366,9 @@ Type* OperationTyper::NumberExpm1(Type* type) {
 Type* OperationTyper::NumberFloor(Type* type) {
   DCHECK(type->Is(Type::Number()));
   if (type->Is(cache_.kIntegerOrMinusZeroOrNaN)) return type;
-  // TODO(bmeurer): We could infer a more precise type here.
-  return cache_.kIntegerOrMinusZeroOrNaN;
+  type = Type::Intersect(type, Type::MinusZeroOrNaN(), zone());
+  type = Type::Union(type, cache_.kInteger, zone());
+  return type;
 }
 
 Type* OperationTyper::NumberFround(Type* type) {
@@ -492,6 +489,13 @@ Type* OperationTyper::NumberToUint32(Type* type) {
                            Type::Unsigned32(), zone());
   }
   return Type::Unsigned32();
+}
+
+Type* OperationTyper::NumberToUint8Clamped(Type* type) {
+  DCHECK(type->Is(Type::Number()));
+
+  if (type->Is(cache_.kUint8)) return type;
+  return cache_.kUint8;
 }
 
 Type* OperationTyper::NumberSilenceNaN(Type* type) {
@@ -621,12 +625,19 @@ Type* OperationTyper::NumberDivide(Type* lhs, Type* rhs) {
   }
 
   if (lhs->Is(Type::NaN()) || rhs->Is(Type::NaN())) return Type::NaN();
-  // Division is tricky, so all we do is try ruling out nan.
+  // Division is tricky, so all we do is try ruling out -0 and NaN.
+  bool maybe_minuszero = !lhs->Is(cache_.kPositiveIntegerOrNaN) ||
+                         !rhs->Is(cache_.kPositiveIntegerOrNaN);
   bool maybe_nan =
       lhs->Maybe(Type::NaN()) || rhs->Maybe(cache_.kZeroish) ||
       ((lhs->Min() == -V8_INFINITY || lhs->Max() == +V8_INFINITY) &&
        (rhs->Min() == -V8_INFINITY || rhs->Max() == +V8_INFINITY));
-  return maybe_nan ? Type::Number() : Type::OrderedNumber();
+
+  // Take into account the -0 and NaN information computed earlier.
+  Type* type = Type::PlainNumber();
+  if (maybe_minuszero) type = Type::Union(type, Type::MinusZero(), zone());
+  if (maybe_nan) type = Type::Union(type, Type::NaN(), zone());
+  return type;
 }
 
 Type* OperationTyper::NumberModulus(Type* lhs, Type* rhs) {
@@ -793,8 +804,35 @@ Type* OperationTyper::NumberShiftLeft(Type* lhs, Type* rhs) {
   DCHECK(lhs->Is(Type::Number()));
   DCHECK(rhs->Is(Type::Number()));
 
-  // TODO(turbofan): Infer a better type here.
-  return Type::Signed32();
+  if (!lhs->IsInhabited() || !rhs->IsInhabited()) return Type::None();
+
+  lhs = NumberToInt32(lhs);
+  rhs = NumberToUint32(rhs);
+
+  int32_t min_lhs = lhs->Min();
+  int32_t max_lhs = lhs->Max();
+  uint32_t min_rhs = rhs->Min();
+  uint32_t max_rhs = rhs->Max();
+  if (max_rhs > 31) {
+    // rhs can be larger than the bitmask
+    max_rhs = 31;
+    min_rhs = 0;
+  }
+
+  if (max_lhs > (kMaxInt >> max_rhs) || min_lhs < (kMinInt >> max_rhs)) {
+    // overflow possible
+    return Type::Signed32();
+  }
+
+  double min =
+      std::min(static_cast<int32_t>(static_cast<uint32_t>(min_lhs) << min_rhs),
+               static_cast<int32_t>(static_cast<uint32_t>(min_lhs) << max_rhs));
+  double max =
+      std::max(static_cast<int32_t>(static_cast<uint32_t>(max_lhs) << min_rhs),
+               static_cast<int32_t>(static_cast<uint32_t>(max_lhs) << max_rhs));
+
+  if (max == kMaxInt && min == kMinInt) return Type::Signed32();
+  return Type::Range(min, max, zone());
 }
 
 Type* OperationTyper::NumberShiftRight(Type* lhs, Type* rhs) {
@@ -806,33 +844,18 @@ Type* OperationTyper::NumberShiftRight(Type* lhs, Type* rhs) {
   lhs = NumberToInt32(lhs);
   rhs = NumberToUint32(rhs);
 
-  double min = kMinInt;
-  double max = kMaxInt;
-  if (lhs->Min() >= 0) {
-    // Right-shifting a non-negative value cannot make it negative, nor larger.
-    min = std::max(min, 0.0);
-    max = std::min(max, lhs->Max());
-    if (rhs->Min() > 0 && rhs->Max() <= 31) {
-      max = static_cast<int>(max) >> static_cast<int>(rhs->Min());
-    }
+  int32_t min_lhs = lhs->Min();
+  int32_t max_lhs = lhs->Max();
+  uint32_t min_rhs = rhs->Min();
+  uint32_t max_rhs = rhs->Max();
+  if (max_rhs > 31) {
+    // rhs can be larger than the bitmask
+    max_rhs = 31;
+    min_rhs = 0;
   }
-  if (lhs->Max() < 0) {
-    // Right-shifting a negative value cannot make it non-negative, nor smaller.
-    min = std::max(min, lhs->Min());
-    max = std::min(max, -1.0);
-    if (rhs->Min() > 0 && rhs->Max() <= 31) {
-      min = static_cast<int>(min) >> static_cast<int>(rhs->Min());
-    }
-  }
-  if (rhs->Min() > 0 && rhs->Max() <= 31) {
-    // Right-shifting by a positive value yields a small integer value.
-    double shift_min = kMinInt >> static_cast<int>(rhs->Min());
-    double shift_max = kMaxInt >> static_cast<int>(rhs->Min());
-    min = std::max(min, shift_min);
-    max = std::min(max, shift_max);
-  }
-  // TODO(jarin) Ideally, the following micro-optimization should be performed
-  // by the type constructor.
+  double min = std::min(min_lhs >> min_rhs, min_lhs >> max_rhs);
+  double max = std::max(max_lhs >> min_rhs, max_lhs >> max_rhs);
+
   if (max == kMaxInt && min == kMinInt) return Type::Signed32();
   return Type::Range(min, max, zone());
 }
@@ -841,12 +864,29 @@ Type* OperationTyper::NumberShiftRightLogical(Type* lhs, Type* rhs) {
   DCHECK(lhs->Is(Type::Number()));
   DCHECK(rhs->Is(Type::Number()));
 
-  if (!lhs->IsInhabited()) return Type::None();
+  if (!lhs->IsInhabited() || !rhs->IsInhabited()) return Type::None();
 
   lhs = NumberToUint32(lhs);
+  rhs = NumberToUint32(rhs);
 
-  // Logical right-shifting any value cannot make it larger.
-  return Type::Range(0.0, lhs->Max(), zone());
+  uint32_t min_lhs = lhs->Min();
+  uint32_t max_lhs = lhs->Max();
+  uint32_t min_rhs = rhs->Min();
+  uint32_t max_rhs = rhs->Max();
+  if (max_rhs > 31) {
+    // rhs can be larger than the bitmask
+    max_rhs = 31;
+    min_rhs = 0;
+  }
+
+  double min = min_lhs >> max_rhs;
+  double max = max_lhs >> min_rhs;
+  DCHECK_LE(0, min);
+  DCHECK_LE(max, kMaxUInt32);
+
+  if (min == 0 && max == kMaxInt) return Type::Unsigned31();
+  if (min == 0 && max == kMaxUInt32) return Type::Unsigned32();
+  return Type::Range(min, max, zone());
 }
 
 Type* OperationTyper::NumberAtan2(Type* lhs, Type* rhs) {

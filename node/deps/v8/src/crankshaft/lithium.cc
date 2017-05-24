@@ -5,6 +5,8 @@
 #include "src/crankshaft/lithium.h"
 
 #include "src/ast/scopes.h"
+#include "src/codegen.h"
+#include "src/objects-inl.h"
 
 #if V8_TARGET_ARCH_IA32
 #include "src/crankshaft/ia32/lithium-ia32.h"  // NOLINT
@@ -260,7 +262,6 @@ LChunk::LChunk(CompilationInfo* info, HGraph* graph)
       graph_(graph),
       instructions_(32, info->zone()),
       pointer_maps_(8, info->zone()),
-      inlined_functions_(1, info->zone()),
       deprecation_dependencies_(32, info->zone()),
       stability_dependencies_(8, info->zone()) {}
 
@@ -468,8 +469,6 @@ Handle<Code> LChunk::Codegen() {
     code->set_is_crankshafted(true);
 
     CodeGenerator::PrintCode(code, info());
-    DCHECK(!(info()->GetMustNotHaveEagerFrame() &&
-             generator.NeedsEagerFrame()));
     return code;
   }
   assembler.AbortedCodeGeneration();

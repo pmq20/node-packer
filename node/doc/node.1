@@ -116,17 +116,39 @@ Print stack traces for deprecations.
 Throw errors for deprecations.
 
 .TP
+.BR \-\-pending\-deprecation
+Emit pending deprecation warnings.
+
+.TP
 .BR \-\-no\-warnings
 Silence all process warnings (including deprecations).
+
+.TP
+.BR \-\-napi\-modules
+Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
+(experimental).
 
 .TP
 .BR \-\-trace\-warnings
 Print stack traces for process warnings (including deprecations).
 
 .TP
+.BR \-\-redirect\-warnings=\fIfile\fR
+Write process warnings to the given file instead of printing to stderr.
+
+.TP
 .BR \-\-trace\-sync\-io
 Print a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.
+
+.TP
+.BR \-\-trace\-events\-enabled
+Enables the collection of trace event tracing information.
+
+.TP
+.BR \-\-trace\-event\-categories " " \fIcategories\fR
+A comma separated list of categories that should be traced when trace event
+tracing is enabled using \fB--trace-events-enabled\fR.
 
 .TP
 .BR \-\-zero\-fill\-buffers
@@ -238,21 +260,25 @@ with small\-icu support.
 When set to \fI1\fR, process warnings are silenced.
 
 .TP
+.BR NODE_OPTIONS =\fIoptions...\fR
+\fBoptions...\fR are interpreted as if they had been specified on the command
+line before the actual command line (so they can be overriden).  Node will exit
+with an error if an option that is not allowed in the environment is used, such
+as \fB-p\fR or a script file.
+
+.TP
 .BR NODE_PATH =\fIpath\fR[:\fI...\fR]
 \':\'\-separated list of directories prefixed to the module search path.
+
+.TP
+.BR NODE_PENDING_DEPRECATION = \fI1\fR
+When set to \fI1\fR, emit pending deprecation warnings.
 
 .TP
 .BR NODE_REPL_HISTORY =\fIfile\fR
 Path to the file used to store the persistent REPL history. The default path
 is \fB~/.node_repl_history\fR, which is overridden by this variable. Setting the
 value to an empty string ("" or " ") disables persistent REPL history.
-
-.TP
-.BR NODE_TTY_UNSAFE_ASYNC =\fI1\fR
-When set to \fI1\fR, writes to stdout and stderr will be non-blocking and
-asynchronous when outputting to a TTY on platforms which support async stdio.
-Setting this will void any guarantee that stdio will not be interleaved or
-dropped at program exit. \fBAvoid use.\fR
 
 .TP
 .BR OPENSSL_CONF = \fIfile\fR
@@ -273,6 +299,12 @@ containing trusted certificates.
 .BR SSL_CERT_FILE = \fIfile\fR
 If \fB\-\-use\-openssl\-ca\fR is enabled, this overrides and sets OpenSSL's
 file containing trusted certificates.
+
+.TP
+.BR NODE_REDIRECT_WARNINGS=\fIfile\fR
+Write process warnings to the given file instead of printing to stderr.
+(equivalent to using the \-\-redirect\-warnings=\fIfile\fR command-line
+argument).
 
 .SH BUGS
 Bugs are tracked in GitHub Issues:

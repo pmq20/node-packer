@@ -5,7 +5,6 @@
 #include "src/compiler/linkage.h"
 
 #include "src/ast/scopes.h"
-#include "src/builtins/builtins-utils.h"
 #include "src/code-stubs.h"
 #include "src/compilation-info.h"
 #include "src/compiler/common-operator.h"
@@ -13,6 +12,7 @@
 #include "src/compiler/node.h"
 #include "src/compiler/osr.h"
 #include "src/compiler/pipeline.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -53,8 +53,7 @@ std::ostream& operator<<(std::ostream& os, const CallDescriptor& d) {
 MachineSignature* CallDescriptor::GetMachineSignature(Zone* zone) const {
   size_t param_count = ParameterCount();
   size_t return_count = ReturnCount();
-  MachineType* types = reinterpret_cast<MachineType*>(
-      zone->New(sizeof(MachineType*) * (param_count + return_count)));
+  MachineType* types = zone->NewArray<MachineType>(param_count + return_count);
   int current = 0;
   for (size_t i = 0; i < return_count; ++i) {
     types[current++] = GetReturnType(i);
@@ -107,6 +106,23 @@ bool CallDescriptor::CanTailCall(const Node* node) const {
   return HasSameReturnLocationsAs(CallDescriptorOf(node->op()));
 }
 
+int CallDescriptor::CalculateFixedFrameSize() const {
+  switch (kind_) {
+    case kCallJSFunction:
+      return PushArgumentCount()
+                 ? OptimizedBuiltinFrameConstants::kFixedSlotCount
+                 : StandardFrameConstants::kFixedSlotCount;
+      break;
+    case kCallAddress:
+      return CommonFrameConstants::kFixedSlotCountAboveFp +
+             CommonFrameConstants::kCPSlotCount;
+      break;
+    case kCallCodeObject:
+      return TypedFrameConstants::kFixedSlotCount;
+  }
+  UNREACHABLE();
+  return 0;
+}
 
 CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
   DCHECK(!info->IsStub());
@@ -126,16 +142,15 @@ CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
 bool Linkage::NeedsFrameStateInput(Runtime::FunctionId function) {
   switch (function) {
     // Most runtime functions need a FrameState. A few chosen ones that we know
-    // not to call into arbitrary JavaScript, not to throw, and not to
-    // deoptimize
-    // are whitelisted here and can be called without a FrameState.
+    // not to call into arbitrary JavaScript, not to throw, and not to lazily
+    // deoptimize are whitelisted here and can be called without a FrameState.
     case Runtime::kAbort:
     case Runtime::kAllocateInTargetSpace:
+    case Runtime::kConvertReceiver:
     case Runtime::kCreateIterResultObject:
     case Runtime::kDefineGetterPropertyUnchecked:  // TODO(jarin): Is it safe?
     case Runtime::kDefineSetterPropertyUnchecked:  // TODO(jarin): Is it safe?
     case Runtime::kGeneratorGetContinuation:
-    case Runtime::kGetSuperConstructor:
     case Runtime::kIsFunction:
     case Runtime::kNewClosure:
     case Runtime::kNewClosure_Tenured:
@@ -156,20 +171,18 @@ bool Linkage::NeedsFrameStateInput(Runtime::FunctionId function) {
       return false;
 
     // Some inline intrinsics are also safe to call without a FrameState.
+    case Runtime::kInlineClassOf:
     case Runtime::kInlineCreateIterResultObject:
     case Runtime::kInlineFixedArrayGet:
     case Runtime::kInlineFixedArraySet:
     case Runtime::kInlineGeneratorClose:
     case Runtime::kInlineGeneratorGetInputOrDebugPos:
     case Runtime::kInlineGeneratorGetResumeMode:
-    case Runtime::kInlineGetSuperConstructor:
     case Runtime::kInlineIsArray:
     case Runtime::kInlineIsJSReceiver:
     case Runtime::kInlineIsRegExp:
     case Runtime::kInlineIsSmi:
     case Runtime::kInlineIsTypedArray:
-    case Runtime::kInlineRegExpFlags:
-    case Runtime::kInlineRegExpSource:
       return false;
 
     default:

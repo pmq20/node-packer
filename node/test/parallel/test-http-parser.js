@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -61,7 +82,7 @@ function mustCall(f, times) {
 
 function expectBody(expected) {
   return mustCall(function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, expected);
   });
 }
@@ -71,13 +92,11 @@ function expectBody(expected) {
 // Simple request test.
 //
 {
-  const request = Buffer.from(
-      'GET /hello HTTP/1.1' + CRLF +
-      CRLF);
+  const request = Buffer.from(`GET /hello HTTP/1.1${CRLF}${CRLF}`);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 1);
     assert.strictEqual(method, methods.indexOf('GET'));
@@ -116,9 +135,9 @@ function expectBody(expected) {
       CRLF +
       'pong');
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, undefined);
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 1);
@@ -126,8 +145,8 @@ function expectBody(expected) {
     assert.strictEqual(statusMessage, 'OK');
   };
 
-  const onBody = function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, 'pong');
   };
 
@@ -143,12 +162,11 @@ function expectBody(expected) {
 //
 {
   const request = Buffer.from(
-      'HTTP/1.0 200 Connection established' + CRLF +
-      CRLF);
+    `HTTP/1.0 200 Connection established${CRLF}${CRLF}`);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 0);
     assert.strictEqual(method, undefined);
@@ -180,15 +198,15 @@ function expectBody(expected) {
 
   let seen_body = false;
 
-  const onHeaders = function(headers, url) {
+  const onHeaders = (headers, url) => {
     assert.ok(seen_body); // trailers should come after the body
     assert.deepStrictEqual(headers,
                            ['Vary', '*', 'Content-Type', 'text/plain']);
   };
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -197,8 +215,8 @@ function expectBody(expected) {
     parser[kOnHeaders] = mustCall(onHeaders);
   };
 
-  const onBody = function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, 'ping');
     seen_body = true;
   };
@@ -221,9 +239,9 @@ function expectBody(expected) {
       'X-Filler2:  42' + CRLF +
       CRLF);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('GET'));
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 0);
@@ -243,17 +261,16 @@ function expectBody(expected) {
 //
 {
   // 256 X-Filler headers
-  let lots_of_headers = 'X-Filler: 42' + CRLF;
-  lots_of_headers = lots_of_headers.repeat(256);
+  const lots_of_headers = `X-Filler: 42${CRLF}`.repeat(256);
 
   const request = Buffer.from(
       'GET /foo/bar/baz?quux=42#1337 HTTP/1.0' + CRLF +
       lots_of_headers +
       CRLF);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('GET'));
     assert.strictEqual(url || parser.url, '/foo/bar/baz?quux=42#1337');
     assert.strictEqual(versionMajor, 1);
@@ -285,17 +302,17 @@ function expectBody(expected) {
       CRLF +
       'foo=42&bar=1337');
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 1);
   };
 
-  const onBody = function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, 'foo=42&bar=1337');
   };
 
@@ -323,9 +340,9 @@ function expectBody(expected) {
       '1234567890' + CRLF +
       '0' + CRLF);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -335,8 +352,8 @@ function expectBody(expected) {
   let body_part = 0;
   const body_parts = ['123', '123456', '1234567890'];
 
-  const onBody = function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, body_parts[body_part++]);
   };
 
@@ -361,9 +378,9 @@ function expectBody(expected) {
       '6' + CRLF +
       '123456' + CRLF);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -374,8 +391,8 @@ function expectBody(expected) {
   const body_parts =
           ['123', '123456', '123456789', '123456789ABC', '123456789ABCDEF'];
 
-  const onBody = function(buf, start, len) {
-    const body = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const body = String(buf.slice(start, start + len));
     assert.strictEqual(body, body_parts[body_part++]);
   };
 
@@ -419,9 +436,9 @@ function expectBody(expected) {
       '0' + CRLF);
 
   function test(a, b) {
-    const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                       method, url, statusCode, statusMessage,
-                                       upgrade, shouldKeepAlive) {
+    const onHeadersComplete = (versionMajor, versionMinor, headers,
+                               method, url, statusCode, statusMessage,
+                               upgrade, shouldKeepAlive) => {
       assert.strictEqual(method, methods.indexOf('POST'));
       assert.strictEqual(url || parser.url, '/helpme');
       assert.strictEqual(versionMajor, 1);
@@ -430,8 +447,8 @@ function expectBody(expected) {
 
     let expected_body = '123123456123456789123456789ABC123456789ABCDEF';
 
-    const onBody = function(buf, start, len) {
-      const chunk = '' + buf.slice(start, start + len);
+    const onBody = (buf, start, len) => {
+      const chunk = String(buf.slice(start, start + len));
       assert.strictEqual(expected_body.indexOf(chunk), 0);
       expected_body = expected_body.slice(chunk.length);
     };
@@ -447,11 +464,9 @@ function expectBody(expected) {
 
   for (let i = 1; i < request.length - 1; ++i) {
     const a = request.slice(0, i);
-    console.error('request.slice(0, ' + i + ') = ',
-                  JSON.stringify(a.toString()));
+    console.error(`request.slice(0, ${i}) = ${JSON.stringify(a.toString())}`);
     const b = request.slice(i);
-    console.error('request.slice(' + i + ') = ',
-                  JSON.stringify(b.toString()));
+    console.error(`request.slice(${i}) = ${JSON.stringify(b.toString())}`);
     test(a, b);
   }
 }
@@ -478,9 +493,9 @@ function expectBody(expected) {
       '123456789ABCDEF' + CRLF +
       '0' + CRLF);
 
-  const onHeadersComplete = function(versionMajor, versionMinor, headers,
-                                     method, url, statusCode, statusMessage,
-                                     upgrade, shouldKeepAlive) {
+  const onHeadersComplete = (versionMajor, versionMinor, headers,
+                             method, url, statusCode, statusMessage,
+                             upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -492,8 +507,8 @@ function expectBody(expected) {
 
   let expected_body = '123123456123456789123456789ABC123456789ABCDEF';
 
-  const onBody = function(buf, start, len) {
-    const chunk = '' + buf.slice(start, start + len);
+  const onBody = (buf, start, len) => {
+    const chunk = String(buf.slice(start, start + len));
     assert.strictEqual(expected_body.indexOf(chunk), 0);
     expected_body = expected_body.slice(chunk.length);
   };
@@ -530,9 +545,9 @@ function expectBody(expected) {
       CRLF +
       'pong');
 
-  const onHeadersComplete1 = function(versionMajor, versionMinor, headers,
-                                      method, url, statusCode, statusMessage,
-                                      upgrade, shouldKeepAlive) {
+  const onHeadersComplete1 = (versionMajor, versionMinor, headers,
+                              method, url, statusCode, statusMessage,
+                              upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('PUT'));
     assert.strictEqual(url, '/this');
     assert.strictEqual(versionMajor, 1);
@@ -542,9 +557,9 @@ function expectBody(expected) {
         ['Content-Type', 'text/plain', 'Transfer-Encoding', 'chunked']);
   };
 
-  const onHeadersComplete2 = function(versionMajor, versionMinor, headers,
-                                      method, url, statusCode, statusMessage,
-                                      upgrade, shouldKeepAlive) {
+  const onHeadersComplete2 = (versionMajor, versionMinor, headers,
+                              method, url, statusCode, statusMessage,
+                              upgrade, shouldKeepAlive) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url, '/that');
     assert.strictEqual(versionMajor, 1);
@@ -569,9 +584,7 @@ function expectBody(expected) {
 // Test parser 'this' safety
 // https://github.com/joyent/node/issues/6690
 assert.throws(function() {
-  const request = Buffer.from(
-      'GET /hello HTTP/1.1' + CRLF +
-      CRLF);
+  const request = Buffer.from(`GET /hello HTTP/1.1${CRLF}${CRLF}`);
 
   const parser = newParser(REQUEST);
   const notparser = { execute: parser.execute };

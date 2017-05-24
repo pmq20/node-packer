@@ -9,6 +9,7 @@
 
 #include "src/compilation-dependencies.h"
 #include "src/frames.h"
+#include "src/globals.h"
 #include "src/handles.h"
 #include "src/objects.h"
 #include "src/source-position-table.h"
@@ -28,7 +29,7 @@ class Zone;
 
 // CompilationInfo encapsulates some information known at compile time.  It
 // is constructed based on the resources available at compile-time.
-class CompilationInfo final {
+class V8_EXPORT_PRIVATE CompilationInfo final {
  public:
   // Various configuration flags for a compilation, as well as some properties
   // of the compiled code produced by a compilation.
@@ -37,25 +38,23 @@ class CompilationInfo final {
     kNonDeferredCalling = 1 << 1,
     kSavesCallerDoubles = 1 << 2,
     kRequiresFrame = 1 << 3,
-    kMustNotHaveEagerFrame = 1 << 4,
-    kDeoptimizationSupport = 1 << 5,
-    kDebug = 1 << 6,
-    kSerializing = 1 << 7,
-    kFunctionContextSpecializing = 1 << 8,
-    kFrameSpecializing = 1 << 9,
-    kNativeContextSpecializing = 1 << 10,
-    kInliningEnabled = 1 << 11,
-    kDisableFutureOptimization = 1 << 12,
-    kSplittingEnabled = 1 << 13,
-    kDeoptimizationEnabled = 1 << 14,
-    kSourcePositionsEnabled = 1 << 15,
-    kBailoutOnUninitialized = 1 << 16,
-    kOptimizeFromBytecode = 1 << 17,
-    kTypeFeedbackEnabled = 1 << 18,
-    kAccessorInliningEnabled = 1 << 19,
+    kDeoptimizationSupport = 1 << 4,
+    kAccessorInliningEnabled = 1 << 5,
+    kSerializing = 1 << 6,
+    kFunctionContextSpecializing = 1 << 7,
+    kFrameSpecializing = 1 << 8,
+    kInliningEnabled = 1 << 9,
+    kDisableFutureOptimization = 1 << 10,
+    kSplittingEnabled = 1 << 11,
+    kDeoptimizationEnabled = 1 << 12,
+    kSourcePositionsEnabled = 1 << 13,
+    kBailoutOnUninitialized = 1 << 14,
+    kOptimizeFromBytecode = 1 << 15,
+    kLoopPeelingEnabled = 1 << 16,
   };
 
-  CompilationInfo(ParseInfo* parse_info, Handle<JSFunction> closure);
+  CompilationInfo(Zone* zone, ParseInfo* parse_info,
+                  Handle<JSFunction> closure);
   CompilationInfo(Vector<const char> debug_name, Isolate* isolate, Zone* zone,
                   Code::Flags code_flags);
   ~CompilationInfo();
@@ -112,23 +111,17 @@ class CompilationInfo final {
 
   bool requires_frame() const { return GetFlag(kRequiresFrame); }
 
-  void MarkMustNotHaveEagerFrame() { SetFlag(kMustNotHaveEagerFrame); }
-
-  bool GetMustNotHaveEagerFrame() const {
-    return GetFlag(kMustNotHaveEagerFrame);
-  }
-
   // Compiles marked as debug produce unoptimized code with debug break slots.
   // Inner functions that cannot be compiled w/o context are compiled eagerly.
   // Always include deoptimization support to avoid having to recompile again.
   void MarkAsDebug() {
-    SetFlag(kDebug);
+    set_is_debug();
     SetFlag(kDeoptimizationSupport);
   }
 
-  bool is_debug() const { return GetFlag(kDebug); }
+  bool is_debug() const;
 
-  void PrepareForSerializing() { SetFlag(kSerializing); }
+  void PrepareForSerializing();
 
   bool will_serialize() const { return GetFlag(kSerializing); }
 
@@ -144,24 +137,10 @@ class CompilationInfo final {
 
   bool is_frame_specializing() const { return GetFlag(kFrameSpecializing); }
 
-  void MarkAsNativeContextSpecializing() {
-    SetFlag(kNativeContextSpecializing);
-  }
-
-  bool is_native_context_specializing() const {
-    return GetFlag(kNativeContextSpecializing);
-  }
-
   void MarkAsDeoptimizationEnabled() { SetFlag(kDeoptimizationEnabled); }
 
   bool is_deoptimization_enabled() const {
     return GetFlag(kDeoptimizationEnabled);
-  }
-
-  void MarkAsTypeFeedbackEnabled() { SetFlag(kTypeFeedbackEnabled); }
-
-  bool is_type_feedback_enabled() const {
-    return GetFlag(kTypeFeedbackEnabled);
   }
 
   void MarkAsAccessorInliningEnabled() { SetFlag(kAccessorInliningEnabled); }
@@ -196,6 +175,10 @@ class CompilationInfo final {
     return GetFlag(kOptimizeFromBytecode);
   }
 
+  void MarkAsLoopPeelingEnabled() { SetFlag(kLoopPeelingEnabled); }
+
+  bool is_loop_peeling_enabled() const { return GetFlag(kLoopPeelingEnabled); }
+
   bool GeneratePreagedPrologue() const {
     // Generate a pre-aged prologue if we are optimizing for size, which
     // will make code flushing more aggressive. Only apply to Code::FUNCTION,
@@ -227,6 +210,7 @@ class CompilationInfo final {
   // Accessors for the different compilation modes.
   bool IsOptimizing() const { return mode_ == OPTIMIZE; }
   bool IsStub() const { return mode_ == STUB; }
+  bool IsWasm() const { return output_code_kind() == Code::WASM_FUNCTION; }
   void SetOptimizing();
   void SetOptimizingForOsr(BailoutId osr_ast_id, JavaScriptFrame* osr_frame) {
     SetOptimizing();
@@ -249,9 +233,10 @@ class CompilationInfo final {
   // Determines whether or not to insert a self-optimization header.
   bool ShouldSelfOptimize();
 
-  void set_deferred_handles(DeferredHandles* deferred_handles) {
-    DCHECK(deferred_handles_ == NULL);
-    deferred_handles_ = deferred_handles;
+  void set_deferred_handles(std::shared_ptr<DeferredHandles> deferred_handles);
+  void set_deferred_handles(DeferredHandles* deferred_handles);
+  std::shared_ptr<DeferredHandles> deferred_handles() {
+    return deferred_handles_;
   }
 
   void ReopenHandlesInNewHandleScope();
@@ -300,18 +285,29 @@ class CompilationInfo final {
     // Do not remove.
     Handle<Code> inlined_code_object_root;
 
+    InliningPosition position;
+
     InlinedFunctionHolder(Handle<SharedFunctionInfo> inlined_shared_info,
-                          Handle<Code> inlined_code_object_root)
+                          Handle<Code> inlined_code_object_root,
+                          SourcePosition pos)
         : shared_info(inlined_shared_info),
-          inlined_code_object_root(inlined_code_object_root) {}
+          inlined_code_object_root(inlined_code_object_root) {
+      position.position = pos;
+      // initialized when generating the deoptimization literals
+      position.inlined_function_id = DeoptimizationInputData::kNotInlinedIndex;
+    }
+
+    void RegisterInlinedFunctionId(size_t inlined_function_id) {
+      position.inlined_function_id = static_cast<int>(inlined_function_id);
+    }
   };
 
   typedef std::vector<InlinedFunctionHolder> InlinedFunctionList;
-  InlinedFunctionList const& inlined_functions() const {
-    return inlined_functions_;
-  }
+  InlinedFunctionList& inlined_functions() { return inlined_functions_; }
 
-  void AddInlinedFunction(Handle<SharedFunctionInfo> inlined_function);
+  // Returns the inlining id for source position tracking.
+  int AddInlinedFunction(Handle<SharedFunctionInfo> inlined_function,
+                         SourcePosition pos);
 
   std::unique_ptr<char[]> GetDebugName() const;
 
@@ -346,6 +342,8 @@ class CompilationInfo final {
 
   bool GetFlag(Flag flag) const { return (flags_ & flag) != 0; }
 
+  void set_is_debug();
+
   unsigned flags_;
 
   Code::Flags code_flags_;
@@ -368,7 +366,7 @@ class CompilationInfo final {
   // CompilationInfo allocates.
   Zone* zone_;
 
-  DeferredHandles* deferred_handles_;
+  std::shared_ptr<DeferredHandles> deferred_handles_;
 
   // Dependencies for this compilation, e.g. stable maps.
   CompilationDependencies dependencies_;

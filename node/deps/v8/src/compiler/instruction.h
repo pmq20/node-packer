@@ -10,24 +10,27 @@
 #include <map>
 #include <set>
 
+#include "src/base/compiler-specific.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/frame.h"
 #include "src/compiler/instruction-codes.h"
 #include "src/compiler/opcodes.h"
-#include "src/compiler/source-position.h"
+#include "src/globals.h"
 #include "src/macro-assembler.h"
 #include "src/register-configuration.h"
 #include "src/zone/zone-allocator.h"
 
 namespace v8 {
 namespace internal {
+
+class SourcePosition;
+
 namespace compiler {
 
-// Forward declarations.
 class Schedule;
+class SourcePositionTable;
 
-
-class InstructionOperand {
+class V8_EXPORT_PRIVATE InstructionOperand {
  public:
   static const int kInvalidVirtualRegister = -1;
 
@@ -117,7 +120,7 @@ class InstructionOperand {
     return this->GetCanonicalizedValue() < that.GetCanonicalizedValue();
   }
 
-  bool InterferesWith(const InstructionOperand& that) const;
+  bool InterferesWith(const InstructionOperand& other) const;
 
   // APIs to aid debugging. For general-stream APIs, use operator<<
   void Print(const RegisterConfiguration* config) const;
@@ -481,6 +484,9 @@ class LocationOperand : public InstructionOperand {
       case MachineRepresentation::kFloat32:
       case MachineRepresentation::kFloat64:
       case MachineRepresentation::kSimd128:
+      case MachineRepresentation::kSimd1x4:
+      case MachineRepresentation::kSimd1x8:
+      case MachineRepresentation::kSimd1x16:
       case MachineRepresentation::kTaggedSigned:
       case MachineRepresentation::kTaggedPointer:
       case MachineRepresentation::kTagged:
@@ -516,8 +522,8 @@ class LocationOperand : public InstructionOperand {
   class IndexField : public BitField64<int32_t, 35, 29> {};
 };
 
-
-class ExplicitOperand : public LocationOperand {
+class V8_EXPORT_PRIVATE ExplicitOperand
+    : public NON_EXPORTED_BASE(LocationOperand) {
  public:
   ExplicitOperand(LocationKind kind, MachineRepresentation rep, int index);
 
@@ -639,8 +645,14 @@ uint64_t InstructionOperand::GetCanonicalizedValue() const {
   if (IsAnyLocationOperand()) {
     MachineRepresentation canonical = MachineRepresentation::kNone;
     if (IsFPRegister()) {
-      // We treat all FP register operands the same for simple aliasing.
-      canonical = MachineRepresentation::kFloat64;
+      if (kSimpleFPAliasing) {
+        // We treat all FP register operands the same for simple aliasing.
+        canonical = MachineRepresentation::kFloat64;
+      } else {
+        // We need to distinguish FP register operands of different reps when
+        // aliasing is not simple (e.g. ARM).
+        canonical = LocationOperand::cast(this)->representation();
+      }
     }
     return InstructionOperand::KindField::update(
         LocationOperand::RepresentationField::update(this->value_, canonical),
@@ -657,8 +669,8 @@ struct CompareOperandModuloType {
   }
 };
 
-
-class MoveOperands final : public ZoneObject {
+class V8_EXPORT_PRIVATE MoveOperands final
+    : public NON_EXPORTED_BASE(ZoneObject) {
  public:
   MoveOperands(const InstructionOperand& source,
                const InstructionOperand& destination)
@@ -682,11 +694,6 @@ class MoveOperands final : public ZoneObject {
     return destination_.IsInvalid() && !source_.IsInvalid();
   }
   void SetPending() { destination_ = InstructionOperand(); }
-
-  // True if this move is a move into the given destination operand.
-  bool Blocks(const InstructionOperand& destination) const {
-    return !IsEliminated() && source().InterferesWith(destination);
-  }
 
   // A move is redundant if it's been eliminated or if its source and
   // destination are the same.
@@ -722,8 +729,9 @@ struct PrintableMoveOperands {
 
 std::ostream& operator<<(std::ostream& os, const PrintableMoveOperands& mo);
 
-
-class ParallelMove final : public ZoneVector<MoveOperands*>, public ZoneObject {
+class V8_EXPORT_PRIVATE ParallelMove final
+    : public NON_EXPORTED_BASE(ZoneVector<MoveOperands *>),
+      public NON_EXPORTED_BASE(ZoneObject) {
  public:
   explicit ParallelMove(Zone* zone) : ZoneVector<MoveOperands*>(zone) {
     reserve(4);
@@ -746,9 +754,10 @@ class ParallelMove final : public ZoneVector<MoveOperands*>, public ZoneObject {
   bool IsRedundant() const;
 
   // Prepare this ParallelMove to insert move as if it happened in a subsequent
-  // ParallelMove.  move->source() may be changed.  The MoveOperand returned
-  // must be Eliminated.
-  MoveOperands* PrepareInsertAfter(MoveOperands* move) const;
+  // ParallelMove.  move->source() may be changed.  Any MoveOperands added to
+  // to_eliminate must be Eliminated.
+  void PrepareInsertAfter(MoveOperands* move,
+                          ZoneVector<MoveOperands*>* to_eliminate) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ParallelMove);
@@ -792,7 +801,7 @@ std::ostream& operator<<(std::ostream& os, const ReferenceMap& pm);
 
 class InstructionBlock;
 
-class Instruction final {
+class V8_EXPORT_PRIVATE Instruction final {
  public:
   size_t OutputCount() const { return OutputCountField::decode(bit_field_); }
   const InstructionOperand* OutputAt(size_t i) const {
@@ -899,7 +908,6 @@ class Instruction final {
   bool IsTailCall() const {
     return arch_opcode() == ArchOpcode::kArchTailCallCodeObject ||
            arch_opcode() == ArchOpcode::kArchTailCallCodeObjectFromJSFunction ||
-           arch_opcode() == ArchOpcode::kArchTailCallJSFunction ||
            arch_opcode() == ArchOpcode::kArchTailCallJSFunctionFromJSFunction ||
            arch_opcode() == ArchOpcode::kArchTailCallAddress;
   }
@@ -1019,8 +1027,7 @@ class RpoNumber final {
 
 std::ostream& operator<<(std::ostream&, const RpoNumber&);
 
-
-class Constant final {
+class V8_EXPORT_PRIVATE Constant final {
  public:
   enum Type {
     kInt32,
@@ -1061,14 +1068,31 @@ class Constant final {
   }
 
   float ToFloat32() const {
+    // TODO(ahaas): We should remove this function. If value_ has the bit
+    // representation of a signalling NaN, then returning it as float can cause
+    // the signalling bit to flip, and value_ is returned as a quiet NaN.
     DCHECK_EQ(kFloat32, type());
     return bit_cast<float>(static_cast<int32_t>(value_));
   }
 
+  uint32_t ToFloat32AsInt() const {
+    DCHECK_EQ(kFloat32, type());
+    return bit_cast<uint32_t>(static_cast<int32_t>(value_));
+  }
+
   double ToFloat64() const {
+    // TODO(ahaas): We should remove this function. If value_ has the bit
+    // representation of a signalling NaN, then returning it as float can cause
+    // the signalling bit to flip, and value_ is returned as a quiet NaN.
     if (type() == kInt32) return ToInt32();
     DCHECK_EQ(kFloat64, type());
     return bit_cast<double>(value_);
+  }
+
+  uint64_t ToFloat64AsInt() const {
+    if (type() == kInt32) return ToInt32();
+    DCHECK_EQ(kFloat64, type());
+    return bit_cast<uint64_t>(value_);
   }
 
   ExternalReference ToExternalReference() const {
@@ -1100,52 +1124,132 @@ std::ostream& operator<<(std::ostream& os, const Constant& constant);
 // Forward declarations.
 class FrameStateDescriptor;
 
-
-enum class StateValueKind { kPlain, kNested, kDuplicate };
-
+enum class StateValueKind : uint8_t {
+  kArguments,
+  kPlain,
+  kOptimizedOut,
+  kNested,
+  kDuplicate
+};
 
 class StateValueDescriptor {
  public:
-  explicit StateValueDescriptor(Zone* zone)
+  StateValueDescriptor()
       : kind_(StateValueKind::kPlain),
         type_(MachineType::AnyTagged()),
-        id_(0),
-        fields_(zone) {}
+        id_(0) {}
 
-  static StateValueDescriptor Plain(Zone* zone, MachineType type) {
-    return StateValueDescriptor(StateValueKind::kPlain, zone, type, 0);
+  static StateValueDescriptor Arguments() {
+    return StateValueDescriptor(StateValueKind::kArguments,
+                                MachineType::AnyTagged(), 0);
   }
-  static StateValueDescriptor Recursive(Zone* zone, size_t id) {
-    return StateValueDescriptor(StateValueKind::kNested, zone,
+  static StateValueDescriptor Plain(MachineType type) {
+    return StateValueDescriptor(StateValueKind::kPlain, type, 0);
+  }
+  static StateValueDescriptor OptimizedOut() {
+    return StateValueDescriptor(StateValueKind::kOptimizedOut,
+                                MachineType::AnyTagged(), 0);
+  }
+  static StateValueDescriptor Recursive(size_t id) {
+    return StateValueDescriptor(StateValueKind::kNested,
                                 MachineType::AnyTagged(), id);
   }
-  static StateValueDescriptor Duplicate(Zone* zone, size_t id) {
-    return StateValueDescriptor(StateValueKind::kDuplicate, zone,
+  static StateValueDescriptor Duplicate(size_t id) {
+    return StateValueDescriptor(StateValueKind::kDuplicate,
                                 MachineType::AnyTagged(), id);
   }
 
-  size_t size() { return fields_.size(); }
-  ZoneVector<StateValueDescriptor>& fields() { return fields_; }
-  int IsPlain() { return kind_ == StateValueKind::kPlain; }
-  int IsNested() { return kind_ == StateValueKind::kNested; }
-  int IsDuplicate() { return kind_ == StateValueKind::kDuplicate; }
+  bool IsArguments() const { return kind_ == StateValueKind::kArguments; }
+  bool IsPlain() const { return kind_ == StateValueKind::kPlain; }
+  bool IsOptimizedOut() const { return kind_ == StateValueKind::kOptimizedOut; }
+  bool IsNested() const { return kind_ == StateValueKind::kNested; }
+  bool IsDuplicate() const { return kind_ == StateValueKind::kDuplicate; }
   MachineType type() const { return type_; }
-  MachineType GetOperandType(size_t index) const {
-    return fields_[index].type_;
-  }
   size_t id() const { return id_; }
 
  private:
-  StateValueDescriptor(StateValueKind kind, Zone* zone, MachineType type,
-                       size_t id)
-      : kind_(kind), type_(type), id_(id), fields_(zone) {}
+  StateValueDescriptor(StateValueKind kind, MachineType type, size_t id)
+      : kind_(kind), type_(type), id_(id) {}
 
   StateValueKind kind_;
   MachineType type_;
   size_t id_;
-  ZoneVector<StateValueDescriptor> fields_;
 };
 
+class StateValueList {
+ public:
+  explicit StateValueList(Zone* zone) : fields_(zone), nested_(zone) {}
+
+  size_t size() { return fields_.size(); }
+
+  struct Value {
+    StateValueDescriptor* desc;
+    StateValueList* nested;
+
+    Value(StateValueDescriptor* desc, StateValueList* nested)
+        : desc(desc), nested(nested) {}
+  };
+
+  class iterator {
+   public:
+    // Bare minimum of operators needed for range iteration.
+    bool operator!=(const iterator& other) const {
+      return field_iterator != other.field_iterator;
+    }
+    bool operator==(const iterator& other) const {
+      return field_iterator == other.field_iterator;
+    }
+    iterator& operator++() {
+      if (field_iterator->IsNested()) {
+        nested_iterator++;
+      }
+      ++field_iterator;
+      return *this;
+    }
+    Value operator*() {
+      StateValueDescriptor* desc = &(*field_iterator);
+      StateValueList* nested = desc->IsNested() ? *nested_iterator : nullptr;
+      return Value(desc, nested);
+    }
+
+   private:
+    friend class StateValueList;
+
+    iterator(ZoneVector<StateValueDescriptor>::iterator it,
+             ZoneVector<StateValueList*>::iterator nested)
+        : field_iterator(it), nested_iterator(nested) {}
+
+    ZoneVector<StateValueDescriptor>::iterator field_iterator;
+    ZoneVector<StateValueList*>::iterator nested_iterator;
+  };
+
+  void ReserveSize(size_t size) { fields_.reserve(size); }
+
+  StateValueList* PushRecursiveField(Zone* zone, size_t id) {
+    fields_.push_back(StateValueDescriptor::Recursive(id));
+    StateValueList* nested =
+        new (zone->New(sizeof(StateValueList))) StateValueList(zone);
+    nested_.push_back(nested);
+    return nested;
+  }
+  void PushArguments() { fields_.push_back(StateValueDescriptor::Arguments()); }
+  void PushDuplicate(size_t id) {
+    fields_.push_back(StateValueDescriptor::Duplicate(id));
+  }
+  void PushPlain(MachineType type) {
+    fields_.push_back(StateValueDescriptor::Plain(type));
+  }
+  void PushOptimizedOut() {
+    fields_.push_back(StateValueDescriptor::OptimizedOut());
+  }
+
+  iterator begin() { return iterator(fields_.begin(), nested_.begin()); }
+  iterator end() { return iterator(fields_.end(), nested_.end()); }
+
+ private:
+  ZoneVector<StateValueDescriptor> fields_;
+  ZoneVector<StateValueList*> nested_;
+};
 
 class FrameStateDescriptor : public ZoneObject {
  public:
@@ -1174,10 +1278,7 @@ class FrameStateDescriptor : public ZoneObject {
   size_t GetFrameCount() const;
   size_t GetJSFrameCount() const;
 
-  MachineType GetType(size_t index) const {
-    return values_.GetOperandType(index);
-  }
-  StateValueDescriptor* GetStateValueDescriptor() { return &values_; }
+  StateValueList* GetStateValueDescriptors() { return &values_; }
 
   static const int kImpossibleValue = 0xdead;
 
@@ -1188,7 +1289,7 @@ class FrameStateDescriptor : public ZoneObject {
   size_t parameters_count_;
   size_t locals_count_;
   size_t stack_count_;
-  StateValueDescriptor values_;
+  StateValueList values_;
   MaybeHandle<SharedFunctionInfo> const shared_info_;
   FrameStateDescriptor* outer_state_;
 };
@@ -1198,20 +1299,24 @@ class FrameStateDescriptor : public ZoneObject {
 class DeoptimizationEntry final {
  public:
   DeoptimizationEntry() {}
-  DeoptimizationEntry(FrameStateDescriptor* descriptor, DeoptimizeReason reason)
-      : descriptor_(descriptor), reason_(reason) {}
+  DeoptimizationEntry(FrameStateDescriptor* descriptor, DeoptimizeKind kind,
+                      DeoptimizeReason reason)
+      : descriptor_(descriptor), kind_(kind), reason_(reason) {}
 
   FrameStateDescriptor* descriptor() const { return descriptor_; }
+  DeoptimizeKind kind() const { return kind_; }
   DeoptimizeReason reason() const { return reason_; }
 
  private:
   FrameStateDescriptor* descriptor_ = nullptr;
+  DeoptimizeKind kind_ = DeoptimizeKind::kEager;
   DeoptimizeReason reason_ = DeoptimizeReason::kNoReason;
 };
 
 typedef ZoneVector<DeoptimizationEntry> DeoptimizationVector;
 
-class PhiInstruction final : public ZoneObject {
+class V8_EXPORT_PRIVATE PhiInstruction final
+    : public NON_EXPORTED_BASE(ZoneObject) {
  public:
   typedef ZoneVector<InstructionOperand> Inputs;
 
@@ -1236,7 +1341,8 @@ class PhiInstruction final : public ZoneObject {
 
 
 // Analogue of BasicBlock for Instructions instead of Nodes.
-class InstructionBlock final : public ZoneObject {
+class V8_EXPORT_PRIVATE InstructionBlock final
+    : public NON_EXPORTED_BASE(ZoneObject) {
  public:
   InstructionBlock(Zone* zone, RpoNumber rpo_number, RpoNumber loop_header,
                    RpoNumber loop_end, bool deferred, bool handler);
@@ -1300,9 +1406,6 @@ class InstructionBlock final : public ZoneObject {
   bool must_deconstruct_frame() const { return must_deconstruct_frame_; }
   void mark_must_deconstruct_frame() { must_deconstruct_frame_ = true; }
 
-  void set_last_deferred(RpoNumber last) { last_deferred_ = last; }
-  RpoNumber last_deferred() const { return last_deferred_; }
-
  private:
   Successors successors_;
   Predecessors predecessors_;
@@ -1318,7 +1421,6 @@ class InstructionBlock final : public ZoneObject {
   bool needs_frame_;
   bool must_construct_frame_;
   bool must_deconstruct_frame_;
-  RpoNumber last_deferred_;
 };
 
 class InstructionSequence;
@@ -1347,7 +1449,8 @@ struct PrintableInstructionSequence;
 
 // Represents architecture-specific generated code before, during, and after
 // register allocation.
-class InstructionSequence final : public ZoneObject {
+class V8_EXPORT_PRIVATE InstructionSequence final
+    : public NON_EXPORTED_BASE(ZoneObject) {
  public:
   static InstructionBlocks* InstructionBlocksFor(Zone* zone,
                                                  const Schedule* schedule);
@@ -1388,20 +1491,13 @@ class InstructionSequence final : public ZoneObject {
   }
   MachineRepresentation GetRepresentation(int virtual_register) const;
   void MarkAsRepresentation(MachineRepresentation rep, int virtual_register);
+  int representation_mask() const { return representation_mask_; }
 
   bool IsReference(int virtual_register) const {
     return CanBeTaggedPointer(GetRepresentation(virtual_register));
   }
   bool IsFP(int virtual_register) const {
     return IsFloatingPoint(GetRepresentation(virtual_register));
-  }
-  bool IsFloat(int virtual_register) const {
-    return GetRepresentation(virtual_register) ==
-           MachineRepresentation::kFloat32;
-  }
-  bool IsDouble(int virtual_register) const {
-    return GetRepresentation(virtual_register) ==
-           MachineRepresentation::kFloat64;
   }
 
   Instruction* GetBlockStart(RpoNumber rpo) const;
@@ -1473,7 +1569,7 @@ class InstructionSequence final : public ZoneObject {
   }
 
   int AddDeoptimizationEntry(FrameStateDescriptor* descriptor,
-                             DeoptimizeReason reason);
+                             DeoptimizeKind kind, DeoptimizeReason reason);
   DeoptimizationEntry const& GetDeoptimizationEntry(int deoptimization_id);
   int GetDeoptimizationEntryCount() const {
     return static_cast<int>(deoptimization_entries_.size());
@@ -1504,11 +1600,18 @@ class InstructionSequence final : public ZoneObject {
   void ValidateDeferredBlockEntryPaths() const;
   void ValidateSSA() const;
 
+  static void SetRegisterConfigurationForTesting(
+      const RegisterConfiguration* regConfig);
+  static void ClearRegisterConfigurationForTesting();
+
  private:
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const PrintableInstructionSequence& code);
+  friend V8_EXPORT_PRIVATE std::ostream& operator<<(
+      std::ostream& os, const PrintableInstructionSequence& code);
 
   typedef ZoneMap<const Instruction*, SourcePosition> SourcePositionMap;
+
+  static const RegisterConfiguration* RegisterConfigurationForTesting();
+  static const RegisterConfiguration* registerConfigurationForTesting_;
 
   Isolate* isolate_;
   Zone* const zone_;
@@ -1520,6 +1623,7 @@ class InstructionSequence final : public ZoneObject {
   int next_virtual_register_;
   ReferenceMapDeque reference_maps_;
   ZoneVector<MachineRepresentation> representations_;
+  int representation_mask_;
   DeoptimizationVector deoptimization_entries_;
 
   // Used at construction time
@@ -1534,9 +1638,8 @@ struct PrintableInstructionSequence {
   const InstructionSequence* sequence_;
 };
 
-
-std::ostream& operator<<(std::ostream& os,
-                         const PrintableInstructionSequence& code);
+V8_EXPORT_PRIVATE std::ostream& operator<<(
+    std::ostream& os, const PrintableInstructionSequence& code);
 
 }  // namespace compiler
 }  // namespace internal

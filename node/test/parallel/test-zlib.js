@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -163,10 +184,8 @@ Object.keys(tests).forEach(function(file) {
 
                 // verify that the same exact buffer comes out the other end.
                 buf.on('data', function(c) {
-                  const msg = file + ' ' +
-                              chunkSize + ' ' +
-                              JSON.stringify(opts) + ' ' +
-                              Def.name + ' -> ' + Inf.name;
+                  const msg = `${file} ${chunkSize} ${
+                              JSON.stringify(opts)} ${Def.name} -> ${Inf.name}`;
                   let ok = true;
                   const testNum = ++done;
                   let i;
@@ -178,17 +197,17 @@ Object.keys(tests).forEach(function(file) {
                     }
                   }
                   if (ok) {
-                    console.log('ok ' + (testNum) + ' ' + msg);
+                    console.log(`ok ${testNum} ${msg}`);
                   } else {
-                    console.log('not ok ' + (testNum) + ' ' + msg);
+                    console.log(`not ok ${testNum} msg`);
                     console.log('  ...');
-                    console.log('  testfile: ' + file);
-                    console.log('  type: ' + Def.name + ' -> ' + Inf.name);
-                    console.log('  position: ' + i);
-                    console.log('  options: ' + JSON.stringify(opts));
-                    console.log('  expect: ' + test[i]);
-                    console.log('  actual: ' + c[i]);
-                    console.log('  chunkSize: ' + chunkSize);
+                    console.log(`  testfile: ${file}`);
+                    console.log(`  type: ${Def.name} -> ${Inf.name}`);
+                    console.log(`  position: ${i}`);
+                    console.log(`  options: ${JSON.stringify(opts)}`);
+                    console.log(`  expect: ${test[i]}`);
+                    console.log(`  actual: ${c[i]}`);
+                    console.log(`  chunkSize: ${chunkSize}`);
                     console.log('  ---');
                   }
                 });
@@ -206,7 +225,7 @@ Object.keys(tests).forEach(function(file) {
 });
 
 process.on('exit', function(code) {
-  console.log('1..' + done);
-  assert.strictEqual(done, total, (total - done) + ' tests left unfinished');
+  console.log(`1..${done}`);
+  assert.strictEqual(done, total, `${total - done} tests left unfinished`);
   assert.strictEqual(failures, 0, 'some test failures');
 });

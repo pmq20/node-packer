@@ -71,6 +71,7 @@ The properties included on each object include:
 
 For example:
 
+<!-- eslint-disable semi -->
 ```js
 [
   {
@@ -253,6 +254,7 @@ The properties available on the assigned network address object include:
 * `scopeid` {number} The numeric IPv6 scope ID (only specified when `family`
   is `IPv6`)
 
+<!-- eslint-disable -->
 ```js
 {
   lo: [
@@ -363,7 +365,7 @@ added: v0.3.3
 * Returns: {string}
 
 The `os.type()` method returns a string identifying the operating system name
-as returned by uname(3). For example `'Linux'` on Linux, `'Darwin'` on OS X and
+as returned by uname(3). For example `'Linux'` on Linux, `'Darwin'` on macOS and
 `'Windows_NT'` on Windows.
 
 Please see https://en.wikipedia.org/wiki/Uname#Examples for additional

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 require('internal/util').assertCrypto();
@@ -10,7 +31,6 @@ const util = require('util');
 const common = require('_tls_common');
 const StreamWrap = require('_stream_wrap').StreamWrap;
 const Buffer = require('buffer').Buffer;
-const Duplex = require('stream').Duplex;
 const debug = util.debuglog('tls');
 const Timer = process.binding('timer_wrap').Timer;
 const tls_wrap = process.binding('tls_wrap');
@@ -254,12 +274,10 @@ function TLSSocket(socket, options) {
 
   // Wrap plain JS Stream into StreamWrap
   var wrap;
-  if (!(socket instanceof net.Socket) && socket instanceof Duplex)
-    wrap = new StreamWrap(socket);
-  else if ((socket instanceof net.Socket) && !socket._handle)
-    wrap = new StreamWrap(socket);
-  else
+  if ((socket instanceof net.Socket && socket._handle) || !socket)
     wrap = socket;
+  else
+    wrap = new StreamWrap(socket);
 
   // Just a documented property to make secure sockets
   // distinguishable from regular ones.
@@ -893,17 +911,8 @@ Server.prototype.setTicketKeys = function setTicketKeys(keys) {
 
 
 Server.prototype.setOptions = function(options) {
-  if (typeof options.requestCert === 'boolean') {
-    this.requestCert = options.requestCert;
-  } else {
-    this.requestCert = false;
-  }
-
-  if (typeof options.rejectUnauthorized === 'boolean') {
-    this.rejectUnauthorized = options.rejectUnauthorized;
-  } else {
-    this.rejectUnauthorized = false;
-  }
+  this.requestCert = options.requestCert === true;
+  this.rejectUnauthorized = options.rejectUnauthorized !== false;
 
   if (options.pfx) this.pfx = options.pfx;
   if (options.key) this.key = options.key;
@@ -1035,7 +1044,7 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
     secureContext: context,
     isServer: false,
     requestCert: true,
-    rejectUnauthorized: options.rejectUnauthorized,
+    rejectUnauthorized: options.rejectUnauthorized !== false,
     session: options.session,
     NPNProtocols: NPN.NPNProtocols,
     ALPNProtocols: ALPN.ALPNProtocols,
@@ -1054,7 +1063,8 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
         port: options.port,
         host: options.host,
         family: options.family,
-        localAddress: options.localAddress
+        localAddress: options.localAddress,
+        lookup: options.lookup
       };
     }
     socket.connect(connect_opt, function() {

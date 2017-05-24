@@ -15,7 +15,7 @@
 namespace v8 {
 namespace internal {
 
-enum class MachineRepresentation : uint8_t {
+enum class MachineRepresentation {
   kNone,
   kBit,
   kWord8,
@@ -29,12 +29,20 @@ enum class MachineRepresentation : uint8_t {
   kFloat32,
   kFloat64,
   kSimd128,
-  kFirstFPRepresentation = kFloat32
+  kSimd1x4,  // SIMD boolean vector types.
+  kSimd1x8,
+  kSimd1x16,
+  kFirstFPRepresentation = kFloat32,
+  kLastRepresentation = kSimd1x16
 };
+
+static_assert(static_cast<int>(MachineRepresentation::kLastRepresentation) <
+                  kIntSize * kBitsPerByte,
+              "Bit masks of MachineRepresentation should fit in an int");
 
 const char* MachineReprToString(MachineRepresentation);
 
-enum class MachineSemantic : uint8_t {
+enum class MachineSemantic {
   kNone,
   kBool,
   kInt32,
@@ -74,27 +82,15 @@ class MachineType {
     return semantic() == MachineSemantic::kUint32 ||
            semantic() == MachineSemantic::kUint64;
   }
-
   static MachineRepresentation PointerRepresentation() {
     return (kPointerSize == 4) ? MachineRepresentation::kWord32
                                : MachineRepresentation::kWord64;
   }
-  static MachineType Pointer() {
-    return MachineType(PointerRepresentation(), MachineSemantic::kNone);
+  static MachineType UintPtr() {
+    return (kPointerSize == 4) ? Uint32() : Uint64();
   }
   static MachineType IntPtr() {
     return (kPointerSize == 4) ? Int32() : Int64();
-  }
-  static MachineType Float32() {
-    return MachineType(MachineRepresentation::kFloat32,
-                       MachineSemantic::kNumber);
-  }
-  static MachineType Float64() {
-    return MachineType(MachineRepresentation::kFloat64,
-                       MachineSemantic::kNumber);
-  }
-  static MachineType Simd128() {
-    return MachineType(MachineRepresentation::kSimd128, MachineSemantic::kNone);
   }
   static MachineType Int8() {
     return MachineType(MachineRepresentation::kWord8, MachineSemantic::kInt32);
@@ -122,6 +118,30 @@ class MachineType {
   static MachineType Uint64() {
     return MachineType(MachineRepresentation::kWord64,
                        MachineSemantic::kUint64);
+  }
+  static MachineType Float32() {
+    return MachineType(MachineRepresentation::kFloat32,
+                       MachineSemantic::kNumber);
+  }
+  static MachineType Float64() {
+    return MachineType(MachineRepresentation::kFloat64,
+                       MachineSemantic::kNumber);
+  }
+  static MachineType Simd128() {
+    return MachineType(MachineRepresentation::kSimd128, MachineSemantic::kNone);
+  }
+  static MachineType Simd1x4() {
+    return MachineType(MachineRepresentation::kSimd1x4, MachineSemantic::kNone);
+  }
+  static MachineType Simd1x8() {
+    return MachineType(MachineRepresentation::kSimd1x8, MachineSemantic::kNone);
+  }
+  static MachineType Simd1x16() {
+    return MachineType(MachineRepresentation::kSimd1x16,
+                       MachineSemantic::kNone);
+  }
+  static MachineType Pointer() {
+    return MachineType(PointerRepresentation(), MachineSemantic::kNone);
   }
   static MachineType TaggedPointer() {
     return MachineType(MachineRepresentation::kTaggedPointer,
@@ -166,6 +186,16 @@ class MachineType {
   static MachineType RepSimd128() {
     return MachineType(MachineRepresentation::kSimd128, MachineSemantic::kNone);
   }
+  static MachineType RepSimd1x4() {
+    return MachineType(MachineRepresentation::kSimd1x4, MachineSemantic::kNone);
+  }
+  static MachineType RepSimd1x8() {
+    return MachineType(MachineRepresentation::kSimd1x8, MachineSemantic::kNone);
+  }
+  static MachineType RepSimd1x16() {
+    return MachineType(MachineRepresentation::kSimd1x16,
+                       MachineSemantic::kNone);
+  }
   static MachineType RepTagged() {
     return MachineType(MachineRepresentation::kTagged, MachineSemantic::kNone);
   }
@@ -194,6 +224,12 @@ class MachineType {
         return MachineType::Float64();
       case MachineRepresentation::kSimd128:
         return MachineType::Simd128();
+      case MachineRepresentation::kSimd1x4:
+        return MachineType::Simd1x4();
+      case MachineRepresentation::kSimd1x8:
+        return MachineType::Simd1x8();
+      case MachineRepresentation::kSimd1x16:
+        return MachineType::Simd1x16();
       case MachineRepresentation::kTagged:
         return MachineType::AnyTagged();
       case MachineRepresentation::kTaggedSigned:
@@ -223,7 +259,7 @@ V8_INLINE size_t hash_value(MachineType type) {
 V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
                                            MachineRepresentation rep);
 std::ostream& operator<<(std::ostream& os, MachineSemantic type);
-std::ostream& operator<<(std::ostream& os, MachineType type);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, MachineType type);
 
 inline bool IsFloatingPoint(MachineRepresentation rep) {
   return rep >= MachineRepresentation::kFirstFPRepresentation;
@@ -234,12 +270,17 @@ inline bool CanBeTaggedPointer(MachineRepresentation rep) {
          rep == MachineRepresentation::kTaggedPointer;
 }
 
+inline bool CanBeTaggedSigned(MachineRepresentation rep) {
+  return rep == MachineRepresentation::kTagged ||
+         rep == MachineRepresentation::kTaggedSigned;
+}
+
 inline bool IsAnyTagged(MachineRepresentation rep) {
   return CanBeTaggedPointer(rep) || rep == MachineRepresentation::kTaggedSigned;
 }
 
 // Gets the log2 of the element size in bytes of the machine type.
-inline int ElementSizeLog2Of(MachineRepresentation rep) {
+V8_EXPORT_PRIVATE inline int ElementSizeLog2Of(MachineRepresentation rep) {
   switch (rep) {
     case MachineRepresentation::kBit:
     case MachineRepresentation::kWord8:

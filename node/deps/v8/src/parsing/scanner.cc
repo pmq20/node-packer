@@ -19,11 +19,113 @@
 namespace v8 {
 namespace internal {
 
+// Scoped helper for saving & restoring scanner error state.
+// This is used for tagged template literals, in which normally forbidden
+// escape sequences are allowed.
+class ErrorState {
+ public:
+  ErrorState(MessageTemplate::Template* message_stack,
+             Scanner::Location* location_stack)
+      : message_stack_(message_stack),
+        old_message_(*message_stack),
+        location_stack_(location_stack),
+        old_location_(*location_stack) {
+    *message_stack_ = MessageTemplate::kNone;
+    *location_stack_ = Scanner::Location::invalid();
+  }
+
+  ~ErrorState() {
+    *message_stack_ = old_message_;
+    *location_stack_ = old_location_;
+  }
+
+  void MoveErrorTo(MessageTemplate::Template* message_dest,
+                   Scanner::Location* location_dest) {
+    if (*message_stack_ == MessageTemplate::kNone) {
+      return;
+    }
+    if (*message_dest == MessageTemplate::kNone) {
+      *message_dest = *message_stack_;
+      *location_dest = *location_stack_;
+    }
+    *message_stack_ = MessageTemplate::kNone;
+    *location_stack_ = Scanner::Location::invalid();
+  }
+
+ private:
+  MessageTemplate::Template* const message_stack_;
+  MessageTemplate::Template const old_message_;
+  Scanner::Location* const location_stack_;
+  Scanner::Location const old_location_;
+};
+
 Handle<String> Scanner::LiteralBuffer::Internalize(Isolate* isolate) const {
   if (is_one_byte()) {
     return isolate->factory()->InternalizeOneByteString(one_byte_literal());
   }
   return isolate->factory()->InternalizeTwoByteString(two_byte_literal());
+}
+
+int Scanner::LiteralBuffer::NewCapacity(int min_capacity) {
+  int capacity = Max(min_capacity, backing_store_.length());
+  int new_capacity = Min(capacity * kGrowthFactory, capacity + kMaxGrowth);
+  return new_capacity;
+}
+
+void Scanner::LiteralBuffer::ExpandBuffer() {
+  Vector<byte> new_store = Vector<byte>::New(NewCapacity(kInitialCapacity));
+  MemCopy(new_store.start(), backing_store_.start(), position_);
+  backing_store_.Dispose();
+  backing_store_ = new_store;
+}
+
+void Scanner::LiteralBuffer::ConvertToTwoByte() {
+  DCHECK(is_one_byte_);
+  Vector<byte> new_store;
+  int new_content_size = position_ * kUC16Size;
+  if (new_content_size >= backing_store_.length()) {
+    // Ensure room for all currently read code units as UC16 as well
+    // as the code unit about to be stored.
+    new_store = Vector<byte>::New(NewCapacity(new_content_size));
+  } else {
+    new_store = backing_store_;
+  }
+  uint8_t* src = backing_store_.start();
+  uint16_t* dst = reinterpret_cast<uint16_t*>(new_store.start());
+  for (int i = position_ - 1; i >= 0; i--) {
+    dst[i] = src[i];
+  }
+  if (new_store.start() != backing_store_.start()) {
+    backing_store_.Dispose();
+    backing_store_ = new_store;
+  }
+  position_ = new_content_size;
+  is_one_byte_ = false;
+}
+
+void Scanner::LiteralBuffer::AddCharSlow(uc32 code_unit) {
+  if (position_ >= backing_store_.length()) ExpandBuffer();
+  if (is_one_byte_) {
+    if (code_unit <= static_cast<uc32>(unibrow::Latin1::kMaxChar)) {
+      backing_store_[position_] = static_cast<byte>(code_unit);
+      position_ += kOneByteSize;
+      return;
+    }
+    ConvertToTwoByte();
+  }
+  if (code_unit <=
+      static_cast<uc32>(unibrow::Utf16::kMaxNonSurrogateCharCode)) {
+    *reinterpret_cast<uint16_t*>(&backing_store_[position_]) = code_unit;
+    position_ += kUC16Size;
+  } else {
+    *reinterpret_cast<uint16_t*>(&backing_store_[position_]) =
+        unibrow::Utf16::LeadSurrogate(code_unit);
+    position_ += kUC16Size;
+    if (position_ >= backing_store_.length()) ExpandBuffer();
+    *reinterpret_cast<uint16_t*>(&backing_store_[position_]) =
+        unibrow::Utf16::TrailSurrogate(code_unit);
+    position_ += kUC16Size;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -59,7 +161,7 @@ void Scanner::BookmarkScope::Apply() {
   } else {
     scanner_->SeekNext(bookmark_);
     scanner_->Next();
-    DCHECK_EQ(scanner_->location().beg_pos, bookmark_);
+    DCHECK_EQ(scanner_->location().beg_pos, static_cast<int>(bookmark_));
   }
   bookmark_ = kBookmarkWasApplied;
 }
@@ -78,10 +180,8 @@ bool Scanner::BookmarkScope::HasBeenApplied() {
 Scanner::Scanner(UnicodeCache* unicode_cache)
     : unicode_cache_(unicode_cache),
       octal_pos_(Location::invalid()),
-      decimal_with_leading_zero_pos_(Location::invalid()),
-      found_html_comment_(false) {
-}
-
+      octal_message_(MessageTemplate::kNone),
+      found_html_comment_(false) {}
 
 void Scanner::Initialize(Utf16CharacterStream* source) {
   source_ = source;
@@ -888,16 +988,12 @@ bool Scanner::ScanEscape() {
       break;
   }
 
-  // According to ECMA-262, section 7.8.4, characters not covered by the
-  // above cases should be illegal, but they are commonly handled as
-  // non-escaped characters by JS VMs.
+  // Other escaped characters are interpreted as their non-escaped version.
   AddLiteralChar(c);
   return true;
 }
 
 
-// Octal escapes of the forms '\0xx' and '\xxx' are not a part of
-// ECMA-262. Other JS VMs support them.
 template <bool capture_raw>
 uc32 Scanner::ScanOctalEscape(uc32 c, int length) {
   uc32 x = c - '0';
@@ -917,6 +1013,7 @@ uc32 Scanner::ScanOctalEscape(uc32 c, int length) {
   // occur before the "use strict" directive.
   if (c != '0' || i > 0) {
     octal_pos_ = Location(source_pos() - i - 1, source_pos() - 1);
+    octal_message_ = MessageTemplate::kStrictOctalEscape;
   }
   return x;
 }
@@ -978,6 +1075,12 @@ Token::Value Scanner::ScanTemplateSpan() {
   // TEMPLATE_TAIL terminates a TemplateLiteral and does not need to be
   // followed by an Expression.
 
+  // These scoped helpers save and restore the original error state, so that we
+  // can specially treat invalid escape sequences in templates (which are
+  // handled by the parser).
+  ErrorState scanner_error_state(&scanner_error_, &scanner_error_location_);
+  ErrorState octal_error_state(&octal_message_, &octal_pos_);
+
   Token::Value result = Token::TEMPLATE_SPAN;
   LiteralScope literal(this);
   StartRawLiteral();
@@ -1008,8 +1111,16 @@ Token::Value Scanner::ScanTemplateSpan() {
             AddRawLiteralChar('\n');
           }
         }
-      } else if (!ScanEscape<capture_raw, in_template_literal>()) {
-        return Token::ILLEGAL;
+      } else {
+        bool success = ScanEscape<capture_raw, in_template_literal>();
+        USE(success);
+        DCHECK_EQ(!success, has_error());
+        // For templates, invalid escape sequence checking is handled in the
+        // parser.
+        scanner_error_state.MoveErrorTo(&invalid_template_escape_message_,
+                                        &invalid_template_escape_location_);
+        octal_error_state.MoveErrorTo(&invalid_template_escape_message_,
+                                      &invalid_template_escape_location_);
       }
     } else if (c < 0) {
       // Unterminated template literal
@@ -1034,6 +1145,7 @@ Token::Value Scanner::ScanTemplateSpan() {
   literal.Complete();
   next_.location.end_pos = source_pos();
   next_.token = result;
+
   return result;
 }
 
@@ -1130,6 +1242,7 @@ Token::Value Scanner::ScanNumber(bool seen_period) {
           if (c0_  < '0' || '7'  < c0_) {
             // Octal literal finished.
             octal_pos_ = Location(start_pos, source_pos());
+            octal_message_ = MessageTemplate::kStrictOctalLiteral;
             break;
           }
           AddLiteralCharAdvance();
@@ -1152,13 +1265,16 @@ Token::Value Scanner::ScanNumber(bool seen_period) {
         }
 
         if (next_.literal_chars->one_byte_literal().length() <= 10 &&
-            value <= Smi::kMaxValue && c0_ != '.' && c0_ != 'e' && c0_ != 'E') {
-          next_.smi_value_ = static_cast<int>(value);
+            value <= Smi::kMaxValue && c0_ != '.' &&
+            (c0_ == kEndOfInput || !unicode_cache_->IsIdentifierStart(c0_))) {
+          next_.smi_value_ = static_cast<uint32_t>(value);
           literal.Complete();
           HandleLeadSurrogate();
 
-          if (kind == DECIMAL_WITH_LEADING_ZERO)
-            decimal_with_leading_zero_pos_ = Location(start_pos, source_pos());
+          if (kind == DECIMAL_WITH_LEADING_ZERO) {
+            octal_pos_ = Location(start_pos, source_pos());
+            octal_message_ = MessageTemplate::kStrictDecimalWithLeadingZero;
+          }
           return Token::SMI;
         }
         HandleLeadSurrogate();
@@ -1198,8 +1314,10 @@ Token::Value Scanner::ScanNumber(bool seen_period) {
 
   literal.Complete();
 
-  if (kind == DECIMAL_WITH_LEADING_ZERO)
-    decimal_with_leading_zero_pos_ = Location(start_pos, source_pos());
+  if (kind == DECIMAL_WITH_LEADING_ZERO) {
+    octal_pos_ = Location(start_pos, source_pos());
+    octal_message_ = MessageTemplate::kStrictDecimalWithLeadingZero;
+  }
   return Token::NUMBER;
 }
 
@@ -1339,19 +1457,6 @@ static Token::Value KeywordOrIdentifierToken(const uint8_t* input,
 }
 
 
-bool Scanner::IdentifierIsFutureStrictReserved(
-    const AstRawString* string) const {
-  // Keywords are always 1-byte strings.
-  if (!string->is_one_byte()) return false;
-  if (string->IsOneByteEqualTo("let") || string->IsOneByteEqualTo("static") ||
-      string->IsOneByteEqualTo("yield")) {
-    return true;
-  }
-  return Token::FUTURE_STRICT_RESERVED_WORD ==
-         KeywordOrIdentifierToken(string->raw_data(), string->length());
-}
-
-
 Token::Value Scanner::ScanIdentifierOrKeyword() {
   DCHECK(unicode_cache_->IsIdentifierStart(c0_));
   LiteralScope literal(this);
@@ -1435,7 +1540,9 @@ Token::Value Scanner::ScanIdentifierOrKeyword() {
     Vector<const uint8_t> chars = next_.literal_chars->one_byte_literal();
     Token::Value token =
         KeywordOrIdentifierToken(chars.start(), chars.length());
-    if (token == Token::IDENTIFIER) literal.Complete();
+    if (token == Token::IDENTIFIER ||
+        token == Token::FUTURE_STRICT_RESERVED_WORD)
+      literal.Complete();
     return token;
   }
   literal.Complete();
@@ -1612,14 +1719,13 @@ bool Scanner::ContainsDot() {
   return std::find(str.begin(), str.end(), '.') != str.end();
 }
 
-
-int Scanner::FindSymbol(DuplicateFinder* finder, int value) {
+bool Scanner::FindSymbol(DuplicateFinder* finder) {
   // TODO(vogelheim): Move this logic into the calling class; this can be fully
   //                  implemented using the public interface.
   if (is_literal_one_byte()) {
-    return finder->AddOneByteSymbol(literal_one_byte_string(), value);
+    return finder->AddOneByteSymbol(literal_one_byte_string());
   }
-  return finder->AddTwoByteSymbol(literal_two_byte_string(), value);
+  return finder->AddTwoByteSymbol(literal_two_byte_string());
 }
 
 void Scanner::SeekNext(size_t position) {
@@ -1638,7 +1744,7 @@ void Scanner::SeekNext(size_t position) {
   // 3, re-scan, by scanning the look-ahead char + 1 token (next_).
   c0_ = source_->Advance();
   Next();
-  DCHECK_EQ(next_.location.beg_pos, position);
+  DCHECK_EQ(next_.location.beg_pos, static_cast<int>(position));
 }
 
 }  // namespace internal

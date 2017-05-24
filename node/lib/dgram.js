@@ -1,13 +1,38 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const assert = require('assert');
 const Buffer = require('buffer').Buffer;
 const util = require('util');
 const EventEmitter = require('events');
+const setInitTriggerId = require('async_hooks').setInitTriggerId;
 const UV_UDP_REUSEADDR = process.binding('constants').os.UV_UDP_REUSEADDR;
+const async_id_symbol = process.binding('async_wrap').async_id_symbol;
+const nextTick = require('internal/process/next_tick').nextTick;
 
 const UDP = process.binding('udp_wrap').UDP;
 const SendWrap = process.binding('udp_wrap').SendWrap;
+const { isUint8Array } = process.binding('util');
 
 const BIND_STATE_UNBOUND = 0;
 const BIND_STATE_BINDING = 1;
@@ -89,6 +114,7 @@ function Socket(type, listener) {
   this._handle = handle;
   this._receiving = false;
   this._bindState = BIND_STATE_UNBOUND;
+  this[async_id_symbol] = this._handle.getAsyncId();
   this.type = type;
   this.fd = null; // compatibility hack
 
@@ -245,10 +271,12 @@ Socket.prototype.sendto = function(buffer,
 
 
 function sliceBuffer(buffer, offset, length) {
-  if (typeof buffer === 'string')
+  if (typeof buffer === 'string') {
     buffer = Buffer.from(buffer);
-  else if (!(buffer instanceof Buffer))
-    throw new TypeError('First argument must be a buffer or string');
+  } else if (!isUint8Array(buffer)) {
+    throw new TypeError('First argument must be a Buffer, ' +
+                        'Uint8Array or string');
+  }
 
   offset = offset >>> 0;
   length = length >>> 0;
@@ -264,7 +292,7 @@ function fixBufferList(list) {
     var buf = list[i];
     if (typeof buf === 'string')
       newlist[i] = Buffer.from(buf);
-    else if (!(buf instanceof Buffer))
+    else if (!isUint8Array(buf))
       return null;
     else
       newlist[i] = buf;
@@ -279,9 +307,23 @@ function enqueue(self, toEnqueue) {
   // event handler that flushes the send queue after binding is done.
   if (!self._queue) {
     self._queue = [];
-    self.once('listening', clearQueue);
+    self.once('error', onListenError);
+    self.once('listening', onListenSuccess);
   }
   self._queue.push(toEnqueue);
+}
+
+
+function onListenSuccess() {
+  this.removeListener('error', onListenError);
+  clearQueue.call(this);
+}
+
+
+function onListenError(err) {
+  this.removeListener('listening', onListenSuccess);
+  this._queue = undefined;
+  this.emit('error', new Error('Unable to send data'));
 }
 
 
@@ -298,9 +340,11 @@ function clearQueue() {
 // valid combinations
 // send(buffer, offset, length, port, address, callback)
 // send(buffer, offset, length, port, address)
+// send(buffer, offset, length, port, callback)
 // send(buffer, offset, length, port)
 // send(bufferOrList, port, address, callback)
 // send(bufferOrList, port, address)
+// send(bufferOrList, port, callback)
 // send(bufferOrList, port)
 Socket.prototype.send = function(buffer,
                                  offset,
@@ -321,8 +365,9 @@ Socket.prototype.send = function(buffer,
   if (!Array.isArray(buffer)) {
     if (typeof buffer === 'string') {
       list = [ Buffer.from(buffer) ];
-    } else if (!(buffer instanceof Buffer)) {
-      throw new TypeError('First argument must be a buffer or a string');
+    } else if (!isUint8Array(buffer)) {
+      throw new TypeError('First argument must be a Buffer, ' +
+                          'Uint8Array or string');
     } else {
       list = [ buffer ];
     }
@@ -338,6 +383,14 @@ Socket.prototype.send = function(buffer,
   // else.
   if (typeof callback !== 'function')
     callback = undefined;
+
+  if (typeof address === 'function') {
+    callback = address;
+    address = undefined;
+  } else if (address && typeof address !== 'string') {
+    throw new TypeError('Invalid arguments: address must be a nonempty ' +
+                        'string or falsy');
+  }
 
   this._healthCheck();
 
@@ -383,6 +436,10 @@ function doSend(ex, self, ip, list, address, port, callback) {
     req.callback = callback;
     req.oncomplete = afterSend;
   }
+  // node::SendWrap isn't instantiated and attached to the JS instance of
+  // SendWrap above until send() is called. So don't set the init trigger id
+  // until now.
+  setInitTriggerId(self[async_id_symbol]);
   var err = self._handle.send(req,
                               list,
                               list.length,
@@ -392,7 +449,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
   if (err && callback) {
     // don't emit as error, dgram_legacy.js compatibility
     const ex = exceptionWithHostPort(err, 'send', address, port);
-    process.nextTick(callback, ex);
+    nextTick(self[async_id_symbol], callback, ex);
   }
 }
 
@@ -419,7 +476,7 @@ Socket.prototype.close = function(callback) {
   this._stopReceiving();
   this._handle.close();
   this._handle = null;
-  process.nextTick(socketCloseNT, this);
+  nextTick(this[async_id_symbol], socketCloseNT, this);
 
   return this;
 };

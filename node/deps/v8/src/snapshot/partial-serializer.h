@@ -15,12 +15,13 @@ class StartupSerializer;
 
 class PartialSerializer : public Serializer {
  public:
-  PartialSerializer(Isolate* isolate, StartupSerializer* startup_serializer);
+  PartialSerializer(Isolate* isolate, StartupSerializer* startup_serializer,
+                    v8::SerializeInternalFieldsCallback callback);
 
   ~PartialSerializer() override;
 
   // Serialize the objects reachable from a single object pointer.
-  void Serialize(Object** o);
+  void Serialize(Object** o, bool include_global_proxy);
 
  private:
   void SerializeObject(HeapObject* o, HowToCode how_to_code,
@@ -28,7 +29,11 @@ class PartialSerializer : public Serializer {
 
   bool ShouldBeInThePartialSnapshotCache(HeapObject* o);
 
+  void SerializeInternalFields();
+
   StartupSerializer* startup_serializer_;
+  List<JSObject*> internal_field_holders_;
+  v8::SerializeInternalFieldsCallback serialize_internal_fields_;
   DISALLOW_COPY_AND_ASSIGN(PartialSerializer);
 };
 

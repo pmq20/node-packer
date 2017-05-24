@@ -1,10 +1,31 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "node.h"
 
-// ======= [Enclose.io Hack start] =========
+// --------- [Enclose.io Hack start] ---------
 extern "C" {
   #include "enclose_io.h"
 }
-// ======= [Enclose.io Hack end] =========
+// --------- [Enclose.io Hack end] ---------
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
@@ -15,7 +36,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[]);
 #endif // ENCLOSE_IO_AUTO_UPDATE
 
 int wmain(int argc, wchar_t *wargv[]) {
-  // ======= [Enclose.io Hack start] =========
+  // --------- [Enclose.io Hack start] ---------
   #if ENCLOSE_IO_AUTO_UPDATE
     enclose_io_autoupdate(argc, wargv);
   #endif
@@ -49,7 +70,7 @@ int wmain(int argc, wchar_t *wargv[]) {
   argc = new_argc;
   wargv = new_argv;
   #endif
-  // ======= [Enclose.io Hack end] =========
+  // --------- [Enclose.io Hack end] ---------
 
   if (!IsWindows7OrGreater()) {
     fprintf(stderr, "This application is only supported on Windows 7, "
@@ -106,7 +127,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 void enclose_io_autoupdate(int argc, char *argv[]);
 #endif // ENCLOSE_IO_AUTO_UPDATE
 int main(int argc, char *argv[]) {
-  // ======= [Enclose.io Hack start] =========
+  // --------- [Enclose.io Hack start] ---------
   #if ENCLOSE_IO_AUTO_UPDATE
     enclose_io_autoupdate(argc, argv);
   #endif
@@ -149,7 +170,7 @@ int main(int argc, char *argv[]) {
   argc = new_argc;
   argv = new_argv;
   #endif
-  // ======= [Enclose.io Hack end] =========
+  // --------- [Enclose.io Hack end] ---------
 
   // Disable stdio buffering, it interacts poorly with printf()
   // calls elsewhere in the program (e.g., any logging from V8.)

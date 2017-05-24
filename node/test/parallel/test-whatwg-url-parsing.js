@@ -23,15 +23,21 @@ const failureTests = tests.filter((test) => test.failure).concat([
   { input: null },
   { input: new Date() },
   { input: new RegExp() },
-  { input: () => {} }
+  { input: common.noop }
 ]);
+
+const expectedError = common.expectsError(
+    { code: 'ERR_INVALID_URL', type: TypeError });
 
 for (const test of failureTests) {
   assert.throws(
     () => new URL(test.input, test.base),
     (error) => {
+      if (!expectedError(error))
+        return false;
+
       // The input could be processed, so we don't do strict matching here
-      const match = (error + '').match(/^TypeError: Invalid URL: (.*)$/);
+      const match = (error + '').match(/Invalid URL: (.*)$/);
       if (!match) {
         return false;
       }

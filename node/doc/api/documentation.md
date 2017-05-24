@@ -21,18 +21,18 @@ documentation is generated using the `tools/doc/generate.js` program.
 The HTML template is located at `doc/template.html`.
 
 
-If you find an error in this documentation, please [submit an issue][]
+If errors are found in this documentation, please [submit an issue][]
 or see [the contributing guide][] for directions on how to submit a patch.
 
 ## Stability Index
 
 <!--type=misc-->
 
-Throughout the documentation, you will see indications of a section's
-stability.  The Node.js API is still somewhat changing, and as it
-matures, certain parts are more reliable than others.  Some are so
+Throughout the documentation are indications of a section's
+stability. The Node.js API is still somewhat changing, and as it
+matures, certain parts are more reliable than others. Some are so
 proven, and so relied upon, that they are unlikely to ever change at
-all.  Others are brand new and experimental, or known to be hazardous
+all. Others are brand new and experimental, or known to be hazardous
 and in the process of being redesigned.
 
 The stability indices are as follows:
@@ -73,11 +73,11 @@ like `fs.open()`, will document that. The docs link to the corresponding man
 pages (short for manual pages) which describe how the syscalls work.
 
 **Caveat:** some syscalls, like lchown(2), are BSD-specific. That means, for
-example, that `fs.lchown()` only works on Mac OS X and other BSD-derived systems,
+example, that `fs.lchown()` only works on macOS and other BSD-derived systems,
 and is not available on Linux.
 
 Most Unix syscalls have Windows equivalents, but behavior may differ on Windows
-relative to Linux and OS X. For an example of the subtle ways in which it's
+relative to Linux and macOS. For an example of the subtle ways in which it's
 sometimes impossible to replace Unix syscall semantics on Windows, see [Node
 issue 4760](https://github.com/nodejs/node/issues/4760).
 

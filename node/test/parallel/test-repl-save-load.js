@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -24,11 +45,11 @@ const saveFileName = join(common.tmpDir, 'test.save.js');
 putIn.run(testFile);
 
 // save it to a file
-putIn.run(['.save ' + saveFileName]);
+putIn.run([`.save ${saveFileName}`]);
 
 // the file should have what I wrote
-assert.strictEqual(fs.readFileSync(saveFileName, 'utf8'), testFile.join('\n') +
-                   '\n');
+assert.strictEqual(fs.readFileSync(saveFileName, 'utf8'),
+                   `${testFile.join('\n')}\n`);
 
 {
   // save .editor mode code
@@ -60,7 +81,7 @@ testMe.complete('inner.o', function(error, data) {
 putIn.run(['.clear']);
 
 // Load the file back in
-putIn.run(['.load ' + saveFileName]);
+putIn.run([`.load ${saveFileName}`]);
 
 // make sure that the REPL data is "correct"
 testMe.complete('inner.o', function(error, data) {
@@ -75,20 +96,19 @@ let loadFile = join(common.tmpDir, 'file.does.not.exist');
 // should not break
 putIn.write = function(data) {
   // make sure I get a failed to load message and not some crazy error
-  assert.strictEqual(data, 'Failed to load:' + loadFile + '\n');
+  assert.strictEqual(data, `Failed to load:${loadFile}\n`);
   // eat me to avoid work
-  putIn.write = function() {};
+  putIn.write = common.noop;
 };
-putIn.run(['.load ' + loadFile]);
+putIn.run([`.load ${loadFile}`]);
 
 // throw error on loading directory
 loadFile = common.tmpDir;
 putIn.write = function(data) {
-  assert.strictEqual(data, 'Failed to load:' + loadFile +
-                     ' is not a valid file\n');
-  putIn.write = function() {};
+  assert.strictEqual(data, `Failed to load:${loadFile} is not a valid file\n`);
+  putIn.write = common.noop;
 };
-putIn.run(['.load ' + loadFile]);
+putIn.run([`.load ${loadFile}`]);
 
 // clear the REPL
 putIn.run(['.clear']);
@@ -100,10 +120,10 @@ const invalidFileName = join(common.tmpDir, '\0\0\0\0\0');
 // should not break
 putIn.write = function(data) {
   // make sure I get a failed to save message and not some other error
-  assert.strictEqual(data, 'Failed to save:' + invalidFileName + '\n');
+  assert.strictEqual(data, `Failed to save:${invalidFileName}\n`);
   // reset to no-op
-  putIn.write = function() {};
+  putIn.write = common.noop;
 };
 
 // save it to a file
-putIn.run(['.save ' + invalidFileName]);
+putIn.run([`.save ${invalidFileName}`]);

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const NativeModule = require('native_module');
@@ -11,14 +32,6 @@ const path = require('path');
 const internalModuleReadFile = process.binding('fs').internalModuleReadFile;
 const internalModuleStat = process.binding('fs').internalModuleStat;
 const preserveSymlinks = !!process.binding('config').preserveSymlinks;
-
-// If obj.hasOwnProperty has been overridden, then calling
-// obj.hasOwnProperty(prop) will break.
-// See: https://github.com/joyent/node/issues/1707
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
 
 function stat(filename) {
   filename = path._makeLong(filename);
@@ -48,9 +61,9 @@ function Module(id, parent) {
 }
 module.exports = Module;
 
-Module._cache = {};
-Module._pathCache = {};
-Module._extensions = {};
+Module._cache = Object.create(null);
+Module._pathCache = Object.create(null);
+Module._extensions = Object.create(null);
 var modulePaths = [];
 Module.globalPaths = [];
 
@@ -74,12 +87,12 @@ const debug = Module._debug;
 //   -> a/index.<ext>
 
 // check if the directory is a package.json dir
-const packageMainCache = {};
+const packageMainCache = Object.create(null);
 
 function readPackage(requestPath) {
-  if (hasOwnProperty(packageMainCache, requestPath)) {
-    return packageMainCache[requestPath];
-  }
+  const entry = packageMainCache[requestPath];
+  if (entry)
+    return entry;
 
   const jsonPath = path.resolve(requestPath, 'package.json');
   const json = internalModuleReadFile(path._makeLong(jsonPath));
@@ -152,14 +165,15 @@ Module._findPath = function(request, paths, isMain) {
     return false;
   }
 
-  const cacheKey = JSON.stringify({request: request, paths: paths});
-  if (Module._pathCache[cacheKey]) {
-    return Module._pathCache[cacheKey];
-  }
+  var cacheKey = request + '\x00' +
+                (paths.length === 1 ? paths[0] : paths.join('\x00'));
+  var entry = Module._pathCache[cacheKey];
+  if (entry)
+    return entry;
 
   var exts;
-  const trailingSlash = request.length > 0 &&
-                        request.charCodeAt(request.length - 1) === 47/*/*/;
+  var trailingSlash = request.length > 0 &&
+                      request.charCodeAt(request.length - 1) === 47/*/*/;
 
   // For each path
   for (var i = 0; i < paths.length; i++) {
@@ -169,7 +183,7 @@ Module._findPath = function(request, paths, isMain) {
     var basePath = path.resolve(curPath, request);
     var filename;
 
-    const rc = stat(basePath);
+    var rc = stat(basePath);
     if (!trailingSlash) {
       if (rc === 0) {  // File.
         if (preserveSymlinks && !isMain) {
@@ -213,7 +227,7 @@ Module._findPath = function(request, paths, isMain) {
             'warning: require(\'.\') resolved outside the package ' +
             'directory. This functionality is deprecated and will be removed ' +
             'soon.',
-            'DeprecationWarning');
+            'DeprecationWarning', 'DEP0019');
         }
       }
 
@@ -312,14 +326,14 @@ if (process.platform === 'win32') {
 // 'index.' character codes
 var indexChars = [ 105, 110, 100, 101, 120, 46 ];
 var indexLen = indexChars.length;
-Module._resolveLookupPaths = function(request, parent) {
+Module._resolveLookupPaths = function(request, parent, newReturn) {
   if (NativeModule.nonInternalExists(request)) {
-    return [request, []];
+    debug('looking for %j in []', request);
+    return (newReturn ? null : [request, []]);
   }
 
-  var reqLen = request.length;
   // Check for relative path
-  if (reqLen < 2 ||
+  if (request.length < 2 ||
       request.charCodeAt(0) !== 46/*.*/ ||
       (request.charCodeAt(1) !== 46/*.*/ &&
        request.charCodeAt(1) !== 47/*/*/)) {
@@ -341,7 +355,8 @@ Module._resolveLookupPaths = function(request, parent) {
       }
     }
 
-    return [request, paths];
+    debug('looking for %j in %j', request, paths);
+    return (newReturn ? (paths.length > 0 ? paths : null) : [request, paths]);
   }
 
   // with --eval, parent.id is not set and parent.filename is null
@@ -349,7 +364,9 @@ Module._resolveLookupPaths = function(request, parent) {
     // make require('./path/to/foo') work - normally the path is taken
     // from realpath(__filename) but with eval there is no filename
     var mainPaths = ['.'].concat(Module._nodeModulePaths('.'), modulePaths);
-    return [request, mainPaths];
+
+    debug('looking for %j in %j', request, mainPaths);
+    return (newReturn ? mainPaths : [request, mainPaths]);
   }
 
   // Is the parent an index module?
@@ -399,7 +416,9 @@ Module._resolveLookupPaths = function(request, parent) {
   debug('RELATIVE: requested: %s set ID to: %s from %s', request, id,
         parent.id);
 
-  return [id, [path.dirname(parent.filename)]];
+  var parentDir = [path.dirname(parent.filename)];
+  debug('looking for %j in %j', id, parentDir);
+  return (newReturn ? parentDir : [id, parentDir]);
 };
 
 
@@ -458,16 +477,12 @@ Module._resolveFilename = function(request, parent, isMain) {
     return request;
   }
 
-  var resolvedModule = Module._resolveLookupPaths(request, parent);
-  var id = resolvedModule[0];
-  var paths = resolvedModule[1];
+  var paths = Module._resolveLookupPaths(request, parent, true);
 
   // look up the filename first, since that's the cache key.
-  debug('looking for %j in %j', id, paths);
-
   var filename = Module._findPath(request, paths, isMain);
   if (!filename) {
-    var err = new Error("Cannot find module '" + request + "'");
+    var err = new Error(`Cannot find module '${request}'`);
     err.code = 'MODULE_NOT_FOUND';
     throw err;
   }
@@ -500,7 +515,7 @@ Module.prototype.require = function(path) {
 
 
 // Resolved path to process.argv[1] will be lazily placed here
-// (needed for setting breakpoint when called with --debug-brk)
+// (needed for setting breakpoint when called with --inspect-brk)
 var resolvedArgv;
 
 
@@ -509,33 +524,8 @@ var resolvedArgv;
 // the file.
 // Returns exception, if any.
 Module.prototype._compile = function(content, filename) {
-  // Remove shebang
-  var contLen = content.length;
-  if (contLen >= 2) {
-    if (content.charCodeAt(0) === 35/*#*/ &&
-        content.charCodeAt(1) === 33/*!*/) {
-      if (contLen === 2) {
-        // Exact match
-        content = '';
-      } else {
-        // Find end of shebang line and slice it off
-        var i = 2;
-        for (; i < contLen; ++i) {
-          var code = content.charCodeAt(i);
-          if (code === 10/*\n*/ || code === 13/*\r*/)
-            break;
-        }
-        if (i === contLen)
-          content = '';
-        else {
-          // Note that this actually includes the newline character(s) in the
-          // new output. This duplicates the behavior of the regular expression
-          // that was previously used to replace the shebang line
-          content = content.slice(i);
-        }
-      }
-    }
-  }
+
+  content = internalModule.stripShebang(content);
 
   // create wrapper function
   var wrapper = Module.wrap(content);
@@ -546,11 +536,12 @@ Module.prototype._compile = function(content, filename) {
     displayErrors: true
   });
 
+  var inspectorWrapper = null;
   if (process._debugWaitConnect && process._eval == null) {
     if (!resolvedArgv) {
       // we enter the repl if we're not given a filename argument.
       if (process.argv[1]) {
-        resolvedArgv = Module._resolveFilename(process.argv[1], null);
+        resolvedArgv = Module._resolveFilename(process.argv[1], null, false);
       } else {
         resolvedArgv = 'repl';
       }
@@ -559,16 +550,25 @@ Module.prototype._compile = function(content, filename) {
     // Set breakpoint on module start
     if (filename === resolvedArgv) {
       delete process._debugWaitConnect;
-      const Debug = vm.runInDebugContext('Debug');
-      Debug.setBreakPoint(compiledWrapper, 0, 0);
+      inspectorWrapper = process.binding('inspector').callAndPauseOnStart;
+      if (!inspectorWrapper) {
+        const Debug = vm.runInDebugContext('Debug');
+        Debug.setBreakPoint(compiledWrapper, 0, 0);
+      }
     }
   }
   var dirname = path.dirname(filename);
-  var require = internalModule.makeRequireFunction.call(this);
-  var args = [this.exports, require, this, filename, dirname];
+  var require = internalModule.makeRequireFunction(this);
   var depth = internalModule.requireDepth;
   if (depth === 0) stat.cache = new Map();
-  var result = compiledWrapper.apply(this.exports, args);
+  var result;
+  if (inspectorWrapper) {
+    result = inspectorWrapper(compiledWrapper, this.exports, this.exports,
+                              require, this, filename, dirname);
+  } else {
+    result = compiledWrapper.call(this.exports, this.exports, require, this,
+                                  filename, dirname);
+  }
   if (depth === 0) stat.cache = null;
   return result;
 };

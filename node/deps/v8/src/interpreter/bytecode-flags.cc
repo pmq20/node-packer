@@ -4,7 +4,9 @@
 
 #include "src/interpreter/bytecode-flags.h"
 
+#include "src/builtins/builtins-constructor.h"
 #include "src/code-stubs.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -25,10 +27,11 @@ uint8_t CreateObjectLiteralFlags::Encode(bool fast_clone_supported,
   uint8_t result = FlagsBits::encode(runtime_flags);
   if (fast_clone_supported) {
     STATIC_ASSERT(
-        FastCloneShallowObjectStub::kMaximumClonedProperties <=
+        ConstructorBuiltinsAssembler::kMaximumClonedShallowObjectProperties <=
         1 << CreateObjectLiteralFlags::FastClonePropertiesCountBits::kShift);
-    DCHECK_LE(properties_count,
-              FastCloneShallowObjectStub::kMaximumClonedProperties);
+    DCHECK_LE(
+        properties_count,
+        ConstructorBuiltinsAssembler::kMaximumClonedShallowObjectProperties);
     result |= CreateObjectLiteralFlags::FastClonePropertiesCountBits::encode(
         properties_count);
   }

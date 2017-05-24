@@ -31,13 +31,19 @@
   var which = require('which')
   var glob = require('glob')
   var rimraf = require('rimraf')
-  var CachingRegClient = require('./cache/caching-client.js')
+  var lazyProperty = require('lazy-property')
   var parseJSON = require('./utils/parse-json.js')
   var aliases = require('./config/cmd-list').aliases
   var cmdList = require('./config/cmd-list').cmdList
   var plumbing = require('./config/cmd-list').plumbing
   var output = require('./utils/output.js')
   var startMetrics = require('./utils/metrics.js').start
+  var perf = require('./utils/perf.js')
+
+  perf.emit('time', 'npm')
+  perf.on('timing', function (name, finished) {
+    log.timing(name, 'Completed in', finished + 'ms')
+  })
 
   npm.config = {
     loaded: false,
@@ -51,12 +57,22 @@
 
   npm.commands = {}
 
+  // TUNING
+  npm.limit = {
+    fetch: 10,
+    action: 50
+  }
+  // ***
+
+  npm.lockfileVersion = 1
+
   npm.rollbacks = []
 
   try {
     // startup, ok to do this synchronously
     var j = parseJSON(fs.readFileSync(
       path.join(__dirname, '../package.json')) + '')
+    npm.name = j.name
     npm.version = j.version
   } catch (ex) {
     try {
@@ -79,12 +95,15 @@
     return littleGuys.indexOf(c) === -1
   })
 
+  var registryRefer
+  var registryLoaded
+
   Object.keys(abbrevs).concat(plumbing).forEach(function addCommand (c) {
     Object.defineProperty(npm.commands, c, { get: function () {
       if (!loaded) {
         throw new Error(
           'Call npm.load(config, cb) before using this command.\n' +
-            'See the README.md or cli.js for example usage.'
+            'See the README.md or bin/npm-cli.js for example usage.'
         )
       }
       var a = npm.deref(c)
@@ -112,9 +131,8 @@
           }
         })
 
-        npm.registry.version = npm.version
-        if (!npm.registry.refer) {
-          npm.registry.refer = [a].concat(args[0]).map(function (arg) {
+        if (!registryRefer) {
+          registryRefer = [a].concat(args[0]).map(function (arg) {
             // exclude anything that might be a URL, path, or private module
             // Those things will always have a slash in them somewhere
             if (arg && arg.match && arg.match(/\/|\\/)) {
@@ -125,6 +143,7 @@
           }).filter(function (arg) {
             return arg && arg.match
           }).join(' ')
+          if (registryLoaded) npm.registry.refer = registryRefer
         }
 
         cmd.apply(npm, args)
@@ -253,6 +272,10 @@
         ua = ua.replace(/\{arch\}/gi, process.arch)
         config.set('user-agent', ua)
 
+        if (config.get('metrics-registry') == null) {
+          config.set('metrics-registry', config.get('registry'))
+        }
+
         var color = config.get('color')
 
         log.level = config.get('loglevel')
@@ -299,10 +322,6 @@
 
         log.resume()
 
-        // at this point the configs are all set.
-        // go ahead and spin up the registry client.
-        npm.registry = new CachingRegClient(npm.config)
-
         var umask = npm.config.get('umask')
         npm.modes = {
           exec: parseInt('0777', 8) & (~umask),
@@ -322,7 +341,14 @@
 
         // at this point the configs are all set.
         // go ahead and spin up the registry client.
-        npm.registry = new CachingRegClient(npm.config)
+        lazyProperty(npm, 'registry', function () {
+          registryLoaded = true
+          var RegClient = require('npm-registry-client')
+          var registry = new RegClient(adaptClientConfig(npm.config))
+          registry.version = npm.version
+          registry.refer = registryRefer
+          return registry
+        })
 
         startMetrics()
 
@@ -439,6 +465,33 @@
       return pkg.name.slice(0, sep)
     } catch (ex) {
       return ''
+    }
+  }
+
+  function adaptClientConfig (config) {
+    return {
+      proxy: {
+        http: config.get('proxy'),
+        https: config.get('https-proxy'),
+        localAddress: config.get('local-address')
+      },
+      ssl: {
+        certificate: config.get('cert'),
+        key: config.get('key'),
+        ca: config.get('ca'),
+        strict: config.get('strict-ssl')
+      },
+      retry: {
+        retries: config.get('fetch-retries'),
+        factor: config.get('fetch-retry-factor'),
+        minTimeout: config.get('fetch-retry-mintimeout'),
+        maxTimeout: config.get('fetch-retry-maxtimeout')
+      },
+      userAgent: config.get('user-agent'),
+      log: log,
+      defaultTag: config.get('tag'),
+      maxSockets: config.get('maxsockets'),
+      scope: npm.projectScope
     }
   }
 })()

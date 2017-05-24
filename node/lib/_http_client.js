@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const util = require('util');
@@ -13,7 +34,9 @@ const debug = common.debug;
 const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
 const Agent = require('_http_agent');
 const Buffer = require('buffer').Buffer;
-const urlToOptions = require('internal/url').urlToOptions;
+const { urlToOptions, searchParamsSymbol } = require('internal/url');
+const outHeadersKey = require('internal/http').outHeadersKey;
+const nextTick = require('internal/process/next_tick').nextTick;
 
 // The actual list of disallowed characters in regexp form is more like:
 //    /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
@@ -43,16 +66,25 @@ function isInvalidPath(s) {
   return false;
 }
 
+function validateHost(host, name) {
+  if (host != null && typeof host !== 'string') {
+    throw new TypeError(
+      `"options.${name}" must either be a string, undefined or null`);
+  }
+  return host;
+}
+
 function ClientRequest(options, cb) {
-  var self = this;
-  OutgoingMessage.call(self);
+  OutgoingMessage.call(this);
 
   if (typeof options === 'string') {
     options = url.parse(options);
     if (!options.hostname) {
       throw new Error('Unable to determine the domain name');
     }
-  } else if (options instanceof url.URL) {
+  } else if (options && options[searchParamsSymbol] &&
+             options[searchParamsSymbol][searchParamsSymbol]) {
+    // url.URL instance
     options = urlToOptions(options);
   } else {
     options = util._extend({}, options);
@@ -62,16 +94,23 @@ function ClientRequest(options, cb) {
   var defaultAgent = options._defaultAgent || Agent.globalAgent;
   if (agent === false) {
     agent = new defaultAgent.constructor();
-  } else if ((agent === null || agent === undefined) &&
-             typeof options.createConnection !== 'function') {
-    agent = defaultAgent;
+  } else if (agent === null || agent === undefined) {
+    if (typeof options.createConnection !== 'function') {
+      agent = defaultAgent;
+    }
+    // Explicitly pass through this statement as agent will not be used
+    // when createConnection is provided.
+  } else if (typeof agent.addRequest !== 'function') {
+    throw new TypeError(
+      'Agent option must be an Agent-like object, undefined, or false.'
+    );
   }
-  self.agent = agent;
+  this.agent = agent;
 
   var protocol = options.protocol || defaultAgent.protocol;
   var expectedProtocol = defaultAgent.protocol;
-  if (self.agent && self.agent.protocol)
-    expectedProtocol = self.agent.protocol;
+  if (this.agent && this.agent.protocol)
+    expectedProtocol = this.agent.protocol;
 
   var path;
   if (options.path) {
@@ -91,16 +130,17 @@ function ClientRequest(options, cb) {
                     'Expected "' + expectedProtocol + '"');
   }
 
-  const defaultPort = options.defaultPort ||
-                      self.agent && self.agent.defaultPort;
+  var defaultPort = options.defaultPort ||
+                    this.agent && this.agent.defaultPort;
 
   var port = options.port = options.port || defaultPort || 80;
-  var host = options.host = options.hostname || options.host || 'localhost';
+  var host = options.host = validateHost(options.hostname, 'hostname') ||
+                            validateHost(options.host, 'host') || 'localhost';
 
   var setHost = (options.setHost === undefined);
 
-  self.socketPath = options.socketPath;
-  self.timeout = options.timeout;
+  this.socketPath = options.socketPath;
+  this.timeout = options.timeout;
 
   var method = options.method;
   var methodIsString = (typeof method === 'string');
@@ -112,14 +152,14 @@ function ClientRequest(options, cb) {
     if (!common._checkIsHttpToken(method)) {
       throw new TypeError('Method must be a valid HTTP token');
     }
-    method = self.method = method.toUpperCase();
+    method = this.method = method.toUpperCase();
   } else {
-    method = self.method = 'GET';
+    method = this.method = 'GET';
   }
 
-  self.path = options.path || '/';
+  this.path = options.path || '/';
   if (cb) {
-    self.once('response', cb);
+    this.once('response', cb);
   }
 
   var headersArray = Array.isArray(options.headers);
@@ -128,19 +168,19 @@ function ClientRequest(options, cb) {
       var keys = Object.keys(options.headers);
       for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        self.setHeader(key, options.headers[key]);
+        this.setHeader(key, options.headers[key]);
       }
     }
     if (host && !this.getHeader('host') && setHost) {
       var hostHeader = host;
-      var posColon = -1;
 
       // For the Host header, ensure that IPv6 addresses are enclosed
       // in square brackets, as defined by URI formatting
       // https://tools.ietf.org/html/rfc3986#section-3.2.2
-      if (-1 !== (posColon = hostHeader.indexOf(':')) &&
-          -1 !== (posColon = hostHeader.indexOf(':', posColon)) &&
-          '[' !== hostHeader[0]) {
+      var posColon = hostHeader.indexOf(':');
+      if (posColon !== -1 &&
+          hostHeader.indexOf(':', posColon + 1) !== -1 &&
+          hostHeader.charCodeAt(0) !== 91/*'['*/) {
         hostHeader = `[${hostHeader}]`;
       }
 
@@ -161,17 +201,22 @@ function ClientRequest(options, cb) {
       method === 'DELETE' ||
       method === 'OPTIONS' ||
       method === 'CONNECT') {
-    self.useChunkedEncodingByDefault = false;
+    this.useChunkedEncodingByDefault = false;
   } else {
-    self.useChunkedEncodingByDefault = true;
+    this.useChunkedEncodingByDefault = true;
   }
 
   if (headersArray) {
-    self._storeHeader(self.method + ' ' + self.path + ' HTTP/1.1\r\n',
+    this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
                       options.headers);
-  } else if (self.getHeader('expect')) {
-    self._storeHeader(self.method + ' ' + self.path + ' HTTP/1.1\r\n',
-                      self._renderHeaders());
+  } else if (this.getHeader('expect')) {
+    if (this._header) {
+      throw new Error('Can\'t render headers after they are sent to the ' +
+                      'client');
+    }
+
+    this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
+                      this[outHeadersKey]);
   }
 
   this._ended = false;
@@ -183,77 +228,70 @@ function ClientRequest(options, cb) {
   this.maxHeadersCount = null;
 
   var called = false;
-  if (self.socketPath) {
-    self._last = true;
-    self.shouldKeepAlive = false;
-    const optionsPath = {
-      path: self.socketPath,
-      timeout: self.timeout
+
+  var oncreate = (err, socket) => {
+    if (called)
+      return;
+    called = true;
+    if (err) {
+      process.nextTick(() => this.emit('error', err));
+      return;
+    }
+    this.onSocket(socket);
+    this._deferToConnect(null, null, () => this._flush());
+  };
+
+  var newSocket;
+  if (this.socketPath) {
+    this._last = true;
+    this.shouldKeepAlive = false;
+    var optionsPath = {
+      path: this.socketPath,
+      timeout: this.timeout
     };
-    const newSocket = self.agent.createConnection(optionsPath, oncreate);
+    newSocket = this.agent.createConnection(optionsPath, oncreate);
     if (newSocket && !called) {
       called = true;
-      self.onSocket(newSocket);
+      this.onSocket(newSocket);
     } else {
       return;
     }
-  } else if (self.agent) {
+  } else if (this.agent) {
     // If there is an agent we should default to Connection:keep-alive,
     // but only if the Agent will actually reuse the connection!
     // If it's not a keepAlive agent, and the maxSockets==Infinity, then
     // there's never a case where this socket will actually be reused
-    if (!self.agent.keepAlive && !Number.isFinite(self.agent.maxSockets)) {
-      self._last = true;
-      self.shouldKeepAlive = false;
+    if (!this.agent.keepAlive && !Number.isFinite(this.agent.maxSockets)) {
+      this._last = true;
+      this.shouldKeepAlive = false;
     } else {
-      self._last = false;
-      self.shouldKeepAlive = true;
+      this._last = false;
+      this.shouldKeepAlive = true;
     }
-    self.agent.addRequest(self, options);
+    this.agent.addRequest(this, options);
   } else {
     // No agent, default to Connection:close.
-    self._last = true;
-    self.shouldKeepAlive = false;
+    this._last = true;
+    this.shouldKeepAlive = false;
     if (typeof options.createConnection === 'function') {
-      const newSocket = options.createConnection(options, oncreate);
+      newSocket = options.createConnection(options, oncreate);
       if (newSocket && !called) {
         called = true;
-        self.onSocket(newSocket);
+        this.onSocket(newSocket);
       } else {
         return;
       }
     } else {
       debug('CLIENT use net.createConnection', options);
-      self.onSocket(net.createConnection(options));
+      this.onSocket(net.createConnection(options));
     }
   }
 
-  function oncreate(err, socket) {
-    if (called)
-      return;
-    called = true;
-    if (err) {
-      process.nextTick(function() {
-        self.emit('error', err);
-      });
-      return;
-    }
-    self.onSocket(socket);
-    self._deferToConnect(null, null, function() {
-      self._flush();
-      self = null;
-    });
-  }
-
-  self._deferToConnect(null, null, function() {
-    self._flush();
-    self = null;
-  });
+  this._deferToConnect(null, null, () => this._flush());
 }
 
 util.inherits(ClientRequest, OutgoingMessage);
 
-exports.ClientRequest = ClientRequest;
 
 ClientRequest.prototype._finish = function _finish() {
   DTRACE_HTTP_CLIENT_REQUEST(this, this.connection);
@@ -263,13 +301,16 @@ ClientRequest.prototype._finish = function _finish() {
 };
 
 ClientRequest.prototype._implicitHeader = function _implicitHeader() {
+  if (this._header) {
+    throw new Error('Can\'t render headers after they are sent to the client');
+  }
   this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
-                    this._renderHeaders());
+                    this[outHeadersKey]);
 };
 
 ClientRequest.prototype.abort = function abort() {
   if (!this.aborted) {
-    process.nextTick(emitAbortNT, this);
+    process.nextTick(emitAbortNT.bind(this));
   }
   // Mark as aborting so we can avoid sending queued request data
   // This is used as a truthy flag elsewhere. The use of Date.now is for
@@ -293,8 +334,8 @@ ClientRequest.prototype.abort = function abort() {
 };
 
 
-function emitAbortNT(self) {
-  self.emit('abort');
+function emitAbortNT() {
+  this.emit('abort');
 }
 
 
@@ -549,9 +590,12 @@ function responseKeepAlive(res, req) {
     socket.removeListener('close', socketCloseListener);
     socket.removeListener('error', socketErrorListener);
     socket.once('error', freeSocketErrorListener);
+    // There are cases where _handle === null. Avoid those. Passing null to
+    // nextTick() will call initTriggerId() to retrieve the id.
+    const asyncId = socket._handle ? socket._handle.getAsyncId() : null;
     // Mark this socket as available, AFTER user-added end
     // handlers have a chance to run.
-    process.nextTick(emitFreeNT, socket);
+    nextTick(asyncId, emitFreeNT, socket);
   }
 }
 
@@ -646,26 +690,25 @@ function _deferToConnect(method, arguments_, cb) {
   // calls that happen either now (when a socket is assigned) or
   // in the future (when a socket gets assigned out of the pool and is
   // eventually writable).
-  var self = this;
 
-  function callSocketMethod() {
+  const callSocketMethod = () => {
     if (method)
-      self.socket[method].apply(self.socket, arguments_);
+      this.socket[method].apply(this.socket, arguments_);
 
     if (typeof cb === 'function')
       cb();
-  }
+  };
 
-  var onSocket = function onSocket() {
-    if (self.socket.writable) {
+  const onSocket = () => {
+    if (this.socket.writable) {
       callSocketMethod();
     } else {
-      self.socket.once('connect', callSocketMethod);
+      this.socket.once('connect', callSocketMethod);
     }
   };
 
-  if (!self.socket) {
-    self.once('socket', onSocket);
+  if (!this.socket) {
+    this.once('socket', onSocket);
   } else {
     onSocket();
   }
@@ -674,10 +717,7 @@ function _deferToConnect(method, arguments_, cb) {
 ClientRequest.prototype.setTimeout = function setTimeout(msecs, callback) {
   if (callback) this.once('timeout', callback);
 
-  var self = this;
-  function emitTimeout() {
-    self.emit('timeout');
-  }
+  const emitTimeout = () => this.emit('timeout');
 
   if (this.socket && this.socket.writable) {
     if (this.timeoutCb)
@@ -715,4 +755,8 @@ ClientRequest.prototype.setSocketKeepAlive =
 
 ClientRequest.prototype.clearTimeout = function clearTimeout(cb) {
   this.setTimeout(0, cb);
+};
+
+module.exports = {
+  ClientRequest
 };

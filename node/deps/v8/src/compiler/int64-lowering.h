@@ -9,13 +9,14 @@
 #include "src/compiler/graph.h"
 #include "src/compiler/machine-operator.h"
 #include "src/compiler/node-marker.h"
+#include "src/globals.h"
 #include "src/zone/zone-containers.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
-class Int64Lowering {
+class V8_EXPORT_PRIVATE Int64Lowering {
  public:
   Int64Lowering(Graph* graph, MachineOperatorBuilder* machine,
                 CommonOperatorBuilder* common, Zone* zone,
@@ -46,7 +47,7 @@ class Int64Lowering {
   void PrepareReplacements(Node* node);
   void PushNode(Node* node);
   void LowerNode(Node* node);
-  bool DefaultLowering(Node* node);
+  bool DefaultLowering(Node* node, bool low_word_only = false);
   void LowerComparison(Node* node, const Operator* signed_op,
                        const Operator* unsigned_op);
   void PrepareProjectionReplacements(Node* node);

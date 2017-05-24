@@ -1,9 +1,32 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const net = require('net');
 const util = require('util');
 const EventEmitter = require('events');
 const debug = util.debuglog('http');
+const async_id_symbol = process.binding('async_wrap').async_id_symbol;
+const nextTick = require('internal/process/next_tick').nextTick;
 
 // New Agent code.
 
@@ -72,6 +95,7 @@ function Agent(options) {
           self.freeSockets[name] = freeSockets;
           socket.setKeepAlive(true, self.keepAliveMsecs);
           socket.unref();
+          socket[async_id_symbol] = -1;
           socket._httpMessage = null;
           self.removeSocket(socket, options);
           freeSockets.push(socket);
@@ -84,7 +108,6 @@ function Agent(options) {
 }
 
 util.inherits(Agent, EventEmitter);
-exports.Agent = Agent;
 
 Agent.defaultMaxSockets = Infinity;
 
@@ -110,13 +133,14 @@ Agent.prototype.getName = function getName(options) {
   return name;
 };
 
-Agent.prototype.addRequest = function addRequest(req, options) {
+Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
+                                                 localAddress/*legacy*/) {
   // Legacy API: addRequest(req, host, port, localAddress)
   if (typeof options === 'string') {
     options = {
       host: options,
-      port: arguments[2],
-      localAddress: arguments[3]
+      port,
+      localAddress
     };
   }
 
@@ -142,6 +166,8 @@ Agent.prototype.addRequest = function addRequest(req, options) {
   if (freeLen) {
     // we have a free socket, so use that.
     var socket = this.freeSockets[name].shift();
+    // Assign the handle a new asyncId and run any init() hooks.
+    socket._handle.asyncReset();
     debug('have free socket');
 
     // don't leak
@@ -156,7 +182,7 @@ Agent.prototype.addRequest = function addRequest(req, options) {
     // If we are under maxSockets create a new one.
     this.createSocket(req, options, function(err, newSocket) {
       if (err) {
-        process.nextTick(function() {
+        nextTick(newSocket._handle.getAsyncId(), function() {
           req.emit('error', err);
         });
         return;
@@ -269,7 +295,7 @@ Agent.prototype.removeSocket = function removeSocket(s, options) {
     // If we have pending requests and a socket gets closed make a new one
     this.createSocket(req, options, function(err, newSocket) {
       if (err) {
-        process.nextTick(function() {
+        nextTick(newSocket._handle.getAsyncId(), function() {
           req.emit('error', err);
         });
         return;
@@ -293,4 +319,7 @@ Agent.prototype.destroy = function destroy() {
   }
 };
 
-exports.globalAgent = new Agent();
+module.exports = {
+  Agent,
+  globalAgent: new Agent()
+};

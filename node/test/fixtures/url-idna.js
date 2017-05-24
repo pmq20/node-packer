@@ -182,36 +182,42 @@ module.exports = {
       ascii: 'xn--vitnam-jk8b.icom.museum',
       unicode: 'việtnam.icom.museum'
     },
+    // long label
+    {
+      ascii: `${'a'.repeat(64)}.com`,
+      unicode: `${'a'.repeat(64)}.com`,
+    },
     // long URL
     {
-      ascii: `${`${'a'.repeat(63)}.`.repeat(3)}com`,
-      unicode: `${`${'a'.repeat(63)}.`.repeat(3)}com`
+      ascii: `${`${'a'.repeat(64)}.`.repeat(4)}com`,
+      unicode: `${`${'a'.repeat(64)}.`.repeat(4)}com`
+    },
+    // URLs with hyphen
+    {
+      ascii: 'r4---sn-a5mlrn7s.gevideo.com',
+      unicode: 'r4---sn-a5mlrn7s.gevideo.com'
+    },
+    {
+      ascii: '-sn-a5mlrn7s.gevideo.com',
+      unicode: '-sn-a5mlrn7s.gevideo.com'
+    },
+    {
+      ascii: 'sn-a5mlrn7s-.gevideo.com',
+      unicode: 'sn-a5mlrn7s-.gevideo.com'
+    },
+    {
+      ascii: '-sn-a5mlrn7s-.gevideo.com',
+      unicode: '-sn-a5mlrn7s-.gevideo.com'
+    },
+    {
+      ascii: '-sn--a5mlrn7s-.gevideo.com',
+      unicode: '-sn--a5mlrn7s-.gevideo.com'
     }
   ],
   invalid: [
-    // long label
-    {
-      url: `${'a'.repeat(64)}.com`,
-      mode: 'ascii'
-    },
-    // long URL
-    {
-      url: `${`${'a'.repeat(63)}.`.repeat(4)}com`,
-      mode: 'ascii'
-    },
     // invalid character
-    {
-      url: '\ufffd.com',
-      mode: 'ascii'
-    },
-    {
-      url: '\ufffd.com',
-      mode: 'unicode'
-    },
-    // invalid Punycode
-    {
-      url: 'xn---abc.com',
-      mode: 'unicode'
-    }
+    '\ufffd.com',
+    // invalid bi-directional character
+    'تشادرlatin.icom.museum'
   ]
 }

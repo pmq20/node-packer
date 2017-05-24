@@ -2,6 +2,8 @@
 
 ## v1.0.0
 
+- upgrade libsquash to v0.4.0
+- upgrade Node.js runtime to v8.0.0
 - add runtime support for native modules
 - add CI tests for native modules
 - make sure that we are able to compile web apps
@@ -10,7 +12,6 @@
 - on Windows, build the corresponding arch. with the node under use
 - remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
 - add auto-update feature via --auto-update-url and --auto-update-base
-- upgrade libsquash to https://github.com/pmq20/libsquash/commit/f5b1a8d
 
 ## v0.9.6
 

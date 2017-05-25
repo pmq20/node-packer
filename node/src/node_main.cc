@@ -740,6 +740,9 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 	// Close process and thread handles. 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+	std::cerr << "Deleting ";
+	std::wcerr << selftmpf;
+	std::cerr << std::endl;
 	_wexeclp(L"cmd", L"cmd", L"/c", L"ping", L"127.0.0.1", L"-n", L"3", L">nul", L"&", L"del", selftmpf, NULL);
 	// we should never reach here
 	assert(0);

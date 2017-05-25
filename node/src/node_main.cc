@@ -626,7 +626,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 	}
 	SQUASH_OS_PATH tmpf = squash_tmpf(tmpdir, "exe");
 	if (NULL == tmpf) {
-		std::cerr << "AutoUpdate Failed: no temporary file found" << std::endl;
+		std::cerr << "AutoUpdate Failed: no temporary file available" << std::endl;
 		free((void*)(tmpdir));
 		free(uncomp);
 		free(body_buffer);
@@ -657,7 +657,92 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 	fclose(fp);
 	free(uncomp);
 	free(body_buffer);
-
+	/* Windows paths can never be longer than this. */
+	const size_t utf16_buffer_len = 32768;
+	wchar_t utf16_buffer[utf16_buffer_len];
+	DWORD utf16_len = GetModuleFileNameW(NULL, utf16_buffer, utf16_buffer_len);
+	if (0 == utf16_len) {
+		std::cerr << "AutoUpdate Failed: GetModuleFileNameW failed with GetLastError=" << GetLastError() << std::endl;
+		DeleteFileW(tmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		return;
+	}
+	// Moving
+	SQUASH_OS_PATH selftmpf = squash_tmpf(tmpdir, "exe");
+	if (NULL == selftmpf) {
+		std::cerr << "AutoUpdate Failed: no temporary file available" << std::endl;
+		DeleteFileW(tmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		return;
+	}
+	std::cerr << "Moving ";
+	std::wcerr << utf16_buffer;
+	std::cerr << " to ";
+	std::wcerr << selftmpf;
+	std::cerr << std::endl;
+	BOOL ret = MoveFileW(utf16_buffer, selftmpf);
+	if (!ret) {
+		std::cerr << "AutoUpdate Failed: MoveFileW failed with GetLastError=" << GetLastError() << std::endl;
+		DeleteFileW(tmpf);
+		DeleteFileW(selftmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		free((void*)(selftmpf));
+		return;
+	}
+	std::cerr << "Moving ";
+	std::wcerr << tmpf;
+	std::cerr << " to ";
+	std::wcerr << utf16_buffer;
+	std::cerr << std::endl;
+	ret = MoveFileW(tmpf, utf16_buffer);
+	if (!ret) {
+		std::cerr << "AutoUpdate Failed: MoveFileW failed with GetLastError=" << GetLastError() << std::endl;
+		DeleteFileW(tmpf);
+		DeleteFileW(selftmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		free((void*)(selftmpf));
+		return;
+	}
+	// Restarting
+	std::cerr << "Restarting" << std::endl;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	ret = CreateProcess(
+		NULL,             // No module name (use command line)
+		GetCommandLine(), // Command line
+		NULL,             // Process handle not inheritable
+		NULL,             // Thread handle not inheritable
+		FALSE,            // Set handle inheritance to FALSE
+		0,                // No creation flags
+		NULL,             // Use parent's environment block
+		NULL,             // Use parent's starting directory 
+		&si,              // Pointer to STARTUPINFO structure
+		&pi               // Pointer to PROCESS_INFORMATION structure
+	);
+	if (!ret) {
+		std::cerr << "AutoUpdate Failed: CreateProcess failed with GetLastError=" << GetLastError() << std::endl;
+		DeleteFileW(tmpf);
+		DeleteFileW(selftmpf);
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		free((void*)(selftmpf));
+		return;
+	}
+	// Wait until child process exits.
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+	_wexeclp(L"cmd", L"cmd", L"/c", L"ping", L"127.0.0.1", L"-n", L"3", L">nul", L"&", L"del", selftmpf, NULL);
+	// we should never reach here
+	assert(0);
 }
 #endif // ENCLOSE_IO_AUTO_UPDATE
 #else
@@ -1095,7 +1180,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	}
 	SQUASH_OS_PATH tmpf = squash_tmpf(tmpdir, NULL);
 	if (NULL == tmpf) {
-		std::cerr << "AutoUpdate Failed: no temporary file found" << std::endl;
+		std::cerr << "AutoUpdate Failed: no temporary file available" << std::endl;
 		free((void*)(tmpdir));
 		free(uncomp);
 		free(body_buffer);
@@ -1128,6 +1213,13 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	// chmod
 	size_t exec_path_len = 2 * PATH_MAX;
 	char* exec_path = static_cast<char*>(malloc(exec_path_len));
+	if (NULL == exec_path) {
+		std::cerr << "AutoUpdate Failed: Insufficient memory allocating exec_path" << std::endl;
+		free((void*)(tmpdir));
+		free((void*)(tmpf));
+		unlink(tmpf);
+		return;
+	}
 	if (uv_exepath(exec_path, &exec_path_len) != 0) {
 		if (!argv[0]) {
 			std::cerr << "AutoUpdate Failed: missing argv[0]" << std::endl;
@@ -1172,7 +1264,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	std::cerr << "Restarting" << std::endl;
 	ret = execv(exec_path, argv);
 	// we should not reach this point
-	std::cerr << "AutoUpdate Failed: execv failed" << std::endl;
+	std::cerr << "AutoUpdate Failed: execv failed with " << ret << "(errno " << errno << ")" << std::endl;
 	free(exec_path);
 	free((void*)(tmpdir));
 	free((void*)(tmpf));

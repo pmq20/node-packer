@@ -134,7 +134,7 @@ const server = http.createServer((req, res) => {
       res.write(typeof data);
       res.end();
     } catch (er) {
-      // uh oh!  bad json!
+      // uh oh! bad json!
       res.statusCode = 400;
       return res.end(`error: ${er.message}`);
     }
@@ -143,12 +143,12 @@ const server = http.createServer((req, res) => {
 
 server.listen(1337);
 
-// $ curl localhost:1337 -d '{}'
+// $ curl localhost:1337 -d "{}"
 // object
-// $ curl localhost:1337 -d '"foo"'
+// $ curl localhost:1337 -d "\"foo\""
 // string
-// $ curl localhost:1337 -d 'not json'
-// error: Unexpected token o
+// $ curl localhost:1337 -d "not json"
+// error: Unexpected token o in JSON at position 1
 ```
 
 [Writable][] streams (such as `res` in the example) expose methods such as
@@ -498,6 +498,15 @@ write('hello', () => {
 ```
 
 A Writable stream in object mode will always ignore the `encoding` argument.
+
+##### writable.destroy([error])
+<!-- YAML
+added: REPLACEME
+-->
+
+Destroy the stream, and emit the passed error. After this call, the
+writible stream has ended. Implementors should not override this method,
+but instead implement [`writable._destroy`][writable-_destroy].
 
 ### Readable Streams
 
@@ -1070,6 +1079,16 @@ myReader.on('readable', () => {
 });
 ```
 
+##### readable.destroy([error])
+<!-- YAML
+added: REPLACEME
+-->
+
+Destroy the stream, and emit `'error'`. After this call, the
+readable stream will release any internal resources.
+Implementors should not override this method, but instead implement
+[`readable._destroy`][readable-_destroy].
+
 ### Duplex and Transform Streams
 
 #### Class: stream.Duplex
@@ -1109,6 +1128,16 @@ Examples of Transform streams include:
 * [zlib streams][zlib]
 * [crypto streams][crypto]
 
+##### transform.destroy([error])
+<!-- YAML
+added: REPLACEME
+-->
+
+Destroy the stream, and emit `'error'`. After this call, the
+transform stream would release any internal resources.
+implementors should not override this method, but instead implement
+[`readable._destroy`][readable-_destroy].
+The default implementation of `_destroy` for `Transform` also emit `'close'`.
 
 ## API for Stream Implementers
 
@@ -1128,6 +1157,7 @@ const Writable = require('stream').Writable;
 class MyWritable extends Writable {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 ```
@@ -1247,6 +1277,8 @@ constructor and implement the `writable._write()` method. The
     [`stream._write()`][stream-_write] method.
   * `writev` {Function} Implementation for the
     [`stream._writev()`][stream-_writev] method.
+  * `destroy` {Function} Implementation for the
+    [`stream._destroy()`][writable-_destroy] method.
 
 For example:
 
@@ -1257,6 +1289,7 @@ class MyWritable extends Writable {
   constructor(options) {
     // Calls the stream.Writable() constructor
     super(options);
+    // ...
   }
 }
 ```
@@ -1356,6 +1389,15 @@ The `writable._writev()` method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
 user programs.
 
+#### writable.\_destroy(err, callback)
+<!-- YAML
+added: REPLACEME
+-->
+
+* `err` {Error} An error.
+* `callback` {Function} A callback function that takes an optional error argument
+  which is invoked when the writable is destroyed.
+
 #### Errors While Writing
 
 It is recommended that errors occurring during the processing of the
@@ -1393,6 +1435,7 @@ const Writable = require('stream').Writable;
 class MyWritable extends Writable {
   constructor(options) {
     super(options);
+    // ...
   }
 
   _write(chunk, encoding, callback) {
@@ -1425,6 +1468,8 @@ constructor and implement the `readable._read()` method.
     a single value instead of a Buffer of size n. Defaults to `false`
   * `read` {Function} Implementation for the [`stream._read()`][stream-_read]
     method.
+  * `destroy` {Function} Implementation for the [`stream._destroy()`][readable-_destroy]
+    method.
 
 For example:
 
@@ -1435,6 +1480,7 @@ class MyReadable extends Readable {
   constructor(options) {
     // Calls the stream.Readable(options) constructor
     super(options);
+    // ...
   }
 }
 ```
@@ -1648,6 +1694,7 @@ const Duplex = require('stream').Duplex;
 class MyDuplex extends Duplex {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 ```
@@ -1803,6 +1850,7 @@ const Transform = require('stream').Transform;
 class MyTransform extends Transform {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 ```
@@ -2073,4 +2121,8 @@ readable buffer so there is nothing for a user to consume.
 [stream-read]: #stream_readable_read_size
 [stream-resume]: #stream_readable_resume
 [stream-write]: #stream_writable_write_chunk_encoding_callback
-[zlib]: zlib.html
+[readable-_destroy]: #stream_readable_destroy_err_callback
+[writable-_destroy]: #stream_writable_destroy_err_callback
+[TCP sockets]: net.html#net_class_net_socket
+[Transform]: #stream_class_stream_transform
+[Writable]: #stream_class_stream_writable

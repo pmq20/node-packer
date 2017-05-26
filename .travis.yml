@@ -12,12 +12,12 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - squashfs-tools
-      - gcc-4.8
-      - g++-4.8
+      - gcc-4.9
+      - g++-4.9
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then rm -rf /usr/local/Cellar/openssl/ && brew install squashfs openssl; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 
 before_script:
   - rvm install ruby-2.4.0

@@ -230,6 +230,8 @@ bool config_expose_internals = false;
 
 bool v8_initialized = false;
 
+bool linux_at_secure = false;
+
 // process-relative uptime base, initialized at start-up
 static double prog_start_time;
 
@@ -965,13 +967,15 @@ Local<Value> UVException(Isolate* isolate,
 // Look up environment variable unless running as setuid root.
 bool SafeGetenv(const char* key, std::string* text) {
 #ifndef _WIN32
-  // TODO(bnoordhuis) Should perhaps also check whether getauxval(AT_SECURE)
-  // is non-zero on Linux.
   if (getuid() != geteuid() || getgid() != getegid()) {
     text->clear();
     return false;
   }
 #endif
+  if (linux_at_secure) {
+    text->clear();
+    return false;
+  }
   if (const char* value = getenv(key)) {
     *text = value;
     return true;
@@ -1130,7 +1134,6 @@ void DomainPromiseHook(PromiseHookType type,
   Environment* env = static_cast<Environment*>(arg);
   Local<Context> context = env->context();
 
-  if (type == PromiseHookType::kResolve) return;
   if (type == PromiseHookType::kInit && env->in_domain()) {
     promise->Set(context,
                  env->domain_string(),
@@ -1139,38 +1142,10 @@ void DomainPromiseHook(PromiseHookType type,
     return;
   }
 
-  // Loosely based on node::MakeCallback().
-  Local<Value> domain_v =
-      promise->Get(context, env->domain_string()).ToLocalChecked();
-  if (!domain_v->IsObject())
-    return;
-
-  Local<Object> domain = domain_v.As<Object>();
-  if (domain->Get(context, env->disposed_string())
-          .ToLocalChecked()->IsTrue()) {
-    return;
-  }
-
   if (type == PromiseHookType::kBefore) {
-    Local<Value> enter_v =
-        domain->Get(context, env->enter_string()).ToLocalChecked();
-    if (enter_v->IsFunction()) {
-      if (enter_v.As<Function>()->Call(context, domain, 0, nullptr).IsEmpty()) {
-        FatalError("node::PromiseHook",
-                   "domain enter callback threw, please report this "
-                   "as a bug in Node.js");
-      }
-    }
-  } else {
-    Local<Value> exit_v =
-        domain->Get(context, env->exit_string()).ToLocalChecked();
-    if (exit_v->IsFunction()) {
-      if (exit_v.As<Function>()->Call(context, domain, 0, nullptr).IsEmpty()) {
-        FatalError("node::MakeCallback",
-                   "domain exit callback threw, please report this "
-                   "as a bug in Node.js");
-      }
-    }
+    DomainEnter(env, promise);
+  } else if (type == PromiseHookType::kAfter) {
+    DomainExit(env, promise);
   }
 }
 
@@ -3666,6 +3641,8 @@ static void PrintHelp() {
          "  --inspect-brk[=[host:]port]\n"
          "                             activate inspector on host:port\n"
          "                             and break at start of user script\n"
+         "  --inspect-port=[host:]port\n"
+         "                             set host:port for inspector\n"
 #endif
          "  --no-deprecation           silence deprecation warnings\n"
          "  --trace-deprecation        show stack traces on deprecations\n"
@@ -3764,7 +3741,7 @@ static void CheckIfAllowedInEnv(const char* exe, bool is_env,
   size_t arglen = eq ? eq - arg : strlen(arg);
 
   static const char* whitelist[] = {
-    // Node options
+    // Node options, sorted in `node --help` order for ease of comparison.
     "--require", "-r",
     "--inspect",
     "--inspect-brk",
@@ -3782,6 +3759,7 @@ static void CheckIfAllowedInEnv(const char* exe, bool is_env,
     "--track-heap-objects",
     "--zero-fill-buffers",
     "--v8-pool-size",
+    "--tls-cipher-list",
     "--use-bundled-ca",
     "--use-openssl-ca",
     "--enable-fips",
@@ -3852,7 +3830,7 @@ static void ParseArgs(int* argc,
 
     CheckIfAllowedInEnv(argv[0], is_env, arg);
 
-    if (debug_options.ParseOption(arg)) {
+    if (debug_options.ParseOption(argv[0], arg)) {
       // Done, consumed by DebugOptions::ParseOption().
     } else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
       printf("%s\n", NODE_VERSION);

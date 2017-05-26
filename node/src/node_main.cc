@@ -750,10 +750,35 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 #endif // ENCLOSE_IO_AUTO_UPDATE
 #else
 // UNIX
+#ifdef __linux__
+#include <elf.h>
+#ifdef __LP64__
+#define Elf_auxv_t Elf64_auxv_t
+#else
+#define Elf_auxv_t Elf32_auxv_t
+#endif  // __LP64__
+extern char** environ;
+#endif  // __linux__
+
+namespace node {
+  extern bool linux_at_secure;
+}  // namespace node
+
 #if ENCLOSE_IO_AUTO_UPDATE
 void enclose_io_autoupdate(int argc, char *argv[]);
 #endif // ENCLOSE_IO_AUTO_UPDATE
 int main(int argc, char *argv[]) {
+#if defined(__linux__)
+  char** envp = environ;
+  while (*envp++ != nullptr) {}
+  Elf_auxv_t* auxv = reinterpret_cast<Elf_auxv_t*>(envp);
+  for (; auxv->a_type != AT_NULL; auxv++) {
+    if (auxv->a_type == AT_SECURE) {
+      node::linux_at_secure = auxv->a_un.a_val;
+      break;
+    }
+  }
+#endif
   // --------- [Enclose.io Hack start] ---------
   #if ENCLOSE_IO_AUTO_UPDATE
     enclose_io_autoupdate(argc, argv);

@@ -494,7 +494,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 	char *body_buffer_end = body_buffer + found_length;
 	// read the remaining body
 	received = the_rest;
-	std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100 / found_length << "%)";
+	std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100LL / found_length << "%)";
 	while (received < found_length) {
 		size_t space = 100 * 1024;
 		if (space > body_buffer_end - body_buffer_ptr) {
@@ -514,7 +514,7 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 		}
 		received += bytes;
 		body_buffer_ptr += bytes;
-		std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100 / found_length << "%)";
+		std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received * 100LL / found_length << "%)";
 	}
 	if (received != found_length) {
 		assert(received < found_length);
@@ -1101,7 +1101,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	char *body_buffer_end = body_buffer + found_length;
 	// read the remaining body
 	received = the_rest;
-	std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received*100/found_length << "%)";
+	std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received*100LL/found_length << "%)";
 	while (received < found_length) {
 		size_t space = 100 * 1024;
 		if (space > body_buffer_end - body_buffer_ptr) {
@@ -1120,7 +1120,7 @@ void enclose_io_autoupdate(int argc, char *argv[])
 		}
 		received += bytes;
 		body_buffer_ptr += bytes;
-		std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received*100/found_length << "%)";
+		std::cerr << '\r' << received << " / " << found_length << " bytes finished (" << received*100LL/found_length << "%)";
 	}
 	if (received != found_length) {
 		assert(received < found_length);

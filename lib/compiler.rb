@@ -255,9 +255,9 @@ class Compiler
           f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Userinfo #{urls[1].inspect}" if urls[1]
           f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Host #{urls[2].inspect}" if urls[2]
           if Gem.win_platform?
-            f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Port #{port}"
-          else
             f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Port #{port.to_s.inspect}"
+          else
+            f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Port #{port}"
           end
           f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Registry #{urls[4].inspect}" if urls[4]
           f.puts "#define ENCLOSE_IO_AUTO_UPDATE_URL_Path #{urls[5].inspect}" if urls[5]

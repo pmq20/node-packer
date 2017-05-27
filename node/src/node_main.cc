@@ -329,17 +329,16 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[])
 
 	std::string url{ found };
 	std::cerr << "Downloading from " << url << std::endl;
+	// TODO https
+	std::string host;
 	if (url.size() >= 8 && "https://" == url.substr(0, 8)) {
-		std::cerr << "AutoUpdate Failed: HTTPS is not supported yet." << std::endl;
-		std::cerr << "Pull requests are welcome on GitHub at" << std::endl;
-		std::cerr << "https://github.com/pmq20/node-compiler" << std::endl;
+		host = url.substr(8);
+	} else if (url.size() >= 7 && "http://" == url.substr(0, 7)) {
+		host = url.substr(7);
+	} else {
+		std::cerr << "AutoUpdate Failed: failed to find http:// or https:// at the beginning of URL " << url << std::endl;
 		return;
 	}
-	if (url.size() >= 7 && "http://" != url.substr(0, 7)) {
-		std::cerr << "AutoUpdate Failed: failed to find http:// at the beginning of URL " << url << std::endl;
-		return;
-	}
-	std::string host = url.substr(7);
 	std::size_t found_slash = host.find('/');
 	std::string request_path;
 	if (std::string::npos == found_slash) {
@@ -968,17 +967,16 @@ void enclose_io_autoupdate(int argc, char *argv[])
 	}
 	std::string url { found };
 	std::cerr << "Downloading from " << url << std::endl;
-	if (url.size() >= 8 && "https://" == url.substr(0,8)) {
-		std::cerr << "AutoUpdate Failed: HTTPS is not supported yet." << std::endl;
-		std::cerr << "Pull requests are welcome on GitHub at" << std::endl;
-		std::cerr << "https://github.com/pmq20/node-compiler" << std::endl;
+	// TODO https
+	std::string host;
+	if (url.size() >= 8 && "https://" == url.substr(0, 8)) {
+		host = url.substr(8);
+	} else if (url.size() >= 7 && "http://" == url.substr(0, 7)) {
+		host = url.substr(7);
+	} else {
+		std::cerr << "AutoUpdate Failed: failed to find http:// or https:// at the beginning of URL " << url << std::endl;
 		return;
 	}
-	if (url.size() >= 7 && "http://" != url.substr(0,7)) {
-		std::cerr << "AutoUpdate Failed: failed to find http:// at the beginning of URL " << url << std::endl;
-		return;
-	}
-	std::string host = url.substr(7);
 	std::size_t found_slash = host.find('/');
 	std::string request_path;
 	if (std::string::npos == found_slash) {

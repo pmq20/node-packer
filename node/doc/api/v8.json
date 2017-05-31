@@ -1,0 +1,644 @@
+{
+  "source": "doc/api/v8.md",
+  "modules": [
+    {
+      "textRaw": "V8",
+      "name": "v8",
+      "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>\n",
+      "methods": [
+        {
+          "textRaw": "v8.cachedDataVersionTag()",
+          "type": "method",
+          "name": "cachedDataVersionTag",
+          "meta": {
+            "added": [
+              "v8.0.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Returns an integer representing a &quot;version tag&quot; derived from the V8 version,\ncommand line flags and detected CPU features. This is useful for determining\nwhether a <a href=\"vm.html#vm_new_vm_script_code_options\"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance\nof V8.</p>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
+          "textRaw": "v8.getHeapSpaceStatistics()",
+          "type": "method",
+          "name": "getHeapSpaceStatistics",
+          "meta": {
+            "added": [
+              "v6.0.0"
+            ],
+            "changes": [
+              {
+                "version": "v7.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10186",
+                "description": "Support values exceeding the 32-bit unsigned integer range."
+              }
+            ]
+          },
+          "desc": "<p>Returns statistics about the V8 heap spaces, i.e. the segments which make up\nthe V8 heap. Neither the ordering of heap spaces, nor the availability of a\nheap space can be guaranteed as the statistics are provided via the V8\n<a href=\"https://v8docs.nodesource.com/node-5.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4\"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the\nnext.</p>\n<p>The value returned is an array of objects containing the following properties:</p>\n<ul>\n<li><code>space_name</code> {string}</li>\n<li><code>space_size</code> {number}</li>\n<li><code>space_used_size</code> {number}</li>\n<li><code>space_available_size</code> {number}</li>\n<li><code>physical_space_size</code> {number}</li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"lang-json\">[\n  {\n    &quot;space_name&quot;: &quot;new_space&quot;,\n    &quot;space_size&quot;: 2063872,\n    &quot;space_used_size&quot;: 951112,\n    &quot;space_available_size&quot;: 80824,\n    &quot;physical_space_size&quot;: 2063872\n  },\n  {\n    &quot;space_name&quot;: &quot;old_space&quot;,\n    &quot;space_size&quot;: 3090560,\n    &quot;space_used_size&quot;: 2493792,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 3090560\n  },\n  {\n    &quot;space_name&quot;: &quot;code_space&quot;,\n    &quot;space_size&quot;: 1260160,\n    &quot;space_used_size&quot;: 644256,\n    &quot;space_available_size&quot;: 960,\n    &quot;physical_space_size&quot;: 1260160\n  },\n  {\n    &quot;space_name&quot;: &quot;map_space&quot;,\n    &quot;space_size&quot;: 1094160,\n    &quot;space_used_size&quot;: 201608,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 1094160\n  },\n  {\n    &quot;space_name&quot;: &quot;large_object_space&quot;,\n    &quot;space_size&quot;: 0,\n    &quot;space_used_size&quot;: 0,\n    &quot;space_available_size&quot;: 1490980608,\n    &quot;physical_space_size&quot;: 0\n  }\n]\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
+          "textRaw": "v8.getHeapStatistics()",
+          "type": "method",
+          "name": "getHeapStatistics",
+          "meta": {
+            "added": [
+              "v1.0.0"
+            ],
+            "changes": [
+              {
+                "version": "v7.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/8610",
+                "description": "Added `malloced_memory`, `peak_malloced_memory`, and `does_zap_garbage`."
+              },
+              {
+                "version": "v7.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10186",
+                "description": "Support values exceeding the 32-bit unsigned integer range."
+              }
+            ]
+          },
+          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> {number}</li>\n<li><code>total_heap_size_executable</code> {number}</li>\n<li><code>total_physical_size</code> {number}</li>\n<li><code>total_available_size</code> {number}</li>\n<li><code>used_heap_size</code> {number}</li>\n<li><code>heap_size_limit</code> {number}</li>\n<li><code>malloced_memory</code> {number}</li>\n<li><code>peak_malloced_memory</code> {number}</li>\n<li><code>does_zap_garbage</code> {number}</li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>\noption is enabled or not. This makes V8 overwrite heap garbage with a bit\npattern. The RSS footprint (resident memory set) gets bigger because it\ncontinuously touches all heap pages and that makes them less likely to get\nswapped out by the operating system.</p>\n<p>For example:</p>\n<!-- eslint-disable -->\n<pre><code class=\"lang-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0\n}\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
+          "textRaw": "v8.setFlagsFromString(string)",
+          "type": "method",
+          "name": "setFlagsFromString",
+          "meta": {
+            "added": [
+              "v1.0.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>.  An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "string"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modules": [
+        {
+          "textRaw": "Serialization API",
+          "name": "serialization_api",
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p>The serialization API provides means of serializing JavaScript values in a way\nthat is compatible with the <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm\">HTML structured clone algorithm</a>.\nThe format is backward-compatible (i.e. safe to store to disk).</p>\n<p><em>Note</em>: This API is under development, and changes (including incompatible\nchanges to the API or wire format) may occur until this warning is removed.</p>\n",
+          "methods": [
+            {
+              "textRaw": "v8.serialize(value)",
+              "type": "method",
+              "name": "serialize",
+              "desc": "<!--\nadded: v8.0.0\n-->\n<ul>\n<li>Returns: {Buffer}</li>\n</ul>\n<p>Uses a <a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "value"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "v8.deserialize(buffer)",
+              "type": "method",
+              "name": "deserialize",
+              "desc": "<!--\nadded: v8.0.0\n-->\n<ul>\n<li><code>buffer</code> {Buffer|Uint8Array} A buffer returned by <a href=\"#v8_v8_serialize_value\"><code>serialize()</code></a>.</li>\n</ul>\n<p>Uses a <a href=\"#v8_class_v8_defaultdeserializer\"><code>DefaultDeserializer</code></a> with default options to read a JS value\nfrom a buffer.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "classes": [
+            {
+              "textRaw": "class: v8.Serializer",
+              "type": "class",
+              "name": "v8.Serializer",
+              "desc": "<!--\nadded: v8.0.0\n-->\n",
+              "methods": [
+                {
+                  "textRaw": "serializer.writeHeader()",
+                  "type": "method",
+                  "name": "writeHeader",
+                  "desc": "<p>Writes out a header, which includes the serialization format version.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                },
+                {
+                  "textRaw": "serializer.writeValue(value)",
+                  "type": "method",
+                  "name": "writeValue",
+                  "desc": "<p>Serializes a JavaScript value and adds the serialized representation to the\ninternal buffer.</p>\n<p>This throws an error if <code>value</code> cannot be serialized.</p>\n",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "name": "value"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "textRaw": "serializer.releaseBuffer()",
+                  "type": "method",
+                  "name": "releaseBuffer",
+                  "desc": "<p>Returns the stored internal buffer. This serializer should not be used once\nthe buffer is released. Calling this method results in undefined behavior\nif a previous write has failed.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                },
+                {
+                  "textRaw": "serializer.transferArrayBuffer(id, arrayBuffer)",
+                  "type": "method",
+                  "name": "transferArrayBuffer",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`id` {integer} A 32-bit unsigned integer. ",
+                          "name": "id",
+                          "type": "integer",
+                          "desc": "A 32-bit unsigned integer."
+                        },
+                        {
+                          "textRaw": "`arrayBuffer` {ArrayBuffer} An `ArrayBuffer` instance. ",
+                          "name": "arrayBuffer",
+                          "type": "ArrayBuffer",
+                          "desc": "An `ArrayBuffer` instance."
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "id"
+                        },
+                        {
+                          "name": "arrayBuffer"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the deserializing context to\n<a href=\"#v8_deserializer_transferarraybuffer_id_arraybuffer\"><code>deserializer.transferArrayBuffer()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.writeUint32(value)",
+                  "type": "method",
+                  "name": "writeUint32",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`value` {integer} ",
+                          "name": "value",
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "value"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Write a raw 32-bit unsigned integer.\nFor use inside of a custom <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.writeUint64(hi, lo)",
+                  "type": "method",
+                  "name": "writeUint64",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`hi` {integer} ",
+                          "name": "hi",
+                          "type": "integer"
+                        },
+                        {
+                          "textRaw": "`lo` {integer} ",
+                          "name": "lo",
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "hi"
+                        },
+                        {
+                          "name": "lo"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Write a raw 64-bit unsigned integer, split into high and low 32-bit parts.\nFor use inside of a custom <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.writeDouble(value)",
+                  "type": "method",
+                  "name": "writeDouble",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`value` {number} ",
+                          "name": "value",
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "value"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Write a JS <code>number</code> value.\nFor use inside of a custom <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.writeRawBytes(buffer)",
+                  "type": "method",
+                  "name": "writeRawBytes",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`buffer` {Buffer|Uint8Array} ",
+                          "name": "buffer",
+                          "type": "Buffer|Uint8Array"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "buffer"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Write raw bytes into the serializer’s internal buffer. The deserializer\nwill require a way to compute the length of the buffer.\nFor use inside of a custom <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.\\_writeHostObject(object)",
+                  "type": "method",
+                  "name": "\\_writeHostObject",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`object` {Object} ",
+                          "name": "object",
+                          "type": "Object"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "object"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>This method is called to write some kind of host object, i.e. an object created\nby native C++ bindings. If it is not possible to serialize <code>object</code>, a suitable\nexception should be thrown.</p>\n<p>This method is not present on the <code>Serializer</code> class itself but can be provided\nby subclasses.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.\\_getDataCloneError(message)",
+                  "type": "method",
+                  "name": "\\_getDataCloneError",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`message` {string} ",
+                          "name": "message",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "message"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>This method is called to generate error objects that will be thrown when an\nobject can not be cloned.</p>\n<p>This method defaults to the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> constructor and can be be overridden on\nsubclasses.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.\\_getSharedArrayBufferId(sharedArrayBuffer)",
+                  "type": "method",
+                  "name": "\\_getSharedArrayBufferId",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`sharedArrayBuffer` {SharedArrayBuffer} ",
+                          "name": "sharedArrayBuffer",
+                          "type": "SharedArrayBuffer"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "sharedArrayBuffer"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>This method is called when the serializer is going to serialize a\n<code>SharedArrayBuffer</code> object. It must return an unsigned 32-bit integer ID for\nthe object, using the same ID if this <code>SharedArrayBuffer</code> has already been\nserialized. When deserializing, this ID will be passed to\n<a href=\"#v8_deserializer_transferarraybuffer_id_arraybuffer\"><code>deserializer.transferArrayBuffer()</code></a>.</p>\n<p>If the object cannot be serialized, an exception should be thrown.</p>\n<p>This method is not present on the <code>Serializer</code> class itself but can be provided\nby subclasses.</p>\n"
+                },
+                {
+                  "textRaw": "serializer.\\_setTreatArrayBufferViewsAsHostObjects(flag)",
+                  "type": "method",
+                  "name": "\\_setTreatArrayBufferViewsAsHostObjects",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`flag` {boolean} ",
+                          "name": "flag",
+                          "type": "boolean"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "flag"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as\nhost objects, i.e. pass them to [<code>serializer._writeHostObject</code>][].</p>\n<p>The default is not to treat those objects as host objects.</p>\n"
+                }
+              ],
+              "signatures": [
+                {
+                  "params": [],
+                  "desc": "<p>Creates a new <code>Serializer</code> object.</p>\n"
+                }
+              ]
+            },
+            {
+              "textRaw": "class: v8.Deserializer",
+              "type": "class",
+              "name": "v8.Deserializer",
+              "desc": "<!--\nadded: v8.0.0\n-->\n",
+              "methods": [
+                {
+                  "textRaw": "deserializer.readHeader()",
+                  "type": "method",
+                  "name": "readHeader",
+                  "desc": "<p>Reads and validates a header (including the format version).\nMay, for example, reject an invalid or unsupported wire format. In that case,\nan <code>Error</code> is thrown.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                },
+                {
+                  "textRaw": "deserializer.readValue()",
+                  "type": "method",
+                  "name": "readValue",
+                  "desc": "<p>Deserializes a JavaScript value from the buffer and returns it.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                },
+                {
+                  "textRaw": "deserializer.transferArrayBuffer(id, arrayBuffer)",
+                  "type": "method",
+                  "name": "transferArrayBuffer",
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`id` {integer} A 32-bit unsigned integer. ",
+                          "name": "id",
+                          "type": "integer",
+                          "desc": "A 32-bit unsigned integer."
+                        },
+                        {
+                          "textRaw": "`arrayBuffer` {ArrayBuffer|SharedArrayBuffer} An `ArrayBuffer` instance. ",
+                          "name": "arrayBuffer",
+                          "type": "ArrayBuffer|SharedArrayBuffer",
+                          "desc": "An `ArrayBuffer` instance."
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "id"
+                        },
+                        {
+                          "name": "arrayBuffer"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the serializing context to\n<a href=\"#v8_serializer_transferarraybuffer_id_arraybuffer\"><code>serializer.transferArrayBuffer()</code></a> (or return the <code>id</code> from\n<a href=\"#v8_serializer_getsharedarraybufferid_sharedarraybuffer\"><code>serializer._getSharedArrayBufferId()</code></a> in the case of <code>SharedArrayBuffer</code>s).</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.getWireFormatVersion()",
+                  "type": "method",
+                  "name": "getWireFormatVersion",
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {integer} ",
+                        "name": "return",
+                        "type": "integer"
+                      },
+                      "params": []
+                    },
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Reads the underlying wire format version. Likely mostly to be useful to\nlegacy code reading old wire format versions. May not be called before\n<code>.readHeader()</code>.</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.readUint32()",
+                  "type": "method",
+                  "name": "readUint32",
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {integer} ",
+                        "name": "return",
+                        "type": "integer"
+                      },
+                      "params": []
+                    },
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Read a raw 32-bit unsigned integer and return it.\nFor use inside of a custom <a href=\"#v8_deserializer_readhostobject\"><code>deserializer._readHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.readUint64()",
+                  "type": "method",
+                  "name": "readUint64",
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Array} ",
+                        "name": "return",
+                        "type": "Array"
+                      },
+                      "params": []
+                    },
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Read a raw 64-bit unsigned integer and return it as an array <code>[hi, lo]</code>\nwith two 32-bit unsigned integer entries.\nFor use inside of a custom <a href=\"#v8_deserializer_readhostobject\"><code>deserializer._readHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.readDouble()",
+                  "type": "method",
+                  "name": "readDouble",
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {number} ",
+                        "name": "return",
+                        "type": "number"
+                      },
+                      "params": []
+                    },
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Read a JS <code>number</code> value.\nFor use inside of a custom <a href=\"#v8_deserializer_readhostobject\"><code>deserializer._readHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.readRawBytes(length)",
+                  "type": "method",
+                  "name": "readRawBytes",
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Buffer} ",
+                        "name": "return",
+                        "type": "Buffer"
+                      },
+                      "params": [
+                        {
+                          "name": "length"
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "length"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Read raw bytes from the deserializer’s internal buffer. The <code>length</code> parameter\nmust correspond to the length of the buffer that was passed to\n<a href=\"#v8_serializer_writerawbytes_buffer\"><code>serializer.writeRawBytes()</code></a>.\nFor use inside of a custom <a href=\"#v8_deserializer_readhostobject\"><code>deserializer._readHostObject()</code></a>.</p>\n"
+                },
+                {
+                  "textRaw": "deserializer.\\_readHostObject()",
+                  "type": "method",
+                  "name": "\\_readHostObject",
+                  "desc": "<p>This method is called to read some kind of host object, i.e. an object that is\ncreated by native C++ bindings. If it is not possible to deserialize the data,\na suitable exception should be thrown.</p>\n<p>This method is not present on the <code>Deserializer</code> class itself but can be\nprovided by subclasses.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                }
+              ],
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|Uint8Array} A buffer returned by [`serializer.releaseBuffer()`][]. ",
+                      "name": "buffer",
+                      "type": "Buffer|Uint8Array",
+                      "desc": "A buffer returned by [`serializer.releaseBuffer()`][]."
+                    }
+                  ],
+                  "desc": "<p>Creates a new <code>Deserializer</code> object.</p>\n"
+                },
+                {
+                  "params": [
+                    {
+                      "name": "buffer"
+                    }
+                  ],
+                  "desc": "<p>Creates a new <code>Deserializer</code> object.</p>\n"
+                }
+              ]
+            },
+            {
+              "textRaw": "class: v8.DefaultSerializer",
+              "type": "class",
+              "name": "v8.DefaultSerializer",
+              "desc": "<!--\nadded: v8.0.0\n-->\n<p>A subclass of <a href=\"#v8_class_v8_serializer\"><code>Serializer</code></a> that serializes <code>TypedArray</code>\n(in particular <a href=\"buffer.html\"><code>Buffer</code></a>) and <code>DataView</code> objects as host objects, and only\nstores the part of their underlying <code>ArrayBuffer</code>s that they are referring to.</p>\n"
+            },
+            {
+              "textRaw": "class: v8.DefaultDeserializer",
+              "type": "class",
+              "name": "v8.DefaultDeserializer",
+              "desc": "<!--\nadded: v8.0.0\n-->\n<p>A subclass of <a href=\"#v8_class_v8_deserializer\"><code>Deserializer</code></a> corresponding to the format written by\n<a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a>.</p>\n"
+            }
+          ],
+          "type": "module",
+          "displayName": "Serialization API"
+        }
+      ],
+      "type": "module",
+      "displayName": "V8"
+    }
+  ]
+}

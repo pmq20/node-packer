@@ -194,7 +194,7 @@ filesystems that allow for non-UTF-8 filenames. For most typical
 uses, working with paths as Buffers will be unnecessary, as the string
 API converts to and from UTF-8 automatically.
 
-*Note* that on certain file systems (such as NTFS and HFS+) filenames
+*Note*: On certain file systems (such as NTFS and HFS+) filenames
 will always be encoded as UTF-8. On such file systems, passing
 non-UTF-8 encoded Buffers to `fs` functions will not work as expected.
 
@@ -311,7 +311,7 @@ synchronous counterparts are of this type.
 For a regular file [`util.inspect(stats)`][] would return a string very
 similar to this:
 
-```
+```console
 Stats {
   dev: 2114,
   ino: 48064969,
@@ -1546,8 +1546,8 @@ On Linux, positional writes don't work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.
 
-*Note*: The behavior of `fs.open()` is platform-specific for some flags. As such,
-opening a directory on macOS and Linux with the `'a+'` flag - see example
+*Note*: The behavior of `fs.open()` is platform-specific for some flags. As
+such, opening a directory on macOS and Linux with the `'a+'` flag - see example
 below - will return an error. In contrast, on Windows and FreeBSD, a file
 descriptor will be returned.
 
@@ -1840,6 +1840,9 @@ Synchronous version of [`fs.read()`][]. Returns the number of `bytesRead`.
 <!-- YAML
 added: v0.1.31
 changes:
+  - version: v8.0.0
+    pr-url: https://github.com/nodejs/node/pull/13028
+    description: Pipe/Socket resolve support was added.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using
@@ -1872,10 +1875,16 @@ object with an `encoding` property specifying the character encoding to use for
 the path passed to the callback. If the `encoding` is set to `'buffer'`,
 the path returned will be passed as a `Buffer` object.
 
+*Note*: If `path` resolves to a socket or a pipe, the function will return a
+system dependent name for that object.
+
 ## fs.realpathSync(path[, options])
 <!-- YAML
 added: v0.1.31
 changes:
+  - version: v8.0.0
+    pr-url: https://github.com/nodejs/node/pull/13028
+    description: Pipe/Socket resolve support was added.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using
@@ -1901,6 +1910,9 @@ The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use for
 the returned value. If the `encoding` is set to `'buffer'`, the path returned
 will be passed as a `Buffer` object.
+
+*Note*: If `path` resolves to a socket or a pipe, the function will return a
+system dependent name for that object.
 
 ## fs.rename(oldPath, newPath, callback)
 <!-- YAML
@@ -2144,9 +2156,9 @@ effectively stopping watching of `filename`.
 Calling `fs.unwatchFile()` with a filename that is not being watched is a
 no-op, not an error.
 
-*Note*: [`fs.watch()`][] is more efficient than `fs.watchFile()` and `fs.unwatchFile()`.
-`fs.watch()` should be used instead of `fs.watchFile()` and `fs.unwatchFile()`
-when possible.
+*Note*: [`fs.watch()`][] is more efficient than `fs.watchFile()` and
+`fs.unwatchFile()`.  `fs.watch()` should be used instead of `fs.watchFile()`
+and `fs.unwatchFile()` when possible.
 
 ## fs.utimes(path, atime, mtime, callback)
 <!-- YAML
@@ -2173,7 +2185,7 @@ changes:
 
 Change file timestamps of the file referenced by the supplied path.
 
-Note: the arguments `atime` and `mtime` of the following related functions
+*Note*: The arguments `atime` and `mtime` of the following related functions
 follow these rules:
 
 - The value should be a Unix timestamp in seconds. For example, `Date.now()`
@@ -2354,11 +2366,12 @@ These stat objects are instances of `fs.Stat`.
 To be notified when the file was modified, not just accessed, it is necessary
 to compare `curr.mtime` and `prev.mtime`.
 
-*Note*: when an `fs.watchFile` operation results in an `ENOENT` error, it will
- invoke the listener once, with all the fields zeroed (or, for dates, the Unix
- Epoch). In Windows, `blksize` and `blocks` fields will be `undefined`, instead
- of zero. If the file is created later on, the listener will be called again,
- with the latest stat objects. This is a change in functionality since v0.10.
+*Note*: When an `fs.watchFile` operation results in an `ENOENT` error, it
+will invoke the listener once, with all the fields zeroed (or, for dates, the
+Unix Epoch). In Windows, `blksize` and `blocks` fields will be `undefined`,
+instead of zero. If the file is created later on, the listener will be called
+again, with the latest stat objects. This is a change in functionality since
+v0.10.
 
 *Note*: [`fs.watch()`][] is more efficient than `fs.watchFile` and
 `fs.unwatchFile`. `fs.watch` should be used instead of `fs.watchFile` and
@@ -2565,8 +2578,9 @@ Synchronous versions of [`fs.write()`][]. Returns the number of bytes written.
 
 ## FS Constants
 
-The following constants are exported by `fs.constants`. **Note:** Not every
-constant will be available on every operating system.
+The following constants are exported by `fs.constants`.
+
+*Note*: Not every constant will be available on every operating system.
 
 ### File Access Constants
 

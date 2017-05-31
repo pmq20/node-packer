@@ -151,9 +151,9 @@ changes:
     description: The `constructor` parameter can refer to an ES6 class now.
 -->
 
-_Note: usage of `util.inherits()` is discouraged. Please use the ES6 `class` and
-`extends` keywords to get language level inheritance support. Also note that
-the two styles are [semantically incompatible][]._
+*Note*: Usage of `util.inherits()` is discouraged. Please use the ES6 `class`
+and `extends` keywords to get language level inheritance support. Also note
+that the two styles are [semantically incompatible][].
 
 * `constructor` {Function}
 * `superConstructor` {Function}
@@ -401,7 +401,7 @@ console.log(arr); // logs the full array
 
 ## util.promisify(original)
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 * `original` {Function}
@@ -443,7 +443,7 @@ will return its value, see [Custom promisified functions][].
 
 `promisify()` assumes that `original` is a function taking a callback as its
 final argument in all cases, and the returned function will result in undefined
-behaviour if it does not.
+behavior if it does not.
 
 ### Custom promisified functions
 
@@ -471,7 +471,7 @@ standard format of taking an error-first callback as the last argument.
 
 ### util.promisify.custom
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 * {symbol}

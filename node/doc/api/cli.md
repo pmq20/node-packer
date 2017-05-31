@@ -151,7 +151,7 @@ Throw errors for deprecations.
 
 ### `--pending-deprecation`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 Emit pending deprecation warnings.
@@ -172,7 +172,7 @@ Silence all process warnings (including deprecations).
 
 ### `--napi-modules`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
@@ -187,7 +187,7 @@ Print stack traces for process warnings (including deprecations).
 
 ### `--redirect-warnings=file`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 Write process warnings to the given file instead of printing to stderr. The
@@ -290,8 +290,8 @@ added: v0.1.3
 
 Print v8 command line options.
 
-Note: v8 options allow words to be separated by both dashes (`-`) or underscores
-(`_`).
+*Note*: V8 options allow words to be separated by both dashes (`-`) or
+underscores (`_`).
 
 For example, `--stack-trace-limit` is equivalent to `--stack_trace_limit`.
 
@@ -360,7 +360,7 @@ Specify ICU data load path. (overrides `NODE_ICU_DATA`)
 
 ### `-`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 Alias for stdin, analogous to the use of - in other command line utilities,
@@ -394,7 +394,7 @@ added: v0.1.32
 
 `':'`-separated list of directories prefixed to the module search path.
 
-_Note: on Windows, this is a `';'`-separated list instead._
+*Note*: On Windows, this is a `';'`-separated list instead.
 
 
 ### `NODE_DISABLE_COLORS=1`
@@ -422,7 +422,7 @@ When set to `1`, process warnings are silenced.
 
 ### `NODE_OPTIONS=options...`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 `options...` are interpreted as if they had been specified on the command line
@@ -461,7 +461,7 @@ V8 options that are allowed are:
 
 ### `NODE_PENDING_DEPRECATION=1`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 When set to `1`, emit pending deprecation warnings.
@@ -525,7 +525,7 @@ added: v7.7.0
 If `--use-openssl-ca` is enabled, this overrides and sets OpenSSL's directory
 containing trusted certificates.
 
-Note: Be aware that unless the child environment is explicitly set, this
+*Note*: Be aware that unless the child environment is explicitly set, this
 evironment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.
 
@@ -537,13 +537,13 @@ added: v7.7.0
 If `--use-openssl-ca` is enabled, this overrides and sets OpenSSL's file
 containing trusted certificates.
 
-Note: Be aware that unless the child environment is explicitly set, this
+*Note*: Be aware that unless the child environment is explicitly set, this
 evironment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.
 
 ### `NODE_REDIRECT_WARNINGS=file`
 <!-- YAML
-added: REPLACEME
+added: v8.0.0
 -->
 
 When set, process warnings will be emitted to the given file instead of

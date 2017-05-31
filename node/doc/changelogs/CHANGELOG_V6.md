@@ -1,4 +1,4 @@
-# Node.js v6 ChangeLog
+# Node.js 6 ChangeLog
 
 <table>
 <tr>
@@ -37,6 +37,7 @@
 </table>
 
 * Other Versions
+  * [8.x](CHANGELOG_V8.md)
   * [7.x](CHANGELOG_V7.md)
   * [5.x](CHANGELOG_V5.md)
   * [4.x](CHANGELOG_V4.md)
@@ -45,7 +46,7 @@
   * [io.js](CHANGELOG_IOJS.md)
   * [Archive](CHANGELOG_ARCHIVE.md)
 
-**Note:** Node.js v6 is covered by the
+*Note*: Node.js v6 is covered by the
 [Node.js Long Term Support Plan](https://github.com/nodejs/LTS) and
 will be supported actively until April 2018 and maintained until April 2019.
 

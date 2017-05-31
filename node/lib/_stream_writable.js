@@ -248,7 +248,11 @@ function validChunk(stream, state, chunk, cb) {
 Writable.prototype.write = function(chunk, encoding, cb) {
   var state = this._writableState;
   var ret = false;
-  var isBuf = (chunk instanceof Buffer);
+  var isBuf = Stream._isUint8Array(chunk) && !state.objectMode;
+
+  if (isBuf && Object.getPrototypeOf(chunk) !== Buffer.prototype) {
+    chunk = Stream._uint8ArrayToBuffer(chunk);
+  }
 
   if (typeof encoding === 'function') {
     cb = encoding;
@@ -320,6 +324,7 @@ function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
   if (!isBuf) {
     var newChunk = decodeChunk(state, chunk, encoding);
     if (chunk !== newChunk) {
+      isBuf = true;
       encoding = 'buffer';
       chunk = newChunk;
     }
@@ -335,7 +340,13 @@ function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
 
   if (state.writing || state.corked) {
     var last = state.lastBufferedRequest;
-    state.lastBufferedRequest = { chunk, encoding, callback: cb, next: null };
+    state.lastBufferedRequest = {
+      chunk,
+      encoding,
+      isBuf,
+      callback: cb,
+      next: null
+    };
     if (last) {
       last.next = state.lastBufferedRequest;
     } else {
@@ -364,12 +375,17 @@ function doWrite(stream, state, writev, len, chunk, encoding, cb) {
 function onwriteError(stream, state, sync, er, cb) {
   --state.pendingcb;
   if (sync)
-    process.nextTick(cb, er);
+    process.nextTick(afterError, stream, state, cb, er);
   else
-    cb(er);
+    afterError(stream, state, cb, er);
 
   stream._writableState.errorEmitted = true;
   stream.emit('error', er);
+}
+
+function afterError(stream, state, cb, err) {
+  cb(err);
+  finishMaybe(stream, state);
 }
 
 function onwriteStateUpdate(state) {
@@ -438,11 +454,15 @@ function clearBuffer(stream, state) {
     holder.entry = entry;
 
     var count = 0;
+    var allBuffers = true;
     while (entry) {
       buffer[count] = entry;
+      if (!entry.isBuf)
+        allBuffers = false;
       entry = entry.next;
       count += 1;
     }
+    buffer.allBuffers = allBuffers;
 
     doWrite(stream, state, true, state.length, buffer, '', holder.finish);
 

@@ -195,7 +195,7 @@ class JsBindingsSessionDelegate : public InspectorSessionDelegate {
                      v8::WeakCallbackType::kParameter);
   }
 
-  virtual ~JsBindingsSessionDelegate() {
+  ~JsBindingsSessionDelegate() override {
     session_.Reset();
     receiver_.Reset();
     callback_.Reset();
@@ -215,7 +215,7 @@ class JsBindingsSessionDelegate : public InspectorSessionDelegate {
     Local<Value> argument = v8string.ToLocalChecked().As<Value>();
     Local<Function> callback = callback_.Get(isolate);
     Local<Object> receiver = receiver_.Get(isolate);
-    callback->Call(env_->context(), receiver, 1, &argument);
+    static_cast<void>(callback->Call(env_->context(), receiver, 1, &argument));
   }
 
   void Disconnect() {
@@ -597,8 +597,8 @@ bool Agent::StartIoThread(bool wait_for_connect) {
     FIXED_ONE_BYTE_STRING(isolate, "internalMessage"),
     message
   };
-  MakeCallback(parent_env_, process_object.As<Value>(), emit_fn.As<Function>(),
-               arraysize(argv), argv);
+  MakeCallback(parent_env_->isolate(), process_object, emit_fn.As<Function>(),
+               arraysize(argv), argv, 0, 0);
 
   return true;
 }

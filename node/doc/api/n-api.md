@@ -241,7 +241,7 @@ typedef struct napi_extended_error_info {
 [`napi_get_last_error_info`][] returns the information for the last
 N-API call that was made.
 
-**Note:** Do not rely on the content or format of any of the extended
+*Note*: Do not rely on the content or format of any of the extended
 information as it is not subject to SemVer and may change at any time.
 It is intended only for logging purposes.
 
@@ -263,7 +263,7 @@ Returns `napi_ok` if the API succeeded.
 This API retrieves a `napi_extended_error_info` structure with information
 about the last error that occured.
 
-**Note:** Do not rely on the content or format of any of the extended
+*Note*: Do not rely on the content or format of any of the extended
 information as it is not subject to SemVer and may change at any time.
 It is intended only for logging purposes.
 
@@ -1138,7 +1138,7 @@ This API allocates a `node::Buffer` object and initializes it with data
 backed by the passed in buffer. While this is still a fully-supported data
 structure, in most cases using a TypedArray will suffice.
 
-**Note:** For Node.js >=4 `Buffers` are Uint8Arrays.
+*Note*: For Node.js >=4 `Buffers` are Uint8Arrays.
 
 #### *napi_create_function*
 <!-- YAML
@@ -2497,7 +2497,7 @@ This API allows an add-on author to create a function object in native code.
 This is the primary mechanism to allow calling *into* the add-on's native code
 *from* Javascript.
 
-**Note:** The newly created function is not automatically visible from
+*Note*: The newly created function is not automatically visible from
 script after this call. Instead, a property must be explicitly set on any
 object that is visible to JavaScript, in order for the function to be accessible
 from script.
@@ -2530,7 +2530,7 @@ const myaddon = require('./addon');
 myaddon.sayHello();
 ```
 
-**Note:**  The string passed to require is not necessarily the name passed into
+*Note*: The string passed to require is not necessarily the name passed into
 `NAPI_MODULE` in the earlier snippet but the name of the target in `binding.gyp`
 responsible for creating the `.node` file.
 
@@ -2946,6 +2946,35 @@ the `complete` callback will be invoked with a status value of
 `napi_cancelled`. The work should not be deleted before the `complete`
 callback invocation, even if it has been successfully cancelled.
 
+## Version Management
+
+### napi_get_version
+<!-- YAML
+added: v8.0.0
+-->
+```C
+NAPI_EXTERN napi_status napi_get_version(napi_env env,
+                                         uint32_t* result);
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[out] result`: The highest version of N-API supported.
+
+Returns `napi_ok` if the API succeeded.
+
+This API returns the highest N-API version supported by the
+Node.js runtime.  N-API is planned to be additive such that
+newer releases of Node.js may support additional API functions.
+In order to allow an addon to use a newer function when running with
+versions of Node.js that support it, while providing
+fallback behavior when running with Node.js versions that don't
+support it:
+
+* Call `napi_get_version()` to determine if the API is available.
+* If available, dynamically load a pointer to the function using `uv_dlsym()`.
+* Use the dynamically loaded pointer to invoke the function.
+* If the function is not available, provide an alternate implementation
+  that does not use the function.
 
 [Aynchronous Operations]: #n_api_asynchronous_operations
 [Basic N-API Data Types]: #n_api_basic_n_api_data_types

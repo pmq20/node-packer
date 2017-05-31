@@ -146,13 +146,13 @@ static X509_NAME *cnnic_ev_name =
 
 static Mutex* mutexes;
 
-const char* const root_certs[] = {
+static const char* const root_certs[] = {
 #include "node_root_certs.h"  // NOLINT(build/include_order)
 };
 
-std::string extra_root_certs_file;  // NOLINT(runtime/string)
+static std::string extra_root_certs_file;  // NOLINT(runtime/string)
 
-X509_STORE* root_cert_store;
+static X509_STORE* root_cert_store;
 
 // Just to generate static methods
 template void SSLWrap<TLSWrap>::AddMethods(Environment* env,
@@ -1202,6 +1202,8 @@ void SecureContext::SetFreeListLength(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+// Currently, EnableTicketKeyCallback and TicketKeyCallback are only present for
+// the regression test in test/parallel/test-https-resume-after-renew.js.
 void SecureContext::EnableTicketKeyCallback(
     const FunctionCallbackInfo<Value>& args) {
   SecureContext* wrap;
@@ -1235,11 +1237,13 @@ int SecureContext::TicketKeyCallback(SSL* ssl,
                  kTicketPartSize).ToLocalChecked(),
     Boolean::New(env->isolate(), enc != 0)
   };
-  Local<Value> ret = node::MakeCallback(env,
+
+  Local<Value> ret = node::MakeCallback(env->isolate(),
                                         sc->object(),
                                         env->ticketkeycallback_string(),
                                         arraysize(argv),
-                                        argv);
+                                        argv,
+                                        0, 0).ToLocalChecked();
   Local<Array> arr = ret.As<Array>();
 
   int r = arr->Get(kTicketKeyReturnIndex)->Int32Value();
@@ -2877,14 +2881,14 @@ inline int VerifyCallback(int preverify_ok, X509_STORE_CTX* ctx) {
   // Failure on verification of the cert is handled in
   // Connection::VerifyError.
   if (preverify_ok == 0 || X509_STORE_CTX_get_error(ctx) != X509_V_OK)
-    return 1;
+    return CHECK_OK;
 
   // Server does not need to check the whitelist.
   SSL* ssl = static_cast<SSL*>(
       X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
 
   if (SSL_is_server(ssl))
-    return 1;
+    return CHECK_OK;
 
   // Client needs to check if the server cert is listed in the
   // whitelist when it is issued by the specific rootCAs.

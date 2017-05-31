@@ -1,0 +1,1515 @@
+{
+  "source": "doc/api/n-api.md",
+  "modules": [
+    {
+      "textRaw": "N-API",
+      "name": "n-api",
+      "stability": 1,
+      "stabilityText": "Experimental",
+      "desc": "<p>N-API (pronounced N as in the letter, followed by API)\nis an API for building native Addons. It is independent from\nthe underlying JavaScript runtime (ex V8) and is maintained as part of\nNode.js itself. This API will be Application Binary Interface (ABI) stable\nacross versions of Node.js. It is intended to insulate Addons from\nchanges in the underlying JavaScript engine and allow modules\ncompiled for one version to run on later versions of Node.js without\nrecompilation.</p>\n<p>Addons are built/packaged with the same approach/tools\noutlined in the section titled  <a href=\"addons.html\">C++ Addons</a>.\nThe only difference is the set of APIs that are used by the native code.\nInstead of using the V8 or <a href=\"https://github.com/nodejs/nan\">Native Abstractions for Node.js</a> APIs,\nthe functions available in the N-API are used.</p>\n<p>APIs exposed by N-API are generally used to create and manipulate\nJavaScript values. Concepts and operations generally map to ideas specified\nin the ECMA262 Language Specification. The APIs have the following\nproperties:</p>\n<ul>\n<li>All N-API calls return a status code of type <code>napi_status</code>. This\nstatus indicates whether the API call succeeded or failed.</li>\n<li>The API&#39;s return value is passed via an out parameter.</li>\n<li>All JavaScript values are abstracted behind an opaque type named\n<code>napi_value</code>.</li>\n<li>In case of an error status code, additional information can be obtained\nusing <code>napi_get_last_error_info</code>. More information can be found in the error\nhandling section <a href=\"#n_api_error_handling\">Error Handling</a>.</li>\n</ul>\n<p>The documentation for N-API is structured as follows:</p>\n<ul>\n<li><a href=\"#n_api_basic_n_api_data_types\">Basic N-API Data Types</a></li>\n<li><a href=\"#n_api_error_handling\">Error Handling</a></li>\n<li><a href=\"#n_api_object_lifetime_management\">Object Lifetime Management</a></li>\n<li><a href=\"#n_api_module_registration\">Module Registration</a></li>\n<li><a href=\"#n_api_working_with_javascript_values\">Working with JavaScript Values</a></li>\n<li><a href=\"#n_api_working_with_javascript_values_abstract_operations\">Working with JavaScript Values - Abstract Operations</a></li>\n<li><a href=\"#n_api_working_with_javascript_properties\">Working with JavaScript Properties</a></li>\n<li><a href=\"#n_api_working_with_javascript_functions\">Working with JavaScript Functions</a></li>\n<li><a href=\"#n_api_object_wrap\">Object Wrap</a></li>\n<li><a href=\"#n_api_asynchronous_operations\">Aynchronous Operations</a></li>\n</ul>\n<p>The N-API is a C API that ensures ABI stability across Node.js versions\nand different compiler levels. However, we also understand that a C++\nAPI can be easier to use in many cases. To support these cases we expect\nthere to be one or more C++ wrapper modules that provide an inlineable C++\nAPI. Binaries built with these wrapper modules will depend on the symbols\nfor the N-API C based functions exported by Node.js. These wrappers are not\npart of N-API, nor will they be maintained as part of Node.js. One such\nexample is: <a href=\"https://github.com/nodejs/node-api\">node-api</a>.</p>\n<p>In order to use the N-API functions, include the file\n<a href=\"https://github.com/nodejs/node/blob/master/src/node_api.h\">node_api.h</a>\nwhich is located in the src directory in the node development tree.\nFor example:</p>\n<pre><code class=\"lang-C\">#include &lt;node_api.h&gt;\n</code></pre>\n",
+      "modules": [
+        {
+          "textRaw": "Basic N-API Data Types",
+          "name": "basic_n-api_data_types",
+          "desc": "<p>N-API exposes the following fundamental datatypes as abstractions that are\nconsumed by the various APIs. These APIs should be treated as opaque,\nintrospectable only with other N-API calls.</p>\n",
+          "modules": [
+            {
+              "textRaw": "*napi_status*",
+              "name": "*napi_status*",
+              "desc": "<p>Integral status code indicating the success or failure of a N-API call.\nCurrently, the following status codes are supported.</p>\n<pre><code class=\"lang-C\">typedef enum {\n  napi_ok,\n  napi_invalid_arg,\n  napi_object_expected,\n  napi_string_expected,\n  napi_name_expected,\n  napi_function_expected,\n  napi_number_expected,\n  napi_boolean_expected,\n  napi_array_expected,\n  napi_generic_failure,\n  napi_pending_exception,\n  napi_cancelled,\n  napi_status_last\n} napi_status;\n</code></pre>\n<p>If additional information is required upon an API returning a failed status,\nit can be obtained by calling <code>napi_get_last_error_info</code>.</p>\n",
+              "type": "module",
+              "displayName": "*napi_status*"
+            },
+            {
+              "textRaw": "*napi_extended_error_info*",
+              "name": "*napi_extended_error_info*",
+              "desc": "<pre><code class=\"lang-C\">typedef struct {\n  const char* error_message;\n  void* engine_reserved;\n  uint32_t engine_error_code;\n  napi_status error_code;\n} napi_extended_error_info;\n</code></pre>\n<ul>\n<li><code>error_message</code>: UTF8-encoded string containing a VM-neutral description of\nthe error.</li>\n<li><code>engine_reserved</code>: Reserved for VM-specific error details. This is currently\nnot implemented for any VM.</li>\n<li><code>engine_error_code</code>: VM-specific error code. This is currently\nnot implemented for any VM.</li>\n<li><code>error_code</code>: The N-API status code that originated with the last error.</li>\n</ul>\n<p>See the <a href=\"#n_api_error_handling\">Error Handling</a> section for additional information.</p>\n",
+              "type": "module",
+              "displayName": "*napi_extended_error_info*"
+            },
+            {
+              "textRaw": "*napi_env*",
+              "name": "*napi_env*",
+              "desc": "<p><code>napi_env</code> is used to represent a context that the underlying N-API\nimplementation can use to persist VM-specific state. This structure is passed\nto native functions when they&#39;re invoked, and it must be passed back when\nmaking N-API calls. Specifically, the same <code>napi_env</code> that was passed in when\nthe initial native function was called must be passed to any subsequent\nnested N-API calls. Caching the <code>napi_env</code> for the purpose of general reuse is\nnot allowed.</p>\n",
+              "type": "module",
+              "displayName": "*napi_env*"
+            },
+            {
+              "textRaw": "*napi_value*",
+              "name": "*napi_value*",
+              "desc": "<p>This is an opaque pointer that is used to represent a JavaScript value.</p>\n",
+              "type": "module",
+              "displayName": "*napi_value*"
+            },
+            {
+              "textRaw": "N-API Memory Management types",
+              "name": "n-api_memory_management_types",
+              "modules": [
+                {
+                  "textRaw": "*napi_handle_scope*",
+                  "name": "*napi_handle_scope*",
+                  "desc": "<p>This is an abstraction used to control and modify the lifetime of objects\ncreated within a particular scope. In general, N-API values are created within\nthe context of a handle scope. When a native method is called from\nJavaScript, a default handle scope will exist. If the user does not explicitly\ncreate a new handle scope, N-API values will be created in the default handle\nscope. For any invocations of code outside the execution of a native method\n(for instance, during a libuv callback invocation), the module is required to\ncreate a scope before invoking any functions that can result in the creation\nof JavaScript values.</p>\n<p>Handle scopes are created using <a href=\"#n_api_napi_open_handle_scope\"><code>napi_open_handle_scope</code></a> and are destroyed\nusing <a href=\"#n_api_napi_close_handle_scope\"><code>napi_close_handle_scope</code></a>. Closing the scope can indicate to the GC that\nall <code>napi_value</code>s created during the lifetime of the handle scope are no longer\nreferenced from the current stack frame.</p>\n<p>For more details, review the <a href=\"#n_api_object_lifetime_management\">Object Lifetime Management</a>.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_handle_scope*"
+                },
+                {
+                  "textRaw": "*napi_escapable_handle_scope*",
+                  "name": "*napi_escapable_handle_scope*",
+                  "desc": "<p>Escapable handle scopes are a special type of handle scope to return values\ncreated within a particular handle scope to a parent scope.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_escapable_handle_scope*"
+                },
+                {
+                  "textRaw": "*napi_ref*",
+                  "name": "*napi_ref*",
+                  "desc": "<p>This is the abstraction to use to reference a <code>napi_value</code>. This allows for\nusers to manage the lifetimes of JavaScript values, including defining their\nminimum lifetimes explicitly.</p>\n<p>For more details, review the <a href=\"#n_api_object_lifetime_management\">Object Lifetime Management</a>.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_ref*"
+                }
+              ],
+              "type": "module",
+              "displayName": "N-API Memory Management types"
+            },
+            {
+              "textRaw": "N-API Callback types",
+              "name": "n-api_callback_types",
+              "modules": [
+                {
+                  "textRaw": "*napi_callback_info*",
+                  "name": "*napi_callback_info*",
+                  "desc": "<p>Opaque datatype that is passed to a callback function. It can be used for two\npurposes:</p>\n<ul>\n<li>Get additional information about the context in which the callback was\ninvoked.</li>\n<li>Set the return value of the callback.</li>\n</ul>\n",
+                  "type": "module",
+                  "displayName": "*napi_callback_info*"
+                },
+                {
+                  "textRaw": "*napi_callback*",
+                  "name": "*napi_callback*",
+                  "desc": "<p>Function pointer type for user-provided native functions which are to be\nexposed to JavaScript via N-API. Callback functions should satisfy the\nfollowing signature:</p>\n<pre><code class=\"lang-C\">typedef void (*napi_callback)(napi_env, napi_callback_info);\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "*napi_callback*"
+                },
+                {
+                  "textRaw": "*napi_finalize*",
+                  "name": "*napi_finalize*",
+                  "desc": "<p>Function pointer type for add-on provided functions that allow the user to be\nnotified when externally-owned data is ready to be cleaned up because the\nobject with which it was associated with, has been garbage-collected. The user\nmust provide a function satisfying the following signature which would get\ncalled upon the object&#39;s collection. Currently, <code>napi_finalize</code> can be used for\nfinding out when objects that have external data are collected.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_finalize*"
+                },
+                {
+                  "textRaw": "napi_async_execute_callback",
+                  "name": "napi_async_execute_callback",
+                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must statisfy the following signature:</p>\n<pre><code class=\"lang-C\">typedef void (*napi_async_execute_callback)(napi_env env, void* data);\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "napi_async_execute_callback"
+                },
+                {
+                  "textRaw": "napi_async_complete_callback",
+                  "name": "napi_async_complete_callback",
+                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must statisfy the following signature:</p>\n<pre><code class=\"lang-C\">typedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "napi_async_complete_callback"
+                }
+              ],
+              "type": "module",
+              "displayName": "N-API Callback types"
+            }
+          ],
+          "type": "module",
+          "displayName": "Basic N-API Data Types"
+        },
+        {
+          "textRaw": "Error Handling",
+          "name": "error_handling",
+          "desc": "<p>N-API uses both return values and Javascript exceptions for error handling.\nThe following sections explain the approach for each case.</p>\n",
+          "modules": [
+            {
+              "textRaw": "Return values",
+              "name": "return_values",
+              "desc": "<p>All of the N-API functions share the same error handling pattern. The\nreturn type of all API functions is <code>napi_status</code>.</p>\n<p>The return value will be <code>napi_ok</code> if the request was successful and\nno uncaught JavaScript exception was thrown. If an error occurred AND\nan exception was thrown, the <code>napi_status</code> value for the error\nwill be returned. If an exception was thrown, and no error occurred,\n<code>napi_pending_exception</code> will be returned.</p>\n<p>In cases where a return value other than <code>napi_ok</code> or\n<code>napi_pending_exception</code> is returned, <a href=\"#n_api_napi_is_exception_pending\"><code>napi_is_exception_pending</code></a>\nmust be called to check if an exception is pending.\nSee the section on exceptions for more details.</p>\n<p>The full set of possible napi_status values is defined\nin <code>napi_api_types.h</code>.</p>\n<p>The <code>napi_status</code> return value provides a VM-independent representation of\nthe error which occurred. In some cases it is useful to be able to get\nmore detailed information, including a string representing the error as well as\nVM (engine)-specific information.</p>\n<p>In order to retrieve this information <a href=\"#n_api_napi_get_last_error_info\"><code>napi_get_last_error_info</code></a>\nis provided which returns a <code>napi_extended_error_info</code> structure.\nThe format of the <code>napi_extended_error_info</code> structure is as follows:</p>\n<pre><code class=\"lang-C\">typedef struct napi_extended_error_info {\n  const char* error_message;\n  void* engine_reserved;\n  uint32_t engine_error_code;\n  napi_status error_code;\n};\n</code></pre>\n<ul>\n<li><code>error_message</code>: Textual representation of the error that occured.</li>\n<li><code>engine_reserved</code>: Opaque handle reserved for engine use only.</li>\n<li><code>engine_error_code</code>: VM specific error code.</li>\n<li><code>error_code</code>: n-api status code for the last error.</li>\n</ul>\n<p><a href=\"#n_api_napi_get_last_error_info\"><code>napi_get_last_error_info</code></a> returns the information for the last\nN-API call that was made.</p>\n<p><em>Note</em>: Do not rely on the content or format of any of the extended\ninformation as it is not subject to SemVer and may change at any time.\nIt is intended only for logging purposes.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "napi_get_last_error_info",
+                  "name": "napi_get_last_error_info",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status\nnapi_get_last_error_info(napi_env env,\n                         const napi_extended_error_info** result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: The <code>napi_extended_error_info</code> structure with more\ninformation about the error.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API retrieves a <code>napi_extended_error_info</code> structure with information\nabout the last error that occured.</p>\n<p><em>Note</em>: Do not rely on the content or format of any of the extended\ninformation as it is not subject to SemVer and may change at any time.\nIt is intended only for logging purposes.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_get_last_error_info"
+                }
+              ],
+              "type": "module",
+              "displayName": "Return values"
+            },
+            {
+              "textRaw": "Exceptions",
+              "name": "exceptions",
+              "desc": "<p>Any N-API function call may result in a pending JavaScript exception. This is\nobviously the case for any function that may cause the execution of\nJavaScript, but N-API specifies that an exception may be pending\non return from any of the API functions.</p>\n<p>If the <code>napi_status</code> returned by a function is <code>napi_ok</code> then no\nexception is pending and no additional action is required. If the\n<code>napi_status</code> returned is anything other than <code>napi_ok</code> or\n<code>napi_pending_exception</code>, in order to try to recover and continue\ninstead of simply returning immediately, <a href=\"#n_api_napi_is_exception_pending\"><code>napi_is_exception_pending</code></a>\nmust be called in order to determine if an exception is pending or not.</p>\n<p>When an exception is pending one of two approaches can be employed.</p>\n<p>The first appoach is to do any appropriate cleanup and then return so that\nexecution will return to JavaScript. As part of the transition back to\nJavaScript the exception will be thrown at the point in the JavaScript\ncode where the native method was invoked. The behavior of most N-API calls\nis unspecified while an exception is pending, and many will simply return\n<code>napi_pending_exception</code>, so it is important to do as little as possible\nand then return to JavaScript where the exception can be handled.</p>\n<p>The second approach is to try to handle the exception. There will be cases\nwhere the native code can catch the exception, take the appropriate action,\nand then continue. This is only recommended in specific cases\nwhere it is known that the exception can be safely handled. In these\ncases <a href=\"#n_api_napi_get_and_clear_last_exception\"><code>napi_get_and_clear_last_exception</code></a> can be used to get and\nclear the exception.  On success, result will contain the handle to\nthe last JavaScript Object thrown. If it is determined, after\nretrieving the exception, the exception cannot be handled after all\nit can be re-thrown it with [<code>napi_throw</code>][] where error is the\nJavaScript Error object to be thrown.</p>\n<p>The following utility functions are also available in case native code\nneeds to throw an exception or determine if a <code>napi_value</code> is an instance\nof a JavaScript <code>Error</code> object:  <a href=\"#n_api_napi_throw_error\"><code>napi_throw_error</code></a>,\n<a href=\"#n_api_napi_throw_type_error\"><code>napi_throw_type_error</code></a>, <a href=\"#n_api_napi_throw_range_error\"><code>napi_throw_range_error</code></a> and\n<a href=\"#n_api_napi_is_error\"><code>napi_is_error</code></a>.</p>\n<p>The following utility functions are also available in case native\ncode needs to create an Error object: <a href=\"#n_api_napi_create_error\"><code>napi_create_error</code></a>,\n<a href=\"#n_api_napi_create_type_error\"><code>napi_create_type_error</code></a>, and <a href=\"#n_api_napi_create_range_error\"><code>napi_create_range_error</code></a>.\nwhere result is the napi_value that refers to the newly created\nJavaScript Error object.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "napi_throw",
+                  "name": "napi_throw",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_throw(napi_env env, napi_value error);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] error</code>: The <code>napi_value</code> for the Error to be thrown.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API throws the JavaScript Error provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_throw"
+                },
+                {
+                  "textRaw": "napi_throw_error",
+                  "name": "napi_throw_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_throw_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with\nthe error.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API throws a JavaScript Error with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_throw_error"
+                },
+                {
+                  "textRaw": "napi_throw_type_error",
+                  "name": "napi_throw_type_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_throw_type_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with\nthe error.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API throws a JavaScript TypeError with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_throw_type_error"
+                },
+                {
+                  "textRaw": "napi_throw_range_error",
+                  "name": "napi_throw_range_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_throw_range_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with\nthe error.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API throws a JavaScript RangeError with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_throw_range_error"
+                },
+                {
+                  "textRaw": "napi_is_error",
+                  "name": "napi_is_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_is_error(napi_env env,\n                                      napi_value value,\n                                      bool* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: The <code>napi_value</code> to be checked.</li>\n<li><code>[out] result</code>: Boolean value that is set to true if <code>napi_value</code> represents\nan error, false otherwise.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API queries a <code>napi_value</code> to check if it represents an error object.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_is_error"
+                },
+                {
+                  "textRaw": "napi_create_error",
+                  "name": "napi_create_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_create_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns a JavaScript Error with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_create_error"
+                },
+                {
+                  "textRaw": "napi_create_type_error",
+                  "name": "napi_create_type_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_create_type_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns a JavaScript TypeError with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_create_type_error"
+                },
+                {
+                  "textRaw": "napi_create_range_error",
+                  "name": "napi_create_range_error",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_create_range_error(napi_env env, const char* msg);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] msg</code>: C string representing the text to be associated with.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns a JavaScript RangeError with the text provided.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_create_range_error"
+                },
+                {
+                  "textRaw": "napi_get_and_clear_last_exception",
+                  "name": "napi_get_and_clear_last_exception",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_get_and_clear_last_exception(napi_env env,\n                                                          napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: The exception if one is pending, NULL otherwise.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns true if an exception is pending.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_get_and_clear_last_exception"
+                },
+                {
+                  "textRaw": "napi_is_exception_pending",
+                  "name": "napi_is_exception_pending",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_is_exception_pending(napi_env env, bool* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: Boolean value that is set to true if an exception is pending.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns true if an exception is pending.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_is_exception_pending"
+                }
+              ],
+              "type": "module",
+              "displayName": "Exceptions"
+            }
+          ],
+          "type": "module",
+          "displayName": "Error Handling"
+        },
+        {
+          "textRaw": "Object Lifetime management",
+          "name": "object_lifetime_management",
+          "desc": "<p>As N-API calls are made, handles to objects in the heap for the underlying\nVM may be returned as <code>napi_values</code>. These handles must hold the\nobjects &#39;live&#39; until they are no longer required by the native code,\notherwise the objects could be collected before the native code was\nfinished using them.</p>\n<p>As object handles are returned they are associated with a\n&#39;scope&#39;. The lifespan for the default scope is tied to the lifespan\nof the native method call. The result is that, by default, handles\nremain valid and the objects associated with these handles will be\nheld live for the lifespan of the native method call.</p>\n<p>In many cases, however, it is necessary that the handles remain valid for\neither a shorter or longer lifespan than that of the native method.\nThe sections which follow describe the N-API functions than can be used\nto change the handle lifespan from the default.</p>\n",
+          "modules": [
+            {
+              "textRaw": "Making handle lifespan shorter than that of the native method",
+              "name": "making_handle_lifespan_shorter_than_that_of_the_native_method",
+              "desc": "<p>It is often necessary to make the lifespan of handles shorter than\nthe lifespan of a native method. For example, consider a native method\nthat has a loop which iterates through the elements in a large array:</p>\n<pre><code class=\"lang-C\">for (int i = 0; i &lt; 1000000; i++) {\n  napi_value result;\n  napi_status status = napi_get_element(e object, i, &amp;result);\n  if (status != napi_ok) {\n    break;\n  }\n  // do something with element\n}\n</code></pre>\n<p>This would result in a large number of handles being created, consuming\nsubstantial resources. In addition, even though the native code could only\nuse the most recent handle, all of the associated objects would also be\nkept alive since they all share the same scope.</p>\n<p>To handle this case, N-API provides the ability to establish a new &#39;scope&#39; to\nwhich newly created handles will be associated. Once those handles\nare no longer required, the scope can be &#39;closed&#39; and any handles associated\nwith the scope are invalidated. The methods available to open/close scopes are\n<a href=\"#n_api_napi_open_handle_scope\"><code>napi_open_handle_scope</code></a> and <a href=\"#n_api_napi_close_handle_scope\"><code>napi_close_handle_scope</code></a>.</p>\n<p>N-API only supports a single nested hiearchy of scopes. There is only one\nactive scope at any time, and all new handles will be associated with that\nscope while it is active. Scopes must be closed in the reverse order from\nwhich they are opened. In addition, all scopes created within a native method\nmust be closed before returning from that method.</p>\n<p>Taking the earlier example, adding calls to <a href=\"#n_api_napi_open_handle_scope\"><code>napi_open_handle_scope</code></a> and\n<a href=\"#n_api_napi_close_handle_scope\"><code>napi_close_handle_scope</code></a> would ensure that at most a single handle\nis valid throughout the execution of the loop:</p>\n<pre><code class=\"lang-C\">for (int i = 0; i &lt; 1000000; i++) {napi_\n  napi_handle_scope scope;\n  napi_status status = napi_open_handle_scope(env, &amp;scope);\n  if (status != napi_ok) {\n    break;\n  }\n  napi_value result;\n  status = napi_get_element(e object, i, &amp;result);\n  if (status != napi_ok) {\n    break;\n  }\n  // do something with element\n  status = napi_close_handle_scope(env, scope);\n  if (status != napi_ok) {\n    break;\n  }\n}\n</code></pre>\n<p>When nesting scopes, there are cases where a handle from an\ninner scope needs  to live beyond the lifespan of that scope. N-API supports an\n&#39;escapable scope&#39; in order to support this case. An escapable scope\nallows one or more handles to be &#39;promoted&#39; so that they &#39;escape&#39; the\ncurrent scope and the lifespan of the handle(s) changes from the current\nscope to that of the outer scope.</p>\n<p>The methods available to open/close escapable scopes are\n<a href=\"#n_api_napi_open_escapable_handle_scope\"><code>napi_open_escapable_handle_scope</code></a> and <a href=\"#n_api_napi_close_escapable_handle_scope\"><code>napi_close_escapable_handle_scope</code></a>.</p>\n<p>The request to promote a handle is made through the <a href=\"#n_api_napi_escape_handle\"><code>napi_escape_handle</code></a>.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "napi_open_handle_scope",
+                  "name": "napi_open_handle_scope",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_open_handle_scope(napi_env env,\n                                               napi_handle_scope* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the new scope.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API open a new scope.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_open_handle_scope"
+                },
+                {
+                  "textRaw": "napi_close_handle_scope",
+                  "name": "napi_close_handle_scope",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_close_handle_scope(napi_env env,\n                                                napi_handle_scope scope);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] scope</code>: <code>napi_value</code> representing the scope to be closed.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API closes the scope passed in. Scopes must be closed in the\nreverse order from which they were created.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_close_handle_scope"
+                },
+                {
+                  "textRaw": "napi_open_escapable_handle_scope",
+                  "name": "napi_open_escapable_handle_scope",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status\n    napi_open_escapable_handle_scope(napi_env env,\n                                     napi_handle_scope* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the new scope.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API open a new scope from which objects can be promoted\nto the outer scope.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_open_escapable_handle_scope"
+                },
+                {
+                  "textRaw": "napi_close_escapable_handle_scope",
+                  "name": "napi_close_escapable_handle_scope",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status\n    napi_close_escapable_handle_scope(napi_env env,\n                                      napi_handle_scope scope);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] scope</code>: <code>napi_value</code> representing the scope to be closed.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API closes the scope passed in. Scopes must be closed in the\nreverse order from which they were created.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_close_escapable_handle_scope"
+                },
+                {
+                  "textRaw": "napi_escape_handle",
+                  "name": "napi_escape_handle",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_escape_handle(napi_env env,\n                                           napi_escapable_handle_scope scope,\n                                           napi_value escapee,\n                                           napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] scope</code>: <code>napi_value</code> representing the current scope.</li>\n<li><code>[in] escapee</code>: <code>napi_value</code> representing the JavaScript Object to be escaped.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the handle to the escaped\nObject in the outer scope.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API promotes the handle to the JavaScript object so that it valid\nfor the lifetime of the outer scope.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_escape_handle"
+                }
+              ],
+              "type": "module",
+              "displayName": "Making handle lifespan shorter than that of the native method"
+            },
+            {
+              "textRaw": "References to objects with a lifespan longer than that of the native method",
+              "name": "references_to_objects_with_a_lifespan_longer_than_that_of_the_native_method",
+              "desc": "<p>In some cases an addon will need to be able to create and reference objects\nwith a lifespan longer than that of a single native method invocation. For\nexample, to create a constructor and later use that constructor\nin a request to creates instances, it must be possible to reference\nthe constructor object across many different instance creation requests. This\nwould not be possible with a normal handle returned as a <code>napi_value</code> as\ndescribed in the earlier section. The lifespan of a normal handle is\nmanaged by scopes and all scopes must be closed before the end of a native\nmethod.</p>\n<p>N-API provides methods to create persistent references to an object.\nEach persistent reference has an associated count with a value of 0\nor higher. The count determines if the reference will keep\nthe corresponding object live. References with a count of 0 do not\nprevent the object from being collected and are often called &#39;weak&#39;\nreferences. Any count greater than 0 will prevent the object\nfrom being collected.</p>\n<p>References can be created with an initial reference count. The count can\nthen be modified through <a href=\"#n_api_napi_reference_ref\"><code>napi_reference_ref</code></a> and\n<a href=\"#n_api_napi_reference_unref\"><code>napi_reference_unref</code></a>. If an object is collected while the count\nfor a reference is 0, all subsequent calls to\nget the object associated with the reference <a href=\"#n_api_napi_get_reference_value\"><code>napi_get_reference_value</code></a>\nwill return NULL for the returned <code>napi_value</code>. An attempt to call\n<a href=\"#n_api_napi_reference_ref\"><code>napi_reference_ref</code></a> for a reference whose object has been collected\nwill result in an error.</p>\n<p>References must be deleted once they are no longer required by the addon. When\na reference is deleted it will no longer prevent the corresponding object from\nbeing collected. Failure to delete a persistent reference will result in\na &#39;memory leak&#39; with both the native memory for the persistent reference and\nthe corresponding object on the heap being retained forever.</p>\n<p>There can be multiple persistent references created which refer to the same\nobject, each of which will either keep the object live or not based on its\nindividual count.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "napi_create_reference",
+                  "name": "napi_create_reference",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_create_reference(napi_env env,\n                                              napi_value value,\n                                              int initial_refcount,\n                                              ndapi_ref* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing the Object to which we want\na reference to.</li>\n<li><code>[in] initial_refcount</code>: Initial reference count for the new reference.</li>\n<li><code>[out] result</code>: <code>napi_ref</code> pointing to the new reference.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API create a new reference with the specified reference count\nto the Object passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_create_reference"
+                },
+                {
+                  "textRaw": "napi_delete_reference",
+                  "name": "napi_delete_reference",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_delete_reference(napi_env env, napi_ref ref);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] ref</code>: <code>napi_ref</code> to be deleted.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API deletes the reference passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_delete_reference"
+                },
+                {
+                  "textRaw": "napi_reference_ref",
+                  "name": "napi_reference_ref",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_reference_ref(napi_env env,\n                                           napi_ref ref,\n                                           int* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] ref</code>: <code>napi_ref</code> for which the reference count will be incremented.</li>\n<li><code>[out] result</code>: The new reference count.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API increments the reference count for the reference\npassed in and returns the resulting reference count.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_reference_ref"
+                },
+                {
+                  "textRaw": "napi_reference_unref",
+                  "name": "napi_reference_unref",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_reference_unref(napi_env env,\n                                             napi_ref ref,\n                                             int* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] ref</code>: <code>napi_ref</code> for which the reference count will be decremented.</li>\n<li><code>[out] result</code>: The new reference count.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API decrements the reference count for the reference\npassed in and returns the resulting reference count.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_reference_unref"
+                },
+                {
+                  "textRaw": "napi_get_reference_value",
+                  "name": "napi_get_reference_value",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">NODE_EXTERN napi_status napi_get_reference_value(napi_env env,\n                                                 napi_ref ref,\n                                                 napi_value* result);\n</code></pre>\n<p>the <code>napi_value passed</code> in or out of these methods is a handle to the\nobject to which the reference is related.</p>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] ref</code>: <code>napi_ref</code> for which we requesting the corresponding Object.</li>\n<li><code>[out] result</code>: The <code>napi_value</code> for the Object referenced by the\n<code>napi_ref</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>If still valid, this API returns the <code>napi_value</code> representing the\nJavaScript Object associated with the <code>napi_ref</code>. Otherise, result\nwill be NULL.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_get_reference_value"
+                }
+              ],
+              "type": "module",
+              "displayName": "References to objects with a lifespan longer than that of the native method"
+            }
+          ],
+          "type": "module",
+          "displayName": "Object Lifetime management"
+        },
+        {
+          "textRaw": "Module registration",
+          "name": "module_registration",
+          "desc": "<p>N-API modules are registered in the same manner as other modules\nexcept that instead of using the <code>NODE_MODULE</code> macro the following\nis used:</p>\n<pre><code class=\"lang-C\">NAPI_MODULE(addon, Init)\n</code></pre>\n<p>The next difference is the signature for the <code>Init</code> method. For a N-API\nmodule it is as follows:</p>\n<pre><code class=\"lang-C\">void Init(napi_env env, napi_value exports, napi_value module, void* priv);\n</code></pre>\n<p>As with any other module, functions are exported by either adding them to\nthe <code>exports</code> or <code>module</code> objects passed to the <code>Init</code> method.</p>\n<p>For example, to add the method <code>hello</code> as a function so that it can be called\nas a method provided by the addon:</p>\n<pre><code class=\"lang-C\">void Init(napi_env env, napi_value exports, napi_value module, void* priv) {\n  napi_status status;\n  napi_property_descriptor desc =\n    {&quot;hello&quot;, Method, 0, 0, 0, napi_default, 0};\n  status = napi_define_properties(env, exports, 1, &amp;desc);\n}\n</code></pre>\n<p>For example, to set a function to be returned by the <code>require()</code> for the addon:</p>\n<pre><code class=\"lang-C\">void Init(napi_env env, napi_value exports, napi_value module, void* priv) {\n  napi_status status;\n  napi_property_descriptor desc =\n    {&quot;exports&quot;, Method, 0, 0, 0, napi_default, 0};\n  status = napi_define_properties(env, module, 1, &amp;desc);\n}\n</code></pre>\n<p>For example, to define a class so that new instances can be created\n(often used with <a href=\"#n_api_object_wrap\">Object Wrap</a>):</p>\n<pre><code class=\"lang-C\">// NOTE: partial example, not all referenced code is included\n\nnapi_status status;\nnapi_property_descriptor properties[] = {\n    { &quot;value&quot;, nullptr, GetValue, SetValue, 0, napi_default, 0 },\n    DECLARE_NAPI_METHOD(&quot;plusOne&quot;, PlusOne),\n    DECLARE_NAPI_METHOD(&quot;multiply&quot;, Multiply),\n};\n\nnapi_value cons;\nstatus =\n    napi_define_class(env, &quot;MyObject&quot;, New, nullptr, 3, properties, &amp;cons);\nif (status != napi_ok) return;\n\nstatus = napi_create_reference(env, cons, 1, &amp;constructor);\nif (status != napi_ok) return;\n\nstatus = napi_set_named_property(env, exports, &quot;MyObject&quot;, cons);\nif (status != napi_ok) return;\n</code></pre>\n<p>For more details on setting properties on either the <code>exports</code> or <code>module</code>\nobjects, see the section on\n<a href=\"#n_api_working_with_javascript_properties\">Working with JavaScript Properties</a>.</p>\n<p>For more details on building addon modules in general, refer to the existing API</p>\n",
+          "type": "module",
+          "displayName": "Module registration"
+        },
+        {
+          "textRaw": "Working with JavaScript Values",
+          "name": "working_with_javascript_values",
+          "desc": "<p>N-API exposes a set of APIs to create all types of JavaScript values.\nSome of these types are documented under\n<a href=\"https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values\">Section 6</a>\nof the <a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>.</p>\n<p>Fundamentally, these APIs are used to do one of the following:</p>\n<ol>\n<li>Create a new JavaScript object</li>\n<li>Convert from a primitive C type to an N-API value</li>\n<li>Convert from N-API value to a primitive C type</li>\n<li>Get global instances including <code>undefined</code> and <code>null</code></li>\n</ol>\n<p>N-API values are represented by the type <code>napi_value</code>.\nAny N-API call that requires a JavaScript value takes in a <code>napi_value</code>.\nIn some cases, the API does check the type of the <code>napi_value</code> up-front.\nHowever, for better performance, it&#39;s better for the caller to make sure that\nthe <code>napi_value</code> in question is of the JavaScript type expected by the API.</p>\n",
+          "modules": [
+            {
+              "textRaw": "Enum types",
+              "name": "enum_types",
+              "modules": [
+                {
+                  "textRaw": "*napi_valuetype*",
+                  "name": "*napi_valuetype*",
+                  "desc": "<pre><code class=\"lang-C\">typedef enum {\n  // ES6 types (corresponds to typeof)\n  napi_undefined,\n  napi_null,\n  napi_boolean,\n  napi_number,\n  napi_string,\n  napi_symbol,\n  napi_object,\n  napi_function,\n  napi_external,\n} napi_valuetype;\n</code></pre>\n<p>Describes the type of a <code>napi_value</code>. This generally corresponds to the types\ndescribed in\n<a href=\"https://tc39.github.io/ecma262/#sec-ecmascript-language-types\">Section 6.1</a> of\nthe ECMAScript Language Specification.\nIn addition to types in that section, <code>napi_valuetype</code> can also represent\nFunctions and Objects with external data.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_valuetype*"
+                },
+                {
+                  "textRaw": "*napi_typedarray_type*",
+                  "name": "*napi_typedarray_type*",
+                  "desc": "<pre><code class=\"lang-C\">typedef enum {\n  napi_int8_array,\n  napi_uint8_array,\n  napi_uint8_clamped_array,\n  napi_int16_array,\n  napi_uint16_array,\n  napi_int32_array,\n  napi_uint32_array,\n  napi_float32_array,\n  napi_float64_array,\n} napi_typedarray_type;\n</code></pre>\n<p>This represents the underlying binary scalar datatype of the TypedArray.\nElements of this enum correspond to\n<a href=\"https://tc39.github.io/ecma262/#sec-typedarray-objects\">Section 22.2</a>\nof the <a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_typedarray_type*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Enum types"
+            },
+            {
+              "textRaw": "Object Creation Functions",
+              "name": "object_creation_functions",
+              "modules": [
+                {
+                  "textRaw": "*napi_create_array*",
+                  "name": "*napi_create_array*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_array(napi_env env, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns an N-API value corresponding to a JavaScript Array type.\nJavaScript arrays are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-array-objects\">Section 22.1</a> of the\nECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_array*"
+                },
+                {
+                  "textRaw": "*napi_create_array_with_length*",
+                  "name": "*napi_create_array_with_length*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_array_with_length(napi_env env,\n                                          size_t length,\n                                          napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] length</code>: The initial length of the Array.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns an N-API value corresponding to a JavaScript Array type.\nThe Array&#39;s length property is set to the passed-in length parameter.\nHowever, the underlying buffer is not guaranteed to be pre-allocated by the VM\nwhen the array is created - that behavior is left to the underlying VM\nimplementation.\nIf the buffer must be a contiguous block of memory that can be\ndirectly read and/or written via C, consider using\n<a href=\"#n_api_napi_create_external_arraybuffer\"><code>napi_create_external_arraybuffer</code></a>.</p>\n<p>JavaScript arrays are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-array-objects\">Section 22.1</a> of the\nECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_array_with_length*"
+                },
+                {
+                  "textRaw": "*napi_create_arraybuffer*",
+                  "name": "*napi_create_arraybuffer*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_arraybuffer(napi_env env,\n                                    size_t byte_length,\n                                    void** data,\n                                    napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] length</code>: The length in bytes of the array buffer to create.</li>\n<li><code>[out] data</code>: Pointer to the underlying byte buffer of the ArrayBuffer.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript ArrayBuffer.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns an N-API value corresponding to a JavaScript ArrayBuffer.\nArrayBuffers are used to represent fixed-length binary data buffers. They are\nnormally used as a backing-buffer for TypedArray objects.\nThe ArrayBuffer allocated will have an underlying byte buffer whose size is\ndetermined by the <code>length</code> parameter that&#39;s passed in.\nThe underlying buffer is optionally returned back to the caller in case the\ncaller wants to directly manipulate the buffer. This buffer can only be\nwritten to directly from native code. To write to this buffer from JavaScript,\na typed array or DataView object would need to be created.</p>\n<p>JavaScript ArrayBuffer objects are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-arraybuffer-objects\">Section 24.1</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_arraybuffer*"
+                },
+                {
+                  "textRaw": "*napi_create_buffer*",
+                  "name": "*napi_create_buffer*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_buffer(napi_env env,\n                               size_t size,\n                               void** data,\n                               napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] size</code>: Size in bytes of the underlying buffer.</li>\n<li><code>[out] data</code>: Raw pointer to the underlying buffer.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a <code>node::Buffer</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a <code>node::Buffer</code> object. While this is still a\nfully-supported data structure, in most cases using a TypedArray will suffice.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_buffer*"
+                },
+                {
+                  "textRaw": "*napi_create_buffer_copy*",
+                  "name": "*napi_create_buffer_copy*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_buffer_copy(napi_env env,\n                                    size_t length,\n                                    const void* data,\n                                    void** result_data,\n                                    napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] size</code>: Size in bytes of the input buffer (should be the same as the\nsize of the new buffer).</li>\n<li><code>[in] data</code>: Raw pointer to the underlying buffer to copy from.</li>\n<li><code>[out] result_data</code>: Pointer to the new Buffer&#39;s underlying data buffer.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a <code>node::Buffer</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a <code>node::Buffer</code> object and initializes it with data copied\nfrom the passed-in buffer. While this is still a fully-supported data\nstructure, in most cases using a TypedArray will suffice.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_buffer_copy*"
+                },
+                {
+                  "textRaw": "*napi_create_external*",
+                  "name": "*napi_create_external*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_external(napi_env env,\n                                 void* data,\n                                 napi_finalize finalize_cb,\n                                 void* finalize_hint,\n                                 napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] data</code>: Raw pointer to the external data being wrapped.</li>\n<li><code>[in] finalize_cb</code>: Optional callback to call when the wrapped object\nis being collected.</li>\n<li><code>[in] finalize_hint</code>: Optional hint to pass to the finalize callback\nduring collection.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing an external object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a JavaScript object with external data attached to it.\nThis is used to wrap native objects and project them into JavaScript.\nThe API allows the caller to pass in a finalize callback, in case the\nunderlying native resource needs to be cleaned up when the wrapper\nJavaScript object gets collected.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_external*"
+                },
+                {
+                  "textRaw": "napi_create_external_arraybuffer",
+                  "name": "napi_create_external_arraybuffer",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status\nnapi_create_external_arraybuffer(napi_env env,\n                                 void* external_data,\n                                 size_t byte_length,\n                                 napi_finalize finalize_cb,\n                                 void* finalize_hint,\n                                 napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] external_data</code>: Pointer to the underlying byte buffer of the\nArrayBuffer.</li>\n<li><code>[in] byte_length</code>: The length in bytes of the underlying buffer.</li>\n<li><code>[in] finalize_cb</code>: Optional callback to call when the ArrayBuffer is\nbeing collected.</li>\n<li><code>[in] finalize_hint</code>: Optional hint to pass to the finalize callback\nduring collection.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript ArrayBuffer.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns an N-API value corresponding to a JavaScript ArrayBuffer.\nThe underlying byte buffer of the ArrayBuffer is externally allocated and\nmanaged. The caller must ensure that the byte buffer remains valid until the\nfinalize callback is called.</p>\n<p>JavaScript ArrayBuffers are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-arraybuffer-objects\">Section 24.1</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "napi_create_external_arraybuffer"
+                },
+                {
+                  "textRaw": "*napi_create_external_buffer*",
+                  "name": "*napi_create_external_buffer*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_external_buffer(napi_env env,\n                                        size_t length,\n                                        void* data,\n                                        napi_finalize finalize_cb,\n                                        void* finalize_hint,\n                                        napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] length</code>: Size in bytes of the input buffer (should be the same as\nthe size of the new buffer).</li>\n<li><code>[in] data</code>: Raw pointer to the underlying buffer to copy from.</li>\n<li><code>[in] finalize_cb</code>: Optional callback to call when the ArrayBuffer is\nbeing collected.</li>\n<li><code>[in] finalize_hint</code>: Optional hint to pass to the finalize callback\nduring collection.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a <code>node::Buffer</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a <code>node::Buffer</code> object and initializes it with data\nbacked by the passed in buffer. While this is still a fully-supported data\nstructure, in most cases using a TypedArray will suffice.</p>\n<p><em>Note</em>: For Node.js &gt;=4 <code>Buffers</code> are Uint8Arrays.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_external_buffer*"
+                },
+                {
+                  "textRaw": "*napi_create_function*",
+                  "name": "*napi_create_function*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_function(napi_env env,\n                                 const char* utf8name,\n                                 napi_callback cb,\n                                 void* data,\n                                 napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] utf8name</code>: A string representing the name of the function encoded as\nUTF8.</li>\n<li><code>[in] cb</code>: A function pointer to the native function to be invoked when the\ncreated function is invoked from JavaScript.</li>\n<li><code>[in] data</code>: Optional arbitrary context data to be passed into the native\nfunction when it is invoked.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript function.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns an N-API value corresponding to a JavaScript Function object.\nIt&#39;s used to wrap native functions so that they can be invoked from JavaScript.</p>\n<p>JavaScript Functions are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-function-objects\">Section 19.2</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_function*"
+                },
+                {
+                  "textRaw": "*napi_create_object*",
+                  "name": "*napi_create_object*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_object(napi_env env, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a default JavaScript Object.\nIt is the equivalent of doing <code>new Object()</code> in JavaScript.</p>\n<p>The JavaScript Object type is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-object-type\">Section 6.1.7</a> of the\nECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_object*"
+                },
+                {
+                  "textRaw": "*napi_create_symbol*",
+                  "name": "*napi_create_symbol*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_symbol(napi_env env,\n                               const char* description,\n                               napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] description</code>: Null-terminated character buffer representing a\nUTF8-encoded string to describe the symbol.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Symbol.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API creates a JavaScript Symbol object from a UTF8-encoded C string</p>\n<p>The JavaScript Symbol type is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-symbol-objects\">Section 19.4</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_symbol*"
+                },
+                {
+                  "textRaw": "*napi_create_typedarray*",
+                  "name": "*napi_create_typedarray*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_typedarray(napi_env env,\n                                   napi_typedarray_type type,\n                                   size_t length,\n                                   napi_value arraybuffer,\n                                   size_t byte_offset,\n                                   napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] type</code>: Scalar datatype of the elements within the TypedArray.</li>\n<li><code>[in] length</code>: Number of elements in the TypedArray.</li>\n<li><code>[in] arraybuffer</code>: ArrayBuffer underlying the typed array.</li>\n<li><code>[in] byte_offset</code>: The byte offset within the ArrayBuffer from which to\nstart projecting the TypedArray.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript TypedArray.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API creates a JavaScript TypedArray object over an existing ArrayBuffer.\nTypedArray objects provide an array-like view over an underlying data buffer\nwhere each element has the same underlying binary scalar datatype.</p>\n<p>It&#39;s required that (length * size_of_element) + byte_offset should\nbe &lt;= the size in bytes of the array passed in. If not, a RangeError exception is\nraised.</p>\n<p>JavaScript TypedArray Objects are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-typedarray-objects\">Section 22.2</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_typedarray*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Object Creation Functions"
+            },
+            {
+              "textRaw": "Functions to convert from C types to N-API",
+              "name": "functions_to_convert_from_c_types_to_n-api",
+              "modules": [
+                {
+                  "textRaw": "*napi_create_number*",
+                  "name": "*napi_create_number*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_number(napi_env env, double value, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: Double-precision value to be represented in JavaScript.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API is used to convert from the C double type to the JavaScript\nNumber type.</p>\n<p>The JavaScript Number type is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type\">Section 6.1.6</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_number*"
+                },
+                {
+                  "textRaw": "*napi_create_string_utf16*",
+                  "name": "*napi_create_string_utf16*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_string_utf16(napi_env env,\n                                     const char16_t* str,\n                                     size_t length,\n                                     napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] str</code>: Character buffer representing a UTF16-LE-encoded string.</li>\n<li><code>[in] length</code>: The length of the string in characters, or -1 if it is\nnull-terminated.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API creates a JavaScript String object from a UTF16-LE-encoded C string</p>\n<p>The JavaScript String type is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type\">Section 6.1.4</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_string_utf16*"
+                },
+                {
+                  "textRaw": "*napi_create_string_utf8*",
+                  "name": "*napi_create_string_utf8*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_create_string_utf8(napi_env env,\n                                    const char* str,\n                                    size_t length,\n                                    napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] s</code>: Character buffer representing a UTF8-encoded string.</li>\n<li><code>[in] length</code>: The length of the string in characters, or -1 if it is\nnull-terminated.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API creates a JavaScript String object from a UTF8-encoded C string</p>\n<p>The JavaScript String type is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type\">Section 6.1.4</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_create_string_utf8*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Functions to convert from C types to N-API"
+            },
+            {
+              "textRaw": "Functions to convert from N-API to C types",
+              "name": "functions_to_convert_from_n-api_to_c_types",
+              "modules": [
+                {
+                  "textRaw": "*napi_get_array_length*",
+                  "name": "*napi_get_array_length*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_array_length(napi_env env,\n                                  napi_value value,\n                                  uint32_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing the JavaScript Array whose length is\nbeing queried.</li>\n<li><code>[out] result</code>: <code>uint32</code> representing length of the array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the length of an array.</p>\n<p>Array length is described in\n<a href=\"https://tc39.github.io/ecma262/#sec-properties-of-array-instances-length\">Section 22.1.4.1</a>\nof the ECMAScript Language Specification.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_array_length*"
+                },
+                {
+                  "textRaw": "*napi_get_arraybuffer_info*",
+                  "name": "*napi_get_arraybuffer_info*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_arraybuffer_info(napi_env env,\n                                      napi_value arraybuffer,\n                                      void** data,\n                                      size_t* byte_length)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] arraybuffer</code>: <code>napi_value</code> representing the ArrayBuffer being queried.</li>\n<li><code>[out] data</code>: The underlying data buffer of the ArrayBuffer.</li>\n<li><code>[out] byte_length</code>: Length in bytes of the underlying data buffer.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API is used to retrieve the underlying data buffer of an ArrayBuffer and\nits length.\nWARNING: Use caution while using this API. The lifetime of the underlying data\nbuffer is managed by the ArrayBuffer even after it&#39;s returned. A\npossible safe way to use this API is in conjunction with <a href=\"#n_api_napi_create_reference\"><code>napi_create_reference</code></a>,\nwhich can be used to guarantee control over the lifetime of the\nArrayBuffer. It&#39;s also safe to use the returned data buffer within the same\ncallback as long as there are no calls to other APIs that might trigger a GC.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_arraybuffer_info*"
+                },
+                {
+                  "textRaw": "*napi_get_buffer_info*",
+                  "name": "*napi_get_buffer_info*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_buffer_info(napi_env env,\n                                 napi_value value,\n                                 void** data,\n                                 size_t* length)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing the <code>node::Buffer</code> being queried.</li>\n<li><code>[out] data</code>: The underlying data buffer of the <code>node::Buffer</code>.</li>\n<li><code>[out] length</code>: Length in bytes of the underlying data buffer.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API is used to retrieve the underlying data buffer of a <code>node::Buffer</code>\nand it&#39;s length.\nWarning: Use caution while using this API since the underlying data buffer&#39;s\nlifetime is not guaranteed if it&#39;s managed by the VM.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_buffer_info*"
+                },
+                {
+                  "textRaw": "*napi_get_prototype*",
+                  "name": "*napi_get_prototype*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_prototype(napi_env env,\n                               napi_value object,\n                               napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] object</code>: <code>napi_value</code> representing JavaScript Object whose prototype\nto return. This returns the equivalent of <code>Object.getPrototypeOf</code> (which is\nnot the same as the function&#39;s <code>prototype</code> property).</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing prototype of the given object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_prototype*"
+                },
+                {
+                  "textRaw": "*napi_get_typedarray_info*",
+                  "name": "*napi_get_typedarray_info*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_typedarray_info(napi_env env,\n                                     napi_value typedarray,\n                                     napi_typedarray_type* type,\n                                     size_t* length,\n                                     void** data,\n                                     napi_value* arraybuffer,\n                                     size_t* byte_offset)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] typedarray</code>: <code>napi_value</code> representing the TypedArray whose\nproperties to query.</li>\n<li><code>[out] type</code>: Scalar datatype of the elements within the TypedArray.</li>\n<li><code>[out] length</code>: Number of elements in the TypedArray.</li>\n<li><code>[out] data</code>: The data buffer underlying the typed array.</li>\n<li><code>[out] byte_offset</code>: The byte offset within the data buffer from which\nto start projecting the TypedArray.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns various properties of a typed array.\nWarning: Use caution while using this API since the underlying data buffer\nis managed by the VM</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_typedarray_info*"
+                },
+                {
+                  "textRaw": "*napi_get_value_bool*",
+                  "name": "*napi_get_value_bool*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_bool(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript Boolean.</li>\n<li><code>[out] result</code>: C boolean primitive equivalent of the given JavaScript\nBoolean.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-boolean <code>napi_value</code> is\npassed in it returns <code>napi_boolean_expected</code>.</p>\n<p>This API returns C boolean primitive equivalent of the given JavaScript\nBoolea</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_bool*"
+                },
+                {
+                  "textRaw": "*napi_get_value_double*",
+                  "name": "*napi_get_value_double*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_double(napi_env env,\n                                  napi_value value,\n                                  double* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript Number.</li>\n<li><code>[out] result</code>: C double primitive equivalent of the given JavaScript\nNumber.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-number <code>napi_value</code> is passed\nin it returns <code>napi_number_expected</code>.</p>\n<p>This API returns the C double primitive equivalent of the given JavaScript\nNumber.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_double*"
+                },
+                {
+                  "textRaw": "*napi_get_value_external*",
+                  "name": "*napi_get_value_external*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_external(napi_env env,\n                                    napi_value value,\n                                    void** result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript External value.</li>\n<li><code>[out] result</code>: Pointer to the data wrapped by the JavaScript External value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-external <code>napi_value</code> is\npassed in it returns <code>napi_invalid_arg</code>.</p>\n<p>This API returns the pointer to the data wrapped by the JavaScript\nExternal value</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_external*"
+                },
+                {
+                  "textRaw": "*napi_get_value_int32*",
+                  "name": "*napi_get_value_int32*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_int32(napi_env env,\n                                 napi_value value,\n                                 int32_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript Number.</li>\n<li><code>[out] result</code>: C int32 primitive equivalent of the given JavaScript Number.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-number <code>napi_value</code>\nis passed in `napi_number_expected .</p>\n<p>This API returns the C int32 primitive equivalent\nof the given JavaScript Number. If the number exceeds the range of the\n32 bit integer, then the result is truncated to the equivalent of the\nbottom 32 bits. This can result in a large positive number becoming\na negative number if the the value is &gt; 2^31 -1.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_int32*"
+                },
+                {
+                  "textRaw": "*napi_get_value_int64*",
+                  "name": "*napi_get_value_int64*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_int64(napi_env env,\n                                 napi_value value,\n                                 int64_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript Number.</li>\n<li><code>[out] result</code>: C int64 primitive equivalent of the given JavaScript Number.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-number <code>napi_value</code>\nis passed in it returns <code>napi_number_expected</code>.</p>\n<p>This API returns the C int64 primitive equivalent of the given\nJavaScript Number</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_int64*"
+                },
+                {
+                  "textRaw": "*napi_get_value_string_length*",
+                  "name": "*napi_get_value_string_length*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_string_length(napi_env env,\n                                         napi_value value,\n                                         int* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>\n<li><code>[out] result</code>: Number of characters in the given JavaScript string.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>\nis passed in it returns <code>napi_string_expected</code>.</p>\n<p>This API returns the number of characters in the given JavaScript string.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_string_length*"
+                },
+                {
+                  "textRaw": "*napi_get_value_string_utf8*",
+                  "name": "*napi_get_value_string_utf8*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_string_utf8(napi_env env,\n                                       napi_value value,\n                                       char* buf,\n                                       size_t bufsize,\n                                       size_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>\n<li><code>[in] buf</code>: Buffer to write the UTF8-encoded string into. If NULL is passed\nin, the length of the string (in bytes) is returned.</li>\n<li><code>[in] bufsize</code>: Size of the destination buffer.</li>\n<li><code>[out] result</code>: Number of bytes copied into the buffer including the null.\nterminator. If the buffer size is insufficient, the string will be truncated\nincluding a null terminator.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. Ifa non-String <code>napi_value</code>\nx is passed in it returns <code>napi_string_expected</code>.</p>\n<p>This API returns the UTF8-encoded string corresponding the value passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_string_utf8*"
+                },
+                {
+                  "textRaw": "*napi_get_value_string_utf16*",
+                  "name": "*napi_get_value_string_utf16*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_string_utf16(napi_env env,\n                                        napi_value value,\n                                        char16_t* buf,\n                                        size_t bufsize,\n                                        size_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>\n<li><code>[in] buf</code>: Buffer to write the UTF16-LE-encoded string into. If NULL is\npassed in, the length of the string (in 2-byte code units) is returned.</li>\n<li><code>[in] bufsize</code>: Size of the destination buffer.</li>\n<li><code>[out] result</code>: Number of 2-byte code units copied into the buffer including\nthe null terminateor. If the buffer size is insufficient, the string will be\ntruncated including a null terminator.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>\nis passed in it returns <code>napi_string_expected</code>.</p>\n<p>This API returns the UTF16-encoded string corresponding the value passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_string_utf16*"
+                },
+                {
+                  "textRaw": "*napi_get_value_uint32*",
+                  "name": "*napi_get_value_uint32*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_value_uint32(napi_env env,\n                                  napi_value value,\n                                  uint32_t* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript Number.</li>\n<li><code>[out] result</code>: C primitive equivalent of the given <code>napi_value</code> as a\n<code>uint32_t</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-number <code>napi_value</code>\nis passed in it returns <code>napi_number_expected</code>.</p>\n<p>This API returns the C primitive equivalent of the given <code>napi_value</code> as a\n<code>uint32_t</code>.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_value_uint32*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Functions to convert from N-API to C types"
+            },
+            {
+              "textRaw": "Functions to get global instances",
+              "name": "functions_to_get_global_instances",
+              "modules": [
+                {
+                  "textRaw": "*napi_get_boolean*",
+                  "name": "*napi_get_boolean*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_boolean(napi_env env, bool value, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The value of the boolean to retrieve.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing JavaScript Boolean singleton to\nretrieve.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API is used to return the JavaScript singleton object that is used to\nrepresent the given boolean value</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_boolean*"
+                },
+                {
+                  "textRaw": "*napi_get_global*",
+                  "name": "*napi_get_global*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_global(napi_env env, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing JavaScript Global Object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the global Object.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_global*"
+                },
+                {
+                  "textRaw": "*napi_get_null*",
+                  "name": "*napi_get_null*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_null(napi_env env, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing JavaScript Null Object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the null Object.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_null*"
+                },
+                {
+                  "textRaw": "*napi_get_undefined*",
+                  "name": "*napi_get_undefined*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_undefined(napi_env env, napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing JavaScript Undefined value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the Undefined object.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_undefined*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Functions to get global instances"
+            }
+          ],
+          "type": "module",
+          "displayName": "Working with JavaScript Values"
+        },
+        {
+          "textRaw": "Working with JavaScript Values - Abstract Operations",
+          "name": "working_with_javascript_values_-_abstract_operations",
+          "desc": "<p>N-API exposes a set of APIs to perform some abstract operations on JavaScript\nvalues. Some of these operations are documented under\n<a href=\"https://tc39.github.io/ecma262/#sec-abstract-operations\">Section 7</a>\nof the <a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>.</p>\n<p>These APIs support doing one of the following:</p>\n<ol>\n<li>Coerce JavaScript values to specific JavaScript types (such as Number or\nString)</li>\n<li>Check the type of a JavaScript value</li>\n<li>Check for equality between two JavaScript values</li>\n</ol>\n",
+          "modules": [
+            {
+              "textRaw": "*napi_coerce_to_bool*",
+              "name": "*napi_coerce_to_bool*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_coerce_to_bool(napi_env env,\n                                napi_value value,\n                                napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to coerce.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the coerced JavaScript Boolean.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API implements the abstract operation ToBoolean as defined in\n<a href=\"https://tc39.github.io/ecma262/#sec-toboolean\">Section 7.1.2</a>\nof the ECMAScript Language Specification.\nThis API can be re-entrant if getters are defined on the passed-in Object.</p>\n",
+              "type": "module",
+              "displayName": "*napi_coerce_to_bool*"
+            },
+            {
+              "textRaw": "*napi_coerce_to_number*",
+              "name": "*napi_coerce_to_number*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_coerce_to_number(napi_env env,\n                                  napi_value value,\n                                  napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to coerce.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the coerced JavaScript Number.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API implements the abstract operation ToNumber as defined in\n<a href=\"https://tc39.github.io/ecma262/#sec-tonumber\">Section 7.1.3</a>\nof the ECMAScript Language Specification.\nThis API can be re-entrant if getters are defined on the passed-in Object.</p>\n",
+              "type": "module",
+              "displayName": "*napi_coerce_to_number*"
+            },
+            {
+              "textRaw": "*napi_coerce_to_object*",
+              "name": "*napi_coerce_to_object*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_coerce_to_object(napi_env env,\n                                  napi_value value,\n                                  napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to coerce.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the coerced JavaScript Object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API implements the abstract operation ToObject as defined in\n<a href=\"https://tc39.github.io/ecma262/#sec-toobject\">Section 7.1.13</a>\nof the ECMAScript Language Specification.\nThis API can be re-entrant if getters are defined on the passed-in Object.</p>\n",
+              "type": "module",
+              "displayName": "*napi_coerce_to_object*"
+            },
+            {
+              "textRaw": "*napi_coerce_to_string*",
+              "name": "*napi_coerce_to_string*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_coerce_to_string(napi_env env,\n                                  napi_value value,\n                                  napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to coerce.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the coerced JavaScript String.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API implements the abstract operation ToString as defined in\n<a href=\"https://tc39.github.io/ecma262/#sec-tostring\">Section 7.1.13</a>\nof the ECMAScript Language Specification.\nThis API can be re-entrant if getters are defined on the passed-in Object.</p>\n",
+              "type": "module",
+              "displayName": "*napi_coerce_to_string*"
+            },
+            {
+              "textRaw": "*napi_typeof*",
+              "name": "*napi_typeof*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_typeof(napi_env env, napi_value value, napi_valuetype* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value whose type to query.</li>\n<li><code>[out] result</code>: The type of the JavaScript value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<ul>\n<li><code>napi_invalid_arg</code> if the type of <code>value</code> is not a known ECMAScript type and\n<code>value</code> is not an External value.</li>\n</ul>\n<p>This API represents behavior similar to invoking the <code>typeof</code> Operator on\nthe object as defined in <a href=\"https://tc39.github.io/ecma262/#sec-typeof-operator\">Section 12.5.5</a> of the ECMAScript Language\nSpecification. However, it has support for detecting an External value.\nIf <code>value</code> has a type that is invalid, an error is returned.</p>\n",
+              "type": "module",
+              "displayName": "*napi_typeof*"
+            },
+            {
+              "textRaw": "*napi_instanceof*",
+              "name": "*napi_instanceof*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_instanceof(napi_env env,\n                            napi_value object,\n                            napi_value constructor,\n                            bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] object</code>: The JavaScript value to check.</li>\n<li><code>[in] constructor</code>: The JavaScript function object of the constructor\nfunction to check against.</li>\n<li><code>[out] result</code>: Boolean that is set to true if <code>object instanceof constructor</code>\nis true.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API represents invoking the <code>instanceof</code> Operator on the object as\ndefined in\n<a href=\"https://tc39.github.io/ecma262/#sec-instanceofoperator\">Section 12.10.4</a>\nof the ECMAScript Language Specification.</p>\n",
+              "type": "module",
+              "displayName": "*napi_instanceof*"
+            },
+            {
+              "textRaw": "*napi_is_array*",
+              "name": "*napi_is_array*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_array(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given object is an array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API represents invoking the <code>IsArray</code> operation on the object\nas defined in <a href=\"https://tc39.github.io/ecma262/#sec-isarray\">Section 7.2.2</a>\nof the ECMAScript Language Specification.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_array*"
+            },
+            {
+              "textRaw": "*napi_is_arraybuffer*",
+              "name": "*napi_is_arraybuffer*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_arraybuffer(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given object is an ArrayBuffer.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the Object passsed in is an array buffer.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_arraybuffer*"
+            },
+            {
+              "textRaw": "*napi_is_buffer*",
+              "name": "*napi_is_buffer*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_buffer(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents a <code>node::Buffer</code>\nobject.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the Object passsed in is a buffer.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_buffer*"
+            },
+            {
+              "textRaw": "*napi_is_error*",
+              "name": "*napi_is_error*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_error(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents an Error object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the Object passsed in is an Error.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_error*"
+            },
+            {
+              "textRaw": "*napi_is_typedarray*",
+              "name": "*napi_is_typedarray*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_typedarray(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents a TypedArray.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the Object passsed in is a typed array.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_typedarray*"
+            },
+            {
+              "textRaw": "*napi_strict_equals*",
+              "name": "*napi_strict_equals*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_strict_equals(napi_env env,\n                               napi_value lhs,\n                               napi_value rhs,\n                               bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] lhs</code>: The JavaScript value to check.</li>\n<li><code>[in] rhs</code>: The JavaScript value to check against.</li>\n<li><code>[out] result</code>: Whether the two <code>napi_value</code> objects are equal.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API represents the invocation of the Strict Equality algorithm as\ndefined in\n<a href=\"https://tc39.github.io/ecma262/#sec-strict-equality-comparison\">Section 7.2.14</a>\nof the ECMAScript Language Specification.</p>\n",
+              "type": "module",
+              "displayName": "*napi_strict_equals*"
+            }
+          ],
+          "type": "module",
+          "displayName": "Working with JavaScript Values - Abstract Operations"
+        },
+        {
+          "textRaw": "Working with JavaScript Properties",
+          "name": "working_with_javascript_properties",
+          "desc": "<p>N-API exposes a set of APIs to get and set properties on JavaScript\nobjects. Some of these types are documented under\n<a href=\"https://tc39.github.io/ecma262/#sec-operations-on-objects\">Section 7</a> of the\n<a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>.</p>\n<p>Properties in JavaScript are represented as a tuple of a key and a value.\nFundamentally, all property keys in N-API can be represented in one of the\nfollowing forms:</p>\n<ul>\n<li>Named: a simple UTF8-encoded string</li>\n<li>Integer-Indexed: an index value represented by <code>uint32_t</code></li>\n<li>JavaScript value: these are represented in N-API by <code>napi_value</code>. This can\nbe a <code>napi_value</code> representing a String, Number or Symbol.</li>\n</ul>\n<p>N-API values are represented by the type <code>napi_value</code>.\nAny N-API call that requires a JavaScript value takes in a <code>napi_value</code>.\nHowever, it&#39;s the caller&#39;s responsibility to make sure that the\n<code>napi_value</code> in question is of the JavaScript type expected by the API.</p>\n<p>The APIs documented in this section provide a simple interface to\nget and set properties on arbitrary JavaScript objects represented by\n<code>napi_value</code>.</p>\n<p>For instance, consider the following JavaScript code snippet:</p>\n<pre><code class=\"lang-js\">const obj = {};\nobj.myProp = 123;\n</code></pre>\n<p>The equivalent can be done using N-API values with the following snippet:</p>\n<pre><code class=\"lang-C\">napi_status status = napi_generic_failure;\n\n// const obj = {}\nnapi_value obj, value;\nstatus = napi_create_object(env, &amp;obj);\nif (status != napi_ok) return status;\n\n// Create a napi_value for 123\nstatus = napi_create_number(env, 123, &amp;value);\nif (status != napi_ok) return status;\n\n// obj.myProp = 123\nstatus = napi_set_named_property(env, obj, &quot;myProp&quot;, value);\nif (status != napi_ok) return status;\n</code></pre>\n<p>Indexed properties can be set in a similar manner. Consider the following\nJavaScript snippet:</p>\n<pre><code class=\"lang-js\">const arr = [];\narr[123] = &#39;hello&#39;;\n</code></pre>\n<p>The equivalent can be done using N-API values with the following snippet:</p>\n<pre><code class=\"lang-C\">napi_status status = napi_generic_failure;\n\n// const arr = [];\nnapi_value arr, value;\nstatus = napi_create_array(env, &amp;arr);\nif (status != napi_ok) return status;\n\n// Create a napi_value for &#39;hello&#39;\nstatus = napi_create_string_utf8(env, &quot;hello&quot;, -1, &amp;value);\nif (status != napi_ok) return status;\n\n// arr[123] = &#39;hello&#39;;\nstatus = napi_set_element(env, arr, 123, value);\nif (status != napi_ok) return status;\n</code></pre>\n<p>Properties can be retrieved using the APIs described in this section.\nConsider the following JavaScript snippet:</p>\n<pre><code class=\"lang-js\">const arr = [];\nconst value = arr[123];\n</code></pre>\n<p>The following is the approximate equivalent of the N-API counterpart:</p>\n<pre><code class=\"lang-C\">napi_status status = napi_generic_failure;\n\n// const arr = []\nnapi_value arr, value;\nstatus = napi_create_array(env, &amp;arr);\nif (status != napi_ok) return status;\n\n// const value = arr[123]\nstatus = napi_get_element(env, arr, 123, &amp;value);\nif (status != napi_ok) return status;\n</code></pre>\n<p>Finally, multiple properties can also be defined on an object for performance\nreasons. Consider the following JavaScript:</p>\n<pre><code class=\"lang-js\">const obj = {};\nObject.defineProperties(obj, {\n  &#39;foo&#39;: { value: 123, writable: true, configurable: true, enumerable: true },\n  &#39;bar&#39;: { value: 456, writable: true, configurable: true, enumerable: true }\n});\n</code></pre>\n<p>The following is the approximate equivalent of the N-API counterpart:</p>\n<pre><code class=\"lang-C\">napi_status status = napi_status_generic_failure;\n\n// const obj = {};\nnapi_value obj;\nstatus = napi_create_obj(env, &amp;obj);\nif (status != napi_ok) return status;\n\n// Create napi_values for 123 and 456\nnapi_value fooValue, barValue;\nstatus = napi_create_number(env, 123, &amp;fooValue);\nif (status != napi_ok) return status;\nstatus = napi_create_number(env, 456, &amp;barValue);\nif (status != napi_ok) return status;\n\n// Set the properties\nnapi_property_descriptors descriptors[] = {\n  { &quot;foo&quot;, fooValue, 0, 0, 0, napi_default, 0 },\n  { &quot;bar&quot;, barValue, 0, 0, 0, napi_default, 0 }\n}\nstatus = napi_define_properties(env,\n                                obj,\n                                sizeof(descriptors) / sizeof(descriptors[0]),\n                                descriptors);\nif (status != napi_ok) return status;\n</code></pre>\n",
+          "modules": [
+            {
+              "textRaw": "Structures",
+              "name": "structures",
+              "modules": [
+                {
+                  "textRaw": "*napi_property_attributes*",
+                  "name": "*napi_property_attributes*",
+                  "desc": "<pre><code class=\"lang-C\">typedef enum {\n  napi_default = 0,\n  napi_read_only = 1 &lt;&lt; 0,\n  napi_dont_enum = 1 &lt;&lt; 1,\n  napi_dont_delete = 1 &lt;&lt; 2,\n  napi_static_property = 1 &lt;&lt; 10,\n} napi_property_attributes;\n</code></pre>\n<p><code>napi_property_attributes</code> are flags used to control the behavior of properties\nset on a JavaScript object. They roughly correspond to the attributes listed in\n<a href=\"https://tc39.github.io/ecma262/#table-2\">Section 6.1.7.1</a> of the\n<a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>. They can\nbe one or more of the following bitflags:</p>\n<ul>\n<li><code>napi_default</code> - Used to indicate that no explicit attributes are set on the\ngiven property. By default, a property is Writable, Enumerable, and\nConfigurable. This is a deviation from the ECMAScript specification,\nwhere generally the values for a property descriptor attribute default to\nfalse if they&#39;re not provided.</li>\n<li><code>napi_read_only</code> - Used to indicate that a given property is not Writable.</li>\n<li><code>napi_dont_enum</code> - Used to indicate that a given property is not Enumerable.</li>\n<li><code>napi_dont_delete</code> - Used to indicate that a given property is not.\nConfigurable, as defined in\n<a href=\"https://tc39.github.io/ecma262/#table-2\">Section 6.1.7.1</a> of the\n<a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a>.</li>\n<li><code>napi_static_property</code> - Used to indicate that the property will be defined as\na static property on a class as opposed to an instance property, which is the\ndefault. This is used only by <a href=\"#n_api_napi_define_class\"><code>napi_define_class</code></a>. It is ignored by\n<code>napi_define_properties</code>.</li>\n</ul>\n",
+                  "type": "module",
+                  "displayName": "*napi_property_attributes*"
+                },
+                {
+                  "textRaw": "*napi_property_descriptor*",
+                  "name": "*napi_property_descriptor*",
+                  "desc": "<pre><code class=\"lang-C\">typedef struct {\n  const char* utf8name;\n\n  napi_callback method;\n  napi_callback getter;\n  napi_callback setter;\n  napi_value value;\n\n  napi_property_attributes attributes;\n  void* data;\n} napi_property_descriptor;\n</code></pre>\n<ul>\n<li><code>utf8name</code>: String describing the key for the property, encoded as UTF8.</li>\n<li><code>value</code>: The value that&#39;s retrieved by a get access of the property if the\nproperty is a data property. If this is passed in, set <code>getter</code>, <code>setter</code>,\n<code>method</code> and <code>data</code> to <code>NULL</code> (since these members won&#39;t be used).</li>\n<li><code>getter</code>: A function to call when a get access of the property is performed.\nIf this is passed in, set <code>value</code> and <code>method</code> to <code>NULL</code> (since these members\nwon&#39;t be used). The given function is called implicitly by the runtime when the\nproperty is accessed from JavaScript code (or if a get on the property is\nperformed using a N-API call).</li>\n<li><code>setter</code>: A function to call when a set access of the property is performed.\nIf this is passed in, set <code>value</code> and <code>method</code> to <code>NULL</code> (since these members\nwon&#39;t be used). The given function is called implicitly by the runtime when the\nproperty is set from JavaScript code (or if a set on the property is\nperformed using a N-API call).</li>\n<li><code>method</code>: Set this to make the property descriptor object&#39;s <code>value</code>\nproperty to be a JavaScript function represented by <code>method</code>. If this is\npassed in, set <code>value</code>, <code>getter</code> and <code>setter</code> to <code>NULL</code> (since these members\nwon&#39;t be used).</li>\n<li><code>data</code>: The callback data passed into <code>method</code>, <code>getter</code> and <code>setter</code> if\nthis function is invoked.</li>\n<li><code>attributes</code>: The attributes associated with the particular property.\nSee <a href=\"#napi_property_attributes\"><code>napi_property_attributes</code></a>.</li>\n</ul>\n",
+                  "type": "module",
+                  "displayName": "*napi_property_descriptor*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Structures"
+            },
+            {
+              "textRaw": "Functions",
+              "name": "functions",
+              "modules": [
+                {
+                  "textRaw": "*napi_get_property_names*",
+                  "name": "*napi_get_property_names*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_property_names(napi_env env,\n                                    napi_value object,\n                                    napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the properties.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing an array of JavaScript values\nthat represent the property names of the object. The API can be used to\niterate over <code>result</code> using <a href=\"#n_api_napi_get_array_length\"><code>napi_get_array_length</code></a>\nand <a href=\"#n_api_napi_get_element\"><code>napi_get_element</code></a>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the array of propertys for the Object passed in</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_property_names*"
+                },
+                {
+                  "textRaw": "*napi_set_property*",
+                  "name": "*napi_set_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_set_property(napi_env env,\n                              napi_value object,\n                              napi_value key,\n                              napi_value value);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object on which to set the property.</li>\n<li><code>[in] key</code>: The name of the property to set.</li>\n<li><code>[in] value</code>: The property value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API set a property on the Object passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_set_property*"
+                },
+                {
+                  "textRaw": "*napi_get_property*",
+                  "name": "*napi_get_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_property(napi_env env,\n                              napi_value object,\n                              napi_value key,\n                              napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the property.</li>\n<li><code>[in] key</code>: The name of the property to retrieve.</li>\n<li><code>[out] result</code>: The value of the property.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API gets the requested property from the Object passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_property*"
+                },
+                {
+                  "textRaw": "*napi_has_property*",
+                  "name": "*napi_has_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_has_property(napi_env env,\n                              napi_value object,\n                              napi_value key,\n                              bool* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object to query.</li>\n<li><code>[in] key</code>: The name of the property whose existence to check.</li>\n<li><code>[out] result</code>: Whether the property exists on the object or not.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the Object passed in has the named property.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_has_property*"
+                },
+                {
+                  "textRaw": "*napi_set_named_property*",
+                  "name": "*napi_set_named_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_set_named_property(napi_env env,\n                                    napi_value object,\n                                    const char* utf8Name,\n                                    napi_value value);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object on which to set the property.</li>\n<li><code>[in] utf8Name</code>: The name of the property to set.</li>\n<li><code>[in] value</code>: The property value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method is equivalent to calling <a href=\"#n_api_napi_set_property\"><code>napi_set_property</code></a> with a <code>napi_value</code>\ncreated from the string passed in as <code>utf8Name</code></p>\n",
+                  "type": "module",
+                  "displayName": "*napi_set_named_property*"
+                },
+                {
+                  "textRaw": "*napi_get_named_property*",
+                  "name": "*napi_get_named_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_named_property(napi_env env,\n                                    napi_value object,\n                                    const char* utf8Name,\n                                    napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the property.</li>\n<li><code>[in] utf8Name</code>: The name of the property to get.</li>\n<li><code>[out] result</code>: The value of the property.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method is equivalent to calling <a href=\"#n_api_napi_get_property\"><code>napi_get_property</code></a> with a <code>napi_value</code>\ncreated from the string passed in as <code>utf8Name</code></p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_named_property*"
+                },
+                {
+                  "textRaw": "*napi_has_named_property*",
+                  "name": "*napi_has_named_property*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_has_named_property(napi_env env,\n                                    napi_value object,\n                                    const char* utf8Name,\n                                    bool* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object to query.</li>\n<li><code>[in] utf8Name</code>: The name of the property whose existence to check.</li>\n<li><code>[out] result</code>: Whether the property exists on the object or not.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method is equivalent to calling <a href=\"#n_api_napi_has_property\"><code>napi_has_property</code></a> with a <code>napi_value</code>\ncreated from the string passed in as <code>utf8Name</code></p>\n",
+                  "type": "module",
+                  "displayName": "*napi_has_named_property*"
+                },
+                {
+                  "textRaw": "*napi_set_element*",
+                  "name": "*napi_set_element*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_set_element(napi_env env,\n                             napi_value object,\n                             uint32_t index,\n                             napi_value value);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to set the properties.</li>\n<li><code>[in] index</code>: The index of the property to set.</li>\n<li><code>[in] value</code>: The property value.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API sets and element on the Object passed in.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_set_element*"
+                },
+                {
+                  "textRaw": "*napi_get_element*",
+                  "name": "*napi_get_element*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_get_element(napi_env env,\n                             napi_value object,\n                             uint32_t index,\n                             napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the property.</li>\n<li><code>[in] index</code>: The index of the property to get.</li>\n<li><code>[out] result</code>: The value of the property.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API gets the element at the requested index.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_get_element*"
+                },
+                {
+                  "textRaw": "*napi_has_element*",
+                  "name": "*napi_has_element*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_has_element(napi_env env,\n                             napi_value object,\n                             uint32_t index,\n                             bool* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object to query.</li>\n<li><code>[in] index</code>: The index of the property whose existence to check.</li>\n<li><code>[out] result</code>: Whether the property exists on the object or not.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns if the Object passed in has an element at the\nrequested index.</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_has_element*"
+                },
+                {
+                  "textRaw": "*napi_define_properties*",
+                  "name": "*napi_define_properties*",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<pre><code class=\"lang-C\">napi_status napi_define_properties(napi_env env,\n                                   napi_value object,\n                                   size_t property_count,\n                                   const napi_property_descriptor* properties);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the properties.</li>\n<li><code>[in] property_count</code>: The number of elements in the <code>properties</code> array.</li>\n<li><code>[in] properties</code>: The array of property descriptors.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method allows the efficient definition of multiple properties on a given\nobject. The properties are defined using property descriptors (See\n<a href=\"#n_api_napi_property_descriptor\"><code>napi_property_descriptor</code></a>). Given an array of such property descriptors, this\nAPI will set the properties on the object one at a time, as defined by\nDefineOwnProperty (described in <a href=\"https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc\">Section 9.1.6</a> of the ECMA262 specification).</p>\n",
+                  "type": "module",
+                  "displayName": "*napi_define_properties*"
+                }
+              ],
+              "type": "module",
+              "displayName": "Functions"
+            }
+          ],
+          "type": "module",
+          "displayName": "Working with JavaScript Properties"
+        },
+        {
+          "textRaw": "Working with JavaScript Functions",
+          "name": "working_with_javascript_functions",
+          "desc": "<p>N-API provides a set of APIs that allow JavaScript code to\ncall back into native code. N-API APIs that support calling back\ninto native code take in a callback functions represented by\nthe <code>napi_callback</code> type. When the JavaScript VM calls back to\nnative code, the <code>napi_callback</code> function provided is invoked. The APIs\ndocumented in this section allow the callback function to do the\nfollowing:</p>\n<ul>\n<li>Get information about the context in which the callback was invoked.</li>\n<li>Get the arguments passed into the callback.</li>\n<li>Return a <code>napi_value</code> back from the callback.</li>\n</ul>\n<p>Additionally, N-API provides a set of functions which allow calling\nJavaScript functions from native code. One can either call a function\nlike a regular JavaScript function call, or as a constructor\nfunction.</p>\n",
+          "modules": [
+            {
+              "textRaw": "*napi_call_function*",
+              "name": "*napi_call_function*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_call_function(napi_env env,\n                               napi_value recv,\n                               napi_value func,\n                               int argc,\n                               const napi_value* argv,\n                               napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] recv</code>: The <code>this</code> object passed to the called function.</li>\n<li><code>[in] func</code>: <code>napi_value</code> representing the JavaScript function\nto be invoked.</li>\n<li><code>[in] argc</code>: The count of elements in the <code>argv</code> array.</li>\n<li><code>[in] argv</code>: Array of <code>napi_values</code> representing JavaScript values passed\nin as arguments to the function.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript object returned.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method allows a JavaScript function object to be called from a native\nadd-on. This is an primary mechanism of calling back <em>from</em> the add-on&#39;s\nnative code <em>into</em> JavaScript. For special cases like calling into JavaScript\nafter an async operation, see <a href=\"#n_api_napi_make_callback\"><code>napi_make_callback</code></a>.</p>\n<p>A sample use case might look as follows. Consider the following JavaScript\nsnippet:</p>\n<pre><code class=\"lang-js\">function AddTwo(num) {\n  return num + 2;\n}\n</code></pre>\n<p>Then, the above function can be invoked from a native add-on using the\nfollowing code:</p>\n<pre><code class=\"lang-C\">// Get the function named &quot;AddTwo&quot; on the global object\nnapi_value global, add_two, arg;\nnapi_status status = napi_get_global(env, &amp;global);\nif (status != napi_ok) return;\n\nstatus = napi_get_named_property(env, global, &quot;AddTwo&quot;, &amp;add_two);\nif (status != napi_ok) return;\n\n// const arg = 1337\nstatus = napi_create_number(env, 1337, &amp;arg);\nif (status != napi_ok) return;\n\nnapi_value* argv = &amp;arg;\nsize_t argc = 1;\n\n// AddTwo(arg);\nnapi_value return_val;\nstatus = napi_call_function(env, global, add_two, argc, argv, &amp;return_val);\nif (status != napi_ok) return;\n\n// Convert the result back to a native type\nint32_t result;\nstatus = napi_get_value_int32(env, return_val, &amp;result);\nif (status != napi_ok) return;\n</code></pre>\n",
+              "type": "module",
+              "displayName": "*napi_call_function*"
+            },
+            {
+              "textRaw": "*napi_create_function*",
+              "name": "*napi_create_function*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_create_function(napi_env env,\n                                 const char* utf8name,\n                                 napi_callback cb,\n                                 void* data,\n                                 napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] utf8Name</code>: The name of the function encoded as UTF8. This is visible\nwithin JavaScript as the new function object&#39;s <code>name</code> property.</li>\n<li><code>[in] cb</code>: The native function which should be called when this function\nobject is invoked.</li>\n<li><code>[in] data</code>: User-provided data context. This will be passed back into the\nfunction when invoked later.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript function object for\nthe newly created function.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allows an add-on author to create a function object in native code.\nThis is the primary mechanism to allow calling <em>into</em> the add-on&#39;s native code\n<em>from</em> Javascript.</p>\n<p><em>Note</em>: The newly created function is not automatically visible from\nscript after this call. Instead, a property must be explicitly set on any\nobject that is visible to JavaScript, in order for the function to be accessible\nfrom script.</p>\n<p>In order to expose a function as part of the\nadd-on&#39;s module exports, set the newly created function on the exports\nobject. A sample module might look as follows:</p>\n<pre><code class=\"lang-C\">void SayHello(napi_env env, napi_callback_info info) {\n  printf(&quot;Hello\\n&quot;);\n}\n\nvoid Init(napi_env env, napi_value exports, napi_value module, void* priv) {\n  napi_status status;\n\n  napi_value fn;\n  status =  napi_create_function(env, NULL, SayHello, NULL, &amp;fn);\n  if (status != napi_ok) return;\n\n  status = napi_set_named_property(env, exports, &quot;sayHello&quot;, fn);\n  if (status != napi_ok) return;\n}\n\nNAPI_MODULE(addon, Init)\n</code></pre>\n<p>Given the above code, the add-on can be used from JavaScript as follows:</p>\n<pre><code class=\"lang-js\">const myaddon = require(&#39;./addon&#39;);\nmyaddon.sayHello();\n</code></pre>\n<p><em>Note</em>: The string passed to require is not necessarily the name passed into\n<code>NAPI_MODULE</code> in the earlier snippet but the name of the target in <code>binding.gyp</code>\nresponsible for creating the <code>.node</code> file.</p>\n",
+              "type": "module",
+              "displayName": "*napi_create_function*"
+            },
+            {
+              "textRaw": "*napi_get_cb_info*",
+              "name": "*napi_get_cb_info*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_get_cb_info(napi_env env,\n                             napi_callback_info cbinfo,\n                             size_t* argc,\n                             napi_value* argv,\n                             napi_value* thisArg,\n                             void** data)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] cbinfo</code>: The callback info passed into the callback function.</li>\n<li><code>[in-out] argc</code>: Specifies the size of the provided <code>argv</code> array\nand receives the actual count of arguments.</li>\n<li><code>[out] argv</code>: Buffer to which the <code>napi_value</code> representing the\narguments are copied. If there are more arguments than the provided\ncount, only the requested number of arguments are copied. If there are fewer\narguments provided than claimed, the rest of <code>argv</code> is filled with <code>napi_value</code>\nvalues that represent <code>undefined</code>.</li>\n<li><code>[out] this</code>: Receives the JavaScript <code>this</code> argument for the call.</li>\n<li><code>[out] data</code>: Receives the data pointer for the callback.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method is used within a callback function to retrieve details about the\ncall like the arguments and the <code>this</code> pointer from a given callback info.</p>\n",
+              "type": "module",
+              "displayName": "*napi_get_cb_info*"
+            },
+            {
+              "textRaw": "*napi_is_construct_call*",
+              "name": "*napi_is_construct_call*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_is_construct_call(napi_env env,\n                                   napi_callback_info cbinfo,\n                                   bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] cbinfo</code>: The callback info passed into the callback function.</li>\n<li><code>[out] result</code>: Whether the native function is being invoked as\na constructor call.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the the current callback was due to a\nconsructor call.</p>\n",
+              "type": "module",
+              "displayName": "*napi_is_construct_call*"
+            },
+            {
+              "textRaw": "*napi_new_instance*",
+              "name": "*napi_new_instance*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_new_instance(napi_env env,\n                              napi_value cons,\n                              size_t argc,\n                              napi_value* argv,\n                              napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] cons</code>: <code>napi_value</code> representing the JavaScript function\nto be invoked as a constructor.</li>\n<li><code>[in] argc</code>: The count of elements in the <code>argv</code> array.</li>\n<li><code>[in] argv</code>: Array of JavaScript values as <code>napi_value</code>\nrepresenting the arguments to the constructor.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript object returned,\nwhich in this case is the constructed object.</li>\n</ul>\n<p>This method is used to instantiate a new JavaScript value using a given\n<code>napi_value</code> that represents the constructor for the object. For example,\nconsider the following snippet:</p>\n<pre><code class=\"lang-js\">function MyObject(param) {\n  this.param = param;\n}\n\nconst arg = &#39;hello&#39;;\nconst value = new MyObject(arg);\n</code></pre>\n<p>The following can be approximated in N-API using the following snippet:</p>\n<pre><code class=\"lang-C\">// Get the constructor function MyObject\nnapi_value global, constructor, arg, value;\nnapi_status status = napi_get_global(env, &amp;global);\nif (status != napi_ok) return;\n\nstatus = napi_get_named_property(env, global, &quot;MyObject&quot;, &amp;constructor);\nif (status != napi_ok) return;\n\n// const arg = &quot;hello&quot;\nstatus = napi_create_string_utf8(env, &quot;hello&quot;, -1, &amp;arg);\nif (status != napi_ok) return;\n\nnapi_value* argv = &amp;arg;\nsize_t argc = 1;\n\n// const value = new MyObject(arg)\nstatus = napi_new_instance(env, constructor, argc, argv, &amp;value);\n</code></pre>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n",
+              "type": "module",
+              "displayName": "*napi_new_instance*"
+            },
+            {
+              "textRaw": "*napi_make_callback*",
+              "name": "*napi_make_callback*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_make_callback(napi_env env,\n                               napi_value recv,\n                               napi_value func,\n                               int argc,\n                               const napi_value* argv,\n                               napi_value* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] recv</code>: The <code>this</code> object passed to the called function.</li>\n<li><code>[in] func</code>: <code>napi_value</code> representing the JavaScript function\nto be invoked.</li>\n<li><code>[in] argc</code>: The count of elements in the <code>argv</code> array.</li>\n<li><code>[in] argv</code>: Array of JavaScript values as <code>napi_value</code>\nrepresenting the arguments to the function.</li>\n<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript object returned.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method allows a JavaScript function object to be called from a native\nadd-on. This API is similar to <code>napi_call_function</code>. However, it is used to call\n<em>from</em> native code back <em>into</em> JavaScript <em>after</em> returning from an async\noperation (when there is no other script on the stack). It is a fairly simple\nwrapper around <code>node::MakeCallback</code>.</p>\n<p>For an example on how to use <code>napi_make_callback</code>, see the section on\n[Asynchronous Operations][].</p>\n",
+              "type": "module",
+              "displayName": "*napi_make_callback*"
+            }
+          ],
+          "type": "module",
+          "displayName": "Working with JavaScript Functions"
+        },
+        {
+          "textRaw": "Object Wrap",
+          "name": "object_wrap",
+          "desc": "<p>N-API offers a way to &quot;wrap&quot; C++ classes and instances so that the class\nconstructor and methods can be called from JavaScript.</p>\n<ol>\n<li>The <a href=\"#n_api_napi_define_class\"><code>napi_define_class</code></a> API defines a JavaScript class with constructor,\nstatic properties and methods, and instance properties and methods that\ncorrespond to the The C++ class.</li>\n<li>When JavaScript code invokes the constructor, the constructor callback\nuses <a href=\"#n_api_napi_wrap\"><code>napi_wrap</code></a> to wrap a new C++ instance in a JavaScript object,\nthen returns the wrapper object.</li>\n<li>When JavaScript code invokes a method or property accessor on the class,\nthe corresponding <code>napi_callback</code> C++ function is invoked. For an instance\ncallback, <a href=\"#n_api_napi_unwrap\"><code>napi_unwrap</code></a> obtains the C++ instance that is the target of\nthe call.</li>\n</ol>\n",
+          "modules": [
+            {
+              "textRaw": "*napi_define_class*",
+              "name": "*napi_define_class*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_define_class(napi_env env,\n                              const char* utf8name,\n                              napi_callback constructor,\n                              void* data,\n                              size_t property_count,\n                              const napi_property_descriptor* properties,\n                              napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] utf8name</code>: Name of the JavaScript constructor function; this is\nnot required to be the same as the C++ class name, though it is recommended\nfor clarity.</li>\n<li><code>[in] constructor</code>: Callback function that handles constructing instances\nof the class. (This should be a static method on the class, not an actual\nC++ constructor function.)</li>\n<li><code>[in] data</code>: Optional data to be passed to the constructor callback as\nthe <code>data</code> property of the callback info.</li>\n<li><code>[in] property_count</code>: Number of items in the <code>properties</code> array argument.</li>\n<li><code>[in] properties</code>: Array of property descriptors describing static and\ninstance data properties, accessors, and methods on the class\nSee <code>napi_property_descriptor</code>.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing the constructor function for\nthe class.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>Defines a JavaScript class that corresponds to a C++ class, including:</p>\n<ul>\n<li>A JavaScript constructor function that has the class name and invokes the\nprovided C++ constructor callback.</li>\n<li>Properties on the constructor function corresponding to <em>static</em> data\nproperties, accessors, and methods of the C++ class (defined by\nproperty descriptors with the <code>napi_static</code> attribute).</li>\n<li>Properties on the constructor function&#39;s <code>prototype</code> object corresponding to\n<em>non-static</em> data properties, accessors, and methods of the C++ class\n(defined by property descriptors without the <code>napi_static</code> attribute).</li>\n</ul>\n<p>The C++ constructor callback should be a static method on the class that calls\nthe actual class constructor, then wraps the new C++ instance in a JavaScript\nobject, and returns the wrapper object. See <code>napi_wrap()</code> for details.</p>\n<p>The JavaScript constructor function returned from <a href=\"#n_api_napi_define_class\"><code>napi_define_class</code></a> is\noften saved and used later, to construct new instances of the class from native\ncode, and/or check whether provided values are instances of the class. In that\ncase, to prevent the function value from being garbage-collected, create a\npersistent reference to it using <a href=\"#n_api_napi_create_reference\"><code>napi_create_reference</code></a> and ensure the\nreference count is kept &gt;= 1.</p>\n",
+              "type": "module",
+              "displayName": "*napi_define_class*"
+            },
+            {
+              "textRaw": "*napi_wrap*",
+              "name": "*napi_wrap*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_wrap(napi_env env,\n                      napi_value js_object,\n                      void* native_object,\n                      napi_finalize finalize_cb,\n                      void* finalize_hint,\n                      napi_ref* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] js_object</code>: The JavaScript object that will be the wrapper for the\nnative object. This object <em>must</em> have been created from the <code>prototype</code> of\na constructor that was created using <code>napi_define_class()</code>.</li>\n<li><code>[in] native_object</code>: The native instance that will be wrapped in the\nJavaScript object.</li>\n<li><code>[in] finalize_cb</code>: Optional native callback that can be used to free the\nnative instance when the JavaScript object is ready for garbage-collection.</li>\n<li><code>[in] finalize_hint</code>: Optional contextual hint that is passed to the\nfinalize callback.</li>\n<li><code>[out] result</code>: Optional reference to the wrapped object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>Wraps a native instance in JavaScript object of the corresponding type.</p>\n<p>When JavaScript code invokes a constructor for a class that was defined using\n<code>napi_define_class()</code>, the <code>napi_callback</code> for the constructor is invoked.\nAfter constructing an instance of the native class, the callback must then call\n<code>napi_wrap()</code> to wrap the newly constructed instance in the already-created\nJavaScript object that is the <code>this</code> argument to the constructor callback.\n(That <code>this</code> object was created from the constructor function&#39;s <code>prototype</code>,\nso it already has definitions of all the instance properties and methods.)</p>\n<p>Typically when wrapping a class instance, a finalize callback should be\nprovided that simply deletes the native instance that is received as the <code>data</code>\nargument to the finalize callback.</p>\n<p>The optional returned reference is initially a weak reference, meaning it\nhas a reference count of 0. Typically this reference count would be incremented\ntemporarily during async operations that require the instance to remain valid.</p>\n<p>Caution: The optional returned reference (if obtained) should be deleted via\n<a href=\"#n_api_napi_delete_reference\"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback invocation.\n(If it is deleted before then, then the finalize callback may never be\ninvoked.) Therefore when obtaining a reference a finalize callback is also\nrequired in order to enable correct proper of the reference.</p>\n",
+              "type": "module",
+              "displayName": "*napi_wrap*"
+            },
+            {
+              "textRaw": "*napi_unwrap*",
+              "name": "*napi_unwrap*",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">napi_status napi_unwrap(napi_env env,\n                        napi_value js_object,\n                        void** result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] js_object</code>: The object associated with the C++ class instance.</li>\n<li><code>[out] result</code>: Pointer to the wrapped C++ class instance.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>When JavaScript code invokes a method or property accessor on the class, the\ncorresponding <code>napi_callback</code> is invoked. If the callback is for an instance\nmethod or accessor, then the <code>this</code> argument to the callback is the wrapper\nobject; the wrapped C++ instance that is the target of the call can be obtained\nthen by calling <code>napi_unwrap()</code> on the wrapper object.</p>\n",
+              "type": "module",
+              "displayName": "*napi_unwrap*"
+            }
+          ],
+          "type": "module",
+          "displayName": "Object Wrap"
+        },
+        {
+          "textRaw": "Asynchronous Operations",
+          "name": "asynchronous_operations",
+          "desc": "<p>Addon modules often need to leverage async helpers from libuv as part of their\nimplementation. This allows them to schedule work to be executed asynchronously\nso that their methods can return in advance of the work being completed. This\nis important in order to allow them to avoid blocking overall execution\nof the Node.js application.</p>\n<p>N-API provides an ABI-stable interface for these\nsupporting functions which covers the most common asynchronous use cases.</p>\n<p>N-API defines the <code>napi_work</code> structure which is used to manage\nasynchronous workers. Instances are created/deleted with\n<a href=\"#n_api_napi_create_async_work\"><code>napi_create_async_work</code></a> and <a href=\"#n_api_napi_delete_async_work\"><code>napi_delete_async_work</code></a>.</p>\n<p>The <code>execute</code> and <code>complete</code> callbacks are functions that will be\ninvoked when the executor is ready to execute and when it completes its\ntask respectively. These functions implement the following interfaces:</p>\n<pre><code class=\"lang-C\">typedef void (*napi_async_execute_callback)(napi_env env,\n                                            void* data);\ntypedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>\n<p>When these methods are invoked, the <code>data</code> parameter passed will be the\naddon-provided void* data that was passed into the\n<code>napi_create_async_work</code> call.</p>\n<p>Once created the async worker can be queued\nfor execution using the <a href=\"#n_api_napi_queue_async_work\"><code>napi_queue_async_work</code></a> function:</p>\n<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_queue_async_work(napi_env env,\n                                              napi_async_work work);\n</code></pre>\n<p><a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a> can be used if  the work needs\nto be cancelled before the work has started execution.</p>\n<p>After calling <a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a>, the <code>complete</code> callback\nwill be invoked with a status value of <code>napi_cancelled</code>.\nThe work should not be deleted before the <code>complete</code>\ncallback invocation, even when it was cancelled.</p>\n",
+          "modules": [
+            {
+              "textRaw": "napi_create_async_work",
+              "name": "napi_create_async_work",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN\nnapi_status napi_create_async_work(napi_env env,\n                                   napi_async_execute_callback execute,\n                                   napi_async_complete_callback complete,\n                                   void* data,\n                                   napi_async_work* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] execute</code>: The native function which should be called to excute\nthe logic asynchronously.</li>\n<li><code>[in] complete</code>: The native function which will be called when the\nasynchronous logic is comple or is cancelled.</li>\n<li><code>[in] data</code>: User-provided data context. This will be passed back into the\nexecute and complete functions.</li>\n<li><code>[out] result</code>: <code>napi_async_work*</code> which is the handle to the newly created\nasync work.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a work object that is used to execute logic asynchronously.\nIt should be freed using <a href=\"#n_api_napi_delete_async_work\"><code>napi_delete_async_work</code></a> once the work is no longer\nrequired.</p>\n",
+              "type": "module",
+              "displayName": "napi_create_async_work"
+            },
+            {
+              "textRaw": "napi_delete_async_work",
+              "name": "napi_delete_async_work",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_delete_async_work(napi_env env,\n                                               napi_async_work work);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] work</code>: The handle returned by the call to <code>napi_create_async_work</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API frees a previously allocated work object.</p>\n",
+              "type": "module",
+              "displayName": "napi_delete_async_work"
+            },
+            {
+              "textRaw": "napi_queue_async_work",
+              "name": "napi_queue_async_work",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_queue_async_work(napi_env env,\n                                              napi_async_work work);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] work</code>: The handle returned by the call to <code>napi_create_async_work</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API requests that the previously allocated work be scheduled\nfor execution.</p>\n",
+              "type": "module",
+              "displayName": "napi_queue_async_work"
+            },
+            {
+              "textRaw": "napi_cancel_async_work",
+              "name": "napi_cancel_async_work",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_cancel_async_work(napi_env env,\n                                               napi_async_work work);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] work</code>: The handle returned by the call to <code>napi_create_async_work</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API cancels queued work if it has not yet\nbeen started.  If it has already started executing, it cannot be\ncancelled and <code>napi_generic_failure</code> will be returned. If successful,\nthe <code>complete</code> callback will be invoked with a status value of\n<code>napi_cancelled</code>. The work should not be deleted before the <code>complete</code>\ncallback invocation, even if it has been successfully cancelled.</p>\n",
+              "type": "module",
+              "displayName": "napi_cancel_async_work"
+            }
+          ],
+          "type": "module",
+          "displayName": "Asynchronous Operations"
+        },
+        {
+          "textRaw": "Version Management",
+          "name": "version_management",
+          "modules": [
+            {
+              "textRaw": "napi_get_version",
+              "name": "napi_get_version",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"lang-C\">NAPI_EXTERN napi_status napi_get_version(napi_env env,\n                                         uint32_t* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[out] result</code>: The highest version of N-API supported.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API returns the highest N-API version supported by the\nNode.js runtime.  N-API is planned to be additive such that\nnewer releases of Node.js may support additional API functions.\nIn order to allow an addon to use a newer function when running with\nversions of Node.js that support it, while providing\nfallback behavior when running with Node.js versions that don&#39;t\nsupport it:</p>\n<ul>\n<li>Call <code>napi_get_version()</code> to determine if the API is available.</li>\n<li>If available, dynamically load a pointer to the function using <code>uv_dlsym()</code>.</li>\n<li>Use the dynamically loaded pointer to invoke the function.</li>\n<li>If the function is not available, provide an alternate implementation\nthat does not use the function.</li>\n</ul>\n",
+              "type": "module",
+              "displayName": "napi_get_version"
+            }
+          ],
+          "type": "module",
+          "displayName": "Version Management"
+        }
+      ],
+      "type": "module",
+      "displayName": "N-API"
+    }
+  ]
+}

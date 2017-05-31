@@ -25,7 +25,7 @@
 'use strict';
 
 const constants = process.binding('constants').fs;
-const { S_IFMT, S_IFREG, S_IFLNK } = constants;
+const { S_IFIFO, S_IFLNK, S_IFMT, S_IFREG, S_IFSOCK } = constants;
 const util = require('util');
 const pathModule = require('path');
 const { isUint8Array } = process.binding('util');
@@ -196,78 +196,12 @@ function Stats(
   this.ino = ino;
   this.size = size;
   this.blocks = blocks;
-  this._atim_msec = atim_msec;
-  this._mtim_msec = mtim_msec;
-  this._ctim_msec = ctim_msec;
-  this._birthtim_msec = birthtim_msec;
+  this.atime = new Date(atim_msec + 0.5);
+  this.mtime = new Date(mtim_msec + 0.5);
+  this.ctime = new Date(ctim_msec + 0.5);
+  this.birthtime = new Date(birthtim_msec + 0.5);
 }
 fs.Stats = Stats;
-
-// defining the properties in this fashion (explicitly with no loop or factory)
-// has been shown to be the most performant on V8 contemp.
-// Ref: https://github.com/nodejs/node/pull/12818
-Object.defineProperties(Stats.prototype, {
-  atime: {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return this._atime !== undefined ?
-          this._atime :
-          (this._atime = new Date(this._atim_msec + 0.5));
-    },
-    set(value) { return this._atime = value; }
-  },
-  mtime: {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return this._mtime !== undefined ?
-          this._mtime :
-          (this._mtime = new Date(this._mtim_msec + 0.5));
-    },
-    set(value) { return this._mtime = value; }
-  },
-  ctime: {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return this._ctime !== undefined ?
-        this._ctime :
-        (this._ctime = new Date(this._ctim_msec + 0.5));
-    },
-    set(value) { return this._ctime = value; }
-  },
-  birthtime: {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return this._birthtime !== undefined ?
-        this._birthtime :
-        (this._birthtime = new Date(this._birthtim_msec + 0.5));
-    },
-    set(value) { return this._birthtime = value; }
-  },
-});
-
-Stats.prototype.toJSON = function toJSON() {
-  return {
-    dev: this.dev,
-    mode: this.mode,
-    nlink: this.nlink,
-    uid: this.uid,
-    gid: this.gid,
-    rdev: this.rdev,
-    blksize: this.blksize,
-    ino: this.ino,
-    size: this.size,
-    blocks: this.blocks,
-    atime: this.atime,
-    ctime: this.ctime,
-    mtime: this.mtime,
-    birthtime: this.birthtime
-  };
-};
-
 
 Stats.prototype._checkModeProperty = function(property) {
   return ((this.mode & S_IFMT) === property);
@@ -294,11 +228,11 @@ Stats.prototype.isSymbolicLink = function() {
 };
 
 Stats.prototype.isFIFO = function() {
-  return this._checkModeProperty(constants.S_IFIFO);
+  return this._checkModeProperty(S_IFIFO);
 };
 
 Stats.prototype.isSocket = function() {
-  return this._checkModeProperty(constants.S_IFSOCK);
+  return this._checkModeProperty(S_IFSOCK);
 };
 
 const statValues = binding.getStatValues();
@@ -1691,8 +1625,12 @@ fs.realpathSync = function realpathSync(p, options) {
       pos = result + 1;
     }
 
-    // continue if not a symlink
+    // continue if not a symlink, break if a pipe/socket
     if (knownHard[base] || (cache && cache.get(base) === base)) {
+      if ((statValues[1/*mode*/] & S_IFMT) === S_IFIFO ||
+          (statValues[1/*mode*/] & S_IFMT) === S_IFSOCK) {
+        break;
+      }
       continue;
     }
 
@@ -1818,8 +1756,12 @@ fs.realpath = function realpath(p, options, callback) {
       pos = result + 1;
     }
 
-    // continue if not a symlink
+    // continue if not a symlink, break if a pipe/socket
     if (knownHard[base]) {
+      if ((statValues[1/*mode*/] & S_IFMT) === S_IFIFO ||
+          (statValues[1/*mode*/] & S_IFMT) === S_IFSOCK) {
+        return callback(null, encodeRealpathResult(p, options));
+      }
       return process.nextTick(LOOP);
     }
 

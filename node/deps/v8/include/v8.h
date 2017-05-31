@@ -2973,12 +2973,12 @@ class V8_EXPORT Object : public Value {
       Local<Context> context, Local<Value> key);
 
   /**
-   * Returns Object.getOwnPropertyDescriptor as per ES5 section 15.2.3.3.
+   * Returns Object.getOwnPropertyDescriptor as per ES2016 section 19.1.2.6.
    */
   V8_DEPRECATED("Use maybe version",
-                Local<Value> GetOwnPropertyDescriptor(Local<String> key));
+                Local<Value> GetOwnPropertyDescriptor(Local<Name> key));
   V8_WARN_UNUSED_RESULT MaybeLocal<Value> GetOwnPropertyDescriptor(
-      Local<Context> context, Local<String> key);
+      Local<Context> context, Local<Name> key);
 
   V8_DEPRECATE_SOON("Use maybe version", bool Has(Local<Value> key));
   /**
@@ -3743,6 +3743,10 @@ class V8_EXPORT Function : public Object {
   static void CheckCast(Value* obj);
 };
 
+#ifndef V8_PROMISE_INTERNAL_FIELD_COUNT
+// The number of required internal fields can be defined by embedder.
+#define V8_PROMISE_INTERNAL_FIELD_COUNT 0
+#endif
 
 /**
  * An instance of the built-in Promise constructor (ES6 draft).
@@ -3823,6 +3827,8 @@ class V8_EXPORT Promise : public Object {
   PromiseState State();
 
   V8_INLINE static Promise* Cast(Value* obj);
+
+  static const int kEmbedderFieldCount = V8_PROMISE_INTERNAL_FIELD_COUNT;
 
  private:
   Promise();
@@ -4002,11 +4008,19 @@ class V8_EXPORT ArrayBuffer : public Object {
      */
     virtual void* AllocateUninitialized(size_t length) = 0;
 
+    virtual void* Reserve(size_t length);
+
     /**
      * Free the memory block of size |length|, pointed to by |data|.
      * That memory is guaranteed to be previously allocated by |Allocate|.
      */
     virtual void Free(void* data, size_t length) = 0;
+
+    enum class AllocationMode { kNormal, kReservation };
+    virtual void Free(void* data, size_t length, AllocationMode mode);
+    enum class Protection { kNoAccess, kReadWrite };
+    virtual void SetProtection(void* data, size_t length,
+                               Protection protection);
 
     /**
      * malloc/free based convenience allocator.
@@ -5717,8 +5731,12 @@ class V8_EXPORT ResourceConstraints {
   void set_max_old_space_size(int limit_in_mb) {
     max_old_space_size_ = limit_in_mb;
   }
-  int max_executable_size() const { return max_executable_size_; }
-  void set_max_executable_size(int limit_in_mb) {
+  V8_DEPRECATE_SOON("max_executable_size_ is subsumed by max_old_space_size_",
+                    int max_executable_size() const) {
+    return max_executable_size_;
+  }
+  V8_DEPRECATE_SOON("max_executable_size_ is subsumed by max_old_space_size_",
+                    void set_max_executable_size(int limit_in_mb)) {
     max_executable_size_ = limit_in_mb;
   }
   uint32_t* stack_limit() const { return stack_limit_; }
@@ -6005,6 +6023,8 @@ enum GCType {
  *   - kGCCallbackFlagCollectAllAvailableGarbage: The GC callback is called
  *     in a phase where V8 is trying to collect all available garbage
  *     (e.g., handling a low memory notification).
+ *   - kGCCallbackScheduleIdleGarbageCollection: The GC callback is called to
+ *     trigger an idle garbage collection.
  */
 enum GCCallbackFlags {
   kNoGCCallbackFlags = 0,
@@ -6013,6 +6033,7 @@ enum GCCallbackFlags {
   kGCCallbackFlagSynchronousPhantomCallbackProcessing = 1 << 3,
   kGCCallbackFlagCollectAllAvailableGarbage = 1 << 4,
   kGCCallbackFlagCollectAllExternalMemory = 1 << 5,
+  kGCCallbackScheduleIdleGarbageCollection = 1 << 6,
 };
 
 typedef void (*GCCallback)(GCType type, GCCallbackFlags flags);

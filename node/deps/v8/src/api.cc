@@ -437,6 +437,19 @@ void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
   i::V8::SetSnapshotBlob(snapshot_blob);
 }
 
+void* v8::ArrayBuffer::Allocator::Reserve(size_t length) { UNIMPLEMENTED(); }
+
+void v8::ArrayBuffer::Allocator::Free(void* data, size_t length,
+                                      AllocationMode mode) {
+  UNIMPLEMENTED();
+}
+
+void v8::ArrayBuffer::Allocator::SetProtection(
+    void* data, size_t length,
+    v8::ArrayBuffer::Allocator::Protection protection) {
+  UNIMPLEMENTED();
+}
+
 namespace {
 
 class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -798,7 +811,6 @@ Extension::Extension(const char* name,
 ResourceConstraints::ResourceConstraints()
     : max_semi_space_size_(0),
       max_old_space_size_(0),
-      max_executable_size_(0),
       stack_limit_(NULL),
       code_range_size_(0),
       max_zone_pool_size_(0) {}
@@ -820,24 +832,20 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
   if (physical_memory <= low_limit) {
     set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeLowMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeLowMemoryDevice);
-    set_max_executable_size(i::Heap::kMaxExecutableSizeLowMemoryDevice);
     set_max_zone_pool_size(i::AccountingAllocator::kMaxPoolSizeLowMemoryDevice);
   } else if (physical_memory <= medium_limit) {
     set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeMediumMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeMediumMemoryDevice);
-    set_max_executable_size(i::Heap::kMaxExecutableSizeMediumMemoryDevice);
     set_max_zone_pool_size(
         i::AccountingAllocator::kMaxPoolSizeMediumMemoryDevice);
   } else if (physical_memory <= high_limit) {
     set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeHighMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeHighMemoryDevice);
-    set_max_executable_size(i::Heap::kMaxExecutableSizeHighMemoryDevice);
     set_max_zone_pool_size(
         i::AccountingAllocator::kMaxPoolSizeHighMemoryDevice);
   } else {
     set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeHugeMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeHugeMemoryDevice);
-    set_max_executable_size(i::Heap::kMaxExecutableSizeHugeMemoryDevice);
     set_max_zone_pool_size(
         i::AccountingAllocator::kMaxPoolSizeHugeMemoryDevice);
   }
@@ -856,13 +864,11 @@ void SetResourceConstraints(i::Isolate* isolate,
                             const ResourceConstraints& constraints) {
   int semi_space_size = constraints.max_semi_space_size();
   int old_space_size = constraints.max_old_space_size();
-  int max_executable_size = constraints.max_executable_size();
   size_t code_range_size = constraints.code_range_size();
   size_t max_pool_size = constraints.max_zone_pool_size();
-  if (semi_space_size != 0 || old_space_size != 0 ||
-      max_executable_size != 0 || code_range_size != 0) {
+  if (semi_space_size != 0 || old_space_size != 0 || code_range_size != 0) {
     isolate->heap()->ConfigureHeap(semi_space_size, old_space_size,
-                                   max_executable_size, code_range_size);
+                                   0 /*max_executable_size*/, code_range_size);
   }
   isolate->allocator()->ConfigureSegmentPool(max_pool_size);
 
@@ -4443,12 +4449,11 @@ PropertyAttribute v8::Object::GetPropertyAttributes(v8::Local<Value> key) {
       .FromMaybe(static_cast<PropertyAttribute>(i::NONE));
 }
 
-
 MaybeLocal<Value> v8::Object::GetOwnPropertyDescriptor(Local<Context> context,
-                                                       Local<String> key) {
+                                                       Local<Name> key) {
   PREPARE_FOR_EXECUTION(context, Object, GetOwnPropertyDescriptor, Value);
   i::Handle<i::JSReceiver> obj = Utils::OpenHandle(this);
-  i::Handle<i::String> key_name = Utils::OpenHandle(*key);
+  i::Handle<i::Name> key_name = Utils::OpenHandle(*key);
 
   i::PropertyDescriptor desc;
   Maybe<bool> found =
@@ -4461,8 +4466,7 @@ MaybeLocal<Value> v8::Object::GetOwnPropertyDescriptor(Local<Context> context,
   RETURN_ESCAPED(Utils::ToLocal(desc.ToObject(isolate)));
 }
 
-
-Local<Value> v8::Object::GetOwnPropertyDescriptor(Local<String> key) {
+Local<Value> v8::Object::GetOwnPropertyDescriptor(Local<Name> key) {
   auto context = ContextFromHeapObject(Utils::OpenHandle(this));
   RETURN_TO_LOCAL_UNCHECKED(GetOwnPropertyDescriptor(context, key), Value);
 }
@@ -8940,16 +8944,11 @@ bool Debug::SetDebugEventListener(Isolate* isolate, EventCallback that,
   return true;
 }
 
-void Debug::DebugBreak(Isolate* isolate) {
-  reinterpret_cast<i::Isolate*>(isolate)->stack_guard()->RequestDebugBreak();
-}
-
+void Debug::DebugBreak(Isolate* isolate) { debug::DebugBreak(isolate); }
 
 void Debug::CancelDebugBreak(Isolate* isolate) {
-  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  internal_isolate->stack_guard()->ClearDebugBreak();
+  debug::CancelDebugBreak(isolate);
 }
-
 
 bool Debug::CheckDebugBreak(Isolate* isolate) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
@@ -8965,28 +8964,14 @@ void Debug::SendCommand(Isolate* isolate, const uint16_t* command, int length,
 MaybeLocal<Value> Debug::Call(Local<Context> context,
                               v8::Local<v8::Function> fun,
                               v8::Local<v8::Value> data) {
-  PREPARE_FOR_EXECUTION(context, Debug, Call, Value);
-  i::Handle<i::Object> data_obj;
-  if (data.IsEmpty()) {
-    data_obj = isolate->factory()->undefined_value();
-  } else {
-    data_obj = Utils::OpenHandle(*data);
-  }
-  Local<Value> result;
-  has_pending_exception =
-      !ToLocal<Value>(isolate->debug()->Call(Utils::OpenHandle(*fun), data_obj),
-                      &result);
-  RETURN_ON_FAILED_EXECUTION(Value);
-  RETURN_ESCAPED(result);
+  return debug::Call(context, fun, data);
 }
-
 
 void Debug::ProcessDebugMessages(Isolate* isolate) {}
 
 Local<Context> Debug::GetDebugContext(Isolate* isolate) {
   return debug::GetDebugContext(isolate);
 }
-
 
 MaybeLocal<Context> Debug::GetDebuggedContext(Isolate* isolate) {
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
@@ -8998,8 +8983,7 @@ MaybeLocal<Context> Debug::GetDebuggedContext(Isolate* isolate) {
 }
 
 void Debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {
-  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  internal_isolate->debug()->set_live_edit_enabled(enable);
+  debug::SetLiveEditEnabled(isolate, enable);
 }
 
 bool Debug::IsTailCallEliminationEnabled(Isolate* isolate) {
@@ -9014,13 +8998,7 @@ void Debug::SetTailCallEliminationEnabled(Isolate* isolate, bool enabled) {
 
 MaybeLocal<Array> Debug::GetInternalProperties(Isolate* v8_isolate,
                                                Local<Value> value) {
-  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
-  ENTER_V8(isolate);
-  i::Handle<i::Object> val = Utils::OpenHandle(*value);
-  i::Handle<i::JSArray> result;
-  if (!i::Runtime::GetInternalProperties(isolate, val).ToHandle(&result))
-    return MaybeLocal<Array>();
-  return Utils::ToLocal(result);
+  return debug::GetInternalProperties(v8_isolate, value);
 }
 
 Local<Context> debug::GetDebugContext(Isolate* isolate) {
@@ -9032,22 +9010,43 @@ Local<Context> debug::GetDebugContext(Isolate* isolate) {
 MaybeLocal<Value> debug::Call(Local<Context> context,
                               v8::Local<v8::Function> fun,
                               v8::Local<v8::Value> data) {
-  return Debug::Call(context, fun, data);
+  PREPARE_FOR_EXECUTION(context, Debug, Call, Value);
+  i::Handle<i::Object> data_obj;
+  if (data.IsEmpty()) {
+    data_obj = isolate->factory()->undefined_value();
+  } else {
+    data_obj = Utils::OpenHandle(*data);
+  }
+  Local<Value> result;
+  has_pending_exception = !ToLocal<Value>(
+      isolate->debug()->Call(Utils::OpenHandle(*fun), data_obj), &result);
+  RETURN_ON_FAILED_EXECUTION(Value);
+  RETURN_ESCAPED(result);
 }
 
 void debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {
-  Debug::SetLiveEditEnabled(isolate, enable);
+  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  internal_isolate->debug()->set_live_edit_enabled(enable);
 }
 
-void debug::DebugBreak(Isolate* isolate) { Debug::DebugBreak(isolate); }
+void debug::DebugBreak(Isolate* isolate) {
+  reinterpret_cast<i::Isolate*>(isolate)->stack_guard()->RequestDebugBreak();
+}
 
 void debug::CancelDebugBreak(Isolate* isolate) {
-  Debug::CancelDebugBreak(isolate);
+  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  internal_isolate->stack_guard()->ClearDebugBreak();
 }
 
-MaybeLocal<Array> debug::GetInternalProperties(Isolate* isolate,
+MaybeLocal<Array> debug::GetInternalProperties(Isolate* v8_isolate,
                                                Local<Value> value) {
-  return Debug::GetInternalProperties(isolate, value);
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
+  ENTER_V8(isolate);
+  i::Handle<i::Object> val = Utils::OpenHandle(*value);
+  i::Handle<i::JSArray> result;
+  if (!i::Runtime::GetInternalProperties(isolate, val).ToHandle(&result))
+    return MaybeLocal<Array>();
+  return Utils::ToLocal(result);
 }
 
 void debug::ChangeBreakOnException(Isolate* isolate, ExceptionBreakState type) {

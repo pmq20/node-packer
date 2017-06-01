@@ -20,6 +20,9 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
+
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 const common = require('../common');
 const assert = require('assert');
 const util = require('util');

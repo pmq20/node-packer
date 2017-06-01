@@ -95,6 +95,7 @@ Then,
       -v, --version                    Prints the version of nodec and exit
           --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
+          --examples                   Prints usage examples
 
 ## Examples
 

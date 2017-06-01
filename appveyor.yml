@@ -24,8 +24,6 @@ test_script:
 - cmd: |
     set PATH=C:\projects\node-compiler\usr\bin\node-v8.0.0-win-x86;C:\projects\node-compiler\usr\bin;%PATH%
 
-    call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64_x86
-
     python --version
 
     mksquashfs -version

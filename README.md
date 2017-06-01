@@ -96,12 +96,22 @@ Then,
           --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
 
-## Example
+## Examples
+
+### Compile a CLI tool:
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
     ./a.out (or a.exe on Windows)
+
+### Compile a web application:
+
+    git clone --depth 1 https://github.com/eggjs/examples.git
+    cd examples/helloworld
+    npm install
+    nodec node_modules/.bin/egg-bin
+    ./a.out dev (or a.exe dev on Windows)
 
 ## See Also
 

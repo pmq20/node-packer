@@ -29,21 +29,20 @@ EXAMPLES = %Q{
 
 Examples
 
-  Compile a CLI tool:
-    git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-    cd coffeescript
-    nodec bin/coffee
-    ./a.out (or a.exe on Windows)
+Compile a CLI tool:
 
-  Compile a web application:
-    git clone --depth 1 https://github.com/eggjs/examples.git
-    cd examples/helloworld
-    npm install
-    nodec node_modules/.bin/egg-bin
-    ./a.out dev (or a.exe dev on Windows)
+  git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+  cd coffeescript
+  nodec bin/coffee
+  ./a.out (or a.exe on Windows)
 
-Bug reports and pull requests are welcome on GitHub at
-https://github.com/pmq20/node-compiler
+Compile a web application:
+
+  git clone --depth 1 https://github.com/eggjs/examples.git
+  cd examples/helloworld
+  npm install
+  nodec node_modules/.bin/egg-bin
+  ./a.out dev (or a.exe dev on Windows)
 
 }.strip
 
@@ -53,8 +52,6 @@ outer_opts = nil
 
 usage = lambda do |out|
   out.puts outer_opts
-  out.puts
-  out.puts EXAMPLES
 end
 
 OptionParser.new do |opts|
@@ -126,6 +123,12 @@ OptionParser.new do |opts|
     usage.call(STDOUT)
     exit 0
   end
+
+  opts.on("--examples", "Prints usage examples") do
+    STDOUT.puts EXAMPLES
+    exit 0
+  end
+
 
   outer_opts = opts
 end.parse!

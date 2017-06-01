@@ -506,6 +506,7 @@ function normalizeSpawnArguments(file, args, options) {
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
   var command_outer = [file].concat(args).join(' ');
   var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+  var command_regexp_json_execPath = (JSON.stringify(process.execPath)+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
   [
     new RegExp(`^${command_regexp_execPath}$`),
     new RegExp(`^${command_regexp_execPath}\\s`),
@@ -513,6 +514,7 @@ function normalizeSpawnArguments(file, args, options) {
     new RegExp(`\\s${command_regexp_execPath}\\s`),
     new RegExp(`"${command_regexp_execPath}"`),
     new RegExp(`'${command_regexp_execPath}'`),
+    new RegExp(command_regexp_json_execPath)
   ].forEach(function(element) {
     if (command_outer.match(element) !== null) {
       flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;

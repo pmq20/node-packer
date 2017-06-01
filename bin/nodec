@@ -129,7 +129,6 @@ OptionParser.new do |opts|
     exit 0
   end
 
-
   outer_opts = opts
 end.parse!
 

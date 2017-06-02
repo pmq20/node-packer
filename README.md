@@ -2,26 +2,30 @@
 
 Compiling your Node.js application into a single executable.
 
-How it works? [Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
-
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
 
 ## CI Status
 
-|          OS          |          Master&#160;CI                                                                                                                                             |  Master&#160;CI&#160;Part&#160;2                                                                                                                                                     |   [RAM&#160;CI](https://github.com/pmq20/node-compiler-ram)                                                                                                               |                                                             [Black&#x2011;box&#160;CI](https://github.com/pmq20/node-compiler-blbt)            |
+|                      |          Master&#160;CI                                                                                                                                             |  Master&#160;CI (Part&#160;2)                                                                                                                                                        |   [RAM&#160;CI](https://github.com/pmq20/node-compiler-ram)                                                                                                               |                                                             [Black&#x2011;box&#160;CI](https://github.com/pmq20/node-compiler-blbt)            |
 |:--------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
 |     **Windows**      | [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/7d5v8r88p39808tq/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-appveyor2/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  |
 |   **Linux / macOS**  | [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                 | N/A                                                                                                                                                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 |
 
 ## Download
 
-|          OS           |   Arch.  |                              Latest&#160;Stable                                        |
+|                       |   Arch.  |                              Latest&#160;Stable                                        |
 |:---------------------:|:--------:|----------------------------------------------------------------------------------------|
 |      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download         |
 |       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download  |
 |       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download   |
 
-## Comparing with Similar Projects
+## How it works
+
+### Presentation
+
+[Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
+
+### Comparing with Similar Projects
 
 | Project   | Differences                                                                                                                                                                                                                                                                                           |
 |-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

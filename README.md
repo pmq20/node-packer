@@ -13,9 +13,9 @@ Compiling your Node.js application into a single executable.
 
 |                       |   Arch.  |                              Latest&#160;Stable                                        |
 |:---------------------:|:--------:|----------------------------------------------------------------------------------------|
-|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download         |
-|       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download  |
-|       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download   |
+|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download     |
+|       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download  |
+|       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download   |
 
 ## How it works
 
@@ -25,13 +25,13 @@ Compiling your Node.js application into a single executable.
 
 ### Comparing with Similar Projects
 
-| Project   | Differences                                                                                                                                                                                                                                                                                           |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|            Project                       | Differences                                                                                                                                                                                                                                                                                                                                             |
+|:----------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [pkg](https://github.com/zeit/pkg)       | Pkg hacked `fs.*` API's dynamically in order to access in-package files, whereas Node.js Compiler leaves them alone and instead works on a deeper level via [libsquash](https://github.com/pmq20/libsquash). Pkg uses JSON to store in-package files while Node.js Compiler uses the more sophisticated and widely used SquashFS as its data structure. |
-| [EncloseJS](http://enclosejs.com/) | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Compiler supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Compiler is MIT-licensed and users are both free to use it and free to modify it.                    |
-| [Nexe](https://github.com/nexe/nexe)      | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Compiler supports all kinds of `require` including `require.resolve`.                                                                                     |
-| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Compiler links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Compiler uses SquashFS. |
-| [AppImage](http://appimage.org/)  | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                                                                       |
+| [EncloseJS](http://enclosejs.com/)       | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Compiler supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Compiler is MIT-licensed and users are both free to use it and free to modify it.                                                             |
+| [Nexe](https://github.com/nexe/nexe)     | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Compiler supports all kinds of `require` including `require.resolve`.                                                                                                                                                                                       |
+| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Compiler links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Compiler uses SquashFS.                                                      |
+| [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
 
 ## Install
 
@@ -44,8 +44,10 @@ First install the prerequisites:
 * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
   including the Community edition (remember to select
   "Common Tools for Visual C++ 2015" feature during installation).
+* [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
+  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download the executable [nodec.exe](https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download) and run it from the VC++ or VS Command Prompt.
+Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ### macOS
 
@@ -61,7 +63,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -70,14 +72,14 @@ Then,
 First install the prerequisites:
 
 * [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
-* `gcc` and `g++` 4.9 or newer, or
+* `gcc` and `g++` 4.8.2 or newer, or
 * `clang` and `clang++` 3.4 or newer
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
 

@@ -13,6 +13,14 @@
 - remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
 - add auto-update feature via --auto-update-url and --auto-update-base
 
+中文注解：
+- 升级 Node.js 运行时到 8.0.0
+- 升级 libsquash 到 v0.4.0
+- 支持使用 node-sass 等 C++ 扩展模块
+- 支持编译 Egg 等框架开发的 Web 应用
+- 支持执行包内的可执行文件，如 PhantomJS
+- 支持包分发后原地自动更新
+
 ## v0.9.6
 
 - relax node.js version requirement: https://github.com/pmq20/node-compiler/issues/27

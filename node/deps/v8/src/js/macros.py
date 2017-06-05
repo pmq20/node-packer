@@ -39,9 +39,6 @@ define kMaxSafeInteger = 9007199254740991;
 # 2^32 - 1
 define kMaxUint32 = 4294967295;
 
-# Native cache ids.
-define STRING_TO_REGEXP_CACHE_ID = 0;
-
 # Type query macros.
 #
 # Note: We have special support for typeof(foo) === 'bar' in the compiler.
@@ -63,12 +60,10 @@ macro IS_NULL_OR_UNDEFINED(arg) = (arg == null);
 macro IS_NUMBER(arg)            = (typeof(arg) === 'number');
 macro IS_OBJECT(arg)            = (typeof(arg) === 'object');
 macro IS_PROXY(arg)             = (%_IsJSProxy(arg));
-macro IS_REGEXP(arg)            = (%_IsRegExp(arg));
 macro IS_SCRIPT(arg)            = (%_ClassOf(arg) === 'Script');
 macro IS_SET(arg)               = (%_ClassOf(arg) === 'Set');
 macro IS_SET_ITERATOR(arg)      = (%_ClassOf(arg) === 'Set Iterator');
 macro IS_SHAREDARRAYBUFFER(arg) = (%_ClassOf(arg) === 'SharedArrayBuffer');
-macro IS_SIMD_VALUE(arg)        = (%IsSimdValue(arg));
 macro IS_STRING(arg)            = (typeof(arg) === 'string');
 macro IS_SYMBOL(arg)            = (typeof(arg) === 'symbol');
 macro IS_TYPEDARRAY(arg)        = (%_IsTypedArray(arg));
@@ -117,36 +112,6 @@ define UNDEFINED = (void 0);
 # Macros implemented in Python.
 python macro CHAR_CODE(str) = ord(str[1]);
 
-# Layout of internal RegExpLastMatchInfo object.
-define REGEXP_NUMBER_OF_CAPTURES = 0;
-define REGEXP_LAST_SUBJECT = 1;
-define REGEXP_LAST_INPUT = 2;
-define REGEXP_FIRST_CAPTURE = 3;
-define CAPTURE0 = 3;  # Aliases REGEXP_FIRST_CAPTURE.
-define CAPTURE1 = 4;
-
-macro NUMBER_OF_CAPTURES(array) = ((array)[REGEXP_NUMBER_OF_CAPTURES]);
-macro LAST_SUBJECT(array) = ((array)[REGEXP_LAST_SUBJECT]);
-macro LAST_INPUT(array) = ((array)[REGEXP_LAST_INPUT]);
-macro CAPTURE(index) = (REGEXP_FIRST_CAPTURE + (index));
-
-# Macros for internal slot access.
-macro REGEXP_GLOBAL(regexp) = (%_RegExpFlags(regexp) & 1);
-macro REGEXP_IGNORE_CASE(regexp) = (%_RegExpFlags(regexp) & 2);
-macro REGEXP_MULTILINE(regexp) = (%_RegExpFlags(regexp) & 4);
-macro REGEXP_STICKY(regexp) = (%_RegExpFlags(regexp) & 8);
-macro REGEXP_UNICODE(regexp) = (%_RegExpFlags(regexp) & 16);
-macro REGEXP_SOURCE(regexp) = (%_RegExpSource(regexp));
-
-# For the regexp capture override array.  This has the same
-# format as the arguments to a function called from
-# String.prototype.replace.
-macro OVERRIDE_MATCH(override) = ((override)[0]);
-macro OVERRIDE_POS(override) = ((override)[(override).length - 2]);
-macro OVERRIDE_SUBJECT(override) = ((override)[(override).length - 1]);
-# 1-based so index of 1 returns the first capture
-macro OVERRIDE_CAPTURE(override, index) = ((override)[(index)]);
-
 # For messages.js
 # Matches Script::Type from objects.h
 define TYPE_NATIVE = 0;
@@ -174,11 +139,11 @@ macro FIXED_ARRAY_SET(array, index, value) = (%_FixedArraySet(array, (index) | 0
 # TODO(adamk): Find a more robust way to force Smi representation.
 macro FIXED_ARRAY_SET_SMI(array, index, value) = (FIXED_ARRAY_SET(array, index, (value) | 0));
 
-macro ORDERED_HASH_TABLE_BUCKET_COUNT(table) = (FIXED_ARRAY_GET(table, 0));
-macro ORDERED_HASH_TABLE_ELEMENT_COUNT(table) = (FIXED_ARRAY_GET(table, 1));
-macro ORDERED_HASH_TABLE_SET_ELEMENT_COUNT(table, count) = (FIXED_ARRAY_SET_SMI(table, 1, count));
-macro ORDERED_HASH_TABLE_DELETED_COUNT(table) = (FIXED_ARRAY_GET(table, 2));
-macro ORDERED_HASH_TABLE_SET_DELETED_COUNT(table, count) = (FIXED_ARRAY_SET_SMI(table, 2, count));
+macro ORDERED_HASH_TABLE_BUCKET_COUNT(table) = (FIXED_ARRAY_GET(table, 2));
+macro ORDERED_HASH_TABLE_ELEMENT_COUNT(table) = (FIXED_ARRAY_GET(table, 0));
+macro ORDERED_HASH_TABLE_SET_ELEMENT_COUNT(table, count) = (FIXED_ARRAY_SET_SMI(table, 0, count));
+macro ORDERED_HASH_TABLE_DELETED_COUNT(table) = (FIXED_ARRAY_GET(table, 1));
+macro ORDERED_HASH_TABLE_SET_DELETED_COUNT(table, count) = (FIXED_ARRAY_SET_SMI(table, 1, count));
 macro ORDERED_HASH_TABLE_BUCKET_AT(table, bucket) = (FIXED_ARRAY_GET(table, 3 + (bucket)));
 macro ORDERED_HASH_TABLE_SET_BUCKET_AT(table, bucket, entry) = (FIXED_ARRAY_SET(table, 3 + (bucket), entry));
 

@@ -304,6 +304,7 @@ class Simulator {
 
   inline int64_t ReadDW(intptr_t addr);
   inline double ReadDouble(intptr_t addr);
+  inline float ReadFloat(intptr_t addr);
   inline void WriteDW(intptr_t addr, int64_t value);
 
   // S390
@@ -522,6 +523,12 @@ class Simulator {
   static void EvalTableInit();
 
 #define EVALUATE(name) int Evaluate_##name(Instruction* instr)
+#define EVALUATE_VRR_INSTRUCTIONS(name, op_name, op_value) EVALUATE(op_name);
+  S390_VRR_C_OPCODE_LIST(EVALUATE_VRR_INSTRUCTIONS)
+  S390_VRR_A_OPCODE_LIST(EVALUATE_VRR_INSTRUCTIONS)
+#undef EVALUATE_VRR_INSTRUCTIONS
+
+  EVALUATE(DUMY);
   EVALUATE(BKPT);
   EVALUATE(SPM);
   EVALUATE(BALR);
@@ -732,6 +739,7 @@ class Simulator {
   EVALUATE(ALSIH);
   EVALUATE(ALSIHN);
   EVALUATE(CIH);
+  EVALUATE(CLIH);
   EVALUATE(STCK);
   EVALUATE(CFC);
   EVALUATE(IPM);
@@ -751,6 +759,7 @@ class Simulator {
   EVALUATE(SAR);
   EVALUATE(EAR);
   EVALUATE(MSR);
+  EVALUATE(MSRKC);
   EVALUATE(MVST);
   EVALUATE(CUSE);
   EVALUATE(SRST);
@@ -924,6 +933,7 @@ class Simulator {
   EVALUATE(ALGR);
   EVALUATE(SLGR);
   EVALUATE(MSGR);
+  EVALUATE(MSGRKC);
   EVALUATE(DSGR);
   EVALUATE(LRVGR);
   EVALUATE(LPGFR);

@@ -1,13 +1,39 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const assert = require('assert');
+const errors = require('internal/errors');
 const Buffer = require('buffer').Buffer;
 const util = require('util');
 const EventEmitter = require('events');
+const setInitTriggerId = require('async_hooks').setInitTriggerId;
 const UV_UDP_REUSEADDR = process.binding('constants').os.UV_UDP_REUSEADDR;
+const async_id_symbol = process.binding('async_wrap').async_id_symbol;
+const nextTick = require('internal/process/next_tick').nextTick;
 
 const UDP = process.binding('udp_wrap').UDP;
 const SendWrap = process.binding('udp_wrap').SendWrap;
+const { isUint8Array } = process.binding('util');
 
 const BIND_STATE_UNBOUND = 0;
 const BIND_STATE_BINDING = 1;
@@ -53,7 +79,7 @@ function newHandle(type) {
     return handle;
   }
 
-  throw new Error('Bad socket type specified. Valid types are: udp4, udp6');
+  throw new errors.Error('ERR_SOCKET_BAD_TYPE');
 }
 
 
@@ -89,6 +115,7 @@ function Socket(type, listener) {
   this._handle = handle;
   this._receiving = false;
   this._bindState = BIND_STATE_UNBOUND;
+  this[async_id_symbol] = this._handle.getAsyncId();
   this.type = type;
   this.fd = null; // compatibility hack
 
@@ -136,7 +163,7 @@ Socket.prototype.bind = function(port_, address_ /*, callback*/) {
   this._healthCheck();
 
   if (this._bindState !== BIND_STATE_UNBOUND)
-    throw new Error('Socket is already bound');
+    throw new errors.Error('ERR_SOCKET_ALREADY_BOUND');
 
   this._bindState = BIND_STATE_BINDING;
 
@@ -234,21 +261,34 @@ Socket.prototype.sendto = function(buffer,
                                    port,
                                    address,
                                    callback) {
-  if (typeof offset !== 'number' || typeof length !== 'number')
-    throw new Error('Send takes "offset" and "length" as args 2 and 3');
+  if (typeof offset !== 'number') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'offset', 'number');
+  }
 
-  if (typeof address !== 'string')
-    throw new Error(this.type + ' sockets must send to port, address');
+  if (typeof length !== 'number') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'length', 'number');
+  }
+
+  if (typeof port !== 'number') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'port', 'number');
+  }
+
+  if (typeof address !== 'string') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'address', 'string');
+  }
 
   this.send(buffer, offset, length, port, address, callback);
 };
 
 
 function sliceBuffer(buffer, offset, length) {
-  if (typeof buffer === 'string')
+  if (typeof buffer === 'string') {
     buffer = Buffer.from(buffer);
-  else if (!(buffer instanceof Buffer))
-    throw new TypeError('First argument must be a buffer or string');
+  } else if (!isUint8Array(buffer)) {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'buffer',
+                               ['Buffer', 'Uint8Array', 'string']);
+  }
 
   offset = offset >>> 0;
   length = length >>> 0;
@@ -264,7 +304,7 @@ function fixBufferList(list) {
     var buf = list[i];
     if (typeof buf === 'string')
       newlist[i] = Buffer.from(buf);
-    else if (!(buf instanceof Buffer))
+    else if (!isUint8Array(buf))
       return null;
     else
       newlist[i] = buf;
@@ -279,9 +319,23 @@ function enqueue(self, toEnqueue) {
   // event handler that flushes the send queue after binding is done.
   if (!self._queue) {
     self._queue = [];
-    self.once('listening', clearQueue);
+    self.once('error', onListenError);
+    self.once('listening', onListenSuccess);
   }
   self._queue.push(toEnqueue);
+}
+
+
+function onListenSuccess() {
+  this.removeListener('error', onListenError);
+  clearQueue.call(this);
+}
+
+
+function onListenError(err) {
+  this.removeListener('listening', onListenSuccess);
+  this._queue = undefined;
+  this.emit('error', new errors.Error('ERR_SOCKET_CANNOT_SEND'));
 }
 
 
@@ -298,9 +352,11 @@ function clearQueue() {
 // valid combinations
 // send(buffer, offset, length, port, address, callback)
 // send(buffer, offset, length, port, address)
+// send(buffer, offset, length, port, callback)
 // send(buffer, offset, length, port)
 // send(bufferOrList, port, address, callback)
 // send(bufferOrList, port, address)
+// send(bufferOrList, port, callback)
 // send(bufferOrList, port)
 Socket.prototype.send = function(buffer,
                                  offset,
@@ -321,23 +377,36 @@ Socket.prototype.send = function(buffer,
   if (!Array.isArray(buffer)) {
     if (typeof buffer === 'string') {
       list = [ Buffer.from(buffer) ];
-    } else if (!(buffer instanceof Buffer)) {
-      throw new TypeError('First argument must be a buffer or a string');
+    } else if (!isUint8Array(buffer)) {
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                                 'buffer',
+                                 ['Buffer', 'Uint8Array', 'string']);
     } else {
       list = [ buffer ];
     }
   } else if (!(list = fixBufferList(buffer))) {
-    throw new TypeError('Buffer list arguments must be buffers or strings');
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'buffer list arguments',
+                               ['Buffer', 'string']);
   }
 
   port = port >>> 0;
   if (port === 0 || port > 65535)
-    throw new RangeError('Port should be > 0 and < 65536');
+    throw new errors.RangeError('ERR_SOCKET_BAD_PORT');
 
   // Normalize callback so it's either a function or undefined but not anything
   // else.
   if (typeof callback !== 'function')
     callback = undefined;
+
+  if (typeof address === 'function') {
+    callback = address;
+    address = undefined;
+  } else if (address && typeof address !== 'string') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'address',
+                               ['string', 'falsy']);
+  }
 
   this._healthCheck();
 
@@ -383,6 +452,10 @@ function doSend(ex, self, ip, list, address, port, callback) {
     req.callback = callback;
     req.oncomplete = afterSend;
   }
+  // node::SendWrap isn't instantiated and attached to the JS instance of
+  // SendWrap above until send() is called. So don't set the init trigger id
+  // until now.
+  setInitTriggerId(self[async_id_symbol]);
   var err = self._handle.send(req,
                               list,
                               list.length,
@@ -392,7 +465,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
   if (err && callback) {
     // don't emit as error, dgram_legacy.js compatibility
     const ex = exceptionWithHostPort(err, 'send', address, port);
-    process.nextTick(callback, ex);
+    nextTick(self[async_id_symbol], callback, ex);
   }
 }
 
@@ -419,7 +492,7 @@ Socket.prototype.close = function(callback) {
   this._stopReceiving();
   this._handle.close();
   this._handle = null;
-  process.nextTick(socketCloseNT, this);
+  nextTick(this[async_id_symbol], socketCloseNT, this);
 
   return this;
 };
@@ -453,7 +526,9 @@ Socket.prototype.setBroadcast = function(arg) {
 
 Socket.prototype.setTTL = function(arg) {
   if (typeof arg !== 'number') {
-    throw new TypeError('Argument must be a number');
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'arg',
+                               'number');
   }
 
   var err = this._handle.setTTL(arg);
@@ -467,7 +542,9 @@ Socket.prototype.setTTL = function(arg) {
 
 Socket.prototype.setMulticastTTL = function(arg) {
   if (typeof arg !== 'number') {
-    throw new TypeError('Argument must be a number');
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'arg',
+                               'number');
   }
 
   var err = this._handle.setMulticastTTL(arg);
@@ -494,7 +571,7 @@ Socket.prototype.addMembership = function(multicastAddress,
   this._healthCheck();
 
   if (!multicastAddress) {
-    throw new Error('multicast address must be specified');
+    throw new errors.TypeError('ERR_MISSING_ARGS', 'multicastAddress');
   }
 
   var err = this._handle.addMembership(multicastAddress, interfaceAddress);
@@ -509,7 +586,7 @@ Socket.prototype.dropMembership = function(multicastAddress,
   this._healthCheck();
 
   if (!multicastAddress) {
-    throw new Error('multicast address must be specified');
+    throw new errors.TypeError('ERR_MISSING_ARGS', 'multicastAddress');
   }
 
   var err = this._handle.dropMembership(multicastAddress, interfaceAddress);
@@ -520,8 +597,10 @@ Socket.prototype.dropMembership = function(multicastAddress,
 
 
 Socket.prototype._healthCheck = function() {
-  if (!this._handle)
-    throw new Error('Not running'); // error message from dgram_legacy.js
+  if (!this._handle) {
+    // Error message from dgram_legacy.js.
+    throw new errors.Error('ERR_SOCKET_DGRAM_NOT_RUNNING');
+  }
 };
 
 

@@ -21,7 +21,6 @@ var MinSimple;
 var ObjectHasOwnProperty;
 var ObjectToString = utils.ImportNow("object_to_string");
 var iteratorSymbol = utils.ImportNow("iterator_symbol");
-var speciesSymbol = utils.ImportNow("species_symbol");
 var unscopablesSymbol = utils.ImportNow("unscopables_symbol");
 
 utils.Import(function(from) {
@@ -723,7 +722,7 @@ function InnerArraySort(array, length, comparefn) {
       else return x < y ? -1 : 1;
     };
   }
-  var InsertionSort = function InsertionSort(a, from, to) {
+  function InsertionSort(a, from, to) {
     for (var i = from + 1; i < to; i++) {
       var element = a[i];
       for (var j = i - 1; j >= from; j--) {
@@ -739,7 +738,7 @@ function InnerArraySort(array, length, comparefn) {
     }
   };
 
-  var GetThirdIndex = function(a, from, to) {
+  function GetThirdIndex(a, from, to) {
     var t_array = new InternalArray();
     // Use both 'from' and 'to' to determine the pivot candidates.
     var increment = 200 + ((to - from) & 15);
@@ -757,7 +756,7 @@ function InnerArraySort(array, length, comparefn) {
     return third_index;
   }
 
-  var QuickSort = function QuickSort(a, from, to) {
+  function QuickSort(a, from, to) {
     var third_index = 0;
     while (true) {
       // Insertion sort is faster for short arrays.
@@ -846,7 +845,7 @@ function InnerArraySort(array, length, comparefn) {
   // Copy elements in the range 0..length from obj's prototype chain
   // to obj itself, if obj has holes. Return one more than the maximal index
   // of a prototype property.
-  var CopyFromPrototype = function CopyFromPrototype(obj, length) {
+  function CopyFromPrototype(obj, length) {
     var max = 0;
     for (var proto = %object_get_prototype_of(obj); proto;
          proto = %object_get_prototype_of(proto)) {
@@ -876,7 +875,7 @@ function InnerArraySort(array, length, comparefn) {
   // Set a value of "undefined" on all indices in the range from..to
   // where a prototype of obj has an element. I.e., shadow all prototype
   // elements in that range.
-  var ShadowPrototypeElements = function(obj, from, to) {
+  function ShadowPrototypeElements(obj, from, to) {
     for (var proto = %object_get_prototype_of(obj); proto;
          proto = %object_get_prototype_of(proto)) {
       var indices = IS_PROXY(proto) ? to : %GetArrayKeys(proto, to);
@@ -899,7 +898,7 @@ function InnerArraySort(array, length, comparefn) {
     }
   };
 
-  var SafeRemoveArrayHoles = function SafeRemoveArrayHoles(obj) {
+  function SafeRemoveArrayHoles(obj) {
     // Copy defined elements from the end to fill in all holes and undefineds
     // in the beginning of the array.  Write undefineds and holes at the end
     // after loop is finished.
@@ -1271,7 +1270,14 @@ function ArrayReduceRight(callback, current) {
 }
 
 
-function InnerArrayCopyWithin(target, start, end, array, length) {
+// ES#sec-array.prototype.copywithin
+// (Array.prototype.copyWithin ( target, start [ , end ] )
+function ArrayCopyWithin(target, start, end) {
+  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.copyWithin");
+
+  var array = TO_OBJECT(this);
+  var length = TO_LENGTH(array.length);
+
   target = TO_INTEGER(target);
   var to;
   if (target < 0) {
@@ -1316,17 +1322,6 @@ function InnerArrayCopyWithin(target, start, end, array, length) {
   }
 
   return array;
-}
-
-
-// ES6 draft 03-17-15, section 22.1.3.3
-function ArrayCopyWithin(target, start, end) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.copyWithin");
-
-  var array = TO_OBJECT(this);
-  var length = TO_LENGTH(array.length);
-
-  return InnerArrayCopyWithin(target, start, end, array, length);
 }
 
 
@@ -1490,12 +1485,6 @@ function ArrayOf(...args) {
   return array;
 }
 
-
-function ArraySpecies() {
-  return this;
-}
-
-
 // -------------------------------------------------------------------
 
 // Set up non-enumerable constructor property on the Array.prototype
@@ -1528,7 +1517,7 @@ utils.InstallFunctions(GlobalArray, DONT_ENUM, [
 
 var specialFunctions = %SpecialArrayFunctions();
 
-var getFunction = function(name, jsBuiltin, len) {
+function getFunction(name, jsBuiltin, len) {
   var f = jsBuiltin;
   if (specialFunctions.hasOwnProperty(name)) {
     f = specialFunctions[name];
@@ -1538,6 +1527,15 @@ var getFunction = function(name, jsBuiltin, len) {
   }
   return f;
 };
+
+// Array prototype functions that return iterators. They are exposed to the
+// public API via Template::SetIntrinsicDataProperty().
+var IteratorFunctions = {
+    "entries": getFunction("entries", null, 0),
+    "forEach": getFunction("forEach", ArrayForEach, 1),
+    "keys": getFunction("keys", null, 0),
+    "values": getFunction("values", null, 0)
+}
 
 // Set up non-enumerable functions of the Array.prototype object and
 // set their names.
@@ -1556,7 +1554,6 @@ utils.InstallFunctions(GlobalArray.prototype, DONT_ENUM, [
   "splice", getFunction("splice", ArraySplice, 2),
   "sort", getFunction("sort", ArraySort),
   "filter", getFunction("filter", ArrayFilter, 1),
-  "forEach", getFunction("forEach", ArrayForEach, 1),
   "some", getFunction("some", ArraySome, 1),
   "every", getFunction("every", ArrayEvery, 1),
   "map", getFunction("map", ArrayMap, 1),
@@ -1568,10 +1565,19 @@ utils.InstallFunctions(GlobalArray.prototype, DONT_ENUM, [
   "find", getFunction("find", ArrayFind, 1),
   "findIndex", getFunction("findIndex", ArrayFindIndex, 1),
   "fill", getFunction("fill", ArrayFill, 1),
-  "includes", getFunction("includes", null, 1)
+  "includes", getFunction("includes", null, 1),
+  "entries", IteratorFunctions.entries,
+  "forEach", IteratorFunctions.forEach,
+  "keys", IteratorFunctions.keys,
+  iteratorSymbol, IteratorFunctions.values
 ]);
 
-utils.InstallGetter(GlobalArray, speciesSymbol, ArraySpecies);
+utils.ForEachFunction = GlobalArray.prototype.forEach;
+
+%FunctionSetName(IteratorFunctions.entries, "entries");
+%FunctionSetName(IteratorFunctions.forEach, "forEach");
+%FunctionSetName(IteratorFunctions.keys, "keys");
+%FunctionSetName(IteratorFunctions.values, "values");
 
 %FinishArrayPrototypeSetup(GlobalArray.prototype);
 
@@ -1614,7 +1620,7 @@ utils.Export(function(to) {
   to.ArrayJoin = ArrayJoin;
   to.ArrayPush = ArrayPush;
   to.ArrayToString = ArrayToString;
-  to.InnerArrayCopyWithin = InnerArrayCopyWithin;
+  to.ArrayValues = IteratorFunctions.values,
   to.InnerArrayEvery = InnerArrayEvery;
   to.InnerArrayFill = InnerArrayFill;
   to.InnerArrayFilter = InnerArrayFilter;
@@ -1632,12 +1638,16 @@ utils.Export(function(to) {
 });
 
 %InstallToContext([
+  "array_entries_iterator", IteratorFunctions.entries,
+  "array_for_each_iterator", IteratorFunctions.forEach,
+  "array_keys_iterator", IteratorFunctions.keys,
   "array_pop", ArrayPop,
   "array_push", ArrayPush,
   "array_shift", ArrayShift,
   "array_splice", ArraySplice,
   "array_slice", ArraySlice,
   "array_unshift", ArrayUnshift,
+  "array_values_iterator", IteratorFunctions.values,
 ]);
 
 });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Debugger | Node.js v7.10.0 Documentation</title>
+  <title>Debugger | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="debugger" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -99,7 +101,6 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#debugger_advanced_usage">Advanced Usage</a></span><ul>
-<li><span class="stability_0"><a href="#debugger_tcp_based_protocol">TCP-based protocol</a></span></li>
 <li><span class="stability_undefined"><a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector Integration for Node.js</a></span></li>
 </ul>
 </li>
@@ -117,10 +118,10 @@
 with the <code>debug</code> argument followed by the path to the script to debug; a prompt
 will be displayed indicating successful launch of the debugger:</p>
 <pre><code class="lang-txt">$ node debug myscript.js
-&lt; debugger listening on port 5858
-connecting... ok
+&lt; Debugger listening on 127.0.0.1:5858
+connecting to 127.0.0.1:5858 ... ok
 break in /home/indutny/Code/git/indutny/myscript.js:1
-  1 x = 5;
+&gt; 1 global.x = 5;
   2 setTimeout(() =&gt; {
   3   debugger;
 debug&gt;
@@ -129,35 +130,36 @@ debug&gt;
 inspection are possible.</p>
 <p>Inserting the statement <code>debugger;</code> into the source code of a script will
 enable a breakpoint at that position in the code:</p>
+<!-- eslint-disable no-debugger -->
 <pre><code class="lang-js">// myscript.js
-x = 5;
+global.x = 5;
 setTimeout(() =&gt; {
   debugger;
   console.log(&#39;world&#39;);
 }, 1000);
 console.log(&#39;hello&#39;);
 </code></pre>
-<p>Once the debugger is run, a breakpoint will occur at line 4:</p>
+<p>Once the debugger is run, a breakpoint will occur at line 3:</p>
 <pre><code class="lang-txt">$ node debug myscript.js
-&lt; debugger listening on port 5858
-connecting... ok
+&lt; Debugger listening on 127.0.0.1:5858
+connecting to 127.0.0.1:5858 ... ok
 break in /home/indutny/Code/git/indutny/myscript.js:1
-  1 x = 5;
+&gt; 1 global.x = 5;
   2 setTimeout(() =&gt; {
   3   debugger;
 debug&gt; cont
 &lt; hello
 break in /home/indutny/Code/git/indutny/myscript.js:3
-  1 x = 5;
+  1 global.x = 5;
   2 setTimeout(() =&gt; {
-  3   debugger;
+&gt; 3   debugger;
   4   console.log(&#39;world&#39;);
   5 }, 1000);
 debug&gt; next
 break in /home/indutny/Code/git/indutny/myscript.js:4
   2 setTimeout(() =&gt; {
   3   debugger;
-  4   console.log(&#39;world&#39;);
+&gt; 4   console.log(&#39;world&#39;);
   5 }, 1000);
   6 console.log(&#39;hello&#39;);
 debug&gt; repl
@@ -167,11 +169,11 @@ Press Ctrl + C to leave debug repl
 &gt; 2+2
 4
 debug&gt; next
-&lt; world
 break in /home/indutny/Code/git/indutny/myscript.js:5
+&lt; world
   3   debugger;
   4   console.log(&#39;world&#39;);
-  5 }, 1000);
+&gt; 5 }, 1000);
   6 console.log(&#39;hello&#39;);
   7
 debug&gt; quit
@@ -211,24 +213,26 @@ on line 1</li>
 </div><p>It is also possible to set a breakpoint in a file (module) that
 is not loaded yet:</p>
 <pre><code class="lang-txt">$ node debug test/fixtures/break-in-module/main.js
-&lt; debugger listening on port 5858
-connecting to port 5858... ok
+&lt; Debugger listening on 127.0.0.1:5858
+connecting to 127.0.0.1:5858 ... ok
 break in test/fixtures/break-in-module/main.js:1
-  1 var mod = require(&#39;./mod.js&#39;);
+&gt; 1 const mod = require(&#39;./mod.js&#39;);
   2 mod.hello();
   3 mod.hello();
-debug&gt; setBreakpoint(&#39;mod.js&#39;, 23)
+debug&gt; setBreakpoint(&#39;mod.js&#39;, 2)
 Warning: script &#39;mod.js&#39; was not loaded yet.
-  1 var mod = require(&#39;./mod.js&#39;);
+&gt; 1 const mod = require(&#39;./mod.js&#39;);
   2 mod.hello();
   3 mod.hello();
+  4 debugger;
+  5
+  6 });
 debug&gt; c
-break in test/fixtures/break-in-module/mod.js:23
- 21
- 22 exports.hello = () =&gt; {
- 23   return &#39;hello from module&#39;;
- 24 };
- 25
+break in test/fixtures/break-in-module/mod.js:2
+  1 exports.hello = function() {
+&gt; 2   return &#39;hello from module&#39;;
+  3 };
+  4
 debug&gt;
 </code></pre>
 <h3>Information<span><a class="mark" href="#debugger_information" id="debugger_information">#</a></span></h3>
@@ -255,23 +259,9 @@ breakpoint)</li>
 <li><code>version</code> - Display V8&#39;s version</li>
 </ul>
 </div><h2>Advanced Usage<span><a class="mark" href="#debugger_advanced_usage" id="debugger_advanced_usage">#</a></span></h2>
-<h3>TCP-based protocol<span><a class="mark" href="#debugger_tcp_based_protocol" id="debugger_tcp_based_protocol">#</a></span></h3>
-<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector Integration</a> instead. The debug protocol used by the <code>--debug</code> flag was removed from V8.</pre><p>An alternative way of enabling and accessing the debugger is to start
-Node.js with the <code>--debug</code> command-line flag or by signaling an existing
-Node.js process with <code>SIGUSR1</code>.</p>
-<p>Once a process has been set in debug mode this way, it can be inspected
-using the Node.js debugger by either connecting to the <code>pid</code> of the running
-process or via URI reference to the listening debugger:</p>
-<ul>
-<li><code>node debug -p &lt;pid&gt;</code> - Connects to the process via the <code>pid</code></li>
-<li><code>node debug &lt;URI&gt;</code> - Connects to the process via the URI such as
-localhost:5858</li>
-</ul>
 <h3>V8 Inspector Integration for Node.js<span><a class="mark" href="#debugger_v8_inspector_integration_for_node_js" id="debugger_v8_inspector_integration_for_node_js">#</a></span></h3>
-<p><strong>NOTE: This is an experimental feature.</strong></p>
 <p>V8 Inspector integration allows attaching Chrome DevTools to Node.js
-instances for debugging and profiling.
-It uses the <a href="https://chromedevtools.github.io/debugger-protocol-viewer/">Chrome Debugging Protocol</a>.</p>
+instances for debugging and profiling. It uses the <a href="https://chromedevtools.github.io/debugger-protocol-viewer/">Chrome Debugging Protocol</a>.</p>
 <p>V8 Inspector can be enabled by passing the <code>--inspect</code> flag when starting a
 Node.js application. It is also possible to supply a custom port with that flag,
 e.g. <code>--inspect=9222</code> will accept DevTools connections on port 9222.</p>
@@ -280,8 +270,11 @@ flag instead of <code>--inspect</code>.</p>
 <pre><code class="lang-txt">$ node --inspect index.js
 Debugger listening on 127.0.0.1:9229.
 To start debugging, open the following URL in Chrome:
-    chrome-devtools://devtools/remote/serve_file/@60cd6e859b9f557d2312f5bf532f6aec5f284980/inspector.html?experiments=true&amp;v8only=true&amp;ws=localhost:9229/node
+    chrome-devtools://devtools/bundled/inspector.html?experiments=true&amp;v8only=true&amp;ws=127.0.0.1:9229/dc9010dd-f8b8-4ac5-a510-c1a114ec7d29
 </code></pre>
+<p>(In the example above, the UUID dc9010dd-f8b8-4ac5-a510-c1a114ec7d29
+at the end of the URL is generated on the fly, it varies in different
+debugging sessions.)</p>
 
       </div>
     </div>

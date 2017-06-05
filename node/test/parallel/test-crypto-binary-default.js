@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 // This is the same as test/simple/test-crypto, but from before the shift
 // to use buffers by default.
@@ -16,17 +37,16 @@ const fs = require('fs');
 const path = require('path');
 const tls = require('tls');
 const DH_NOT_SUITABLE_GENERATOR = crypto.constants.DH_NOT_SUITABLE_GENERATOR;
+const fixtDir = common.fixturesDir;
 
 crypto.DEFAULT_ENCODING = 'latin1';
 
 // Test Certificates
-const certPem = fs.readFileSync(common.fixturesDir + '/test_cert.pem', 'ascii');
-const certPfx = fs.readFileSync(common.fixturesDir + '/test_cert.pfx');
-const keyPem = fs.readFileSync(common.fixturesDir + '/test_key.pem', 'ascii');
-const rsaPubPem = fs.readFileSync(common.fixturesDir + '/test_rsa_pubkey.pem',
-                                  'ascii');
-const rsaKeyPem = fs.readFileSync(common.fixturesDir + '/test_rsa_privkey.pem',
-                                  'ascii');
+const certPem = fs.readFileSync(`${fixtDir}/test_cert.pem`, 'ascii');
+const certPfx = fs.readFileSync(`${fixtDir}/test_cert.pfx`);
+const keyPem = fs.readFileSync(`${fixtDir}/test_key.pem`, 'ascii');
+const rsaPubPem = fs.readFileSync(`${fixtDir}/test_rsa_pubkey.pem`, 'ascii');
+const rsaKeyPem = fs.readFileSync(`${fixtDir}/test_rsa_privkey.pem`, 'ascii');
 
 // PFX tests
 assert.doesNotThrow(function() {
@@ -387,7 +407,7 @@ const h2 = crypto.createHash('sha1').update('Test').update('123').digest('hex');
 assert.strictEqual(h1, h2, 'multipled updates');
 
 // Test hashing for binary files
-const fn = path.join(common.fixturesDir, 'sample.png');
+const fn = path.join(fixtDir, 'sample.png');
 const sha1Hash = crypto.createHash('sha1');
 const fileStream = fs.createReadStream(fn);
 fileStream.on('data', function(data) {
@@ -596,11 +616,9 @@ assert.strictEqual(rsaVerify.verify(rsaPubPem, rsaSignature, 'hex'), true);
 // Test RSA signing and verification
 //
 {
-  const privateKey = fs.readFileSync(
-      common.fixturesDir + '/test_rsa_privkey_2.pem');
+  const privateKey = fs.readFileSync(`${fixtDir}/test_rsa_privkey_2.pem`);
 
-  const publicKey = fs.readFileSync(
-      common.fixturesDir + '/test_rsa_pubkey_2.pem');
+  const publicKey = fs.readFileSync(`${fixtDir}/test_rsa_pubkey_2.pem`);
 
   const input = 'I AM THE WALRUS';
 
@@ -628,11 +646,9 @@ assert.strictEqual(rsaVerify.verify(rsaPubPem, rsaSignature, 'hex'), true);
 // Test DSA signing and verification
 //
 {
-  const privateKey = fs.readFileSync(
-      common.fixturesDir + '/test_dsa_privkey.pem');
+  const privateKey = fs.readFileSync(`${fixtDir}/test_dsa_privkey.pem`);
 
-  const publicKey = fs.readFileSync(
-      common.fixturesDir + '/test_dsa_pubkey.pem');
+  const publicKey = fs.readFileSync(`${fixtDir}/test_dsa_pubkey.pem`);
 
   const input = 'I AM THE WALRUS';
 

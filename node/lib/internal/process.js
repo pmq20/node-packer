@@ -9,16 +9,6 @@ function lazyConstants() {
   return _lazyConstants;
 }
 
-exports.setup_cpuUsage = setup_cpuUsage;
-exports.setup_hrtime = setup_hrtime;
-exports.setupMemoryUsage = setupMemoryUsage;
-exports.setupConfig = setupConfig;
-exports.setupKillAndExit = setupKillAndExit;
-exports.setupSignalHandlers = setupSignalHandlers;
-exports.setupChannel = setupChannel;
-exports.setupRawDebug = setupRawDebug;
-
-
 const assert = process.assert = function(x, msg) {
   if (!x) throw new Error(msg || 'assertion error');
 };
@@ -81,14 +71,15 @@ function setup_hrtime() {
   const _hrtime = process.hrtime;
   const hrValues = new Uint32Array(3);
 
-  process.hrtime = function hrtime(ar) {
+  process.hrtime = function hrtime(time) {
     _hrtime(hrValues);
 
-    if (typeof ar !== 'undefined') {
-      if (Array.isArray(ar)) {
-        const sec = (hrValues[0] * 0x100000000 + hrValues[1]) - ar[0];
-        const nsec = hrValues[2] - ar[1];
-        return [nsec < 0 ? sec - 1 : sec, nsec < 0 ? nsec + 1e9 : nsec];
+    if (time !== undefined) {
+      if (Array.isArray(time) && time.length === 2) {
+        const sec = (hrValues[0] * 0x100000000 + hrValues[1]) - time[0];
+        const nsec = hrValues[2] - time[1];
+        const needsBorrow = nsec < 0;
+        return [needsBorrow ? sec - 1 : sec, needsBorrow ? nsec + 1e9 : nsec];
       }
 
       throw new TypeError('process.hrtime() only accepts an Array tuple');
@@ -145,7 +136,8 @@ function setupConfig(_source) {
                         'See https://github.com/nodejs/node/wiki/Intl');
       }
       return Reflect.construct(oldV8BreakIterator, arguments);
-    }, 'Intl.v8BreakIterator is deprecated and will be removed soon.');
+    }, 'Intl.v8BreakIterator is deprecated and will be removed soon.',
+                                                   'DEP0017');
     Object.defineProperty(Intl, 'v8BreakIterator', des);
   }
 }
@@ -167,6 +159,7 @@ function setupKillAndExit() {
   process.kill = function(pid, sig) {
     var err;
 
+    // eslint-disable-next-line eqeqeq
     if (pid != (pid | 0)) {
       throw new TypeError('invalid pid');
     }
@@ -199,8 +192,7 @@ function setupSignalHandlers() {
   const signalWraps = {};
 
   function isSignal(event) {
-    return typeof event === 'string' &&
-           lazyConstants().hasOwnProperty(event);
+    return typeof event === 'string' && lazyConstants()[event] !== undefined;
   }
 
   // Detect presence of a listener for the special signal types
@@ -265,3 +257,14 @@ function setupRawDebug() {
     rawDebug(format.apply(null, arguments));
   };
 }
+
+module.exports = {
+  setup_cpuUsage,
+  setup_hrtime,
+  setupMemoryUsage,
+  setupConfig,
+  setupKillAndExit,
+  setupSignalHandlers,
+  setupChannel,
+  setupRawDebug
+};

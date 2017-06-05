@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Assert | Node.js v7.10.0 Documentation</title>
+  <title>Assert | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert active" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="assert" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -94,6 +96,7 @@
 <li><span class="stability_undefined"><a href="#assert_assert_deepstrictequal_actual_expected_message">assert.deepStrictEqual(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_doesnotthrow_block_error_message">assert.doesNotThrow(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_equal_actual_expected_message">assert.equal(actual, expected[, message])</a></span></li>
+<li><span class="stability_undefined"><a href="#assert_assert_fail_message">assert.fail(message)</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_fail_actual_expected_message_operator">assert.fail(actual, expected, message, operator)</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_iferror_value">assert.ifError(value)</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_notdeepequal_actual_expected_message">assert.notDeepEqual(actual, expected[, message])</a></span></li>
@@ -103,6 +106,7 @@
 <li><span class="stability_undefined"><a href="#assert_assert_ok_value_message">assert.ok(value[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_strictequal_actual_expected_message">assert.strictEqual(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_throws_block_error_message">assert.throws(block[, error][, message])</a></span></li>
+<li><span class="stability_undefined"><a href="#assert_caveats">Caveats</a></span></li>
 </ul>
 </li>
 </ul>
@@ -126,6 +130,9 @@ test invariants.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>Set and Map content is also compared</p>
+</td></tr>
 <tr><td>v6.4.0, v4.7.1</td>
 <td><p>Typed array slices are handled correctly now.</p>
 </td></tr>
@@ -146,32 +153,38 @@ test invariants.</p>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.
-Primitive values are compared with the equal comparison operator ( <code>==</code> ).</p>
-<p>Only enumerable &quot;own&quot; properties are considered. The <code>deepEqual()</code>
-implementation does not test object prototypes, attached symbols, or
-non-enumerable properties. This can lead to some potentially surprising
-results. For example, the following example does not throw an <code>AssertionError</code>
-because the properties on the <a href="errors.html#errors_class_error"><code>Error</code></a> object are non-enumerable:</p>
+Primitive values are compared with the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a>
+( <code>==</code> ).</p>
+<p>Only <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties">enumerable &quot;own&quot; properties</a> are considered. The
+<a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a> implementation does not test the
+<a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"><code>[[Prototype]]</code></a> of objects, attached symbols, or
+non-enumerable properties — for such checks, consider using
+<a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a> instead. This can lead to some
+potentially surprising results. For example, the following example does not
+throw an <code>AssertionError</code> because the properties on the <a href="errors.html#errors_class_error"><code>Error</code></a> object are
+not enumerable:</p>
 <pre><code class="lang-js">// WARNING: This does not throw an AssertionError!
 assert.deepEqual(Error(&#39;a&#39;), Error(&#39;b&#39;));
 </code></pre>
+<p>An exception is made for <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map"><code>Map</code></a> and <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set"><code>Set</code></a>. Maps and Sets have their
+contained items compared too, as expected.</p>
 <p>&quot;Deep&quot; equality means that the enumerable &quot;own&quot; properties of child objects
 are evaluated also:</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 const obj1 = {
-  a : {
-    b : 1
+  a: {
+    b: 1
   }
 };
 const obj2 = {
-  a : {
-    b : 2
+  a: {
+    b: 2
   }
 };
 const obj3 = {
-  a : {
-    b : 1
+  a: {
+    b: 1
   }
 };
 const obj4 = Object.create(obj1);
@@ -198,6 +211,9 @@ parameter is undefined, a default error message is assigned.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>Set and Map content is also compared</p>
+</td></tr>
 <tr><td>v6.4.0, v4.7.1</td>
 <td><p>Typed array slices are handled correctly now.</p>
 </td></tr>
@@ -217,17 +233,42 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Generally identical to <code>assert.deepEqual()</code> with two exceptions. First,
-primitive values are compared using the strict equality operator ( <code>===</code> ).
-Second, object comparisons include a strict equality check of their prototypes.</p>
+<p>Generally identical to <code>assert.deepEqual()</code> with three exceptions:</p>
+<ol>
+<li>Primitive values are compared using the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
+( <code>===</code> ). Set values and Map keys are compared using the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a>
+comparison. (Which means they are free of the <a href="#assert_caveats">caveats</a>).</li>
+<li><a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"><code>[[Prototype]]</code></a> of objects are compared using
+the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a> too.</li>
+<li><a href="https://tc39.github.io/ecma262/#sec-object.prototype.tostring">Type tags</a> of objects should be the same.</li>
+</ol>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
-assert.deepEqual({a:1}, {a:&#39;1&#39;});
+assert.deepEqual({a: 1}, {a: &#39;1&#39;});
 // OK, because 1 == &#39;1&#39;
 
-assert.deepStrictEqual({a:1}, {a:&#39;1&#39;});
+assert.deepStrictEqual({a: 1}, {a: &#39;1&#39;});
 // AssertionError: { a: 1 } deepStrictEqual { a: &#39;1&#39; }
 // because 1 !== &#39;1&#39; using strict equality
+
+// The following objects don&#39;t have own properties
+const date = new Date();
+const object = {};
+const fakeDate = {};
+
+Object.setPrototypeOf(fakeDate, Date.prototype);
+
+assert.deepEqual(object, fakeDate);
+// OK, doesn&#39;t check [[Prototype]]
+assert.deepStrictEqual(object, fakeDate);
+// AssertionError: {} deepStrictEqual Date {}
+// Different [[Prototype]]
+
+assert.deepEqual(date, fakeDate);
+// OK, doesn&#39;t check type tags
+assert.deepStrictEqual(date, fakeDate);
+// AssertionError: 2017-03-11T14:25:31.849Z deepStrictEqual Date {}
+// Different type tags
 </code></pre>
 <p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
@@ -300,7 +341,7 @@ message:</p>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters
-using the equal comparison operator ( <code>==</code> ).</p>
+using the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> ( <code>==</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert.equal(1, 1);
@@ -316,6 +357,7 @@ assert.equal({a: {b: 1}}, {a: {b: 1}});
 <p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
 parameter is undefined, a default error message is assigned.</p>
+<h2>assert.fail(message)<span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
 <h2>assert.fail(actual, expected, message, operator)<span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator" id="assert_assert_fail_actual_expected_message_operator">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
@@ -323,7 +365,7 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>operator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>operator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> (default: &#39;!=&#39;)</li>
 </ul>
 <p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as
 the values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.
@@ -335,6 +377,12 @@ assert.fail(1, 2, undefined, &#39;&gt;&#39;);
 
 assert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);
 // AssertionError: whoops
+
+assert.fail(&#39;boom&#39;);
+// AssertionError: boom
+
+assert.fail(&#39;a&#39;, &#39;b&#39;);
+// AssertionError: &#39;a&#39; != &#39;b&#39;
 </code></pre>
 <h2>assert.ifError(value)<span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
 <div class="api_metadata">
@@ -367,18 +415,18 @@ assert.ifError(new Error());
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 const obj1 = {
-  a : {
-    b : 1
+  a: {
+    b: 1
   }
 };
 const obj2 = {
-  a : {
-    b : 2
+  a: {
+    b: 2
   }
 };
 const obj3 = {
-  a : {
-    b : 1
+  a: {
+    b: 1
   }
 };
 const obj4 = Object.create(obj1);
@@ -409,10 +457,10 @@ parameter is undefined, a default error message is assigned.</p>
 <p>Tests for deep strict inequality. Opposite of <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
-assert.notDeepEqual({a:1}, {a:&#39;1&#39;});
+assert.notDeepEqual({a: 1}, {a: &#39;1&#39;});
 // AssertionError: { a: 1 } notDeepEqual { a: &#39;1&#39; }
 
-assert.notDeepStrictEqual({a:1}, {a:&#39;1&#39;});
+assert.notDeepStrictEqual({a: 1}, {a: &#39;1&#39;});
 // OK
 </code></pre>
 <p>If the values are deeply and strictly equal, an <code>AssertionError</code> is thrown
@@ -426,7 +474,7 @@ the <code>message</code> parameter is undefined, a default error message is assi
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests shallow, coercive inequality with the not equal comparison operator
+<p>Tests shallow, coercive inequality with the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a>
 ( <code>!=</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -450,7 +498,7 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests strict inequality as determined by the strict not equal operator
+<p>Tests strict inequality as determined by the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
 ( <code>!==</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -499,7 +547,8 @@ assert.ok(false, &#39;it\&#39;s false&#39;);
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests strict equality as determined by the strict equality operator ( <code>===</code> ).</p>
+<p>Tests strict equality as determined by the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
+( <code>===</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert.strictEqual(1, 2);
@@ -559,7 +608,7 @@ the block fails to throw.</p>
     throw new Error(&#39;Wrong value&#39;);
   },
   function(err) {
-    if ( (err instanceof Error) &amp;&amp; /value/.test(err) ) {
+    if ((err instanceof Error) &amp;&amp; /value/.test(err)) {
       return true;
     }
   },
@@ -569,12 +618,34 @@ the block fails to throw.</p>
 <p>Note that <code>error</code> can not be a string. If a string is provided as the second
 argument, then <code>error</code> is assumed to be omitted and the string will be used for
 <code>message</code> instead. This can lead to easy-to-miss mistakes:</p>
+<!-- eslint-disable assert-throws-arguments -->
 <pre><code class="lang-js">// THIS IS A MISTAKE! DO NOT DO THIS!
 assert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);
 
 // Do this instead.
 assert.throws(myFunction, /missing foo/, &#39;did not throw with expected message&#39;);
 </code></pre>
+<h2>Caveats<span><a class="mark" href="#assert_caveats" id="assert_caveats">#</a></span></h2>
+<p>For the following cases, consider using ES2015 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is"><code>Object.is()</code></a>,
+which uses the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a> comparison.</p>
+<pre><code class="lang-js">const a = 0;
+const b = -a;
+assert.notStrictEqual(a, b);
+// AssertionError: 0 !== -0
+// Strict Equality Comparison doesn&#39;t distinguish between -0 and +0...
+assert(!Object.is(a, b));
+// but Object.is() does!
+
+const str1 = &#39;foo&#39;;
+const str2 = &#39;foo&#39;;
+assert.strictEqual(str1 / 1, str2 / 1);
+// AssertionError: NaN === NaN
+// Strict Equality Comparison can&#39;t be used to check NaN...
+assert(Object.is(str1 / 1, str2 / 1));
+// but Object.is() can!
+</code></pre>
+<p>For more information, see
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness">MDN&#39;s guide on equality comparisons and sameness</a>.</p>
 
       </div>
     </div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Domain | Node.js v7.10.0 Documentation</title>
+  <title>Domain | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -112,6 +114,7 @@
 <li><span class="stability_undefined"><a href="#domain_domain_run_fn_args">domain.run(fn[, ...args])</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#domain_domains_and_promises">Domains and Promises</a></span></li>
 </ul>
 </li>
 </ul>
@@ -120,7 +123,16 @@
 
       <div id="apicontent">
         <h1>Domain<span><a class="mark" href="#domain_domain" id="domain_domain">#</a></span></h1>
-<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><p><strong>This module is pending deprecation</strong>. Once a replacement API has been
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>Handlers for <code>Promise</code>s are now invoked in the domain in which the first promise of a chain was created.</p>
+</td></tr>
+</table>
+</details>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><p><strong>This module is pending deprecation</strong>. Once a replacement API has been
 finalized, this module will be fully deprecated. Most end users should
 <strong>not</strong> have cause to use this module. Users who absolutely must have
 the functionality that domains provide may rely on it for the time being
@@ -134,14 +146,14 @@ will be notified, rather than losing the context of the error in the
 exit immediately with an error code.</p>
 <h2>Warning: Don&#39;t Ignore Errors!<span><a class="mark" href="#domain_warning_don_t_ignore_errors" id="domain_warning_don_t_ignore_errors">#</a></span></h2>
 <!-- type=misc -->
-<p>Domain error handlers are not a substitute for closing down your
+<p>Domain error handlers are not a substitute for closing down a
 process when an error occurs.</p>
 <p>By the very nature of how <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw"><code>throw</code></a> works in JavaScript, there is almost
 never any way to safely &quot;pick up where you left off&quot;, without leaking
 references, or creating some other sort of undefined brittle state.</p>
 <p>The safest way to respond to a thrown error is to shut down the
-process.  Of course, in a normal web server, you might have many
-connections open, and it is not reasonable to abruptly shut those down
+process. Of course, in a normal web server, there may be many
+open connections, and it is not reasonable to abruptly shut those down
 because an error was triggered by someone else.</p>
 <p>The better approach is to send an error response to the request that
 triggered the error, while letting the others finish in their normal
@@ -177,11 +189,11 @@ const cluster = require(&#39;cluster&#39;);
 const PORT = +process.env.PORT || 1337;
 
 if (cluster.isMaster) {
-  // In real life, you&#39;d probably use more than just 2 workers,
+  // A more realistic scenario would have more than 2 workers,
   // and perhaps not put the master and worker in the same file.
   //
-  // You can also of course get a bit fancier about logging, and
-  // implement whatever custom logic you need to prevent DoS
+  // It is also possible to get a bit fancier about logging, and
+  // implement whatever custom logic is needed to prevent DoS
   // attacks and other bad behavior.
   //
   // See the options in the cluster documentation.
@@ -212,7 +224,7 @@ if (cluster.isMaster) {
     d.on(&#39;error&#39;, (er) =&gt; {
       console.error(`error ${er.stack}`);
 
-      // Note: we&#39;re in dangerous territory!
+      // Note: We&#39;re in dangerous territory!
       // By definition, something unexpected occurred,
       // which we probably didn&#39;t want.
       // Anything can happen now!  Be very careful!
@@ -258,7 +270,7 @@ if (cluster.isMaster) {
 }
 
 // This part is not important.  Just an example routing thing.
-// You&#39;d put your fancy application logic here.
+// Put fancy application logic here.
 function handleRequest(req, res) {
   switch (req.url) {
     case &#39;/error&#39;:
@@ -266,7 +278,7 @@ function handleRequest(req, res) {
       setTimeout(() =&gt; {
         // Whoops!
         flerb.bark();
-      });
+      }, timeout);
       break;
     default:
       res.end(&#39;ok&#39;);
@@ -293,14 +305,14 @@ Stream objects, requests, responses, etc.) will be implicitly bound to
 the active domain at the time of their creation.</p>
 <p>Additionally, callbacks passed to lowlevel event loop requests (such as
 to fs.open, or other callback-taking methods) will automatically be
-bound to the active domain.  If they throw, then the domain will catch
+bound to the active domain. If they throw, then the domain will catch
 the error.</p>
 <p>In order to prevent excessive memory usage, Domain objects themselves
 are not implicitly added as children of the active domain.  If they
 were, then it would be too easy to prevent request and response objects
 from being properly garbage collected.</p>
-<p>If you <em>want</em> to nest Domain objects as children of a parent Domain,
-then you must explicitly add them.</p>
+<p>To nest Domain objects as children of a parent Domain they must be explicitly
+added.</p>
 <p>Implicit binding routes thrown errors and <code>&#39;error&#39;</code> events to the
 Domain&#39;s <code>&#39;error&#39;</code> event, but does not register the EventEmitter on the
 Domain, so <a href="#domain_domain_dispose"><code>domain.dispose()</code></a> will not shut down the EventEmitter.
@@ -492,6 +504,41 @@ d.run(() =&gt; {
 </code></pre>
 <p>In this example, the <code>d.on(&#39;error&#39;)</code> handler will be triggered, rather
 than crashing the program.</p>
+<h2>Domains and Promises<span><a class="mark" href="#domain_domains_and_promises" id="domain_domains_and_promises">#</a></span></h2>
+<p>As of Node 8.0.0, the handlers of Promises are run inside the domain in
+which the call to <code>.then</code> or <code>.catch</code> itself was made:</p>
+<pre><code class="lang-js">const d1 = domain.create();
+const d2 = domain.create();
+
+let p;
+d1.run(() =&gt; {
+  p = Promise.resolve(42);
+});
+
+d2.run(() =&gt; {
+  p.then((v) =&gt; {
+    // running in d2
+  });
+});
+</code></pre>
+<p>A callback may be bound to a specific domain using <a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a>:</p>
+<pre><code class="lang-js">const d1 = domain.create();
+const d2 = domain.create();
+
+let p;
+d1.run(() =&gt; {
+  p = Promise.resolve(42);
+});
+
+d2.run(() =&gt; {
+  p.then(p.domain.bind((v) =&gt; {
+    // running in d1
+  }));
+});
+</code></pre>
+<p>Note that domains will not interfere with the error handling mechanisms for
+Promises, i.e. no <code>error</code> event will be emitted for unhandled Promise
+rejections.</p>
 
       </div>
     </div>

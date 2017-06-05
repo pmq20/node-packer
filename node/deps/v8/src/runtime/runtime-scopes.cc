@@ -45,8 +45,8 @@ Object* DeclareGlobal(
     Isolate* isolate, Handle<JSGlobalObject> global, Handle<String> name,
     Handle<Object> value, PropertyAttributes attr, bool is_var,
     bool is_function_declaration, RedeclarationType redeclaration_type,
-    Handle<TypeFeedbackVector> feedback_vector = Handle<TypeFeedbackVector>(),
-    FeedbackVectorSlot slot = FeedbackVectorSlot::Invalid()) {
+    Handle<FeedbackVector> feedback_vector = Handle<FeedbackVector>(),
+    FeedbackSlot slot = FeedbackSlot::Invalid()) {
   Handle<ScriptContextTable> script_contexts(
       global->native_context()->script_context_table());
   ScriptContextTable::LookupResult lookup;
@@ -86,10 +86,8 @@ Object* DeclareGlobal(
 
       // Check whether we can reconfigure the existing property into a
       // function.
-      PropertyDetails old_details = it.property_details();
-      if (old_details.IsReadOnly() || old_details.IsDontEnum() ||
-          (it.state() == LookupIterator::ACCESSOR &&
-           it.GetAccessors()->IsAccessorPair())) {
+      if (old_attributes & READ_ONLY || old_attributes & DONT_ENUM ||
+          (it.state() == LookupIterator::ACCESSOR)) {
         // ECMA-262 section 15.1.11 GlobalDeclarationInstantiation 5.d:
         // If hasRestrictedGlobal is true, throw a SyntaxError exception.
         // ECMA-262 section 18.2.1.3 EvalDeclarationInstantiation 8.a.iv.1.b:
@@ -117,7 +115,8 @@ Object* DeclareGlobal(
   RETURN_FAILURE_ON_EXCEPTION(
       isolate, JSObject::DefineOwnPropertyIgnoreAttributes(&it, value, attr));
 
-  if (!feedback_vector.is_null()) {
+  if (!feedback_vector.is_null() &&
+      it.state() != LookupIterator::State::INTERCEPTOR) {
     DCHECK_EQ(*global, *it.GetHolder<Object>());
     // Preinitialize the feedback slot if the global object does not have
     // named interceptor or the interceptor is not masking.
@@ -130,18 +129,19 @@ Object* DeclareGlobal(
   return isolate->heap()->undefined_value();
 }
 
-Object* DeclareGlobals(Isolate* isolate, Handle<FixedArray> pairs, int flags,
-                       Handle<TypeFeedbackVector> feedback_vector) {
+Object* DeclareGlobals(Isolate* isolate, Handle<FixedArray> declarations,
+                       int flags, Handle<FeedbackVector> feedback_vector) {
   HandleScope scope(isolate);
   Handle<JSGlobalObject> global(isolate->global_object());
   Handle<Context> context(isolate->context());
 
   // Traverse the name/value pairs and set the properties.
-  int length = pairs->length();
-  FOR_WITH_HANDLE_SCOPE(isolate, int, i = 0, i, i < length, i += 2, {
-    FeedbackVectorSlot slot(Smi::cast(pairs->get(i))->value());
-    Handle<String> name(feedback_vector->GetName(slot), isolate);
-    Handle<Object> initial_value(pairs->get(i + 1), isolate);
+  int length = declarations->length();
+  FOR_WITH_HANDLE_SCOPE(isolate, int, i = 0, i, i < length, i += 4, {
+    Handle<String> name(String::cast(declarations->get(i)), isolate);
+    FeedbackSlot slot(Smi::cast(declarations->get(i + 1))->value());
+    Handle<Object> possibly_literal_slot(declarations->get(i + 2), isolate);
+    Handle<Object> initial_value(declarations->get(i + 3), isolate);
 
     bool is_var = initial_value->IsUndefined(isolate);
     bool is_function = initial_value->IsSharedFunctionInfo();
@@ -149,12 +149,16 @@ Object* DeclareGlobals(Isolate* isolate, Handle<FixedArray> pairs, int flags,
 
     Handle<Object> value;
     if (is_function) {
+      DCHECK(possibly_literal_slot->IsSmi());
       // Copy the function and update its context. Use it as value.
       Handle<SharedFunctionInfo> shared =
           Handle<SharedFunctionInfo>::cast(initial_value);
+      FeedbackSlot literals_slot(Smi::cast(*possibly_literal_slot)->value());
+      Handle<Cell> literals(Cell::cast(feedback_vector->Get(literals_slot)),
+                            isolate);
       Handle<JSFunction> function =
-          isolate->factory()->NewFunctionFromSharedFunctionInfo(shared, context,
-                                                                TENURED);
+          isolate->factory()->NewFunctionFromSharedFunctionInfo(
+              shared, context, literals, TENURED);
       value = function;
     } else {
       value = isolate->factory()->undefined_value();
@@ -186,11 +190,11 @@ RUNTIME_FUNCTION(Runtime_DeclareGlobals) {
   HandleScope scope(isolate);
   DCHECK_EQ(3, args.length());
 
-  CONVERT_ARG_HANDLE_CHECKED(FixedArray, pairs, 0);
+  CONVERT_ARG_HANDLE_CHECKED(FixedArray, declarations, 0);
   CONVERT_SMI_ARG_CHECKED(flags, 1);
-  CONVERT_ARG_HANDLE_CHECKED(TypeFeedbackVector, feedback_vector, 2);
+  CONVERT_ARG_HANDLE_CHECKED(FeedbackVector, feedback_vector, 2);
 
-  return DeclareGlobals(isolate, pairs, flags, feedback_vector);
+  return DeclareGlobals(isolate, declarations, flags, feedback_vector);
 }
 
 // TODO(ishell): merge this with Runtime::kDeclareGlobals once interpreter
@@ -199,13 +203,12 @@ RUNTIME_FUNCTION(Runtime_DeclareGlobalsForInterpreter) {
   HandleScope scope(isolate);
   DCHECK_EQ(3, args.length());
 
-  CONVERT_ARG_HANDLE_CHECKED(FixedArray, pairs, 0);
+  CONVERT_ARG_HANDLE_CHECKED(FixedArray, declarations, 0);
   CONVERT_SMI_ARG_CHECKED(flags, 1);
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, closure, 2);
 
-  Handle<TypeFeedbackVector> feedback_vector(closure->feedback_vector(),
-                                             isolate);
-  return DeclareGlobals(isolate, pairs, flags, feedback_vector);
+  Handle<FeedbackVector> feedback_vector(closure->feedback_vector(), isolate);
+  return DeclareGlobals(isolate, declarations, flags, feedback_vector);
 }
 
 RUNTIME_FUNCTION(Runtime_InitializeVarGlobal) {
@@ -224,15 +227,15 @@ namespace {
 
 Object* DeclareEvalHelper(Isolate* isolate, Handle<String> name,
                           Handle<Object> value) {
-  // Declarations are always made in a function, native, or script context, or
-  // a declaration block scope. Since this is called from eval, the context
-  // passed is the context of the caller, which may be some nested context and
-  // not the declaration context.
+  // Declarations are always made in a function, native, eval, or script
+  // context, or a declaration block scope. Since this is called from eval, the
+  // context passed is the context of the caller, which may be some nested
+  // context and not the declaration context.
   Handle<Context> context_arg(isolate->context(), isolate);
   Handle<Context> context(context_arg->declaration_context(), isolate);
 
   DCHECK(context->IsFunctionContext() || context->IsNativeContext() ||
-         context->IsScriptContext() ||
+         context->IsScriptContext() || context->IsEvalContext() ||
          (context->IsBlockContext() && context->has_extension()));
 
   bool is_function = value->IsJSFunction();
@@ -313,6 +316,8 @@ Object* DeclareEvalHelper(Isolate* isolate, Handle<String> name,
     }
     DCHECK(object->IsJSContextExtensionObject() || object->IsJSGlobalObject());
   } else {
+    // Sloppy eval will never have an extension object, as vars are hoisted out,
+    // and lets are known statically.
     DCHECK(context->IsFunctionContext());
     object =
         isolate->factory()->NewJSObject(isolate->context_extension_function());
@@ -352,7 +357,7 @@ std::unique_ptr<Handle<Object>[]> GetCallerArguments(Isolate* isolate,
   // Find frame containing arguments passed to the caller.
   JavaScriptFrameIterator it(isolate);
   JavaScriptFrame* frame = it.frame();
-  List<JSFunction*> functions(2);
+  List<SharedFunctionInfo*> functions(2);
   frame->GetFunctions(&functions);
   if (functions.length() > 1) {
     int inlined_jsframe_index = functions.length() - 1;
@@ -377,6 +382,8 @@ std::unique_ptr<Handle<Object>[]> GetCallerArguments(Isolate* isolate,
         NewArray<Handle<Object>>(*total_argc));
     bool should_deoptimize = false;
     for (int i = 0; i < argument_count; i++) {
+      // If we materialize any object, we should deoptimize the frame because we
+      // might alias an object that was eliminated by escape analysis.
       should_deoptimize = should_deoptimize || iter->IsMaterializedObject();
       Handle<Object> value = iter->GetValue();
       param_data[i] = value;
@@ -384,7 +391,7 @@ std::unique_ptr<Handle<Object>[]> GetCallerArguments(Isolate* isolate,
     }
 
     if (should_deoptimize) {
-      translated_values.StoreMaterializedValuesAndDeopt();
+      translated_values.StoreMaterializedValuesAndDeopt(frame);
     }
 
     return param_data;
@@ -407,7 +414,7 @@ std::unique_ptr<Handle<Object>[]> GetCallerArguments(Isolate* isolate,
 template <typename T>
 Handle<JSObject> NewSloppyArguments(Isolate* isolate, Handle<JSFunction> callee,
                                     T parameters, int argument_count) {
-  CHECK(!IsSubclassConstructor(callee->shared()->kind()));
+  CHECK(!IsDerivedConstructor(callee->shared()->kind()));
   DCHECK(callee->shared()->has_simple_parameters());
   Handle<JSObject> result =
       isolate->factory()->NewArgumentsObject(callee, argument_count);
@@ -517,7 +524,7 @@ class ParameterArguments BASE_EMBEDDED {
 
 RUNTIME_FUNCTION(Runtime_NewSloppyArguments_Generic) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, callee, 0);
   // This generic runtime function can also be used when the caller has been
   // inlined, we use the slow but accurate {GetCallerArguments}.
@@ -582,34 +589,78 @@ RUNTIME_FUNCTION(Runtime_NewRestParameter) {
 
 RUNTIME_FUNCTION(Runtime_NewSloppyArguments) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 3);
+  DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, callee, 0);
-  Object** parameters = reinterpret_cast<Object**>(args[1]);
-  CONVERT_SMI_ARG_CHECKED(argument_count, 2);
+  StackFrameIterator iterator(isolate);
+
+  // Stub/interpreter handler frame
+  iterator.Advance();
+  DCHECK(iterator.frame()->type() == StackFrame::STUB);
+
+  // Function frame
+  iterator.Advance();
+  JavaScriptFrame* function_frame = JavaScriptFrame::cast(iterator.frame());
+  DCHECK(function_frame->is_java_script());
+  int argc = function_frame->GetArgumentsLength();
+  Address fp = function_frame->fp();
+  if (function_frame->has_adapted_arguments()) {
+    iterator.Advance();
+    fp = iterator.frame()->fp();
+  }
+
+  Object** parameters = reinterpret_cast<Object**>(
+      fp + argc * kPointerSize + StandardFrameConstants::kCallerSPOffset);
   ParameterArguments argument_getter(parameters);
-  return *NewSloppyArguments(isolate, callee, argument_getter, argument_count);
+  return *NewSloppyArguments(isolate, callee, argument_getter, argc);
 }
 
+RUNTIME_FUNCTION(Runtime_NewArgumentsElements) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(2, args.length());
+  Object** frame = reinterpret_cast<Object**>(args[0]);
+  CONVERT_SMI_ARG_CHECKED(length, 1);
+  Handle<FixedArray> result =
+      isolate->factory()->NewUninitializedFixedArray(length);
+  int const offset = length + 1;
+  DisallowHeapAllocation no_gc;
+  WriteBarrierMode mode = result->GetWriteBarrierMode(no_gc);
+  for (int index = 0; index < length; ++index) {
+    result->set(index, frame[offset - index], mode);
+  }
+  return *result;
+}
 
 RUNTIME_FUNCTION(Runtime_NewClosure) {
   HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
+  DCHECK_EQ(3, args.length());
   CONVERT_ARG_HANDLE_CHECKED(SharedFunctionInfo, shared, 0);
+  CONVERT_ARG_HANDLE_CHECKED(FeedbackVector, vector, 1);
+  CONVERT_SMI_ARG_CHECKED(index, 2);
   Handle<Context> context(isolate->context(), isolate);
-  return *isolate->factory()->NewFunctionFromSharedFunctionInfo(shared, context,
-                                                                NOT_TENURED);
+  FeedbackSlot slot = FeedbackVector::ToSlot(index);
+  Handle<Cell> vector_cell(Cell::cast(vector->Get(slot)), isolate);
+  Handle<JSFunction> function =
+      isolate->factory()->NewFunctionFromSharedFunctionInfo(
+          shared, context, vector_cell, NOT_TENURED);
+  return *function;
 }
 
 
 RUNTIME_FUNCTION(Runtime_NewClosure_Tenured) {
   HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
+  DCHECK_EQ(3, args.length());
   CONVERT_ARG_HANDLE_CHECKED(SharedFunctionInfo, shared, 0);
+  CONVERT_ARG_HANDLE_CHECKED(FeedbackVector, vector, 1);
+  CONVERT_SMI_ARG_CHECKED(index, 2);
   Handle<Context> context(isolate->context(), isolate);
+  FeedbackSlot slot = FeedbackVector::ToSlot(index);
+  Handle<Cell> vector_cell(Cell::cast(vector->Get(slot)), isolate);
   // The caller ensures that we pretenure closures that are assigned
   // directly to properties.
-  return *isolate->factory()->NewFunctionFromSharedFunctionInfo(shared, context,
-                                                                TENURED);
+  Handle<JSFunction> function =
+      isolate->factory()->NewFunctionFromSharedFunctionInfo(
+          shared, context, vector_cell, TENURED);
+  return *function;
 }
 
 static Object* FindNameClash(Handle<ScopeInfo> scope_info,
@@ -654,7 +705,7 @@ static Object* FindNameClash(Handle<ScopeInfo> scope_info,
 
 RUNTIME_FUNCTION(Runtime_NewScriptContext) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
   CONVERT_ARG_HANDLE_CHECKED(ScopeInfo, scope_info, 1);
@@ -670,8 +721,9 @@ RUNTIME_FUNCTION(Runtime_NewScriptContext) {
   // Script contexts have a canonical empty function as their closure, not the
   // anonymous closure containing the global code.  See
   // FullCodeGenerator::PushFunctionArgumentForContextAllocation.
-  Handle<JSFunction> closure(
-      function->shared()->IsBuiltin() ? *function : native_context->closure());
+  Handle<JSFunction> closure(function->shared()->IsUserJavaScript()
+                                 ? native_context->closure()
+                                 : *function);
   Handle<Context> result =
       isolate->factory()->NewScriptContext(closure, scope_info);
 
@@ -684,18 +736,18 @@ RUNTIME_FUNCTION(Runtime_NewScriptContext) {
   return *result;
 }
 
-
 RUNTIME_FUNCTION(Runtime_NewFunctionContext) {
   HandleScope scope(isolate);
-  DCHECK(args.length() == 1);
+  DCHECK_EQ(2, args.length());
 
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+  CONVERT_SMI_ARG_CHECKED(scope_type, 1);
 
   DCHECK(function->context() == isolate->context());
   int length = function->shared()->scope_info()->ContextLength();
-  return *isolate->factory()->NewFunctionContext(length, function);
+  return *isolate->factory()->NewFunctionContext(
+      length, function, static_cast<ScopeType>(scope_type));
 }
-
 
 RUNTIME_FUNCTION(Runtime_PushWithContext) {
   HandleScope scope(isolate);
@@ -903,7 +955,7 @@ MaybeHandle<Object> StoreLookupSlot(Handle<String> name, Handle<Object> value,
   // The property was found in a context slot.
   if (index != Context::kNotFound) {
     if (flag == kNeedsInitialization &&
-        Handle<Context>::cast(holder)->is_the_hole(index)) {
+        Handle<Context>::cast(holder)->is_the_hole(isolate, index)) {
       THROW_NEW_ERROR(isolate,
                       NewReferenceError(MessageTemplate::kNotDefined, name),
                       Object);

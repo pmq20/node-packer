@@ -7,6 +7,7 @@
 #include "src/codegen.h"
 #include "src/deoptimizer.h"
 #include "src/full-codegen/full-codegen.h"
+#include "src/objects-inl.h"
 #include "src/register-configuration.h"
 #include "src/safepoint-table.h"
 
@@ -66,7 +67,7 @@ void Deoptimizer::PatchCodeForDeoptimization(Isolate* isolate, Code* code) {
 #endif
   DeoptimizationInputData* deopt_data =
       DeoptimizationInputData::cast(code->deoptimization_data());
-  deopt_data->SetSharedFunctionInfo(Smi::FromInt(0));
+  deopt_data->SetSharedFunctionInfo(Smi::kZero);
   // For each LLazyBailout instruction insert a call to the corresponding
   // deoptimization entry.
   for (int i = 0; i < deopt_data->DeoptCount(); i++) {
@@ -100,7 +101,7 @@ void Deoptimizer::SetPlatformCompiledStubRegisters(
 
 void Deoptimizer::CopyDoubleRegisters(FrameDescription* output_frame) {
   for (int i = 0; i < XMMRegister::kMaxNumRegisters; ++i) {
-    double double_value = input_->GetDoubleRegister(i);
+    Float64 double_value = input_->GetDoubleRegister(i);
     output_frame->SetDoubleRegister(i, double_value);
   }
 }

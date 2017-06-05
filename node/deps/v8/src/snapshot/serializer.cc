@@ -4,6 +4,8 @@
 
 #include "src/snapshot/serializer.h"
 
+#include "src/assembler-inl.h"
+#include "src/heap/heap-inl.h"
 #include "src/macro-assembler.h"
 #include "src/snapshot/natives.h"
 
@@ -211,6 +213,11 @@ void Serializer::PutRoot(int root_index, HeapObject* object,
     object->ShortPrint();
     PrintF("\n");
   }
+
+  // Assert that the first 32 root array items are a conscious choice. They are
+  // chosen so that the most common ones can be encoded more efficiently.
+  STATIC_ASSERT(Heap::kEmptyDescriptorArrayRootIndex ==
+                kNumberOfRootArrayConstants - 1);
 
   if (how_to_code == kPlain && where_to_point == kStartOfObject &&
       root_index < kNumberOfRootArrayConstants &&
@@ -618,6 +625,7 @@ void Serializer::ObjectSerializer::VisitExternalReference(RelocInfo* rinfo) {
   sink_->Put(kExternalReference + how_to_code + kStartOfObject, "ExternalRef");
   sink_->PutInt(skip, "SkipB4ExternalRef");
   Address target = rinfo->target_external_reference();
+  DCHECK_NOT_NULL(target);  // Code does not reference null.
   sink_->PutInt(serializer_->EncodeExternalReference(target), "reference id");
   bytes_processed_so_far_ += rinfo->target_address_size();
 }

@@ -5,12 +5,12 @@
       "textRaw": "Command Line Options",
       "name": "Command Line Options",
       "type": "misc",
-      "desc": "<p>Node.js comes with a variety of CLI options. These options expose built-in\ndebugging, multiple ways to execute scripts, and other helpful runtime options.</p>\n<p>To view this documentation as a manual page in your terminal, run <code>man node</code>.</p>\n",
+      "desc": "<p>Node.js comes with a variety of CLI options. These options expose built-in\ndebugging, multiple ways to execute scripts, and other helpful runtime options.</p>\n<p>To view this documentation as a manual page in a terminal, run <code>man node</code>.</p>\n",
       "miscs": [
         {
           "textRaw": "Synopsis",
           "name": "synopsis",
-          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot;] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
+          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot; | -] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
           "type": "misc",
           "displayName": "Synopsis"
         },
@@ -144,9 +144,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Activate inspector on host:port and break at start of user script.</p>\n",
+              "desc": "<p>Activate inspector on host:port and break at start of user script.\nDefault host:port is 127.0.0.1:9229.</p>\n",
               "type": "module",
               "displayName": "`--inspect-brk[=[host:]port]`"
+            },
+            {
+              "textRaw": "`--inspect-port=[host:]port`",
+              "name": "`--inspect-port=[host:]port`",
+              "meta": {
+                "added": [
+                  "v7.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set the host:port to be used when the inspector is activated.\nUseful when activating the inspector by sending the <code>SIGUSR1</code> signal.</p>\n<p>Default host is 127.0.0.1.</p>\n",
+              "type": "module",
+              "displayName": "`--inspect-port=[host:]port`"
             },
             {
               "textRaw": "`--no-deprecation`",
@@ -188,6 +201,19 @@
               "displayName": "`--throw-deprecation`"
             },
             {
+              "textRaw": "`--pending-deprecation`",
+              "name": "`--pending-deprecation`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Emit pending deprecation warnings.</p>\n<p><em>Note</em>: Pending deprecations are generally identical to a runtime deprecation\nwith the notable exception that they are turned <em>off</em> by default and will not\nbe emitted unless either the <code>--pending-deprecation</code> command line flag, or the\n<code>NODE_PENDING_DEPRECATION=1</code> environment variable, is set. Pending deprecations\nare used to provide a kind of selective &quot;early warning&quot; mechanism that\ndevelopers may leverage to detect deprecated API usage.</p>\n",
+              "type": "module",
+              "displayName": "`--pending-deprecation`"
+            },
+            {
               "textRaw": "`--no-warnings`",
               "name": "`--no-warnings`",
               "meta": {
@@ -201,6 +227,19 @@
               "displayName": "`--no-warnings`"
             },
             {
+              "textRaw": "`--napi-modules`",
+              "name": "`--napi-modules`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable loading native modules compiled with the ABI-stable Node.js API (N-API)\n(experimental).</p>\n",
+              "type": "module",
+              "displayName": "`--napi-modules`"
+            },
+            {
               "textRaw": "`--trace-warnings`",
               "name": "`--trace-warnings`",
               "meta": {
@@ -212,6 +251,19 @@
               "desc": "<p>Print stack traces for process warnings (including deprecations).</p>\n",
               "type": "module",
               "displayName": "`--trace-warnings`"
+            },
+            {
+              "textRaw": "`--redirect-warnings=file`",
+              "name": "`--redirect-warnings=file`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Write process warnings to the given file instead of printing to stderr. The\nfile will be created if it does not exist, and will be appended to if it does.\nIf an error occurs while attempting to write the warning to the file, the\nwarning will be written to stderr instead.</p>\n",
+              "type": "module",
+              "displayName": "`--redirect-warnings=file`"
             },
             {
               "textRaw": "`--trace-sync-io`",
@@ -313,7 +365,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Print v8 command line options.</p>\n<p>Note: v8 options allow words to be separated by both dashes (<code>-</code>) or underscores\n(<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>\n",
+              "desc": "<p>Print v8 command line options.</p>\n<p><em>Note</em>: V8 options allow words to be separated by both dashes (<code>-</code>) or\nunderscores (<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>\n",
               "type": "module",
               "displayName": "`--v8-options`"
             },
@@ -396,6 +448,19 @@
               "displayName": "`--icu-data-dir=file`"
             },
             {
+              "textRaw": "`-`",
+              "name": "`-`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Alias for stdin, analogous to the use of - in other command line utilities,\nmeaning that the script will be read from stdin, and the rest of the options\nare passed to that script.</p>\n",
+              "type": "module",
+              "displayName": "`-`"
+            },
+            {
               "textRaw": "`--`",
               "name": "`--`",
               "meta": {
@@ -438,7 +503,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p><code>&#39;:&#39;</code>-separated list of directories prefixed to the module search path.</p>\n<p><em>Note: on Windows, this is a <code>&#39;;&#39;</code>-separated list instead.</em></p>\n",
+              "desc": "<p><code>&#39;:&#39;</code>-separated list of directories prefixed to the module search path.</p>\n<p><em>Note</em>: On Windows, this is a <code>&#39;;&#39;</code>-separated list instead.</p>\n",
               "type": "module",
               "displayName": "`NODE_PATH=path[:…]`"
             },
@@ -482,6 +547,32 @@
               "displayName": "`NODE_NO_WARNINGS=1`"
             },
             {
+              "textRaw": "`NODE_OPTIONS=options...`",
+              "name": "`node_options=options...`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p><code>options...</code> are interpreted as if they had been specified on the command line\nbefore the actual command line (so they can be overriden).  Node will exit with\nan error if an option that is not allowed in the environment is used, such as\n<code>-p</code> or a script file.</p>\n<p>Node options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--inspect</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-events-categories</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--max_old_space_size</code></li>\n</ul>\n",
+              "type": "module",
+              "displayName": "`NODE_OPTIONS=options...`"
+            },
+            {
+              "textRaw": "`NODE_PENDING_DEPRECATION=1`",
+              "name": "`node_pending_deprecation=1`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set to <code>1</code>, emit pending deprecation warnings.</p>\n<p><em>Note</em>: Pending deprecations are generally identical to a runtime deprecation\nwith the notable exception that they are turned <em>off</em> by default and will not\nbe emitted unless either the <code>--pending-deprecation</code> command line flag, or the\n<code>NODE_PENDING_DEPRECATION=1</code> environment variable, is set. Pending deprecations\nare used to provide a kind of selective &quot;early warning&quot; mechanism that\ndevelopers may leverage to detect deprecated API usage.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_PENDING_DEPRECATION=1`"
+            },
+            {
               "textRaw": "`NODE_PRESERVE_SYMLINKS=1`",
               "name": "`node_preserve_symlinks=1`",
               "meta": {
@@ -506,19 +597,6 @@
               "desc": "<p>Path to the file used to store the persistent REPL history. The default path is\n<code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value\nto an empty string (<code>&quot;&quot;</code> or <code>&quot; &quot;</code>) disables persistent REPL history.</p>\n",
               "type": "module",
               "displayName": "`NODE_REPL_HISTORY=file`"
-            },
-            {
-              "textRaw": "`NODE_TTY_UNSAFE_ASYNC=1`",
-              "name": "`node_tty_unsafe_async=1`",
-              "meta": {
-                "added": [
-                  "v6.4.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>When set to <code>1</code>, writes to <code>stdout</code> and <code>stderr</code> will be non-blocking and\nasynchronous when outputting to a TTY on platforms which support async stdio.\nSetting this will void any guarantee that stdio will not be interleaved or\ndropped at program exit. <strong>Use of this mode is not recommended.</strong></p>\n",
-              "type": "module",
-              "displayName": "`NODE_TTY_UNSAFE_ASYNC=1`"
             },
             {
               "textRaw": "`NODE_EXTRA_CA_CERTS=file`",
@@ -555,7 +633,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory\ncontaining trusted certificates.</p>\n<p>Note: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
               "type": "module",
               "displayName": "`SSL_CERT_DIR=dir`"
             },
@@ -568,9 +646,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file\ncontaining trusted certificates.</p>\n<p>Note: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
               "type": "module",
               "displayName": "`SSL_CERT_FILE=file`"
+            },
+            {
+              "textRaw": "`NODE_REDIRECT_WARNINGS=file`",
+              "name": "`node_redirect_warnings=file`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set, process warnings will be emitted to the given file instead of\nprinting to stderr. The file will be created if it does not exist, and will be\nappended to if it does. If an error occurs while attempting to write the\nwarning to the file, the warning will be written to stderr instead. This is\nequivalent to using the <code>--redirect-warnings=file</code> command-line flag.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_REDIRECT_WARNINGS=file`"
             }
           ],
           "type": "misc",

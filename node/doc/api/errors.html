@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Errors | Node.js v7.10.0 Documentation</title>
+  <title>Errors | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -96,8 +98,11 @@
 <li><span class="stability_undefined"><a href="#errors_class_error">Class: Error</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_new_error_message">new Error(message)</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_capturestacktrace_targetobject_constructoropt">Error.captureStackTrace(targetObject[, constructorOpt])</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span><ul>
+<li><span class="stability_undefined"><a href="#errors_error_code">error.code</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_message">error.message</a></span></li>
+</ul>
+</li>
 <li><span class="stability_undefined"><a href="#errors_error_stack">error.stack</a></span></li>
 </ul>
 </li>
@@ -108,7 +113,7 @@
 <li><span class="stability_undefined"><a href="#errors_exceptions_vs_errors">Exceptions vs. Errors</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_system_errors">System Errors</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_class_system_error">Class: System Error</a></span><ul>
-<li><span class="stability_undefined"><a href="#errors_error_code">error.code</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_error_code_1">error.code</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_errno">error.errno</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_syscall">error.syscall</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_path">error.path</a></span></li>
@@ -117,6 +122,37 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#errors_common_system_errors">Common System Errors</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#errors_node_js_error_codes">Node.js Error Codes</a></span><ul>
+<li><span class="stability_undefined"><a href="#errors_err_arg_not_iterable">ERR_ARG_NOT_ITERABLE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_callback">ERR_INVALID_CALLBACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_host">ERR_INVALID_FILE_URL_HOST</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_path">ERR_INVALID_FILE_URL_PATH</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_handle_type">ERR_INVALID_HANDLE_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_opt_value">ERR_INVALID_OPT_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_sync_fork_input">ERR_INVALID_SYNC_FORK_INPUT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_this">ERR_INVALID_THIS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_tuple">ERR_INVALID_TUPLE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_url">ERR_INVALID_URL</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_url_scheme">ERR_INVALID_URL_SCHEME</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_ipc_channel_closed">ERR_IPC_CHANNEL_CLOSED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_ipc_disconnected">ERR_IPC_DISCONNECTED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_ipc_one_pipe">ERR_IPC_ONE_PIPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_ipc_sync_fork">ERR_IPC_SYNC_FORK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_missing_args">ERR_MISSING_ARGS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_already_bound">ERR_SOCKET_ALREADY_BOUND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_bad_port">ERR_SOCKET_BAD_PORT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_bad_type">ERR_SOCKET_BAD_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_cannot_send">ERR_SOCKET_CANNOT_SEND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_dgram_not_running">ERR_SOCKET_DGRAM_NOT_RUNNING</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_stderr_close">ERR_STDERR_CLOSE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_stdout_close">ERR_STDOUT_CLOSE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_unknown_builtin_module">ERR_UNKNOWN_BUILTIN_MODULE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_unknown_signal">ERR_UNKNOWN_SIGNAL</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_unknown_stdin_type">ERR_UNKNOWN_STDIN_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_unknown_stream_type">ERR_UNKNOWN_STREAM_TYPE</a></span></li>
 </ul>
 </li>
 </ul>
@@ -160,8 +196,8 @@ handled depends entirely on the type of Error and the style of the API that is
 called.</p>
 <p>All JavaScript errors are handled as exceptions that <em>immediately</em> generate
 and throw an error using the standard JavaScript <code>throw</code> mechanism. These
-are handled using the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch"><code>try / catch</code> construct</a> provided by the JavaScript
-language.</p>
+are handled using the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch"><code>try / catch</code> construct</a> provided by the
+JavaScript language.</p>
 <pre><code class="lang-js">// Throws with a ReferenceError because z is undefined
 try {
   const m = 1;
@@ -223,8 +259,8 @@ asynchronous operations over time (as opposed to a single operation that may
 pass or fail).</p>
 <p>For <em>all</em> <code>EventEmitter</code> objects, if an <code>&#39;error&#39;</code> event handler is not
 provided, the error will be thrown, causing the Node.js process to report an
-unhandled exception and  crash unless either: The <a href="domain.html"><code>domain</code></a> module is used
-appropriately or a handler has been registered for the
+unhandled exception and  crash unless either: The <a href="domain.html"><code>domain</code></a> module is
+used appropriately or a handler has been registered for the
 <a href="process.html#process_event_uncaughtexception"><code>process.on(&#39;uncaughtException&#39;)</code></a> event.</p>
 <pre><code class="lang-js">const EventEmitter = require(&#39;events&#39;);
 const ee = new EventEmitter();
@@ -329,7 +365,7 @@ details of error generation from an end user. For instance:</p>
 
 // Without passing MyError to captureStackTrace, the MyError
 // frame would show up in the .stack property. By passing
-// the constructor, we omit that frame and all frames above it.
+// the constructor, we omit that frame, and retain all frames below it.
 new MyError().stack;
 </code></pre>
 <h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
@@ -343,15 +379,22 @@ collected by a stack trace (whether generated by <code>new Error().stack</code> 
 will affect any stack trace captured <em>after</em> the value has been changed.</p>
 <p>If set to a non-number value, or set to a negative number, stack traces will
 not capture any frames.</p>
-<h3>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h3>
+<h4>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>The <code>error.message</code> property is the string description of the error as set by calling <code>new Error(message)</code>.
-The <code>message</code> passed to the constructor will also appear in the first line of
-the stack trace of the <code>Error</code>, however changing this property after the
-<code>Error</code> object is created <em>may not</em> change the first line of the stack trace
-(for example, when <code>error.stack</code> is read before this property is changed).</p>
+</div><p>The <code>error.code</code> property is a string label that identifies the kind of error.
+See <a href="#nodejs-error-codes">Node.js Error Codes</a> for details about specific codes.</p>
+<h4>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h4>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</div><p>The <code>error.message</code> property is the string description of the error as set by
+calling <code>new Error(message)</code>. The <code>message</code> passed to the constructor will also
+appear in the first line of the stack trace of the <code>Error</code>, however changing
+this property after the <code>Error</code> object is created <em>may not</em> change the first
+line of the stack trace (for example, when <code>error.stack</code> is read before this
+property is changed).</p>
 <pre><code class="lang-js">const err = new Error(&#39;The message&#39;);
 console.error(err.message);
 // Prints: The message
@@ -490,21 +533,21 @@ of error codes and their meanings is available by running <code>man 2 intro</cod
 <p>In Node.js, system errors are represented as augmented <code>Error</code> objects with
 added properties.</p>
 <h3>Class: System Error<span><a class="mark" href="#errors_class_system_error" id="errors_class_system_error">#</a></span></h3>
-<h4>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h4>
+<h4>error.code<span><a class="mark" href="#errors_error_code_1" id="errors_error_code_1">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>The <code>error.code</code> property is a string representing the error code, which is always
-<code>E</code> followed by a sequence of capital letters.</p>
+</div><p>The <code>error.code</code> property is a string representing the error code, which is
+typically <code>E</code> followed by a sequence of capital letters.</p>
 <h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>The <code>error.errno</code> property is a number or a string.
-The number is a <strong>negative</strong> value which corresponds to the error code defined in
-<a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handling</code></a>. See uv-errno.h header file (<code>deps/uv/include/uv-errno.h</code> in
-the Node.js source tree) for details.
-In case of a string, it is the same as <code>error.code</code>.</p>
+The number is a <strong>negative</strong> value which corresponds to the error code defined
+in <a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handling</code></a>. See uv-errno.h header file
+(<code>deps/uv/include/uv-errno.h</code> in the Node.js source tree) for details. In case
+of a string, it is the same as <code>error.code</code>.</p>
 <h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -514,20 +557,20 @@ In case of a string, it is the same as <code>error.code</code>.</p>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a string
-containing a relevant invalid pathname.</p>
+</div><p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a
+string containing a relevant invalid pathname.</p>
 <h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a string
-describing the address to which the connection failed.</p>
+</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a
+string describing the address to which the connection failed.</p>
 <h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number representing
-the connection&#39;s port that is not available.</p>
+</div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number
+representing the connection&#39;s port that is not available.</p>
 <h3>Common System Errors<span><a class="mark" href="#errors_common_system_errors" id="errors_common_system_errors">#</a></span></h3>
 <p>This list is <strong>not exhaustive</strong>, but enumerates many of the common system
 errors encountered when writing a Node.js program. An exhaustive list may be
@@ -559,7 +602,7 @@ pathname was a directory.</p>
 <a href="https://en.wikipedia.org/wiki/File_descriptor">file descriptors</a> allowable on the system has been reached, and
 requests for another descriptor cannot be fulfilled until at least one
 has been closed. This is encountered when opening many files at once in
-parallel, especially on systems (in particular, OS X) where there is a low
+parallel, especially on systems (in particular, macOS) where there is a low
 file descriptor limit for processes. To remedy a low limit, run
 <code>ulimit -n 2048</code> in the same shell that will run the Node.js process.</p>
 </li>
@@ -587,6 +630,166 @@ encountered by <a href="http.html"><code>http</code></a> or <a href="net.html"><
 was not properly called.</p>
 </li>
 </ul>
+<p><a id="nodejs-error-codes"></a></p>
+<h2>Node.js Error Codes<span><a class="mark" href="#errors_node_js_error_codes" id="errors_node_js_error_codes">#</a></span></h2>
+<p><a id="ERR_ARG_NOT_ITERABLE"></a></p>
+<h3>ERR_ARG_NOT_ITERABLE<span><a class="mark" href="#errors_err_arg_not_iterable" id="errors_err_arg_not_iterable">#</a></span></h3>
+<p>The <code>&#39;ERR_ARG_NOT_ITERABLE&#39;</code> error code is used generically to identify that an
+iterable argument (i.e. a value that works with <code>for...of</code> loops) is required,
+but not provided to a Node.js API.</p>
+<p><a id="ERR_INVALID_ARG_TYPE"></a></p>
+<h3>ERR_INVALID_ARG_TYPE<span><a class="mark" href="#errors_err_invalid_arg_type" id="errors_err_invalid_arg_type">#</a></span></h3>
+<p>The <code>&#39;ERR_INVALID_ARG_TYPE&#39;</code> error code is used generically to identify that
+an argument of the wrong type has been passed to a Node.js API.</p>
+<p><a id="ERR_INVALID_CALLBACK"></a></p>
+<h3>ERR_INVALID_CALLBACK<span><a class="mark" href="#errors_err_invalid_callback" id="errors_err_invalid_callback">#</a></span></h3>
+<p>The <code>&#39;ERR_INVALID_CALLBACK&#39;</code> error code is used generically to identify that
+a callback function is required and has not been provided to a Node.js API.</p>
+<p><a id="ERR_INVALID_FILE_URL_HOST"></a></p>
+<h3>ERR_INVALID_FILE_URL_HOST<span><a class="mark" href="#errors_err_invalid_file_url_host" id="errors_err_invalid_file_url_host">#</a></span></h3>
+<p>An error with the <code>&#39;ERR_INVALID_FILE_URL_HOST&#39;</code> code may be thrown when a
+Node.js API that consumes <code>file:</code> URLs (such as certain functions in the
+<a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible host. Currently,
+this situation can only occur on Unix-like systems, where only <code>localhost</code> or
+an empty host is supported.</p>
+<p><a id="ERR_INVALID_FILE_URL_PATH"></a></p>
+<h3>ERR_INVALID_FILE_URL_PATH<span><a class="mark" href="#errors_err_invalid_file_url_path" id="errors_err_invalid_file_url_path">#</a></span></h3>
+<p>An error with the <code>&#39;ERR_INVALID_FILE_URL_PATH&#39;</code> code may be thrown when a
+Node.js API that consumes <code>file:</code> URLs (such as certain functions in the
+<a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible path. The exact
+semantics for determining whether a path can be used is platform-dependent.</p>
+<p><a id="ERR_INVALID_HANDLE_TYPE"></a></p>
+<h3>ERR_INVALID_HANDLE_TYPE<span><a class="mark" href="#errors_err_invalid_handle_type" id="errors_err_invalid_handle_type">#</a></span></h3>
+<p>The &#39;<code>ERR_INVALID_HANDLE_TYPE</code>&#39; error code is used when an attempt is made to
+send an unsupported &quot;handle&quot; over an IPC communication channel to a child
+process. See <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a> and <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> for more information.</p>
+<p><a id="ERR_INVALID_OPT_VALUE"></a></p>
+<h3>ERR_INVALID_OPT_VALUE<span><a class="mark" href="#errors_err_invalid_opt_value" id="errors_err_invalid_opt_value">#</a></span></h3>
+<p>The <code>&#39;ERR_INVALID_OPT_VALUE&#39;</code> error code is used generically to identify when
+an invalid or unexpected value has been passed in an options object.</p>
+<p><a id="ERR_INVALID_SYNC_FORK_INPUT"></a></p>
+<h3>ERR_INVALID_SYNC_FORK_INPUT<span><a class="mark" href="#errors_err_invalid_sync_fork_input" id="errors_err_invalid_sync_fork_input">#</a></span></h3>
+<p>The <code>&#39;ERR_INVALID_SYNC_FORK_INPUT&#39;</code> error code is used when a <code>Buffer</code>,
+<code>Uint8Array</code> or <code>string</code> is provided as stdio input to a synchronous
+fork. See the documentation for the <a href="child_process.html"><code>child_process</code></a>
+module for more information.</p>
+<p><a id="ERR_INVALID_THIS"></a></p>
+<h3>ERR_INVALID_THIS<span><a class="mark" href="#errors_err_invalid_this" id="errors_err_invalid_this">#</a></span></h3>
+<p>The <code>&#39;ERR_INVALID_THIS&#39;</code> error code is used generically to identify that a
+Node.js API function is called with an incompatible <code>this</code> value.</p>
+<p>Example:</p>
+<pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
+const urlSearchParams = new URLSearchParams(&#39;foo=bar&amp;baz=new&#39;);
+
+const buf = Buffer.alloc(1);
+urlSearchParams.has.call(buf, &#39;foo&#39;);
+  // Throws a TypeError with code &#39;ERR_INVALID_THIS&#39;
+</code></pre>
+<p><a id="ERR_INVALID_TUPLE"></a></p>
+<h3>ERR_INVALID_TUPLE<span><a class="mark" href="#errors_err_invalid_tuple" id="errors_err_invalid_tuple">#</a></span></h3>
+<p>An error with code <code>&#39;ERR_INVALID_TUPLE&#39;</code> is thrown when an element in the
+<code>iterable</code> provided to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a> <a href="url.html#url_constructor_new_urlsearchparams_iterable"><code>URLSearchParams</code>
+constructor</a> does not represent a <code>[name,
+value]</code> tuple – that is, if an element is not iterable, or does not consist of
+exactly two elements.</p>
+<p><a id="ERR_INVALID_URL"></a></p>
+<h3>ERR_INVALID_URL<span><a class="mark" href="#errors_err_invalid_url" id="errors_err_invalid_url">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_INVALID_URL&#39;</code> code is thrown when an invalid URL is
+passed to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a> <a href="url.html#url_constructor_new_url_input_base"><code>URL</code> constructor</a> to
+be parsed. The thrown error object typically has an additional property
+<code>&#39;input&#39;</code> that contains the URL that failed to parse.</p>
+<p><a id="ERR_INVALID_URL_SCHEME"></a></p>
+<h3>ERR_INVALID_URL_SCHEME<span><a class="mark" href="#errors_err_invalid_url_scheme" id="errors_err_invalid_url_scheme">#</a></span></h3>
+<p>The code <code>&#39;ERR_INVALID_URL_SCHEME&#39;</code> is used generically to signify an attempt
+to use a URL of an incompatible scheme (aka protocol) for a specific purpose.
+It is currently only used in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> support in the <a href="fs.html"><code>fs</code></a>
+module (which only accepts URLs with <code>&#39;file&#39;</code> scheme), but may be used in other
+Node.js APIs as well in the future.</p>
+<p><a id="ERR_IPC_CHANNEL_CLOSED"></a></p>
+<h3>ERR_IPC_CHANNEL_CLOSED<span><a class="mark" href="#errors_err_ipc_channel_closed" id="errors_err_ipc_channel_closed">#</a></span></h3>
+<p>The <code>&#39;ERR_IPC_CHANNEL_CLOSED&#39;</code> error code is used when an attempt is made to use
+an IPC communication channel that has already been closed.</p>
+<p><a id="ERR_IPC_DISCONNECTED"></a></p>
+<h3>ERR_IPC_DISCONNECTED<span><a class="mark" href="#errors_err_ipc_disconnected" id="errors_err_ipc_disconnected">#</a></span></h3>
+<p>The <code>&#39;ERR_IPC_DISCONNECTED&#39;</code> error code is used when an attempt is made to
+disconnect an already disconnected IPC communication channel between two
+Node.js processes. See the documentation for the
+<a href="child_process.html"><code>child_process</code></a> module for more information.</p>
+<p><a id="ERR_IPC_ONE_PIPE"></a></p>
+<h3>ERR_IPC_ONE_PIPE<span><a class="mark" href="#errors_err_ipc_one_pipe" id="errors_err_ipc_one_pipe">#</a></span></h3>
+<p>The <code>&#39;ERR_IPC_ONE_PIPE&#39;</code> error code is used when an attempt is made to create
+a child Node.js process using more than one IPC communication channel.
+See the documentation for the <a href="child_process.html"><code>child_process</code></a>
+module for more information.</p>
+<p><a id="ERR_IPC_SYNC_FORK"></a></p>
+<h3>ERR_IPC_SYNC_FORK<span><a class="mark" href="#errors_err_ipc_sync_fork" id="errors_err_ipc_sync_fork">#</a></span></h3>
+<p>The <code>&#39;ERR_IPC_SYNC_FORK&#39;</code> error code is used when an attempt is made to open
+an IPC communication channel with a synchronous forked Node.js process.
+See the documentation for the <a href="child_process.html"><code>child_process</code></a>
+module for more information.</p>
+<p><a id="ERR_MISSING_ARGS"></a></p>
+<h3>ERR_MISSING_ARGS<span><a class="mark" href="#errors_err_missing_args" id="errors_err_missing_args">#</a></span></h3>
+<p>The <code>&#39;ERR_MISSING_ARGS&#39;</code> error code is a generic error code for instances where
+a required argument of a Node.js API is not passed. This is currently only used
+in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> for strict compliance with the specification (which
+in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most native
+Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and the
+<a href="#ERR_INVALID_ARG_TYPE"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>
+<p><a id="ERR_SOCKET_ALREADY_BOUND"></a></p>
+<h3>ERR_SOCKET_ALREADY_BOUND<span><a class="mark" href="#errors_err_socket_already_bound" id="errors_err_socket_already_bound">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_SOCKET_ALREADY_BOUND&#39;</code> code is thrown when an attempt
+is made to bind a socket that has already been bound.</p>
+<p><a id="ERR_SOCKET_BAD_PORT"></a></p>
+<h3>ERR_SOCKET_BAD_PORT<span><a class="mark" href="#errors_err_socket_bad_port" id="errors_err_socket_bad_port">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_SOCKET_BAD_PORT&#39;</code> code is thrown when an API
+function expecting a port &gt; 0 and &lt; 65536 receives an invalid value.</p>
+<p><a id="ERR_SOCKET_BAD_TYPE"></a></p>
+<h3>ERR_SOCKET_BAD_TYPE<span><a class="mark" href="#errors_err_socket_bad_type" id="errors_err_socket_bad_type">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_SOCKET_BAD_TYPE&#39;</code> code is thrown when an API
+function expecting a socket type (<code>udp4</code> or <code>udp6</code>) receives an invalid value.</p>
+<p><a id="ERR_SOCKET_CANNOT_SEND"></a></p>
+<h3>ERR_SOCKET_CANNOT_SEND<span><a class="mark" href="#errors_err_socket_cannot_send" id="errors_err_socket_cannot_send">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_SOCKET_CANNOT_SEND&#39;</code> code is thrown when data
+cannot be sent on a socket.</p>
+<p><a id="ERR_SOCKET_DGRAM_NOT_RUNNING"></a></p>
+<h3>ERR_SOCKET_DGRAM_NOT_RUNNING<span><a class="mark" href="#errors_err_socket_dgram_not_running" id="errors_err_socket_dgram_not_running">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_SOCKET_DGRAM_NOT_RUNNING&#39;</code> code is thrown
+when a call is made and the UDP subsystem is not running.</p>
+<p><a id="ERR_STDERR_CLOSE"></a></p>
+<h3>ERR_STDERR_CLOSE<span><a class="mark" href="#errors_err_stderr_close" id="errors_err_stderr_close">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_STDERR_CLOSE&#39;</code> code is thrown specifically when an
+attempt is made to close the <code>process.stderr</code> stream. By design, Node.js does
+not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
+<p><a id="ERR_STDOUT_CLOSE"></a></p>
+<h3>ERR_STDOUT_CLOSE<span><a class="mark" href="#errors_err_stdout_close" id="errors_err_stdout_close">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_STDOUT_CLOSE&#39;</code> code is thrown specifically when an
+attempt is made to close the <code>process.stdout</code> stream. By design, Node.js does
+not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
+<p><a id="ERR_UNKNOWN_BUILTIN_MODULE"></a></p>
+<h3>ERR_UNKNOWN_BUILTIN_MODULE<span><a class="mark" href="#errors_err_unknown_builtin_module" id="errors_err_unknown_builtin_module">#</a></span></h3>
+<p>The <code>&#39;ERR_UNKNOWN_BUILTIN_MODULE&#39;</code> error code is used to identify a specific
+kind of internal Node.js error that should not typically be triggered by user
+code. Instances of this error point to an internal bug within the Node.js
+binary itself.</p>
+<p><a id="ERR_UNKNOWN_SIGNAL"></a></p>
+<h3>ERR_UNKNOWN_SIGNAL<span><a class="mark" href="#errors_err_unknown_signal" id="errors_err_unknown_signal">#</a></span></h3>
+<p>The <code>&#39;ERR_UNKNOWN_SIGNAL</code>&#39; error code is used when an invalid or unknown
+process signal is passed to an API expecting a valid signal (such as
+<a href="child_process.html#child_process_child_kill_signal"><code>child.kill()</code></a>).</p>
+<p><a id="ERR_UNKNOWN_STDIN_TYPE"></a></p>
+<h3>ERR_UNKNOWN_STDIN_TYPE<span><a class="mark" href="#errors_err_unknown_stdin_type" id="errors_err_unknown_stdin_type">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_UNKNOWN_STDIN_TYPE&#39;</code> code is thrown specifically when
+an attempt is made to launch a Node.js process with an unknown <code>stdin</code> file
+type. Errors of this kind cannot <em>typically</em> be caused by errors in user code,
+although it is not impossible. Occurrences of this error are most likely an
+indication of a bug within Node.js itself.</p>
+<p><a id="ERR_UNKNOWN_STREAM_TYPE"></a></p>
+<h3>ERR_UNKNOWN_STREAM_TYPE<span><a class="mark" href="#errors_err_unknown_stream_type" id="errors_err_unknown_stream_type">#</a></span></h3>
+<p>An error using the <code>&#39;ERR_UNKNOWN_STREAM_TYPE&#39;</code> code is thrown specifically when
+an attempt is made to launch a Node.js process with an unknown <code>stdout</code> or
+<code>stderr</code> file type. Errors of this kind cannot <em>typically</em> be caused by errors
+in user code, although it is not impossible. Occurrences of this error are most
+likely an indication of a bug within Node.js itself.</p>
 
       </div>
     </div>

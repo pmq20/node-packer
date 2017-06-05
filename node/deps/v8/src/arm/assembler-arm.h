@@ -150,6 +150,7 @@ GENERAL_REGISTERS(DECLARE_REGISTER)
 const Register no_reg = {Register::kCode_no_reg};
 
 static const bool kSimpleFPAliasing = false;
+static const bool kSimdMaskRegisters = false;
 
 // Single word VFP register.
 struct SwVfpRegister {
@@ -302,6 +303,20 @@ struct QwNeonRegister {
     *m = (encoded_code & 0x10) >> 4;
     *vm = encoded_code & 0x0F;
   }
+  DwVfpRegister low() const {
+    DwVfpRegister reg;
+    reg.reg_code = reg_code * 2;
+
+    DCHECK(reg.is_valid());
+    return reg;
+  }
+  DwVfpRegister high() const {
+    DwVfpRegister reg;
+    reg.reg_code = reg_code * 2 + 1;
+
+    DCHECK(reg.is_valid());
+    return reg;
+  }
 
   int reg_code;
 };
@@ -403,9 +418,11 @@ const QwNeonRegister q15 = { 15 };
 // compilation unit that includes this header doesn't use the variables.
 #define kFirstCalleeSavedDoubleReg d8
 #define kLastCalleeSavedDoubleReg d15
+// kDoubleRegZero and kScratchDoubleReg must pair to form kScratchQuadReg.
 #define kDoubleRegZero d14
 #define kScratchDoubleReg d15
-
+// After using kScratchQuadReg, kDoubleRegZero must be reset to 0.
+#define kScratchQuadReg q7
 
 // Coprocessor register
 struct CRegister {
@@ -624,12 +641,26 @@ class NeonMemOperand BASE_EMBEDDED {
 // Class NeonListOperand represents a list of NEON registers
 class NeonListOperand BASE_EMBEDDED {
  public:
-  explicit NeonListOperand(DoubleRegister base, int registers_count = 1);
+  explicit NeonListOperand(DoubleRegister base, int register_count = 1)
+    : base_(base), register_count_(register_count) {}
+  explicit NeonListOperand(QwNeonRegister q_reg)
+    : base_(q_reg.low()), register_count_(2) {}
   DoubleRegister base() const { return base_; }
-  NeonListType type() const { return type_; }
+  int register_count() { return register_count_; }
+  int length() const { return register_count_ - 1; }
+  NeonListType type() const {
+    switch (register_count_) {
+      default: UNREACHABLE();
+      // Fall through.
+      case 1: return nlt_1;
+      case 2: return nlt_2;
+      case 3: return nlt_3;
+      case 4: return nlt_4;
+    }
+  }
  private:
   DoubleRegister base_;
-  NeonListType type_;
+  int register_count_;
 };
 
 
@@ -698,17 +729,10 @@ class Assembler : public AssemblerBase {
   INLINE(static void set_target_address_at(
       Isolate* isolate, Address pc, Address constant_pool, Address target,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
-  INLINE(static Address target_address_at(Address pc, Code* code)) {
-    Address constant_pool = code ? code->constant_pool() : NULL;
-    return target_address_at(pc, constant_pool);
-  }
+  INLINE(static Address target_address_at(Address pc, Code* code));
   INLINE(static void set_target_address_at(
       Isolate* isolate, Address pc, Code* code, Address target,
-      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED)) {
-    Address constant_pool = code ? code->constant_pool() : NULL;
-    set_target_address_at(isolate, pc, constant_pool, target,
-                          icache_flush_mode);
-  }
+      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
 
   // Return the code target address at a call site from the return address
   // of that call in the instruction stream.
@@ -1133,6 +1157,8 @@ class Assembler : public AssemblerBase {
   void vmov(const DwVfpRegister dst,
             const DwVfpRegister src,
             const Condition cond = al);
+  // TODO(bbudge) Replace uses of these with the more general core register to
+  // scalar register vmov's.
   void vmov(const DwVfpRegister dst,
             const VmovIndex index,
             const Register src,
@@ -1313,8 +1339,83 @@ class Assembler : public AssemblerBase {
             const NeonMemOperand& dst);
   void vmovl(NeonDataType dt, QwNeonRegister dst, DwVfpRegister src);
 
-  // Currently, vswp supports only D0 to D31.
-  void vswp(DwVfpRegister srcdst0, DwVfpRegister srcdst1);
+  // Only unconditional core <-> scalar moves are currently supported.
+  void vmov(NeonDataType dt, DwVfpRegister dst, int index, Register src);
+  void vmov(NeonDataType dt, Register dst, DwVfpRegister src, int index);
+
+  void vmov(const QwNeonRegister dst, const QwNeonRegister src);
+  void vmvn(const QwNeonRegister dst, const QwNeonRegister src);
+  void vswp(DwVfpRegister dst, DwVfpRegister src);
+  void vswp(QwNeonRegister dst, QwNeonRegister src);
+  // vdup conditional execution isn't supported.
+  void vdup(NeonSize size, const QwNeonRegister dst, const Register src);
+  void vdup(const QwNeonRegister dst, const SwVfpRegister src);
+
+  void vcvt_f32_s32(const QwNeonRegister dst, const QwNeonRegister src);
+  void vcvt_f32_u32(const QwNeonRegister dst, const QwNeonRegister src);
+  void vcvt_s32_f32(const QwNeonRegister dst, const QwNeonRegister src);
+  void vcvt_u32_f32(const QwNeonRegister dst, const QwNeonRegister src);
+
+  void vabs(const QwNeonRegister dst, const QwNeonRegister src);
+  void vabs(NeonSize size, const QwNeonRegister dst, const QwNeonRegister src);
+  void vneg(const QwNeonRegister dst, const QwNeonRegister src);
+  void vneg(NeonSize size, const QwNeonRegister dst, const QwNeonRegister src);
+  void veor(DwVfpRegister dst, DwVfpRegister src1, DwVfpRegister src2);
+  void vand(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vbsl(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void veor(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vorr(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vadd(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vadd(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vqadd(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
+             QwNeonRegister src2);
+  void vsub(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vsub(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vqsub(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
+             QwNeonRegister src2);
+  void vmul(QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vmul(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vmin(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vmin(NeonDataType dt, QwNeonRegister dst,
+            QwNeonRegister src1, QwNeonRegister src2);
+  void vmax(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vmax(NeonDataType dt, QwNeonRegister dst,
+            QwNeonRegister src1, QwNeonRegister src2);
+  void vshl(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src, int shift);
+  void vshr(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src, int shift);
+  // vrecpe and vrsqrte only support floating point lanes.
+  void vrecpe(QwNeonRegister dst, QwNeonRegister src);
+  void vrsqrte(QwNeonRegister dst, QwNeonRegister src);
+  void vrecps(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vrsqrts(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vtst(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vceq(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vceq(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
+            QwNeonRegister src2);
+  void vcge(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vcge(NeonDataType dt, QwNeonRegister dst,
+            QwNeonRegister src1, QwNeonRegister src2);
+  void vcgt(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vcgt(NeonDataType dt, QwNeonRegister dst,
+            QwNeonRegister src1, QwNeonRegister src2);
+  void vext(const QwNeonRegister dst, const QwNeonRegister src1,
+            const QwNeonRegister src2, int bytes);
+  void vzip(NeonSize size, const QwNeonRegister dst, const QwNeonRegister src);
+  void vrev16(NeonSize size, const QwNeonRegister dst,
+            const QwNeonRegister src);
+  void vrev32(NeonSize size, const QwNeonRegister dst,
+            const QwNeonRegister src);
+  void vrev64(NeonSize size, const QwNeonRegister dst,
+            const QwNeonRegister src);
+  void vtbl(const DwVfpRegister dst, const NeonListOperand& list,
+            const DwVfpRegister index);
+  void vtbx(const DwVfpRegister dst, const NeonListOperand& list,
+            const DwVfpRegister index);
 
   // Pseudo instructions
 
@@ -1395,9 +1496,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging
 
-  // Mark generator continuation.
-  void RecordGeneratorContinuation();
-
   // Mark address of a debug break slot.
   void RecordDebugBreakSlot(RelocInfo::Mode mode);
 
@@ -1421,7 +1519,8 @@ class Assembler : public AssemblerBase {
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(DeoptimizeReason reason, int raw_position, int id);
+  void RecordDeoptReason(DeoptimizeReason reason, SourcePosition position,
+                         int id);
 
   // Record the emission of a constant pool.
   //
@@ -1585,7 +1684,8 @@ class Assembler : public AssemblerBase {
       // Check the constant pool hasn't been blocked for too long.
       DCHECK(pending_32_bit_constants_.empty() ||
              (start + pending_64_bit_constants_.size() * kDoubleSize <
-              (first_const_pool_32_use_ + kMaxDistToIntPool)));
+              static_cast<size_t>(first_const_pool_32_use_ +
+                                  kMaxDistToIntPool)));
       DCHECK(pending_64_bit_constants_.empty() ||
              (start < (first_const_pool_64_use_ + kMaxDistToFPPool)));
 #endif
@@ -1607,6 +1707,12 @@ class Assembler : public AssemblerBase {
     DCHECK(reg.is_valid());
     return IsEnabled(VFP32DREGS) ||
            (reg.reg_code < LowDwVfpRegister::kMaxNumLowRegisters);
+  }
+
+  bool VfpRegisterIsAvailable(QwNeonRegister reg) {
+    DCHECK(reg.is_valid());
+    return IsEnabled(VFP32DREGS) ||
+           (reg.reg_code < LowDwVfpRegister::kMaxNumLowRegisters / 2);
   }
 
  private:

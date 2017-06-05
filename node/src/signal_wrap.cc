@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "async-wrap.h"
 #include "async-wrap-inl.h"
 #include "env.h"
@@ -18,6 +39,8 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
+namespace {
+
 class SignalWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
@@ -28,6 +51,7 @@ class SignalWrap : public HandleWrap {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Signal"));
 
+    env->SetProtoMethod(constructor, "getAsyncId", AsyncWrap::GetAsyncId);
     env->SetProtoMethod(constructor, "close", HandleWrap::Close);
     env->SetProtoMethod(constructor, "ref", HandleWrap::Ref);
     env->SetProtoMethod(constructor, "unref", HandleWrap::Unref);
@@ -68,7 +92,8 @@ class SignalWrap : public HandleWrap {
     if (signum == SIGPROF) {
       Environment* env = Environment::GetCurrent(args);
       if (env->inspector_agent()->IsStarted()) {
-        fprintf(stderr, "process.on(SIGPROF) is reserved while debugging\n");
+        ProcessEmitWarning(env,
+                           "process.on(SIGPROF) is reserved while debugging");
         return;
       }
     }
@@ -98,6 +123,7 @@ class SignalWrap : public HandleWrap {
 };
 
 
+}  // anonymous namespace
 }  // namespace node
 
 

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 
@@ -14,10 +35,10 @@ const tls = require('tls');
 crypto.DEFAULT_ENCODING = 'buffer';
 
 // Test Certificates
-const caPem = fs.readFileSync(common.fixturesDir + '/test_ca.pem', 'ascii');
-const certPem = fs.readFileSync(common.fixturesDir + '/test_cert.pem', 'ascii');
-const certPfx = fs.readFileSync(common.fixturesDir + '/test_cert.pfx');
-const keyPem = fs.readFileSync(common.fixturesDir + '/test_key.pem', 'ascii');
+const caPem = fs.readFileSync(`${common.fixturesDir}/test_ca.pem`, 'ascii');
+const certPem = fs.readFileSync(`${common.fixturesDir}/test_cert.pem`, 'ascii');
+const certPfx = fs.readFileSync(`${common.fixturesDir}/test_cert.pfx`);
+const keyPem = fs.readFileSync(`${common.fixturesDir}/test_key.pem`, 'ascii');
 
 // 'this' safety
 // https://github.com/joyent/node/issues/6690
@@ -156,8 +177,8 @@ assert.throws(function() {
   //   $ openssl pkcs8 -topk8 -inform PEM -outform PEM -in mykey.pem \
   //     -out private_key.pem -nocrypt;
   //   Then open private_key.pem and change its header and footer.
-  const sha1_privateKey = fs.readFileSync(common.fixturesDir +
-                                        '/test_bad_rsa_privkey.pem', 'ascii');
+  const sha1_privateKey = fs.readFileSync(
+    `${common.fixturesDir}/test_bad_rsa_privkey.pem`, 'ascii');
   // this would inject errors onto OpenSSL's error stack
   crypto.createSign('sha1').sign(sha1_privateKey);
 }, /asn1 encoding routines:ASN1_CHECK_TLEN:wrong tag/);
@@ -168,3 +189,42 @@ console.log(crypto.randomBytes(16));
 assert.throws(function() {
   tls.createSecureContext({ crl: 'not a CRL' });
 }, /^Error: Failed to parse CRL$/);
+
+/**
+ * Check if the stream function uses utf8 as a default encoding.
+ **/
+
+function testEncoding(options, assertionHash) {
+  const hash = crypto.createHash('sha256', options);
+  let hashValue = '';
+
+  hash.on('data', (data) => {
+    hashValue += data.toString('hex');
+  });
+
+  hash.on('end', common.mustCall(() => {
+    assert.strictEqual(hashValue, assertionHash);
+  }));
+
+  hash.write('öäü');
+  hash.end();
+}
+
+// Hash of "öäü" in utf8 format
+const assertionHashUtf8 =
+  '4f53d15bee524f082380e6d7247cc541e7cb0d10c64efdcc935ceeb1e7ea345c';
+
+// Hash of "öäü" in latin1 format
+const assertionHashLatin1 =
+  'cd37bccd5786e2e76d9b18c871e919e6eb11cc12d868f5ae41c40ccff8e44830';
+
+testEncoding(undefined, assertionHashUtf8);
+testEncoding({}, assertionHashUtf8);
+
+testEncoding({
+  defaultEncoding: 'utf8'
+}, assertionHashUtf8);
+
+testEncoding({
+  defaultEncoding: 'latin1'
+}, assertionHashLatin1);

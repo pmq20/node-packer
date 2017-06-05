@@ -68,7 +68,7 @@ namespace internal {
 
 #define ALLOCATABLE_DOUBLE_REGISTERS(V)                   \
   V(f0)  V(f2)  V(f4)  V(f6)  V(f8)  V(f10) V(f12) V(f14) \
-  V(f16) V(f18) V(f20) V(f22) V(f24) V(f26)
+  V(f16) V(f18) V(f20) V(f22) V(f24)
 // clang-format on
 
 // CPU Registers.
@@ -155,6 +155,7 @@ int ToNumber(Register reg);
 Register ToRegister(int num);
 
 static const bool kSimpleFPAliasing = true;
+static const bool kSimdMaskRegisters = false;
 
 // Coprocessor register.
 struct FPURegister {
@@ -282,8 +283,7 @@ const DoubleRegister f31 = {31};
 #define kLithiumScratchDouble f30
 #define kDoubleRegZero f28
 // Used on mips32r6 for compare operations.
-// We use the last non-callee saved odd register for O32 ABI
-#define kDoubleCompareReg f19
+#define kDoubleCompareReg f26
 
 // FPU (coprocessor 1) control registers.
 // Currently only FCSR (#31) is implemented.
@@ -473,17 +473,10 @@ class Assembler : public AssemblerBase {
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED)) {
     set_target_address_at(isolate, pc, target, icache_flush_mode);
   }
-  INLINE(static Address target_address_at(Address pc, Code* code)) {
-    Address constant_pool = code ? code->constant_pool() : NULL;
-    return target_address_at(pc, constant_pool);
-  }
+  INLINE(static Address target_address_at(Address pc, Code* code));
   INLINE(static void set_target_address_at(
       Isolate* isolate, Address pc, Code* code, Address target,
-      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED)) {
-    Address constant_pool = code ? code->constant_pool() : NULL;
-    set_target_address_at(isolate, pc, constant_pool, target,
-                          icache_flush_mode);
-  }
+      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
 
   // Return the code target address at a call site from the return address
   // of that call in the instruction stream.
@@ -552,6 +545,17 @@ class Assembler : public AssemblerBase {
   static const int kDebugBreakSlotLength =
       kDebugBreakSlotInstructions * kInstrSize;
 
+  // Max offset for instructions with 16-bit offset field
+  static const int kMaxBranchOffset = (1 << (18 - 1)) - 1;
+
+  // Max offset for compact branch instructions with 26-bit offset field
+  static const int kMaxCompactBranchOffset = (1 << (28 - 1)) - 1;
+
+#ifdef _MIPS_ARCH_MIPS32R6
+  static const int kTrampolineSlotsSize = 2 * kInstrSize;
+#else
+  static const int kTrampolineSlotsSize = 4 * kInstrSize;
+#endif
 
   // ---------------------------------------------------------------------------
   // Code generation.
@@ -1029,9 +1033,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging.
 
-  // Mark generator continuation.
-  void RecordGeneratorContinuation();
-
   // Mark address of a debug break slot.
   void RecordDebugBreakSlot(RelocInfo::Mode mode);
 
@@ -1055,7 +1056,8 @@ class Assembler : public AssemblerBase {
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(DeoptimizeReason reason, int raw_position, int id);
+  void RecordDeoptReason(DeoptimizeReason reason, SourcePosition position,
+                         int id);
 
   static int RelocateInternalReference(RelocInfo::Mode rmode, byte* pc,
                                        intptr_t pc_delta);
@@ -1168,6 +1170,9 @@ class Assembler : public AssemblerBase {
   }
 
   bool IsPrevInstrCompactBranch() { return prev_instr_compact_branch_; }
+  static bool IsCompactBranchSupported() {
+    return IsMipsArchVariant(kMips32r6);
+  }
 
   inline int UnboundLabelsCount() { return unbound_labels_count_; }
 
@@ -1177,6 +1182,8 @@ class Assembler : public AssemblerBase {
 
   // Helpers.
   void LoadRegPlusOffsetToAt(const MemOperand& src);
+  int32_t LoadRegPlusUpperOffsetPartToAt(const MemOperand& src);
+  int32_t LoadUpperOffsetForTwoMemoryAccesses(const MemOperand& src);
 
   // Relocation for a type-recording IC has the AST id added to it.  This
   // member variable is a way to pass the information from the call site to
@@ -1440,18 +1447,15 @@ class Assembler : public AssemblerBase {
   // branch instruction generation, where we use jump instructions rather
   // than regular branch instructions.
   bool trampoline_emitted_;
-#ifdef _MIPS_ARCH_MIPS32R6
-  static const int kTrampolineSlotsSize = 2 * kInstrSize;
-#else
-  static const int kTrampolineSlotsSize = 4 * kInstrSize;
-#endif
-  static const int kMaxBranchOffset = (1 << (18 - 1)) - 1;
-  static const int kMaxCompactBranchOffset = (1 << (28 - 1)) - 1;
   static const int kInvalidSlotPos = -1;
 
   // Internal reference positions, required for unbounded internal reference
   // labels.
   std::set<int> internal_reference_positions_;
+  bool is_internal_reference(Label* L) {
+    return internal_reference_positions_.find(L->pos()) !=
+           internal_reference_positions_.end();
+  }
 
   void EmittedCompactBranchInstruction() { prev_instr_compact_branch_ = true; }
   void ClearCompactBranchState() { prev_instr_compact_branch_ = false; }

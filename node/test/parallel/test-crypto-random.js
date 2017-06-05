@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 
@@ -17,7 +38,8 @@ const expectedErrorRegexp = /^TypeError: size must be a number >= 0$/;
 [crypto.randomBytes, crypto.pseudoRandomBytes].forEach(function(f) {
   [-1, undefined, null, false, true, {}, []].forEach(function(value) {
     assert.throws(function() { f(value); }, expectedErrorRegexp);
-    assert.throws(function() { f(value, function() {}); }, expectedErrorRegexp);
+    assert.throws(function() { f(value, common.mustNotCall()); },
+                  expectedErrorRegexp);
   });
 
   [0, 1, 2, 4, 16, 256, 1024].forEach(function(len) {
@@ -28,8 +50,6 @@ const expectedErrorRegexp = /^TypeError: size must be a number >= 0$/;
     }));
   });
 });
-
-const noop = () => {};
 
 {
   const buf = Buffer.alloc(10);
@@ -134,11 +154,11 @@ const noop = () => {};
     }, /offset must be a number/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 'test', noop);
+      crypto.randomFill(buf, 'test', common.mustNotCall());
     }, /offset must be a number/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, NaN, noop);
+      crypto.randomFill(buf, NaN, common.mustNotCall());
     }, /offset must be a number/);
 
     const max = require('buffer').kMaxLength + 1;
@@ -152,11 +172,11 @@ const noop = () => {};
     }, /offset out of range/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 11, noop);
+      crypto.randomFill(buf, 11, common.mustNotCall());
     }, /offset out of range/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, max, noop);
+      crypto.randomFill(buf, max, common.mustNotCall());
     }, /offset out of range/);
 
     assert.throws(() => {
@@ -168,11 +188,11 @@ const noop = () => {};
     }, /size must be a number/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 0, 'test', noop);
+      crypto.randomFill(buf, 0, 'test', common.mustNotCall());
     }, /size must be a number/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 0, NaN, noop);
+      crypto.randomFill(buf, 0, NaN, common.mustNotCall());
     }, /size must be a number/);
 
     {
@@ -187,11 +207,11 @@ const noop = () => {};
       }, /size must be a uint32/);
 
       assert.throws(() => {
-        crypto.randomFill(buf, 0, -10, noop);
+        crypto.randomFill(buf, 0, -10, common.mustNotCall());
       }, /size must be a uint32/);
 
       assert.throws(() => {
-        crypto.randomFill(buf, 0, size, noop);
+        crypto.randomFill(buf, 0, size, common.mustNotCall());
       }, /size must be a uint32/);
     }
 
@@ -200,7 +220,7 @@ const noop = () => {};
     }, /offset must be a uint32/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, -10, noop);
+      crypto.randomFill(buf, -10, common.mustNotCall());
     }, /offset must be a uint32/);
 
     assert.throws(() => {
@@ -208,7 +228,7 @@ const noop = () => {};
     }, /buffer too small/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 1, 10, noop);
+      crypto.randomFill(buf, 1, 10, common.mustNotCall());
     }, /buffer too small/);
 
     assert.throws(() => {
@@ -216,7 +236,7 @@ const noop = () => {};
     }, /buffer too small/);
 
     assert.throws(() => {
-      crypto.randomFill(buf, 0, 12, noop);
+      crypto.randomFill(buf, 0, 12, common.mustNotCall());
     }, /buffer too small/);
 
     {
@@ -227,7 +247,7 @@ const noop = () => {};
       }, /offset must be a uint32/);
 
       assert.throws(() => {
-        crypto.randomFill(buf, offset, 10, noop);
+        crypto.randomFill(buf, offset, 10, common.mustNotCall());
       }, /offset must be a uint32/);
     }
   }

@@ -162,10 +162,10 @@
                       "optional": true
                     },
                     {
-                      "textRaw": "`rejectUnauthorized` {boolean} `true` to specify whether a server should automatically reject clients with invalid certificates. Only applies when `isServer` is `true`. ",
+                      "textRaw": "`rejectUnauthorized` {boolean} If not `false` a server automatically reject clients  with invalid certificates. Only applies when `isServer` is `true`. ",
                       "name": "rejectUnauthorized",
                       "type": "boolean",
-                      "desc": "`true` to specify whether a server should automatically reject clients with invalid certificates. Only applies when `isServer` is `true`.",
+                      "desc": "If not `false` a server automatically reject clients  with invalid certificates. Only applies when `isServer` is `true`.",
                       "optional": true
                     },
                     {
@@ -637,14 +637,14 @@
                           "desc": "If `true`, specifies that the OCSP status request extension will be added to the client hello and an `'OCSPResponse'` event will be emitted on the socket before establishing a secure communication"
                         },
                         {
-                          "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing. ",
+                          "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. ",
                           "name": "secureContext",
-                          "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing."
+                          "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
                         },
                         {
-                          "textRaw": "...: Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information. ",
+                          "textRaw": "...: Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored. ",
                           "name": "...",
-                          "desc": "Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information."
+                          "desc": "Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored."
                         }
                       ],
                       "name": "options",
@@ -795,7 +795,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the TLS session ticket or <code>undefined</code> if no session was negotiated.</p>\n<p><em>Note</em>: This only works with client TLS sockets. Useful only for debugging, for\nsession reuse provide <code>session</code> option to <a href=\"#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>.</p>\n",
+              "desc": "<p>Returns the TLS session ticket or <code>undefined</code> if no session was negotiated.</p>\n<p><em>Note</em>: This only works with client TLS sockets. Useful only for debugging,\nfor session reuse provide <code>session</code> option to <a href=\"#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>.</p>\n",
               "signatures": [
                 {
                   "params": []
@@ -819,9 +819,10 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`rejectUnauthorized` {boolean} ",
+                          "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`. ",
                           "name": "rejectUnauthorized",
-                          "type": "boolean"
+                          "type": "boolean",
+                          "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`."
                         },
                         {
                           "textRaw": "`requestCert` ",
@@ -1015,6 +1016,16 @@
             ],
             "changes": [
               {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12839",
+                "description": "The `lookup` option is supported now."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/11984",
+                "description": "The `ALPNProtocols` and `NPNProtocols` options can be `Uint8Array`s now."
+              },
+              {
                 "version": "v5.3.0, v4.7.0",
                 "pr-url": "https://github.com/nodejs/node/pull/4246",
                 "description": "The `secureContext` option is supported now."
@@ -1057,22 +1068,22 @@
                       "desc": "Establish secure connection on a given socket rather than creating a new socket. If this option is specified, `path`, `host` and `port` are ignored.  Usually, a socket is already connected when passed to `tls.connect()`, but it can be connected later. Note that connection/disconnection/destruction of `socket` is the user's responsibility, calling `tls.connect()` will not cause `net.connect()` to be called."
                     },
                     {
-                      "textRaw": "`rejectUnauthorized` {boolean} If `true`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`. ",
+                      "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`. ",
                       "name": "rejectUnauthorized",
                       "type": "boolean",
-                      "desc": "If `true`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`."
+                      "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`."
                     },
                     {
-                      "textRaw": "`NPNProtocols` {string[]|Buffer[]} An array of strings or `Buffer`s containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. ",
+                      "textRaw": "`NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. ",
                       "name": "NPNProtocols",
-                      "type": "string[]|Buffer[]",
-                      "desc": "An array of strings or `Buffer`s containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`."
+                      "type": "string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array",
+                      "desc": "An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`."
                     },
                     {
-                      "textRaw": "`ALPNProtocols`: {string[]|Buffer[]} An array of strings or `Buffer`s containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler: `['hello', 'world']`.) ",
+                      "textRaw": "`ALPNProtocols`: {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. ",
                       "name": "ALPNProtocols",
-                      "type": "string[]|Buffer[]",
-                      "desc": "An array of strings or `Buffer`s containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler: `['hello', 'world']`.)"
+                      "type": "string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array",
+                      "desc": "An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`."
                     },
                     {
                       "textRaw": "`servername`: {string} Server name for the SNI (Server Name Indication) TLS extension. ",
@@ -1098,14 +1109,20 @@
                       "desc": "Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown. Defaults to `1024`."
                     },
                     {
-                      "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing. ",
+                      "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. ",
                       "name": "secureContext",
-                      "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. *Note*: In effect, all [`tls.createSecureContext()`][] options can be provided, but they will be _completely ignored_ unless the `secureContext` option is missing."
+                      "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
                     },
                     {
-                      "textRaw": "...: Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information. ",
+                      "textRaw": "`lookup`: {Function} Custom lookup function. Defaults to [`dns.lookup()`][]. ",
+                      "name": "lookup",
+                      "type": "Function",
+                      "desc": "Custom lookup function. Defaults to [`dns.lookup()`][]."
+                    },
+                    {
+                      "textRaw": "...: Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored. ",
                       "name": "...",
-                      "desc": "Optional [`tls.createSecureContext()`][] options can be provided, see the `secureContext` option for more information."
+                      "desc": "Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored."
                     }
                   ],
                   "name": "options",
@@ -1248,7 +1265,7 @@
               ]
             }
           ],
-          "desc": "<p>Same as <a href=\"#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> except that <code>port</code> and <code>host</code> can be provided\nas arguments instead of options.</p>\n<p><em>Note</em>: A port or host option, if specified, will take precedence over any port\nor host argument.</p>\n"
+          "desc": "<p>Same as <a href=\"#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> except that <code>port</code> and <code>host</code> can be provided\nas arguments instead of options.</p>\n<p><em>Note</em>: A port or host option, if specified, will take precedence over any\nport or host argument.</p>\n"
         },
         {
           "textRaw": "tls.createSecureContext(options)",
@@ -1320,10 +1337,10 @@
                       "desc": "Optional cipher suite specification, replacing the default.  For more information, see [modifying the default cipher suite][]."
                     },
                     {
-                      "textRaw": "`honorCipherOrder` {boolean} Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information. *Note*: [`tls.createServer()`][] sets the default value to `true`, other APIs that create secure contexts leave it unset. ",
+                      "textRaw": "`honorCipherOrder` {boolean} Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information. ",
                       "name": "honorCipherOrder",
                       "type": "boolean",
-                      "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information. *Note*: [`tls.createServer()`][] sets the default value to `true`, other APIs that create secure contexts leave it unset."
+                      "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information."
                     },
                     {
                       "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
@@ -1344,16 +1361,16 @@
                       "desc": "Optional SSL method to use, default is `\"SSLv23_method\"`. The possible values are listed as [SSL_METHODS][], use the function names as strings. For example, `\"SSLv3_method\"` to force SSL version 3."
                     },
                     {
-                      "textRaw": "`secureOptions` {number} Optionally affect the OpenSSL protocol behaviour, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][]. ",
+                      "textRaw": "`secureOptions` {number} Optionally affect the OpenSSL protocol behavior, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][]. ",
                       "name": "secureOptions",
                       "type": "number",
-                      "desc": "Optionally affect the OpenSSL protocol behaviour, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][]."
+                      "desc": "Optionally affect the OpenSSL protocol behavior, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][]."
                     },
                     {
-                      "textRaw": "`sessionIdContext` {string} Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients. *Note*: [`tls.createServer()`][] uses a 128 bit truncated SHA1 hash value generated from `process.argv`, other APIs that create secure contexts have no default value. ",
+                      "textRaw": "`sessionIdContext` {string} Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients. ",
                       "name": "sessionIdContext",
                       "type": "string",
-                      "desc": "Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients. *Note*: [`tls.createServer()`][] uses a 128 bit truncated SHA1 hash value generated from `process.argv`, other APIs that create secure contexts have no default value."
+                      "desc": "Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients."
                     }
                   ],
                   "name": "options",
@@ -1369,7 +1386,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>tls.createSecureContext()</code> method creates a credentials object.</p>\n<p>A key is <em>required</em> for ciphers that make use of certificates. Either <code>key</code> or\n<code>pfx</code> can be used to provide it.</p>\n<p>If the &#39;ca&#39; option is not given, then Node.js will use the default\npublicly trusted list of CAs as given in\n<a href=\"http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt\">http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt</a>.</p>\n"
+          "desc": "<p><em>Note</em>:</p>\n<ul>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> sets the default value of the\n<code>honorCipherOrder</code> option to <code>true</code>, other APIs that create secure contexts\nleave it unset.</p>\n</li>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> uses a 128 bit truncated SHA1 hash value\ngenerated from <code>process.argv</code> as the default value of the <code>sessionIdContext</code>\noption, other APIs that create secure contexts have no default value.</p>\n</li>\n</ul>\n<p>The <code>tls.createSecureContext()</code> method creates a credentials object.</p>\n<p>A key is <em>required</em> for ciphers that make use of certificates. Either <code>key</code> or\n<code>pfx</code> can be used to provide it.</p>\n<p>If the &#39;ca&#39; option is not given, then Node.js will use the default\npublicly trusted list of CAs as given in\n<a href=\"http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt\">http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt</a>.</p>\n"
         },
         {
           "textRaw": "tls.createServer([options][, secureConnectionListener])",
@@ -1380,6 +1397,11 @@
               "v0.3.2"
             ],
             "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/11984",
+                "description": "The `ALPNProtocols` and `NPNProtocols` options can be `Uint8Array`s now."
+              },
               {
                 "version": "v5.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/2564",
@@ -1406,22 +1428,22 @@
                       "desc": "If `true` the server will request a certificate from clients that connect and attempt to verify that certificate. Defaults to `false`."
                     },
                     {
-                      "textRaw": "`rejectUnauthorized` {boolean} If `true` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `false`. ",
+                      "textRaw": "`rejectUnauthorized` {boolean} If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `true`. ",
                       "name": "rejectUnauthorized",
                       "type": "boolean",
-                      "desc": "If `true` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `false`."
+                      "desc": "If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `true`."
                     },
                     {
-                      "textRaw": "`NPNProtocols` {string[]|Buffer} An array of strings or a `Buffer` naming possible NPN protocols. (Protocols should be ordered by their priority.) ",
+                      "textRaw": "`NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.) ",
                       "name": "NPNProtocols",
-                      "type": "string[]|Buffer",
-                      "desc": "An array of strings or a `Buffer` naming possible NPN protocols. (Protocols should be ordered by their priority.)"
+                      "type": "string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array",
+                      "desc": "An array of strings, Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.)"
                     },
                     {
-                      "textRaw": "`ALPNProtocols` {string[]|Buffer} An array of strings or a `Buffer` naming possible ALPN protocols. (Protocols should be ordered by their priority.) When the server receives both NPN and ALPN extensions from the client, ALPN takes precedence over NPN and the server does not send an NPN extension to the client. ",
+                      "textRaw": "`ALPNProtocols`: {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.) When the server receives both NPN and ALPN extensions from the client, ALPN takes precedence over NPN and the server does not send an NPN extension to the client. ",
                       "name": "ALPNProtocols",
-                      "type": "string[]|Buffer",
-                      "desc": "An array of strings or a `Buffer` naming possible ALPN protocols. (Protocols should be ordered by their priority.) When the server receives both NPN and ALPN extensions from the client, ALPN takes precedence over NPN and the server does not send an NPN extension to the client."
+                      "type": "string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array",
+                      "desc": "An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.) When the server receives both NPN and ALPN extensions from the client, ALPN takes precedence over NPN and the server does not send an NPN extension to the client."
                     },
                     {
                       "textRaw": "`SNICallback(servername, cb)` {Function} A function that will be called if the client supports SNI TLS extension. Two arguments will be passed when called: `servername` and `cb`. `SNICallback` should invoke `cb(null, ctx)`, where `ctx` is a SecureContext instance. (`tls.createSecureContext(...)` can be used to get a proper SecureContext.) If `SNICallback` wasn't provided the default callback with high-level API will be used (see below). ",
@@ -1435,9 +1457,9 @@
                       "desc": "An integer specifying the number of seconds after which the TLS session identifiers and TLS session tickets created by the server will time out. See [SSL_CTX_set_timeout] for more details."
                     },
                     {
-                      "textRaw": "`ticketKeys`: A 48-byte `Buffer` instance consisting of a 16-byte prefix, a 16-byte HMAC key, and a 16-byte AES key. This can be used to accept TLS session tickets on multiple instances of the TLS server. *Note* that this is automatically shared between `cluster` module workers. ",
+                      "textRaw": "`ticketKeys`: A 48-byte `Buffer` instance consisting of a 16-byte prefix, a 16-byte HMAC key, and a 16-byte AES key. This can be used to accept TLS session tickets on multiple instances of the TLS server. ",
                       "name": "ticketKeys",
-                      "desc": "A 48-byte `Buffer` instance consisting of a 16-byte prefix, a 16-byte HMAC key, and a 16-byte AES key. This can be used to accept TLS session tickets on multiple instances of the TLS server. *Note* that this is automatically shared between `cluster` module workers."
+                      "desc": "A 48-byte `Buffer` instance consisting of a 16-byte prefix, a 16-byte HMAC key, and a 16-byte AES key. This can be used to accept TLS session tickets on multiple instances of the TLS server."
                     },
                     {
                       "textRaw": "...: Any [`tls.createSecureContext()`][] options can be provided. For servers, the identity options (`pfx` or `key`/`cert`) are usually required. ",
@@ -1470,7 +1492,7 @@
               ]
             }
           ],
-          "desc": "<p>Creates a new <a href=\"#tls_class_tls_server\">tls.Server</a>.  The <code>secureConnectionListener</code>, if provided, is\nautomatically set as a listener for the <a href=\"#tls_event_secureconnection\"><code>&#39;secureConnection&#39;</code></a> event.</p>\n<p>The following illustrates a simple echo server:</p>\n<pre><code class=\"lang-js\">const tls = require(&#39;tls&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;server-key.pem&#39;),\n  cert: fs.readFileSync(&#39;server-cert.pem&#39;),\n\n  // This is necessary only if using the client certificate authentication.\n  requestCert: true,\n\n  // This is necessary only if the client uses the self-signed certificate.\n  ca: [ fs.readFileSync(&#39;client-cert.pem&#39;) ]\n};\n\nconst server = tls.createServer(options, (socket) =&gt; {\n  console.log(&#39;server connected&#39;,\n              socket.authorized ? &#39;authorized&#39; : &#39;unauthorized&#39;);\n  socket.write(&#39;welcome!\\n&#39;);\n  socket.setEncoding(&#39;utf8&#39;);\n  socket.pipe(socket);\n});\nserver.listen(8000, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const tls = require(&#39;tls&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;server.pfx&#39;),\n\n  // This is necessary only if using the client certificate authentication.\n  requestCert: true,\n\n};\n\nconst server = tls.createServer(options, (socket) =&gt; {\n  console.log(&#39;server connected&#39;,\n              socket.authorized ? &#39;authorized&#39; : &#39;unauthorized&#39;);\n  socket.write(&#39;welcome!\\n&#39;);\n  socket.setEncoding(&#39;utf8&#39;);\n  socket.pipe(socket);\n});\nserver.listen(8000, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>This server can be tested by connecting to it using <code>openssl s_client</code>:</p>\n<pre><code class=\"lang-sh\">openssl s_client -connect 127.0.0.1:8000\n</code></pre>\n"
+          "desc": "<p>Creates a new <a href=\"#tls_class_tls_server\">tls.Server</a>.  The <code>secureConnectionListener</code>, if provided, is\nautomatically set as a listener for the <a href=\"#tls_event_secureconnection\"><code>&#39;secureConnection&#39;</code></a> event.</p>\n<p><em>Note</em>: The <code>ticketKeys</code> options is automatically shared between <code>cluster</code>\nmodule workers.</p>\n<p>The following illustrates a simple echo server:</p>\n<pre><code class=\"lang-js\">const tls = require(&#39;tls&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;server-key.pem&#39;),\n  cert: fs.readFileSync(&#39;server-cert.pem&#39;),\n\n  // This is necessary only if using the client certificate authentication.\n  requestCert: true,\n\n  // This is necessary only if the client uses the self-signed certificate.\n  ca: [ fs.readFileSync(&#39;client-cert.pem&#39;) ]\n};\n\nconst server = tls.createServer(options, (socket) =&gt; {\n  console.log(&#39;server connected&#39;,\n              socket.authorized ? &#39;authorized&#39; : &#39;unauthorized&#39;);\n  socket.write(&#39;welcome!\\n&#39;);\n  socket.setEncoding(&#39;utf8&#39;);\n  socket.pipe(socket);\n});\nserver.listen(8000, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const tls = require(&#39;tls&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;server.pfx&#39;),\n\n  // This is necessary only if using the client certificate authentication.\n  requestCert: true,\n\n};\n\nconst server = tls.createServer(options, (socket) =&gt; {\n  console.log(&#39;server connected&#39;,\n              socket.authorized ? &#39;authorized&#39; : &#39;unauthorized&#39;);\n  socket.write(&#39;welcome!\\n&#39;);\n  socket.setEncoding(&#39;utf8&#39;);\n  socket.pipe(socket);\n});\nserver.listen(8000, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>This server can be tested by connecting to it using <code>openssl s_client</code>:</p>\n<pre><code class=\"lang-sh\">openssl s_client -connect 127.0.0.1:8000\n</code></pre>\n"
         },
         {
           "textRaw": "tls.getCiphers()",

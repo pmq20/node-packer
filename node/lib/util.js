@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const uv = process.binding('uv');
@@ -17,48 +38,24 @@ const inspectDefaultOptions = Object.seal({
   breakLength: 60
 });
 
+var CIRCULAR_ERROR_MESSAGE;
 var Debug;
-var simdFormatters;
-
-// SIMD is only available when --harmony_simd is specified on the command line
-// and the set of available types differs between v5 and v6, that's why we use
-// a map to look up and store the formatters.  It also provides a modicum of
-// protection against users monkey-patching the SIMD object.
-if (typeof global.SIMD === 'object' && global.SIMD !== null) {
-  simdFormatters = new Map();
-
-  const make =
-    (extractLane, count) => (ctx, value, recurseTimes, visibleKeys, keys) => {
-      const output = new Array(count);
-      for (var i = 0; i < count; i += 1)
-        output[i] = formatPrimitive(ctx, extractLane(value, i));
-      return output;
-    };
-
-  const countPerType = {
-    Bool16x8: 8,
-    Bool32x4: 4,
-    Bool8x16: 16,
-    Float32x4: 4,
-    Int16x8: 8,
-    Int32x4: 4,
-    Int8x16: 16,
-    Uint16x8: 8,
-    Uint32x4: 4,
-    Uint8x16: 16
-  };
-
-  for (const key in countPerType) {
-    const type = global.SIMD[key];
-    simdFormatters.set(type, make(type.extractLane, countPerType[key]));
-  }
-}
 
 function tryStringify(arg) {
   try {
     return JSON.stringify(arg);
-  } catch (_) {
-    return '[Circular]';
+  } catch (err) {
+    // Populate the circular error message lazily
+    if (!CIRCULAR_ERROR_MESSAGE) {
+      try {
+        const a = {}; a.a = a; JSON.stringify(a);
+      } catch (err) {
+        CIRCULAR_ERROR_MESSAGE = err.message;
+      }
+    }
+    if (err.name === 'TypeError' && err.message === CIRCULAR_ERROR_MESSAGE)
+      return '[Circular]';
+    throw err;
   }
 }
 
@@ -217,7 +214,7 @@ Object.defineProperty(inspect, 'defaultOptions', {
 });
 
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
+inspect.colors = Object.assign(Object.create(null), {
   'bold': [1, 22],
   'italic': [3, 23],
   'underline': [4, 24],
@@ -231,10 +228,10 @@ inspect.colors = {
   'magenta': [35, 39],
   'red': [31, 39],
   'yellow': [33, 39]
-};
+});
 
 // Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
+inspect.styles = Object.assign(Object.create(null), {
   'special': 'cyan',
   'number': 'yellow',
   'boolean': 'yellow',
@@ -245,7 +242,7 @@ inspect.styles = {
   'date': 'magenta',
   // "name": intentionally not styling
   'regexp': 'red'
-};
+});
 
 const customInspectSymbol = internalUtil.customInspectSymbol;
 
@@ -281,37 +278,11 @@ function arrayToHash(array) {
 }
 
 
-function getConstructorOf(obj) {
-  while (obj) {
-    var descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
-    if (descriptor !== undefined &&
-        typeof descriptor.value === 'function' &&
-        descriptor.value.name !== '') {
-      return descriptor.value;
-    }
-
-    obj = Object.getPrototypeOf(obj);
-  }
-
-  return null;
-}
-
-
 function ensureDebugIsInitialized() {
   if (Debug === undefined) {
     const runInDebugContext = require('vm').runInDebugContext;
     Debug = runInDebugContext('Debug');
   }
-}
-
-
-function inspectPromise(p) {
-  // Only create a mirror if the object is a Promise.
-  if (!binding.isPromise(p))
-    return null;
-  ensureDebugIsInitialized();
-  const mirror = Debug.MakeMirror(p, true);
-  return {status: mirror.status(), value: mirror.promiseValue().value_};
 }
 
 
@@ -388,10 +359,13 @@ function formatValue(ctx, value, recurseTimes) {
   // Look up the keys of the object.
   var keys = Object.keys(value);
   var visibleKeys = arrayToHash(keys);
+  const symbolKeys = Object.getOwnPropertySymbols(value);
+  const enumSymbolKeys = symbolKeys
+      .filter((key) => Object.prototype.propertyIsEnumerable.call(value, key));
+  keys = keys.concat(enumSymbolKeys);
 
   if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-    keys = keys.concat(Object.getOwnPropertySymbols(value));
+    keys = Object.getOwnPropertyNames(value).concat(symbolKeys);
   }
 
   // This could be a boxed primitive (new String(), etc.), check valueOf()
@@ -420,13 +394,12 @@ function formatValue(ctx, value, recurseTimes) {
     });
   }
 
-  var constructor = getConstructorOf(value);
+  var constructor = internalUtil.getConstructorOf(value);
 
   // Some type of object without properties can be shortcutted.
   if (keys.length === 0) {
     if (typeof value === 'function') {
-      const ctorName = (constructor && constructor.name === 'AsyncFunction') ?
-          'AsyncFunction' : 'Function';
+      const ctorName = constructor ? constructor.name : 'Function';
       return ctx.stylize(
           `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
     }
@@ -463,9 +436,12 @@ function formatValue(ctx, value, recurseTimes) {
     // Fast path for ArrayBuffer and SharedArrayBuffer.
     // Can't do the same for DataView because it has a non-primitive
     // .buffer property that we need to recurse for.
-    if (binding.isArrayBuffer(value) || binding.isSharedArrayBuffer(value)) {
+    if (binding.isAnyArrayBuffer(value)) {
       return `${constructor.name}` +
              ` { byteLength: ${formatNumber(ctx, value.byteLength)} }`;
+    }
+    if (binding.isExternal(value)) {
+      return ctx.stylize('[External]', 'special');
     }
   }
 
@@ -502,8 +478,7 @@ function formatValue(ctx, value, recurseTimes) {
       keys.unshift('size');
     empty = value.size === 0;
     formatter = formatMap;
-  } else if (binding.isArrayBuffer(value) ||
-             binding.isSharedArrayBuffer(value)) {
+  } else if (binding.isAnyArrayBuffer(value)) {
     braces = ['{', '}'];
     keys.unshift('byteLength');
     visibleKeys.byteLength = true;
@@ -525,44 +500,32 @@ function formatValue(ctx, value, recurseTimes) {
                    'byteOffset',
                    'buffer');
     }
+  } else if (binding.isPromise(value)) {
+    braces = ['{', '}'];
+    formatter = formatPromise;
+  } else if (binding.isMapIterator(value)) {
+    constructor = { name: 'MapIterator' };
+    braces = ['{', '}'];
+    empty = false;
+    formatter = formatCollectionIterator;
+  } else if (binding.isSetIterator(value)) {
+    constructor = { name: 'SetIterator' };
+    braces = ['{', '}'];
+    empty = false;
+    formatter = formatCollectionIterator;
   } else {
-    var promiseInternals = inspectPromise(value);
-    if (promiseInternals) {
-      braces = ['{', '}'];
-      formatter = formatPromise;
-    } else {
-      let maybeSimdFormatter;
-      if (binding.isMapIterator(value)) {
-        constructor = { name: 'MapIterator' };
-        braces = ['{', '}'];
-        empty = false;
-        formatter = formatCollectionIterator;
-      } else if (binding.isSetIterator(value)) {
-        constructor = { name: 'SetIterator' };
-        braces = ['{', '}'];
-        empty = false;
-        formatter = formatCollectionIterator;
-      } else if (simdFormatters &&
-                 typeof constructor === 'function' &&
-                 (maybeSimdFormatter = simdFormatters.get(constructor))) {
-        braces = ['[', ']'];
-        formatter = maybeSimdFormatter;
-      } else {
-        // Unset the constructor to prevent "Object {...}" for ordinary objects.
-        if (constructor && constructor.name === 'Object')
-          constructor = null;
-        braces = ['{', '}'];
-        empty = true;  // No other data than keys.
-      }
-    }
+    // Unset the constructor to prevent "Object {...}" for ordinary objects.
+    if (constructor && constructor.name === 'Object')
+      constructor = null;
+    braces = ['{', '}'];
+    empty = true;  // No other data than keys.
   }
 
   empty = empty === true && keys.length === 0;
 
   // Make functions say that they are functions
   if (typeof value === 'function') {
-    const ctorName = (constructor && constructor.name === 'AsyncFunction') ?
-        'AsyncFunction' : 'Function';
+    const ctorName = constructor ? constructor.name : 'Function';
     base = ` [${ctorName}${value.name ? `: ${value.name}` : ''}]`;
   }
 
@@ -610,6 +573,8 @@ function formatValue(ctx, value, recurseTimes) {
   if (recurseTimes < 0) {
     if (isRegExp(value)) {
       return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else if (Array.isArray(value)) {
+      return ctx.stylize('[Array]', 'special');
     } else {
       return ctx.stylize('[Object]', 'special');
     }
@@ -685,16 +650,26 @@ function formatObject(ctx, value, recurseTimes, visibleKeys, keys) {
 
 function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
   var output = [];
-  const maxLength = Math.min(Math.max(0, ctx.maxArrayLength), value.length);
-  const remaining = value.length - maxLength;
-  for (var i = 0; i < maxLength; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                                 String(i), true));
-    } else {
-      output.push('');
+  let visibleLength = 0;
+  let index = 0;
+  while (index < value.length && visibleLength < ctx.maxArrayLength) {
+    let emptyItems = 0;
+    while (index < value.length && !hasOwnProperty(value, String(index))) {
+      emptyItems++;
+      index++;
     }
+    if (emptyItems > 0) {
+      const ending = emptyItems > 1 ? 's' : '';
+      const message = `<${emptyItems} empty item${ending}>`;
+      output.push(ctx.stylize(message, 'undefined'));
+    } else {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+                                 String(index), true));
+      index++;
+    }
+    visibleLength++;
   }
+  var remaining = value.length - index;
   if (remaining > 0) {
     output.push(`... ${remaining} more item${remaining > 1 ? 's' : ''}`);
   }
@@ -772,14 +747,15 @@ function formatCollectionIterator(ctx, value, recurseTimes, visibleKeys, keys) {
 }
 
 function formatPromise(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  var internals = inspectPromise(value);
-  if (internals.status === 'pending') {
+  const output = [];
+  const [state, result] = binding.getPromiseDetails(value);
+
+  if (state === binding.kPending) {
     output.push('<pending>');
   } else {
     var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
-    var str = formatValue(ctx, internals.value, nextRecurseTimes);
-    if (internals.status === 'rejected') {
+    var str = formatValue(ctx, result, nextRecurseTimes);
+    if (state === binding.kRejected) {
       output.push('<rejected> ' + str);
     } else {
       output.push(str);
@@ -1020,26 +996,26 @@ exports.print = internalUtil.deprecate(function() {
   for (var i = 0, len = arguments.length; i < len; ++i) {
     process.stdout.write(String(arguments[i]));
   }
-}, 'util.print is deprecated. Use console.log instead.');
+}, 'util.print is deprecated. Use console.log instead.', 'DEP0026');
 
 
 exports.puts = internalUtil.deprecate(function() {
   for (var i = 0, len = arguments.length; i < len; ++i) {
     process.stdout.write(arguments[i] + '\n');
   }
-}, 'util.puts is deprecated. Use console.log instead.');
+}, 'util.puts is deprecated. Use console.log instead.', 'DEP0027');
 
 
 exports.debug = internalUtil.deprecate(function(x) {
   process.stderr.write(`DEBUG: ${x}\n`);
-}, 'util.debug is deprecated. Use console.error instead.');
+}, 'util.debug is deprecated. Use console.error instead.', 'DEP0028');
 
 
 exports.error = internalUtil.deprecate(function(x) {
   for (var i = 0, len = arguments.length; i < len; ++i) {
     process.stderr.write(arguments[i] + '\n');
   }
-}, 'util.error is deprecated. Use console.error instead.');
+}, 'util.error is deprecated. Use console.error instead.', 'DEP0029');
 
 
 exports._errnoException = function(err, syscall, original) {
@@ -1081,3 +1057,5 @@ exports._exceptionWithHostPort = function(err,
 // process.versions needs a custom function as some values are lazy-evaluated.
 process.versions[exports.inspect.custom] =
   (depth) => exports.format(JSON.parse(JSON.stringify(process.versions)));
+
+exports.promisify = internalUtil.promisify;

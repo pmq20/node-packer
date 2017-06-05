@@ -1,4 +1,28 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
+
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 const common = require('../common');
 const assert = require('assert');
 const util = require('util');
@@ -12,7 +36,7 @@ assert.strictEqual(util.inspect(function() {}), '[Function]');
 assert.strictEqual(util.inspect(() => {}), '[Function]');
 assert.strictEqual(util.inspect(async function() {}), '[AsyncFunction]');
 assert.strictEqual(util.inspect(async () => {}), '[AsyncFunction]');
-assert.strictEqual(util.inspect(function*() {}), '[Function]');
+assert.strictEqual(util.inspect(function*() {}), '[GeneratorFunction]');
 assert.strictEqual(util.inspect(undefined), 'undefined');
 assert.strictEqual(util.inspect(null), 'null');
 assert.strictEqual(util.inspect(/foo(bar\n)?/gi), '/foo(bar\\n)?/gi');
@@ -38,7 +62,7 @@ assert.strictEqual(util.inspect({a: async function() {}}),
 assert.strictEqual(util.inspect({a: async () => {}}),
                    '{ a: [AsyncFunction: a] }');
 assert.strictEqual(util.inspect({a: function*() {}}),
-                   '{ a: [Function: a] }');
+                   '{ a: [GeneratorFunction: a] }');
 assert.strictEqual(util.inspect({a: 1, b: 2}), '{ a: 1, b: 2 }');
 assert.strictEqual(util.inspect({'a': {}}), '{ a: {} }');
 assert.strictEqual(util.inspect({'a': {'b': 2}}), '{ a: { b: 2 } }');
@@ -51,6 +75,8 @@ assert.strictEqual(util.inspect({'a': {'b': { 'c': 2}}}, false, 0),
                    '{ a: [Object] }');
 assert.strictEqual(util.inspect({'a': {'b': { 'c': 2}}}, false, 1),
                    '{ a: { b: [Object] } }');
+assert.strictEqual(util.inspect({'a': {'b': ['c']}}, false, 1),
+                   '{ a: { b: [Array] } }');
 assert.strictEqual(util.inspect(Object.create({},
   {visible: {value: 1, enumerable: true}, hidden: {value: 2}})),
                    '{ visible: 1 }'
@@ -58,6 +84,9 @@ assert.strictEqual(util.inspect(Object.create({},
 assert.strictEqual(util.inspect(Object.assign(new String('hello'),
                    { [Symbol('foo')]: 123 }), { showHidden: true }),
                    '{ [String: \'hello\'] [length]: 5, [Symbol(foo)]: 123 }');
+
+assert.strictEqual(util.inspect(process.stdin._handle._externalStream),
+                   '[External]');
 
 {
   const regexp = /regexp/;
@@ -213,7 +242,7 @@ for (const showHidden of [true, false]) {
       {visible: {value: 1, enumerable: true}, hidden: {value: 2}}), true);
   if (out !== '{ [hidden]: 2, visible: 1 }' &&
       out !== '{ visible: 1, [hidden]: 2 }') {
-    common.fail(`unexpected value for out ${out}`);
+    assert.fail(`unexpected value for out ${out}`);
   }
 }
 
@@ -225,7 +254,7 @@ for (const showHidden of [true, false]) {
                                            hidden: {value: 'secret'}}), true);
   if (out !== "{ [hidden]: 'secret', name: 'Tim' }" &&
       out !== "{ name: 'Tim', [hidden]: 'secret' }") {
-    common.fail(`unexpected value for out ${out}`);
+    assert.fail(`unexpected value for out ${out}`);
   }
 }
 
@@ -270,7 +299,7 @@ assert.strictEqual(
 
 // Function with properties
 {
-  const value = function() {};
+  const value = () => {};
   value.aprop = 42;
   assert.strictEqual(util.inspect(value), '{ [Function: value] aprop: 42 }');
 }
@@ -316,12 +345,18 @@ assert.strictEqual(util.inspect(-0), '-0');
   const a = ['foo', 'bar', 'baz'];
   assert.strictEqual(util.inspect(a), '[ \'foo\', \'bar\', \'baz\' ]');
   delete a[1];
-  assert.strictEqual(util.inspect(a), '[ \'foo\', , \'baz\' ]');
+  assert.strictEqual(util.inspect(a), '[ \'foo\', <1 empty item>, \'baz\' ]');
   assert.strictEqual(
     util.inspect(a, true),
-    '[ \'foo\', , \'baz\', [length]: 3 ]'
+    '[ \'foo\', <1 empty item>, \'baz\', [length]: 3 ]'
   );
-  assert.strictEqual(util.inspect(new Array(5)), '[ , , , ,  ]');
+  assert.strictEqual(util.inspect(new Array(5)), '[ <5 empty items> ]');
+  a[3] = 'bar';
+  a[100] = 'qux';
+  assert.strictEqual(
+    util.inspect(a, { breakLength: Infinity }),
+    '[ \'foo\', <1 empty item>, \'baz\', \'bar\', <96 empty items>, \'qux\' ]'
+  );
 }
 
 // test for Array constructor in different context
@@ -482,8 +517,7 @@ assert.doesNotThrow(() => {
 
     const withoutColor = util.inspect(input, false, 0, false);
     const withColor = util.inspect(input, false, 0, true);
-    const expect = '\u001b[' + color[0] + 'm' + withoutColor +
-                   '\u001b[' + color[1] + 'm';
+    const expect = `\u001b[${color[0]}m${withoutColor}\u001b[${color[1]}m`;
     assert.strictEqual(
       withColor,
       expect,
@@ -631,7 +665,9 @@ assert.doesNotThrow(() => {
                      '{ a: 123, inspect: [Function: inspect] }');
 
   const subject = { a: 123, [util.inspect.custom]() { return this; } };
-  assert.strictEqual(util.inspect(subject), '{ a: 123 }');
+  const UIC = 'util.inspect.custom';
+  assert.strictEqual(util.inspect(subject),
+                     `{ a: 123,\n  [Symbol(${UIC})]: [Function: [${UIC}]] }`);
 }
 
 // util.inspect with "colors" option should produce as many lines as without it
@@ -698,18 +734,27 @@ if (typeof Symbol !== 'undefined') {
 
   subject[Symbol('symbol')] = 42;
 
-  assert.strictEqual(util.inspect(subject), '{}');
+  assert.strictEqual(util.inspect(subject), '{ [Symbol(symbol)]: 42 }');
   assert.strictEqual(
     util.inspect(subject, options),
     '{ [Symbol(symbol)]: 42 }'
   );
 
+  Object.defineProperty(
+    subject,
+    Symbol(),
+    {enumerable: false, value: 'non-enum'});
+  assert.strictEqual(util.inspect(subject), '{ [Symbol(symbol)]: 42 }');
+  assert.strictEqual(
+    util.inspect(subject, options),
+    '{ [Symbol(symbol)]: 42, [Symbol()]: \'non-enum\' }'
+  );
+
   subject = [1, 2, 3];
   subject[Symbol('symbol')] = 42;
 
-  assert.strictEqual(util.inspect(subject), '[ 1, 2, 3 ]');
-  assert.strictEqual(util.inspect(subject, options),
-                     '[ 1, 2, 3, [length]: 3, [Symbol(symbol)]: 42 ]');
+  assert.strictEqual(util.inspect(subject),
+                     '[ 1, 2, 3, [Symbol(symbol)]: 42 ]');
 }
 
 // test Set
@@ -743,9 +788,9 @@ if (typeof Symbol !== 'undefined') {
   const rejected = Promise.reject(3);
   assert.strictEqual(util.inspect(rejected), 'Promise { <rejected> 3 }');
   // squelch UnhandledPromiseRejection
-  rejected.catch(() => {});
+  rejected.catch(common.noop);
 
-  const pending = new Promise(() => {});
+  const pending = new Promise(common.noop);
   assert.strictEqual(util.inspect(pending), 'Promise { <pending> }');
 
   const promiseWithProperty = Promise.resolve('foo');
@@ -842,7 +887,7 @@ if (typeof Symbol !== 'undefined') {
                      'SetSubclass { 1, 2, 3 }');
   assert.strictEqual(util.inspect(new MapSubclass([['foo', 42]])),
                      'MapSubclass { \'foo\' => 42 }');
-  assert.strictEqual(util.inspect(new PromiseSubclass(() => {})),
+  assert.strictEqual(util.inspect(new PromiseSubclass(common.noop)),
                      'PromiseSubclass { <pending> }');
 }
 
@@ -877,13 +922,19 @@ if (typeof Symbol !== 'undefined') {
 // Do not backport to v5/v4 unless all of
 // https://github.com/nodejs/node/pull/6334 is backported.
 {
-  const x = Array(101);
+  const x = new Array(101).fill();
   assert(util.inspect(x).endsWith('1 more item ]'));
 }
 
 {
-  const x = Array(101);
+  const x = new Array(101).fill();
   assert(!util.inspect(x, { maxArrayLength: 101 }).endsWith('1 more item ]'));
+}
+
+{
+  const x = new Array(101).fill();
+  assert.strictEqual(util.inspect(x, { maxArrayLength: 0 }),
+                     '[ ... 101 more items ]');
 }
 
 {
@@ -947,7 +998,7 @@ if (typeof Symbol !== 'undefined') {
 
 // util.inspect.defaultOptions tests
 {
-  const arr = Array(101);
+  const arr = new Array(101).fill();
   const obj = {a: {a: {a: {a: 1}}}};
 
   const oldOptions = Object.assign({}, util.inspect.defaultOptions);
@@ -986,3 +1037,5 @@ if (typeof Symbol !== 'undefined') {
     util.inspect.defaultOptions = 'bad';
   }, /"options" must be an object/);
 }
+
+assert.doesNotThrow(() => util.inspect(process));

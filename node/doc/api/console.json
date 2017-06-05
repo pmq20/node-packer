@@ -12,6 +12,15 @@
           "textRaw": "Class: Console",
           "type": "class",
           "name": "Console",
+          "meta": {
+            "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/9744",
+                "description": "Errors that occur while writing to the underlying streams will now be ignored."
+              }
+            ]
+          },
           "desc": "<p>The <code>Console</code> class can be used to create a simple logger with configurable\noutput streams and can be accessed using either <code>require(&#39;console&#39;).Console</code>\nor <code>console.Console</code>:</p>\n<pre><code class=\"lang-js\">const Console = require(&#39;console&#39;).Console;\n</code></pre>\n<pre><code class=\"lang-js\">const Console = console.Console;\n</code></pre>\n",
           "methods": [
             {
@@ -62,7 +71,7 @@
                   ]
                 }
               ],
-              "desc": "<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,\nan <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted\nusing <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> and used as the error message.</p>\n<pre><code class=\"lang-js\">console.assert(true, &#39;does nothing&#39;);\n// OK\nconsole.assert(false, &#39;Whoops %s&#39;, &#39;didn\\&#39;t work&#39;);\n// AssertionError: Whoops didn&#39;t work\n</code></pre>\n<p><em>Note: the <code>console.assert()</code> method is implemented differently in Node.js\nthan the <code>console.assert()</code> method <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/console/assert\">available in browsers</a>.</em></p>\n<p>Specifically, in browsers, calling <code>console.assert()</code> with a falsy\nassertion will cause the <code>message</code> to be printed to the console without\ninterrupting execution of subsequent code. In Node.js, however, a falsy\nassertion will cause an <code>AssertionError</code> to be thrown.</p>\n<p>Functionality approximating that implemented by browsers can be implemented\nby extending Node.js&#39; <code>console</code> and overriding the <code>console.assert()</code> method.</p>\n<p>In the following example, a simple module is created that extends and overrides\nthe default behavior of <code>console</code> in Node.js.</p>\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\n\n// Creates a simple extension of console with a\n// new impl for assert without monkey-patching.\nconst myConsole = Object.create(console, {\n  assert: {\n    value: function assert(assertion, message, ...args) {\n      try {\n        console.assert(assertion, message, ...args);\n      } catch (err) {\n        console.error(err.stack);\n      }\n    },\n    configurable: true,\n    enumerable: true,\n    writable: true,\n  },\n});\n\nmodule.exports = myConsole;\n</code></pre>\n<p>This can then be used as a direct replacement for the built in console:</p>\n<pre><code class=\"lang-js\">const console = require(&#39;./myConsole&#39;);\nconsole.assert(false, &#39;this message will print, but no error thrown&#39;);\nconsole.log(&#39;this will also print&#39;);\n</code></pre>\n"
+              "desc": "<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,\nan <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted\nusing <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> and used as the error message.</p>\n<pre><code class=\"lang-js\">console.assert(true, &#39;does nothing&#39;);\n// OK\nconsole.assert(false, &#39;Whoops %s&#39;, &#39;didn\\&#39;t work&#39;);\n// AssertionError: Whoops didn&#39;t work\n</code></pre>\n<p><em>Note</em>: The <code>console.assert()</code> method is implemented differently in Node.js\nthan the <code>console.assert()</code> method <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/console/assert\">available in browsers</a>.</p>\n<p>Specifically, in browsers, calling <code>console.assert()</code> with a falsy\nassertion will cause the <code>message</code> to be printed to the console without\ninterrupting execution of subsequent code. In Node.js, however, a falsy\nassertion will cause an <code>AssertionError</code> to be thrown.</p>\n<p>Functionality approximating that implemented by browsers can be implemented\nby extending Node.js&#39; <code>console</code> and overriding the <code>console.assert()</code> method.</p>\n<p>In the following example, a simple module is created that extends and overrides\nthe default behavior of <code>console</code> in Node.js.</p>\n<!-- eslint-disable func-name-matching -->\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\n\n// Creates a simple extension of console with a\n// new impl for assert without monkey-patching.\nconst myConsole = Object.create(console, {\n  assert: {\n    value: function assert(assertion, message, ...args) {\n      try {\n        console.assert(assertion, message, ...args);\n      } catch (err) {\n        console.error(err.stack);\n      }\n    },\n    configurable: true,\n    enumerable: true,\n    writable: true,\n  },\n});\n\nmodule.exports = myConsole;\n</code></pre>\n<p>This can then be used as a direct replacement for the built in console:</p>\n<pre><code class=\"lang-js\">const console = require(&#39;./myConsole&#39;);\nconsole.assert(false, &#39;this message will print, but no error thrown&#39;);\nconsole.log(&#39;this will also print&#39;);\n</code></pre>\n"
             },
             {
               "textRaw": "console.dir(obj[, options])",
@@ -275,7 +284,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Starts a timer that can be used to compute the duration of an operation. Timers\nare identified by a unique <code>label</code>. Use the same <code>label</code> when you call\n<a href=\"#console_console_timeend_label\"><code>console.timeEnd()</code></a> to stop the timer and output the elapsed time in\nmilliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>\n"
+              "desc": "<p>Starts a timer that can be used to compute the duration of an operation. Timers\nare identified by a unique <code>label</code>. Use the same <code>label</code> when calling\n<a href=\"#console_console_timeend_label\"><code>console.timeEnd()</code></a> to stop the timer and output the elapsed time in\nmilliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>\n"
             },
             {
               "textRaw": "console.timeEnd(label)",
@@ -311,7 +320,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Stops a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a> and\nprints the result to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;100-elements&#39;);\nfor (let i = 0; i &lt; 100; i++) {\n  ;\n}\nconsole.timeEnd(&#39;100-elements&#39;);\n// prints 100-elements: 225.438ms\n</code></pre>\n<p><em>Note: As of Node.js v6.0.0, <code>console.timeEnd()</code> deletes the timer to avoid\nleaking it. On older versions, the timer persisted. This allowed\n<code>console.timeEnd()</code> to be called multiple times for the same label. This\nfunctionality was unintended and is no longer supported.</em></p>\n"
+              "desc": "<p>Stops a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a> and\nprints the result to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;100-elements&#39;);\nfor (let i = 0; i &lt; 100; i++) {}\nconsole.timeEnd(&#39;100-elements&#39;);\n// prints 100-elements: 225.438ms\n</code></pre>\n<p><em>Note</em>: As of Node.js v6.0.0, <code>console.timeEnd()</code> deletes the timer to avoid\nleaking it. On older versions, the timer persisted. This allowed\n<code>console.timeEnd()</code> to be called multiple times for the same label. This\nfunctionality was unintended and is no longer supported.</p>\n"
             },
             {
               "textRaw": "console.trace([message][, ...args])",

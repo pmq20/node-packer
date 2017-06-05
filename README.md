@@ -1,32 +1,37 @@
 # Node.js Compiler
 
-Compiling your Node.js application into a single executable. 
+Compiling your Node.js application into a single executable.
+
+|                      |          Master&#160;CI                                                                                                                                             |  Master&#160;CI&#160;Part&#160;2                                                                                                                                                        |   RAM&#160;CI                                                                                                                                                          |                       Black&#x2011;box&#160;CI                                                                                                 |
+|:--------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|     **Windows**      | [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/imeqi80bqn2xdv8b/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ci2/branch/master)        |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  |
+|   **Linux / macOS**  | [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                 | N/A                                                                                                                                                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 |
 
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
 
 ## Download
 
-|                       |                                                       Master&#160;CI                                                                                                  |                                                              [RAM&#160;Test](https://github.com/pmq20/node-compiler-ram)                                                  |                                                             [Black&#x2011;box&#160;Test](https://github.com/pmq20/node-compiler-blbt)          |                              Latest&#160;Stable                                        |
-|:---------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------|
-|      **Windows**      |  [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  |  [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download         |
-|       **macOS**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download  |
-|       **Linux**       |  [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              |  [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 | https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download   |
+|                       |   Arch.  |                              Latest&#160;Stable                                        |
+|:---------------------:|:--------:|----------------------------------------------------------------------------------------|
+|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download     |
+|       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download  |
+|       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download   |
 
-## How it works?
+## How it works
 
-### Presentation
+### Presentations
 
-[Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
+- [Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
 
 ### Comparing with Similar Projects
 
-| Project   | Differences                                                                                                                                                                                                                                                                                           |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|            Project                       | Differences                                                                                                                                                                                                                                                                                                                                             |
+|:----------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [pkg](https://github.com/zeit/pkg)       | Pkg hacked `fs.*` API's dynamically in order to access in-package files, whereas Node.js Compiler leaves them alone and instead works on a deeper level via [libsquash](https://github.com/pmq20/libsquash). Pkg uses JSON to store in-package files while Node.js Compiler uses the more sophisticated and widely used SquashFS as its data structure. |
-| [EncloseJS](http://enclosejs.com/) | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Compiler supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Compiler is MIT-licensed and users are both free to use it and free to modify it.                    |
-| [Nexe](https://github.com/nexe/nexe)      | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Compiler supports all kinds of `require` including `require.resolve`.                                                                                     |
-| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Compiler links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Compiler uses SquashFS. |
-| [AppImage](http://appimage.org/)  | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                                                                       |
+| [EncloseJS](http://enclosejs.com/)       | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Compiler supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Compiler is MIT-licensed and users are both free to use it and free to modify it.                                                             |
+| [Nexe](https://github.com/nexe/nexe)     | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Compiler supports all kinds of `require` including `require.resolve`.                                                                                                                                                                                       |
+| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Compiler links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Compiler uses SquashFS.                                                      |
+| [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
 
 ## Install
 
@@ -39,8 +44,10 @@ First install the prerequisites:
 * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
   including the Community edition (remember to select
   "Common Tools for Visual C++ 2015" feature during installation).
+* [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
+  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download the executable [nodec.exe](https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec.exe/download) and run it from the VC++ or VS Command Prompt.
+Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ### macOS
 
@@ -56,7 +63,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-darwin-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -65,14 +72,14 @@ Then,
 First install the prerequisites:
 
 * [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
-* `gcc` and `g++` 4.8.5 or newer, or
+* `gcc` and `g++` 4.8.2 or newer, or
 * `clang` and `clang++` 3.4 or newer
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v0.9.6/nodec-linux-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -89,19 +96,32 @@ Then,
       -n, --npm=FILE                   Specifies the path of npm
           --npm-package=NAME           Downloads and compiles the specified npm package
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
+          --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
+          --auto-update-base=STRING    Enables auto-update and specifies the base version string
           --debug                      Enable debug mode
       -o, --dest-os=OS                 Destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
       -a, --dest-arch=ARCH             Destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)
       -v, --version                    Prints the version of nodec and exit
           --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
+          --examples                   Prints usage examples
 
-## Example
+## Examples
+
+### Compile a CLI tool
 
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
     ./a.out (or a.exe on Windows)
+
+### Compile a web application
+
+    git clone --depth 1 https://github.com/eggjs/examples.git
+    cd examples/helloworld
+    npm install
+    nodec node_modules/.bin/egg-bin
+    ./a.out dev (or a.exe dev on Windows)
 
 ## Cross Compilation
 
@@ -155,7 +175,6 @@ An example (you may need to adjust values or specify additional variables):
     #Export the path for your system
     #export HOME="/home/gioyik" #Change this one with the name of your user directory
     export PATH=${CSTOOLS}/bin:/usr/arm-linux-gnueabi/bin/:$PATH
-
 
 ## See Also
 

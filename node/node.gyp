@@ -22,8 +22,7 @@
     'node_core_target_name%': 'node',
     'library_files': [
       'lib/internal/bootstrap_node.js',
-      'lib/_debug_agent.js',
-      'lib/_debugger.js',
+      'lib/async_hooks.js',
       'lib/assert.js',
       'lib/buffer.js',
       'lib/child_process.js',
@@ -44,7 +43,7 @@
       'lib/_http_outgoing.js',
       'lib/_http_server.js',
       'lib/https.js',
-      'lib/_linklist.js',
+      'lib/inspector.js',
       'lib/module.js',
       'lib/net.js',
       'lib/os.js',
@@ -85,6 +84,7 @@
       'lib/internal/errors.js',
       'lib/internal/freelist.js',
       'lib/internal/fs.js',
+      'lib/internal/http.js',
       'lib/internal/linkedlist.js',
       'lib/internal/net.js',
       'lib/internal/module.js',
@@ -106,6 +106,7 @@
       'lib/internal/streams/lazy_transform.js',
       'lib/internal/streams/BufferList.js',
       'lib/internal/streams/legacy.js',
+      'lib/internal/streams/destroy.js',
       'deps/v8/tools/splaytree.js',
       'deps/v8/tools/codemap.js',
       'deps/v8/tools/consarray.js',
@@ -160,20 +161,18 @@
       ],
 
       'sources': [
-        'src/tracing/agent.cc',
-        'src/tracing/node_trace_buffer.cc',
-        'src/tracing/node_trace_writer.cc',
-        'src/tracing/trace_event.cc',
         'src/async-wrap.cc',
         'src/cares_wrap.cc',
         'src/connection_wrap.cc',
         'src/connect_wrap.cc',
-        'src/debug-agent.cc',
         'src/env.cc',
         'src/fs_event_wrap.cc',
         'src/handle_wrap.cc',
         'src/js_stream.cc',
         'src/node.cc',
+        'src/node_api.cc',
+        'src/node_api.h',
+        'src/node_api_types.h',
         'src/node_buffer.cc',
         'src/node_config.cc',
         'src/node_constants.cc',
@@ -184,6 +183,7 @@
         'src/node_main.cc',
         'src/node_os.cc',
         'src/node_revert.cc',
+        'src/node_serdes.cc',
         'src/node_url.cc',
         'src/node_util.cc',
         'src/node_v8.cc',
@@ -201,6 +201,10 @@
         'src/stream_wrap.cc',
         'src/tcp_wrap.cc',
         'src/timer_wrap.cc',
+        'src/tracing/agent.cc',
+        'src/tracing/node_trace_buffer.cc',
+        'src/tracing/node_trace_writer.cc',
+        'src/tracing/trace_event.cc',
         'src/tty_wrap.cc',
         'src/udp_wrap.cc',
         'src/util.cc',
@@ -212,7 +216,6 @@
         'src/base-object-inl.h',
         'src/connection_wrap.h',
         'src/connect_wrap.h',
-        'src/debug-agent.h',
         'src/env.h',
         'src/env-inl.h',
         'src/handle_wrap.h',
@@ -221,8 +224,6 @@
         'src/node_buffer.h',
         'src/node_constants.h',
         'src/node_debug_options.h',
-        'src/node_file.h',
-        'src/node_http_parser.h',
         'src/node_internals.h',
         'src/node_javascript.h',
         'src/node_mutex.h',
@@ -279,7 +280,7 @@
               # Categories to export.
               '-CAES,BF,BIO,DES,DH,DSA,EC,ECDH,ECDSA,ENGINE,EVP,HMAC,MD4,MD5,'
               'NEXTPROTONEG,PSK,RC2,RC4,RSA,SHA,SHA0,SHA1,SHA256,SHA512,SOCK,'
-              'STDIO,TLSEXT',
+              'STDIO,TLSEXT,FP_API',
               # Defines.
               '-DWIN32',
               # Symbols to filter from the export list.
@@ -366,13 +367,13 @@
       'type': 'none',
       'toolsets': ['host'],
       'conditions': [
-        [ 'v8_inspector=="true"', {
+        [ 'v8_enable_inspector==1', {
           'actions': [
             {
               'action_name': 'v8_inspector_compress_protocol_json',
               'process_outputs_as_sources': 1,
               'inputs': [
-                'deps/v8_inspector/src/inspector/js_protocol.json',
+                'deps/v8/src/inspector/js_protocol.json',
               ],
               'outputs': [
                 '<(SHARED_INTERMEDIATE_DIR)/v8_inspector_protocol_json.h',
@@ -516,7 +517,7 @@
                 '<(OBJ_DIR)/node/src/node_dtrace_ustack.o'
               ],
               'conditions': [
-                [ 'target_arch=="ia32"', {
+                [ 'target_arch=="ia32" or target_arch=="arm"', {
                   'action': [
                     'dtrace', '-32', '-I<(SHARED_INTERMEDIATE_DIR)', '-Isrc',
                     '-C', '-G', '-s', 'src/v8ustack.d', '-o', '<@(_outputs)',
@@ -579,19 +580,31 @@
         'OBJ_GEN_PATH': '<(OBJ_DIR)/node/gen',
         'OBJ_TRACING_PATH': '<(OBJ_DIR)/node/src/tracing',
         'OBJ_SUFFIX': 'o',
+        'OBJ_SEPARATOR': '/',
         'conditions': [
           ['OS=="win"', {
-            'OBJ_PATH': '<(OBJ_DIR)/node',
-            'OBJ_GEN_PATH': '<(OBJ_DIR)/node',
-            'OBJ_TRACING_PATH': '<(OBJ_DIR)/node',
             'OBJ_SUFFIX': 'obj',
           }],
-          ['OS=="aix"', {
-            'OBJ_PATH': '<(OBJ_DIR)/node_base/src',
-            'OBJ_GEN_PATH': '<(OBJ_DIR)/node_base/gen',
-            'OBJ_TRACING_PATH': '<(OBJ_DIR)/node_base/src/tracing',
-          }],
-         ],
+          ['GENERATOR=="ninja"', {
+            'OBJ_PATH': '<(OBJ_DIR)/src',
+            'OBJ_GEN_PATH': '<(OBJ_DIR)/gen',
+            'OBJ_TRACING_PATH': '<(OBJ_DIR)/src/tracing',
+            'OBJ_SEPARATOR': '/node.',
+          }, {
+            'conditions': [
+              ['OS=="win"', {
+                'OBJ_PATH': '<(OBJ_DIR)/node',
+                'OBJ_GEN_PATH': '<(OBJ_DIR)/node',
+                'OBJ_TRACING_PATH': '<(OBJ_DIR)/node',
+              }],
+              ['OS=="aix"', {
+                'OBJ_PATH': '<(OBJ_DIR)/node_base/src',
+                'OBJ_GEN_PATH': '<(OBJ_DIR)/node_base/gen',
+                'OBJ_TRACING_PATH': '<(OBJ_DIR)/node_base/src/tracing',
+              }],
+            ]}
+          ]
+        ],
        },
 
       'includes': [
@@ -608,24 +621,24 @@
       ],
 
       'libraries': [
-        '<(OBJ_GEN_PATH)/node_javascript.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node_debug_options.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/async-wrap.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/env.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node_buffer.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node_i18n.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/debug-agent.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/util.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/string_bytes.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/string_search.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/stream_base.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node_constants.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)/node_revert.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)/agent.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)/node_trace_buffer.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)/node_trace_writer.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)/trace_event.<(OBJ_SUFFIX)',
+        '<(OBJ_GEN_PATH)<(OBJ_SEPARATOR)node_javascript.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_debug_options.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)async-wrap.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)env.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_buffer.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_i18n.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_url.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)util.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)string_bytes.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)string_search.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)stream_base.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_constants.<(OBJ_SUFFIX)',
+        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_revert.<(OBJ_SUFFIX)',
+        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)agent.<(OBJ_SUFFIX)',
+        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_buffer.<(OBJ_SUFFIX)',
+        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_writer.<(OBJ_SUFFIX)',
+        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)trace_event.<(OBJ_SUFFIX)',
       ],
 
       'defines': [
@@ -640,7 +653,10 @@
       ],
 
       'sources': [
+        'test/cctest/test_base64.cc',
+        'test/cctest/test_environment.cc',
         'test/cctest/test_util.cc',
+        'test/cctest/test_url.cc'
       ],
 
       'sources!': [
@@ -648,7 +664,7 @@
       ],
 
       'conditions': [
-        ['v8_inspector=="true"', {
+        ['v8_enable_inspector==1', {
           'sources': [
             'test/cctest/test_inspector_socket.cc',
             'test/cctest/test_inspector_socket_server.cc'
@@ -659,7 +675,7 @@
                 'deps/zlib/zlib.gyp:zlib',
               ]
             }],
-            [ 'node_shared_openssl=="false"', {
+            [ 'node_shared_openssl=="false" and node_shared=="false"', {
               'dependencies': [
                 'deps/openssl/openssl.gyp:openssl'
               ]
@@ -685,9 +701,9 @@
           'copies': [{
             'destination': '<(OBJ_DIR)/cctest/src',
             'files': [
-              '<(OBJ_PATH)/node_dtrace_ustack.<(OBJ_SUFFIX)',
-              '<(OBJ_PATH)/node_dtrace_provider.<(OBJ_SUFFIX)',
-              '<(OBJ_PATH)/node_dtrace.<(OBJ_SUFFIX)',
+              '<(OBJ_PATH)<(OBJ_SEPARATOR)node_dtrace_ustack.<(OBJ_SUFFIX)',
+              '<(OBJ_PATH)<(OBJ_SEPARATOR)node_dtrace_provider.<(OBJ_SUFFIX)',
+              '<(OBJ_PATH)<(OBJ_SEPARATOR)node_dtrace.<(OBJ_SUFFIX)',
             ]},
           ],
         }],

@@ -5,7 +5,9 @@
 #include "src/builtins/builtins.h"
 #include "src/builtins/builtins-utils.h"
 
+#include "src/counters.h"
 #include "src/messages.h"
+#include "src/objects-inl.h"
 #include "src/property-descriptor.h"
 #include "src/string-builder.h"
 
@@ -28,7 +30,7 @@ BUILTIN(ErrorConstructor) {
   }
 
   RETURN_RESULT_OR_FAILURE(
-      isolate, ErrorUtils::Construct(isolate, args.target<JSFunction>(),
+      isolate, ErrorUtils::Construct(isolate, args.target(),
                                      Handle<Object>::cast(args.new_target()),
                                      args.atOrUndefined(isolate, 1), mode,
                                      caller, false));
@@ -55,7 +57,7 @@ BUILTIN(ErrorCaptureStackTrace) {
 
   Handle<Object> stack_trace =
       isolate->CaptureSimpleStackTrace(object, mode, caller);
-  if (!stack_trace->IsJSArray()) return *isolate->factory()->undefined_value();
+  if (!stack_trace->IsJSArray()) return isolate->heap()->undefined_value();
 
   Handle<Object> formatted_stack_trace;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(

@@ -336,8 +336,14 @@ void V8Console::groupEndCallback(
 }
 
 void V8Console::clearCallback(const v8::FunctionCallbackInfo<v8::Value>& info) {
-  ConsoleHelper(info).reportCallWithDefaultArgument(ConsoleAPIType::kClear,
-                                                    String16("console.clear"));
+  ConsoleHelper helper(info);
+  InspectedContext* context = helper.ensureInspectedContext();
+  if (!context) return;
+  int contextGroupId = context->contextGroupId();
+  if (V8InspectorClient* client = helper.ensureDebuggerClient())
+    client->consoleClear(contextGroupId);
+  helper.reportCallWithDefaultArgument(ConsoleAPIType::kClear,
+                                       String16("console.clear"));
 }
 
 void V8Console::countCallback(const v8::FunctionCallbackInfo<v8::Value>& info) {
@@ -360,8 +366,10 @@ void V8Console::countCallback(const v8::FunctionCallbackInfo<v8::Value>& info) {
   if (!helper.privateMap("V8Console#countMap").ToLocal(&countMap)) return;
   int32_t count = helper.getIntFromMap(countMap, identifier, 0) + 1;
   helper.setIntOnMap(countMap, identifier, count);
-  helper.reportCallWithArgument(ConsoleAPIType::kCount,
-                                title + ": " + String16::fromInteger(count));
+  String16 countString = String16::fromInteger(count);
+  helper.reportCallWithArgument(
+      ConsoleAPIType::kCount,
+      title.isEmpty() ? countString : (title + ": " + countString));
 }
 
 void V8Console::assertCallback(
@@ -431,7 +439,7 @@ static void timeEndFunction(const v8::FunctionCallbackInfo<v8::Value>& info,
     double elapsed = client->currentTimeMS() -
                      helper.getDoubleFromMap(timeMap, protocolTitle, 0.0);
     String16 message =
-        protocolTitle + ": " + String16::fromDouble(elapsed, 3) + "ms";
+        protocolTitle + ": " + String16::fromDouble(elapsed) + "ms";
     helper.reportCallWithArgument(ConsoleAPIType::kTimeEnd, message);
   }
 }
@@ -618,12 +626,11 @@ static void inspectImpl(const v8::FunctionCallbackInfo<v8::Value>& info,
   if (!context) return;
   InjectedScript* injectedScript = context->getInjectedScript();
   if (!injectedScript) return;
-  ErrorString errorString;
-  std::unique_ptr<protocol::Runtime::RemoteObject> wrappedObject =
-      injectedScript->wrapObject(&errorString, info[0], "",
-                                 false /** forceValueType */,
-                                 false /** generatePreview */);
-  if (!wrappedObject || !errorString.isEmpty()) return;
+  std::unique_ptr<protocol::Runtime::RemoteObject> wrappedObject;
+  protocol::Response response =
+      injectedScript->wrapObject(info[0], "", false /** forceValueType */,
+                                 false /** generatePreview */, &wrappedObject);
+  if (!response.isSuccess()) return;
 
   std::unique_ptr<protocol::DictionaryValue> hints =
       protocol::DictionaryValue::create();
@@ -714,6 +721,29 @@ v8::Local<v8::Object> V8Console::createConsole(
                               V8Console::timeEndCallback);
   createBoundFunctionProperty(context, console, "timeStamp",
                               V8Console::timeStampCallback);
+
+  const char* jsConsoleAssert =
+      "(function(){\n"
+      "  var originAssert = this.assert;\n"
+      "  originAssert.apply = Function.prototype.apply;\n"
+      "  this.assert = assertWrapper;\n"
+      "  assertWrapper.toString = () => originAssert.toString();\n"
+      "  function assertWrapper(){\n"
+      "    if (!!arguments[0]) return;\n"
+      "    originAssert.apply(null, arguments);\n"
+      "  }\n"
+      "})";
+
+  v8::Local<v8::String> assertSource = toV8String(isolate, jsConsoleAssert);
+  V8InspectorImpl* inspector = inspectedContext->inspector();
+  v8::Local<v8::Value> setupFunction;
+  if (inspector->compileAndRunInternalScript(context, assertSource)
+          .ToLocal(&setupFunction) &&
+      setupFunction->IsFunction()) {
+    inspector->callInternalFunction(
+        v8::Local<v8::Function>::Cast(setupFunction), context, console, 0,
+        nullptr);
+  }
 
   if (hasMemoryAttribute)
     console->SetAccessorProperty(

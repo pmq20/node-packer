@@ -7,6 +7,7 @@
 #include "src/crankshaft/x87/lithium-codegen-x87.h"
 
 #include "src/base/bits.h"
+#include "src/builtins/builtins-constructor.h"
 #include "src/code-factory.h"
 #include "src/code-stubs.h"
 #include "src/codegen.h"
@@ -146,15 +147,18 @@ void LCodeGen::DoPrologue(LPrologue* instr) {
       __ CallRuntime(Runtime::kNewScriptContext);
       deopt_mode = Safepoint::kLazyDeopt;
     } else {
-      if (slots <= FastNewFunctionContextStub::kMaximumSlots) {
-        FastNewFunctionContextStub stub(isolate());
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
+        Callable callable = CodeFactory::FastNewFunctionContext(
+            isolate(), info()->scope()->scope_type());
         __ mov(FastNewFunctionContextDescriptor::SlotsRegister(),
                Immediate(slots));
-        __ CallStub(&stub);
-        // Result of FastNewFunctionContextStub is always in new space.
+        __ Call(callable.code(), RelocInfo::CODE_TARGET);
+        // Result of the FastNewFunctionContext builtin is always in new space.
         need_write_barrier = false;
       } else {
-        __ push(edi);
+        __ Push(edi);
+        __ Push(Smi::FromInt(info()->scope()->scope_type()));
         __ CallRuntime(Runtime::kNewFunctionContext);
       }
     }
@@ -330,8 +334,7 @@ bool LCodeGen::GenerateDeferredCode() {
 
       HValue* value =
           instructions_->at(code->instruction_index())->hydrogen_value();
-      RecordAndWritePosition(
-          chunk()->graph()->SourcePositionToScriptPosition(value->position()));
+      RecordAndWritePosition(value->position());
 
       Comment(";;; <@%d,#%d> "
               "-------------------- Deferred %s --------------------",
@@ -2125,16 +2128,15 @@ void LCodeGen::DoBranch(LBranch* instr) {
       __ cmp(FieldOperand(reg, String::kLengthOffset), Immediate(0));
       EmitBranch(instr, not_equal);
     } else {
-      ToBooleanICStub::Types expected =
-          instr->hydrogen()->expected_input_types();
-      if (expected.IsEmpty()) expected = ToBooleanICStub::Types::Generic();
+      ToBooleanHints expected = instr->hydrogen()->expected_input_types();
+      if (expected == ToBooleanHint::kNone) expected = ToBooleanHint::kAny;
 
-      if (expected.Contains(ToBooleanICStub::UNDEFINED)) {
+      if (expected & ToBooleanHint::kUndefined) {
         // undefined -> false.
         __ cmp(reg, factory()->undefined_value());
         __ j(equal, instr->FalseLabel(chunk_));
       }
-      if (expected.Contains(ToBooleanICStub::BOOLEAN)) {
+      if (expected & ToBooleanHint::kBoolean) {
         // true -> true.
         __ cmp(reg, factory()->true_value());
         __ j(equal, instr->TrueLabel(chunk_));
@@ -2142,30 +2144,30 @@ void LCodeGen::DoBranch(LBranch* instr) {
         __ cmp(reg, factory()->false_value());
         __ j(equal, instr->FalseLabel(chunk_));
       }
-      if (expected.Contains(ToBooleanICStub::NULL_TYPE)) {
+      if (expected & ToBooleanHint::kNull) {
         // 'null' -> false.
         __ cmp(reg, factory()->null_value());
         __ j(equal, instr->FalseLabel(chunk_));
       }
 
-      if (expected.Contains(ToBooleanICStub::SMI)) {
+      if (expected & ToBooleanHint::kSmallInteger) {
         // Smis: 0 -> false, all other -> true.
         __ test(reg, Operand(reg));
         __ j(equal, instr->FalseLabel(chunk_));
         __ JumpIfSmi(reg, instr->TrueLabel(chunk_));
-      } else if (expected.NeedsMap()) {
+      } else if (expected & ToBooleanHint::kNeedsMap) {
         // If we need a map later and have a Smi -> deopt.
         __ test(reg, Immediate(kSmiTagMask));
         DeoptimizeIf(zero, instr, DeoptimizeReason::kSmi);
       }
 
       Register map = no_reg;  // Keep the compiler happy.
-      if (expected.NeedsMap()) {
+      if (expected & ToBooleanHint::kNeedsMap) {
         map = ToRegister(instr->temp());
         DCHECK(!map.is(reg));
         __ mov(map, FieldOperand(reg, HeapObject::kMapOffset));
 
-        if (expected.CanBeUndetectable()) {
+        if (expected & ToBooleanHint::kCanBeUndetectable) {
           // Undetectable -> false.
           __ test_b(FieldOperand(map, Map::kBitFieldOffset),
                     Immediate(1 << Map::kIsUndetectable));
@@ -2173,13 +2175,13 @@ void LCodeGen::DoBranch(LBranch* instr) {
         }
       }
 
-      if (expected.Contains(ToBooleanICStub::SPEC_OBJECT)) {
+      if (expected & ToBooleanHint::kReceiver) {
         // spec object -> true.
         __ CmpInstanceType(map, FIRST_JS_RECEIVER_TYPE);
         __ j(above_equal, instr->TrueLabel(chunk_));
       }
 
-      if (expected.Contains(ToBooleanICStub::STRING)) {
+      if (expected & ToBooleanHint::kString) {
         // String value -> false iff empty.
         Label not_string;
         __ CmpInstanceType(map, FIRST_NONSTRING_TYPE);
@@ -2190,19 +2192,13 @@ void LCodeGen::DoBranch(LBranch* instr) {
         __ bind(&not_string);
       }
 
-      if (expected.Contains(ToBooleanICStub::SYMBOL)) {
+      if (expected & ToBooleanHint::kSymbol) {
         // Symbol value -> true.
         __ CmpInstanceType(map, SYMBOL_TYPE);
         __ j(equal, instr->TrueLabel(chunk_));
       }
 
-      if (expected.Contains(ToBooleanICStub::SIMD_VALUE)) {
-        // SIMD value -> true.
-        __ CmpInstanceType(map, SIMD128_VALUE_TYPE);
-        __ j(equal, instr->TrueLabel(chunk_));
-      }
-
-      if (expected.Contains(ToBooleanICStub::HEAP_NUMBER)) {
+      if (expected & ToBooleanHint::kHeapNumber) {
         // heap number -> false iff +0, -0, or NaN.
         Label not_heap_number;
         __ cmp(FieldOperand(reg, HeapObject::kMapOffset),
@@ -2216,7 +2212,7 @@ void LCodeGen::DoBranch(LBranch* instr) {
         __ bind(&not_heap_number);
       }
 
-      if (!expected.IsGeneric()) {
+      if (expected != ToBooleanHint::kAny) {
         // We've seen something for the first time -> deopt.
         // This can only happen if we are not generic already.
         DeoptimizeIf(no_condition, instr, DeoptimizeReason::kUnexpectedObject);
@@ -2477,28 +2473,6 @@ void LCodeGen::DoHasInstanceTypeAndBranch(LHasInstanceTypeAndBranch* instr) {
   EmitBranch(instr, BranchCondition(instr->hydrogen()));
 }
 
-
-void LCodeGen::DoGetCachedArrayIndex(LGetCachedArrayIndex* instr) {
-  Register input = ToRegister(instr->value());
-  Register result = ToRegister(instr->result());
-
-  __ AssertString(input);
-
-  __ mov(result, FieldOperand(input, String::kHashFieldOffset));
-  __ IndexFromHash(result, result);
-}
-
-
-void LCodeGen::DoHasCachedArrayIndexAndBranch(
-    LHasCachedArrayIndexAndBranch* instr) {
-  Register input = ToRegister(instr->value());
-
-  __ test(FieldOperand(input, String::kHashFieldOffset),
-          Immediate(String::kContainsCachedArrayIndexMask));
-  EmitBranch(instr, equal);
-}
-
-
 // Branches to a label or falls through with the answer in the z flag.  Trashes
 // the temp registers, but not the input.
 void LCodeGen::EmitClassOfTest(Label* is_true,
@@ -2664,35 +2638,6 @@ void LCodeGen::DoReturn(LReturn* instr) {
 }
 
 
-template <class T>
-void LCodeGen::EmitVectorLoadICRegisters(T* instr) {
-  Register vector_register = ToRegister(instr->temp_vector());
-  Register slot_register = LoadWithVectorDescriptor::SlotRegister();
-  DCHECK(vector_register.is(LoadWithVectorDescriptor::VectorRegister()));
-  DCHECK(slot_register.is(eax));
-
-  AllowDeferredHandleDereference vector_structure_check;
-  Handle<TypeFeedbackVector> vector = instr->hydrogen()->feedback_vector();
-  __ mov(vector_register, vector);
-  // No need to allocate this register.
-  FeedbackVectorSlot slot = instr->hydrogen()->slot();
-  int index = vector->GetIndex(slot);
-  __ mov(slot_register, Immediate(Smi::FromInt(index)));
-}
-
-
-void LCodeGen::DoLoadGlobalGeneric(LLoadGlobalGeneric* instr) {
-  DCHECK(ToRegister(instr->context()).is(esi));
-  DCHECK(ToRegister(instr->result()).is(eax));
-
-  EmitVectorLoadICRegisters<LLoadGlobalGeneric>(instr);
-  Handle<Code> ic =
-      CodeFactory::LoadGlobalICInOptimizedCode(isolate(), instr->typeof_mode())
-          .code();
-  CallCode(ic, RelocInfo::CODE_TARGET, instr);
-}
-
-
 void LCodeGen::DoLoadContextSlot(LLoadContextSlot* instr) {
   Register context = ToRegister(instr->context());
   Register result = ToRegister(instr->result());
@@ -2787,18 +2732,6 @@ void LCodeGen::EmitPushTaggedOperand(LOperand* operand) {
   } else {
     __ push(ToOperand(operand));
   }
-}
-
-
-void LCodeGen::DoLoadNamedGeneric(LLoadNamedGeneric* instr) {
-  DCHECK(ToRegister(instr->context()).is(esi));
-  DCHECK(ToRegister(instr->object()).is(LoadDescriptor::ReceiverRegister()));
-  DCHECK(ToRegister(instr->result()).is(eax));
-
-  __ mov(LoadDescriptor::NameRegister(), instr->name());
-  EmitVectorLoadICRegisters<LLoadNamedGeneric>(instr);
-  Handle<Code> ic = CodeFactory::LoadICInOptimizedCode(isolate()).code();
-  CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -2965,11 +2898,11 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
     __ j(not_equal, &done);
     if (info()->IsStub()) {
       // A stub can safely convert the hole to undefined only if the array
-      // protector cell contains (Smi) Isolate::kArrayProtectorValid.
+      // protector cell contains (Smi) Isolate::kProtectorValid.
       // Otherwise it needs to bail out.
       __ LoadRoot(result, Heap::kArrayProtectorRootIndex);
       __ cmp(FieldOperand(result, PropertyCell::kValueOffset),
-             Immediate(Smi::FromInt(Isolate::kArrayProtectorValid)));
+             Immediate(Smi::FromInt(Isolate::kProtectorValid)));
       DeoptimizeIf(not_equal, instr, DeoptimizeReason::kHole);
     }
     __ mov(result, isolate()->factory()->undefined_value());
@@ -3017,18 +2950,6 @@ Operand LCodeGen::BuildFastArrayOperand(
                    scale_factor,
                    base_offset);
   }
-}
-
-
-void LCodeGen::DoLoadKeyedGeneric(LLoadKeyedGeneric* instr) {
-  DCHECK(ToRegister(instr->context()).is(esi));
-  DCHECK(ToRegister(instr->object()).is(LoadDescriptor::ReceiverRegister()));
-  DCHECK(ToRegister(instr->key()).is(LoadDescriptor::NameRegister()));
-
-  EmitVectorLoadICRegisters<LLoadKeyedGeneric>(instr);
-
-  Handle<Code> ic = CodeFactory::KeyedLoadICInOptimizedCode(isolate()).code();
-  CallCode(ic, RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -3094,7 +3015,16 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   // object as a receiver to normal functions. Values have to be
   // passed unchanged to builtins and strict-mode functions.
   Label receiver_ok, global_object;
-  Label::Distance dist = DeoptEveryNTimes() ? Label::kFar : Label::kNear;
+  Label::Distance dist;
+
+  // For x87 debug version jitted code's size exceeds 128 bytes whether
+  // FLAG_deopt_every_n_times
+  // is set or not. Always use Label:kFar for label distance for debug mode.
+  if (FLAG_debug_code)
+    dist = Label::kFar;
+  else
+    dist = DeoptEveryNTimes() ? Label::kFar : Label::kNear;
+
   Register scratch = ToRegister(instr->temp());
 
   if (!instr->hydrogen()->known_function()) {
@@ -3114,9 +3044,9 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
 
   // Normal function. Replace undefined or null with global receiver.
   __ cmp(receiver, factory()->null_value());
-  __ j(equal, &global_object, Label::kNear);
+  __ j(equal, &global_object, dist);
   __ cmp(receiver, factory()->undefined_value());
-  __ j(equal, &global_object, Label::kNear);
+  __ j(equal, &global_object, dist);
 
   // The receiver should be a JS object.
   __ test(receiver, Immediate(kSmiTagMask));
@@ -3124,7 +3054,7 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   __ CmpObjectType(receiver, FIRST_JS_RECEIVER_TYPE, scratch);
   DeoptimizeIf(below, instr, DeoptimizeReason::kNotAJavaScriptObject);
 
-  __ jmp(&receiver_ok, Label::kNear);
+  __ jmp(&receiver_ok, dist);
   __ bind(&global_object);
   __ mov(receiver, FieldOperand(function, JSFunction::kContextOffset));
   __ mov(receiver, ContextOperand(receiver, Context::NATIVE_CONTEXT_INDEX));
@@ -3221,7 +3151,7 @@ void LCodeGen::DoContext(LContext* instr) {
 
 void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
   DCHECK(ToRegister(instr->context()).is(esi));
-  __ push(Immediate(instr->hydrogen()->pairs()));
+  __ push(Immediate(instr->hydrogen()->declarations()));
   __ push(Immediate(Smi::FromInt(instr->hydrogen()->flags())));
   __ push(Immediate(instr->hydrogen()->feedback_vector()));
   CallRuntime(Runtime::kDeclareGlobals, instr);
@@ -4671,8 +4601,7 @@ void LCodeGen::DoSmiUntag(LSmiUntag* instr) {
 void LCodeGen::EmitNumberUntagDNoSSE2(LNumberUntagD* instr, Register input_reg,
                                       Register temp_reg, X87Register res_reg,
                                       NumberUntagDMode mode) {
-  bool can_convert_undefined_to_nan =
-      instr->hydrogen()->can_convert_undefined_to_nan();
+  bool can_convert_undefined_to_nan = instr->truncating();
   bool deoptimize_on_minus_zero = instr->hydrogen()->deoptimize_on_minus_zero();
 
   Label load_smi, done;
@@ -4748,34 +4677,18 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr, Label* done) {
   __ lea(input_reg, Operand(input_reg, times_2, kHeapObjectTag));
 
   if (instr->truncating()) {
-    Label no_heap_number, check_bools, check_false;
-
-    // Heap number map check.
+    Label truncate;
+    Label::Distance truncate_distance =
+        DeoptEveryNTimes() ? Label::kFar : Label::kNear;
     __ cmp(FieldOperand(input_reg, HeapObject::kMapOffset),
            factory()->heap_number_map());
-    __ j(not_equal, &no_heap_number, Label::kNear);
+    __ j(equal, &truncate, truncate_distance);
+    __ push(input_reg);
+    __ CmpObjectType(input_reg, ODDBALL_TYPE, input_reg);
+    __ pop(input_reg);
+    DeoptimizeIf(not_equal, instr, DeoptimizeReason::kNotANumberOrOddball);
+    __ bind(&truncate);
     __ TruncateHeapNumberToI(input_reg, input_reg);
-    __ jmp(done);
-
-    __ bind(&no_heap_number);
-    // Check for Oddballs. Undefined/False is converted to zero and True to one
-    // for truncating conversions.
-    __ cmp(input_reg, factory()->undefined_value());
-    __ j(not_equal, &check_bools, Label::kNear);
-    __ Move(input_reg, Immediate(0));
-    __ jmp(done);
-
-    __ bind(&check_bools);
-    __ cmp(input_reg, factory()->true_value());
-    __ j(not_equal, &check_false, Label::kNear);
-    __ Move(input_reg, Immediate(1));
-    __ jmp(done);
-
-    __ bind(&check_false);
-    __ cmp(input_reg, factory()->false_value());
-    DeoptimizeIf(not_equal, instr,
-                 DeoptimizeReason::kNotAHeapNumberUndefinedBoolean);
-    __ Move(input_reg, Immediate(0));
   } else {
     // TODO(olivf) Converting a number on the fpu is actually quite slow. We
     // should first try a fast conversion and then bailout to this slow case.
@@ -5027,6 +4940,15 @@ void LCodeGen::DoCheckValue(LCheckValue* instr) {
 
 
 void LCodeGen::DoDeferredInstanceMigration(LCheckMaps* instr, Register object) {
+  Label deopt, done;
+  // If the map is not deprecated the migration attempt does not make sense.
+  __ push(object);
+  __ mov(object, FieldOperand(object, HeapObject::kMapOffset));
+  __ test(FieldOperand(object, Map::kBitField3Offset),
+          Immediate(Map::Deprecated::kMask));
+  __ pop(object);
+  __ j(zero, &deopt);
+
   {
     PushSafepointRegistersScope scope(this);
     __ push(object);
@@ -5037,7 +4959,12 @@ void LCodeGen::DoDeferredInstanceMigration(LCheckMaps* instr, Register object) {
 
     __ test(eax, Immediate(kSmiTagMask));
   }
-  DeoptimizeIf(zero, instr, DeoptimizeReason::kInstanceMigrationFailed);
+  __ j(not_zero, &done);
+
+  __ bind(&deopt);
+  DeoptimizeIf(no_condition, instr, DeoptimizeReason::kInstanceMigrationFailed);
+
+  __ bind(&done);
 }
 
 
@@ -5332,7 +5259,7 @@ void LCodeGen::DoDeferredAllocate(LAllocate* instr) {
   // TODO(3095996): Get rid of this. For now, we need to make the
   // result register contain a valid pointer because it is already
   // contained in the register pointer map.
-  __ Move(result, Immediate(Smi::FromInt(0)));
+  __ Move(result, Immediate(Smi::kZero));
 
   PushSafepointRegistersScope scope(this);
   if (instr->size()->IsRegister()) {
@@ -5472,17 +5399,6 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
     __ test_b(FieldOperand(input, Map::kBitFieldOffset),
               Immediate((1 << Map::kIsCallable) | (1 << Map::kIsUndetectable)));
     final_branch_condition = zero;
-
-// clang-format off
-#define SIMD128_TYPE(TYPE, Type, type, lane_count, lane_type)         \
-  } else if (String::Equals(type_name, factory()->type##_string())) { \
-    __ JumpIfSmi(input, false_label, false_distance);                 \
-    __ cmp(FieldOperand(input, HeapObject::kMapOffset),               \
-           factory()->type##_map());                                  \
-    final_branch_condition = equal;
-  SIMD128_TYPES(SIMD128_TYPE)
-#undef SIMD128_TYPE
-    // clang-format on
 
   } else {
     __ jmp(false_label, false_distance);
@@ -5638,7 +5554,7 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
   Register result = ToRegister(instr->result());
   Label load_cache, done;
   __ EnumLength(result, map);
-  __ cmp(result, Immediate(Smi::FromInt(0)));
+  __ cmp(result, Immediate(Smi::kZero));
   __ j(not_equal, &load_cache, Label::kNear);
   __ mov(result, isolate()->factory()->empty_fixed_array());
   __ jmp(&done, Label::kNear);

@@ -112,20 +112,6 @@ function InstallGetter(object, name, getter, attributes, prefix) {
 }
 
 
-// Helper function to install a getter/setter accessor property.
-function InstallGetterSetter(object, name, getter, setter, attributes) {
-  %CheckIsBootstrapping();
-  if (IS_UNDEFINED(attributes)) attributes = DONT_ENUM;
-  SetFunctionName(getter, name, "get");
-  SetFunctionName(setter, name, "set");
-  %FunctionRemovePrototype(getter);
-  %FunctionRemovePrototype(setter);
-  %DefineAccessorPropertyUnchecked(object, name, getter, setter, attributes);
-  %SetNativeFlag(getter);
-  %SetNativeFlag(setter);
-}
-
-
 function OverrideFunction(object, name, f, afterInitialBootstrap) {
   %CheckIsBootstrapping();
   %object_define_property(object, name, { value: f,
@@ -181,41 +167,22 @@ function PostNatives(utils) {
 
   // Whitelist of exports from normal natives to experimental natives and debug.
   var expose_list = [
-    "ArrayToString",
     "FormatDateToParts",
-    "GetIterator",
-    "GetMethod",
     "MapEntries",
-    "MapIterator",
     "MapIteratorNext",
     "MaxSimple",
     "MinSimple",
-    "SetIterator",
     "SetIteratorNext",
     "SetValues",
     "ToLocaleLowerCaseI18N",
     "ToLocaleUpperCaseI18N",
     "ToLowerCaseI18N",
-    "ToPositiveInteger",
     "ToUpperCaseI18N",
     // From runtime:
-    "is_concat_spreadable_symbol",
-    "iterator_symbol",
-    "object_freeze",
-    "object_is_frozen",
-    "object_is_sealed",
     "promise_result_symbol",
     "promise_state_symbol",
     "reflect_apply",
-    "reflect_construct",
-    "regexp_flags_symbol",
     "to_string_tag_symbol",
-    "object_to_string",
-    "species_symbol",
-    "match_symbol",
-    "replace_symbol",
-    "search_symbol",
-    "split_symbol",
   ];
 
   var filtered_exports = {};
@@ -234,7 +201,6 @@ function PostNatives(utils) {
 
 function PostExperimentals(utils) {
   %CheckIsBootstrapping();
-  %ExportExperimentalFromRuntime(exports_container);
   for ( ; !IS_UNDEFINED(imports); imports = imports.next) {
     imports(exports_container);
   }
@@ -287,7 +253,6 @@ utils.SetFunctionName = SetFunctionName;
 utils.InstallConstants = InstallConstants;
 utils.InstallFunctions = InstallFunctions;
 utils.InstallGetter = InstallGetter;
-utils.InstallGetterSetter = InstallGetterSetter;
 utils.OverrideFunction = OverrideFunction;
 utils.SetUpLockedPrototype = SetUpLockedPrototype;
 utils.PostNatives = PostNatives;
@@ -298,7 +263,7 @@ utils.PostDebug = PostDebug;
 
 // -----------------------------------------------------------------------
 
-%OptimizeObjectForAddingMultipleProperties(extrasUtils, 5);
+%OptimizeObjectForAddingMultipleProperties(extrasUtils, 7);
 
 extrasUtils.logStackTrace = function logStackTrace() {
   %DebugTrace();
@@ -337,6 +302,15 @@ extrasUtils.uncurryThis = function uncurryThis(func) {
   return function(thisArg, ...args) {
     return %reflect_apply(func, thisArg, args);
   };
+};
+
+// We pass true to trigger the debugger's on exception handler.
+extrasUtils.rejectPromise = function rejectPromise(promise, reason) {
+  %promise_internal_reject(promise, reason, true);
+}
+
+extrasUtils.markPromiseAsHandled = function markPromiseAsHandled(promise) {
+  %PromiseMarkAsHandled(promise);
 };
 
 %ToFastProperties(extrasUtils);

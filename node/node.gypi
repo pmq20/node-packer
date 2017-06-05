@@ -64,31 +64,31 @@
       }]],
     }],
     [ 'node_use_bundled_v8=="true" and \
-        node_enable_v8_vtunejit=="true" and (target_arch=="x64" or \
-        target_arch=="ia32" or target_arch=="x32")', {
+       node_enable_v8_vtunejit=="true" and (target_arch=="x64" or \
+       target_arch=="ia32" or target_arch=="x32")', {
       'defines': [ 'NODE_ENABLE_VTUNE_PROFILING' ],
       'dependencies': [
         'deps/v8/src/third_party/vtune/v8vtune.gyp:v8_vtune'
       ],
     }],
-    [ 'v8_inspector=="true"', {
+    [ 'v8_enable_inspector==1', {
       'defines': [
         'HAVE_INSPECTOR=1',
       ],
       'sources': [
         'src/inspector_agent.cc',
+        'src/inspector_io.cc',
         'src/inspector_socket.cc',
         'src/inspector_socket_server.cc',
         'src/inspector_agent.h',
+        'src/inspector_io.h',
         'src/inspector_socket.h',
         'src/inspector_socket_server.h',
       ],
       'dependencies': [
-        'deps/v8_inspector/src/inspector/inspector.gyp:standalone_inspector',
         'v8_inspector_compress_protocol_json#host',
       ],
       'include_dirs': [
-        'deps/v8_inspector/include',
         '<(SHARED_INTERMEDIATE_DIR)/include', # for inspector
         '<(SHARED_INTERMEDIATE_DIR)',
       ],
@@ -313,19 +313,20 @@
     }],
     [ '(OS=="freebsd" or OS=="linux") and node_shared=="false" and coverage=="false"', {
       'ldflags': [ '-Wl,-z,noexecstack',
-                    '-Wl,--whole-archive <(V8_BASE)',
-                    '-Wl,--no-whole-archive' ]
+                   '-Wl,--whole-archive <(V8_BASE)',
+                   '-Wl,--no-whole-archive' ]
     }],
     [ '(OS=="freebsd" or OS=="linux") and node_shared=="false" and coverage=="true"', {
       'ldflags': [ '-Wl,-z,noexecstack',
-                    '-Wl,--whole-archive <(V8_BASE)',
-                    '-Wl,--no-whole-archive',
-                    '--coverage',
-                    '-g',
-                    '-O0' ],
-        'cflags': [ '--coverage',
-                    '-g',
-                    '-O0' ]
+                   '-Wl,--whole-archive <(V8_BASE)',
+                   '-Wl,--no-whole-archive',
+                   '--coverage',
+                   '-g',
+                   '-O0' ],
+       'cflags': [ '--coverage',
+                   '-g',
+                   '-O0' ],
+       'cflags!': [ '-O3' ]
     }],
     [ 'OS=="sunos"', {
       'ldflags': [ '-Wl,-M,/usr/lib/ld/map.noexstk' ],

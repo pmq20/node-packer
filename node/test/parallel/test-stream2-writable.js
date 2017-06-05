@@ -1,5 +1,27 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
-require('../common');
+
+const common = require('../common');
 const W = require('_stream_writable');
 const D = require('_stream_duplex');
 const assert = require('assert');
@@ -206,7 +228,7 @@ test('write callbacks', function(t) {
       callbacks._called[i] = chunk;
     }];
   }).reduce(function(set, x) {
-    set['callback-' + x[0]] = x[1];
+    set[`callback-${x[0]}`] = x[1];
     return set;
   }, {});
   callbacks._called = [];
@@ -224,7 +246,7 @@ test('write callbacks', function(t) {
   });
 
   chunks.forEach(function(chunk, i) {
-    tw.write(chunk, callbacks['callback-' + i]);
+    tw.write(chunk, callbacks[`callback-${i}`]);
   });
   tw.end();
 });
@@ -283,7 +305,7 @@ test('encoding should be ignored for buffers', function(t) {
 
 test('writables are not pipable', function(t) {
   const w = new W();
-  w._write = function() {};
+  w._write = common.noop;
   let gotError = false;
   w.on('error', function() {
     gotError = true;
@@ -295,8 +317,8 @@ test('writables are not pipable', function(t) {
 
 test('duplexes are pipable', function(t) {
   const d = new D();
-  d._read = function() {};
-  d._write = function() {};
+  d._read = common.noop;
+  d._write = common.noop;
   let gotError = false;
   d.on('error', function() {
     gotError = true;
@@ -308,7 +330,7 @@ test('duplexes are pipable', function(t) {
 
 test('end(chunk) two times is an error', function(t) {
   const w = new W();
-  w._write = function() {};
+  w._write = common.noop;
   let gotError = false;
   w.on('error', function(er) {
     gotError = true;
@@ -385,4 +407,26 @@ test('finish is emitted if last chunk is empty', function(t) {
   });
   w.write(Buffer.allocUnsafe(1));
   w.end(Buffer.alloc(0));
+});
+
+test('finish is emitted after shutdown', function(t) {
+  const w = new W();
+  let shutdown = false;
+
+  w._final = common.mustCall(function(cb) {
+    assert.strictEqual(this, w);
+    setTimeout(function() {
+      shutdown = true;
+      cb();
+    }, 100);
+  });
+  w._write = function(chunk, e, cb) {
+    process.nextTick(cb);
+  };
+  w.on('finish', common.mustCall(function() {
+    assert(shutdown);
+    t.end();
+  }));
+  w.write(Buffer.allocUnsafe(1));
+  w.end(Buffer.allocUnsafe(0));
 });

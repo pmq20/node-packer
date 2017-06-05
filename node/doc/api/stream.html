@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v7.10.0 Documentation</title>
+  <title>Stream | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -109,6 +111,7 @@
 <li><span class="stability_undefined"><a href="#stream_writable_setdefaultencoding_encoding">writable.setDefaultEncoding(encoding)</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_writable_uncork">writable.uncork()</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_writable_write_chunk_encoding_callback">writable.write(chunk[, encoding][, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#stream_writable_destroy_error">writable.destroy([error])</a></span></li>
 </ul>
 </li>
 </ul>
@@ -132,13 +135,17 @@
 <li><span class="stability_undefined"><a href="#stream_readable_unpipe_destination">readable.unpipe([destination])</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_readable_unshift_chunk">readable.unshift(chunk)</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_readable_wrap_stream">readable.wrap(stream)</a></span></li>
+<li><span class="stability_undefined"><a href="#stream_readable_destroy_error">readable.destroy([error])</a></span></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#stream_duplex_and_transform_streams">Duplex and Transform Streams</a></span><ul>
 <li><span class="stability_undefined"><a href="#stream_class_stream_duplex">Class: stream.Duplex</a></span></li>
-<li><span class="stability_undefined"><a href="#stream_class_stream_transform">Class: stream.Transform</a></span></li>
+<li><span class="stability_undefined"><a href="#stream_class_stream_transform">Class: stream.Transform</a></span><ul>
+<li><span class="stability_undefined"><a href="#stream_transform_destroy_error">transform.destroy([error])</a></span></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -149,6 +156,8 @@
 <li><span class="stability_undefined"><a href="#stream_constructor_new_stream_writable_options">Constructor: new stream.Writable([options])</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_writable_write_chunk_encoding_callback_1">writable._write(chunk, encoding, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_writable_writev_chunks_callback">writable._writev(chunks, callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#stream_writable_destroy_err_callback">writable._destroy(err, callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#stream_writable_final_callback">writable._final(callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_errors_while_writing">Errors While Writing</a></span></li>
 <li><span class="stability_undefined"><a href="#stream_an_example_writable_stream">An Example Writable Stream</a></span></li>
 </ul>
@@ -225,10 +234,10 @@ is written and read (for example <a href="zlib.html#zlib_zlib_createdeflate_opti
 </ul>
 <h3>Object Mode<span><a class="mark" href="#stream_object_mode" id="stream_object_mode">#</a></span></h3>
 <p>All streams created by Node.js APIs operate exclusively on strings and <code>Buffer</code>
-objects. It is possible, however, for stream implementations to work with other
-types of JavaScript values (with the exception of <code>null</code>, which serves a special
-purpose within streams). Such streams are considered to operate in &quot;object
-mode&quot;.</p>
+(or <code>Uint8Array</code>) objects. It is possible, however, for stream implementations
+to work with other types of JavaScript values (with the exception of <code>null</code>,
+which serves a special purpose within streams). Such streams are considered to
+operate in &quot;object mode&quot;.</p>
 <p>Stream instances are switched into object mode using the <code>objectMode</code> option
 when the stream is created. Attempting to switch an existing stream into
 object mode is not safe.</p>
@@ -275,7 +284,7 @@ manner. The following is an example of using streams in a Node.js application
 that implements an HTTP server:</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 
-const server = http.createServer( (req, res) =&gt; {
+const server = http.createServer((req, res) =&gt; {
   // req is an http.IncomingMessage, which is a Readable Stream
   // res is an http.ServerResponse, which is a Writable Stream
 
@@ -297,7 +306,7 @@ const server = http.createServer( (req, res) =&gt; {
       res.write(typeof data);
       res.end();
     } catch (er) {
-      // uh oh!  bad json!
+      // uh oh! bad json!
       res.statusCode = 400;
       return res.end(`error: ${er.message}`);
     }
@@ -306,12 +315,12 @@ const server = http.createServer( (req, res) =&gt; {
 
 server.listen(1337);
 
-// $ curl localhost:1337 -d &#39;{}&#39;
+// $ curl localhost:1337 -d &quot;{}&quot;
 // object
-// $ curl localhost:1337 -d &#39;&quot;foo&quot;&#39;
+// $ curl localhost:1337 -d &quot;\&quot;foo\&quot;&quot;
 // string
-// $ curl localhost:1337 -d &#39;not json&#39;
-// error: Unexpected token o
+// $ curl localhost:1337 -d &quot;not json&quot;
+// error: Unexpected token o in JSON at position 1
 </code></pre>
 <p><a href="#stream_class_stream_writable">Writable</a> streams (such as <code>res</code> in the example) expose methods such as
 <code>write()</code> and <code>end()</code> that are used to write data onto the stream.</p>
@@ -334,7 +343,7 @@ written.</p>
 <li><a href="http.html#http_class_http_clientrequest">HTTP requests, on the client</a></li>
 <li><a href="http.html#http_class_http_serverresponse">HTTP responses, on the server</a></li>
 <li><a href="fs.html#fs_class_fs_writestream">fs write streams</a></li>
-<li><a href="zlib.html">zlib streams</a></li>
+<li>[zlib streams][zlib]</li>
 <li><a href="crypto.html">crypto streams</a></li>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
 <li><a href="child_process.html#child_process_child_stdin">child process stdin</a></li>
@@ -375,7 +384,7 @@ function writeOneMillionTimes(writer, data, encoding, callback) {
   let i = 1000000;
   write();
   function write() {
-    var ok = true;
+    let ok = true;
     do {
       i--;
       if (i === 0) {
@@ -410,7 +419,7 @@ data. The listener callback is passed a single <code>Error</code> argument when 
 </div><p>The <code>&#39;finish&#39;</code> event is emitted after the <a href="#stream_writable_end_chunk_encoding_callback"><code>stream.end()</code></a> method
 has been called, and all data has been flushed to the underlying system.</p>
 <pre><code class="lang-js">const writer = getWritableStreamSomehow();
-for (var i = 0; i &lt; 100; i ++) {
+for (let i = 0; i &lt; 100; i++) {
   writer.write(`hello, #${i}!\n`);
 }
 writer.end(&#39;This is the end\n&#39;);
@@ -467,12 +476,23 @@ buffered writes in a more optimized manner.</p>
 <p>See also: <a href="#stream_writable_uncork"><code>writable.uncork()</code></a>.</p>
 <h5>writable.end([chunk][, encoding][, callback])<span><a class="mark" href="#stream_writable_end_chunk_encoding_callback" id="stream_writable_end_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.9.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>chunk</code> argument can now be a <code>Uint8Array</code> instance.</p>
+</td></tr>
+<tr><td>v0.9.4</td>
+<td><p><span>Added in: v0.9.4</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <span class="type">&lt;any&gt;</span> Optional data to write. For streams not operating
-in object mode, <code>chunk</code> must be a string or a <code>Buffer</code>. For object mode
-streams, <code>chunk</code> may be any JavaScript value other than <code>null</code>.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a String</li>
+<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> | <span class="type">&lt;any&gt;</span> Optional data to write. For streams
+not operating in object mode, <code>chunk</code> must be a string, <code>Buffer</code> or
+<code>Uint8Array</code>. For object mode streams, <code>chunk</code> may be any JavaScript value
+other than <code>null</code>.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a string</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Optional callback for when the stream is finished</li>
 </ul>
 <p>Calling the <code>writable.end()</code> method signals that no more data will be written
@@ -540,6 +560,9 @@ process.nextTick(() =&gt; {
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>chunk</code> argument can now be a <code>Uint8Array</code> instance.</p>
+</td></tr>
 <tr><td>v6.0.0</td>
 <td><p>Passing <code>null</code> as the <code>chunk</code> parameter will always be considered invalid now, even in object mode.</p>
 </td></tr>
@@ -549,8 +572,11 @@ process.nextTick(() =&gt; {
 </table>
 </details>
 </div><ul>
-<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The data to write</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a String</li>
+<li><code>chunk</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> | <span class="type">&lt;any&gt;</span> Optional data to write. For streams
+not operating in object mode, <code>chunk</code> must be a string, <code>Buffer</code> or
+<code>Uint8Array</code>. For object mode streams, <code>chunk</code> may be any JavaScript value
+other than <code>null</code>.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding, if <code>chunk</code> is a string</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback for when this chunk of data is flushed</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>false</code> if the stream wishes for the calling code to
 wait for the <code>&#39;drain&#39;</code> event to be emitted before continuing to write
@@ -586,20 +612,26 @@ recommended to encapsulate the logic into a <a href="#stream_class_stream_readab
 <a href="#stream_readable_pipe_destination_options"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is
 possible to respect backpressure and avoid memory issues using the
 <a href="#stream_event_drain"><code>&#39;drain&#39;</code></a> event:</p>
-<pre><code class="lang-js">function write (data, cb) {
+<pre><code class="lang-js">function write(data, cb) {
   if (!stream.write(data)) {
-    stream.once(&#39;drain&#39;, cb)
+    stream.once(&#39;drain&#39;, cb);
   } else {
-    process.nextTick(cb)
+    process.nextTick(cb);
   }
 }
 
 // Wait for cb to be called before doing any other write.
 write(&#39;hello&#39;, () =&gt; {
-  console.log(&#39;write completed, do more writes now&#39;)
-})
+  console.log(&#39;write completed, do more writes now&#39;);
+});
 </code></pre>
 <p>A Writable stream in object mode will always ignore the <code>encoding</code> argument.</p>
+<h5>writable.destroy([error])<span><a class="mark" href="#stream_writable_destroy_error" id="stream_writable_destroy_error">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>Destroy the stream, and emit the passed error. After this call, the
+writible stream has ended. Implementors should not override this method,
+but instead implement <a href="#stream_writable_destroy_err_callback"><code>writable._destroy</code></a>.</p>
 <h3>Readable Streams<span><a class="mark" href="#stream_readable_streams" id="stream_readable_streams">#</a></span></h3>
 <p>Readable streams are an abstraction for a <em>source</em> from which data is
 consumed.</p>
@@ -608,7 +640,7 @@ consumed.</p>
 <li><a href="http.html#http_class_http_incomingmessage">HTTP responses, on the client</a></li>
 <li><a href="http.html#http_class_http_incomingmessage">HTTP requests, on the server</a></li>
 <li><a href="fs.html#fs_class_fs_readstream">fs read streams</a></li>
-<li><a href="zlib.html">zlib streams</a></li>
+<li>[zlib streams][zlib]</li>
 <li><a href="crypto.html">crypto streams</a></li>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
 <li><a href="child_process.html#child_process_child_stdout">child process stdout and stderr</a></li>
@@ -746,7 +778,7 @@ readable.on(&#39;end&#39;, () =&gt; {
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
 <p>The <code>&#39;error&#39;</code> event may be emitted by a Readable implementation at any time.
-Typically, this may occur if the underlying stream in unable to generate data
+Typically, this may occur if the underlying stream is unable to generate data
 due to an underlying internal failure, or when a stream implementation attempts
 to push an invalid chunk of data.</p>
 <p>The listener callback will be passed a single <code>Error</code> object.</p>
@@ -794,13 +826,13 @@ preferred over the use of the <code>&#39;readable&#39;</code> event.</p>
 Readable. This is used primarily by the mechanism that underlies the
 <code>readable.pipe()</code> method. In most typical cases, there will be no reason to
 use this method directly.</p>
-<pre><code class="lang-js">const readable = new stream.Readable
+<pre><code class="lang-js">const readable = new stream.Readable();
 
-readable.isPaused() // === false
-readable.pause()
-readable.isPaused() // === true
-readable.resume()
-readable.isPaused() // === false
+readable.isPaused(); // === false
+readable.pause();
+readable.isPaused(); // === true
+readable.resume();
+readable.isPaused(); // === false
 </code></pre>
 <h5>readable.pause()<span><a class="mark" href="#stream_readable_pause" id="stream_readable_pause">#</a></span></h5>
 <div class="api_metadata">
@@ -892,7 +924,7 @@ in paused mode. In flowing mode, <code>readable.read()</code> is called automati
 the internal buffer is fully drained.</p>
 <pre><code class="lang-js">const readable = getReadableStreamSomehow();
 readable.on(&#39;readable&#39;, () =&gt; {
-  var chunk;
+  let chunk;
   while (null !== (chunk = readable.read())) {
     console.log(`Received ${chunk.length} bytes of data.`);
   }
@@ -904,7 +936,7 @@ event and the <code>readable.read()</code> method in favor of using either
 <p>A Readable stream in object mode will always return a single item from
 a call to <a href="#stream_readable_read_size"><code>readable.read(size)</code></a>, regardless of the value of the
 <code>size</code> argument.</p>
-<p><em>Note:</em> If the <code>readable.read()</code> method returns a chunk of data, a <code>&#39;data&#39;</code>
+<p><em>Note</em>: If the <code>readable.read()</code> method returns a chunk of data, a <code>&#39;data&#39;</code>
 event will also be emitted.</p>
 <p><em>Note</em>: Calling <a href="#stream_readable_read_size"><code>stream.read([size])</code></a> after the <a href="#stream_event_end"><code>&#39;end&#39;</code></a>
 event has been emitted will return <code>null</code>. No runtime error will be raised.</p>
@@ -932,20 +964,18 @@ following example:</p>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding to use.</li>
 <li>Returns: <code>this</code></li>
 </ul>
-<p>The <code>readable.setEncoding()</code> method sets the default character encoding for
+<p>The <code>readable.setEncoding()</code> method sets the character encoding for
 data read from the Readable stream.</p>
-<p>Setting an encoding causes the stream data
-to be returned as string of the specified encoding rather than as <code>Buffer</code>
+<p>By default, no encoding is assigned and stream data will be returned as
+<code>Buffer</code> objects. Setting an encoding causes the stream data
+to be returned as strings of the specified encoding rather than as <code>Buffer</code>
 objects. For instance, calling <code>readable.setEncoding(&#39;utf8&#39;)</code> will cause the
-output data will be interpreted as UTF-8 data, and passed as strings. Calling
+output data to be interpreted as UTF-8 data, and passed as strings. Calling
 <code>readable.setEncoding(&#39;hex&#39;)</code> will cause the data to be encoded in hexadecimal
 string format.</p>
 <p>The Readable stream will properly handle multi-byte characters delivered through
 the stream that would otherwise become improperly decoded if simply pulled from
 the stream as <code>Buffer</code> objects.</p>
-<p>Encoding can be disabled by calling <code>readable.setEncoding(null)</code>. This approach
-is useful when working with binary data or with large multi-byte strings spread
-out over multiple chunks.</p>
 <pre><code class="lang-js">const readable = getReadableStreamSomehow();
 readable.setEncoding(&#39;utf8&#39;);
 readable.on(&#39;data&#39;, (chunk) =&gt; {
@@ -978,9 +1008,22 @@ setTimeout(() =&gt; {
 </code></pre>
 <h5>readable.unshift(chunk)<span><a class="mark" href="#stream_readable_unshift_chunk" id="stream_readable_unshift_chunk">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.9.11</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>chunk</code> argument can now be a <code>Uint8Array</code> instance.</p>
+</td></tr>
+<tr><td>v0.9.11</td>
+<td><p><span>Added in: v0.9.11</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to unshift onto the read queue</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to unshift onto the
+read queue. For streams not operating in object mode, <code>chunk</code> must be a
+string, <code>Buffer</code> or <code>Uint8Array</code>. For object mode streams, <code>chunk</code> may be
+any JavaScript value other than <code>null</code>.</li>
 </ul>
 <p>The <code>readable.unshift()</code> method pushes a chunk of data back into the internal
 buffer. This is useful in certain situations where a stream is being consumed by
@@ -999,14 +1042,14 @@ function parseHeader(stream, callback) {
   stream.on(&#39;error&#39;, callback);
   stream.on(&#39;readable&#39;, onReadable);
   const decoder = new StringDecoder(&#39;utf8&#39;);
-  var header = &#39;&#39;;
+  let header = &#39;&#39;;
   function onReadable() {
-    var chunk;
+    let chunk;
     while (null !== (chunk = stream.read())) {
-      var str = decoder.write(chunk);
+      const str = decoder.write(chunk);
       if (str.match(/\n\n/)) {
         // found the header boundary
-        var split = str.split(/\n\n/);
+        const split = str.split(/\n\n/);
         header += split.shift();
         const remaining = split.join(&#39;\n\n&#39;);
         const buf = Buffer.from(remaining, &#39;utf8&#39;);
@@ -1052,13 +1095,20 @@ libraries.</p>
 <p>For example:</p>
 <pre><code class="lang-js">const OldReader = require(&#39;./old-api-module.js&#39;).OldReader;
 const Readable = require(&#39;stream&#39;).Readable;
-const oreader = new OldReader;
+const oreader = new OldReader();
 const myReader = new Readable().wrap(oreader);
 
 myReader.on(&#39;readable&#39;, () =&gt; {
   myReader.read(); // etc.
 });
 </code></pre>
+<h5>readable.destroy([error])<span><a class="mark" href="#stream_readable_destroy_error" id="stream_readable_destroy_error">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>Destroy the stream, and emit <code>&#39;error&#39;</code>. After this call, the
+readable stream will release any internal resources.
+Implementors should not override this method, but instead implement
+<a href="#stream_readable_destroy_err_callback"><code>readable._destroy</code></a>.</p>
 <h3>Duplex and Transform Streams<span><a class="mark" href="#stream_duplex_and_transform_streams" id="stream_duplex_and_transform_streams">#</a></span></h3>
 <h4>Class: stream.Duplex<span><a class="mark" href="#stream_class_stream_duplex" id="stream_class_stream_duplex">#</a></span></h4>
 <div class="api_metadata">
@@ -1079,7 +1129,7 @@ myReader.on(&#39;readable&#39;, () =&gt; {
 <p>Examples of Duplex streams include:</p>
 <ul>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
-<li><a href="zlib.html">zlib streams</a></li>
+<li>[zlib streams][zlib]</li>
 <li><a href="crypto.html">crypto streams</a></li>
 </ul>
 <h4>Class: stream.Transform<span><a class="mark" href="#stream_class_stream_transform" id="stream_class_stream_transform">#</a></span></h4>
@@ -1091,9 +1141,17 @@ related to the input. Like all <a href="#stream_class_stream_duplex">Duplex</a> 
 implement both the <a href="#stream_class_stream_readable">Readable</a> and <a href="#stream_class_stream_writable">Writable</a> interfaces.</p>
 <p>Examples of Transform streams include:</p>
 <ul>
-<li><a href="zlib.html">zlib streams</a></li>
+<li>[zlib streams][zlib]</li>
 <li><a href="crypto.html">crypto streams</a></li>
 </ul>
+<h5>transform.destroy([error])<span><a class="mark" href="#stream_transform_destroy_error" id="stream_transform_destroy_error">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>Destroy the stream, and emit <code>&#39;error&#39;</code>. After this call, the
+transform stream would release any internal resources.
+implementors should not override this method, but instead implement
+<a href="#stream_readable_destroy_err_callback"><code>readable._destroy</code></a>.
+The default implementation of <code>_destroy</code> for <code>Transform</code> also emit <code>&#39;close&#39;</code>.</p>
 <h2>API for Stream Implementers<span><a class="mark" href="#stream_api_for_stream_implementers" id="stream_api_for_stream_implementers">#</a></span></h2>
 <!--type=misc-->
 <p>The <code>stream</code> module API has been designed to make it possible to easily
@@ -1107,6 +1165,7 @@ parent class constructor:</p>
 class MyWritable extends Writable {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 </code></pre>
@@ -1145,7 +1204,8 @@ on the type of stream being created, as detailed in the chart below:</p>
       <p><a href="#stream_class_stream_writable">Writable</a></p>
     </td>
     <td>
-      <p><code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code></p>
+      <p><code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>,
+      <code><a href="#stream_writable_final_callback">_final</a></code></p>
     </td>
   </tr>
   <tr>
@@ -1156,7 +1216,8 @@ on the type of stream being created, as detailed in the chart below:</p>
       <p><a href="#stream_class_stream_duplex">Duplex</a></p>
     </td>
     <td>
-      <p><code><a href="#stream_readable_read_size_1">_read</a></code>, <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code></p>
+      <p><code><a href="#stream_readable_read_size_1">_read</a></code>, <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>,
+      <code><a href="#stream_writable_final_callback">_final</a></code></p>
     </td>
   </tr>
   <tr>
@@ -1167,7 +1228,8 @@ on the type of stream being created, as detailed in the chart below:</p>
       <p><a href="#stream_class_stream_transform">Transform</a></p>
     </td>
     <td>
-      <p><code><a href="#stream_transform_transform_chunk_encoding_callback">_transform</a></code>, <code><a href="#stream_transform_flush_callback">_flush</a></code></p>
+      <p><code><a href="#stream_transform_transform_chunk_encoding_callback">_transform</a></code>, <code><a href="#stream_transform_flush_callback">_flush</a></code>,
+      <code><a href="#stream_writable_final_callback">_final</a></code></p>
     </td>
   </tr>
 </table>
@@ -1208,12 +1270,17 @@ Buffers before passing them to <a href="#stream_writable_write_chunk_encoding_ca
 Defaults to <code>true</code></li>
 <li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Whether or not the
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write(anyObj)</code></a> is a valid operation. When set,
-it becomes possible to write JavaScript values other than string or
-<code>Buffer</code> if supported by the stream implementation. Defaults to <code>false</code></li>
+it becomes possible to write JavaScript values other than string,
+<code>Buffer</code> or <code>Uint8Array</code> if supported by the stream implementation.
+Defaults to <code>false</code></li>
 <li><code>write</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the
 <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a> method.</li>
 <li><code>writev</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the
 <a href="#stream_writable_writev_chunks_callback"><code>stream._writev()</code></a> method.</li>
+<li><code>destroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the
+<a href="#stream_writable_destroy_err_callback"><code>stream._destroy()</code></a> method.</li>
+<li><code>final</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the
+<a href="#stream_writable_final_callback"><code>stream._final()</code></a> method.</li>
 </ul>
 </li>
 </ul>
@@ -1224,6 +1291,7 @@ class MyWritable extends Writable {
   constructor(options) {
     // Calls the stream.Writable() constructor
     super(options);
+    // ...
   }
 }
 </code></pre>
@@ -1266,7 +1334,7 @@ argument) when processing is complete for the supplied chunk.</li>
 resource.</p>
 <p><em>Note</em>: <a href="#stream_class_stream_transform">Transform</a> streams provide their own implementation of the
 <a href="#stream_writable_write_chunk_encoding_callback_1"><code>writable._write()</code></a>.</p>
-<p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
+<p><em>Note</em>: This function MUST NOT be called by application code directly. It
 should be implemented by child classes, and called only by the internal Writable
 class methods only.</p>
 <p>The <code>callback</code> method must be called to signal either that the write completed
@@ -1296,7 +1364,7 @@ format: <code>{ chunk: ..., encoding: ... }</code>.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function (optionally with an error
 argument) to be invoked when processing is complete for the supplied chunks.</li>
 </ul>
-</div><p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
+</div><p><em>Note</em>: This function MUST NOT be called by application code directly. It
 should be implemented by child classes, and called only by the internal Writable
 class methods only.</p>
 <p>The <code>writable._writev()</code> method may be implemented in addition to
@@ -1306,6 +1374,27 @@ all chunks of data currently buffered in the write queue.</p>
 <p>The <code>writable._writev()</code> method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
 user programs.</p>
+<h4>writable._destroy(err, callback)<span><a class="mark" href="#stream_writable_destroy_err_callback" id="stream_writable_destroy_err_callback">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> An error.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function that takes an optional error argument
+which is invoked when the writable is destroyed.</li>
+</ul>
+<h4>writable._final(callback)<span><a class="mark" href="#stream_writable_final_callback" id="stream_writable_final_callback">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Call this function (optionally with an error
+argument) when you are done writing any remaining data.</li>
+</ul>
+<p>Note: <code>_final()</code> <strong>must not</strong> be called directly.  It MAY be implemented
+by child classes, and if so, will be called by the internal Writable
+class methods only.</p>
+<p>This optional function will be called before the stream closes, delaying the
+<code>finish</code> event until <code>callback</code> is called. This is useful to close resources
+or write buffered data before a stream ends.</p>
 <h4>Errors While Writing<span><a class="mark" href="#stream_errors_while_writing" id="stream_errors_while_writing">#</a></span></h4>
 <p>It is recommended that errors occurring during the processing of the
 <code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking
@@ -1336,6 +1425,7 @@ required elements of a custom <a href="#stream_class_stream_writable">Writable</
 class MyWritable extends Writable {
   constructor(options) {
     super(options);
+    // ...
   }
 
   _write(chunk, encoding, callback) {
@@ -1364,6 +1454,8 @@ as a stream of objects. Meaning that <a href="#stream_readable_read_size"><code>
 a single value instead of a Buffer of size n. Defaults to <code>false</code></li>
 <li><code>read</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the <a href="#stream_readable_read_size_1"><code>stream._read()</code></a>
 method.</li>
+<li><code>destroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Implementation for the <a href="#stream_readable_destroy_err_callback"><code>stream._destroy()</code></a>
+method.</li>
 </ul>
 </li>
 </ul>
@@ -1374,6 +1466,7 @@ class MyReadable extends Readable {
   constructor(options) {
     // Calls the stream.Readable(options) constructor
     super(options);
+    // ...
   }
 }
 </code></pre>
@@ -1401,7 +1494,7 @@ const myReadable = new Readable({
 <div class="signature"><ul>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Number of bytes to read asynchronously</li>
 </ul>
-</div><p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
+</div><p><em>Note</em>: This function MUST NOT be called by application code directly. It
 should be implemented by child classes, and called only by the internal Readable
 class methods only.</p>
 <p>All Readable stream implementations must provide an implementation of the
@@ -1423,16 +1516,29 @@ provide data whenever it becomes available. There is no need to &quot;wait&quot;
 internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>readable.push(chunk[, encoding])<span><a class="mark" href="#stream_readable_push_chunk_encoding" id="stream_readable_push_chunk_encoding">#</a></span></h4>
-<div class="signature"><ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to push into the read queue</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Encoding of String chunks.  Must be a valid
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>chunk</code> argument can now be a <code>Uint8Array</code> instance.</p>
+</td></tr>
+</table>
+</details>
+</div><ul>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> | <span class="type">&lt;any&gt;</span> Chunk of data to push into the
+read queue. For streams not operating in object mode, <code>chunk</code> must be a
+string, <code>Buffer</code> or <code>Uint8Array</code>. For object mode streams, <code>chunk</code> may be
+any JavaScript value.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Encoding of string chunks.  Must be a valid
 Buffer encoding, such as <code>&#39;utf8&#39;</code> or <code>&#39;ascii&#39;</code></li>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data may continued to be
 pushed; <code>false</code> otherwise.</li>
 </ul>
-</div><p>When <code>chunk</code> is not <code>null</code>, the <code>chunk</code> of data will be added to the
-internal queue for users of the stream to consume. Passing <code>chunk</code> as <code>null</code>
-signals the end of the stream (EOF), after which no more data can be written.</p>
+<p>When <code>chunk</code> is a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code>, the <code>chunk</code> of data will
+be added to the internal queue for users of the stream to consume.
+Passing <code>chunk</code> as <code>null</code> signals the end of the stream (EOF), after which no
+more data can be written.</p>
 <p>When the Readable is operating in paused mode, the data added with
 <code>readable.push()</code> can be read out by calling the
 <a href="#stream_readable_read_size"><code>readable.read()</code></a> method when the <a href="#stream_event_readable"><code>&#39;readable&#39;</code></a> event is
@@ -1508,12 +1614,12 @@ class Counter extends Readable {
   }
 
   _read() {
-    var i = this._index++;
+    const i = this._index++;
     if (i &gt; this._max)
       this.push(null);
     else {
-      var str = &#39;&#39; + i;
-      var buf = Buffer.from(str, &#39;ascii&#39;);
+      const str = &#39;&#39; + i;
+      const buf = Buffer.from(str, &#39;ascii&#39;);
       this.push(buf);
     }
   }
@@ -1525,10 +1631,10 @@ such as a TCP socket connection.</p>
 <p>Because JavaScript does not have support for multiple inheritance, the
 <code>stream.Duplex</code> class is extended to implement a <a href="#stream_class_stream_duplex">Duplex</a> stream (as opposed
 to extending the <code>stream.Readable</code> <em>and</em> <code>stream.Writable</code> classes).</p>
-<p><em>Note</em>: The <code>stream.Duplex</code> class prototypically inherits from <code>stream.Readable</code>
-and parasitically from <code>stream.Writable</code>, but <code>instanceof</code> will work properly
-for both base classes due to overriding <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/hasInstance"><code>Symbol.hasInstance</code></a>
-on <code>stream.Writable</code>.</p>
+<p><em>Note</em>: The <code>stream.Duplex</code> class prototypically inherits from
+<code>stream.Readable</code> and parasitically from <code>stream.Writable</code>, but <code>instanceof</code>
+will work properly for both base classes due to overriding
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/hasInstance"><code>Symbol.hasInstance</code></a> on <code>stream.Writable</code>.</p>
 <p>Custom Duplex streams <em>must</em> call the <code>new stream.Duplex([options])</code>
 constructor and implement <em>both</em> the <code>readable._read()</code> and
 <code>writable._write()</code> methods.</p>
@@ -1554,6 +1660,7 @@ is <code>true</code>.</li>
 class MyDuplex extends Duplex {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 </code></pre>
@@ -1653,7 +1760,7 @@ myTransform.write(100);
 </code></pre>
 <h3>Implementing a Transform Stream<span><a class="mark" href="#stream_implementing_a_transform_stream" id="stream_implementing_a_transform_stream">#</a></span></h3>
 <p>A <a href="#stream_class_stream_transform">Transform</a> stream is a <a href="#stream_class_stream_duplex">Duplex</a> stream where the output is computed
-in some way from the input. Examples include <a href="zlib.html">zlib</a> streams or <a href="crypto.html">crypto</a>
+in some way from the input. Examples include [zlib][] streams or <a href="crypto.html">crypto</a>
 streams that compress, encrypt, or decrypt data.</p>
 <p><em>Note</em>: There is no requirement that the output be the same size as the input,
 the same number of chunks, or arrive at the same time. For example, a
@@ -1686,6 +1793,7 @@ method.</li>
 class MyTransform extends Transform {
   constructor(options) {
     super(options);
+    // ...
   }
 }
 </code></pre>
@@ -1721,7 +1829,7 @@ after all data has been output, which occurs after the callback in
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function (optionally with an error
 argument and data) to be called when remaining data has been flushed.</li>
 </ul>
-</div><p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
+</div><p><em>Note</em>: This function MUST NOT be called by application code directly. It
 should be implemented by child classes, and called only by the internal Readable
 class methods only.</p>
 <p>In some cases, a transform operation may need to emit an additional bit of
@@ -1751,7 +1859,7 @@ value - &#39;buffer&#39;, ignore it in this case.</li>
 argument and data) to be called after the supplied <code>chunk</code> has been
 processed.</li>
 </ul>
-</div><p><em>Note</em>: <strong>This function MUST NOT be called by application code directly.</strong> It
+</div><p><em>Note</em>: This function MUST NOT be called by application code directly. It
 should be implemented by child classes, and called only by the internal Readable
 class methods only.</p>
 <p>All Transform stream implementations must provide a <code>_transform()</code>
@@ -1767,12 +1875,12 @@ consumed. The first argument passed to the <code>callback</code> must be an <cod
 if an error occurred while processing the input or <code>null</code> otherwise. If a second
 argument is passed to the <code>callback</code>, it will be forwarded on to the
 <code>readable.push()</code> method. In other words the following are equivalent:</p>
-<pre><code class="lang-js">transform.prototype._transform = function (data, encoding, callback) {
+<pre><code class="lang-js">transform.prototype._transform = function(data, encoding, callback) {
   this.push(data);
   callback();
 };
 
-transform.prototype._transform = function (data, encoding, callback) {
+transform.prototype._transform = function(data, encoding, callback) {
   callback(null, data);
 };
 </code></pre>
@@ -1858,8 +1966,8 @@ situations within Node.js where this is done, particularly in the
 Readable stream class internals.</p>
 <h3><code>readable.push(&#39;&#39;)</code><span><a class="mark" href="#stream_readable_push" id="stream_readable_push">#</a></span></h3>
 <p>Use of <code>readable.push(&#39;&#39;)</code> is not recommended.</p>
-<p>Pushing a zero-byte string or <code>Buffer</code> to a stream that is not in object mode
-has an interesting side effect. Because it <em>is</em> a call to
+<p>Pushing a zero-byte string, <code>Buffer</code> or <code>Uint8Array</code> to a stream that is not in
+object mode has an interesting side effect. Because it <em>is</em> a call to
 <a href="#stream_readable_push_chunk_encoding"><code>readable.push()</code></a>, the call will end the reading process.
 However, because the argument is an empty string, no data is added to the
 readable buffer so there is nothing for a user to consume.</p>

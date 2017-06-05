@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/builtins/builtins.h"
 #include "src/builtins/builtins-utils.h"
+#include "src/builtins/builtins.h"
+#include "src/conversions.h"
+#include "src/counters.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -14,7 +17,7 @@ namespace internal {
 // ES6 section 24.1.2.1 ArrayBuffer ( length ) for the [[Call]] case.
 BUILTIN(ArrayBufferConstructor) {
   HandleScope scope(isolate);
-  Handle<JSFunction> target = args.target<JSFunction>();
+  Handle<JSFunction> target = args.target();
   DCHECK(*target == target->native_context()->array_buffer_fun() ||
          *target == target->native_context()->shared_array_buffer_fun());
   THROW_NEW_ERROR_RETURN_FAILURE(
@@ -25,7 +28,7 @@ BUILTIN(ArrayBufferConstructor) {
 // ES6 section 24.1.2.1 ArrayBuffer ( length ) for the [[Construct]] case.
 BUILTIN(ArrayBufferConstructor_ConstructStub) {
   HandleScope scope(isolate);
-  Handle<JSFunction> target = args.target<JSFunction>();
+  Handle<JSFunction> target = args.target();
   Handle<JSReceiver> new_target = Handle<JSReceiver>::cast(args.new_target());
   Handle<Object> length = args.atOrUndefined(isolate, 1);
   DCHECK(*target == target->native_context()->array_buffer_fun() ||

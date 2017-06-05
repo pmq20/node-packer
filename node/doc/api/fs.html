@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v7.10.0 Documentation</title>
+  <title>File System | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -89,6 +91,7 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_2"><a href="#fs_file_system">File System</a></span><ul>
+<li><span class="stability_1"><a href="#fs_whatwg_url_object_support">WHATWG URL object support</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_buffer_api">Buffer API</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_class_fs_fswatcher">Class: fs.FSWatcher</a></span><ul>
 <li><span class="stability_undefined"><a href="#fs_event_change">Event: &#39;change&#39;</a></span></li>
@@ -160,8 +163,8 @@
 <li><span class="stability_undefined"><a href="#fs_fs_read_fd_buffer_offset_length_position_callback">fs.read(fd, buffer, offset, length, position, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_readdir_path_options_callback">fs.readdir(path[, options], callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_readdirsync_path_options">fs.readdirSync(path[, options])</a></span></li>
-<li><span class="stability_undefined"><a href="#fs_fs_readfile_file_options_callback">fs.readFile(file[, options], callback)</a></span></li>
-<li><span class="stability_undefined"><a href="#fs_fs_readfilesync_file_options">fs.readFileSync(file[, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_fs_readfile_path_options_callback">fs.readFile(path[, options], callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_fs_readfilesync_path_options">fs.readFileSync(path[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_readlink_path_options_callback">fs.readlink(path[, options], callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_readlinksync_path_options">fs.readlinkSync(path[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_readsync_fd_buffer_offset_length_position">fs.readSync(fd, buffer, offset, length, position)</a></span></li>
@@ -222,7 +225,8 @@ The arguments passed to the completion callback depend on the method, but the
 first argument is always reserved for an exception. If the operation was
 completed successfully, then the first argument will be <code>null</code> or <code>undefined</code>.</p>
 <p>When using the synchronous form any exceptions are immediately thrown.
-You can use try/catch to handle exceptions or allow them to bubble up.</p>
+Exceptions may be handled using <code>try</code>/<code>catch</code>, or they may be allowed to
+bubble up.</p>
 <p>Here is an example of the asynchronous version:</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
 
@@ -263,9 +267,12 @@ asynchronous versions of these calls. The synchronous versions will block
 the entire process until they complete--halting all connections.</p>
 <p>The relative path to a filename can be used. Remember, however, that this path
 will be relative to <code>process.cwd()</code>.</p>
-<p>Most fs functions let you omit the callback argument. If you do, a default
-callback is used that rethrows errors. To get a trace to the original call
-site, set the <code>NODE_DEBUG</code> environment variable:</p>
+<p>While it is not recommended, most fs functions allow the callback argument to
+be omitted, in which case a default callback is used that rethrows errors. To
+get a trace to the original call site, set the <code>NODE_DEBUG</code> environment
+variable:</p>
+<p><em>Note</em>: Omitting the callback function on asynchronous fs functions is
+deprecated and may result in an error being thrown in the future.</p>
 <pre><code class="lang-txt">$ cat script.js
 function bad() {
   require(&#39;fs&#39;).readFile(&#39;/&#39;);
@@ -279,6 +286,74 @@ fs.js:88
 Error: EISDIR: illegal operation on a directory, read
     &lt;stack trace.&gt;
 </code></pre>
+<h2>WHATWG URL object support<span><a class="mark" href="#fs_whatwg_url_object_support" id="fs_whatwg_url_object_support">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v7.6.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>For most <code>fs</code> module functions, the <code>path</code> or <code>filename</code> argument may be passed
+as a WHATWG <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> object. Only <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> objects using the <code>file:</code> protocol
+are supported.</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+const { URL } = require(&#39;url&#39;);
+const fileUrl = new URL(&#39;file:///tmp/hello&#39;);
+
+fs.readFileSync(fileUrl);
+</code></pre>
+<p><em>Note</em>: <code>file:</code> URLs are always absolute paths.</p>
+<p>Using WHATWG <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> objects might introduce platform-specific behaviors.</p>
+<p>On Windows, <code>file:</code> URLs with a hostname convert to UNC paths, while <code>file:</code>
+URLs with drive letters convert to local absolute paths. <code>file:</code> URLs without a
+hostname nor a drive letter will result in a throw :</p>
+<pre><code class="lang-js">// On Windows :
+
+// - WHATWG file URLs with hostname convert to UNC path
+// file://hostname/p/a/t/h/file =&gt; \\hostname\p\a\t\h\file
+fs.readFileSync(new URL(&#39;file://hostname/p/a/t/h/file&#39;));
+
+// - WHATWG file URLs with drive letters convert to absolute path
+// file:///C:/tmp/hello =&gt; C:\tmp\hello
+fs.readFileSync(new URL(&#39;file:///C:/tmp/hello&#39;));
+
+// - WHATWG file URLs without hostname must have a drive letters
+fs.readFileSync(new URL(&#39;file:///notdriveletter/p/a/t/h/file&#39;));
+fs.readFileSync(new URL(&#39;file:///c/p/a/t/h/file&#39;));
+// TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must be absolute
+</code></pre>
+<p><em>Note</em>: <code>file:</code> URLs with drive letters must use <code>:</code> as a separator just after
+the drive letter. Using another separator will result in a throw.</p>
+<p>On all other platforms, <code>file:</code> URLs with a hostname are unsupported and will
+result in a throw:</p>
+<pre><code class="lang-js">// On other platforms:
+
+// - WHATWG file URLs with hostname are unsupported
+// file://hostname/p/a/t/h/file =&gt; throw!
+fs.readFileSync(new URL(&#39;file://hostname/p/a/t/h/file&#39;));
+// TypeError [ERR_INVALID_FILE_URL_PATH]: must be absolute
+
+// - WHATWG file URLs convert to absolute path
+// file:///tmp/hello =&gt; /tmp/hello
+fs.readFileSync(new URL(&#39;file:///tmp/hello&#39;));
+</code></pre>
+<p>A <code>file:</code> URL having encoded slash characters will result in a throw on all
+platforms:</p>
+<pre><code class="lang-js">// On Windows
+fs.readFileSync(new URL(&#39;file:///C:/p/a/t/h/%2F&#39;));
+fs.readFileSync(new URL(&#39;file:///C:/p/a/t/h/%2f&#39;));
+/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded
+\ or / characters */
+
+// On POSIX
+fs.readFileSync(new URL(&#39;file:///p/a/t/h/%2F&#39;));
+fs.readFileSync(new URL(&#39;file:///p/a/t/h/%2f&#39;));
+/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded
+/ characters */
+</code></pre>
+<p>On Windows, <code>file:</code> URLs having encoded backslash will result in a throw:</p>
+<pre><code class="lang-js">// On Windows
+fs.readFileSync(new URL(&#39;file:///C:/path/%5C&#39;));
+fs.readFileSync(new URL(&#39;file:///C:/path/%5c&#39;));
+/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded
+\ or / characters */
+</code></pre>
 <h2>Buffer API<span><a class="mark" href="#fs_buffer_api" id="fs_buffer_api">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -287,7 +362,7 @@ and Buffers. The latter is intended to make it possible to work with
 filesystems that allow for non-UTF-8 filenames. For most typical
 uses, working with paths as Buffers will be unnecessary, as the string
 API converts to and from UTF-8 automatically.</p>
-<p><em>Note</em> that on certain file systems (such as NTFS and HFS+) filenames
+<p><em>Note</em>: On certain file systems (such as NTFS and HFS+) filenames
 will always be encoded as UTF-8. On such file systems, passing
 non-UTF-8 encoded Buffers to <code>fs</code> functions will not work as expected.</p>
 <h2>Class: fs.FSWatcher<span><a class="mark" href="#fs_class_fs_fswatcher" id="fs_class_fs_fswatcher">#</a></span></h2>
@@ -371,7 +446,7 @@ synchronous counterparts are of this type.</p>
 </ul>
 <p>For a regular file <a href="util.html#util_util_inspect_object_options"><code>util.inspect(stats)</code></a> would return a string very
 similar to this:</p>
-<pre><code class="lang-txt">Stats {
+<pre><code class="lang-console">Stats {
   dev: 2114,
   ino: 48064969,
   mode: 33188,
@@ -388,14 +463,13 @@ similar to this:</p>
   birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
 </code></pre>
 <p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are
-instances of <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object and to compare the values of
-these objects you should use appropriate methods. For most general
-uses <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime"><code>getTime()</code></a> will return the number of
-milliseconds elapsed since <em>1 January 1970 00:00:00 UTC</em> and this
-integer should be sufficient for any comparison, however there are
-additional methods which can be used for displaying fuzzy information.
-More details can be found in the <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date">MDN JavaScript Reference</a>
-page.</p>
+instances of <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object and appropriate methods should be used
+to compare the values of these objects. For most general uses
+<a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime"><code>getTime()</code></a> will return the number of milliseconds elapsed
+since <em>1 January 1970 00:00:00 UTC</em> and this integer should be sufficient for
+any comparison, however there are additional methods which can be used for
+displaying fuzzy information. More details can be found in the
+<a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date">MDN JavaScript Reference</a> page.</p>
 <h3>Stat Time Values<span><a class="mark" href="#fs_stat_time_values" id="fs_stat_time_values">#</a></span></h3>
 <p>The times in the stat object have the following semantics:</p>
 <ul>
@@ -449,9 +523,19 @@ argument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed 
 <code>writeStream.path</code> will be a <code>Buffer</code>.</p>
 <h2>fs.access(path[, mode], callback)<span><a class="mark" href="#fs_fs_access_path_mode_callback" id="fs_fs_access_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.11.15</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.11.15</td>
+<td><p><span>Added in: v0.11.15</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
@@ -549,9 +633,19 @@ used directly, for example when its accessibility is a signal from another
 process.</p>
 <h2>fs.accessSync(path[, mode])<span><a class="mark" href="#fs_fs_accesssync_path_mode" id="fs_fs_accesssync_path_mode">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.11.15</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.11.15</td>
+<td><p><span>Added in: v0.11.15</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a>. This throws if any accessibility
@@ -598,8 +692,8 @@ checks fail, and does nothing otherwise.</p>
 <pre><code class="lang-js">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;, callback);
 </code></pre>
 <p>Any specified file descriptor has to have been opened for appending.</p>
-<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed
-automatically.</em></p>
+<p><em>Note</em>: If a file descriptor is specified as the <code>file</code>, it will not be closed
+automatically.</p>
 <h2>fs.appendFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_appendfilesync_file_data_options" id="fs_fs_appendfilesync_file_data_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -632,6 +726,9 @@ automatically.</em></p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -641,7 +738,7 @@ automatically.</em></p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
@@ -649,9 +746,19 @@ automatically.</em></p>
 to the completion callback.</p>
 <h2>fs.chmodSync(path, mode)<span><a class="mark" href="#fs_fs_chmodsync_path_mode" id="fs_fs_chmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.6.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.6.7</td>
+<td><p><span>Added in: v0.6.7</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. Returns <code>undefined</code>.</p>
@@ -660,6 +767,9 @@ to the completion callback.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -669,7 +779,7 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -678,9 +788,19 @@ to the completion callback.</p>
 to the completion callback.</p>
 <h2>fs.chownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_chownsync_path_uid_gid" id="fs_fs_chownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.97</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.97</td>
+<td><p><span>Added in: v0.1.97</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
@@ -720,6 +840,9 @@ operations. The specific constants currently defined are described in
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The passed <code>options</code> object will never be modified.</p>
 </td></tr>
@@ -732,7 +855,7 @@ operations. The specific constants currently defined are described in
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -767,8 +890,8 @@ the specified file descriptor. This means that no <code>&#39;open&#39;</code> ev
 emitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed
 to <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if
-there&#39;s an error.  It is your responsibility to close it and make sure
-there&#39;s no file descriptor leak.  If <code>autoClose</code> is set to true (default
+there&#39;s an error. It is the application&#39;s responsibility to close it and make
+sure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default
 behavior), on <code>error</code> or <code>end</code> the file descriptor will be closed
 automatically.</p>
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the
@@ -782,6 +905,9 @@ file was created.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The passed <code>options</code> object will never be modified.</p>
 </td></tr>
@@ -797,7 +923,7 @@ file was created.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>defaultEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -826,8 +952,8 @@ default mode <code>w</code>. The <code>defaultEncoding</code> can be any one of 
 <p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>
 the file descriptor will be closed automatically. If <code>autoClose</code> is false,
 then the file descriptor won&#39;t be closed, even if there&#39;s an error.
-It is your responsibility to close it and make sure
-there&#39;s no file descriptor leak.</p>
+It is the application&#39;s responsibility to close it and make sure there&#39;s no
+file descriptor leak.</p>
 <p>Like <a href="#fs_class_fs_readstream"><code>ReadStream</code></a>, if <code>fd</code> is specified, <code>WriteStream</code> will ignore the
 <code>path</code> argument and will use the specified file descriptor. This means that no
 <code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking
@@ -835,9 +961,22 @@ there&#39;s no file descriptor leak.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.exists(path, callback)<span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span><span>Deprecated since: v1.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v1.0.0</td>
+<td><p><span>Deprecated since: v1.0.0</span></p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a> or <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a> instead.</pre><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Test whether or not the given path exists by checking with the file system.
@@ -916,9 +1055,19 @@ used directly, for example when its existence is a signal from another
 process.</p>
 <h2>fs.existsSync(path)<span><a class="mark" href="#fs_fs_existssync_path" id="fs_fs_existssync_path">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.
 Returns <code>true</code> if the file exists, <code>false</code> otherwise.</p>
@@ -1187,7 +1336,7 @@ descriptor.</p>
 </ul>
 <p>Asynchronous <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. No arguments other than a possible exception
 are given to the completion callback.</p>
-<p>Only available on Mac OS X.</p>
+<p>Only available on macOS.</p>
 <h2>fs.lchmodSync(path, mode)<span><a class="mark" href="#fs_fs_lchmodsync_path_mode" id="fs_fs_lchmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <span>Deprecated since: v0.4.7</span>
@@ -1231,6 +1380,9 @@ to the completion callback.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>existingPath</code> and <code>newPath</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1240,18 +1392,28 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. No arguments other than a possible exception are given to
 the completion callback.</p>
 <h2>fs.linkSync(existingPath, newPath)<span><a class="mark" href="#fs_fs_linksync_existingpath_newpath" id="fs_fs_linksync_existingpath_newpath">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>existingPath</code> and <code>newPath</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.lstat(path, callback)<span><a class="mark" href="#fs_fs_lstat_path_callback" id="fs_fs_lstat_path_callback">#</a></span></h2>
@@ -1259,6 +1421,9 @@ the completion callback.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1268,7 +1433,7 @@ the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
@@ -1277,9 +1442,19 @@ except that if <code>path</code> is a symbolic link, then the link itself is sta
 not the file that it refers to.</p>
 <h2>fs.lstatSync(path)<span><a class="mark" href="#fs_fs_lstatsync_path" id="fs_fs_lstatsync_path">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.30</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.30</td>
+<td><p><span>Added in: v0.1.30</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.mkdir(path[, mode], callback)<span><a class="mark" href="#fs_fs_mkdir_path_mode_callback" id="fs_fs_mkdir_path_mode_callback">#</a></span></h2>
@@ -1287,6 +1462,9 @@ not the file that it refers to.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1296,7 +1474,7 @@ not the file that it refers to.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
@@ -1304,9 +1482,19 @@ not the file that it refers to.</p>
 to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p>
 <h2>fs.mkdirSync(path[, mode])<span><a class="mark" href="#fs_fs_mkdirsync_path_mode" id="fs_fs_mkdirsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. Returns <code>undefined</code>.</p>
@@ -1392,9 +1580,19 @@ folder path.</p>
 object with an <code>encoding</code> property specifying the character encoding to use.</p>
 <h2>fs.open(path, flags[, mode], callback)<span><a class="mark" href="#fs_fs_open_path_flags_mode_callback" id="fs_fs_open_path_flags_mode_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.0.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.0.2</td>
+<td><p><span>Added in: v0.0.2</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1409,11 +1607,11 @@ An exception occurs if the file does not exist.</p>
 </li>
 <li><p><code>&#39;rs+&#39;</code> - Open file for reading and writing in synchronous mode. Instructs
 the operating system to bypass the local file system cache.</p>
-<p>This is primarily useful for opening files on NFS mounts as it allows you to
-skip the potentially stale local cache. It has a very real impact on I/O
-performance so don&#39;t use this flag unless you need it.</p>
+<p>This is primarily useful for opening files on NFS mounts as it allows skipping
+the potentially stale local cache. It has a very real impact on I/O
+performance so using this flag is not recommended unless it is needed.</p>
 <p>Note that this doesn&#39;t turn <code>fs.open()</code> into a synchronous blocking call.
-If that&#39;s what you want then you should be using <code>fs.openSync()</code></p>
+If synchronous operation is desired <code>fs.openSync()</code> should be used.</p>
 </li>
 <li><p><code>&#39;w&#39;</code> - Open file for writing.
 The file is created (if it does not exist) or truncated (if it exists).</p>
@@ -1450,11 +1648,11 @@ or <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by Create
 <p>On Linux, positional writes don&#39;t work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
-<p><em>Note: The behavior of <code>fs.open()</code> is platform specific for some flags. As such,
-opening a directory on OS X and Linux with the <code>&#39;a+&#39;</code> flag - see example below -
-will return an error. In contrast, on Windows and FreeBSD, a file descriptor
-will be returned.</em></p>
-<pre><code class="lang-js">// OS X and Linux
+<p><em>Note</em>: The behavior of <code>fs.open()</code> is platform-specific for some flags. As
+such, opening a directory on macOS and Linux with the <code>&#39;a+&#39;</code> flag - see example
+below - will return an error. In contrast, on Windows and FreeBSD, a file
+descriptor will be returned.</p>
+<pre><code class="lang-js">// macOS and Linux
 fs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {
   // =&gt; [Error: EISDIR: illegal operation on a directory, open &lt;directory&gt;]
 });
@@ -1466,9 +1664,19 @@ fs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {
 </code></pre>
 <h2>fs.openSync(path, flags[, mode])<span><a class="mark" href="#fs_fs_opensync_path_flags_mode" id="fs_fs_opensync_path_flags_mode">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
@@ -1505,11 +1713,16 @@ descriptor.</p>
 <p><code>position</code> is an integer specifying where to begin reading from in the file.
 If <code>position</code> is <code>null</code>, data will be read from the current file position.</p>
 <p>The callback is given the three arguments, <code>(err, bytesRead, buffer)</code>.</p>
+<p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
+a Promise for an object with <code>bytesRead</code> and <code>buffer</code> properties.</p>
 <h2>fs.readdir(path[, options], callback)<span><a class="mark" href="#fs_fs_readdir_path_options_callback" id="fs_fs_readdir_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1522,7 +1735,7 @@ If <code>position</code> is <code>null</code>, data will be read from the curren
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1538,9 +1751,19 @@ the filenames passed to the callback. If the <code>encoding</code> is set to <co
 the filenames returned will be passed as <code>Buffer</code> objects.</p>
 <h2>fs.readdirSync(path[, options])<span><a class="mark" href="#fs_fs_readdirsync_path_options" id="fs_fs_readdirsync_path_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1552,11 +1775,14 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 object with an <code>encoding</code> property specifying the character encoding to use for
 the filenames passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,
 the filenames returned will be passed as <code>Buffer</code> objects.</p>
-<h2>fs.readFile(file[, options], callback)<span><a class="mark" href="#fs_fs_readfile_file_options_callback" id="fs_fs_readfile_file_options_callback">#</a></span></h2>
+<h2>fs.readFile(path[, options], callback)<span><a class="mark" href="#fs_fs_readfile_path_options_callback" id="fs_fs_readfile_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1572,7 +1798,7 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> default = <code>null</code></li>
 <li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;r&#39;</code></li>
@@ -1592,14 +1818,31 @@ contents of the file.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
 <pre><code class="lang-js">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);
 </code></pre>
+<p><em>Note</em>: When the path is a directory, the behavior of
+<code>fs.readFile()</code> and [<code>fs.readFileSync()</code>][] is platform-specific. On macOS,
+Linux, and Windows, an error will be returned. On FreeBSD, a representation
+of the directory&#39;s contents will be returned.</p>
+<pre><code class="lang-js">// macOS, Linux and Windows
+fs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {
+  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]
+});
+
+//  FreeBSD
+fs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {
+  // =&gt; null, &lt;data&gt;
+});
+</code></pre>
 <p>Any specified file descriptor has to support reading.</p>
-<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed
-automatically.</em></p>
-<h2>fs.readFileSync(file[, options])<span><a class="mark" href="#fs_fs_readfilesync_file_options" id="fs_fs_readfilesync_file_options">#</a></span></h2>
+<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed
+automatically.</p>
+<h2>fs.readFileSync(path[, options])<span><a class="mark" href="#fs_fs_readfilesync_path_options" id="fs_fs_readfilesync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v5.0.0</td>
 <td><p>The <code>file</code> parameter can be a file descriptor now.</p>
 </td></tr>
@@ -1609,7 +1852,7 @@ automatically.</em></p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> default = <code>null</code></li>
 <li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;r&#39;</code></li>
@@ -1619,11 +1862,23 @@ automatically.</em></p>
 <p>Synchronous version of <a href="#fs_fs_readfile_file_options_callback"><code>fs.readFile</code></a>. Returns the contents of the <code>file</code>.</p>
 <p>If the <code>encoding</code> option is specified then this function returns a
 string. Otherwise it returns a buffer.</p>
+<p><em>Note</em>: Similar to [<code>fs.readFile()</code>][], when the path is a directory, the
+behavior of <code>fs.readFileSync()</code> is platform-specific.</p>
+<pre><code class="lang-js">// macOS, Linux and Windows
+fs.readFileSync(&#39;&lt;directory&gt;&#39;);
+// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]
+
+//  FreeBSD
+fs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;
+</code></pre>
 <h2>fs.readlink(path[, options], callback)<span><a class="mark" href="#fs_fs_readlink_path_options_callback" id="fs_fs_readlink_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1633,7 +1888,7 @@ string. Otherwise it returns a buffer.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1648,9 +1903,19 @@ the link path passed to the callback. If the <code>encoding</code> is set to <co
 the link path returned will be passed as a <code>Buffer</code> object.</p>
 <h2>fs.readlinkSync(path[, options])<span><a class="mark" href="#fs_fs_readlinksync_path_options" id="fs_fs_readlinksync_path_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1687,6 +1952,12 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>Pipe/Socket resolve support was added.</p>
+</td></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1702,7 +1973,7 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1716,11 +1987,19 @@ resolvedPath)</code>. May use <code>process.cwd</code> to resolve relative paths
 object with an <code>encoding</code> property specifying the character encoding to use for
 the path passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,
 the path returned will be passed as a <code>Buffer</code> object.</p>
+<p><em>Note</em>: If <code>path</code> resolves to a socket or a pipe, the function will return a
+system dependent name for that object.</p>
 <h2>fs.realpathSync(path[, options])<span><a class="mark" href="#fs_fs_realpathsync_path_options" id="fs_fs_realpathsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>Pipe/Socket resolve support was added.</p>
+</td></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v6.4.0</td>
 <td><p>Calling <code>realpathSync</code> now works again for various edge cases on Windows.</p>
 </td></tr>
@@ -1733,7 +2012,7 @@ the path returned will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a>;</li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> default = <code>&#39;utf8&#39;</code></li>
 </ul>
@@ -1745,11 +2024,16 @@ the path returned will be passed as a <code>Buffer</code> object.</p>
 object with an <code>encoding</code> property specifying the character encoding to use for
 the returned value. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>, the path returned
 will be passed as a <code>Buffer</code> object.</p>
+<p><em>Note</em>: If <code>path</code> resolves to a socket or a pipe, the function will return a
+system dependent name for that object.</p>
 <h2>fs.rename(oldPath, newPath, callback)<span><a class="mark" href="#fs_fs_rename_oldpath_newpath_callback" id="fs_fs_rename_oldpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>oldPath</code> and <code>newPath</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1759,18 +2043,28 @@ will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.renameSync(oldPath, newPath)<span><a class="mark" href="#fs_fs_renamesync_oldpath_newpath" id="fs_fs_renamesync_oldpath_newpath">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>oldPath</code> and <code>newPath</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.rmdir(path, callback)<span><a class="mark" href="#fs_fs_rmdir_path_callback" id="fs_fs_rmdir_path_callback">#</a></span></h2>
@@ -1778,6 +2072,9 @@ to the completion callback.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameters can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1787,16 +2084,26 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.rmdirSync(path)<span><a class="mark" href="#fs_fs_rmdirsync_path" id="fs_fs_rmdirsync_path">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameters can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.stat(path, callback)<span><a class="mark" href="#fs_fs_stat_path_callback" id="fs_fs_stat_path_callback">#</a></span></h2>
@@ -1804,6 +2111,9 @@ to the completion callback.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1813,7 +2123,7 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
@@ -1827,17 +2137,37 @@ error raised if the file is not available.</p>
 is recommended.</p>
 <h2>fs.statSync(path)<span><a class="mark" href="#fs_fs_statsync_path" id="fs_fs_statsync_path">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.symlink(target, path[, type], callback)<span><a class="mark" href="#fs_fs_symlink_target_path_type_callback" id="fs_fs_symlink_target_path_type_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>target</code> and <code>path</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
@@ -1853,10 +2183,20 @@ argument will automatically be normalized to absolute path.</p>
 <p>It creates a symbolic link named &quot;new-port&quot; that points to &quot;foo&quot;.</p>
 <h2>fs.symlinkSync(target, path[, type])<span><a class="mark" href="#fs_fs_symlinksync_target_path_type" id="fs_fs_symlinksync_target_path_type">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>target</code> and <code>path</code> parameters can be WHATWG <code>URL</code> objects using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. Returns <code>undefined</code>.</p>
@@ -1895,6 +2235,9 @@ passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is c
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1904,16 +2247,26 @@ passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is c
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.unlinkSync(path)<span><a class="mark" href="#fs_fs_unlinksync_path" id="fs_fs_unlinksync_path">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.unwatchFile(filename[, listener])<span><a class="mark" href="#fs_fs_unwatchfile_filename_listener" id="fs_fs_unwatchfile_filename_listener">#</a></span></h2>
@@ -1924,18 +2277,21 @@ to the completion callback.</p>
 <li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that
-particular listener is removed. Otherwise, <em>all</em> listeners are removed and you
-have effectively stopped watching <code>filename</code>.</p>
+particular listener is removed. Otherwise, <em>all</em> listeners are removed,
+effectively stopping watching of <code>filename</code>.</p>
 <p>Calling <code>fs.unwatchFile()</code> with a filename that is not being watched is a
 no-op, not an error.</p>
-<p><em>Note: <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and <code>fs.unwatchFile()</code>.
-<code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code> and <code>fs.unwatchFile()</code>
-when possible.</em></p>
+<p><em>Note</em>: <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and
+<code>fs.unwatchFile()</code>.  <code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code>
+and <code>fs.unwatchFile()</code> when possible.</p>
 <h2>fs.utimes(path, atime, mtime, callback)<span><a class="mark" href="#fs_fs_utimes_path_atime_mtime_callback" id="fs_fs_utimes_path_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will emit a deprecation warning.</p>
 </td></tr>
@@ -1948,27 +2304,29 @@ when possible.</em></p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Change file timestamps of the file referenced by the supplied path.</p>
-<p>Note: the arguments <code>atime</code> and <code>mtime</code> of the following related functions
+<p><em>Note</em>: The arguments <code>atime</code> and <code>mtime</code> of the following related functions
 follow these rules:</p>
 <ul>
 <li>The value should be a Unix timestamp in seconds. For example, <code>Date.now()</code>
 returns milliseconds, so it should be divided by 1000 before passing it in.</li>
 <li>If the value is a numeric string like <code>&#39;123456789&#39;</code>, the value will get
 converted to the corresponding number.</li>
-<li>If the value is <code>NaN</code> or <code>Infinity</code>, the value will get converted to
-<code>Date.now() / 1000</code>.</li>
+<li>If the value is <code>NaN</code>, <code>Infinity</code> or <code>-Infinity</code>, an Error will be thrown.</li>
 </ul>
 <h2>fs.utimesSync(path, atime, mtime)<span><a class="mark" href="#fs_fs_utimessync_path_atime_mtime" id="fs_fs_utimessync_path_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v4.1.0</td>
 <td><p>Numeric strings, <code>NaN</code> and <code>Infinity</code> are now allowed time specifiers.</p>
 </td></tr>
@@ -1978,7 +2336,7 @@ converted to the corresponding number.</li>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
@@ -1988,6 +2346,9 @@ converted to the corresponding number.</li>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>filename</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
 <tr><td>v7.0.0</td>
 <td><p>The passed <code>options</code> object will never be modified.</p>
 </td></tr>
@@ -1997,7 +2358,7 @@ converted to the corresponding number.</li>
 </table>
 </details>
 </div><ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>persistent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether the process should continue to run
 as long as files are being watched. default = <code>true</code></li>
@@ -2027,7 +2388,7 @@ or disappears in the directory.</p>
 <!--type=misc-->
 <p>The <code>fs.watch</code> API is not 100% consistent across platforms, and is
 unavailable in some situations.</p>
-<p>The recursive option is only supported on OS X and Windows.</p>
+<p>The recursive option is only supported on macOS and Windows.</p>
 <h4>Availability<span><a class="mark" href="#fs_availability" id="fs_availability">#</a></span></h4>
 <!--type=misc-->
 <p>This feature depends on the underlying operating system providing a way
@@ -2035,7 +2396,7 @@ to be notified of filesystem changes.</p>
 <ul>
 <li>On Linux systems, this uses <a href="http://man7.org/linux/man-pages/man7/inotify.7.html"><code>inotify</code></a></li>
 <li>On BSD systems, this uses <a href="https://www.freebsd.org/cgi/man.cgi?kqueue"><code>kqueue</code></a></li>
-<li>On OS X, this uses <a href="https://www.freebsd.org/cgi/man.cgi?kqueue"><code>kqueue</code></a> for files and <a href="https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/FSEvents_ProgGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005289-CH1-SW1"><code>FSEvents</code></a> for directories.</li>
+<li>On macOS, this uses <a href="https://www.freebsd.org/cgi/man.cgi?kqueue"><code>kqueue</code></a> for files and <a href="https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/FSEvents_ProgGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005289-CH1-SW1"><code>FSEvents</code></a> for directories.</li>
 <li>On SunOS systems (including Solaris and SmartOS), this uses <a href="http://illumos.org/man/port_create"><code>event ports</code></a>.</li>
 <li>On Windows systems, this feature depends on <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx"><code>ReadDirectoryChangesW</code></a>.</li>
 <li>On Aix systems, this feature depends on <a href="https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/"><code>AHAFS</code></a>, which must be enabled.</li>
@@ -2045,11 +2406,11 @@ to be notified of filesystem changes.</p>
 directories can be unreliable, and in some cases impossible, on network file
 systems (NFS, SMB, etc), or host file systems when using virtualization software
 such as Vagrant, Docker, etc.</p>
-<p>You can still use <code>fs.watchFile</code>, which uses stat polling, but it is slower and
-less reliable.</p>
+<p>It is still possible to use <code>fs.watchFile()</code>, which uses stat polling, but
+this method is slower and less reliable.</p>
 <h4>Inodes<span><a class="mark" href="#fs_inodes" id="fs_inodes">#</a></span></h4>
 <!--type=misc-->
-<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href="https://en.wikipedia.org/wiki/Inode">inode</a> and
+<p>On Linux and macOS systems, <code>fs.watch()</code> resolves the path to an <a href="https://en.wikipedia.org/wiki/Inode">inode</a> and
 watches the inode. If the watched path is deleted and recreated, it is assigned
 a new inode. The watch will emit an event for the delete but will continue
 watching the <em>original</em> inode. Events for the new inode will not be emitted.
@@ -2058,14 +2419,14 @@ This is expected behavior.</p>
 one for adding new content, and one for truncation. Moreover, save and
 close operations on some platforms cause inode changes that force watch
 operations to become invalid and ineffective. AIX retains inode for the
-lifetime of a file, that way though this is different from Linux / OS X,
+lifetime of a file, that way though this is different from Linux / macOS,
 this improves the usability of file watching. This is expected behavior.</p>
 <h4>Filename Argument<span><a class="mark" href="#fs_filename_argument" id="fs_filename_argument">#</a></span></h4>
 <!--type=misc-->
-<p>Providing <code>filename</code> argument in the callback is only supported on Linux and
-Windows.  Even on supported platforms, <code>filename</code> is not always guaranteed to
-be provided. Therefore, don&#39;t assume that <code>filename</code> argument is always
-provided in the callback, and have some fallback logic if it is null.</p>
+<p>Providing <code>filename</code> argument in the callback is only supported on Linux,
+macOS, Windows, and AIX.  Even on supported platforms, <code>filename</code> is not always
+guaranteed to be provided. Therefore, don&#39;t assume that <code>filename</code> argument is
+always provided in the callback, and have some fallback logic if it is null.</p>
 <pre><code class="lang-js">fs.watch(&#39;somedir&#39;, (eventType, filename) =&gt; {
   console.log(`event type is: ${eventType}`);
   if (filename) {
@@ -2077,9 +2438,19 @@ provided in the callback, and have some fallback logic if it is null.</p>
 </code></pre>
 <h2>fs.watchFile(filename[, options], listener)<span><a class="mark" href="#fs_fs_watchfile_filename_options_listener" id="fs_fs_watchfile_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.31</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.6.0</td>
+<td><p>The <code>filename</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v0.1.31</td>
+<td><p><span>Added in: v0.1.31</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>persistent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 <li><code>interval</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
@@ -2103,16 +2474,17 @@ stat object:</p>
 });
 </code></pre>
 <p>These stat objects are instances of <code>fs.Stat</code>.</p>
-<p>If you want to be notified when the file was modified, not just accessed,
-you need to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>
-<p><em>Note: when an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it will
- invoke the listener once, with all the fields zeroed (or, for dates, the Unix
- Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>, instead
- of zero. If the file is created later on, the listener will be called again,
- with the latest stat objects. This is a change in functionality since v0.10.</em></p>
-<p><em>Note: <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and
+<p>To be notified when the file was modified, not just accessed, it is necessary
+to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>
+<p><em>Note</em>: When an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it
+will invoke the listener once, with all the fields zeroed (or, for dates, the
+Unix Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>,
+instead of zero. If the file is created later on, the listener will be called
+again, with the latest stat objects. This is a change in functionality since
+v0.10.</p>
+<p><em>Note</em>: <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and
 <code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and
-<code>fs.unwatchFile</code> when possible.</em></p>
+<code>fs.unwatchFile</code> when possible.</p>
 <h2>fs.write(fd, buffer[, offset[, length[, position]]], callback)<span><a class="mark" href="#fs_fs_write_fd_buffer_offset_length_position_callback" id="fs_fs_write_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2146,8 +2518,10 @@ an integer specifying the number of bytes to write.</p>
 <p><code>position</code> refers to the offset from the beginning of the file where this data
 should be written. If <code>typeof position !== &#39;number&#39;</code>, the data will be written
 at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
-<p>The callback will be given three arguments <code>(err, written, buffer)</code> where
-<code>written</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>
+<p>The callback will be given three arguments <code>(err, bytesWritten, buffer)</code> where
+<code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>
+<p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
+a Promise for an object with <code>bytesWritten</code> and <code>buffer</code> properties.</p>
 <p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file
 without waiting for the callback. For this scenario,
 <code>fs.createWriteStream</code> is strongly recommended.</p>
@@ -2242,8 +2616,8 @@ to <code>&#39;utf8&#39;</code>.</p>
 <p>Note that it is unsafe to use <code>fs.writeFile</code> multiple times on the same file
 without waiting for the callback. For this scenario,
 <code>fs.createWriteStream</code> is strongly recommended.</p>
-<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed
-automatically.</em></p>
+<p><em>Note</em>: If a file descriptor is specified as the <code>file</code>, it will not be closed
+automatically.</p>
 <h2>fs.writeFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2315,8 +2689,8 @@ automatically.</em></p>
 </ul>
 <p>Synchronous versions of <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>. Returns the number of bytes written.</p>
 <h2>FS Constants<span><a class="mark" href="#fs_fs_constants_1" id="fs_fs_constants_1">#</a></span></h2>
-<p>The following constants are exported by <code>fs.constants</code>. <strong>Note:</strong> Not every
-constant will be available on every operating system.</p>
+<p>The following constants are exported by <code>fs.constants</code>.</p>
+<p><em>Note</em>: Not every constant will be available on every operating system.</p>
 <h3>File Access Constants<span><a class="mark" href="#fs_file_access_constants" id="fs_file_access_constants">#</a></span></h3>
 <p>The following constants are meant for use with <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a>.</p>
 <table>
@@ -2523,6 +2897,7 @@ constant will be available on every operating system.</p>
     <td>File mode indicating executable by others.</td>
   </tr>
 </table>
+
 
 
       </div>

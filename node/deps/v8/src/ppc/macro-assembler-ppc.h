@@ -470,16 +470,6 @@ class MacroAssembler : public Assembler {
     LoadNativeContextSlot(Context::GLOBAL_PROXY_INDEX, dst);
   }
 
-  // Conditionally load the cached Array transitioned map of type
-  // transitioned_kind from the native context if the map in register
-  // map_in_out is the cached Array map in the native context of
-  // expected_kind.
-  void LoadTransitionedArrayMapConditional(ElementsKind expected_kind,
-                                           ElementsKind transitioned_kind,
-                                           Register map_in_out,
-                                           Register scratch,
-                                           Label* no_map_match);
-
   void LoadNativeContextSlot(int index, Register dst);
 
   // Load the initial map from the global function. The registers
@@ -621,9 +611,10 @@ class MacroAssembler : public Assembler {
                           const ParameterCount& actual, InvokeFlag flag,
                           const CallWrapper& call_wrapper);
 
-  void FloodFunctionIfStepping(Register fun, Register new_target,
-                               const ParameterCount& expected,
-                               const ParameterCount& actual);
+  // On function call, call into the debugger if necessary.
+  void CheckDebugHook(Register fun, Register new_target,
+                      const ParameterCount& expected,
+                      const ParameterCount& actual);
 
   // Invoke the JavaScript function in the given register. Changes the
   // current context to the context in the function before invoking.
@@ -644,12 +635,10 @@ class MacroAssembler : public Assembler {
 
   void IsObjectNameType(Register object, Register scratch, Label* fail);
 
-  // ---------------------------------------------------------------------------
-  // Debugger Support
-
   void DebugBreak();
+  // Frame restart support
+  void MaybeDropFrames();
 
-  // ---------------------------------------------------------------------------
   // Exception handling
 
   // Push a new stack handler and link into stack handler chain.
@@ -662,18 +651,7 @@ class MacroAssembler : public Assembler {
   // ---------------------------------------------------------------------------
   // Inline caching support
 
-  // Generate code for checking access rights - used for security checks
-  // on access to global objects across environments. The holder register
-  // is left untouched, whereas both scratch registers are clobbered.
-  void CheckAccessGlobalProxy(Register holder_reg, Register scratch,
-                              Label* miss);
-
   void GetNumberHash(Register t0, Register scratch);
-
-  void LoadFromNumberDictionary(Label* miss, Register elements, Register key,
-                                Register result, Register t0, Register t1,
-                                Register t2);
-
 
   inline void MarkCode(NopMarkerTypes type) { nop(type); }
 
@@ -733,25 +711,6 @@ class MacroAssembler : public Assembler {
   void FastAllocate(Register object_size, Register result, Register result_end,
                     Register scratch, AllocationFlags flags);
 
-  void AllocateTwoByteString(Register result, Register length,
-                             Register scratch1, Register scratch2,
-                             Register scratch3, Label* gc_required);
-  void AllocateOneByteString(Register result, Register length,
-                             Register scratch1, Register scratch2,
-                             Register scratch3, Label* gc_required);
-  void AllocateTwoByteConsString(Register result, Register length,
-                                 Register scratch1, Register scratch2,
-                                 Label* gc_required);
-  void AllocateOneByteConsString(Register result, Register length,
-                                 Register scratch1, Register scratch2,
-                                 Label* gc_required);
-  void AllocateTwoByteSlicedString(Register result, Register length,
-                                   Register scratch1, Register scratch2,
-                                   Label* gc_required);
-  void AllocateOneByteSlicedString(Register result, Register length,
-                                   Register scratch1, Register scratch2,
-                                   Label* gc_required);
-
   // Allocates a heap number or jumps to the gc_required label if the young
   // space is full and a scavenge is needed. All registers are clobbered also
   // when control continues at the gc_required label.
@@ -768,11 +727,6 @@ class MacroAssembler : public Assembler {
   void AllocateJSValue(Register result, Register constructor, Register value,
                        Register scratch1, Register scratch2,
                        Label* gc_required);
-
-  // Copies a number of bytes from src to dst. All registers are clobbered. On
-  // exit src and dst will point to the place just after where the last byte was
-  // read or written and length will be zero.
-  void CopyBytes(Register src, Register dst, Register length, Register scratch);
 
   // Initialize fields with filler values.  |count| fields starting at
   // |current_address| are overwritten with the value in |filler|.  At the end
@@ -795,14 +749,6 @@ class MacroAssembler : public Assembler {
   void GetMapConstructor(Register result, Register map, Register temp,
                          Register temp2);
 
-  // Try to get function prototype of a function and puts the value in
-  // the result register. Checks that the function really is a
-  // function and jumps to the miss label if the fast checks fail. The
-  // function register will be untouched; the other registers may be
-  // clobbered.
-  void TryGetFunctionPrototype(Register function, Register result,
-                               Register scratch, Label* miss);
-
   // Compare object type for heap object.  heap_object contains a non-Smi
   // whose object type should be compared with the given type.  This both
   // sets the flags and leaves the object type in the type_reg register.
@@ -818,27 +764,6 @@ class MacroAssembler : public Assembler {
   // object type should be compared with the given type.  This both
   // sets the flags and leaves the object type in the type_reg register.
   void CompareInstanceType(Register map, Register type_reg, InstanceType type);
-
-
-  // Check if a map for a JSObject indicates that the object has fast elements.
-  // Jump to the specified label if it does not.
-  void CheckFastElements(Register map, Register scratch, Label* fail);
-
-  // Check if a map for a JSObject indicates that the object can have both smi
-  // and HeapObject elements.  Jump to the specified label if it does not.
-  void CheckFastObjectElements(Register map, Register scratch, Label* fail);
-
-  // Check if a map for a JSObject indicates that the object has fast smi only
-  // elements.  Jump to the specified label if it does not.
-  void CheckFastSmiElements(Register map, Register scratch, Label* fail);
-
-  // Check to see if maybe_number can be stored as a double in
-  // FastDoubleElements. If it can, store it at the index specified by key in
-  // the FastDoubleElements array elements. Otherwise jump to fail.
-  void StoreNumberToDoubleElements(Register value_reg, Register key_reg,
-                                   Register elements_reg, Register scratch1,
-                                   DoubleRegister double_scratch, Label* fail,
-                                   int elements_offset = 0);
 
   // Compare an object's map with the specified map and its transitioned
   // elements maps if mode is ALLOW_ELEMENT_TRANSITION_MAPS. Condition flags are
@@ -911,13 +836,6 @@ class MacroAssembler : public Assembler {
     DCHECK_EQ(0u, kStringTag);
     return eq;
   }
-
-
-  // Picks out an array index from the hash field.
-  // Register use:
-  //   hash - holds the index's hash. Clobbered.
-  //   index - holds the overwritten index on exit.
-  void IndexFromHash(Register hash, Register index);
 
   // Get the number of least significant bits from a register
   void GetLeastBitsFromSmi(Register dst, Register src, int num_least_bits);
@@ -1337,10 +1255,6 @@ class MacroAssembler : public Assembler {
   // Souce and destination can be the same register.
   void UntagAndJumpIfSmi(Register dst, Register src, Label* smi_case);
 
-  // Untag the source value into destination and jump if source is not a smi.
-  // Souce and destination can be the same register.
-  void UntagAndJumpIfNotSmi(Register dst, Register src, Label* non_smi_case);
-
   inline void TestIfSmi(Register value, Register scratch) {
     TestBitRange(value, kSmiTagSize - 1, 0, scratch);
   }
@@ -1462,11 +1376,6 @@ class MacroAssembler : public Assembler {
       Register first_object_instance_type, Register second_object_instance_type,
       Register scratch1, Register scratch2, Label* failure);
 
-  // Check if instance type is sequential one-byte string and jump to label if
-  // it is not.
-  void JumpIfInstanceTypeIsNotSequentialOneByte(Register type, Register scratch,
-                                                Label* failure);
-
   void JumpIfNotUniqueNameInstanceType(Register reg, Label* not_unique_name);
 
   void EmitSeqStringSetCharCheck(Register string, Register index,
@@ -1530,7 +1439,7 @@ class MacroAssembler : public Assembler {
   }
 
   // Load the type feedback vector from a JavaScript frame.
-  void EmitLoadTypeFeedbackVector(Register vector);
+  void EmitLoadFeedbackVector(Register vector);
 
   // Activation support.
   void EnterFrame(StackFrame::Type type,
@@ -1555,21 +1464,6 @@ class MacroAssembler : public Assembler {
                                        Register scratch_reg,
                                        Register scratch2_reg,
                                        Label* no_memento_found);
-
-  void JumpIfJSArrayHasAllocationMemento(Register receiver_reg,
-                                         Register scratch_reg,
-                                         Register scratch2_reg,
-                                         Label* memento_found) {
-    Label no_memento_found;
-    TestJSArrayForAllocationMemento(receiver_reg, scratch_reg, scratch2_reg,
-                                    &no_memento_found);
-    beq(memento_found);
-    bind(&no_memento_found);
-  }
-
-  // Jumps to found label if a prototype map has dictionary elements.
-  void JumpIfDictionaryInPrototypeChain(Register object, Register scratch0,
-                                        Register scratch1, Label* found);
 
   // Loads the constant pool pointer (kConstantPoolRegister).
   void LoadConstantPoolPointerRegisterFromCodeTargetAddress(
@@ -1598,10 +1492,6 @@ class MacroAssembler : public Assembler {
                       const ParameterCount& actual, Label* done,
                       bool* definitely_mismatches, InvokeFlag flag,
                       const CallWrapper& call_wrapper);
-
-  void InitializeNewString(Register string, Register length,
-                           Heap::RootListIndex map_index, Register scratch1,
-                           Register scratch2);
 
   // Helper for implementing JumpIfNotInNewSpace and JumpIfInNewSpace.
   void InNewSpace(Register object, Register scratch,

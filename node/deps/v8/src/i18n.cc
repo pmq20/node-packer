@@ -10,6 +10,7 @@
 #include "src/api.h"
 #include "src/factory.h"
 #include "src/isolate.h"
+#include "src/objects-inl.h"
 #include "unicode/brkiter.h"
 #include "unicode/calendar.h"
 #include "unicode/coll.h"
@@ -29,7 +30,12 @@
 #include "unicode/ucol.h"
 #include "unicode/ucurr.h"
 #include "unicode/unum.h"
+#include "unicode/uvernum.h"
 #include "unicode/uversion.h"
+
+#if U_ICU_VERSION_MAJOR_NUM >= 59
+#include "unicode/char16ptr.h"
+#endif
 
 namespace v8 {
 namespace internal {
@@ -224,23 +230,6 @@ void SetResolvedDateSettings(Isolate* isolate,
 }
 
 
-template<int internal_fields, EternalHandles::SingletonHandle field>
-Handle<ObjectTemplateInfo> GetEternal(Isolate* isolate) {
-  if (isolate->eternal_handles()->Exists(field)) {
-    return Handle<ObjectTemplateInfo>::cast(
-        isolate->eternal_handles()->GetSingleton(field));
-  }
-  v8::Local<v8::ObjectTemplate> raw_template =
-      v8::ObjectTemplate::New(reinterpret_cast<v8::Isolate*>(isolate));
-  raw_template->SetInternalFieldCount(internal_fields);
-  return Handle<ObjectTemplateInfo>::cast(
-      isolate->eternal_handles()->CreateSingleton(
-        isolate,
-        *v8::Utils::OpenHandle(*raw_template),
-        field));
-}
-
-
 icu::DecimalFormat* CreateICUNumberFormat(
     Isolate* isolate,
     const icu::Locale& icu_locale,
@@ -286,8 +275,13 @@ icu::DecimalFormat* CreateICUNumberFormat(
       }
 
       UErrorCode status_digits = U_ZERO_ERROR;
+#if U_ICU_VERSION_MAJOR_NUM >= 59
       uint32_t fraction_digits = ucurr_getDefaultFractionDigits(
-        currency.getTerminatedBuffer(), &status_digits);
+          icu::toUCharPtr(currency.getTerminatedBuffer()), &status_digits);
+#else
+      uint32_t fraction_digits = ucurr_getDefaultFractionDigits(
+          currency.getTerminatedBuffer(), &status_digits);
+#endif
       if (U_SUCCESS(status_digits)) {
         number_format->setMinimumFractionDigits(fraction_digits);
         number_format->setMaximumFractionDigits(fraction_digits);
@@ -702,18 +696,6 @@ void SetResolvedBreakIteratorSettings(Isolate* isolate,
 
 
 // static
-Handle<ObjectTemplateInfo> I18N::GetTemplate(Isolate* isolate) {
-  return GetEternal<1, i::EternalHandles::I18N_TEMPLATE_ONE>(isolate);
-}
-
-
-// static
-Handle<ObjectTemplateInfo> I18N::GetTemplate2(Isolate* isolate) {
-  return GetEternal<2, i::EternalHandles::I18N_TEMPLATE_TWO>(isolate);
-}
-
-
-// static
 icu::SimpleDateFormat* DateFormat::InitializeDateTimeFormat(
     Isolate* isolate,
     Handle<String> locale,
@@ -759,16 +741,7 @@ icu::SimpleDateFormat* DateFormat::InitializeDateTimeFormat(
 icu::SimpleDateFormat* DateFormat::UnpackDateFormat(
     Isolate* isolate,
     Handle<JSObject> obj) {
-  Handle<String> key =
-      isolate->factory()->NewStringFromStaticChars("dateFormat");
-  Maybe<bool> maybe = JSReceiver::HasOwnProperty(obj, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    return reinterpret_cast<icu::SimpleDateFormat*>(
-        obj->GetInternalField(0));
-  }
-
-  return NULL;
+  return reinterpret_cast<icu::SimpleDateFormat*>(obj->GetInternalField(0));
 }
 
 void DateFormat::DeleteDateFormat(const v8::WeakCallbackInfo<void>& data) {
@@ -823,15 +796,7 @@ icu::DecimalFormat* NumberFormat::InitializeNumberFormat(
 icu::DecimalFormat* NumberFormat::UnpackNumberFormat(
     Isolate* isolate,
     Handle<JSObject> obj) {
-  Handle<String> key =
-      isolate->factory()->NewStringFromStaticChars("numberFormat");
-  Maybe<bool> maybe = JSReceiver::HasOwnProperty(obj, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    return reinterpret_cast<icu::DecimalFormat*>(obj->GetInternalField(0));
-  }
-
-  return NULL;
+  return reinterpret_cast<icu::DecimalFormat*>(obj->GetInternalField(0));
 }
 
 void NumberFormat::DeleteNumberFormat(const v8::WeakCallbackInfo<void>& data) {
@@ -883,14 +848,7 @@ icu::Collator* Collator::InitializeCollator(
 
 icu::Collator* Collator::UnpackCollator(Isolate* isolate,
                                         Handle<JSObject> obj) {
-  Handle<String> key = isolate->factory()->NewStringFromStaticChars("collator");
-  Maybe<bool> maybe = JSReceiver::HasOwnProperty(obj, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    return reinterpret_cast<icu::Collator*>(obj->GetInternalField(0));
-  }
-
-  return NULL;
+  return reinterpret_cast<icu::Collator*>(obj->GetInternalField(0));
 }
 
 void Collator::DeleteCollator(const v8::WeakCallbackInfo<void>& data) {
@@ -898,11 +856,8 @@ void Collator::DeleteCollator(const v8::WeakCallbackInfo<void>& data) {
   GlobalHandles::Destroy(reinterpret_cast<Object**>(data.GetParameter()));
 }
 
-
-icu::BreakIterator* BreakIterator::InitializeBreakIterator(
-    Isolate* isolate,
-    Handle<String> locale,
-    Handle<JSObject> options,
+icu::BreakIterator* V8BreakIterator::InitializeBreakIterator(
+    Isolate* isolate, Handle<String> locale, Handle<JSObject> options,
     Handle<JSObject> resolved) {
   // Convert BCP47 into ICU locale format.
   UErrorCode status = U_ZERO_ERROR;
@@ -942,21 +897,12 @@ icu::BreakIterator* BreakIterator::InitializeBreakIterator(
   return break_iterator;
 }
 
-
-icu::BreakIterator* BreakIterator::UnpackBreakIterator(Isolate* isolate,
-                                                       Handle<JSObject> obj) {
-  Handle<String> key =
-      isolate->factory()->NewStringFromStaticChars("breakIterator");
-  Maybe<bool> maybe = JSReceiver::HasOwnProperty(obj, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    return reinterpret_cast<icu::BreakIterator*>(obj->GetInternalField(0));
-  }
-
-  return NULL;
+icu::BreakIterator* V8BreakIterator::UnpackBreakIterator(Isolate* isolate,
+                                                         Handle<JSObject> obj) {
+  return reinterpret_cast<icu::BreakIterator*>(obj->GetInternalField(0));
 }
 
-void BreakIterator::DeleteBreakIterator(
+void V8BreakIterator::DeleteBreakIterator(
     const v8::WeakCallbackInfo<void>& data) {
   delete reinterpret_cast<icu::BreakIterator*>(data.GetInternalField(0));
   delete reinterpret_cast<icu::UnicodeString*>(data.GetInternalField(1));

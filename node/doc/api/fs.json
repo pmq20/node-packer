@@ -6,8 +6,23 @@
       "name": "fs",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>File I/O is provided by simple wrappers around standard POSIX functions.  To\nuse this module do <code>require(&#39;fs&#39;)</code>. All the methods have asynchronous and\nsynchronous forms.</p>\n<p>The asynchronous form always takes a completion callback as its last argument.\nThe arguments passed to the completion callback depend on the method, but the\nfirst argument is always reserved for an exception. If the operation was\ncompleted successfully, then the first argument will be <code>null</code> or <code>undefined</code>.</p>\n<p>When using the synchronous form any exceptions are immediately thrown.\nYou can use try/catch to handle exceptions or allow them to bubble up.</p>\n<p>Here is an example of the asynchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlink(&#39;/tmp/hello&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;successfully deleted /tmp/hello&#39;);\n});\n</code></pre>\n<p>Here is the synchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlinkSync(&#39;/tmp/hello&#39;);\nconsole.log(&#39;successfully deleted /tmp/hello&#39;);\n</code></pre>\n<p>With the asynchronous methods there is no guaranteed ordering. So the\nfollowing is prone to error:</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;renamed complete&#39;);\n});\nfs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n  if (err) throw err;\n  console.log(`stats: ${JSON.stringify(stats)}`);\n});\n</code></pre>\n<p>It could be that <code>fs.stat</code> is executed before <code>fs.rename</code>.\nThe correct way to do this is to chain the callbacks.</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  fs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>\n<p>In busy processes, the programmer is <em>strongly encouraged</em> to use the\nasynchronous versions of these calls. The synchronous versions will block\nthe entire process until they complete--halting all connections.</p>\n<p>The relative path to a filename can be used. Remember, however, that this path\nwill be relative to <code>process.cwd()</code>.</p>\n<p>Most fs functions let you omit the callback argument. If you do, a default\ncallback is used that rethrows errors. To get a trace to the original call\nsite, set the <code>NODE_DEBUG</code> environment variable:</p>\n<pre><code class=\"lang-txt\">$ cat script.js\nfunction bad() {\n  require(&#39;fs&#39;).readFile(&#39;/&#39;);\n}\nbad();\n\n$ env NODE_DEBUG=fs node script.js\nfs.js:88\n        throw backtrace;\n        ^\nError: EISDIR: illegal operation on a directory, read\n    &lt;stack trace.&gt;\n</code></pre>\n",
+      "desc": "<p>File I/O is provided by simple wrappers around standard POSIX functions.  To\nuse this module do <code>require(&#39;fs&#39;)</code>. All the methods have asynchronous and\nsynchronous forms.</p>\n<p>The asynchronous form always takes a completion callback as its last argument.\nThe arguments passed to the completion callback depend on the method, but the\nfirst argument is always reserved for an exception. If the operation was\ncompleted successfully, then the first argument will be <code>null</code> or <code>undefined</code>.</p>\n<p>When using the synchronous form any exceptions are immediately thrown.\nExceptions may be handled using <code>try</code>/<code>catch</code>, or they may be allowed to\nbubble up.</p>\n<p>Here is an example of the asynchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlink(&#39;/tmp/hello&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;successfully deleted /tmp/hello&#39;);\n});\n</code></pre>\n<p>Here is the synchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlinkSync(&#39;/tmp/hello&#39;);\nconsole.log(&#39;successfully deleted /tmp/hello&#39;);\n</code></pre>\n<p>With the asynchronous methods there is no guaranteed ordering. So the\nfollowing is prone to error:</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;renamed complete&#39;);\n});\nfs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n  if (err) throw err;\n  console.log(`stats: ${JSON.stringify(stats)}`);\n});\n</code></pre>\n<p>It could be that <code>fs.stat</code> is executed before <code>fs.rename</code>.\nThe correct way to do this is to chain the callbacks.</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  fs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>\n<p>In busy processes, the programmer is <em>strongly encouraged</em> to use the\nasynchronous versions of these calls. The synchronous versions will block\nthe entire process until they complete--halting all connections.</p>\n<p>The relative path to a filename can be used. Remember, however, that this path\nwill be relative to <code>process.cwd()</code>.</p>\n<p>While it is not recommended, most fs functions allow the callback argument to\nbe omitted, in which case a default callback is used that rethrows errors. To\nget a trace to the original call site, set the <code>NODE_DEBUG</code> environment\nvariable:</p>\n<p><em>Note</em>: Omitting the callback function on asynchronous fs functions is\ndeprecated and may result in an error being thrown in the future.</p>\n<pre><code class=\"lang-txt\">$ cat script.js\nfunction bad() {\n  require(&#39;fs&#39;).readFile(&#39;/&#39;);\n}\nbad();\n\n$ env NODE_DEBUG=fs node script.js\nfs.js:88\n        throw backtrace;\n        ^\nError: EISDIR: illegal operation on a directory, read\n    &lt;stack trace.&gt;\n</code></pre>\n",
       "modules": [
+        {
+          "textRaw": "WHATWG URL object support",
+          "name": "whatwg_url_object_support",
+          "meta": {
+            "added": [
+              "v7.6.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p>For most <code>fs</code> module functions, the <code>path</code> or <code>filename</code> argument may be passed\nas a WHATWG <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> object. Only <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> objects using the <code>file:</code> protocol\nare supported.</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\nconst { URL } = require(&#39;url&#39;);\nconst fileUrl = new URL(&#39;file:///tmp/hello&#39;);\n\nfs.readFileSync(fileUrl);\n</code></pre>\n<p><em>Note</em>: <code>file:</code> URLs are always absolute paths.</p>\n<p>Using WHATWG <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> objects might introduce platform-specific behaviors.</p>\n<p>On Windows, <code>file:</code> URLs with a hostname convert to UNC paths, while <code>file:</code>\nURLs with drive letters convert to local absolute paths. <code>file:</code> URLs without a\nhostname nor a drive letter will result in a throw :</p>\n<pre><code class=\"lang-js\">// On Windows :\n\n// - WHATWG file URLs with hostname convert to UNC path\n// file://hostname/p/a/t/h/file =&gt; \\\\hostname\\p\\a\\t\\h\\file\nfs.readFileSync(new URL(&#39;file://hostname/p/a/t/h/file&#39;));\n\n// - WHATWG file URLs with drive letters convert to absolute path\n// file:///C:/tmp/hello =&gt; C:\\tmp\\hello\nfs.readFileSync(new URL(&#39;file:///C:/tmp/hello&#39;));\n\n// - WHATWG file URLs without hostname must have a drive letters\nfs.readFileSync(new URL(&#39;file:///notdriveletter/p/a/t/h/file&#39;));\nfs.readFileSync(new URL(&#39;file:///c/p/a/t/h/file&#39;));\n// TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must be absolute\n</code></pre>\n<p><em>Note</em>: <code>file:</code> URLs with drive letters must use <code>:</code> as a separator just after\nthe drive letter. Using another separator will result in a throw.</p>\n<p>On all other platforms, <code>file:</code> URLs with a hostname are unsupported and will\nresult in a throw:</p>\n<pre><code class=\"lang-js\">// On other platforms:\n\n// - WHATWG file URLs with hostname are unsupported\n// file://hostname/p/a/t/h/file =&gt; throw!\nfs.readFileSync(new URL(&#39;file://hostname/p/a/t/h/file&#39;));\n// TypeError [ERR_INVALID_FILE_URL_PATH]: must be absolute\n\n// - WHATWG file URLs convert to absolute path\n// file:///tmp/hello =&gt; /tmp/hello\nfs.readFileSync(new URL(&#39;file:///tmp/hello&#39;));\n</code></pre>\n<p>A <code>file:</code> URL having encoded slash characters will result in a throw on all\nplatforms:</p>\n<pre><code class=\"lang-js\">// On Windows\nfs.readFileSync(new URL(&#39;file:///C:/p/a/t/h/%2F&#39;));\nfs.readFileSync(new URL(&#39;file:///C:/p/a/t/h/%2f&#39;));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n\\ or / characters */\n\n// On POSIX\nfs.readFileSync(new URL(&#39;file:///p/a/t/h/%2F&#39;));\nfs.readFileSync(new URL(&#39;file:///p/a/t/h/%2f&#39;));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n/ characters */\n</code></pre>\n<p>On Windows, <code>file:</code> URLs having encoded backslash will result in a throw:</p>\n<pre><code class=\"lang-js\">// On Windows\nfs.readFileSync(new URL(&#39;file:///C:/path/%5C&#39;));\nfs.readFileSync(new URL(&#39;file:///C:/path/%5c&#39;));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n\\ or / characters */\n</code></pre>\n",
+          "type": "module",
+          "displayName": "WHATWG URL object support"
+        },
         {
           "textRaw": "Buffer API",
           "name": "buffer_api",
@@ -17,14 +32,14 @@
             ],
             "changes": []
           },
-          "desc": "<p><code>fs</code> functions support passing and receiving paths as both strings\nand Buffers. The latter is intended to make it possible to work with\nfilesystems that allow for non-UTF-8 filenames. For most typical\nuses, working with paths as Buffers will be unnecessary, as the string\nAPI converts to and from UTF-8 automatically.</p>\n<p><em>Note</em> that on certain file systems (such as NTFS and HFS+) filenames\nwill always be encoded as UTF-8. On such file systems, passing\nnon-UTF-8 encoded Buffers to <code>fs</code> functions will not work as expected.</p>\n",
+          "desc": "<p><code>fs</code> functions support passing and receiving paths as both strings\nand Buffers. The latter is intended to make it possible to work with\nfilesystems that allow for non-UTF-8 filenames. For most typical\nuses, working with paths as Buffers will be unnecessary, as the string\nAPI converts to and from UTF-8 automatically.</p>\n<p><em>Note</em>: On certain file systems (such as NTFS and HFS+) filenames\nwill always be encoded as UTF-8. On such file systems, passing\nnon-UTF-8 encoded Buffers to <code>fs</code> functions will not work as expected.</p>\n",
           "type": "module",
           "displayName": "Buffer API"
         },
         {
           "textRaw": "FS Constants",
           "name": "fs_constants",
-          "desc": "<p>The following constants are exported by <code>fs.constants</code>. <strong>Note:</strong> Not every\nconstant will be available on every operating system.</p>\n",
+          "desc": "<p>The following constants are exported by <code>fs.constants</code>.</p>\n<p><em>Note</em>: Not every constant will be available on every operating system.</p>\n",
           "modules": [
             {
               "textRaw": "File Access Constants",
@@ -50,7 +65,7 @@
             {
               "textRaw": "File Mode Constants",
               "name": "file_mode_constants",
-              "desc": "<p>The following constants are meant for use with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object&#39;s\n<code>mode</code> property for determining the access permissions for a file.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>S_IRWXU</code></td>\n    <td>File mode indicating readable, writable and executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRUSR</code></td>\n    <td>File mode indicating readable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWUSR</code></td>\n    <td>File mode indicating writable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXUSR</code></td>\n    <td>File mode indicating executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXG</code></td>\n    <td>File mode indicating readable, writable and executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRGRP</code></td>\n    <td>File mode indicating readable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWGRP</code></td>\n    <td>File mode indicating writable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXGRP</code></td>\n    <td>File mode indicating executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXO</code></td>\n    <td>File mode indicating readable, writable and executable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IROTH</code></td>\n    <td>File mode indicating readable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWOTH</code></td>\n    <td>File mode indicating writable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXOTH</code></td>\n    <td>File mode indicating executable by others.</td>\n  </tr>\n</table>\n\n",
+              "desc": "<p>The following constants are meant for use with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object&#39;s\n<code>mode</code> property for determining the access permissions for a file.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>S_IRWXU</code></td>\n    <td>File mode indicating readable, writable and executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRUSR</code></td>\n    <td>File mode indicating readable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWUSR</code></td>\n    <td>File mode indicating writable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXUSR</code></td>\n    <td>File mode indicating executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXG</code></td>\n    <td>File mode indicating readable, writable and executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRGRP</code></td>\n    <td>File mode indicating readable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWGRP</code></td>\n    <td>File mode indicating writable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXGRP</code></td>\n    <td>File mode indicating executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXO</code></td>\n    <td>File mode indicating readable, writable and executable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IROTH</code></td>\n    <td>File mode indicating readable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWOTH</code></td>\n    <td>File mode indicating writable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXOTH</code></td>\n    <td>File mode indicating executable by others.</td>\n  </tr>\n</table>\n\n\n",
               "type": "module",
               "displayName": "File Mode Constants"
             }
@@ -193,7 +208,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Objects returned from <a href=\"#fs_fs_stat_path_callback\"><code>fs.stat()</code></a>, <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a> and <a href=\"#fs_fs_fstat_fd_callback\"><code>fs.fstat()</code></a> and their\nsynchronous counterparts are of this type.</p>\n<ul>\n<li><code>stats.isFile()</code></li>\n<li><code>stats.isDirectory()</code></li>\n<li><code>stats.isBlockDevice()</code></li>\n<li><code>stats.isCharacterDevice()</code></li>\n<li><code>stats.isSymbolicLink()</code> (only valid with <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a>)</li>\n<li><code>stats.isFIFO()</code></li>\n<li><code>stats.isSocket()</code></li>\n</ul>\n<p>For a regular file <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect(stats)</code></a> would return a string very\nsimilar to this:</p>\n<pre><code class=\"lang-txt\">Stats {\n  dev: 2114,\n  ino: 48064969,\n  mode: 33188,\n  nlink: 1,\n  uid: 85,\n  gid: 100,\n  rdev: 0,\n  size: 527,\n  blksize: 4096,\n  blocks: 8,\n  atime: Mon, 10 Oct 2011 23:24:11 GMT,\n  mtime: Mon, 10 Oct 2011 23:24:11 GMT,\n  ctime: Mon, 10 Oct 2011 23:24:11 GMT,\n  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }\n</code></pre>\n<p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are\ninstances of <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\"><code>Date</code></a> object and to compare the values of\nthese objects you should use appropriate methods. For most general\nuses <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime\"><code>getTime()</code></a> will return the number of\nmilliseconds elapsed since <em>1 January 1970 00:00:00 UTC</em> and this\ninteger should be sufficient for any comparison, however there are\nadditional methods which can be used for displaying fuzzy information.\nMore details can be found in the <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\">MDN JavaScript Reference</a>\npage.</p>\n",
+          "desc": "<p>Objects returned from <a href=\"#fs_fs_stat_path_callback\"><code>fs.stat()</code></a>, <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a> and <a href=\"#fs_fs_fstat_fd_callback\"><code>fs.fstat()</code></a> and their\nsynchronous counterparts are of this type.</p>\n<ul>\n<li><code>stats.isFile()</code></li>\n<li><code>stats.isDirectory()</code></li>\n<li><code>stats.isBlockDevice()</code></li>\n<li><code>stats.isCharacterDevice()</code></li>\n<li><code>stats.isSymbolicLink()</code> (only valid with <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a>)</li>\n<li><code>stats.isFIFO()</code></li>\n<li><code>stats.isSocket()</code></li>\n</ul>\n<p>For a regular file <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect(stats)</code></a> would return a string very\nsimilar to this:</p>\n<pre><code class=\"lang-console\">Stats {\n  dev: 2114,\n  ino: 48064969,\n  mode: 33188,\n  nlink: 1,\n  uid: 85,\n  gid: 100,\n  rdev: 0,\n  size: 527,\n  blksize: 4096,\n  blocks: 8,\n  atime: Mon, 10 Oct 2011 23:24:11 GMT,\n  mtime: Mon, 10 Oct 2011 23:24:11 GMT,\n  ctime: Mon, 10 Oct 2011 23:24:11 GMT,\n  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }\n</code></pre>\n<p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are\ninstances of <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\"><code>Date</code></a> object and appropriate methods should be used\nto compare the values of these objects. For most general uses\n<a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime\"><code>getTime()</code></a> will return the number of milliseconds elapsed\nsince <em>1 January 1970 00:00:00 UTC</em> and this integer should be sufficient for\nany comparison, however there are additional methods which can be used for\ndisplaying fuzzy information. More details can be found in the\n<a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\">MDN JavaScript Reference</a> page.</p>\n",
           "modules": [
             {
               "textRaw": "Stat Time Values",
@@ -278,15 +293,21 @@
             "added": [
               "v0.11.15"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -326,15 +347,21 @@
             "added": [
               "v0.11.15"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -449,7 +476,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet exist.\n<code>data</code> can be a string or a buffer.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The &quot;data to append&quot; was appended to file!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to have been opened for appending.</p>\n<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</em></p>\n"
+          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet exist.\n<code>data</code> can be a string or a buffer.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The &quot;data to append&quot; was appended to file!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to have been opened for appending.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</p>\n"
         },
         {
           "textRaw": "fs.appendFileSync(file, data[, options])",
@@ -541,6 +568,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -551,9 +583,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -591,15 +623,21 @@
             "added": [
               "v0.6.7"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -631,6 +669,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -641,9 +684,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`uid` {integer} ",
@@ -689,15 +732,21 @@
             "added": [
               "v0.1.97"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`uid` {integer} ",
@@ -811,6 +860,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7831",
                 "description": "The passed `options` object will never be modified."
@@ -826,9 +880,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -887,7 +941,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns a new <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_readable\">Readable Stream</a>).</p>\n<p>Be aware that, unlike the default value set for <code>highWaterMark</code> on a\nreadable stream (16 kb), the stream returned by this method has a\ndefault value of 64 kb for the same parameter.</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;r&#39;,\n  encoding: null,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file.  Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be\nemitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed\nto <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if\nthere&#39;s an error.  It is your responsibility to close it and make sure\nthere&#39;s no file descriptor leak.  If <code>autoClose</code> is set to true (default\nbehavior), on <code>error</code> or <code>end</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"lang-js\">fs.createReadStream(&#39;sample.txt&#39;, {start: 90, end: 99});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
+          "desc": "<p>Returns a new <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_readable\">Readable Stream</a>).</p>\n<p>Be aware that, unlike the default value set for <code>highWaterMark</code> on a\nreadable stream (16 kb), the stream returned by this method has a\ndefault value of 64 kb for the same parameter.</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;r&#39;,\n  encoding: null,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file.  Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be\nemitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed\nto <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if\nthere&#39;s an error. It is the application&#39;s responsibility to close it and make\nsure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default\nbehavior), on <code>error</code> or <code>end</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"lang-js\">fs.createReadStream(&#39;sample.txt&#39;, {start: 90, end: 99});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
         },
         {
           "textRaw": "fs.createWriteStream(path[, options])",
@@ -898,6 +952,11 @@
               "v0.1.31"
             ],
             "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7831",
@@ -919,9 +978,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -975,7 +1034,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns a new <a href=\"#fs_class_fs_writestream\"><code>WriteStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a>).</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;w&#39;,\n  defaultEncoding: &#39;utf8&#39;,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> may also include a <code>start</code> option to allow writing data at\nsome position past the beginning of the file.  Modifying a file rather\nthan replacing it may require a <code>flags</code> mode of <code>r+</code> rather than the\ndefault mode <code>w</code>. The <code>defaultEncoding</code> can be any one of those accepted by\n<a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>\nthe file descriptor will be closed automatically. If <code>autoClose</code> is false,\nthen the file descriptor won&#39;t be closed, even if there&#39;s an error.\nIt is your responsibility to close it and make sure\nthere&#39;s no file descriptor leak.</p>\n<p>Like <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a>, if <code>fd</code> is specified, <code>WriteStream</code> will ignore the\n<code>path</code> argument and will use the specified file descriptor. This means that no\n<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking\n<code>fd</code>s should be passed to <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
+          "desc": "<p>Returns a new <a href=\"#fs_class_fs_writestream\"><code>WriteStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a>).</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;w&#39;,\n  defaultEncoding: &#39;utf8&#39;,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> may also include a <code>start</code> option to allow writing data at\nsome position past the beginning of the file.  Modifying a file rather\nthan replacing it may require a <code>flags</code> mode of <code>r+</code> rather than the\ndefault mode <code>w</code>. The <code>defaultEncoding</code> can be any one of those accepted by\n<a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>\nthe file descriptor will be closed automatically. If <code>autoClose</code> is false,\nthen the file descriptor won&#39;t be closed, even if there&#39;s an error.\nIt is the application&#39;s responsibility to close it and make sure there&#39;s no\nfile descriptor leak.</p>\n<p>Like <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a>, if <code>fd</code> is specified, <code>WriteStream</code> will ignore the\n<code>path</code> argument and will use the specified file descriptor. This means that no\n<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking\n<code>fd</code>s should be passed to <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
         },
         {
           "textRaw": "fs.exists(path, callback)",
@@ -985,10 +1044,16 @@
             "added": [
               "v0.0.2"
             ],
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ],
             "deprecated": [
               "v1.0.0"
-            ],
-            "changes": []
+            ]
           },
           "stability": 0,
           "stabilityText": "Deprecated: Use [`fs.stat()`][] or [`fs.access()`][] instead.",
@@ -996,9 +1061,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1028,15 +1093,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -1727,7 +1798,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous lchmod(2). No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>Only available on Mac OS X.</p>\n"
+          "desc": "<p>Asynchronous lchmod(2). No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>Only available on macOS.</p>\n"
         },
         {
           "textRaw": "fs.lchmodSync(path, mode)",
@@ -1883,6 +1954,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `existingPath` and `newPath` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -1893,14 +1969,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`existingPath` {string|Buffer} ",
+                  "textRaw": "`existingPath` {string|Buffer|URL} ",
                   "name": "existingPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`newPath` {string|Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer|URL} ",
                   "name": "newPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -1933,20 +2009,26 @@
             "added": [
               "v0.1.31"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `existingPath` and `newPath` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`existingPath` {string|Buffer} ",
+                  "textRaw": "`existingPath` {string|Buffer|URL} ",
                   "name": "existingPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`newPath` {string|Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer|URL} ",
                   "name": "newPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -1973,6 +2055,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -1983,9 +2070,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -2015,15 +2102,21 @@
             "added": [
               "v0.1.30"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -2047,6 +2140,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -2057,9 +2155,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -2099,15 +2197,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -2254,15 +2358,21 @@
             "added": [
               "v0.0.2"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`flags` {string|number} ",
@@ -2300,7 +2410,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous file open. See open(2). <code>flags</code> can be:</p>\n<ul>\n<li><p><code>&#39;r&#39;</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;r+&#39;</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;rs+&#39;</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows you to\nskip the potentially stale local cache. It has a very real impact on I/O\nperformance so don&#39;t use this flag unless you need it.</p>\n<p>Note that this doesn&#39;t turn <code>fs.open()</code> into a synchronous blocking call.\nIf that&#39;s what you want then you should be using <code>fs.openSync()</code></p>\n</li>\n<li><p><code>&#39;w&#39;</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx&#39;</code> - Like <code>&#39;w&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;w+&#39;</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx+&#39;</code> - Like <code>&#39;w+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a&#39;</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax&#39;</code> - Like <code>&#39;a&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a+&#39;</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax+&#39;</code> - Like <code>&#39;a+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n</ul>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated. It defaults to <code>0666</code>, readable and writable.</p>\n<p>The callback gets two arguments <code>(err, fd)</code>.</p>\n<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in open(2)) ensures that <code>path</code> is newly\ncreated. On POSIX systems, <code>path</code> is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network file\nsystems.</p>\n<p><code>flags</code> can also be a number as documented by open(2); commonly used constants\nare available from <code>fs.constants</code>.  On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by CreateFileW.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p><em>Note: The behavior of <code>fs.open()</code> is platform specific for some flags. As such,\nopening a directory on OS X and Linux with the <code>&#39;a+&#39;</code> flag - see example below -\nwill return an error. In contrast, on Windows and FreeBSD, a file descriptor\nwill be returned.</em></p>\n<pre><code class=\"lang-js\">// OS X and Linux\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, open &lt;directory&gt;]\n});\n\n// Windows and FreeBSD\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; null, &lt;fd&gt;\n});\n</code></pre>\n"
+          "desc": "<p>Asynchronous file open. See open(2). <code>flags</code> can be:</p>\n<ul>\n<li><p><code>&#39;r&#39;</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;r+&#39;</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;rs+&#39;</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows skipping\nthe potentially stale local cache. It has a very real impact on I/O\nperformance so using this flag is not recommended unless it is needed.</p>\n<p>Note that this doesn&#39;t turn <code>fs.open()</code> into a synchronous blocking call.\nIf synchronous operation is desired <code>fs.openSync()</code> should be used.</p>\n</li>\n<li><p><code>&#39;w&#39;</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx&#39;</code> - Like <code>&#39;w&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;w+&#39;</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx+&#39;</code> - Like <code>&#39;w+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a&#39;</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax&#39;</code> - Like <code>&#39;a&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a+&#39;</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax+&#39;</code> - Like <code>&#39;a+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n</ul>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated. It defaults to <code>0666</code>, readable and writable.</p>\n<p>The callback gets two arguments <code>(err, fd)</code>.</p>\n<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in open(2)) ensures that <code>path</code> is newly\ncreated. On POSIX systems, <code>path</code> is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network file\nsystems.</p>\n<p><code>flags</code> can also be a number as documented by open(2); commonly used constants\nare available from <code>fs.constants</code>.  On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by CreateFileW.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p><em>Note</em>: The behavior of <code>fs.open()</code> is platform-specific for some flags. As\nsuch, opening a directory on macOS and Linux with the <code>&#39;a+&#39;</code> flag - see example\nbelow - will return an error. In contrast, on Windows and FreeBSD, a file\ndescriptor will be returned.</p>\n<pre><code class=\"lang-js\">// macOS and Linux\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, open &lt;directory&gt;]\n});\n\n// Windows and FreeBSD\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; null, &lt;fd&gt;\n});\n</code></pre>\n"
         },
         {
           "textRaw": "fs.openSync(path, flags[, mode])",
@@ -2310,15 +2420,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`flags` {string|number} ",
@@ -2429,7 +2545,7 @@
               ]
             }
           ],
-          "desc": "<p>Read data from the file specified by <code>fd</code>.</p>\n<p><code>buffer</code> is the buffer that the data will be written to.</p>\n<p><code>offset</code> is the offset in the buffer to start writing at.</p>\n<p><code>length</code> is an integer specifying the number of bytes to read.</p>\n<p><code>position</code> is an integer specifying where to begin reading from in the file.\nIf <code>position</code> is <code>null</code>, data will be read from the current file position.</p>\n<p>The callback is given the three arguments, <code>(err, bytesRead, buffer)</code>.</p>\n"
+          "desc": "<p>Read data from the file specified by <code>fd</code>.</p>\n<p><code>buffer</code> is the buffer that the data will be written to.</p>\n<p><code>offset</code> is the offset in the buffer to start writing at.</p>\n<p><code>length</code> is an integer specifying the number of bytes to read.</p>\n<p><code>position</code> is an integer specifying where to begin reading from in the file.\nIf <code>position</code> is <code>null</code>, data will be read from the current file position.</p>\n<p>The callback is given the three arguments, <code>(err, bytesRead, buffer)</code>.</p>\n<p>If this method is invoked as its <a href=\"util.html#util_util_promisify_original\"><code>util.promisify()</code></a>ed version, it returns\na Promise for an object with <code>bytesRead</code> and <code>buffer</code> properties.</p>\n"
         },
         {
           "textRaw": "fs.readdir(path[, options], callback)",
@@ -2440,6 +2556,11 @@
               "v0.1.8"
             ],
             "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
@@ -2456,9 +2577,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2506,15 +2627,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2547,7 +2674,7 @@
           "desc": "<p>Synchronous readdir(3). Returns an array of filenames excluding <code>&#39;.&#39;</code> and\n<code>&#39;..&#39;</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>\n"
         },
         {
-          "textRaw": "fs.readFile(file[, options], callback)",
+          "textRaw": "fs.readFile(path[, options], callback)",
           "type": "method",
           "name": "readFile",
           "meta": {
@@ -2555,6 +2682,11 @@
               "v0.1.29"
             ],
             "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
@@ -2576,9 +2708,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
-                  "name": "file",
-                  "type": "string|Buffer|integer",
+                  "textRaw": "`path` {string|Buffer|URL|integer} filename or file descriptor ",
+                  "name": "path",
+                  "type": "string|Buffer|URL|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
@@ -2611,7 +2743,7 @@
             {
               "params": [
                 {
-                  "name": "file"
+                  "name": "path"
                 },
                 {
                   "name": "options",
@@ -2623,10 +2755,10 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</em></p>\n"
+          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p><em>Note</em>: When the path is a directory, the behavior of\n<code>fs.readFile()</code> and [<code>fs.readFileSync()</code>][] is platform-specific. On macOS,\nLinux, and Windows, an error will be returned. On FreeBSD, a representation\nof the directory&#39;s contents will be returned.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n});\n\n//  FreeBSD\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; null, &lt;data&gt;\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n"
         },
         {
-          "textRaw": "fs.readFileSync(file[, options])",
+          "textRaw": "fs.readFileSync(path[, options])",
           "type": "method",
           "name": "readFileSync",
           "meta": {
@@ -2634,6 +2766,11 @@
               "v0.1.8"
             ],
             "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v5.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/3163",
@@ -2645,9 +2782,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
-                  "name": "file",
-                  "type": "string|Buffer|integer",
+                  "textRaw": "`path` {string|Buffer|URL|integer} filename or file descriptor ",
+                  "name": "path",
+                  "type": "string|Buffer|URL|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
@@ -2675,7 +2812,7 @@
             {
               "params": [
                 {
-                  "name": "file"
+                  "name": "path"
                 },
                 {
                   "name": "options",
@@ -2684,7 +2821,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_file_options_callback\"><code>fs.readFile</code></a>. Returns the contents of the <code>file</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n"
+          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_file_options_callback\"><code>fs.readFile</code></a>. Returns the contents of the <code>file</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n<p><em>Note</em>: Similar to [<code>fs.readFile()</code>][], when the path is a directory, the\nbehavior of <code>fs.readFileSync()</code> is platform-specific.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFileSync(&#39;&lt;directory&gt;&#39;);\n// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n\n//  FreeBSD\nfs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;\n</code></pre>\n"
         },
         {
           "textRaw": "fs.readlink(path[, options], callback)",
@@ -2696,6 +2833,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -2706,9 +2848,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2756,15 +2898,21 @@
             "added": [
               "v0.1.31"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2874,6 +3022,16 @@
             ],
             "changes": [
               {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/13028",
+                "description": "Pipe/Socket resolve support was added."
+              },
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -2894,9 +3052,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2934,7 +3092,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous realpath(3). The <code>callback</code> gets two arguments <code>(err,\nresolvedPath)</code>. May use <code>process.cwd</code> to resolve relative paths.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe path passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,\nthe path returned will be passed as a <code>Buffer</code> object.</p>\n"
+          "desc": "<p>Asynchronous realpath(3). The <code>callback</code> gets two arguments <code>(err,\nresolvedPath)</code>. May use <code>process.cwd</code> to resolve relative paths.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe path passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,\nthe path returned will be passed as a <code>Buffer</code> object.</p>\n<p><em>Note</em>: If <code>path</code> resolves to a socket or a pipe, the function will return a\nsystem dependent name for that object.</p>\n"
         },
         {
           "textRaw": "fs.realpathSync(path[, options])",
@@ -2945,6 +3103,16 @@
               "v0.1.31"
             ],
             "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/13028",
+                "description": "Pipe/Socket resolve support was added."
+              },
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v6.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7899",
@@ -2961,10 +3129,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer}; ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer",
-                  "desc": ";"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -2994,7 +3161,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous realpath(3). Returns the resolved path.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe returned value. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>, the path returned\nwill be passed as a <code>Buffer</code> object.</p>\n"
+          "desc": "<p>Synchronous realpath(3). Returns the resolved path.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe returned value. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>, the path returned\nwill be passed as a <code>Buffer</code> object.</p>\n<p><em>Note</em>: If <code>path</code> resolves to a socket or a pipe, the function will return a\nsystem dependent name for that object.</p>\n"
         },
         {
           "textRaw": "fs.rename(oldPath, newPath, callback)",
@@ -3006,6 +3173,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `oldPath` and `newPath` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -3016,14 +3188,14 @@
             {
               "params": [
                 {
-                  "textRaw": "`oldPath` {string|Buffer} ",
+                  "textRaw": "`oldPath` {string|Buffer|URL} ",
                   "name": "oldPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`newPath` {string|Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer|URL} ",
                   "name": "newPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3056,20 +3228,26 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `oldPath` and `newPath` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`oldPath` {string|Buffer} ",
+                  "textRaw": "`oldPath` {string|Buffer|URL} ",
                   "name": "oldPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`newPath` {string|Buffer} ",
+                  "textRaw": "`newPath` {string|Buffer|URL} ",
                   "name": "newPath",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -3096,6 +3274,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameters can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -3106,9 +3289,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3138,15 +3321,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameters can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -3170,6 +3359,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -3180,9 +3374,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3212,15 +3406,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -3242,20 +3442,26 @@
             "added": [
               "v0.1.31"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `target` and `path` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`target` {string|Buffer} ",
+                  "textRaw": "`target` {string|Buffer|URL} ",
                   "name": "target",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`type` {string} ",
@@ -3298,20 +3504,26 @@
             "added": [
               "v0.1.31"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `target` and `path` parameters can be WHATWG `URL` objects using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`target` {string|Buffer} ",
+                  "textRaw": "`target` {string|Buffer|URL} ",
                   "name": "target",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`type` {string} ",
@@ -3440,6 +3652,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
                 "description": "The `callback` parameter is no longer optional. Not passing it will emit a deprecation warning."
@@ -3450,9 +3667,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
@@ -3482,15 +3699,21 @@
             "added": [
               "v0.1.21"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 }
               ]
             },
@@ -3542,7 +3765,7 @@
               ]
             }
           ],
-          "desc": "<p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that\nparticular listener is removed. Otherwise, <em>all</em> listeners are removed and you\nhave effectively stopped watching <code>filename</code>.</p>\n<p>Calling <code>fs.unwatchFile()</code> with a filename that is not being watched is a\nno-op, not an error.</p>\n<p><em>Note: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and <code>fs.unwatchFile()</code>.\n<code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code> and <code>fs.unwatchFile()</code>\nwhen possible.</em></p>\n"
+          "desc": "<p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that\nparticular listener is removed. Otherwise, <em>all</em> listeners are removed,\neffectively stopping watching of <code>filename</code>.</p>\n<p>Calling <code>fs.unwatchFile()</code> with a filename that is not being watched is a\nno-op, not an error.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and\n<code>fs.unwatchFile()</code>.  <code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code>\nand <code>fs.unwatchFile()</code> when possible.</p>\n"
         },
         {
           "textRaw": "fs.utimes(path, atime, mtime, callback)",
@@ -3553,6 +3776,11 @@
               "v0.4.2"
             ],
             "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
               {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7897",
@@ -3569,9 +3797,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`atime` {integer} ",
@@ -3607,7 +3835,7 @@
               ]
             }
           ],
-          "desc": "<p>Change file timestamps of the file referenced by the supplied path.</p>\n<p>Note: the arguments <code>atime</code> and <code>mtime</code> of the following related functions\nfollow these rules:</p>\n<ul>\n<li>The value should be a Unix timestamp in seconds. For example, <code>Date.now()</code>\nreturns milliseconds, so it should be divided by 1000 before passing it in.</li>\n<li>If the value is a numeric string like <code>&#39;123456789&#39;</code>, the value will get\nconverted to the corresponding number.</li>\n<li>If the value is <code>NaN</code> or <code>Infinity</code>, the value will get converted to\n<code>Date.now() / 1000</code>.</li>\n</ul>\n"
+          "desc": "<p>Change file timestamps of the file referenced by the supplied path.</p>\n<p><em>Note</em>: The arguments <code>atime</code> and <code>mtime</code> of the following related functions\nfollow these rules:</p>\n<ul>\n<li>The value should be a Unix timestamp in seconds. For example, <code>Date.now()</code>\nreturns milliseconds, so it should be divided by 1000 before passing it in.</li>\n<li>If the value is a numeric string like <code>&#39;123456789&#39;</code>, the value will get\nconverted to the corresponding number.</li>\n<li>If the value is <code>NaN</code>, <code>Infinity</code> or <code>-Infinity</code>, an Error will be thrown.</li>\n</ul>\n"
         },
         {
           "textRaw": "fs.utimesSync(path, atime, mtime)",
@@ -3619,6 +3847,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v4.1.0",
                 "pr-url": "https://github.com/nodejs/node/pull/2387",
                 "description": "Numeric strings, `NaN` and `Infinity` are now allowed time specifiers."
@@ -3629,9 +3862,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`atime` {integer} ",
@@ -3671,6 +3904,11 @@
             ],
             "changes": [
               {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `filename` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
                 "version": "v7.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7831",
                 "description": "The passed `options` object will never be modified."
@@ -3681,9 +3919,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {string|Buffer} ",
+                  "textRaw": "`filename` {string|Buffer|URL} ",
                   "name": "filename",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {string|Object} ",
@@ -3741,25 +3979,25 @@
               "textRaw": "Caveats",
               "name": "Caveats",
               "type": "misc",
-              "desc": "<p>The <code>fs.watch</code> API is not 100% consistent across platforms, and is\nunavailable in some situations.</p>\n<p>The recursive option is only supported on OS X and Windows.</p>\n",
+              "desc": "<p>The <code>fs.watch</code> API is not 100% consistent across platforms, and is\nunavailable in some situations.</p>\n<p>The recursive option is only supported on macOS and Windows.</p>\n",
               "miscs": [
                 {
                   "textRaw": "Availability",
                   "name": "Availability",
                   "type": "misc",
-                  "desc": "<p>This feature depends on the underlying operating system providing a way\nto be notified of filesystem changes.</p>\n<ul>\n<li>On Linux systems, this uses <a href=\"http://man7.org/linux/man-pages/man7/inotify.7.html\"><code>inotify</code></a></li>\n<li>On BSD systems, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?kqueue\"><code>kqueue</code></a></li>\n<li>On OS X, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?kqueue\"><code>kqueue</code></a> for files and <a href=\"https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/FSEvents_ProgGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005289-CH1-SW1\"><code>FSEvents</code></a> for directories.</li>\n<li>On SunOS systems (including Solaris and SmartOS), this uses <a href=\"http://illumos.org/man/port_create\"><code>event ports</code></a>.</li>\n<li>On Windows systems, this feature depends on <a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx\"><code>ReadDirectoryChangesW</code></a>.</li>\n<li>On Aix systems, this feature depends on <a href=\"https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/\"><code>AHAFS</code></a>, which must be enabled.</li>\n</ul>\n<p>If the underlying functionality is not available for some reason, then\n<code>fs.watch</code> will not be able to function. For example, watching files or\ndirectories can be unreliable, and in some cases impossible, on network file\nsystems (NFS, SMB, etc), or host file systems when using virtualization software\nsuch as Vagrant, Docker, etc.</p>\n<p>You can still use <code>fs.watchFile</code>, which uses stat polling, but it is slower and\nless reliable.</p>\n"
+                  "desc": "<p>This feature depends on the underlying operating system providing a way\nto be notified of filesystem changes.</p>\n<ul>\n<li>On Linux systems, this uses <a href=\"http://man7.org/linux/man-pages/man7/inotify.7.html\"><code>inotify</code></a></li>\n<li>On BSD systems, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?kqueue\"><code>kqueue</code></a></li>\n<li>On macOS, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?kqueue\"><code>kqueue</code></a> for files and <a href=\"https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/FSEvents_ProgGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005289-CH1-SW1\"><code>FSEvents</code></a> for directories.</li>\n<li>On SunOS systems (including Solaris and SmartOS), this uses <a href=\"http://illumos.org/man/port_create\"><code>event ports</code></a>.</li>\n<li>On Windows systems, this feature depends on <a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx\"><code>ReadDirectoryChangesW</code></a>.</li>\n<li>On Aix systems, this feature depends on <a href=\"https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/\"><code>AHAFS</code></a>, which must be enabled.</li>\n</ul>\n<p>If the underlying functionality is not available for some reason, then\n<code>fs.watch</code> will not be able to function. For example, watching files or\ndirectories can be unreliable, and in some cases impossible, on network file\nsystems (NFS, SMB, etc), or host file systems when using virtualization software\nsuch as Vagrant, Docker, etc.</p>\n<p>It is still possible to use <code>fs.watchFile()</code>, which uses stat polling, but\nthis method is slower and less reliable.</p>\n"
                 },
                 {
                   "textRaw": "Inodes",
                   "name": "Inodes",
                   "type": "misc",
-                  "desc": "<p>On Linux and OS X systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and\nclose operations on some platforms cause inode changes that force watch\noperations to become invalid and ineffective. AIX retains inode for the\nlifetime of a file, that way though this is different from Linux / OS X,\nthis improves the usability of file watching. This is expected behavior.</p>\n"
+                  "desc": "<p>On Linux and macOS systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and\nclose operations on some platforms cause inode changes that force watch\noperations to become invalid and ineffective. AIX retains inode for the\nlifetime of a file, that way though this is different from Linux / macOS,\nthis improves the usability of file watching. This is expected behavior.</p>\n"
                 },
                 {
                   "textRaw": "Filename Argument",
                   "name": "Filename Argument",
                   "type": "misc",
-                  "desc": "<p>Providing <code>filename</code> argument in the callback is only supported on Linux and\nWindows.  Even on supported platforms, <code>filename</code> is not always guaranteed to\nbe provided. Therefore, don&#39;t assume that <code>filename</code> argument is always\nprovided in the callback, and have some fallback logic if it is null.</p>\n<pre><code class=\"lang-js\">fs.watch(&#39;somedir&#39;, (eventType, filename) =&gt; {\n  console.log(`event type is: ${eventType}`);\n  if (filename) {\n    console.log(`filename provided: ${filename}`);\n  } else {\n    console.log(&#39;filename not provided&#39;);\n  }\n});\n</code></pre>\n"
+                  "desc": "<p>Providing <code>filename</code> argument in the callback is only supported on Linux,\nmacOS, Windows, and AIX.  Even on supported platforms, <code>filename</code> is not always\nguaranteed to be provided. Therefore, don&#39;t assume that <code>filename</code> argument is\nalways provided in the callback, and have some fallback logic if it is null.</p>\n<pre><code class=\"lang-js\">fs.watch(&#39;somedir&#39;, (eventType, filename) =&gt; {\n  console.log(`event type is: ${eventType}`);\n  if (filename) {\n    console.log(`filename provided: ${filename}`);\n  } else {\n    console.log(&#39;filename not provided&#39;);\n  }\n});\n</code></pre>\n"
                 }
               ]
             }
@@ -3773,15 +4011,21 @@
             "added": [
               "v0.1.31"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.6.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10739",
+                "description": "The `filename` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`filename` {string|Buffer} ",
+                  "textRaw": "`filename` {string|Buffer|URL} ",
                   "name": "filename",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`options` {Object} ",
@@ -3823,7 +4067,7 @@
               ]
             }
           ],
-          "desc": "<p>Watch for changes on <code>filename</code>. The callback <code>listener</code> will be called each\ntime the file is accessed.</p>\n<p>The <code>options</code> argument may be omitted. If provided, it should be an object. The\n<code>options</code> object may contain a boolean named <code>persistent</code> that indicates\nwhether the process should continue to run as long as files are being watched.\nThe <code>options</code> object may specify an <code>interval</code> property indicating how often the\ntarget should be polled in milliseconds. The default is\n<code>{ persistent: true, interval: 5007 }</code>.</p>\n<p>The <code>listener</code> gets two arguments the current stat object and the previous\nstat object:</p>\n<pre><code class=\"lang-js\">fs.watchFile(&#39;message.text&#39;, (curr, prev) =&gt; {\n  console.log(`the current mtime is: ${curr.mtime}`);\n  console.log(`the previous mtime was: ${prev.mtime}`);\n});\n</code></pre>\n<p>These stat objects are instances of <code>fs.Stat</code>.</p>\n<p>If you want to be notified when the file was modified, not just accessed,\nyou need to compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>\n<p><em>Note: when an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it will\n invoke the listener once, with all the fields zeroed (or, for dates, the Unix\n Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>, instead\n of zero. If the file is created later on, the listener will be called again,\n with the latest stat objects. This is a change in functionality since v0.10.</em></p>\n<p><em>Note: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code> when possible.</em></p>\n"
+          "desc": "<p>Watch for changes on <code>filename</code>. The callback <code>listener</code> will be called each\ntime the file is accessed.</p>\n<p>The <code>options</code> argument may be omitted. If provided, it should be an object. The\n<code>options</code> object may contain a boolean named <code>persistent</code> that indicates\nwhether the process should continue to run as long as files are being watched.\nThe <code>options</code> object may specify an <code>interval</code> property indicating how often the\ntarget should be polled in milliseconds. The default is\n<code>{ persistent: true, interval: 5007 }</code>.</p>\n<p>The <code>listener</code> gets two arguments the current stat object and the previous\nstat object:</p>\n<pre><code class=\"lang-js\">fs.watchFile(&#39;message.text&#39;, (curr, prev) =&gt; {\n  console.log(`the current mtime is: ${curr.mtime}`);\n  console.log(`the previous mtime was: ${prev.mtime}`);\n});\n</code></pre>\n<p>These stat objects are instances of <code>fs.Stat</code>.</p>\n<p>To be notified when the file was modified, not just accessed, it is necessary\nto compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>\n<p><em>Note</em>: When an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it\nwill invoke the listener once, with all the fields zeroed (or, for dates, the\nUnix Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>,\ninstead of zero. If the file is created later on, the listener will be called\nagain, with the latest stat objects. This is a change in functionality since\nv0.10.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code> when possible.</p>\n"
         },
         {
           "textRaw": "fs.write(fd, buffer[, offset[, length[, position]]], callback)",
@@ -3915,7 +4159,7 @@
               ]
             }
           ],
-          "desc": "<p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== &#39;number&#39;</code>, the data will be written\nat the current position. See pwrite(2).</p>\n<p>The callback will be given three arguments <code>(err, written, buffer)</code> where\n<code>written</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>\n<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n"
+          "desc": "<p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== &#39;number&#39;</code>, the data will be written\nat the current position. See pwrite(2).</p>\n<p>The callback will be given three arguments <code>(err, bytesWritten, buffer)</code> where\n<code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>\n<p>If this method is invoked as its <a href=\"util.html#util_util_promisify_original\"><code>util.promisify()</code></a>ed version, it returns\na Promise for an object with <code>bytesWritten</code> and <code>buffer</code> properties.</p>\n<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n"
         },
         {
           "textRaw": "fs.write(fd, string[, position[, encoding]], callback)",
@@ -4085,7 +4329,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer. It defaults\nto <code>&#39;utf8&#39;</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The file has been saved!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to support writing.</p>\n<p>Note that it is unsafe to use <code>fs.writeFile</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p><em>Note: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</em></p>\n"
+          "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer. It defaults\nto <code>&#39;utf8&#39;</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The file has been saved!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to support writing.</p>\n<p>Note that it is unsafe to use <code>fs.writeFile</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</p>\n"
         },
         {
           "textRaw": "fs.writeFileSync(file, data[, options])",

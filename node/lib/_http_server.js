@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const util = require('util');
@@ -13,8 +34,9 @@ const continueExpression = common.continueExpression;
 const chunkExpression = common.chunkExpression;
 const httpSocketSetup = common.httpSocketSetup;
 const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
+const { outHeadersKey, ondrain } = require('internal/http');
 
-const STATUS_CODES = exports.STATUS_CODES = {
+const STATUS_CODES = {
   100: 'Continue',
   101: 'Switching Protocols',
   102: 'Processing',                 // RFC 2518, obsoleted by RFC 4918
@@ -106,8 +128,6 @@ ServerResponse.prototype._finish = function _finish() {
 };
 
 
-exports.ServerResponse = ServerResponse;
-
 ServerResponse.prototype.statusCode = 200;
 ServerResponse.prototype.statusMessage = undefined;
 
@@ -161,38 +181,46 @@ ServerResponse.prototype._implicitHeader = function _implicitHeader() {
 
 ServerResponse.prototype.writeHead = writeHead;
 function writeHead(statusCode, reason, obj) {
-  var headers;
+  var originalStatusCode = statusCode;
+
+  statusCode |= 0;
+  if (statusCode < 100 || statusCode > 999)
+    throw new RangeError(`Invalid status code: ${originalStatusCode}`);
 
   if (typeof reason === 'string') {
     // writeHead(statusCode, reasonPhrase[, headers])
     this.statusMessage = reason;
   } else {
     // writeHead(statusCode[, headers])
-    this.statusMessage =
-        this.statusMessage || STATUS_CODES[statusCode] || 'unknown';
+    if (!this.statusMessage)
+      this.statusMessage = STATUS_CODES[statusCode] || 'unknown';
     obj = reason;
   }
   this.statusCode = statusCode;
 
-  if (this._headers) {
+  var headers;
+  if (this[outHeadersKey]) {
     // Slow-case: when progressive API and header fields are passed.
+    var k;
     if (obj) {
       var keys = Object.keys(obj);
       for (var i = 0; i < keys.length; i++) {
-        var k = keys[i];
+        k = keys[i];
         if (k) this.setHeader(k, obj[k]);
       }
     }
+    if (k === undefined) {
+      if (this._header) {
+        throw new Error('Can\'t render headers after they are sent to the ' +
+                        'client');
+      }
+    }
     // only progressive api is used
-    headers = this._renderHeaders();
+    headers = this[outHeadersKey];
   } else {
     // only writeHead() called
     headers = obj;
   }
-
-  statusCode |= 0;
-  if (statusCode < 100 || statusCode > 999)
-    throw new RangeError(`Invalid status code: ${statusCode}`);
 
   if (common._checkInvalidHeaderChar(this.statusMessage))
     throw new Error('Invalid character in statusMessage.');
@@ -200,7 +228,7 @@ function writeHead(statusCode, reason, obj) {
   var statusLine = 'HTTP/1.1 ' + statusCode + ' ' + this.statusMessage + CRLF;
 
   if (statusCode === 204 || statusCode === 304 ||
-      (100 <= statusCode && statusCode <= 199)) {
+      (statusCode >= 100 && statusCode <= 199)) {
     // RFC 2616, 10.2.5:
     // The 204 response MUST NOT include a message-body, and thus is always
     // terminated by the first empty line after the header fields.
@@ -223,9 +251,8 @@ function writeHead(statusCode, reason, obj) {
   this._storeHeader(statusLine, headers);
 }
 
-ServerResponse.prototype.writeHeader = function writeHeader() {
-  this.writeHead.apply(this, arguments);
-};
+// Docs-only deprecated: DEP0063
+ServerResponse.prototype.writeHeader = ServerResponse.prototype.writeHead;
 
 
 function Server(requestListener) {
@@ -244,7 +271,7 @@ function Server(requestListener) {
   this.on('connection', connectionListener);
 
   this.timeout = 2 * 60 * 1000;
-
+  this.keepAliveTimeout = 5000;
   this._pendingResponseData = 0;
   this.maxHeadersCount = null;
 }
@@ -259,9 +286,6 @@ Server.prototype.setTimeout = function setTimeout(msecs, callback) {
 };
 
 
-exports.Server = Server;
-
-
 function connectionListener(socket) {
   debug('SERVER new http connection');
 
@@ -272,7 +296,7 @@ function connectionListener(socket) {
   // otherwise, destroy on timeout by default
   if (this.timeout)
     socket.setTimeout(this.timeout);
-  socket.on('timeout', socketOnTimeout.bind(undefined, this, socket));
+  socket.on('timeout', socketOnTimeout);
 
   var parser = parsers.alloc();
   parser.reinitialize(HTTPParser.REQUEST);
@@ -290,32 +314,32 @@ function connectionListener(socket) {
 
   var state = {
     onData: null,
-    onError: null,
     onEnd: null,
     onClose: null,
+    onDrain: null,
     outgoing: [],
     incoming: [],
     // `outgoingData` is an approximate amount of bytes queued through all
     // inactive responses. If more data than the high watermark is queued - we
     // need to pause TCP socket/HTTP parser, and wait until the data will be
     // sent to the client.
-    outgoingData: 0
+    outgoingData: 0,
+    keepAliveTimeoutSet: false
   };
   state.onData = socketOnData.bind(undefined, this, socket, parser, state);
-  state.onError = socketOnError.bind(undefined, this, socket, state);
   state.onEnd = socketOnEnd.bind(undefined, this, socket, parser, state);
   state.onClose = socketOnClose.bind(undefined, socket, state);
+  state.onDrain = socketOnDrain.bind(undefined, socket, state);
   socket.on('data', state.onData);
-  socket.on('error', state.onError);
+  socket.on('error', socketOnError);
   socket.on('end', state.onEnd);
   socket.on('close', state.onClose);
+  socket.on('drain', state.onDrain);
   parser.onIncoming = parserOnIncoming.bind(undefined, this, socket, state);
 
   // We are consuming socket, so it won't get any actual data
   socket.on('resume', onSocketResume);
   socket.on('pause', onSocketPause);
-
-  socket.on('drain', socketOnDrain.bind(undefined, socket, state));
 
   // Override on to unconsume on `data`, `readable` listeners
   socket.on = socketOnWrap;
@@ -332,7 +356,7 @@ function connectionListener(socket) {
 
   socket._paused = false;
 }
-exports._connectionListener = connectionListener;
+
 
 function updateOutgoingData(socket, state, delta) {
   state.outgoingData += delta;
@@ -354,15 +378,15 @@ function socketOnDrain(socket, state) {
   }
 }
 
-function socketOnTimeout(server, socket) {
-  var req = socket.parser && socket.parser.incoming;
-  var reqTimeout = req && !req.complete && req.emit('timeout', socket);
-  var res = socket._httpMessage;
-  var resTimeout = res && res.emit('timeout', socket);
-  var serverTimeout = server.emit('timeout', socket);
+function socketOnTimeout() {
+  var req = this.parser && this.parser.incoming;
+  var reqTimeout = req && !req.complete && req.emit('timeout', this);
+  var res = this._httpMessage;
+  var resTimeout = res && res.emit('timeout', this);
+  var serverTimeout = this.server.emit('timeout', this);
 
   if (!reqTimeout && !resTimeout && !serverTimeout)
-    socket.destroy();
+    this.destroy();
 }
 
 function socketOnClose(socket, state) {
@@ -389,7 +413,7 @@ function socketOnEnd(server, socket, parser, state) {
 
   if (ret instanceof Error) {
     debug('parse error');
-    state.onError(ret);
+    socketOnError.call(socket, ret);
     return;
   }
 
@@ -408,8 +432,16 @@ function socketOnEnd(server, socket, parser, state) {
 function socketOnData(server, socket, parser, state, d) {
   assert(!socket._paused);
   debug('SERVER socketOnData %d', d.length);
-  var ret = parser.execute(d);
 
+  if (state.keepAliveTimeoutSet) {
+    socket.setTimeout(0);
+    if (server.timeout) {
+      socket.setTimeout(server.timeout);
+    }
+    state.keepAliveTimeoutSet = false;
+  }
+
+  var ret = parser.execute(d);
   onParserExecuteCommon(server, socket, parser, state, ret, d);
 }
 
@@ -419,19 +451,19 @@ function onParserExecute(server, socket, parser, state, ret, d) {
   onParserExecuteCommon(server, socket, parser, state, ret, undefined);
 }
 
-function socketOnError(server, socket, state, e) {
+function socketOnError(e) {
   // Ignore further errors
-  socket.removeListener('error', state.onError);
-  socket.on('error', () => {});
+  this.removeListener('error', socketOnError);
+  this.on('error', () => {});
 
-  if (!server.emit('clientError', e, socket))
-    socket.destroy(e);
+  if (!this.server.emit('clientError', e, this))
+    this.destroy(e);
 }
 
 function onParserExecuteCommon(server, socket, parser, state, ret, d) {
   if (ret instanceof Error) {
     debug('parse error');
-    state.onError(ret);
+    socketOnError.call(socket, ret);
   } else if (parser.incoming && parser.incoming.upgrade) {
     // Upgrade or CONNECT
     var bytesParsed = ret;
@@ -444,6 +476,8 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
     socket.removeListener('data', state.onData);
     socket.removeListener('end', state.onEnd);
     socket.removeListener('close', state.onClose);
+    socket.removeListener('drain', state.onDrain);
+    socket.removeListener('drain', ondrain);
     unconsume(parser, socket);
     parser.finish();
     freeParser(parser, req, null);
@@ -471,7 +505,7 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
   }
 }
 
-function resOnFinish(req, res, socket, state) {
+function resOnFinish(req, res, socket, state, server) {
   // Usually the first incoming element should be our request.  it may
   // be that in the case abortIncoming() was called that the incoming
   // array will be empty.
@@ -489,6 +523,12 @@ function resOnFinish(req, res, socket, state) {
 
   if (res._last) {
     socket.destroySoon();
+  } else if (state.outgoing.length === 0) {
+    if (server.keepAliveTimeout) {
+      socket.setTimeout(0);
+      socket.setTimeout(server.keepAliveTimeout);
+      state.keepAliveTimeoutSet = true;
+    }
   } else {
     // start sending the next message
     var m = state.outgoing.shift();
@@ -508,9 +548,8 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
   // so that we don't become overwhelmed by a flood of
   // pipelined requests that may never be resolved.
   if (!socket._paused) {
-    var needPause = socket._writableState.needDrain ||
-        state.outgoingData >= socket._writableState.highWaterMark;
-    if (needPause) {
+    var ws = socket._writableState;
+    if (ws.needDrain || state.outgoingData >= ws.highWaterMark) {
       socket._paused = true;
       // We also need to pause the parser, but don't do that until after
       // the call to execute, because we may still be processing the last
@@ -536,9 +575,8 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
 
   // When we're finished writing the response, check if this is the last
   // response, if so destroy the socket.
-  var finish =
-    resOnFinish.bind(undefined, req, res, socket, state);
-  res.on('finish', finish);
+  res.on('finish',
+         resOnFinish.bind(undefined, req, res, socket, state, server));
 
   if (req.headers.expect !== undefined &&
       (req.httpVersionMajor === 1 && req.httpVersionMinor === 1)) {
@@ -612,3 +650,10 @@ function socketOnWrap(ev, fn) {
 
   return res;
 }
+
+module.exports = {
+  STATUS_CODES,
+  Server,
+  ServerResponse,
+  _connectionListener: connectionListener
+};

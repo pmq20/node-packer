@@ -64,8 +64,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>&#39;latin1&#39;</code> encoded string or a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`password` {string | Buffer | TypedArray | DataView} ",
+                      "name": "password",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -76,14 +89,33 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>&#39;latin1&#39;</code> encoded string, a <a href=\"buffer.html\"><code>Buffer</code></a>, a\n<code>TypedArray</code>, or a <code>DataView</code>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object.</p>\n"
             },
             {
               "textRaw": "crypto.createCipheriv(algorithm, key, iv)",
               "type": "method",
               "name": "createCipheriv",
-              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings or\n<a href=\"buffer.html\">buffers</a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`iv` {string | Buffer | TypedArray | DataView} ",
+                      "name": "iv",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -97,7 +129,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s.</p>\n"
             },
             {
               "textRaw": "crypto.createCredentials(details)",
@@ -145,8 +178,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key).</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`password` {string | Buffer | TypedArray | DataView} ",
+                      "name": "password",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -157,7 +203,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key).</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>\n"
             },
             {
               "textRaw": "crypto.createDecipheriv(algorithm, key, iv)",
@@ -169,8 +216,26 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings or\n<a href=\"buffer.html\">buffers</a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`iv` {string | Buffer | TypedArray | DataView} ",
+                      "name": "iv",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -184,7 +249,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings or\n<a href=\"buffer.html\">buffers</a>.</p>\n"
             },
             {
               "textRaw": "crypto.createDiffieHellman(prime[, prime_encoding][, generator][, generator_encoding])",
@@ -196,14 +262,51 @@
                 ],
                 "changes": [
                   {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `prime` argument can be any `TypedArray` or `DataView` now."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/11983",
+                    "description": "The `prime` argument can be a `Uint8Array` now."
+                  },
+                  {
                     "version": "v6.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/5522",
                     "description": "The default for the encoding parameters changed from `binary` to `utf8`."
                   }
                 ]
               },
-              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an\noptional specific <code>generator</code>.</p>\n<p>The <code>generator</code> argument can be a number, string, or <a href=\"buffer.html\"><code>Buffer</code></a>. If\n<code>generator</code> is not specified, the value <code>2</code> is used.</p>\n<p>The <code>prime_encoding</code> and <code>generator_encoding</code> arguments can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>.</p>\n<p>If <code>prime_encoding</code> is specified, <code>prime</code> is expected to be a string; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a> is expected.</p>\n<p>If <code>generator_encoding</code> is specified, <code>generator</code> is expected to be a string;\notherwise either a number or <a href=\"buffer.html\"><code>Buffer</code></a> is expected.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`prime` {string | Buffer | TypedArray | DataView} ",
+                      "name": "prime",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`prime_encoding` {string} ",
+                      "name": "prime_encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} Defaults to `2`. ",
+                      "name": "generator",
+                      "type": "number | string | Buffer | TypedArray | DataView",
+                      "desc": "Defaults to `2`.",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`generator_encoding` {string} ",
+                      "name": "generator_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -223,7 +326,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an\noptional specific <code>generator</code>.</p>\n<p>The <code>generator</code> argument can be a number, string, or <a href=\"buffer.html\"><code>Buffer</code></a>. If\n<code>generator</code> is not specified, the value <code>2</code> is used.</p>\n<p>The <code>prime_encoding</code> and <code>generator_encoding</code> arguments can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>.</p>\n<p>If <code>prime_encoding</code> is specified, <code>prime</code> is expected to be a string; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>If <code>generator_encoding</code> is specified, <code>generator</code> is expected to be a string;\notherwise a number, <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n"
             },
             {
               "textRaw": "crypto.createDiffieHellman(prime_length[, generator])",
@@ -235,8 +339,23 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object and generates a prime of\n<code>prime_length</code> bits using an optional specific numeric <code>generator</code>.\nIf <code>generator</code> is not specified, the value <code>2</code> is used.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`prime_length` {number} ",
+                      "name": "prime_length",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} Defaults to `2`. ",
+                      "name": "generator",
+                      "type": "number | string | Buffer | TypedArray | DataView",
+                      "desc": "Defaults to `2`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -248,7 +367,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object and generates a prime of\n<code>prime_length</code> bits using an optional specific numeric <code>generator</code>.\nIf <code>generator</code> is not specified, the value <code>2</code> is used.</p>\n"
             },
             {
               "textRaw": "crypto.createECDH(curve_name)",
@@ -260,8 +380,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates an Elliptic Curve Diffie-Hellman (<code>ECDH</code>) key exchange object using a\npredefined curve specified by the <code>curve_name</code> string. Use\n<a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent\nOpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name\nand description of each available elliptic curve.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`curve_name` {string} ",
+                      "name": "curve_name",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -269,7 +397,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates an Elliptic Curve Diffie-Hellman (<code>ECDH</code>) key exchange object using a\npredefined curve specified by the <code>curve_name</code> string. Use\n<a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent\nOpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name\nand description of each available elliptic curve.</p>\n"
             },
             {
               "textRaw": "crypto.createHash(algorithm)",
@@ -281,8 +410,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests\nusing the given <code>algorithm</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>Example: generating the sha256 sum of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hash.update(data);\n  else {\n    console.log(`${hash.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -290,7 +427,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests\nusing the given <code>algorithm</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>Example: generating the sha256 sum of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hash.update(data);\n  else {\n    console.log(`${hash.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.createHmac(algorithm, key)",
@@ -302,8 +440,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash.</p>\n<p>Example: generating the sha256 HMAC of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hmac.update(data);\n  else {\n    console.log(`${hmac.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -314,7 +465,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash.</p>\n<p>Example: generating the sha256 HMAC of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hmac.update(data);\n  else {\n    console.log(`${hmac.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.createSign(algorithm)",
@@ -326,8 +478,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -335,7 +495,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n"
             },
             {
               "textRaw": "crypto.createVerify(algorithm)",
@@ -347,8 +508,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates and returns a <code>Verify</code> object that uses the given algorithm.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`algorithm` {string} ",
+                      "name": "algorithm",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -356,7 +525,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates and returns a <code>Verify</code> object that uses the given algorithm.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n"
             },
             {
               "textRaw": "crypto.getCiphers()",
@@ -402,8 +572,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The\nsupported groups are: <code>&#39;modp1&#39;</code>, <code>&#39;modp2&#39;</code>, <code>&#39;modp5&#39;</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>&#39;modp14&#39;</code>, <code>&#39;modp15&#39;</code>,\n<code>&#39;modp16&#39;</code>, <code>&#39;modp17&#39;</code>, <code>&#39;modp18&#39;</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_prime_encoding_generator_generator_encoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_public_key_encoding\"><code>diffieHellman.setPublicKey()</code></a> for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst alice = crypto.getDiffieHellman(&#39;modp14&#39;);\nconst bob = crypto.getDiffieHellman(&#39;modp14&#39;);\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`group_name` {string} ",
+                      "name": "group_name",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -411,7 +589,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The\nsupported groups are: <code>&#39;modp1&#39;</code>, <code>&#39;modp2&#39;</code>, <code>&#39;modp5&#39;</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>&#39;modp14&#39;</code>, <code>&#39;modp15&#39;</code>,\n<code>&#39;modp16&#39;</code>, <code>&#39;modp17&#39;</code>, <code>&#39;modp18&#39;</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_prime_encoding_generator_generator_encoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_public_key_encoding\"><code>diffieHellman.setPublicKey()</code></a> for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst alice = crypto.getDiffieHellman(&#39;modp14&#39;);\nconst bob = crypto.getDiffieHellman(&#39;modp14&#39;);\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.getHashes()",
@@ -440,6 +619,11 @@
                 ],
                 "changes": [
                   {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/11305",
+                    "description": "The `digest` parameter is always required now."
+                  },
+                  {
                     "version": "v6.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/4047",
                     "description": "Calling this function without passing the `digest` parameter is deprecated now and will emit a warning."
@@ -451,8 +635,53 @@
                   }
                 ]
               },
-              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs, <code>err</code> will be set; otherwise <code>err</code> will be\nnull. The successfully generated <code>derivedKey</code> will be passed as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\ncrypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;, (err, key) =&gt; {\n  if (err) throw err;\n  console.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`password` {string} ",
+                      "name": "password",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`salt` {string} ",
+                      "name": "salt",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`iterations` {number} ",
+                      "name": "iterations",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`keylen` {number} ",
+                      "name": "keylen",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`digest` {string} ",
+                      "name": "digest",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`callback` {Function} ",
+                      "options": [
+                        {
+                          "textRaw": "`err` {Error} ",
+                          "name": "err",
+                          "type": "Error"
+                        },
+                        {
+                          "textRaw": "`derivedKey` {Buffer} ",
+                          "name": "derivedKey",
+                          "type": "Buffer"
+                        }
+                      ],
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -475,7 +704,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs, <code>err</code> will be set; otherwise <code>err</code> will be\nnull. The successfully generated <code>derivedKey</code> will be passed as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\ncrypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;, (err, derivedKey) =&gt; {\n  if (err) throw err;\n  console.log(derivedKey.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n"
             },
             {
               "textRaw": "crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)",
@@ -498,8 +728,36 @@
                   }
                 ]
               },
-              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an Error will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;);\nconsole.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`password` {string} ",
+                      "name": "password",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`salt` {string} ",
+                      "name": "salt",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`iterations` {number} ",
+                      "name": "iterations",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`keylen` {number} ",
+                      "name": "keylen",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`digest` {string} ",
+                      "name": "digest",
+                      "type": "string"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -519,7 +777,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an Error will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;);\nconsole.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n"
             },
             {
               "textRaw": "crypto.privateDecrypt(private_key, buffer)",
@@ -531,8 +790,41 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Decrypts <code>buffer</code> with <code>private_key</code>.</p>\n<p><code>private_key</code> can be an object or a string. If <code>private_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.\nIf <code>private_key</code> is an object, it is interpreted as a hash object with the\nkeys:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded private key</li>\n<li><code>passphrase</code>: {string} - Optional passphrase for the private key</li>\n<li><code>padding</code> : An optional padding value, one of the following:<ul>\n<li><code>crypto.constants.RSA_NO_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_OAEP_PADDING</code></li>\n</ul>\n</li>\n</ul>\n<p>All paddings are defined in <code>crypto.constants</code>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`private_key` {Object | string} ",
+                      "options": [
+                        {
+                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "name": "key",
+                          "type": "string",
+                          "desc": "A PEM encoded private key."
+                        },
+                        {
+                          "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
+                          "name": "passphrase",
+                          "type": "string",
+                          "desc": "An optional passphrase for the private key."
+                        },
+                        {
+                          "textRaw": "`padding` {crypto.constants} An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`. ",
+                          "name": "padding",
+                          "type": "crypto.constants",
+                          "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`."
+                        }
+                      ],
+                      "name": "private_key",
+                      "type": "Object | string"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -543,7 +835,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Decrypts <code>buffer</code> with <code>private_key</code>.</p>\n<p><code>private_key</code> can be an object or a string. If <code>private_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n"
             },
             {
               "textRaw": "crypto.privateEncrypt(private_key, buffer)",
@@ -555,8 +848,41 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Encrypts <code>buffer</code> with <code>private_key</code>.</p>\n<p><code>private_key</code> can be an object or a string. If <code>private_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.\nIf <code>private_key</code> is an object, it is interpreted as a hash object with the\nkeys:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded private key</li>\n<li><code>passphrase</code>: {string} - Optional passphrase for the private key</li>\n<li><code>padding</code> : An optional padding value, one of the following:<ul>\n<li><code>crypto.constants.RSA_NO_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>\n</ul>\n</li>\n</ul>\n<p>All paddings are defined in <code>crypto.constants</code>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`private_key` {Object | string} ",
+                      "options": [
+                        {
+                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "name": "key",
+                          "type": "string",
+                          "desc": "A PEM encoded private key."
+                        },
+                        {
+                          "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
+                          "name": "passphrase",
+                          "type": "string",
+                          "desc": "An optional passphrase for the private key."
+                        },
+                        {
+                          "textRaw": "`padding` {crypto.constants} An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or `RSA_PKCS1_PADDING`. ",
+                          "name": "padding",
+                          "type": "crypto.constants",
+                          "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or `RSA_PKCS1_PADDING`."
+                        }
+                      ],
+                      "name": "private_key",
+                      "type": "Object | string"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -567,7 +893,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Encrypts <code>buffer</code> with <code>private_key</code>.</p>\n<p><code>private_key</code> can be an object or a string. If <code>private_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n"
             },
             {
               "textRaw": "crypto.publicDecrypt(public_key, buffer)",
@@ -579,8 +906,41 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Decrypts <code>buffer</code> with <code>public_key</code>.</p>\n<p><code>public_key</code> can be an object or a string. If <code>public_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.\nIf <code>public_key</code> is an object, it is interpreted as a hash object with the\nkeys:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded public key</li>\n<li><code>passphrase</code>: {string} - Optional passphrase for the private key</li>\n<li><code>padding</code> : An optional padding value, one of the following:<ul>\n<li><code>crypto.constants.RSA_NO_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_OAEP_PADDING</code></li>\n</ul>\n</li>\n</ul>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n<p>All paddings are defined in <code>crypto.constants</code>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`public_key` {Object | string} ",
+                      "options": [
+                        {
+                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "name": "key",
+                          "type": "string",
+                          "desc": "A PEM encoded private key."
+                        },
+                        {
+                          "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
+                          "name": "passphrase",
+                          "type": "string",
+                          "desc": "An optional passphrase for the private key."
+                        },
+                        {
+                          "textRaw": "`padding` {crypto.constants} An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`. ",
+                          "name": "padding",
+                          "type": "crypto.constants",
+                          "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`."
+                        }
+                      ],
+                      "name": "public_key",
+                      "type": "Object | string"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -591,7 +951,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Decrypts <code>buffer</code> with <code>public_key</code>.</p>\n<p><code>public_key</code> can be an object or a string. If <code>public_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
             },
             {
               "textRaw": "crypto.publicEncrypt(public_key, buffer)",
@@ -603,8 +964,41 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Encrypts <code>buffer</code> with <code>public_key</code>.</p>\n<p><code>public_key</code> can be an object or a string. If <code>public_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.\nIf <code>public_key</code> is an object, it is interpreted as a hash object with the\nkeys:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded public key</li>\n<li><code>passphrase</code>: {string} - Optional passphrase for the private key</li>\n<li><code>padding</code> : An optional padding value, one of the following:<ul>\n<li><code>crypto.constants.RSA_NO_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code></li>\n<li><code>crypto.constants.RSA_PKCS1_OAEP_PADDING</code></li>\n</ul>\n</li>\n</ul>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n<p>All paddings are defined in <code>crypto.constants</code>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`public_key` {Object | string} ",
+                      "options": [
+                        {
+                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "name": "key",
+                          "type": "string",
+                          "desc": "A PEM encoded private key."
+                        },
+                        {
+                          "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
+                          "name": "passphrase",
+                          "type": "string",
+                          "desc": "An optional passphrase for the private key."
+                        },
+                        {
+                          "textRaw": "`padding` {crypto.constants} An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`. ",
+                          "name": "padding",
+                          "type": "crypto.constants",
+                          "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`."
+                        }
+                      ],
+                      "name": "public_key",
+                      "type": "Object | string"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -615,7 +1009,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Encrypts the content of <code>buffer</code> with <code>public_key</code> and returns a new\n<a href=\"buffer.html\"><code>Buffer</code></a> with encrypted content.</p>\n<p><code>public_key</code> can be an object or a string. If <code>public_key</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
             },
             {
               "textRaw": "crypto.randomBytes(size[, callback])",
@@ -627,8 +1022,34 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument\nis a number indicating the number of bytes to generate.</p>\n<p>If a <code>callback</code> function is provided, the bytes are generated asynchronously\nand the <code>callback</code> function is invoked with two arguments: <code>err</code> and <code>buf</code>.\nIf an error occurs, <code>err</code> will be an Error object; otherwise it is null. The\n<code>buf</code> argument is a <a href=\"buffer.html\"><code>Buffer</code></a> containing the generated bytes.</p>\n<pre><code class=\"lang-js\">// Asynchronous\nconst crypto = require(&#39;crypto&#39;);\ncrypto.randomBytes(256, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(`${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n});\n</code></pre>\n<p>If the <code>callback</code> function is not provided, the random bytes are generated\nsynchronously and returned as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be thrown if\nthere is a problem generating the bytes.</p>\n<pre><code class=\"lang-js\">// Synchronous\nconst buf = crypto.randomBytes(256);\nconsole.log(\n  `${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n</code></pre>\n<p>The <code>crypto.randomBytes()</code> method will block until there is sufficient entropy.\nThis should normally never take longer than a few milliseconds. The only time\nwhen generating the random bytes may conceivably block for a longer period of\ntime is right after boot, when the whole system is still low on entropy.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`size` {number} ",
+                      "name": "size",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`callback` {Function} ",
+                      "options": [
+                        {
+                          "textRaw": "`err` {Error} ",
+                          "name": "err",
+                          "type": "Error"
+                        },
+                        {
+                          "textRaw": "`buf` {Buffer} ",
+                          "name": "buf",
+                          "type": "Buffer"
+                        }
+                      ],
+                      "name": "callback",
+                      "type": "Function",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -640,7 +1061,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument\nis a number indicating the number of bytes to generate.</p>\n<p>If a <code>callback</code> function is provided, the bytes are generated asynchronously\nand the <code>callback</code> function is invoked with two arguments: <code>err</code> and <code>buf</code>.\nIf an error occurs, <code>err</code> will be an Error object; otherwise it is null. The\n<code>buf</code> argument is a <a href=\"buffer.html\"><code>Buffer</code></a> containing the generated bytes.</p>\n<pre><code class=\"lang-js\">// Asynchronous\nconst crypto = require(&#39;crypto&#39;);\ncrypto.randomBytes(256, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(`${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n});\n</code></pre>\n<p>If the <code>callback</code> function is not provided, the random bytes are generated\nsynchronously and returned as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be thrown if\nthere is a problem generating the bytes.</p>\n<pre><code class=\"lang-js\">// Synchronous\nconst buf = crypto.randomBytes(256);\nconsole.log(\n  `${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n</code></pre>\n<p>The <code>crypto.randomBytes()</code> method will block until there is sufficient entropy.\nThis should normally never take longer than a few milliseconds. The only time\nwhen generating the random bytes may conceivably block for a longer period of\ntime is right after boot, when the whole system is still low on entropy.</p>\n"
             },
             {
               "textRaw": "crypto.randomFillSync(buffer[, offset][, size])",
@@ -767,8 +1189,23 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Load and set the <code>engine</code> for some or all OpenSSL functions (selected by flags).</p>\n<p><code>engine</code> could be either an id or a path to the engine&#39;s shared library.</p>\n<p>The optional <code>flags</code> argument uses <code>ENGINE_METHOD_ALL</code> by default. The <code>flags</code>\nis a bit field taking one of or a mix of the following flags (defined in\n<code>crypto.constants</code>):</p>\n<ul>\n<li><code>crypto.constants.ENGINE_METHOD_RSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DH</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_RAND</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ECDH</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ECDSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_CIPHERS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DIGESTS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_STORE</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_PKEY_METHS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_PKEY_ASN1_METHS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ALL</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_NONE</code></li>\n</ul>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`engine` {string} ",
+                      "name": "engine",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`flags` {crypto.constants} Defaults to `crypto.constants.ENGINE_METHOD_ALL`. ",
+                      "name": "flags",
+                      "type": "crypto.constants",
+                      "desc": "Defaults to `crypto.constants.ENGINE_METHOD_ALL`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -780,7 +1217,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Load and set the <code>engine</code> for some or all OpenSSL functions (selected by flags).</p>\n<p><code>engine</code> could be either an id or a path to the engine&#39;s shared library.</p>\n<p>The optional <code>flags</code> argument uses <code>ENGINE_METHOD_ALL</code> by default. The <code>flags</code>\nis a bit field taking one of or a mix of the following flags (defined in\n<code>crypto.constants</code>):</p>\n<ul>\n<li><code>crypto.constants.ENGINE_METHOD_RSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DH</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_RAND</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ECDH</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ECDSA</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_CIPHERS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_DIGESTS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_STORE</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_PKEY_METHS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_PKEY_ASN1_METHS</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_ALL</code></li>\n<li><code>crypto.constants.ENGINE_METHOD_NONE</code></li>\n</ul>\n"
             },
             {
               "textRaw": "crypto.timingSafeEqual(a, b)",
@@ -792,8 +1230,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that\nwould allow an attacker to guess one of the values. This is suitable for\ncomparing HMAC digests or secret values like authentication cookies or\n<a href=\"https://www.w3.org/TR/capability-urls/\">capability urls</a>.</p>\n<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, and they must have the same length.</p>\n<p><strong>Note</strong>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the\n<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the\nsurrounding code does not introduce timing vulnerabilities.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`a` {Buffer | TypedArray | DataView} ",
+                      "name": "a",
+                      "type": "Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`b` {Buffer | TypedArray | DataView} ",
+                      "name": "b",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -804,7 +1255,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that\nwould allow an attacker to guess one of the values. This is suitable for\ncomparing HMAC digests or secret values like authentication cookies or\n<a href=\"https://www.w3.org/TR/capability-urls/\">capability urls</a>.</p>\n<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, <code>TypedArray</code>s, or <code>DataView</code>s, and they\nmust have the same length.</p>\n<p><em>Note</em>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the\n<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the\nsurrounding code does not introduce timing vulnerabilities.</p>\n"
             }
           ],
           "type": "module",
@@ -847,7 +1299,7 @@
             {
               "textRaw": "OpenSSL Options",
               "name": "openssl_options",
-              "desc": "<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_ALL</code></td>\n    <td>Applies multiple bug workarounds within OpenSSL. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a> for\n    detail.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</code></td>\n    <td>Allows legacy insecure renegotiation between OpenSSL and unpatched\n    clients or servers. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CIPHER_SERVER_PREFERENCE</code></td>\n    <td>Attempts to use the server&#39;s preferences instead of the client&#39;s when\n    selecting a cipher. Behaviour depends on protocol version. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CISCO_ANYCONNECT</code></td>\n    <td>Instructs OpenSSL to use Cisco&#39;s &quot;speshul&quot; version of DTLS_BAD_VER.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_COOKIE_EXCHANGE</code></td>\n    <td>Instructs OpenSSL to turn on cookie exchange.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CRYPTOPRO_TLSEXT_BUG</code></td>\n    <td>Instructs OpenSSL to add server-hello extension from an early version\n    of the cryptopro draft.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</code></td>\n    <td>Instructs OpenSSL to disable a SSL 3.0/TLS 1.0 vulnerability\n    workaround added in OpenSSL 0.9.6d.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_EPHEMERAL_RSA</code></td>\n    <td>Instructs OpenSSL to always use the tmp_rsa key when performing RSA\n    operations.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_LEGACY_SERVER_CONNECT</code></td>\n    <td>Allows initial connection to servers that do not support RI.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MICROSOFT_SESS_ID_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MSIE_SSLV2_RSA_PADDING</code></td>\n    <td>Instructs OpenSSL to disable the workaround for a man-in-the-middle\n    protocol-version vulnerability in the SSL 2.0 server implementation.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_CA_DN_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_CHALLENGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_COMPRESSION</code></td>\n    <td>Instructs OpenSSL to disable support for SSL/TLS compression.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_QUERY_MTU</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION</code></td>\n    <td>Instructs OpenSSL to always start a new session when performing\n    renegotiation.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SSLv2</code></td>\n    <td>Instructs OpenSSL to turn off SSL v2</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SSLv3</code></td>\n    <td>Instructs OpenSSL to turn off SSL v3</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TICKET</code></td>\n    <td>Instructs OpenSSL to disable use of RFC4507bis tickets.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1_1</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1.1</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1_2</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1.2</td>\n  </tr>\n    <td><code>SSL_OP_PKCS1_CHECK_1</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_PKCS1_CHECK_2</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SINGLE_DH_USE</code></td>\n    <td>Instructs OpenSSL to always create a new key when using\n    temporary/ephemeral DH parameters.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SINGLE_ECDH_USE</code></td>\n    <td>Instructs OpenSSL to always create a new key when using\n    temporary/ephemeral ECDH parameters.</td>\n  </tr>\n    <td><code>SSL_OP_SSLEAY_080_CLIENT_DH_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_BLOCK_PADDING_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_D5_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_ROLLBACK_BUG</code></td>\n    <td>Instructs OpenSSL to disable version rollback attack detection.</td>\n  </tr>\n</table>\n\n",
+              "desc": "<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_ALL</code></td>\n    <td>Applies multiple bug workarounds within OpenSSL. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a> for\n    detail.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</code></td>\n    <td>Allows legacy insecure renegotiation between OpenSSL and unpatched\n    clients or servers. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CIPHER_SERVER_PREFERENCE</code></td>\n    <td>Attempts to use the server&#39;s preferences instead of the client&#39;s when\n    selecting a cipher. Behavior depends on protocol version. See\n    <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CISCO_ANYCONNECT</code></td>\n    <td>Instructs OpenSSL to use Cisco&#39;s &quot;speshul&quot; version of DTLS_BAD_VER.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_COOKIE_EXCHANGE</code></td>\n    <td>Instructs OpenSSL to turn on cookie exchange.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_CRYPTOPRO_TLSEXT_BUG</code></td>\n    <td>Instructs OpenSSL to add server-hello extension from an early version\n    of the cryptopro draft.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</code></td>\n    <td>Instructs OpenSSL to disable a SSL 3.0/TLS 1.0 vulnerability\n    workaround added in OpenSSL 0.9.6d.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_EPHEMERAL_RSA</code></td>\n    <td>Instructs OpenSSL to always use the tmp_rsa key when performing RSA\n    operations.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_LEGACY_SERVER_CONNECT</code></td>\n    <td>Allows initial connection to servers that do not support RI.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MICROSOFT_SESS_ID_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_MSIE_SSLV2_RSA_PADDING</code></td>\n    <td>Instructs OpenSSL to disable the workaround for a man-in-the-middle\n    protocol-version vulnerability in the SSL 2.0 server implementation.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_CA_DN_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_CHALLENGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_COMPRESSION</code></td>\n    <td>Instructs OpenSSL to disable support for SSL/TLS compression.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_QUERY_MTU</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION</code></td>\n    <td>Instructs OpenSSL to always start a new session when performing\n    renegotiation.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SSLv2</code></td>\n    <td>Instructs OpenSSL to turn off SSL v2</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_SSLv3</code></td>\n    <td>Instructs OpenSSL to turn off SSL v3</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TICKET</code></td>\n    <td>Instructs OpenSSL to disable use of RFC4507bis tickets.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1_1</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1.1</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_NO_TLSv1_2</code></td>\n    <td>Instructs OpenSSL to turn off TLS v1.2</td>\n  </tr>\n    <td><code>SSL_OP_PKCS1_CHECK_1</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_PKCS1_CHECK_2</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SINGLE_DH_USE</code></td>\n    <td>Instructs OpenSSL to always create a new key when using\n    temporary/ephemeral DH parameters.</td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SINGLE_ECDH_USE</code></td>\n    <td>Instructs OpenSSL to always create a new key when using\n    temporary/ephemeral ECDH parameters.</td>\n  </tr>\n    <td><code>SSL_OP_SSLEAY_080_CLIENT_DH_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_BLOCK_PADDING_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_D5_BUG</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>SSL_OP_TLS_ROLLBACK_BUG</code></td>\n    <td>Instructs OpenSSL to disable version rollback attack detection.</td>\n  </tr>\n</table>\n\n",
               "type": "module",
               "displayName": "OpenSSL Options"
             },
@@ -861,7 +1313,7 @@
             {
               "textRaw": "Other OpenSSL Constants",
               "name": "other_openssl_constants",
-              "desc": "<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>DH_CHECK_P_NOT_SAFE_PRIME</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_CHECK_P_NOT_PRIME</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_UNABLE_TO_CHECK_GENERATOR</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_NOT_SUITABLE_GENERATOR</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>NPN_ENABLED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>ALPN_ENABLED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_SSLV23_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_NO_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_OAEP_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_X931_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_PSS_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_COMPRESSED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_UNCOMPRESSED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_HYBRID</code></td>\n    <td></td>\n  </tr>\n</table>\n\n",
+              "desc": "<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>DH_CHECK_P_NOT_SAFE_PRIME</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_CHECK_P_NOT_PRIME</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_UNABLE_TO_CHECK_GENERATOR</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>DH_NOT_SUITABLE_GENERATOR</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>NPN_ENABLED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>ALPN_ENABLED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_SSLV23_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_NO_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_OAEP_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_X931_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PKCS1_PSS_PADDING</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>RSA_PSS_SALTLEN_DIGEST</code></td>\n    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the digest size\n        when signing or verifying.</td>\n  </tr>\n  <tr>\n    <td><code>RSA_PSS_SALTLEN_MAX_SIGN</code></td>\n    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the maximum\n        permissible value when signing data.</td>\n  </tr>\n  <tr>\n    <td><code>RSA_PSS_SALTLEN_AUTO</code></td>\n    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be determined\n        automatically when verifying a signature.</td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_COMPRESSED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_UNCOMPRESSED</code></td>\n    <td></td>\n  </tr>\n  <tr>\n    <td><code>POINT_CONVERSION_HYBRID</code></td>\n    <td></td>\n  </tr>\n</table>\n\n",
               "type": "module",
               "displayName": "Other OpenSSL Constants"
             },
@@ -911,8 +1363,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>spkac</code> data structure includes a public key and a challenge. The\n<code>certificate.exportChallenge()</code> returns the challenge component in the\nform of a Node.js <a href=\"buffer.html\"><code>Buffer</code></a>. The <code>spkac</code> argument can be either a string\nor a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconst challenge = cert.exportChallenge(spkac);\nconsole.log(challenge.toString(&#39;utf8&#39;));\n// Prints: the challenge as a UTF8 string\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns {Buffer} The challenge component of the `spkac` data structure, which includes a public key and a challenge. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "The challenge component of the `spkac` data structure, which includes a public key and a challenge."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`spkac` {string | Buffer | TypedArray | DataView} ",
+                      "name": "spkac",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -920,7 +1386,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconst challenge = cert.exportChallenge(spkac);\nconsole.log(challenge.toString(&#39;utf8&#39;));\n// Prints: the challenge as a UTF8 string\n</code></pre>\n"
             },
             {
               "textRaw": "certificate.exportPublicKey(spkac)",
@@ -932,8 +1399,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>spkac</code> data structure includes a public key and a challenge. The\n<code>certificate.exportPublicKey()</code> returns the public key component in the\nform of a Node.js <a href=\"buffer.html\"><code>Buffer</code></a>. The <code>spkac</code> argument can be either a string\nor a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconst publicKey = cert.exportPublicKey(spkac);\nconsole.log(publicKey);\n// Prints: the public key as &lt;Buffer ...&gt;\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns {Buffer} The public key component of the `spkac` data structure, which includes a public key and a challenge. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "The public key component of the `spkac` data structure, which includes a public key and a challenge."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`spkac` {string | Buffer | TypedArray | DataView} ",
+                      "name": "spkac",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -941,7 +1422,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconst publicKey = cert.exportPublicKey(spkac);\nconsole.log(publicKey);\n// Prints: the public key as &lt;Buffer ...&gt;\n</code></pre>\n"
             },
             {
               "textRaw": "certificate.verifySpkac(spkac)",
@@ -953,8 +1435,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns <code>true</code> if the given <code>spkac</code> data structure is valid, <code>false</code> otherwise.\nThe <code>spkac</code> argument must be a Node.js <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconsole.log(cert.verifySpkac(Buffer.from(spkac)));\n// Prints: true or false\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns {boolean} `true` if the given `spkac` data structure is valid, `false` otherwise. ",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`true` if the given `spkac` data structure is valid, `false` otherwise."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`spkac` {Buffer | TypedArray | DataView} ",
+                      "name": "spkac",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -962,7 +1458,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<pre><code class=\"lang-js\">const cert = require(&#39;crypto&#39;).Certificate();\nconst spkac = getSpkacSomehow();\nconsole.log(cert.verifySpkac(Buffer.from(spkac)));\n// Prints: true or false\n</code></pre>\n"
             }
           ]
         },
@@ -988,8 +1485,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns any remaining enciphered contents. If <code>output_encoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>, a string is returned.\nIf an <code>output_encoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no\nlonger be used to encrypt data. Attempts to call <code>cipher.final()</code> more than\nonce will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -998,7 +1504,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns any remaining enciphered contents. If <code>output_encoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>, a string is returned.\nIf an <code>output_encoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no\nlonger be used to encrypt data. Attempts to call <code>cipher.final()</code> more than\nonce will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "cipher.setAAD(buffer)",
@@ -1010,8 +1517,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>cipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>Returns <code>this</code> for method chaining.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "name": "return",
+                    "desc": "the {Cipher} for method chaining."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer} ",
+                      "name": "buffer",
+                      "type": "Buffer"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1019,7 +1539,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>cipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>cipher.setAAD()</code> method must be called before <a href=\"#crypto_cipher_update_data_input_encoding_output_encoding\"><code>cipher.update()</code></a>.</p>\n"
             },
             {
               "textRaw": "cipher.getAuthTag()",
@@ -1039,7 +1560,7 @@
               ]
             },
             {
-              "textRaw": "cipher.setAutoPadding(auto_padding=true)",
+              "textRaw": "cipher.setAutoPadding([auto_padding])",
               "type": "method",
               "name": "setAutoPadding",
               "meta": {
@@ -1048,17 +1569,33 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When using block encryption algorithms, the <code>Cipher</code> class will automatically\nadd padding to the input data to the appropriate block size. To disable the\ndefault padding call <code>cipher.setAutoPadding(false)</code>.</p>\n<p>When <code>auto_padding</code> is <code>false</code>, the length of the entire input data must be a\nmultiple of the cipher&#39;s block size or <a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> will throw an Error.\nDisabling automatic padding is useful for non-standard padding, for instance\nusing <code>0x0</code> instead of PKCS padding.</p>\n<p>The <code>cipher.setAutoPadding()</code> method must be called before <a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a>.</p>\n<p>Returns <code>this</code> for method chaining.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "name": "return",
+                    "desc": "the {Cipher} for method chaining."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`auto_padding` {boolean} Defaults to `true`. ",
+                      "name": "auto_padding",
+                      "type": "boolean",
+                      "desc": "Defaults to `true`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
                       "name": "auto_padding",
-                      "default": "true"
+                      "optional": true
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>When using block encryption algorithms, the <code>Cipher</code> class will automatically\nadd padding to the input data to the appropriate block size. To disable the\ndefault padding call <code>cipher.setAutoPadding(false)</code>.</p>\n<p>When <code>auto_padding</code> is <code>false</code>, the length of the entire input data must be a\nmultiple of the cipher&#39;s block size or <a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> will throw an Error.\nDisabling automatic padding is useful for non-standard padding, for instance\nusing <code>0x0</code> instead of PKCS padding.</p>\n<p>The <code>cipher.setAutoPadding()</code> method must be called before\n<a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a>.</p>\n"
             },
             {
               "textRaw": "cipher.update(data[, input_encoding][, output_encoding])",
@@ -1076,8 +1613,28 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the cipher with <code>data</code>. If the <code>input_encoding</code> argument is given,\nits value must be one of <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code>, or <code>&#39;latin1&#39;</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>input_encoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>. If <code>data</code> is a\n<a href=\"buffer.html\"><code>Buffer</code></a> then <code>input_encoding</code> is ignored.</p>\n<p>The <code>output_encoding</code> specifies the output format of the enciphered\ndata, and can be <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>. If the <code>output_encoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>output_encoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>cipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> is called. Calling <code>cipher.update()</code> after\n<a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1093,7 +1650,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the cipher with <code>data</code>. If the <code>input_encoding</code> argument is given,\nits value must be one of <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code>, or <code>&#39;latin1&#39;</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>input_encoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>.  If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>, then\n<code>input_encoding</code> is ignored.</p>\n<p>The <code>output_encoding</code> specifies the output format of the enciphered\ndata, and can be <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>. If the <code>output_encoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>output_encoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>cipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> is called. Calling <code>cipher.update()</code> after\n<a href=\"#crypto_cipher_final_output_encoding\"><code>cipher.final()</code></a> will result in an error being thrown.</p>\n"
             }
           ]
         },
@@ -1107,7 +1665,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet decrypted = &#39;&#39;;\ndecipher.on(&#39;readable&#39;, () =&gt; {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString(&#39;utf8&#39;);\n});\ndecipher.on(&#39;end&#39;, () =&gt; {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\nconst encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\ndecipher.write(encrypted, &#39;hex&#39;);\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.enc&#39;);\nconst output = fs.createWriteStream(&#39;test.js&#39;);\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst encrypted = &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\nlet decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);\ndecrypted += decipher.final(&#39;utf8&#39;);\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>\n",
+          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet decrypted = &#39;&#39;;\ndecipher.on(&#39;readable&#39;, () =&gt; {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString(&#39;utf8&#39;);\n});\ndecipher.on(&#39;end&#39;, () =&gt; {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\ndecipher.write(encrypted, &#39;hex&#39;);\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.enc&#39;);\nconst output = fs.createWriteStream(&#39;test.js&#39;);\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\nlet decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);\ndecrypted += decipher.final(&#39;utf8&#39;);\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "decipher.final([output_encoding])",
@@ -1119,8 +1677,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns any remaining deciphered contents. If <code>output_encoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>, a string is returned.\nIf an <code>output_encoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can\nno longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more\nthan once will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1129,7 +1696,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns any remaining deciphered contents. If <code>output_encoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>, a string is returned.\nIf an <code>output_encoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can\nno longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more\nthan once will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "decipher.setAAD(buffer)",
@@ -1147,8 +1715,21 @@
                   }
                 ]
               },
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>decipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>Returns <code>this</code> for method chaining.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "name": "return",
+                    "desc": "the {Cipher} for method chaining."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1156,7 +1737,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>decipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>decipher.setAAD()</code> method must be called before <a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a>.</p>\n"
             },
             {
               "textRaw": "decipher.setAuthTag(buffer)",
@@ -1174,8 +1756,21 @@
                   }
                 ]
               },
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>decipher.setAuthTag()</code> method is used to pass in the\nreceived <em>authentication tag</em>. If no tag is provided, or if the cipher text\nhas been tampered with, <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> with throw, indicating that the\ncipher text should be discarded due to failed authentication.</p>\n<p>Returns <code>this</code> for method chaining.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "name": "return",
+                    "desc": "the {Cipher} for method chaining."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer | TypedArray | DataView} ",
+                      "name": "buffer",
+                      "type": "Buffer | TypedArray | DataView"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1183,10 +1778,11 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>decipher.setAuthTag()</code> method is used to pass in the\nreceived <em>authentication tag</em>. If no tag is provided, or if the cipher text\nhas been tampered with, <a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> with throw, indicating that the\ncipher text should be discarded due to failed authentication.</p>\n<p>The <code>decipher.setAuthTag()</code> method must be called before\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a>.</p>\n"
             },
             {
-              "textRaw": "decipher.setAutoPadding(auto_padding=true)",
+              "textRaw": "decipher.setAutoPadding([auto_padding])",
               "type": "method",
               "name": "setAutoPadding",
               "meta": {
@@ -1195,17 +1791,33 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When data has been encrypted without standard block padding, calling\n<code>decipher.setAutoPadding(false)</code> will disable automatic padding to prevent\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> from checking for and removing padding.</p>\n<p>Turning auto padding off will only work if the input data&#39;s length is a\nmultiple of the ciphers block size.</p>\n<p>The <code>decipher.setAutoPadding()</code> method must be called before\n<a href=\"#crypto_decipher_update_data_input_encoding_output_encoding\"><code>decipher.update()</code></a>.</p>\n<p>Returns <code>this</code> for method chaining.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "name": "return",
+                    "desc": "the {Cipher} for method chaining."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`auto_padding` {boolean} Defaults to `true`. ",
+                      "name": "auto_padding",
+                      "type": "boolean",
+                      "desc": "Defaults to `true`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
                       "name": "auto_padding",
-                      "default": "true"
+                      "optional": true
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>When data has been encrypted without standard block padding, calling\n<code>decipher.setAutoPadding(false)</code> will disable automatic padding to prevent\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> from checking for and removing padding.</p>\n<p>Turning auto padding off will only work if the input data&#39;s length is a\nmultiple of the ciphers block size.</p>\n<p>The <code>decipher.setAutoPadding()</code> method must be called before\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a>.</p>\n"
             },
             {
               "textRaw": "decipher.update(data[, input_encoding][, output_encoding])",
@@ -1223,8 +1835,28 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the decipher with <code>data</code>. If the <code>input_encoding</code> argument is given,\nits value must be one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code>, or <code>&#39;hex&#39;</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>input_encoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>. If <code>data</code> is a\n<a href=\"buffer.html\"><code>Buffer</code></a> then <code>input_encoding</code> is ignored.</p>\n<p>The <code>output_encoding</code> specifies the output format of the enciphered\ndata, and can be <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>. If the <code>output_encoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>output_encoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>decipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> is called. Calling <code>decipher.update()</code> after\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1240,7 +1872,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the decipher with <code>data</code>. If the <code>input_encoding</code> argument is given,\nits value must be one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code>, or <code>&#39;hex&#39;</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>input_encoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>. If <code>data</code> is a\n<a href=\"buffer.html\"><code>Buffer</code></a> then <code>input_encoding</code> is ignored.</p>\n<p>The <code>output_encoding</code> specifies the output format of the enciphered\ndata, and can be <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>. If the <code>output_encoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>output_encoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>decipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> is called. Calling <code>decipher.update()</code> after\n<a href=\"#crypto_decipher_final_output_encoding\"><code>decipher.final()</code></a> will result in an error being thrown.</p>\n"
             }
           ]
         },
@@ -1266,8 +1899,28 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Computes the shared secret using <code>other_public_key</code> as the other\nparty&#39;s public key and returns the computed shared secret. The supplied\nkey is interpreted using the specified <code>input_encoding</code>, and secret is\nencoded using specified <code>output_encoding</code>. Encodings can be\n<code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If the <code>input_encoding</code> is not\nprovided, <code>other_public_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>If <code>output_encoding</code> is given a string is returned; otherwise, a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`other_public_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "other_public_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1283,7 +1936,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Computes the shared secret using <code>other_public_key</code> as the other\nparty&#39;s public key and returns the computed shared secret. The supplied\nkey is interpreted using the specified <code>input_encoding</code>, and secret is\nencoded using specified <code>output_encoding</code>. Encodings can be\n<code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If the <code>input_encoding</code> is not\nprovided, <code>other_public_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>output_encoding</code> is given a string is returned; otherwise, a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.generateKeys([encoding])",
@@ -1295,8 +1949,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Generates private and public Diffie-Hellman key values, and returns\nthe public key in the specified <code>encoding</code>. This key should be\ntransferred to the other party. Encoding can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>,\nor <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1305,7 +1968,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Generates private and public Diffie-Hellman key values, and returns\nthe public key in the specified <code>encoding</code>. This key should be\ntransferred to the other party. Encoding can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>,\nor <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.getGenerator([encoding])",
@@ -1317,8 +1981,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can\nbe <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If  <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1327,7 +2000,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can\nbe <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If  <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.getPrime([encoding])",
@@ -1339,8 +2013,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can\nbe <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1349,7 +2032,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can\nbe <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.getPrivateKey([encoding])",
@@ -1361,8 +2045,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1371,7 +2064,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.getPublicKey([encoding])",
@@ -1383,8 +2077,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which\ncan be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1393,7 +2096,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which\ncan be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "diffieHellman.setPrivateKey(private_key[, encoding])",
@@ -1405,8 +2109,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided\nand is either <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>, <code>private_key</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>private_key</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`private_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "private_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1418,7 +2136,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided\nand is either <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>, <code>private_key</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>private_key</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>\n"
             },
             {
               "textRaw": "diffieHellman.setPublicKey(public_key[, encoding])",
@@ -1430,8 +2149,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided\nand is either <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>, <code>public_key</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>public_key</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`public_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "public_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1443,7 +2176,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided\nand is either <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>, <code>public_key</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>public_key</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>\n"
             }
           ],
           "properties": [
@@ -1488,8 +2222,28 @@
                   }
                 ]
               },
-              "desc": "<p>Computes the shared secret using <code>other_public_key</code> as the other\nparty&#39;s public key and returns the computed shared secret. The supplied\nkey is interpreted using specified <code>input_encoding</code>, and the returned secret\nis encoded using the specified <code>output_encoding</code>. Encodings can be\n<code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If the <code>input_encoding</code> is not\nprovided, <code>other_public_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>If <code>output_encoding</code> is given a string will be returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`other_public_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "other_public_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`output_encoding` {string} ",
+                      "name": "output_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1505,7 +2259,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Computes the shared secret using <code>other_public_key</code> as the other\nparty&#39;s public key and returns the computed shared secret. The supplied\nkey is interpreted using specified <code>input_encoding</code>, and the returned secret\nis encoded using the specified <code>output_encoding</code>. Encodings can be\n<code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If the <code>input_encoding</code> is not\nprovided, <code>other_public_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>.</p>\n<p>If <code>output_encoding</code> is given a string will be returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
               "textRaw": "ecdh.generateKeys([encoding[, format]])",
@@ -1517,8 +2272,24 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Generates private and public EC Diffie-Hellman key values, and returns\nthe public key in the specified <code>format</code> and <code>encoding</code>. This key should be\ntransferred to the other party.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified, the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>\nis returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`format` {string} Defaults to `uncompressed`. ",
+                      "name": "format",
+                      "type": "string",
+                      "desc": "Defaults to `uncompressed`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1531,7 +2302,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Generates private and public EC Diffie-Hellman key values, and returns\nthe public key in the specified <code>format</code> and <code>encoding</code>. This key should be\ntransferred to the other party.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified, the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>\nis returned.</p>\n"
             },
             {
               "textRaw": "ecdh.getPrivateKey([encoding])",
@@ -1543,8 +2315,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the EC Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided\na string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1553,10 +2334,11 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the EC Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided\na string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
             },
             {
-              "textRaw": "ecdh.getPublicKey([encoding[, format]])",
+              "textRaw": "ecdh.getPublicKey([encoding][, format])",
               "type": "method",
               "name": "getPublicKey",
               "meta": {
@@ -1565,8 +2347,24 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns the EC Diffie-Hellman public key in the specified <code>encoding</code> and\n<code>format</code>.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`format` {string} Defaults to `uncompressed`. ",
+                      "name": "format",
+                      "type": "string",
+                      "desc": "Defaults to `uncompressed`.",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1579,7 +2377,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Returns the EC Diffie-Hellman public key in the specified <code>encoding</code> and\n<code>format</code>.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n"
             },
             {
               "textRaw": "ecdh.setPrivateKey(private_key[, encoding])",
@@ -1591,8 +2390,22 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Sets the EC Diffie-Hellman private key. The <code>encoding</code> can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided, <code>private_key</code> is expected\nto be a string; otherwise <code>private_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>. If\n<code>private_key</code> is not valid for the curve specified when the <code>ECDH</code> object was\ncreated, an error is thrown. Upon setting the private key, the associated\npublic point (key) is also generated and set in the ECDH object.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`private_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "private_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1604,7 +2417,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Sets the EC Diffie-Hellman private key. The <code>encoding</code> can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided, <code>private_key</code> is expected\nto be a string; otherwise <code>private_key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>private_key</code> is not valid for the curve specified when the <code>ECDH</code> object was\ncreated, an error is thrown. Upon setting the private key, the associated\npublic point (key) is also generated and set in the ECDH object.</p>\n"
             },
             {
               "textRaw": "ecdh.setPublicKey(public_key[, encoding])",
@@ -1621,8 +2435,22 @@
               },
               "stability": 0,
               "stabilityText": "Deprecated",
-              "desc": "<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided <code>public_key</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party&#39;s public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_private_key_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_private_key_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst alice = crypto.createECDH(&#39;secp256k1&#39;);\nconst bob = crypto.createECDH(&#39;secp256k1&#39;);\n\n// Note: This is a shortcut way to specify one of Alice&#39;s previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash(&#39;sha256&#39;).update(&#39;alice&#39;, &#39;utf8&#39;).digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`public_key` {string | Buffer | TypedArray | DataView} ",
+                      "name": "public_key",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1634,7 +2462,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>&#39;latin1&#39;</code>,\n<code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided <code>public_key</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party&#39;s public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_private_key_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_private_key_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst alice = crypto.createECDH(&#39;secp256k1&#39;);\nconst bob = crypto.createECDH(&#39;secp256k1&#39;);\n\n// Note: This is a shortcut way to specify one of Alice&#39;s previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash(&#39;sha256&#39;).update(&#39;alice&#39;, &#39;utf8&#39;).digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, &#39;hex&#39;);\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, &#39;hex&#39;);\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>\n"
             }
           ]
         },
@@ -1660,8 +2489,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Calculates the digest of all of the data passed to be hashed (using the\n<a href=\"#crypto_hash_update_data_input_encoding\"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or\n<code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string will be returned; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>Hash</code> object can not be used again after <code>hash.digest()</code> method has been\ncalled. Multiple calls will cause an error to be thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1670,7 +2508,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Calculates the digest of all of the data passed to be hashed (using the\n<a href=\"#crypto_hash_update_data_input_encoding\"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or\n<code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string will be returned; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>Hash</code> object can not be used again after <code>hash.digest()</code> method has been\ncalled. Multiple calls will cause an error to be thrown.</p>\n"
             },
             {
               "textRaw": "hash.update(data[, input_encoding])",
@@ -1688,8 +2527,22 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the hash content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a> then\n<code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1701,7 +2554,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the hash content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n"
             }
           ]
         },
@@ -1727,8 +2581,17 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Calculates the HMAC digest of all of the data passed using <a href=\"#crypto_hmac_update_data_input_encoding\"><code>hmac.update()</code></a>.\nThe <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is\nprovided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned;</p>\n<p>The <code>Hmac</code> object can not be used again after <code>hmac.digest()</code> has been\ncalled. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1737,7 +2600,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Calculates the HMAC digest of all of the data passed using <a href=\"#crypto_hmac_update_data_input_encoding\"><code>hmac.update()</code></a>.\nThe <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is\nprovided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned;</p>\n<p>The <code>Hmac</code> object can not be used again after <code>hmac.digest()</code> has been\ncalled. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "hmac.update(data[, input_encoding])",
@@ -1755,8 +2619,22 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a> then\n<code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1768,7 +2646,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n"
             }
           ]
         },
@@ -1792,10 +2671,42 @@
                 "added": [
                   "v0.1.92"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/11705",
+                    "description": "Support for RSASSA-PSS and additional options was added."
+                  }
+                ]
               },
-              "desc": "<p>Calculates the signature on all the data passed through using either\n<a href=\"#crypto_sign_update_data_input_encoding\"><code>sign.update()</code></a> or <a href=\"stream.html#stream_writable_write_chunk_encoding_callback\"><code>sign.write()</code></a>.</p>\n<p>The <code>private_key</code> argument can be an object or a string. If <code>private_key</code> is a\nstring, it is treated as a raw key with no passphrase. If <code>private_key</code> is an\nobject, it is interpreted as a hash containing two properties:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded private key</li>\n<li><code>passphrase</code>: {string} - passphrase for the private key</li>\n</ul>\n<p>The <code>output_format</code> can specify one of <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If\n<code>output_format</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n<p>The <code>Sign</code> object can not be again used after <code>sign.sign()</code> method has been\ncalled. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`private_key` {string | Object} ",
+                      "options": [
+                        {
+                          "textRaw": "`key` {string} ",
+                          "name": "key",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`passphrase` {string} ",
+                          "name": "passphrase",
+                          "type": "string"
+                        }
+                      ],
+                      "name": "private_key",
+                      "type": "string | Object"
+                    },
+                    {
+                      "textRaw": "`output_format` {string} ",
+                      "name": "output_format",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1807,7 +2718,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Calculates the signature on all the data passed through using either\n<a href=\"#crypto_sign_update_data_input_encoding\"><code>sign.update()</code></a> or <a href=\"stream.html#stream_writable_write_chunk_encoding_callback\"><code>sign.write()</code></a>.</p>\n<p>The <code>private_key</code> argument can be an object or a string. If <code>private_key</code> is a\nstring, it is treated as a raw key with no passphrase. If <code>private_key</code> is an\nobject, it must contain one or more of the following properties:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded private key (required)</li>\n<li><code>passphrase</code>: {string} - passphrase for the private key</li>\n<li><p><code>padding</code>: {integer} - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to sign the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li><code>saltLength</code>: {integer} - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it to the\nmaximum permissible value.</li>\n</ul>\n<p>The <code>output_format</code> can specify one of <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>. If\n<code>output_format</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n<p>The <code>Sign</code> object can not be again used after <code>sign.sign()</code> method has been\ncalled. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "sign.update(data[, input_encoding])",
@@ -1825,8 +2737,22 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a> then\n<code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1838,7 +2764,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n"
             }
           ]
         },
@@ -1870,8 +2797,22 @@
                   }
                 ]
               },
-              "desc": "<p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a> then\n<code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
+                      "name": "data",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`input_encoding` {string} ",
+                      "name": "input_encoding",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1883,7 +2824,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which\nis given in <code>input_encoding</code> and can be <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code> or\n<code>&#39;latin1&#39;</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>input_encoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>\n"
             },
             {
               "textRaw": "verifier.verify(object, signature[, signature_format])",
@@ -1893,10 +2835,35 @@
                 "added": [
                   "v0.1.92"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/11705",
+                    "description": "Support for RSASSA-PSS and additional options was added."
+                  }
+                ]
               },
-              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument is a string containing a PEM encoded object, which can be\none an RSA public key, a DSA public key, or an X.509 certificate.\nThe <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signature_format</code> which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>.\nIf a <code>signature_format</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for\nthe data and public key.</p>\n<p>The <code>verifier</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {string | Object} ",
+                      "name": "object",
+                      "type": "string | Object"
+                    },
+                    {
+                      "textRaw": "`signature` {string | Buffer | TypedArray | DataView} ",
+                      "name": "signature",
+                      "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`signature_format` {string} ",
+                      "name": "signature_format",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1911,7 +2878,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument can be either a string containing a PEM encoded object,\nwhich can be an RSA public key, a DSA public key, or an X.509 certificate,\nor an object with one or more of the following properties:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded private key (required)</li>\n<li><p><code>padding</code>: {integer} - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to verify the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li><code>saltLength</code>: {integer} - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_AUTO</code> (default) causes it to be\ndetermined automatically.</li>\n</ul>\n<p>The <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signature_format</code> which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>.\nIf a <code>signature_format</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for\nthe data and public key.</p>\n<p>The <code>verifier</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>\n"
             }
           ]
         }

@@ -12,6 +12,7 @@
 #include "src/compiler/node-properties.h"
 
 #include "src/compiler/node.h"
+#include "src/objects-inl.h"
 #include "src/wasm/wasm-module.h"
 #include "src/zone/zone.h"
 
@@ -61,6 +62,9 @@ void Int64Lowering::LowerGraph() {
           // that they are processed after all other nodes.
           PreparePhiReplacement(input);
           stack_.push_front({input, 0});
+        } else if (input->opcode() == IrOpcode::kEffectPhi ||
+                   input->opcode() == IrOpcode::kLoop) {
+          stack_.push_front({input, 0});
         } else {
           stack_.push_back({input, 0});
         }
@@ -102,6 +106,9 @@ static int GetReturnCountAfterLowering(
 
 void Int64Lowering::GetIndexNodes(Node* index, Node*& index_low,
                                   Node*& index_high) {
+  if (HasReplacementLow(index)) {
+    index = GetReplacementLow(index);
+  }
 #if defined(V8_TARGET_LITTLE_ENDIAN)
   index_low = index;
   index_high = graph()->NewNode(machine()->Int32Add(), index,
@@ -231,16 +238,14 @@ void Int64Lowering::LowerNode(Node* node) {
         NodeProperties::ChangeOp(node, store_op);
         ReplaceNode(node, node, high_node);
       } else {
-        if (HasReplacementLow(node->InputAt(2))) {
-          node->ReplaceInput(2, GetReplacementLow(node->InputAt(2)));
-        }
+        DefaultLowering(node, true);
       }
       break;
     }
     case IrOpcode::kStart: {
       int parameter_count = GetParameterCountAfterLowering(signature());
       // Only exchange the node if the parameter count actually changed.
-      if (parameter_count != signature()->parameter_count()) {
+      if (parameter_count != static_cast<int>(signature()->parameter_count())) {
         int delta =
             parameter_count - static_cast<int>(signature()->parameter_count());
         int new_output_count = node->op()->ValueOutputCount() + delta;
@@ -255,7 +260,7 @@ void Int64Lowering::LowerNode(Node* node) {
       // the only input of a parameter node, only changes if the parameter count
       // changes.
       if (GetParameterCountAfterLowering(signature()) !=
-          signature()->parameter_count()) {
+          static_cast<int>(signature()->parameter_count())) {
         int old_index = ParameterIndexOf(node->op());
         int new_index = GetParameterIndexAfterLowering(signature(), old_index);
         NodeProperties::ChangeOp(node, common()->Parameter(new_index));
@@ -273,7 +278,7 @@ void Int64Lowering::LowerNode(Node* node) {
     case IrOpcode::kReturn: {
       DefaultLowering(node);
       int new_return_count = GetReturnCountAfterLowering(signature());
-      if (signature()->return_count() != new_return_count) {
+      if (static_cast<int>(signature()->return_count()) != new_return_count) {
         NodeProperties::ChangeOp(node, common()->Return(new_return_count));
       }
       break;
@@ -822,7 +827,7 @@ void Int64Lowering::LowerComparison(Node* node, const Operator* high_word_op,
   ReplaceNode(node, replacement, nullptr);
 }
 
-bool Int64Lowering::DefaultLowering(Node* node) {
+bool Int64Lowering::DefaultLowering(Node* node, bool low_word_only) {
   bool something_changed = false;
   for (int i = NodeProperties::PastValueIndex(node) - 1; i >= 0; i--) {
     Node* input = node->InputAt(i);
@@ -830,7 +835,7 @@ bool Int64Lowering::DefaultLowering(Node* node) {
       something_changed = true;
       node->ReplaceInput(i, GetReplacementLow(input));
     }
-    if (HasReplacementHigh(input)) {
+    if (!low_word_only && HasReplacementHigh(input)) {
       something_changed = true;
       node->InsertInput(zone(), i + 1, GetReplacementHigh(input));
     }

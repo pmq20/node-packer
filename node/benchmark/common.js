@@ -44,7 +44,7 @@ Benchmark.prototype._parseArgs = function(argv, configs) {
   for (const arg of argv) {
     const match = arg.match(/^(.+?)=([\s\S]*)$/);
     if (!match) {
-      console.error('bad argument: ' + arg);
+      console.error(`bad argument: ${arg}`);
       process.exit(1);
     }
     const config = match[1];
@@ -196,6 +196,12 @@ Benchmark.prototype.end = function(operations) {
   if (!process.env.NODEJS_BENCHMARK_ZERO_ALLOWED && operations <= 0) {
     throw new Error('called end() with operation count <= 0');
   }
+  if (elapsed[0] === 0 && elapsed[1] === 0) {
+    if (!process.env.NODEJS_BENCHMARK_ZERO_ALLOWED)
+      throw new Error('insufficient clock precision for short benchmark');
+    // avoid dividing by zero
+    elapsed[1] = 1;
+  }
 
   const time = elapsed[0] + elapsed[1] / 1e9;
   const rate = operations / time;
@@ -206,7 +212,7 @@ function formatResult(data) {
   // Construct configuration string, " A=a, B=b, ..."
   let conf = '';
   for (const key of Object.keys(data.conf)) {
-    conf += ' ' + key + '=' + JSON.stringify(data.conf[key]);
+    conf += ` ${key}=${JSON.stringify(data.conf[key])}`;
   }
 
   var rate = data.rate.toString().split('.');

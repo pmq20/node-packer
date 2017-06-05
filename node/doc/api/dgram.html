@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>UDP / Datagram Sockets | Node.js v7.10.0 Documentation</title>
+  <title>UDP / Datagram Sockets | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -101,7 +103,7 @@
 <li><span class="stability_undefined"><a href="#dgram_socket_close_callback">socket.close([callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_dropmembership_multicastaddress_multicastinterface">socket.dropMembership(multicastAddress[, multicastInterface])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_ref">socket.ref()</a></span></li>
-<li><span class="stability_undefined"><a href="#dgram_socket_send_msg_offset_length_port_address_callback">socket.send(msg, [offset, length,] port, address[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#dgram_socket_send_msg_offset_length_port_address_callback">socket.send(msg, [offset, length,] port [, address] [, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setbroadcast_flag">socket.setBroadcast(flag)</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setmulticastloopback_flag">socket.setMulticastLoopback(flag)</a></span></li>
 <li><span class="stability_undefined"><a href="#dgram_socket_setmulticastttl_ttl">socket.setMulticastTTL(ttl)</a></span></li>
@@ -138,7 +140,7 @@ server.on(&#39;message&#39;, (msg, rinfo) =&gt; {
 });
 
 server.on(&#39;listening&#39;, () =&gt; {
-  var address = server.address();
+  const address = server.address();
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
@@ -240,7 +242,7 @@ server.on(&#39;message&#39;, (msg, rinfo) =&gt; {
 });
 
 server.on(&#39;listening&#39;, () =&gt; {
-  var address = server.address();
+  const address = server.address();
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
@@ -316,11 +318,17 @@ counting and restores the default behavior.</p>
 <p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>
 <p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be
 chained.</p>
-<h3>socket.send(msg, [offset, length,] port, address[, callback])<span><a class="mark" href="#dgram_socket_send_msg_offset_length_port_address_callback" id="dgram_socket_send_msg_offset_length_port_address_callback">#</a></span></h3>
+<h3>socket.send(msg, [offset, length,] port [, address] [, callback])<span><a class="mark" href="#dgram_socket_send_msg_offset_length_port_address_callback" id="dgram_socket_send_msg_offset_length_port_address_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>msg</code> parameter can be an Uint8Array now.</p>
+</td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>address</code> parameter is always optional now.</p>
+</td></tr>
 <tr><td>v6.0.0</td>
 <td><p>On success, <code>callback</code> will now be called with an <code>error</code> argument of <code>null</code> rather than <code>0</code>.</p>
 </td></tr>
@@ -333,17 +341,18 @@ chained.</p>
 </table>
 </details>
 </div><ul>
-<li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;array&gt;</span> Message to be sent</li>
+<li><code>msg</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <span class="type">&lt;array&gt;</span> Message to be sent</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Optional. Offset in the buffer where the message starts.</li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Optional. Number of bytes in the message.</li>
 <li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Integer. Destination port.</li>
-<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Destination hostname or IP address.</li>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Destination hostname or IP address. Optional.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Called when the message has been sent. Optional.</li>
 </ul>
 <p>Broadcasts a datagram on the socket. The destination <code>port</code> and <code>address</code> must
 be specified.</p>
 <p>The <code>msg</code> argument contains the message to be sent.
-Depending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>,
+Depending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>
+or <code>Uint8Array</code>,
 the <code>offset</code> and <code>length</code> specify the offset within the <code>Buffer</code> where the
 message begins and the number of bytes in the message, respectively.
 If <code>msg</code> is a <code>String</code>, then it is automatically converted to a <code>Buffer</code>
@@ -352,8 +361,9 @@ contain  multi-byte characters, <code>offset</code> and <code>length</code> will
 respect to <a href="buffer.html#buffer_class_method_buffer_bytelength_string_encoding">byte length</a> and not the character position.
 If <code>msg</code> is an array, <code>offset</code> and <code>length</code> must not be specified.</p>
 <p>The <code>address</code> argument is a string. If the value of <code>address</code> is a host name,
-DNS will be used to resolve the address of the host. If the <code>address</code> is not
-specified or is an empty string, <code>&#39;127.0.0.1&#39;</code> or <code>&#39;::1&#39;</code> will be used instead.</p>
+DNS will be used to resolve the address of the host.  If <code>address</code> is not
+provided or otherwise falsy, <code>&#39;127.0.0.1&#39;</code> (for <code>udp4</code> sockets) or <code>&#39;::1&#39;</code>
+(for <code>udp6</code> sockets) will be used by default.</p>
 <p>If the socket has not been previously bound with a call to <code>bind</code>, the socket
 is assigned a random port number and is bound to the &quot;all interfaces&quot; address
 (<code>&#39;0.0.0.0&#39;</code> for <code>udp4</code> sockets, <code>&#39;::0&#39;</code> for <code>udp6</code> sockets.)</p>
@@ -365,9 +375,8 @@ Node.js event loop.</p>
 <code>callback</code>. If an error occurs and a <code>callback</code> is given, the error will be
 passed as the first argument to the <code>callback</code>. If a <code>callback</code> is not given,
 the error is emitted as an <code>&#39;error&#39;</code> event on the <code>socket</code> object.</p>
-<p>Offset and length are optional, but if you specify one you would need to
-specify the other. Also, they are supported only when the first
-argument is a <code>Buffer</code>.</p>
+<p>Offset and length are optional but both <em>must</em> be set if either are used.
+They are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>
 <p>Example of sending a UDP packet to a random port on <code>localhost</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const message = Buffer.from(&#39;Some bytes&#39;);
@@ -376,17 +385,20 @@ client.send(message, 41234, &#39;localhost&#39;, (err) =&gt; {
   client.close();
 });
 </code></pre>
-<p>Example of sending a UDP packet composed of multiple buffers to a random port on <code>localhost</code>;</p>
+<p>Example of sending a UDP packet composed of multiple buffers to a random port
+on <code>127.0.0.1</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const buf1 = Buffer.from(&#39;Some &#39;);
 const buf2 = Buffer.from(&#39;bytes&#39;);
 const client = dgram.createSocket(&#39;udp4&#39;);
-client.send([buf1, buf2], 41234, &#39;localhost&#39;, (err) =&gt; {
+client.send([buf1, buf2], 41234, (err) =&gt; {
   client.close();
 });
 </code></pre>
-<p>Sending multiple buffers might be faster or slower depending on your
-application and operating system: benchmark it. Usually it is faster.</p>
+<p>Sending multiple buffers might be faster or slower depending on the
+application and operating system. It is important to run benchmarks to
+determine the optimal strategy on a case-by-case basis. Generally speaking,
+however, sending multiple buffers is faster.</p>
 <p><strong>A Note about UDP datagram size</strong></p>
 <p>The maximum size of an <code>IPv4/v6</code> datagram depends on the <code>MTU</code>
 (<em>Maximum Transmission Unit</em>) and on the <code>Payload Length</code> field size.</p>

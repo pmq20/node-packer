@@ -16,14 +16,10 @@ function write(funx, args, result, res) {
   writeInvalidOffset(-1);
   writeInvalidOffset(9);
 
-  {
-    const error = /Int/.test(funx) ?
-      /^TypeError: "buffer" argument must be a Buffer instance$/ :
-      /^TypeError: argument should be a Buffer$/;
-
+  if (!/Int/.test(funx)) {
     assert.throws(
-      () => Buffer.alloc(9)[funx].apply(new Uint32Array(1), args),
-      error
+      () => Buffer.alloc(9)[funx].apply(new Map(), args),
+      /^TypeError: argument should be a Buffer$/
     );
   }
 

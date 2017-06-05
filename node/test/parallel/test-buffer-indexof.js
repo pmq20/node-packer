@@ -31,10 +31,10 @@ assert.strictEqual(b.indexOf('bc', -Infinity), 1);
 assert.strictEqual(b.indexOf('bc', Infinity), -1);
 assert.strictEqual(b.indexOf('f'), b.length - 1);
 assert.strictEqual(b.indexOf('z'), -1);
-assert.strictEqual(b.indexOf(''), -1);
-assert.strictEqual(b.indexOf('', 1), -1);
-assert.strictEqual(b.indexOf('', b.length + 1), -1);
-assert.strictEqual(b.indexOf('', Infinity), -1);
+assert.strictEqual(b.indexOf(''), 0);
+assert.strictEqual(b.indexOf('', 1), 1);
+assert.strictEqual(b.indexOf('', b.length + 1), b.length);
+assert.strictEqual(b.indexOf('', Infinity), b.length);
 assert.strictEqual(b.indexOf(buf_a), 0);
 assert.strictEqual(b.indexOf(buf_a, 1), -1);
 assert.strictEqual(b.indexOf(buf_a, -1), -1);
@@ -53,10 +53,10 @@ assert.strictEqual(b.indexOf(buf_bc, -Infinity), 1);
 assert.strictEqual(b.indexOf(buf_bc, Infinity), -1);
 assert.strictEqual(b.indexOf(buf_f), b.length - 1);
 assert.strictEqual(b.indexOf(buf_z), -1);
-assert.strictEqual(b.indexOf(buf_empty), -1);
-assert.strictEqual(b.indexOf(buf_empty, 1), -1);
-assert.strictEqual(b.indexOf(buf_empty, b.length + 1), -1);
-assert.strictEqual(b.indexOf(buf_empty, Infinity), -1);
+assert.strictEqual(b.indexOf(buf_empty), 0);
+assert.strictEqual(b.indexOf(buf_empty, 1), 1);
+assert.strictEqual(b.indexOf(buf_empty, b.length + 1), b.length);
+assert.strictEqual(b.indexOf(buf_empty, Infinity), b.length);
 assert.strictEqual(b.indexOf(0x61), 0);
 assert.strictEqual(b.indexOf(0x61, 1), -1);
 assert.strictEqual(b.indexOf(0x61, -1), -1);
@@ -255,7 +255,7 @@ let pattern = 'ABACABADABACABA';
 for (let i = 0; i < longBufferString.length - pattern.length; i += 7) {
   const index = longBufferString.indexOf(pattern, i);
   assert.strictEqual((i + 15) & ~0xf, index,
-                     'Long ABACABA...-string at index ' + i);
+                     `Long ABACABA...-string at index ${i}`);
 }
 assert.strictEqual(510, longBufferString.indexOf('AJABACA'),
                    'Long AJABACA, First J');
@@ -347,7 +347,7 @@ assert.strictEqual(Buffer.from('aaaaa').indexOf('b', 'ucs2'), -1);
 }
 
 const argumentExpected =
-    /^TypeError: "val" argument must be string, number or Buffer$/;
+    /^TypeError: "val" argument must be string, number, Buffer or Uint8Array$/;
 
 assert.throws(() => {
   b.indexOf(() => { });
@@ -429,10 +429,10 @@ assert.strictEqual(b.lastIndexOf(buf_bc, -Infinity), -1);
 assert.strictEqual(b.lastIndexOf(buf_bc, Infinity), 1);
 assert.strictEqual(b.lastIndexOf(buf_f), b.length - 1);
 assert.strictEqual(b.lastIndexOf(buf_z), -1);
-assert.strictEqual(b.lastIndexOf(buf_empty), -1);
-assert.strictEqual(b.lastIndexOf(buf_empty, 1), -1);
-assert.strictEqual(b.lastIndexOf(buf_empty, b.length + 1), -1);
-assert.strictEqual(b.lastIndexOf(buf_empty, Infinity), -1);
+assert.strictEqual(b.lastIndexOf(buf_empty), b.length);
+assert.strictEqual(b.lastIndexOf(buf_empty, 1), 1);
+assert.strictEqual(b.lastIndexOf(buf_empty, b.length + 1), b.length);
+assert.strictEqual(b.lastIndexOf(buf_empty, Infinity), b.length);
 // lastIndexOf number:
 assert.strictEqual(b.lastIndexOf(0x61), 0);
 assert.strictEqual(b.lastIndexOf(0x61, 1), 0);
@@ -594,4 +594,12 @@ assert.strictEqual(0, reallyLong.lastIndexOf(pattern));
   assert.strictEqual(buf.indexOf(-152), 1);
   assert.strictEqual(buf.indexOf(0xff), -1);
   assert.strictEqual(buf.indexOf(0xffff), -1);
+}
+
+// Test that Uint8Array arguments are okay.
+{
+  const needle = new Uint8Array([ 0x66, 0x6f, 0x6f ]);
+  const haystack = Buffer.from('a foo b foo');
+  assert.strictEqual(haystack.indexOf(needle), 2);
+  assert.strictEqual(haystack.lastIndexOf(needle), haystack.length - 3);
 }

@@ -4,13 +4,20 @@
 
 #include "src/profiler/heap-snapshot-generator.h"
 
+#include <utility>
+
+#include "src/api.h"
 #include "src/code-stubs.h"
 #include "src/conversions.h"
 #include "src/debug/debug.h"
+#include "src/layout-descriptor.h"
 #include "src/objects-body-descriptors.h"
+#include "src/objects-inl.h"
 #include "src/profiler/allocation-tracker.h"
 #include "src/profiler/heap-profiler.h"
 #include "src/profiler/heap-snapshot-generator-inl.h"
+#include "src/prototype.h"
+#include "src/transitions.h"
 
 namespace v8 {
 namespace internal {
@@ -63,7 +70,7 @@ void HeapEntry::SetNamedReference(HeapGraphEdge::Type type,
                                   const char* name,
                                   HeapEntry* entry) {
   HeapGraphEdge edge(type, name, this->index(), entry->index());
-  snapshot_->edges().Add(edge);
+  snapshot_->edges().push_back(edge);
   ++children_count_;
 }
 
@@ -72,7 +79,7 @@ void HeapEntry::SetIndexedReference(HeapGraphEdge::Type type,
                                     int index,
                                     HeapEntry* entry) {
   HeapGraphEdge edge(type, index, this->index(), entry->index());
-  snapshot_->edges().Add(edge);
+  snapshot_->edges().push_back(edge);
   ++children_count_;
 }
 
@@ -97,9 +104,8 @@ void HeapEntry::Print(
     base::OS::Print("\"\n");
   }
   if (--max_depth == 0) return;
-  Vector<HeapGraphEdge*> ch = children();
-  for (int i = 0; i < ch.length(); ++i) {
-    HeapGraphEdge& edge = *ch[i];
+  for (auto i = children_begin(); i != children_end(); ++i) {
+    HeapGraphEdge& edge = **i;
     const char* edge_prefix = "";
     EmbeddedVector<char, 64> index;
     const char* edge_name = index.start();
@@ -153,7 +159,6 @@ const char* HeapEntry::TypeAsString() {
     case kConsString: return "/concatenated string/";
     case kSlicedString: return "/sliced string/";
     case kSymbol: return "/symbol/";
-    case kSimdValue: return "/simd/";
     default: return "???";
   }
 }
@@ -270,15 +275,15 @@ HeapEntry* HeapSnapshot::AddEntry(HeapEntry::Type type,
 
 
 void HeapSnapshot::FillChildren() {
-  DCHECK(children().is_empty());
-  children().Allocate(edges().length());
+  DCHECK(children().empty());
+  children().resize(edges().size());
   int children_index = 0;
   for (int i = 0; i < entries().length(); ++i) {
     HeapEntry* entry = &entries()[i];
     children_index = entry->set_children_index(children_index);
   }
-  DCHECK(edges().length() == children_index);
-  for (int i = 0; i < edges().length(); ++i) {
+  DCHECK_EQ(edges().size(), static_cast<size_t>(children_index));
+  for (size_t i = 0; i < edges().size(); ++i) {
     HeapGraphEdge* edge = &edges()[i];
     edge->ReplaceToIndexWithEntry(this);
     edge->from()->add_child(edge);
@@ -335,12 +340,10 @@ void HeapSnapshot::Print(int max_depth) {
 
 
 size_t HeapSnapshot::RawSnapshotSize() const {
-  return
-      sizeof(*this) +
-      GetMemoryUsedByList(entries_) +
-      GetMemoryUsedByList(edges_) +
-      GetMemoryUsedByList(children_) +
-      GetMemoryUsedByList(sorted_entries_);
+  return sizeof(*this) + GetMemoryUsedByList(entries_) +
+         edges_.size() * sizeof(decltype(edges_)::value_type) +
+         children_.size() * sizeof(decltype(children_)::value_type) +
+         GetMemoryUsedByList(sorted_entries_);
 }
 
 
@@ -839,8 +842,6 @@ HeapEntry* V8HeapExplorer::AddEntry(HeapObject* object) {
     return AddEntry(object, HeapEntry::kArray, "");
   } else if (object->IsHeapNumber()) {
     return AddEntry(object, HeapEntry::kHeapNumber, "number");
-  } else if (object->IsSimd128Value()) {
-    return AddEntry(object, HeapEntry::kSimdValue, "simd");
   }
   return AddEntry(object, HeapEntry::kHidden, GetSystemEntryName(object));
 }
@@ -1035,8 +1036,6 @@ bool V8HeapExplorer::ExtractReferencesPass1(int entry, HeapObject* obj) {
     ExtractAccessorPairReferences(entry, AccessorPair::cast(obj));
   } else if (obj->IsCode()) {
     ExtractCodeReferences(entry, Code::cast(obj));
-  } else if (obj->IsBox()) {
-    ExtractBoxReferences(entry, Box::cast(obj));
   } else if (obj->IsCell()) {
     ExtractCellReferences(entry, Cell::cast(obj));
   } else if (obj->IsWeakCell()) {
@@ -1113,9 +1112,11 @@ void V8HeapExplorer::ExtractJSObjectReferences(
       }
     }
     SharedFunctionInfo* shared_info = js_fun->shared();
-    TagObject(js_fun->literals(), "(function literals)");
-    SetInternalReference(js_fun, entry, "literals", js_fun->literals(),
-                         JSFunction::kLiteralsOffset);
+    TagObject(js_fun->feedback_vector_cell(),
+              "(function feedback vector cell)");
+    SetInternalReference(js_fun, entry, "feedback_vector_cell",
+                         js_fun->feedback_vector_cell(),
+                         JSFunction::kFeedbackVectorOffset);
     TagObject(shared_info, "(shared function info)");
     SetInternalReference(js_fun, entry,
                          "shared", shared_info,
@@ -1168,6 +1169,10 @@ void V8HeapExplorer::ExtractStringReferences(int entry, String* string) {
     SlicedString* ss = SlicedString::cast(string);
     SetInternalReference(ss, entry, "parent", ss->parent(),
                          SlicedString::kParentOffset);
+  } else if (string->IsThinString()) {
+    ThinString* ts = ThinString::cast(string);
+    SetInternalReference(ts, entry, "actual", ts->actual(),
+                         ThinString::kActualOffset);
   }
 }
 
@@ -1312,7 +1317,7 @@ void V8HeapExplorer::ExtractSharedFunctionInfoReferences(
   HeapObject* obj = shared;
   String* shared_name = shared->DebugName();
   const char* name = NULL;
-  if (shared_name != *heap_->isolate()->factory()->empty_string()) {
+  if (shared_name != heap_->empty_string()) {
     name = names_->GetName(shared_name);
     TagObject(shared->code(), names_->GetFormatted("(code for %s)", name));
   } else {
@@ -1448,10 +1453,6 @@ void V8HeapExplorer::ExtractCodeReferences(int entry, Code* code) {
   }
   SetInternalReference(code, entry, "gc_metadata", code->gc_metadata(),
                        Code::kGCMetadataOffset);
-}
-
-void V8HeapExplorer::ExtractBoxReferences(int entry, Box* box) {
-  SetInternalReference(box, entry, "value", box->value(), Box::kValueOffset);
 }
 
 void V8HeapExplorer::ExtractCellReferences(int entry, Cell* cell) {
@@ -1822,7 +1823,6 @@ bool V8HeapExplorer::IsEssentialObject(Object* object) {
          object != heap_->empty_byte_array() &&
          object != heap_->empty_fixed_array() &&
          object != heap_->empty_descriptor_array() &&
-         object != heap_->empty_type_feedback_vector() &&
          object != heap_->fixed_array_map() && object != heap_->cell_map() &&
          object != heap_->global_property_cell_map() &&
          object != heap_->shared_function_info_map() &&
@@ -2286,55 +2286,52 @@ int NativeObjectsExplorer::EstimateObjectsCount() {
 
 void NativeObjectsExplorer::FillRetainedObjects() {
   if (embedder_queried_) return;
-  Isolate* isolate = isolate_;
-  const GCType major_gc_type = kGCTypeMarkSweepCompact;
-  // Record objects that are joined into ObjectGroups.
-  isolate->heap()->CallGCPrologueCallbacks(
-      major_gc_type, kGCCallbackFlagConstructRetainedObjectInfos);
-  List<ObjectGroup*>* groups = isolate->global_handles()->object_groups();
-  for (int i = 0; i < groups->length(); ++i) {
-    ObjectGroup* group = groups->at(i);
-    if (group->info == NULL) continue;
-    List<HeapObject*>* list = GetListMaybeDisposeInfo(group->info);
-    for (size_t j = 0; j < group->length; ++j) {
-      HeapObject* obj = HeapObject::cast(*group->objects[j]);
-      list->Add(obj);
-      in_groups_.Insert(obj);
+  v8::HandleScope scope(reinterpret_cast<v8::Isolate*>(isolate_));
+  v8::HeapProfiler::RetainerInfos infos =
+      snapshot_->profiler()->GetRetainerInfos(isolate_);
+  for (auto& pair : infos.groups) {
+    List<HeapObject*>* list = GetListMaybeDisposeInfo(pair.first);
+    for (auto& persistent : pair.second) {
+      if (persistent->IsEmpty()) continue;
+
+      Handle<Object> object = v8::Utils::OpenHandle(
+          *persistent->Get(reinterpret_cast<v8::Isolate*>(isolate_)));
+      DCHECK(!object.is_null());
+      HeapObject* heap_object = HeapObject::cast(*object);
+      list->Add(heap_object);
+      in_groups_.Insert(heap_object);
     }
-    group->info = NULL;  // Acquire info object ownership.
   }
-  isolate->global_handles()->RemoveObjectGroups();
-  isolate->heap()->CallGCEpilogueCallbacks(major_gc_type, kNoGCCallbackFlags);
+
   // Record objects that are not in ObjectGroups, but have class ID.
   GlobalHandlesExtractor extractor(this);
-  isolate->global_handles()->IterateAllRootsWithClassIds(&extractor);
+  isolate_->global_handles()->IterateAllRootsWithClassIds(&extractor);
+
+  edges_ = std::move(infos.edges);
   embedder_queried_ = true;
 }
 
+void NativeObjectsExplorer::FillEdges() {
+  v8::HandleScope scope(reinterpret_cast<v8::Isolate*>(isolate_));
+  // Fill in actual edges found.
+  for (auto& pair : edges_) {
+    if (pair.first->IsEmpty() || pair.second->IsEmpty()) continue;
 
-void NativeObjectsExplorer::FillImplicitReferences() {
-  Isolate* isolate = isolate_;
-  List<ImplicitRefGroup*>* groups =
-      isolate->global_handles()->implicit_ref_groups();
-  for (int i = 0; i < groups->length(); ++i) {
-    ImplicitRefGroup* group = groups->at(i);
-    HeapObject* parent = *group->parent;
+    Handle<Object> parent_object = v8::Utils::OpenHandle(
+        *pair.first->Get(reinterpret_cast<v8::Isolate*>(isolate_)));
+    HeapObject* parent = HeapObject::cast(*parent_object);
     int parent_entry =
         filler_->FindOrAddEntry(parent, native_entries_allocator_)->index();
     DCHECK(parent_entry != HeapEntry::kNoEntry);
-    Object*** children = group->children;
-    for (size_t j = 0; j < group->length; ++j) {
-      Object* child = *children[j];
-      HeapEntry* child_entry =
-          filler_->FindOrAddEntry(child, native_entries_allocator_);
-      filler_->SetNamedReference(
-          HeapGraphEdge::kInternal,
-          parent_entry,
-          "native",
-          child_entry);
-    }
+    Handle<Object> child_object = v8::Utils::OpenHandle(
+        *pair.second->Get(reinterpret_cast<v8::Isolate*>(isolate_)));
+    HeapObject* child = HeapObject::cast(*child_object);
+    HeapEntry* child_entry =
+        filler_->FindOrAddEntry(child, native_entries_allocator_);
+    filler_->SetNamedReference(HeapGraphEdge::kInternal, parent_entry, "native",
+                               child_entry);
   }
-  isolate->global_handles()->RemoveImplicitRefGroups();
+  edges_.clear();
 }
 
 List<HeapObject*>* NativeObjectsExplorer::GetListMaybeDisposeInfo(
@@ -2354,7 +2351,7 @@ bool NativeObjectsExplorer::IterateAndExtractReferences(
     SnapshotFiller* filler) {
   filler_ = filler;
   FillRetainedObjects();
-  FillImplicitReferences();
+  FillEdges();
   if (EstimateObjectsCount() > 0) {
     for (base::HashMap::Entry* p = objects_by_info_.Start(); p != NULL;
          p = objects_by_info_.Next(p)) {
@@ -2491,6 +2488,20 @@ HeapSnapshotGenerator::HeapSnapshotGenerator(
       heap_(heap) {
 }
 
+namespace {
+class NullContextScope {
+ public:
+  explicit NullContextScope(Isolate* isolate)
+      : isolate_(isolate), prev_(isolate->context()) {
+    isolate_->set_context(nullptr);
+  }
+  ~NullContextScope() { isolate_->set_context(prev_); }
+
+ private:
+  Isolate* isolate_;
+  Context* prev_;
+};
+}  //  namespace
 
 bool HeapSnapshotGenerator::GenerateSnapshot() {
   v8_heap_explorer_.TagGlobalObjects();
@@ -2503,6 +2514,8 @@ bool HeapSnapshotGenerator::GenerateSnapshot() {
                            GarbageCollectionReason::kHeapProfiler);
   heap_->CollectAllGarbage(Heap::kMakeHeapIterableMask,
                            GarbageCollectionReason::kHeapProfiler);
+
+  NullContextScope null_context_scope(heap_->isolate());
 
 #ifdef VERIFY_HEAP
   Heap* debug_heap = heap_;
@@ -2797,8 +2810,8 @@ void HeapSnapshotJSONSerializer::SerializeEdge(HeapGraphEdge* edge,
 
 
 void HeapSnapshotJSONSerializer::SerializeEdges() {
-  List<HeapGraphEdge*>& edges = snapshot_->children();
-  for (int i = 0; i < edges.length(); ++i) {
+  std::deque<HeapGraphEdge*>& edges = snapshot_->children();
+  for (size_t i = 0; i < edges.size(); ++i) {
     DCHECK(i == 0 ||
            edges[i - 1]->from()->index() <= edges[i]->from()->index());
     SerializeEdge(edges[i], i == 0);
@@ -2916,7 +2929,7 @@ void HeapSnapshotJSONSerializer::SerializeSnapshot() {
   writer_->AddString(",\"node_count\":");
   writer_->AddNumber(snapshot_->entries().length());
   writer_->AddString(",\"edge_count\":");
-  writer_->AddNumber(snapshot_->edges().length());
+  writer_->AddNumber(static_cast<double>(snapshot_->edges().size()));
   writer_->AddString(",\"trace_function_count\":");
   uint32_t count = 0;
   AllocationTracker* tracker = snapshot_->profiler()->allocation_tracker();

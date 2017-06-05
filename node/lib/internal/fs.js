@@ -4,23 +4,23 @@ const Buffer = require('buffer').Buffer;
 const Writable = require('stream').Writable;
 const fs = require('fs');
 const util = require('util');
-const constants = process.binding('constants').fs;
 
-const O_APPEND = constants.O_APPEND | 0;
-const O_CREAT = constants.O_CREAT | 0;
-const O_EXCL = constants.O_EXCL | 0;
-const O_RDONLY = constants.O_RDONLY | 0;
-const O_RDWR = constants.O_RDWR | 0;
-const O_SYNC = constants.O_SYNC | 0;
-const O_TRUNC = constants.O_TRUNC | 0;
-const O_WRONLY = constants.O_WRONLY | 0;
+const {
+  O_APPEND,
+  O_CREAT,
+  O_EXCL,
+  O_RDONLY,
+  O_RDWR,
+  O_SYNC,
+  O_TRUNC,
+  O_WRONLY
+} = process.binding('constants').fs;
 
 function assertEncoding(encoding) {
   if (encoding && !Buffer.isEncoding(encoding)) {
     throw new Error(`Unknown encoding: ${encoding}`);
   }
 }
-exports.assertEncoding = assertEncoding;
 
 function stringToFlags(flag) {
   if (typeof flag === 'number') {
@@ -54,7 +54,6 @@ function stringToFlags(flag) {
 
   throw new Error('Unknown file open flag: ' + flag);
 }
-exports.stringToFlags = stringToFlags;
 
 // Temporary hack for process.stdout and process.stderr when piped to files.
 function SyncWriteStream(fd, options) {
@@ -95,6 +94,9 @@ SyncWriteStream.prototype.destroy = function() {
   return true;
 };
 
-exports.SyncWriteStream = SyncWriteStream;
-
-exports.realpathCacheKey = Symbol('realpathCacheKey');
+module.exports = {
+  assertEncoding,
+  stringToFlags,
+  SyncWriteStream,
+  realpathCacheKey: Symbol('realpathCacheKey')
+};

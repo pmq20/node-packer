@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -74,10 +95,10 @@ check(fs.symlink, fs.symlinkSync, fileUrl, 'foobar');
 check(fs.symlink, fs.symlinkSync, 'foobar', fileUrl);
 check(fs.truncate, fs.truncateSync, fileUrl);
 check(fs.unlink, fs.unlinkSync, fileUrl);
-check(null, fs.unwatchFile, fileUrl, common.fail);
+check(null, fs.unwatchFile, fileUrl, assert.fail);
 check(fs.utimes, fs.utimesSync, fileUrl, 0, 0);
-check(null, fs.watch, fileUrl, common.fail);
-check(null, fs.watchFile, fileUrl, common.fail);
+check(null, fs.watch, fileUrl, assert.fail);
+check(null, fs.watchFile, fileUrl, assert.fail);
 check(fs.writeFile, fs.writeFileSync, fileUrl, 'abc');
 
 check(fs.access, fs.accessSync, fileUrl2);
@@ -102,10 +123,10 @@ check(fs.symlink, fs.symlinkSync, fileUrl2, 'foobar');
 check(fs.symlink, fs.symlinkSync, 'foobar', fileUrl2);
 check(fs.truncate, fs.truncateSync, fileUrl2);
 check(fs.unlink, fs.unlinkSync, fileUrl2);
-check(null, fs.unwatchFile, fileUrl2, common.fail);
+check(null, fs.unwatchFile, fileUrl2, assert.fail);
 check(fs.utimes, fs.utimesSync, fileUrl2, 0, 0);
-check(null, fs.watch, fileUrl2, common.fail);
-check(null, fs.watchFile, fileUrl2, common.fail);
+check(null, fs.watch, fileUrl2, assert.fail);
+check(null, fs.watchFile, fileUrl2, assert.fail);
 check(fs.writeFile, fs.writeFileSync, fileUrl2, 'abc');
 
 // an 'error' for exists means that it doesn't exist.

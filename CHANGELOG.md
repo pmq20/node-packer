@@ -1,14 +1,29 @@
 # Node.js Compiler Changelog
 
+## v1.1.0
+
+work in progress
+
 ## v1.0.0
 
+- upgrade Node.js runtime to v8.0.0
+- upgrade libsquash to v0.4.0
 - add runtime support for native modules
 - add CI tests for native modules
+- make sure that we are able to compile web apps
 - allow executing files within the enclosed package
 - allow reusing the package itself as an Node.js interpreter
 - on Windows, build the corresponding arch. with the node under use
 - remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
-- upgrade libsquash to https://github.com/pmq20/libsquash/commit/f5b1a8d
+- add auto-update feature via --auto-update-url and --auto-update-base
+
+中文注解：
+- 升级 Node.js 运行时到 8.0.0
+- 升级 libsquash 到 v0.4.0
+- 支持使用 node-sass 等 C++ 扩展模块
+- 支持编译 Egg 等框架开发的 Web 应用
+- 支持执行包内的可执行文件，如 PhantomJS
+- 支持包分发后原地自动更新
 
 ## v0.9.6
 

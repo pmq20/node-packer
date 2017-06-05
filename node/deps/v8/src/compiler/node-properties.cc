@@ -2,14 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/compiler/node-properties.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/js-operator.h"
 #include "src/compiler/linkage.h"
-#include "src/compiler/node-properties.h"
+#include "src/compiler/node-matchers.h"
 #include "src/compiler/operator-properties.h"
+#include "src/compiler/simplified-operator.h"
 #include "src/compiler/verifier.h"
 #include "src/handles-inl.h"
+#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -311,6 +314,111 @@ void NodeProperties::CollectControlProjections(Node* node, Node** projections,
 #endif
 }
 
+// static
+bool NodeProperties::IsSame(Node* a, Node* b) {
+  for (;;) {
+    if (a->opcode() == IrOpcode::kCheckHeapObject) {
+      a = GetValueInput(a, 0);
+      continue;
+    }
+    if (b->opcode() == IrOpcode::kCheckHeapObject) {
+      b = GetValueInput(b, 0);
+      continue;
+    }
+    return a == b;
+  }
+}
+
+// static
+NodeProperties::InferReceiverMapsResult NodeProperties::InferReceiverMaps(
+    Node* receiver, Node* effect, ZoneHandleSet<Map>* maps_return) {
+  HeapObjectMatcher m(receiver);
+  if (m.HasValue()) {
+    Handle<Map> receiver_map(m.Value()->map());
+    if (receiver_map->is_stable()) {
+      // The {receiver_map} is only reliable when we install a stability
+      // code dependency.
+      *maps_return = ZoneHandleSet<Map>(receiver_map);
+      return kUnreliableReceiverMaps;
+    }
+  }
+  InferReceiverMapsResult result = kReliableReceiverMaps;
+  while (true) {
+    switch (effect->opcode()) {
+      case IrOpcode::kCheckMaps: {
+        Node* const object = GetValueInput(effect, 0);
+        if (IsSame(receiver, object)) {
+          *maps_return = CheckMapsParametersOf(effect->op()).maps();
+          return result;
+        }
+        break;
+      }
+      case IrOpcode::kJSCreate: {
+        if (IsSame(receiver, effect)) {
+          HeapObjectMatcher mtarget(GetValueInput(effect, 0));
+          HeapObjectMatcher mnewtarget(GetValueInput(effect, 1));
+          if (mtarget.HasValue() && mnewtarget.HasValue()) {
+            Handle<JSFunction> original_constructor =
+                Handle<JSFunction>::cast(mnewtarget.Value());
+            if (original_constructor->has_initial_map()) {
+              Handle<Map> initial_map(original_constructor->initial_map());
+              if (initial_map->constructor_or_backpointer() ==
+                  *mtarget.Value()) {
+                *maps_return = ZoneHandleSet<Map>(initial_map);
+                return result;
+              }
+            }
+          }
+          // We reached the allocation of the {receiver}.
+          return kNoReceiverMaps;
+        }
+        break;
+      }
+      case IrOpcode::kStoreField: {
+        // We only care about StoreField of maps.
+        Node* const object = GetValueInput(effect, 0);
+        FieldAccess const& access = FieldAccessOf(effect->op());
+        if (access.base_is_tagged == kTaggedBase &&
+            access.offset == HeapObject::kMapOffset) {
+          if (IsSame(receiver, object)) {
+            Node* const value = GetValueInput(effect, 1);
+            HeapObjectMatcher m(value);
+            if (m.HasValue()) {
+              *maps_return = ZoneHandleSet<Map>(Handle<Map>::cast(m.Value()));
+              return result;
+            }
+          }
+          // Without alias analysis we cannot tell whether this
+          // StoreField[map] affects {receiver} or not.
+          result = kUnreliableReceiverMaps;
+        }
+        break;
+      }
+      case IrOpcode::kJSStoreMessage:
+      case IrOpcode::kJSStoreModule:
+      case IrOpcode::kStoreElement:
+      case IrOpcode::kStoreTypedElement: {
+        // These never change the map of objects.
+        break;
+      }
+      default: {
+        DCHECK_EQ(1, effect->op()->EffectOutputCount());
+        if (effect->op()->EffectInputCount() != 1) {
+          // Didn't find any appropriate CheckMaps node.
+          return kNoReceiverMaps;
+        }
+        if (!effect->op()->HasProperty(Operator::kNoWrite)) {
+          // Without alias/escape analysis we cannot tell whether this
+          // {effect} affects {receiver} or not.
+          result = kUnreliableReceiverMaps;
+        }
+        break;
+      }
+    }
+    DCHECK_EQ(1, effect->op()->EffectInputCount());
+    effect = NodeProperties::GetEffectInput(effect);
+  }
+}
 
 // static
 MaybeHandle<Context> NodeProperties::GetSpecializationContext(
@@ -338,72 +446,15 @@ MaybeHandle<Context> NodeProperties::GetSpecializationContext(
 
 
 // static
-MaybeHandle<Context> NodeProperties::GetSpecializationNativeContext(
-    Node* node, MaybeHandle<Context> native_context) {
-  while (true) {
-    switch (node->opcode()) {
-      case IrOpcode::kJSLoadContext: {
-        ContextAccess const& access = ContextAccessOf(node->op());
-        if (access.index() != Context::NATIVE_CONTEXT_INDEX) {
-          return MaybeHandle<Context>();
-        }
-        // Skip over the intermediate contexts, we're only interested in the
-        // very last context in the context chain anyway.
-        node = NodeProperties::GetContextInput(node);
-        break;
-      }
-      case IrOpcode::kJSCreateBlockContext:
-      case IrOpcode::kJSCreateCatchContext:
-      case IrOpcode::kJSCreateFunctionContext:
-      case IrOpcode::kJSCreateScriptContext:
-      case IrOpcode::kJSCreateWithContext: {
-        // Skip over the intermediate contexts, we're only interested in the
-        // very last context in the context chain anyway.
-        node = NodeProperties::GetContextInput(node);
-        break;
-      }
-      case IrOpcode::kHeapConstant: {
-        // Extract the native context from the actual {context}.
-        Handle<Context> context =
-            Handle<Context>::cast(OpParameter<Handle<HeapObject>>(node));
-        return handle(context->native_context());
-      }
-      case IrOpcode::kOsrValue: {
-        int const index = OpParameter<int>(node);
-        if (index == Linkage::kOsrContextSpillSlotIndex) {
-          return native_context;
-        }
-        return MaybeHandle<Context>();
-      }
-      case IrOpcode::kParameter: {
-        Node* const start = NodeProperties::GetValueInput(node, 0);
-        DCHECK_EQ(IrOpcode::kStart, start->opcode());
-        int const index = ParameterIndexOf(node->op());
-        // The context is always the last parameter to a JavaScript function,
-        // and {Parameter} indices start at -1, so value outputs of {Start}
-        // look like this: closure, receiver, param0, ..., paramN, context.
-        if (index == start->op()->ValueOutputCount() - 2) {
-          return native_context;
-        }
-        return MaybeHandle<Context>();
-      }
-      default:
-        return MaybeHandle<Context>();
-    }
+Node* NodeProperties::GetOuterContext(Node* node, size_t* depth) {
+  Node* context = NodeProperties::GetContextInput(node);
+  while (*depth > 0 &&
+         IrOpcode::IsContextChainExtendingOpcode(context->opcode())) {
+    context = NodeProperties::GetContextInput(context);
+    (*depth)--;
   }
+  return context;
 }
-
-
-// static
-MaybeHandle<JSGlobalObject> NodeProperties::GetSpecializationGlobalObject(
-    Node* node, MaybeHandle<Context> native_context) {
-  Handle<Context> context;
-  if (GetSpecializationNativeContext(node, native_context).ToHandle(&context)) {
-    return handle(context->global_object());
-  }
-  return MaybeHandle<JSGlobalObject>();
-}
-
 
 // static
 Type* NodeProperties::GetTypeOrAny(Node* node) {

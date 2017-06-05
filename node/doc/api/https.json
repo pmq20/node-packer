@@ -89,6 +89,19 @@
               },
               "desc": "<p>See <a href=\"http.html#http_server_timeout\"><code>http.Server#timeout</code></a>.</p>\n",
               "shortDesc": "Defaults to 120000 (2 minutes)."
+            },
+            {
+              "textRaw": "`keepAliveTimeout` {number} Defaults to 5000 (5 seconds). ",
+              "type": "number",
+              "name": "keepAliveTimeout",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>See <a href=\"http.html#http_server_keepalivetimeout\"><code>http.Server#keepAliveTimeout</code></a>.</p>\n",
+              "shortDesc": "Defaults to 5000 (5 seconds)."
             }
           ]
         }

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
@@ -11,17 +32,11 @@ const util = require('util');
 const internalUtil = require('internal/util');
 const Stream = require('stream');
 const Buffer = require('buffer').Buffer;
+const destroyImpl = require('internal/streams/destroy');
 
 util.inherits(Writable, Stream);
 
 function nop() {}
-
-function WriteReq(chunk, encoding, cb) {
-  this.chunk = chunk;
-  this.encoding = encoding;
-  this.callback = cb;
-  this.next = null;
-}
 
 function WritableState(options, stream) {
   options = options || {};
@@ -41,7 +56,10 @@ function WritableState(options, stream) {
   this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
 
   // cast to ints.
-  this.highWaterMark = ~~this.highWaterMark;
+  this.highWaterMark = Math.floor(this.highWaterMark);
+
+  // if _final has been called
+  this.finalCalled = false;
 
   // drain event flag.
   this.needDrain = false;
@@ -51,6 +69,9 @@ function WritableState(options, stream) {
   this.ended = false;
   // when 'finish' is emitted
   this.finished = false;
+
+  // has it been destroyed
+  this.destroyed = false;
 
   // should we decode strings into buffers before passing to _write?
   // this is here so that some node-core streams can optimize string
@@ -113,7 +134,9 @@ function WritableState(options, stream) {
 
   // allocate the first CorkedRequest, there is always
   // one allocated and free to use, and we maintain at most two
-  this.corkedRequestsFree = new CorkedRequest(this);
+  var corkReq = { next: null, entry: null, finish: undefined };
+  corkReq.finish = onCorkedFinish.bind(undefined, corkReq, this);
+  this.corkedRequestsFree = corkReq;
 }
 
 WritableState.prototype.getBuffer = function getBuffer() {
@@ -130,7 +153,7 @@ Object.defineProperty(WritableState.prototype, 'buffer', {
   get: internalUtil.deprecate(function() {
     return this.getBuffer();
   }, '_writableState.buffer is deprecated. Use _writableState.getBuffer ' +
-     'instead.')
+     'instead.', 'DEP0003')
 });
 
 // Test _writableState for inheritance to account for Duplex streams,
@@ -176,6 +199,12 @@ function Writable(options) {
 
     if (typeof options.writev === 'function')
       this._writev = options.writev;
+
+    if (typeof options.destroy === 'function')
+      this._destroy = options.destroy;
+
+    if (typeof options.final === 'function')
+      this._final = options.final;
   }
 
   Stream.call(this);
@@ -219,7 +248,11 @@ function validChunk(stream, state, chunk, cb) {
 Writable.prototype.write = function(chunk, encoding, cb) {
   var state = this._writableState;
   var ret = false;
-  var isBuf = (chunk instanceof Buffer);
+  var isBuf = Stream._isUint8Array(chunk) && !state.objectMode;
+
+  if (isBuf && Object.getPrototypeOf(chunk) !== Buffer.prototype) {
+    chunk = Stream._uint8ArrayToBuffer(chunk);
+  }
 
   if (typeof encoding === 'function') {
     cb = encoding;
@@ -289,9 +322,12 @@ function decodeChunk(state, chunk, encoding) {
 // If we return false, then we need a drain event, so set that flag.
 function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
   if (!isBuf) {
-    chunk = decodeChunk(state, chunk, encoding);
-    if (chunk instanceof Buffer)
+    var newChunk = decodeChunk(state, chunk, encoding);
+    if (chunk !== newChunk) {
+      isBuf = true;
       encoding = 'buffer';
+      chunk = newChunk;
+    }
   }
   var len = state.objectMode ? 1 : chunk.length;
 
@@ -304,7 +340,13 @@ function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
 
   if (state.writing || state.corked) {
     var last = state.lastBufferedRequest;
-    state.lastBufferedRequest = new WriteReq(chunk, encoding, cb);
+    state.lastBufferedRequest = {
+      chunk,
+      encoding,
+      isBuf,
+      callback: cb,
+      next: null
+    };
     if (last) {
       last.next = state.lastBufferedRequest;
     } else {
@@ -333,12 +375,17 @@ function doWrite(stream, state, writev, len, chunk, encoding, cb) {
 function onwriteError(stream, state, sync, er, cb) {
   --state.pendingcb;
   if (sync)
-    process.nextTick(cb, er);
+    process.nextTick(afterError, stream, state, cb, er);
   else
-    cb(er);
+    afterError(stream, state, cb, er);
 
   stream._writableState.errorEmitted = true;
   stream.emit('error', er);
+}
+
+function afterError(stream, state, cb, err) {
+  cb(err);
+  finishMaybe(stream, state);
 }
 
 function onwriteStateUpdate(state) {
@@ -407,11 +454,15 @@ function clearBuffer(stream, state) {
     holder.entry = entry;
 
     var count = 0;
+    var allBuffers = true;
     while (entry) {
       buffer[count] = entry;
+      if (!entry.isBuf)
+        allBuffers = false;
       entry = entry.next;
       count += 1;
     }
+    buffer.allBuffers = allBuffers;
 
     doWrite(stream, state, true, state.length, buffer, '', holder.finish);
 
@@ -423,7 +474,9 @@ function clearBuffer(stream, state) {
       state.corkedRequestsFree = holder.next;
       holder.next = null;
     } else {
-      state.corkedRequestsFree = new CorkedRequest(state);
+      var corkReq = { next: null, entry: null, finish: undefined };
+      corkReq.finish = onCorkedFinish.bind(undefined, corkReq, state);
+      state.corkedRequestsFree = corkReq;
     }
   } else {
     // Slow case, write chunks one-by-one
@@ -493,23 +546,37 @@ function needFinish(state) {
           !state.finished &&
           !state.writing);
 }
-
-function prefinish(stream, state) {
-  if (!state.prefinished) {
+function callFinal(stream, state) {
+  stream._final((err) => {
+    state.pendingcb--;
+    if (err) {
+      stream.emit('error', err);
+    }
     state.prefinished = true;
     stream.emit('prefinish');
+    finishMaybe(stream, state);
+  });
+}
+function prefinish(stream, state) {
+  if (!state.prefinished && !state.finalCalled) {
+    if (typeof stream._final === 'function') {
+      state.pendingcb++;
+      state.finalCalled = true;
+      process.nextTick(callFinal, stream, state);
+    } else {
+      state.prefinished = true;
+      stream.emit('prefinish');
+    }
   }
 }
 
 function finishMaybe(stream, state) {
   var need = needFinish(state);
   if (need) {
+    prefinish(stream, state);
     if (state.pendingcb === 0) {
-      prefinish(stream, state);
       state.finished = true;
       stream.emit('finish');
-    } else {
-      prefinish(stream, state);
     }
   }
   return need;
@@ -528,14 +595,6 @@ function endWritable(stream, state, cb) {
   stream.writable = false;
 }
 
-// It seems a linked list but it is not
-// there will be only 2 of these for each stream
-function CorkedRequest(state) {
-  this.next = null;
-  this.entry = null;
-  this.finish = onCorkedFinish.bind(undefined, this, state);
-}
-
 function onCorkedFinish(corkReq, state, err) {
   var entry = corkReq.entry;
   corkReq.entry = null;
@@ -551,3 +610,30 @@ function onCorkedFinish(corkReq, state, err) {
     state.corkedRequestsFree = corkReq;
   }
 }
+
+Object.defineProperty(Writable.prototype, 'destroyed', {
+  get() {
+    if (this._writableState === undefined) {
+      return false;
+    }
+    return this._writableState.destroyed;
+  },
+  set(value) {
+    // we ignore the value if the stream
+    // has not been initialized yet
+    if (!this._writableState) {
+      return;
+    }
+
+    // backward compatibility, the user is explicitly
+    // managing destroyed
+    this._writableState.destroyed = value;
+  }
+});
+
+Writable.prototype.destroy = destroyImpl.destroy;
+Writable.prototype._undestroy = destroyImpl.undestroy;
+Writable.prototype._destroy = function(err, cb) {
+  this.end();
+  cb(err);
+};

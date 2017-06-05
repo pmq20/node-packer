@@ -11,7 +11,7 @@
         {
           "textRaw": "`Buffer.from()`, `Buffer.alloc()`, and `Buffer.allocUnsafe()`",
           "name": "`buffer.from()`,_`buffer.alloc()`,_and_`buffer.allocunsafe()`",
-          "desc": "<p>In versions of Node.js prior to v6, <code>Buffer</code> instances were created using the\n<code>Buffer</code> constructor function, which allocates the returned <code>Buffer</code>\ndifferently based on what arguments are provided:</p>\n<ul>\n<li>Passing a number as the first argument to <code>Buffer()</code> (e.g. <code>new Buffer(10)</code>),\nallocates a new <code>Buffer</code> object of the specified size. The memory allocated\nfor such <code>Buffer</code> instances is <em>not</em> initialized and <em>can contain sensitive\ndata</em>. Such <code>Buffer</code> instances <em>must</em> be initialized <em>manually</em> by using either\n<a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> or by writing to the <code>Buffer</code> completely. While\nthis behavior is <em>intentional</em> to improve performance, development experience\nhas demonstrated that a more explicit distinction is required between creating\na fast-but-uninitialized <code>Buffer</code> versus creating a slower-but-safer <code>Buffer</code>.</li>\n<li>Passing a string, array, or <code>Buffer</code> as the first argument copies the\npassed object&#39;s data into the <code>Buffer</code>.</li>\n<li>Passing an <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a> returns a <code>Buffer</code> that shares allocated memory with\nthe given <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>.</li>\n</ul>\n<p>Because the behavior of <code>new Buffer()</code> changes significantly based on the type\nof value passed as the first argument, applications that do not properly\nvalidate the input arguments passed to <code>new Buffer()</code>, or that fail to\nappropriately initialize newly allocated <code>Buffer</code> content, can inadvertently\nintroduce security and reliability issues into their code.</p>\n<p>To make the creation of <code>Buffer</code> instances more reliable and less error prone,\nthe various forms of the <code>new Buffer()</code> constructor have been <strong>deprecated</strong>\nand replaced by separate <code>Buffer.from()</code>, <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a>, and\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a> methods.</p>\n<p><em>Developers should migrate all existing uses of the <code>new Buffer()</code> constructors\nto one of these new APIs.</em></p>\n<ul>\n<li><a href=\"#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the provided\noctets.</li>\n<li><a href=\"#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>\nreturns a new <code>Buffer</code> that <em>shares</em> the same allocated memory as the given\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>.</li>\n<li><a href=\"#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the\ncontents of the given <code>Buffer</code>.</li>\n<li><a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> returns a new <code>Buffer</code>\ncontaining a <em>copy</em> of the provided string.</li>\n<li><a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> returns a &quot;filled&quot;\n<code>Buffer</code> instance of the specified size. This method can be significantly\nslower than <a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> but ensures\nthat newly created <code>Buffer</code> instances never contain old and potentially\nsensitive data.</li>\n<li><a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> and\n<a href=\"#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> each return a\nnew <code>Buffer</code> of the specified <code>size</code> whose content <em>must</em> be initialized\nusing either <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> or written to completely.</li>\n</ul>\n<p><code>Buffer</code> instances returned by <a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a> <em>may</em> be allocated off\na shared internal memory pool if <code>size</code> is less than or equal to half\n<a href=\"#buffer_class_property_buffer_poolsize\"><code>Buffer.poolSize</code></a>. Instances returned by <a href=\"#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow()</code></a> <em>never</em>\nuse the shared internal memory pool.</p>\n",
+          "desc": "<p>In versions of Node.js prior to v6, <code>Buffer</code> instances were created using the\n<code>Buffer</code> constructor function, which allocates the returned <code>Buffer</code>\ndifferently based on what arguments are provided:</p>\n<ul>\n<li>Passing a number as the first argument to <code>Buffer()</code> (e.g. <code>new Buffer(10)</code>),\nallocates a new <code>Buffer</code> object of the specified size. Prior to Node.js 8.0.0,\nthe memory allocated for such <code>Buffer</code> instances is <em>not</em> initialized and\n<em>can contain sensitive data</em>. Such <code>Buffer</code> instances <em>must</em> be subsequently\ninitialized by using either <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> or by writing to the\n<code>Buffer</code> completely. While this behavior is <em>intentional</em> to improve\nperformance, development experience has demonstrated that a more explicit\ndistinction is required between creating a fast-but-uninitialized <code>Buffer</code>\nversus creating a slower-but-safer <code>Buffer</code>. Starting in Node.js 8.0.0,\n<code>Buffer(num)</code> and <code>new Buffer(num)</code> will return a <code>Buffer</code> with initialized\nmemory.</li>\n<li>Passing a string, array, or <code>Buffer</code> as the first argument copies the\npassed object&#39;s data into the <code>Buffer</code>.</li>\n<li>Passing an <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a> returns a <code>Buffer</code> that shares allocated memory with\nthe given <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>.</li>\n</ul>\n<p>Because the behavior of <code>new Buffer()</code> changes significantly based on the type\nof value passed as the first argument, applications that do not properly\nvalidate the input arguments passed to <code>new Buffer()</code>, or that fail to\nappropriately initialize newly allocated <code>Buffer</code> content, can inadvertently\nintroduce security and reliability issues into their code.</p>\n<p>To make the creation of <code>Buffer</code> instances more reliable and less error prone,\nthe various forms of the <code>new Buffer()</code> constructor have been <strong>deprecated</strong>\nand replaced by separate <code>Buffer.from()</code>, <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a>, and\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a> methods.</p>\n<p><em>Developers should migrate all existing uses of the <code>new Buffer()</code> constructors\nto one of these new APIs.</em></p>\n<ul>\n<li><a href=\"#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the provided\noctets.</li>\n<li><a href=\"#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset [, length]])</code></a>\nreturns a new <code>Buffer</code> that <em>shares</em> the same allocated memory as the given\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>.</li>\n<li><a href=\"#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> returns a new <code>Buffer</code> containing a <em>copy</em> of the\ncontents of the given <code>Buffer</code>.</li>\n<li><a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> returns a new <code>Buffer</code>\ncontaining a <em>copy</em> of the provided string.</li>\n<li><a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> returns a &quot;filled&quot;\n<code>Buffer</code> instance of the specified size. This method can be significantly\nslower than <a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> but ensures\nthat newly created <code>Buffer</code> instances never contain old and potentially\nsensitive data.</li>\n<li><a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> and\n<a href=\"#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> each return a\nnew <code>Buffer</code> of the specified <code>size</code> whose content <em>must</em> be initialized\nusing either <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> or written to completely.</li>\n</ul>\n<p><code>Buffer</code> instances returned by <a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a> <em>may</em> be allocated off\na shared internal memory pool if <code>size</code> is less than or equal to half\n<a href=\"#buffer_class_property_buffer_poolsize\"><code>Buffer.poolSize</code></a>. Instances returned by <a href=\"#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow()</code></a> <em>never</em>\nuse the shared internal memory pool.</p>\n",
           "modules": [
             {
               "textRaw": "The `--zero-fill-buffers` command line option",
@@ -54,7 +54,7 @@
               }
             ]
           },
-          "desc": "<p><code>Buffer</code> instances are commonly used to represent sequences of encoded characters\nsuch as UTF-8, UCS2, Base64 or even Hex-encoded data. It is possible to\nconvert back and forth between <code>Buffer</code> instances and ordinary JavaScript strings\nby using an explicit character encoding.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;hello world&#39;, &#39;ascii&#39;);\n\n// Prints: 68656c6c6f20776f726c64\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// Prints: aGVsbG8gd29ybGQ=\nconsole.log(buf.toString(&#39;base64&#39;));\n</code></pre>\n<p>The character encodings currently supported by Node.js include:</p>\n<ul>\n<li><p><code>&#39;ascii&#39;</code> - for 7-bit ASCII data only. This encoding is fast and will strip\nthe high bit if set.</p>\n</li>\n<li><p><code>&#39;utf8&#39;</code> - Multibyte encoded Unicode characters. Many web pages and other\ndocument formats use UTF-8.</p>\n</li>\n<li><p><code>&#39;utf16le&#39;</code> - 2 or 4 bytes, little-endian encoded Unicode characters.\nSurrogate pairs (U+10000 to U+10FFFF) are supported.</p>\n</li>\n<li><p><code>&#39;ucs2&#39;</code> - Alias of <code>&#39;utf16le&#39;</code>.</p>\n</li>\n<li><p><code>&#39;base64&#39;</code> - Base64 encoding. When creating a <code>Buffer</code> from a string,\nthis encoding will also correctly accept &quot;URL and Filename Safe Alphabet&quot; as\nspecified in <a href=\"https://tools.ietf.org/html/rfc4648#section-5\">RFC4648, Section 5</a>.</p>\n</li>\n<li><p><code>&#39;latin1&#39;</code> - A way of encoding the <code>Buffer</code> into a one-byte encoded string\n(as defined by the IANA in <a href=\"https://tools.ietf.org/html/rfc1345\">RFC1345</a>,\npage 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>\n</li>\n<li><p><code>&#39;binary&#39;</code> - Alias for <code>&#39;latin1&#39;</code>.</p>\n</li>\n<li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>\n</li>\n</ul>\n<p><em>Note</em>: Today&#39;s browsers follow the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG spec</a> which aliases both &#39;latin1&#39; and\nISO-8859-1 to win-1252. This means that while doing something like <code>http.get()</code>,\nif the returned charset is one of those listed in the WHATWG spec it&#39;s possible\nthat the server actually returned win-1252-encoded data, and using <code>&#39;latin1&#39;</code>\nencoding may incorrectly decode the characters.</p>\n",
+          "desc": "<p><code>Buffer</code> instances are commonly used to represent sequences of encoded characters\nsuch as UTF-8, UCS2, Base64 or even Hex-encoded data. It is possible to\nconvert back and forth between <code>Buffer</code> instances and ordinary JavaScript strings\nby using an explicit character encoding.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;hello world&#39;, &#39;ascii&#39;);\n\n// Prints: 68656c6c6f20776f726c64\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// Prints: aGVsbG8gd29ybGQ=\nconsole.log(buf.toString(&#39;base64&#39;));\n</code></pre>\n<p>The character encodings currently supported by Node.js include:</p>\n<ul>\n<li><p><code>&#39;ascii&#39;</code> - for 7-bit ASCII data only. This encoding is fast and will strip\nthe high bit if set.</p>\n</li>\n<li><p><code>&#39;utf8&#39;</code> - Multibyte encoded Unicode characters. Many web pages and other\ndocument formats use UTF-8.</p>\n</li>\n<li><p><code>&#39;utf16le&#39;</code> - 2 or 4 bytes, little-endian encoded Unicode characters.\nSurrogate pairs (U+10000 to U+10FFFF) are supported.</p>\n</li>\n<li><p><code>&#39;ucs2&#39;</code> - Alias of <code>&#39;utf16le&#39;</code>.</p>\n</li>\n<li><p><code>&#39;base64&#39;</code> - Base64 encoding. When creating a <code>Buffer</code> from a string,\nthis encoding will also correctly accept &quot;URL and Filename Safe Alphabet&quot; as\nspecified in <a href=\"https://tools.ietf.org/html/rfc4648#section-5\">RFC4648, Section 5</a>.</p>\n</li>\n<li><p><code>&#39;latin1&#39;</code> - A way of encoding the <code>Buffer</code> into a one-byte encoded string\n(as defined by the IANA in <a href=\"https://tools.ietf.org/html/rfc1345\">RFC1345</a>,\npage 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>\n</li>\n<li><p><code>&#39;binary&#39;</code> - Alias for <code>&#39;latin1&#39;</code>.</p>\n</li>\n<li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>\n</li>\n</ul>\n<p><em>Note</em>: Today&#39;s browsers follow the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG spec</a> which aliases both &#39;latin1&#39;\nand ISO-8859-1 to win-1252. This means that while doing something like\n<code>http.get()</code>, if the returned charset is one of those listed in the WHATWG spec\nit&#39;s possible that the server actually returned win-1252-encoded data, and\nusing <code>&#39;latin1&#39;</code> encoding may incorrectly decode the characters.</p>\n",
           "type": "module",
           "displayName": "Buffers and Character Encodings"
         },
@@ -267,7 +267,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns the actual byte length of a string. This is not the same as\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length\"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in\na string.</p>\n<p><em>Note</em> that for <code>&#39;base64&#39;</code> and <code>&#39;hex&#39;</code>, this function assumes valid input. For\nstrings that contain non-Base64/Hex-encoded data (e.g. whitespace), the return\nvalue might be greater than the length of a <code>Buffer</code> created from the string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const str = &#39;\\u00bd + \\u00bc = \\u00be&#39;;\n\n// Prints: ½ + ¼ = ¾: 9 characters, 12 bytes\nconsole.log(`${str}: ${str.length} characters, ` +\n            `${Buffer.byteLength(str, &#39;utf8&#39;)} bytes`);\n</code></pre>\n<p>When <code>string</code> is a <code>Buffer</code>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>, the\nactual byte length is returned.</p>\n"
+              "desc": "<p>Returns the actual byte length of a string. This is not the same as\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length\"><code>String.prototype.length</code></a> since that returns the number of <em>characters</em> in\na string.</p>\n<p><em>Note</em>: For <code>&#39;base64&#39;</code> and <code>&#39;hex&#39;</code>, this function assumes valid input. For\nstrings that contain non-Base64/Hex-encoded data (e.g. whitespace), the return\nvalue might be greater than the length of a <code>Buffer</code> created from the string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const str = &#39;\\u00bd + \\u00bc = \\u00be&#39;;\n\n// Prints: ½ + ¼ = ¾: 9 characters, 12 bytes\nconsole.log(`${str}: ${str.length} characters, ` +\n            `${Buffer.byteLength(str, &#39;utf8&#39;)} bytes`);\n</code></pre>\n<p>When <code>string</code> is a <code>Buffer</code>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>/<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>, the\nactual byte length is returned.</p>\n"
             },
             {
               "textRaw": "Class Method: Buffer.compare(buf1, buf2)",
@@ -277,7 +277,13 @@
                 "added": [
                   "v0.11.13"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The arguments can now be `Uint8Array`s."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -288,14 +294,14 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`buf1` {Buffer} ",
+                      "textRaw": "`buf1` {Buffer|Uint8Array} ",
                       "name": "buf1",
-                      "type": "Buffer"
+                      "type": "Buffer|Uint8Array"
                     },
                     {
-                      "textRaw": "`buf2` {Buffer} ",
+                      "textRaw": "`buf2` {Buffer|Uint8Array} ",
                       "name": "buf2",
-                      "type": "Buffer"
+                      "type": "Buffer|Uint8Array"
                     }
                   ]
                 },
@@ -320,7 +326,13 @@
                 "added": [
                   "v0.7.11"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The elements of `list` can now be `Uint8Array`s."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -331,10 +343,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`list` {Array} List of `Buffer` instances to concat ",
+                      "textRaw": "`list` {Array} List of `Buffer` or [`Uint8Array`] instances to concat ",
                       "name": "list",
                       "type": "Array",
-                      "desc": "List of `Buffer` instances to concat"
+                      "desc": "List of `Buffer` or [`Uint8Array`] instances to concat"
                     },
                     {
                       "textRaw": "`totalLength` {integer} Total length of the `Buffer` instances in `list` when concatenated ",
@@ -611,7 +623,12 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The index operator <code>[index]</code> can be used to get and set the octet at position\n<code>index</code> in <code>buf</code>. The values refer to individual bytes, so the legal value\nrange is between <code>0x00</code> and <code>0xFF</code> (hex) or <code>0</code> and <code>255</code> (decimal).</p>\n<p>This operator is inherited from <code>Uint8Array</code>, so its behavior on out-of-bounds\naccess is the same as <code>UInt8Array</code> - that is, getting returns <code>undefined</code> and\nsetting does nothing.</p>\n<p>Example: Copy an ASCII string into a <code>Buffer</code>, one byte at a time</p>\n<pre><code class=\"lang-js\">const str = &#39;Node.js&#39;;\nconst buf = Buffer.allocUnsafe(str.length);\n\nfor (let i = 0; i &lt; str.length ; i++) {\n  buf[i] = str.charCodeAt(i);\n}\n\n// Prints: Node.js\nconsole.log(buf.toString(&#39;ascii&#39;));\n</code></pre>\n"
+              "desc": "<p>The index operator <code>[index]</code> can be used to get and set the octet at position\n<code>index</code> in <code>buf</code>. The values refer to individual bytes, so the legal value\nrange is between <code>0x00</code> and <code>0xFF</code> (hex) or <code>0</code> and <code>255</code> (decimal).</p>\n<p>This operator is inherited from <code>Uint8Array</code>, so its behavior on out-of-bounds\naccess is the same as <code>UInt8Array</code> - that is, getting returns <code>undefined</code> and\nsetting does nothing.</p>\n<p>Example: Copy an ASCII string into a <code>Buffer</code>, one byte at a time</p>\n<pre><code class=\"lang-js\">const str = &#39;Node.js&#39;;\nconst buf = Buffer.allocUnsafe(str.length);\n\nfor (let i = 0; i &lt; str.length; i++) {\n  buf[i] = str.charCodeAt(i);\n}\n\n// Prints: Node.js\nconsole.log(buf.toString(&#39;ascii&#39;));\n</code></pre>\n"
+            },
+            {
+              "textRaw": "buf.buffer",
+              "name": "buffer",
+              "desc": "<p>The <code>buffer</code> property references the underlying <code>ArrayBuffer</code> object based on\nwhich this Buffer object is created.</p>\n<pre><code class=\"lang-js\">const arrayBuffer = new ArrayBuffer(16);\nconst buffer = Buffer.from(arrayBuffer);\n\nconsole.log(buffer.buffer === arrayBuffer);\n// Prints: true\n</code></pre>\n"
             },
             {
               "textRaw": "`length` {integer} ",
@@ -624,6 +641,19 @@
                 "changes": []
               },
               "desc": "<p>Returns the amount of memory allocated for <code>buf</code> in bytes. Note that this\ndoes not necessarily reflect the amount of &quot;usable&quot; data within <code>buf</code>.</p>\n<p>Example: Create a <code>Buffer</code> and write a shorter ASCII string to it</p>\n<pre><code class=\"lang-js\">const buf = Buffer.alloc(1234);\n\n// Prints: 1234\nconsole.log(buf.length);\n\nbuf.write(&#39;some string&#39;, 0, &#39;ascii&#39;);\n\n// Prints: 1234\nconsole.log(buf.length);\n</code></pre>\n<p>While the <code>length</code> property is not immutable, changing the value of <code>length</code>\ncan result in undefined and inconsistent behavior. Applications that wish to\nmodify the length of a <code>Buffer</code> should therefore treat <code>length</code> as read-only and\nuse <a href=\"#buffer_buf_slice_start_end\"><code>buf.slice()</code></a> to create a new <code>Buffer</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">let buf = Buffer.allocUnsafe(10);\n\nbuf.write(&#39;abcdefghj&#39;, 0, &#39;ascii&#39;);\n\n// Prints: 10\nconsole.log(buf.length);\n\nbuf = buf.slice(0, 5);\n\n// Prints: 5\nconsole.log(buf.length);\n</code></pre>\n"
+            },
+            {
+              "textRaw": "buf.parent",
+              "name": "parent",
+              "meta": {
+                "deprecated": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`buf.buffer`] instead.",
+              "desc": "<p>The <code>buf.parent</code> property is a deprecated alias for <code>buf.buffer</code>.</p>\n"
             }
           ],
           "methods": [
@@ -636,6 +666,11 @@
                   "v0.11.13"
                 ],
                 "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The `target` parameter can now be a `Uint8Array`."
+                  },
                   {
                     "version": "v5.11.0",
                     "pr-url": "https://github.com/nodejs/node/pull/5880",
@@ -652,10 +687,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`target` {Buffer} A `Buffer` to compare to ",
+                      "textRaw": "`target` {Buffer|Uint8Array} A `Buffer` or [`Uint8Array`] to compare to ",
                       "name": "target",
-                      "type": "Buffer",
-                      "desc": "A `Buffer` to compare to"
+                      "type": "Buffer|Uint8Array",
+                      "desc": "A `Buffer` or [`Uint8Array`] to compare to"
                     },
                     {
                       "textRaw": "`targetStart` {integer} The offset within `target` at which to begin comparison. **Default:** `0` ",
@@ -781,7 +816,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Copies data from a region of <code>buf</code> to a region in <code>target</code> even if the <code>target</code>\nmemory region overlaps with <code>buf</code>.</p>\n<p>Example: Create two <code>Buffer</code> instances, <code>buf1</code> and <code>buf2</code>, and copy <code>buf1</code> from\nbyte 16 through byte 19 into <code>buf2</code>, starting at the 8th byte in <code>buf2</code></p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\nconst buf2 = Buffer.allocUnsafe(26).fill(&#39;!&#39;);\n\nfor (let i = 0 ; i &lt; 26 ; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\nbuf1.copy(buf2, 8, 16, 20);\n\n// Prints: !!!!!!!!qrst!!!!!!!!!!!!!\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, 25));\n</code></pre>\n<p>Example: Create a single <code>Buffer</code> and copy data from one region to an\noverlapping region within the same <code>Buffer</code></p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(26);\n\nfor (let i = 0 ; i &lt; 26 ; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf[i] = i + 97;\n}\n\nbuf.copy(buf, 0, 4, 10);\n\n// Prints: efghijghijklmnopqrstuvwxyz\nconsole.log(buf.toString());\n</code></pre>\n"
+              "desc": "<p>Copies data from a region of <code>buf</code> to a region in <code>target</code> even if the <code>target</code>\nmemory region overlaps with <code>buf</code>.</p>\n<p>Example: Create two <code>Buffer</code> instances, <code>buf1</code> and <code>buf2</code>, and copy <code>buf1</code> from\nbyte 16 through byte 19 into <code>buf2</code>, starting at the 8th byte in <code>buf2</code></p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\nconst buf2 = Buffer.allocUnsafe(26).fill(&#39;!&#39;);\n\nfor (let i = 0; i &lt; 26; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\nbuf1.copy(buf2, 8, 16, 20);\n\n// Prints: !!!!!!!!qrst!!!!!!!!!!!!!\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, 25));\n</code></pre>\n<p>Example: Create a single <code>Buffer</code> and copy data from one region to an\noverlapping region within the same <code>Buffer</code></p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(26);\n\nfor (let i = 0; i &lt; 26; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf[i] = i + 97;\n}\n\nbuf.copy(buf, 0, 4, 10);\n\n// Prints: efghijghijklmnopqrstuvwxyz\nconsole.log(buf.toString());\n</code></pre>\n"
             },
             {
               "textRaw": "buf.entries()",
@@ -816,7 +851,13 @@
                 "added": [
                   "v0.11.13"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The arguments can now be `Uint8Array`s."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -827,10 +868,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`otherBuffer` {Buffer} A `Buffer` to compare to ",
+                      "textRaw": "`otherBuffer` {Buffer} A `Buffer` or [`Uint8Array`] to compare to ",
                       "name": "otherBuffer",
                       "type": "Buffer",
-                      "desc": "A `Buffer` to compare to"
+                      "desc": "A `Buffer` or [`Uint8Array`] to compare to"
                     }
                   ]
                 },
@@ -989,6 +1030,11 @@
                 ],
                 "changes": [
                   {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The `value` can now be a `Uint8Array`."
+                  },
+                  {
                     "version": "v5.7.0, v4.4.0",
                     "pr-url": "https://github.com/nodejs/node/pull/4803",
                     "description": "When `encoding` is being passed, the `byteOffset` parameter is no longer required."
@@ -1005,9 +1051,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|integer} What to search for ",
+                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for ",
                       "name": "value",
-                      "type": "string|Buffer|integer",
+                      "type": "string|Buffer|Uint8Array|integer",
                       "desc": "What to search for"
                     },
                     {
@@ -1042,7 +1088,7 @@
                   ]
                 }
               ],
-              "desc": "<p>If <code>value</code> is:</p>\n<ul>\n<li>a string, <code>value</code> is interpreted according to the character encoding in\n<code>encoding</code>.</li>\n<li>a <code>Buffer</code>, <code>value</code> will be used in its entirety. To compare a partial\n<code>Buffer</code> use <a href=\"#buffer_buf_slice_start_end\"><code>buf.slice()</code></a>.</li>\n<li>a number, <code>value</code> will be interpreted as an unsigned 8-bit integer\nvalue between <code>0</code> and <code>255</code>.</li>\n</ul>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;this is a buffer&#39;);\n\n// Prints: 0\nconsole.log(buf.indexOf(&#39;this&#39;));\n\n// Prints: 2\nconsole.log(buf.indexOf(&#39;is&#39;));\n\n// Prints: 8\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer&#39;)));\n\n// Prints: 8\n// (97 is the decimal ASCII value for &#39;a&#39;)\nconsole.log(buf.indexOf(97));\n\n// Prints: -1\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer example&#39;)));\n\n// Prints: 8\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer example&#39;).slice(0, 8)));\n\n\nconst utf16Buffer = Buffer.from(&#39;\\u039a\\u0391\\u03a3\\u03a3\\u0395&#39;, &#39;ucs2&#39;);\n\n// Prints: 4\nconsole.log(utf16Buffer.indexOf(&#39;\\u03a3&#39;, 0, &#39;ucs2&#39;));\n\n// Prints: 6\nconsole.log(utf16Buffer.indexOf(&#39;\\u03a3&#39;, -4, &#39;ucs2&#39;));\n</code></pre>\n<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a\n<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,\nan integer between 0 and 255.</p>\n<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments\nthat coerce to <code>NaN</code> or 0, like <code>{}</code>, <code>[]</code>, <code>null</code> or <code>undefined</code>, will search\nthe whole buffer. This behavior matches <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf\"><code>String#indexOf()</code></a>.</p>\n<pre><code class=\"lang-js\">const b = Buffer.from(&#39;abcdef&#39;);\n\n// Passing a value that&#39;s a number, but not a valid byte\n// Prints: 2, equivalent to searching for 99 or &#39;c&#39;\nconsole.log(b.indexOf(99.9));\nconsole.log(b.indexOf(256 + 99));\n\n// Passing a byteOffset that coerces to NaN or 0\n// Prints: 1, searching the whole buffer\nconsole.log(b.indexOf(&#39;b&#39;, undefined));\nconsole.log(b.indexOf(&#39;b&#39;, {}));\nconsole.log(b.indexOf(&#39;b&#39;, null));\nconsole.log(b.indexOf(&#39;b&#39;, []));\n</code></pre>\n"
+              "desc": "<p>If <code>value</code> is:</p>\n<ul>\n<li>a string, <code>value</code> is interpreted according to the character encoding in\n<code>encoding</code>.</li>\n<li>a <code>Buffer</code> or <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a>, <code>value</code> will be used in its entirety.\nTo compare a partial <code>Buffer</code>, use <a href=\"#buffer_buf_slice_start_end\"><code>buf.slice()</code></a>.</li>\n<li>a number, <code>value</code> will be interpreted as an unsigned 8-bit integer\nvalue between <code>0</code> and <code>255</code>.</li>\n</ul>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;this is a buffer&#39;);\n\n// Prints: 0\nconsole.log(buf.indexOf(&#39;this&#39;));\n\n// Prints: 2\nconsole.log(buf.indexOf(&#39;is&#39;));\n\n// Prints: 8\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer&#39;)));\n\n// Prints: 8\n// (97 is the decimal ASCII value for &#39;a&#39;)\nconsole.log(buf.indexOf(97));\n\n// Prints: -1\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer example&#39;)));\n\n// Prints: 8\nconsole.log(buf.indexOf(Buffer.from(&#39;a buffer example&#39;).slice(0, 8)));\n\n\nconst utf16Buffer = Buffer.from(&#39;\\u039a\\u0391\\u03a3\\u03a3\\u0395&#39;, &#39;ucs2&#39;);\n\n// Prints: 4\nconsole.log(utf16Buffer.indexOf(&#39;\\u03a3&#39;, 0, &#39;ucs2&#39;));\n\n// Prints: 6\nconsole.log(utf16Buffer.indexOf(&#39;\\u03a3&#39;, -4, &#39;ucs2&#39;));\n</code></pre>\n<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a\n<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,\nan integer between 0 and 255.</p>\n<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments\nthat coerce to <code>NaN</code> or 0, like <code>{}</code>, <code>[]</code>, <code>null</code> or <code>undefined</code>, will search\nthe whole buffer. This behavior matches <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf\"><code>String#indexOf()</code></a>.</p>\n<pre><code class=\"lang-js\">const b = Buffer.from(&#39;abcdef&#39;);\n\n// Passing a value that&#39;s a number, but not a valid byte\n// Prints: 2, equivalent to searching for 99 or &#39;c&#39;\nconsole.log(b.indexOf(99.9));\nconsole.log(b.indexOf(256 + 99));\n\n// Passing a byteOffset that coerces to NaN or 0\n// Prints: 1, searching the whole buffer\nconsole.log(b.indexOf(&#39;b&#39;, undefined));\nconsole.log(b.indexOf(&#39;b&#39;, {}));\nconsole.log(b.indexOf(&#39;b&#39;, null));\nconsole.log(b.indexOf(&#39;b&#39;, []));\n</code></pre>\n<p>If <code>value</code> is an empty string or empty <code>Buffer</code> and <code>byteOffset</code> is less\nthan <code>buf.length</code>, <code>byteOffset</code> will be returned. If <code>value</code> is empty and\n<code>byteOffset</code> is at least <code>buf.length</code>, <code>buf.length</code> will be returned.</p>\n"
             },
             {
               "textRaw": "buf.keys()",
@@ -1077,7 +1123,13 @@
                 "added": [
                   "v6.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/10236",
+                    "description": "The `value` can now be a `Uint8Array`."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -1089,9 +1141,9 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|integer} What to search for ",
+                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for ",
                       "name": "value",
-                      "type": "string|Buffer|integer",
+                      "type": "string|Buffer|Uint8Array|integer",
                       "desc": "What to search for"
                     },
                     {
@@ -1126,7 +1178,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Identical to <a href=\"#buffer_buf_indexof_value_byteoffset_encoding\"><code>buf.indexOf()</code></a>, except <code>buf</code> is searched from back to front\ninstead of front to back.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;this buffer is a buffer&#39;);\n\n// Prints: 0\nconsole.log(buf.lastIndexOf(&#39;this&#39;));\n\n// Prints: 17\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;));\n\n// Prints: 17\nconsole.log(buf.lastIndexOf(Buffer.from(&#39;buffer&#39;)));\n\n// Prints: 15\n// (97 is the decimal ASCII value for &#39;a&#39;)\nconsole.log(buf.lastIndexOf(97));\n\n// Prints: -1\nconsole.log(buf.lastIndexOf(Buffer.from(&#39;yolo&#39;)));\n\n// Prints: 5\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;, 5));\n\n// Prints: -1\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;, 4));\n\n\nconst utf16Buffer = Buffer.from(&#39;\\u039a\\u0391\\u03a3\\u03a3\\u0395&#39;, &#39;ucs2&#39;);\n\n// Prints: 6\nconsole.log(utf16Buffer.lastIndexOf(&#39;\\u03a3&#39;, undefined, &#39;ucs2&#39;));\n\n// Prints: 4\nconsole.log(utf16Buffer.lastIndexOf(&#39;\\u03a3&#39;, -5, &#39;ucs2&#39;));\n</code></pre>\n<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a\n<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,\nan integer between 0 and 255.</p>\n<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments\nthat coerce to <code>NaN</code>, like <code>{}</code> or <code>undefined</code>, will search the whole buffer.\nThis behavior matches <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf\"><code>String#lastIndexOf()</code></a>.</p>\n<pre><code class=\"lang-js\">const b = Buffer.from(&#39;abcdef&#39;);\n\n// Passing a value that&#39;s a number, but not a valid byte\n// Prints: 2, equivalent to searching for 99 or &#39;c&#39;\nconsole.log(b.lastIndexOf(99.9));\nconsole.log(b.lastIndexOf(256 + 99));\n\n// Passing a byteOffset that coerces to NaN\n// Prints: 1, searching the whole buffer\nconsole.log(b.lastIndexOf(&#39;b&#39;, undefined));\nconsole.log(b.lastIndexOf(&#39;b&#39;, {}));\n\n// Passing a byteOffset that coerces to 0\n// Prints: -1, equivalent to passing 0\nconsole.log(b.lastIndexOf(&#39;b&#39;, null));\nconsole.log(b.lastIndexOf(&#39;b&#39;, []));\n</code></pre>\n"
+              "desc": "<p>Identical to <a href=\"#buffer_buf_indexof_value_byteoffset_encoding\"><code>buf.indexOf()</code></a>, except <code>buf</code> is searched from back to front\ninstead of front to back.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;this buffer is a buffer&#39;);\n\n// Prints: 0\nconsole.log(buf.lastIndexOf(&#39;this&#39;));\n\n// Prints: 17\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;));\n\n// Prints: 17\nconsole.log(buf.lastIndexOf(Buffer.from(&#39;buffer&#39;)));\n\n// Prints: 15\n// (97 is the decimal ASCII value for &#39;a&#39;)\nconsole.log(buf.lastIndexOf(97));\n\n// Prints: -1\nconsole.log(buf.lastIndexOf(Buffer.from(&#39;yolo&#39;)));\n\n// Prints: 5\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;, 5));\n\n// Prints: -1\nconsole.log(buf.lastIndexOf(&#39;buffer&#39;, 4));\n\n\nconst utf16Buffer = Buffer.from(&#39;\\u039a\\u0391\\u03a3\\u03a3\\u0395&#39;, &#39;ucs2&#39;);\n\n// Prints: 6\nconsole.log(utf16Buffer.lastIndexOf(&#39;\\u03a3&#39;, undefined, &#39;ucs2&#39;));\n\n// Prints: 4\nconsole.log(utf16Buffer.lastIndexOf(&#39;\\u03a3&#39;, -5, &#39;ucs2&#39;));\n</code></pre>\n<p>If <code>value</code> is not a string, number, or <code>Buffer</code>, this method will throw a\n<code>TypeError</code>. If <code>value</code> is a number, it will be coerced to a valid byte value,\nan integer between 0 and 255.</p>\n<p>If <code>byteOffset</code> is not a number, it will be coerced to a number. Any arguments\nthat coerce to <code>NaN</code>, like <code>{}</code> or <code>undefined</code>, will search the whole buffer.\nThis behavior matches <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf\"><code>String#lastIndexOf()</code></a>.</p>\n<pre><code class=\"lang-js\">const b = Buffer.from(&#39;abcdef&#39;);\n\n// Passing a value that&#39;s a number, but not a valid byte\n// Prints: 2, equivalent to searching for 99 or &#39;c&#39;\nconsole.log(b.lastIndexOf(99.9));\nconsole.log(b.lastIndexOf(256 + 99));\n\n// Passing a byteOffset that coerces to NaN\n// Prints: 1, searching the whole buffer\nconsole.log(b.lastIndexOf(&#39;b&#39;, undefined));\nconsole.log(b.lastIndexOf(&#39;b&#39;, {}));\n\n// Passing a byteOffset that coerces to 0\n// Prints: -1, equivalent to passing 0\nconsole.log(b.lastIndexOf(&#39;b&#39;, null));\nconsole.log(b.lastIndexOf(&#39;b&#39;, []));\n</code></pre>\n<p>If <code>value</code> is an empty string or empty <code>Buffer</code>, <code>byteOffset</code> will be returned.</p>\n"
             },
             {
               "textRaw": "buf.readDoubleBE(offset[, noAssert])",
@@ -2162,7 +2214,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns a new <code>Buffer</code> that references the same memory as the original, but\noffset and cropped by the <code>start</code> and <code>end</code> indices.</p>\n<p><strong>Note that modifying the new <code>Buffer</code> slice will modify the memory in the\noriginal <code>Buffer</code> because the allocated memory of the two objects overlap.</strong></p>\n<p>Example: Create a <code>Buffer</code> with the ASCII alphabet, take a slice, and then modify\none byte from the original <code>Buffer</code></p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\n\nfor (let i = 0 ; i &lt; 26 ; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\nconst buf2 = buf1.slice(0, 3);\n\n// Prints: abc\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, buf2.length));\n\nbuf1[0] = 33;\n\n// Prints: !bc\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, buf2.length));\n</code></pre>\n<p>Specifying negative indexes causes the slice to be generated relative to the\nend of <code>buf</code> rather than the beginning.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;buffer&#39;);\n\n// Prints: buffe\n// (Equivalent to buf.slice(0, 5))\nconsole.log(buf.slice(-6, -1).toString());\n\n// Prints: buff\n// (Equivalent to buf.slice(0, 4))\nconsole.log(buf.slice(-6, -2).toString());\n\n// Prints: uff\n// (Equivalent to buf.slice(1, 4))\nconsole.log(buf.slice(-5, -2).toString());\n</code></pre>\n"
+              "desc": "<p>Returns a new <code>Buffer</code> that references the same memory as the original, but\noffset and cropped by the <code>start</code> and <code>end</code> indices.</p>\n<p><em>Note</em>: Modifying the new <code>Buffer</code> slice will modify the memory in the\noriginal <code>Buffer</code> because the allocated memory of the two objects overlap.</p>\n<p>Example: Create a <code>Buffer</code> with the ASCII alphabet, take a slice, and then modify\none byte from the original <code>Buffer</code></p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\n\nfor (let i = 0; i &lt; 26; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\nconst buf2 = buf1.slice(0, 3);\n\n// Prints: abc\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, buf2.length));\n\nbuf1[0] = 33;\n\n// Prints: !bc\nconsole.log(buf2.toString(&#39;ascii&#39;, 0, buf2.length));\n</code></pre>\n<p>Specifying negative indexes causes the slice to be generated relative to the\nend of <code>buf</code> rather than the beginning.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;buffer&#39;);\n\n// Prints: buffe\n// (Equivalent to buf.slice(0, 5))\nconsole.log(buf.slice(-6, -1).toString());\n\n// Prints: buff\n// (Equivalent to buf.slice(0, 4))\nconsole.log(buf.slice(-6, -2).toString());\n\n// Prints: uff\n// (Equivalent to buf.slice(1, 4))\nconsole.log(buf.slice(-5, -2).toString());\n</code></pre>\n"
             },
             {
               "textRaw": "buf.swap16()",
@@ -2265,7 +2317,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns a JSON representation of <code>buf</code>. <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify\"><code>JSON.stringify()</code></a> implicitly calls\nthis function when stringifying a <code>Buffer</code> instance.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from([0x1, 0x2, 0x3, 0x4, 0x5]);\nconst json = JSON.stringify(buf);\n\n// Prints: {&quot;type&quot;:&quot;Buffer&quot;,&quot;data&quot;:[1,2,3,4,5]}\nconsole.log(json);\n\nconst copy = JSON.parse(json, (key, value) =&gt; {\n  return value &amp;&amp; value.type === &#39;Buffer&#39;\n    ? Buffer.from(value.data)\n    : value;\n});\n\n// Prints: &lt;Buffer 01 02 03 04 05&gt;\nconsole.log(copy);\n</code></pre>\n"
+              "desc": "<p>Returns a JSON representation of <code>buf</code>. <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify\"><code>JSON.stringify()</code></a> implicitly calls\nthis function when stringifying a <code>Buffer</code> instance.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from([0x1, 0x2, 0x3, 0x4, 0x5]);\nconst json = JSON.stringify(buf);\n\n// Prints: {&quot;type&quot;:&quot;Buffer&quot;,&quot;data&quot;:[1,2,3,4,5]}\nconsole.log(json);\n\nconst copy = JSON.parse(json, (key, value) =&gt; {\n  return value &amp;&amp; value.type === &#39;Buffer&#39; ?\n    Buffer.from(value.data) :\n    value;\n});\n\n// Prints: &lt;Buffer 01 02 03 04 05&gt;\nconsole.log(copy);\n</code></pre>\n"
             },
             {
               "textRaw": "buf.toString([encoding[, start[, end]]])",
@@ -2325,7 +2377,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Decodes <code>buf</code> to a string according to the specified character encoding in\n<code>encoding</code>. <code>start</code> and <code>end</code> may be passed to decode only a subset of <code>buf</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\n\nfor (let i = 0 ; i &lt; 26 ; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\n// Prints: abcdefghijklmnopqrstuvwxyz\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\n// Prints: abcde\nconsole.log(buf1.toString(&#39;ascii&#39;, 0, 5));\n\n\nconst buf2 = Buffer.from(&#39;tést&#39;);\n\n// Prints: 74c3a97374\nconsole.log(buf2.toString(&#39;hex&#39;));\n\n// Prints: té\nconsole.log(buf2.toString(&#39;utf8&#39;, 0, 3));\n\n// Prints: té\nconsole.log(buf2.toString(undefined, 0, 3));\n</code></pre>\n"
+              "desc": "<p>Decodes <code>buf</code> to a string according to the specified character encoding in\n<code>encoding</code>. <code>start</code> and <code>end</code> may be passed to decode only a subset of <code>buf</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.allocUnsafe(26);\n\nfor (let i = 0; i &lt; 26; i++) {\n  // 97 is the decimal ASCII value for &#39;a&#39;\n  buf1[i] = i + 97;\n}\n\n// Prints: abcdefghijklmnopqrstuvwxyz\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\n// Prints: abcde\nconsole.log(buf1.toString(&#39;ascii&#39;, 0, 5));\n\n\nconst buf2 = Buffer.from(&#39;tést&#39;);\n\n// Prints: 74c3a97374\nconsole.log(buf2.toString(&#39;hex&#39;));\n\n// Prints: té\nconsole.log(buf2.toString(&#39;utf8&#39;, 0, 3));\n\n// Prints: té\nconsole.log(buf2.toString(undefined, 0, 3));\n</code></pre>\n"
             },
             {
               "textRaw": "buf.values()",
@@ -3692,7 +3744,7 @@
                   "desc": "The desired length of the new `Buffer`"
                 }
               ],
-              "desc": "<p>Stability: 0 - Deprecated: Use <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a> instead (also see\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a>).</p>\n<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>Unlike <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffers</code></a>, the underlying memory for <code>Buffer</code> instances\ncreated in this way is <em>not initialized</em>. The contents of a newly created <code>Buffer</code>\nare unknown and <em>could contain sensitive data</em>. Use\n<a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size)</code></a> instead to initialize a <code>Buffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = new Buffer(10);\n\n// Prints: (contents may vary): &lt;Buffer 48 21 4b 00 00 00 00 00 30 dd&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Stability: 0 - Deprecated: Use <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a> instead (also see\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a>).</p>\n<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>Prior to Node.js 8.0.0, the underlying memory for <code>Buffer</code> instances\ncreated in this way is <em>not initialized</em>. The contents of a newly created\n<code>Buffer</code> are unknown and <em>may contain sensitive data</em>. Use\n<a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size)</code></a> instead to initialize a <code>Buffer</code>\nto zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = new Buffer(10);\n\n// Prints: &lt;Buffer 00 00 00 00 00 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
             },
             {
               "params": [
@@ -3700,7 +3752,7 @@
                   "name": "size"
                 }
               ],
-              "desc": "<p>Stability: 0 - Deprecated: Use <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a> instead (also see\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a>).</p>\n<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>Unlike <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffers</code></a>, the underlying memory for <code>Buffer</code> instances\ncreated in this way is <em>not initialized</em>. The contents of a newly created <code>Buffer</code>\nare unknown and <em>could contain sensitive data</em>. Use\n<a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size)</code></a> instead to initialize a <code>Buffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = new Buffer(10);\n\n// Prints: (contents may vary): &lt;Buffer 48 21 4b 00 00 00 00 00 30 dd&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Stability: 0 - Deprecated: Use <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a> instead (also see\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a>).</p>\n<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>Prior to Node.js 8.0.0, the underlying memory for <code>Buffer</code> instances\ncreated in this way is <em>not initialized</em>. The contents of a newly created\n<code>Buffer</code> are unknown and <em>may contain sensitive data</em>. Use\n<a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size)</code></a> instead to initialize a <code>Buffer</code>\nto zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = new Buffer(10);\n\n// Prints: &lt;Buffer 00 00 00 00 00 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
             },
             {
               "params": [
@@ -3757,7 +3809,7 @@
                   "desc": "The desired length of the new `SlowBuffer`"
                 }
               ],
-              "desc": "<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The\ncontents of a newly created <code>SlowBuffer</code> are unknown and could contain\nsensitive data. Use <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const SlowBuffer = require(&#39;buffer&#39;).SlowBuffer;\n\nconst buf = new SlowBuffer(5);\n\n// Prints: (contents may vary): &lt;Buffer 78 e0 82 02 01&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The\ncontents of a newly created <code>SlowBuffer</code> are unknown and may contain\nsensitive data. Use <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const SlowBuffer = require(&#39;buffer&#39;).SlowBuffer;\n\nconst buf = new SlowBuffer(5);\n\n// Prints: (contents may vary): &lt;Buffer 78 e0 82 02 01&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
             },
             {
               "params": [
@@ -3765,7 +3817,7 @@
                   "name": "size"
                 }
               ],
-              "desc": "<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The\ncontents of a newly created <code>SlowBuffer</code> are unknown and could contain\nsensitive data. Use <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const SlowBuffer = require(&#39;buffer&#39;).SlowBuffer;\n\nconst buf = new SlowBuffer(5);\n\n// Prints: (contents may vary): &lt;Buffer 78 e0 82 02 01&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be thrown.\nA zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The\ncontents of a newly created <code>SlowBuffer</code> are unknown and may contain\nsensitive data. Use <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const SlowBuffer = require(&#39;buffer&#39;).SlowBuffer;\n\nconst buf = new SlowBuffer(5);\n\n// Prints: (contents may vary): &lt;Buffer 78 e0 82 02 01&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
             }
           ]
         }
@@ -3807,16 +3859,22 @@
             "added": [
               "v7.1.0"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10236",
+                "description": "The `source` parameter can now be a `Uint8Array`."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`source` {Buffer} A `Buffer` instance ",
+                  "textRaw": "`source` {Buffer|Uint8Array} A `Buffer` or `Uint8Array` instance ",
                   "name": "source",
-                  "type": "Buffer",
-                  "desc": "A `Buffer` instance"
+                  "type": "Buffer|Uint8Array",
+                  "desc": "A `Buffer` or `Uint8Array` instance"
                 },
                 {
                   "textRaw": "`fromEnc` {string} The current encoding ",
@@ -3846,7 +3904,7 @@
               ]
             }
           ],
-          "desc": "<p>Re-encodes the given <code>Buffer</code> instance from one character encoding to another.\nReturns a new <code>Buffer</code> instance.</p>\n<p>Throws if the <code>fromEnc</code> or <code>toEnc</code> specify invalid character encodings or if\nconversion from <code>fromEnc</code> to <code>toEnc</code> is not permitted.</p>\n<p>The transcoding process will use substitution characters if a given byte\nsequence cannot be adequately represented in the target encoding. For instance:</p>\n<pre><code class=\"lang-js\">const buffer = require(&#39;buffer&#39;);\n\nconst newBuf = buffer.transcode(Buffer.from(&#39;€&#39;), &#39;utf8&#39;, &#39;ascii&#39;);\nconsole.log(newBuf.toString(&#39;ascii&#39;));\n// Prints: &#39;?&#39;\n</code></pre>\n<p>Because the Euro (<code>€</code>) sign is not representable in US-ASCII, it is replaced\nwith <code>?</code> in the transcoded <code>Buffer</code>.</p>\n<p>Note that this is a property on the <code>buffer</code> module returned by\n<code>require(&#39;buffer&#39;)</code>, not on the <code>Buffer</code> global or a <code>Buffer</code> instance.</p>\n"
+          "desc": "<p>Re-encodes the given <code>Buffer</code> or <code>Uint8Array</code> instance from one character\nencoding to another. Returns a new <code>Buffer</code> instance.</p>\n<p>Throws if the <code>fromEnc</code> or <code>toEnc</code> specify invalid character encodings or if\nconversion from <code>fromEnc</code> to <code>toEnc</code> is not permitted.</p>\n<p>The transcoding process will use substitution characters if a given byte\nsequence cannot be adequately represented in the target encoding. For instance:</p>\n<pre><code class=\"lang-js\">const buffer = require(&#39;buffer&#39;);\n\nconst newBuf = buffer.transcode(Buffer.from(&#39;€&#39;), &#39;utf8&#39;, &#39;ascii&#39;);\nconsole.log(newBuf.toString(&#39;ascii&#39;));\n// Prints: &#39;?&#39;\n</code></pre>\n<p>Because the Euro (<code>€</code>) sign is not representable in US-ASCII, it is replaced\nwith <code>?</code> in the transcoded <code>Buffer</code>.</p>\n<p>Note that this is a property on the <code>buffer</code> module returned by\n<code>require(&#39;buffer&#39;)</code>, not on the <code>Buffer</code> global or a <code>Buffer</code> instance.</p>\n"
         }
       ],
       "type": "module",

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const util = require('util');
@@ -16,6 +37,8 @@ exports.isatty = function(fd) {
 function ReadStream(fd, options) {
   if (!(this instanceof ReadStream))
     return new ReadStream(fd, options);
+  if (fd >> 0 !== fd || fd < 0)
+    throw new RangeError('fd must be positive integer: ' + fd);
 
   options = util._extend({
     highWaterMark: 0,
@@ -41,7 +64,11 @@ ReadStream.prototype.setRawMode = function(flag) {
 
 
 function WriteStream(fd) {
-  if (!(this instanceof WriteStream)) return new WriteStream(fd);
+  if (!(this instanceof WriteStream))
+    return new WriteStream(fd);
+  if (fd >> 0 !== fd || fd < 0)
+    throw new RangeError('fd must be positive integer: ' + fd);
+
   net.Socket.call(this, {
     handle: new TTY(fd, false),
     readable: false,
@@ -53,7 +80,7 @@ function WriteStream(fd) {
   // this behaviour has become expected due historical functionality on OS X,
   // even though it was originally intended to change in v1.0.2 (Libuv 1.2.1).
   // Ref: https://github.com/nodejs/node/pull/1771#issuecomment-119351671
-  this._handle.setBlocking(process.env.NODE_TTY_UNSAFE_ASYNC !== '1');
+  this._handle.setBlocking(true);
 
   var winSize = new Array(2);
   var err = this._handle.getWindowSize(winSize);

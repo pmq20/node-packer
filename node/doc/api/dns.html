@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v7.10.0 Documentation</title>
+  <title>DNS | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -233,6 +235,9 @@ dns.lookup(&#39;example.com&#39;, options, (err, addresses) =&gt;
   console.log(&#39;addresses: %j&#39;, addresses));
 // addresses: [{&quot;address&quot;:&quot;2606:2800:220:1:248:1893:25c8:1946&quot;,&quot;family&quot;:6}]
 </code></pre>
+<p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, and <code>all</code>
+is not set to <code>true</code>, it returns a Promise for an object with <code>address</code> and
+<code>family</code> properties.</p>
 <h3>Supported getaddrinfo flags<span><a class="mark" href="#dns_supported_getaddrinfo_flags" id="dns_supported_getaddrinfo_flags">#</a></span></h3>
 <p>The following flags can be passed as hints to <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</p>
 <ul>
@@ -269,6 +274,8 @@ dns.lookupService(&#39;127.0.0.1&#39;, 22, (err, hostname, service) =&gt; {
   // Prints: localhost ssh
 });
 </code></pre>
+<p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns a
+Promise for an object with <code>hostname</code> and <code>service</code> properties.</p>
 <h2>dns.resolve(hostname[, rrtype], callback)<span><a class="mark" href="#dns_dns_resolve_hostname_rrtype_callback" id="dns_dns_resolve_hostname_rrtype_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
@@ -475,6 +482,7 @@ function will contain an array of objects with the following properties:</p>
 <li><code>preference</code></li>
 </ul>
 <p>For example:</p>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   flags: &#39;s&#39;,
   service: &#39;SIP+D2U&#39;,
@@ -536,6 +544,7 @@ be an object with the following properties:</p>
 <li><code>expire</code></li>
 <li><code>minttl</code></li>
 </ul>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   nsname: &#39;ns.example.com&#39;,
   hostmaster: &#39;root.example.com&#39;,
@@ -566,6 +575,7 @@ be an array of objects with the following properties:</p>
 <li><code>port</code></li>
 <li><code>name</code></li>
 </ul>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   priority: 10,
   weight: 5,

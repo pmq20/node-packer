@@ -52,6 +52,10 @@ examples:
 
 COMPILER_SYMBOLS_RE = re.compile(
   r"v8::internal::(?:\(anonymous namespace\)::)?Compile|v8::internal::Parser")
+JIT_CODE_SYMBOLS_RE = re.compile(
+  r"(LazyCompile|Compile|Eval|Script):(\*|~)")
+GC_SYMBOLS_RE = re.compile(
+  r"v8::internal::Heap::CollectGarbage")
 
 
 def strip_function_parameters(symbol):
@@ -70,8 +74,9 @@ def strip_function_parameters(symbol):
   return symbol[:-pos]
 
 
-def collapsed_callchains_generator(perf_stream, show_all=False,
-                                   show_full_signatures=False):
+def collapsed_callchains_generator(perf_stream, hide_other=False,
+                                   hide_compiler=False, hide_jit=False,
+                                   hide_gc=False, show_full_signatures=False):
   current_chain = []
   skip_until_end_of_chain = False
   compiler_symbol_in_chain = False
@@ -85,7 +90,8 @@ def collapsed_callchains_generator(perf_stream, show_all=False,
 
     # Empty line signals the end of the callchain.
     if not line:
-      if not skip_until_end_of_chain and current_chain and show_all:
+      if (not skip_until_end_of_chain and current_chain
+          and not hide_other):
         current_chain.append("[other]")
         yield current_chain
       # Reset parser status.
@@ -101,14 +107,31 @@ def collapsed_callchains_generator(perf_stream, show_all=False,
     symbol = line.split(" ", 1)[1].split("+", 1)[0]
     if not show_full_signatures:
       symbol = strip_function_parameters(symbol)
+
+    # Avoid chains of [unknown]
+    if (symbol == "[unknown]" and current_chain and
+        current_chain[-1] == "[unknown]"):
+      continue
+
     current_chain.append(symbol)
 
     if symbol.startswith("BytecodeHandler:"):
+      current_chain.append("[interpreter]")
       yield current_chain
       skip_until_end_of_chain = True
+    elif JIT_CODE_SYMBOLS_RE.match(symbol):
+      if not hide_jit:
+        current_chain.append("[jit]")
+        yield current_chain
+        skip_until_end_of_chain = True
+    elif GC_SYMBOLS_RE.match(symbol):
+      if not hide_gc:
+        current_chain.append("[gc]")
+        yield current_chain
+        skip_until_end_of_chain = True
     elif symbol == "Stub:CEntryStub" and compiler_symbol_in_chain:
-      if show_all:
-        current_chain[-1] = "[compiler]"
+      if not hide_compiler:
+        current_chain.append("[compiler]")
         yield current_chain
       skip_until_end_of_chain = True
     elif COMPILER_SYMBOLS_RE.match(symbol):
@@ -181,8 +204,23 @@ def parse_command_line():
     dest="output_flamegraph"
   )
   command_line_parser.add_argument(
-    "--show-all", "-a",
-    help="show samples outside Ignition bytecode handlers",
+    "--hide-other",
+    help="Hide other samples",
+    action="store_true"
+  )
+  command_line_parser.add_argument(
+    "--hide-compiler",
+    help="Hide samples during compilation",
+    action="store_true"
+  )
+  command_line_parser.add_argument(
+    "--hide-jit",
+    help="Hide samples from JIT code execution",
+    action="store_true"
+  )
+  command_line_parser.add_argument(
+    "--hide-gc",
+    help="Hide samples from garbage collection",
     action="store_true"
   )
   command_line_parser.add_argument(
@@ -210,7 +248,8 @@ def main():
                           stdout=subprocess.PIPE)
 
   callchains = collapsed_callchains_generator(
-    perf.stdout, program_options.show_all,
+    perf.stdout, program_options.hide_other, program_options.hide_compiler,
+    program_options.hide_jit, program_options.hide_gc,
     program_options.show_full_signatures)
 
   if program_options.output_flamegraph:

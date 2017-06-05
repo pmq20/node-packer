@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Modules | Node.js v7.10.0 Documentation</title>
+  <title>Modules | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules active" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -141,15 +143,13 @@ exports.area = (r) =&gt; PI * r ** 2;
 exports.circumference = (r) =&gt; 2 * PI * r;
 </code></pre>
 <p>The module <code>circle.js</code> has exported the functions <code>area()</code> and
-<code>circumference()</code>.  To add functions and objects to the root of your module,
-you can add them to the special <code>exports</code> object.</p>
+<code>circumference()</code>. Functions and objects are added to the root of a module
+by specifying additional properties on the special <code>exports</code> object.</p>
 <p>Variables local to the module will be private, because the module is wrapped
 in a function by Node.js (see <a href="#modules_the_module_wrapper">module wrapper</a>).
 In this example, the variable <code>PI</code> is private to <code>circle.js</code>.</p>
-<p>If you want the root of your module&#39;s export to be a function (such as a
-constructor) or if you want to export a complete object in one assignment
-instead of building it one property at a time, assign it to <code>module.exports</code>
-instead of <code>exports</code>.</p>
+<p>The <code>module.exports</code> property can be assigned a new value (such as a function
+or object).</p>
 <p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a constructor:</p>
 <pre><code class="lang-js">const square = require(&#39;./square.js&#39;);
 const mySquare = square(2);
@@ -167,10 +167,8 @@ module.exports = (width) =&gt; {
 <h2>Accessing the main module<span><a class="mark" href="#modules_accessing_the_main_module" id="modules_accessing_the_main_module">#</a></span></h2>
 <!-- type=misc -->
 <p>When a file is run directly from Node.js, <code>require.main</code> is set to its
-<code>module</code>. That means that you can determine whether a file has been run
-directly by testing</p>
-<pre><code class="lang-js">require.main === module
-</code></pre>
+<code>module</code>. That means that it is possible to determine whether a file has been
+run directly by testing <code>require.main === module</code>.</p>
 <p>For a file <code>foo.js</code>, this will be <code>true</code> if run via <code>node foo.js</code>, but
 <code>false</code> if run by <code>require(&#39;./foo&#39;)</code>.</p>
 <p>Because <code>module</code> provides a <code>filename</code> property (normally equivalent to
@@ -186,10 +184,10 @@ build native packages from Node.js modules without modification.</p>
 <p>Let&#39;s say that we wanted to have the folder at
 <code>/usr/lib/node/&lt;some-package&gt;/&lt;some-version&gt;</code> hold the contents of a
 specific version of a package.</p>
-<p>Packages can depend on one another. In order to install package <code>foo</code>, you
-may have to install a specific version of package <code>bar</code>.  The <code>bar</code> package
-may itself have dependencies, and in some cases, these dependencies may even
-collide or form cycles.</p>
+<p>Packages can depend on one another. In order to install package <code>foo</code>, it
+may be necessary to install a specific version of package <code>bar</code>. The <code>bar</code>
+package may itself have dependencies, and in some cases, these may even collide
+or form cyclic dependencies.</p>
 <p>Since Node.js looks up the <code>realpath</code> of any modules it loads (that is,
 resolves symlinks), and then looks for their dependencies in the <code>node_modules</code>
 folders as described <a href="#modules_loading_from_node_modules_folders">here</a>, this
@@ -283,8 +281,8 @@ exactly the same object returned, if it would resolve to the same file.</p>
 executed multiple times.  This is an important feature.  With it,
 &quot;partially done&quot; objects can be returned, thus allowing transitive
 dependencies to be loaded even when they would cause cycles.</p>
-<p>If you want to have a module execute code multiple times, then export a
-function, and call that function.</p>
+<p>To have a module execute code multiple times, export a function, and call
+that function.</p>
 <h3>Module Caching Caveats<span><a class="mark" href="#modules_module_caching_caveats" id="modules_module_caching_caveats">#</a></span></h3>
 <!--type=misc-->
 <p>Modules are cached based on their resolved filename.  Since modules may
@@ -350,8 +348,8 @@ in a, b.done = true
 a done
 in main, a.done=true, b.done=true
 </code></pre>
-<p>If you have cyclic module dependencies in your program, make sure to
-plan accordingly.</p>
+<p>Careful planning is required to allow cyclic module dependencies to work
+correctly within an application.</p>
 <h2>File Modules<span><a class="mark" href="#modules_file_modules" id="modules_file_modules">#</a></span></h2>
 <!--type=misc-->
 <p>If the exact filename is not found, then Node.js will attempt to load the
@@ -386,9 +384,9 @@ look like this:</p>
 <code>require(&#39;./some-library&#39;)</code> would attempt to load
 <code>./some-library/lib/some-library.js</code>.</p>
 <p>This is the extent of Node.js&#39;s awareness of package.json files.</p>
-<p>Note: If the file specified by the <code>&quot;main&quot;</code> entry of <code>package.json</code> is missing
-and can not be resolved, Node.js will report the entire module as missing with
-the default error:</p>
+<p><em>Note</em>: If the file specified by the <code>&quot;main&quot;</code> entry of <code>package.json</code> is
+missing and can not be resolved, Node.js will report the entire module as
+missing with the default error:</p>
 <pre><code class="lang-txt">Error: Cannot find module &#39;some-library&#39;
 </code></pre>
 <p>If there is no package.json file present in the directory, then Node.js
@@ -419,8 +417,8 @@ this order:</p>
 </ul>
 <p>This allows programs to localize their dependencies, so that they do not
 clash.</p>
-<p>You can require specific files or sub modules distributed with a module by
-including a path suffix after the module name. For instance
+<p>It is possible to require specific files or sub modules distributed with a
+module by including a path suffix after the module name. For instance
 <code>require(&#39;example-module/path/to/file&#39;)</code> would resolve <code>path/to/file</code>
 relative to where <code>example-module</code> is located. The suffixed path follows the
 same module resolution semantics.</p>
@@ -428,8 +426,8 @@ same module resolution semantics.</p>
 <!-- type=misc -->
 <p>If the <code>NODE_PATH</code> environment variable is set to a colon-delimited list
 of absolute paths, then Node.js will search those paths for modules if they
-are not found elsewhere.  (Note: On Windows, <code>NODE_PATH</code> is delimited by
-semicolons instead of colons.)</p>
+are not found elsewhere.</p>
+<p><em>Note</em>: On Windows, <code>NODE_PATH</code> is delimited by semicolons instead of colons.</p>
 <p><code>NODE_PATH</code> was originally created to support loading modules from
 varying paths before the current <a href="#modules_all_together">module resolution</a> algorithm was frozen.</p>
 <p><code>NODE_PATH</code> is still supported, but is less necessary now that the Node.js
@@ -446,15 +444,15 @@ different module) to be loaded as the <code>NODE_PATH</code> is searched.</p>
 </ul>
 <p>Where <code>$HOME</code> is the user&#39;s home directory, and <code>$PREFIX</code> is Node.js&#39;s
 configured <code>node_prefix</code>.</p>
-<p>These are mostly for historic reasons.  <strong>You are highly encouraged
-to place your dependencies locally in <code>node_modules</code> folders.</strong>  They
-will be loaded faster, and more reliably.</p>
+<p>These are mostly for historic reasons.</p>
+<p><em>Note</em>: It is strongly encouraged to place dependencies in the local
+<code>node_modules</code> folder. These will be loaded faster, and more reliably.</p>
 <h2>The module wrapper<span><a class="mark" href="#modules_the_module_wrapper" id="modules_the_module_wrapper">#</a></span></h2>
 <!-- type=misc -->
 <p>Before a module&#39;s code is executed, Node.js will wrap it with a function
 wrapper that looks like the following:</p>
-<pre><code class="lang-js">(function (exports, require, module, __filename, __dirname) {
-// Your module code actually lives in here
+<pre><code class="lang-js">(function(exports, require, module, __filename, __dirname) {
+// Module code actually lives in here
 });
 </code></pre>
 <p>By doing this, Node.js achieves a few things:</p>
@@ -499,7 +497,7 @@ a global but rather local to each module.</p>
 not acceptable; many want their module to be an instance of some class. To do
 this, assign the desired export object to <code>module.exports</code>. Note that assigning
 the desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,
-which is probably not what you want to do.</p>
+which is probably not what is desired.</p>
 <p>For example suppose we were making a module called <code>a.js</code></p>
 <pre><code class="lang-js">const EventEmitter = require(&#39;events&#39;);
 
@@ -541,6 +539,7 @@ exports = { hello: false };  // Not exported, only available in the module
 </code></pre>
 <p>When the <code>module.exports</code> property is being completely replaced by a new
 object, it is common to also reassign <code>exports</code>, for example:</p>
+<!-- eslint-disable func-name-matching -->
 <pre><code class="lang-js">module.exports = exports = function Constructor() {
   // ... etc.
 };
@@ -550,7 +549,7 @@ object, it is common to also reassign <code>exports</code>, for example:</p>
 <pre><code class="lang-js">function require(/* ... */) {
   const module = { exports: {} };
   ((module, exports) =&gt; {
-    // Your module code here. In this example, define a function.
+    // Module code here. In this example, define a function.
     function someFunc() {}
     exports = someFunc;
     // At this point, exports is no longer a shortcut to module.exports, and
@@ -601,10 +600,10 @@ loading.</p>
 </ul>
 <p>The <code>module.require</code> method provides a way to load a module as if
 <code>require()</code> was called from the original module.</p>
-<p>Note that in order to do this, you must get a reference to the <code>module</code>
-object.  Since <code>require()</code> returns the <code>module.exports</code>, and the <code>module</code> is
-typically <em>only</em> available within a specific module&#39;s code, it must be
-explicitly exported in order to be used.</p>
+<p><em>Note</em>: In order to do this, it is necessary to get a reference to the
+<code>module</code> object.  Since <code>require()</code> returns the <code>module.exports</code>, and the
+<code>module</code> is typically <em>only</em> available within a specific module&#39;s code, it must
+be explicitly exported in order to be used.</p>
 
       </div>
     </div>

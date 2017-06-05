@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 require('../common');
 const assert = require('assert');
@@ -36,6 +57,8 @@ assert.strictEqual(util.format('%d', '42.0'), '42');
 assert.strictEqual(util.format('%d', 1.5), '1.5');
 assert.strictEqual(util.format('%d', -0.5), '-0.5');
 assert.strictEqual(util.format('%d', ''), '0');
+assert.strictEqual(util.format('%d %d', 42, 43), '42 43');
+assert.strictEqual(util.format('%d %d', 42), '42 %d');
 
 // Integer format specifier
 assert.strictEqual(util.format('%i'), '%i');
@@ -46,6 +69,8 @@ assert.strictEqual(util.format('%i', '42.0'), '42');
 assert.strictEqual(util.format('%i', 1.5), '1');
 assert.strictEqual(util.format('%i', -0.5), '0');
 assert.strictEqual(util.format('%i', ''), 'NaN');
+assert.strictEqual(util.format('%i %i', 42, 43), '42 43');
+assert.strictEqual(util.format('%i %i', 42), '42 %i');
 
 // Float format specifier
 assert.strictEqual(util.format('%f'), '%f');
@@ -57,6 +82,8 @@ assert.strictEqual(util.format('%f', 1.5), '1.5');
 assert.strictEqual(util.format('%f', -0.5), '-0.5');
 assert.strictEqual(util.format('%f', Math.PI), '3.141592653589793');
 assert.strictEqual(util.format('%f', ''), 'NaN');
+assert.strictEqual(util.format('%f %f', 42, 43), '42 43');
+assert.strictEqual(util.format('%f %f', 42), '42 %f');
 
 // String format specifier
 assert.strictEqual(util.format('%s'), '%s');
@@ -64,11 +91,15 @@ assert.strictEqual(util.format('%s', undefined), 'undefined');
 assert.strictEqual(util.format('%s', 'foo'), 'foo');
 assert.strictEqual(util.format('%s', 42), '42');
 assert.strictEqual(util.format('%s', '42'), '42');
+assert.strictEqual(util.format('%s %s', 42, 43), '42 43');
+assert.strictEqual(util.format('%s %s', 42), '42 %s');
 
 // JSON format specifier
 assert.strictEqual(util.format('%j'), '%j');
 assert.strictEqual(util.format('%j', 42), '42');
 assert.strictEqual(util.format('%j', '42'), '"42"');
+assert.strictEqual(util.format('%j %j', 42, 43), '42 43');
+assert.strictEqual(util.format('%j %j', 42), '42 %j');
 
 // Various format specifiers
 assert.strictEqual(util.format('%%s%s', 'foo'), '%sfoo');
@@ -91,6 +122,16 @@ assert.strictEqual(util.format('o: %j, a: %j'), 'o: %j, a: %j');
   const o = {};
   o.o = o;
   assert.strictEqual(util.format('%j', o), '[Circular]');
+}
+
+{
+  const o = {
+    toJSON() {
+      throw new Error('Not a circular object but still not serializable');
+    }
+  };
+  assert.throws(() => util.format('%j', o),
+                /^Error: Not a circular object but still not serializable$/);
 }
 
 // Errors

@@ -71,7 +71,7 @@
         "changes": []
       },
       "type": "global",
-      "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. That means that in\nbrowsers if you&#39;re in the global scope <code>var something</code> will define a global\nvariable. In Node.js this is different. The top-level scope is not the global\nscope; <code>var something</code> inside an Node.js module will be local to that module.</p>\n"
+      "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>\n"
     },
     {
       "textRaw": "process",
@@ -311,7 +311,7 @@
             "changes": []
           },
           "type": "global",
-          "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. That means that in\nbrowsers if you&#39;re in the global scope <code>var something</code> will define a global\nvariable. In Node.js this is different. The top-level scope is not the global\nscope; <code>var something</code> inside an Node.js module will be local to that module.</p>\n"
+          "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>\n"
         },
         {
           "textRaw": "process",

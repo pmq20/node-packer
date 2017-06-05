@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Process | Node.js v7.10.0 Documentation</title>
+  <title>Process | Node.js v8.0.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -25,7 +25,8 @@
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
-<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
 <li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
 <li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
 <li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
@@ -41,6 +42,7 @@
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -74,7 +76,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v7.10.0 Documentation</h1>
+        <h1>Node.js v8.0.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -118,7 +120,8 @@
 <li><span class="stability_undefined"><a href="#process_process_cpuusage_previousvalue">process.cpuUsage([previousValue])</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_cwd">process.cwd()</a></span></li>
 <li><span class="stability_undefined"><a href="#process_process_disconnect">process.disconnect()</a></span></li>
-<li><span class="stability_undefined"><a href="#process_process_emitwarning_warning_name_ctor">process.emitWarning(warning[, name][, ctor])</a></span><ul>
+<li><span class="stability_undefined"><a href="#process_process_emitwarning_warning_options">process.emitWarning(warning[, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#process_process_emitwarning_warning_type_code_ctor">process.emitWarning(warning[, type[, code]][, ctor])</a></span><ul>
 <li><span class="stability_undefined"><a href="#process_avoiding_duplicate_warnings">Avoiding duplicate warnings</a></span></li>
 </ul>
 </li>
@@ -284,7 +287,7 @@ behavior.</p>
 argument.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.on(&#39;uncaughtException&#39;, (err) =&gt; {
-  fs.writeSync(1, `Caught exception: ${err}`);
+  fs.writeSync(1, `Caught exception: ${err}\n`);
 });
 
 setTimeout(() =&gt; {
@@ -346,7 +349,7 @@ rejections have not yet been handled.</p>
 </ul>
 <p>For example:</p>
 <pre><code class="lang-js">process.on(&#39;unhandledRejection&#39;, (reason, p) =&gt; {
-  console.log(&#39;Unhandled Rejection at: Promise&#39;, p, &#39;reason:&#39;, reason);
+  console.log(&#39;Unhandled Rejection at:&#39;, p, &#39;reason:&#39;, reason);
   // application specific logging, throwing an error, or other logic here
 });
 
@@ -361,7 +364,7 @@ emitted:</p>
   this.loaded = Promise.reject(new Error(&#39;Resource not yet loaded!&#39;));
 }
 
-var resource = new SomeResource();
+const resource = new SomeResource();
 // no .catch or .then on resource.loaded for at least a turn
 </code></pre>
 <p>In this example case, it is possible to track the rejection as a developer error
@@ -402,13 +405,13 @@ too many listeners have been added to an event</p>
 &gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
-&gt; (node:38638) Warning: Possible EventEmitter memory leak detected. 2 foo
-... listeners added. Use emitter.setMaxListeners() to increase limit
+&gt; (node:38638) MaxListenersExceededWarning: Possible EventEmitter memory leak
+detected. 2 foo listeners added. Use emitter.setMaxListeners() to increase limit
 </code></pre>
 <p>In contrast, the following example turns off the default warning output and
 adds a custom handler to the <code>&#39;warning&#39;</code> event:</p>
 <pre><code class="lang-txt">$ node --no-warnings
-&gt; var p = process.on(&#39;warning&#39;, (warning) =&gt; console.warn(&#39;Do not do that!&#39;));
+&gt; const p = process.on(&#39;warning&#39;, (warning) =&gt; console.warn(&#39;Do not do that!&#39;));
 &gt; events.defaultMaxListeners = 1;
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
 &gt; process.on(&#39;foo&#39;, () =&gt; {});
@@ -519,11 +522,11 @@ process.argv.forEach((val, index) =&gt; {
 });
 </code></pre>
 <p>Launching the Node.js process as:</p>
-<pre><code class="lang-console">$ node process-2.js one two=three four
+<pre><code class="lang-console">$ node process-args.js one two=three four
 </code></pre>
 <p>Would generate the output:</p>
 <pre><code class="lang-text">0: /usr/local/bin/node
-1: /Users/mjr/work/node/process-2.js
+1: /Users/mjr/work/node/process-args.js
 2: one
 3: two=three
 4: four
@@ -562,9 +565,8 @@ the specified <code>directory</code> does not exist).</p>
 try {
   process.chdir(&#39;/tmp&#39;);
   console.log(`New directory: ${process.cwd()}`);
-}
-catch (err) {
-  console.log(`chdir: ${err}`);
+} catch (err) {
+  console.error(`chdir: ${err}`);
 }
 </code></pre>
 <h2>process.config<span><a class="mark" href="#process_process_config" id="process_process_config">#</a></span></h2>
@@ -578,7 +580,8 @@ representation of the configure options used to compile the current Node.js
 executable. This is the same as the <code>config.gypi</code> file that was produced when
 running the <code>./configure</code> script.</p>
 <p>An example of the possible output looks like:</p>
-<pre><code class="lang-txt">{
+<!-- eslint-disable -->
+<pre><code class="lang-js">{
   target_defaults:
    { cflags: [],
      default_configuration: &#39;Release&#39;,
@@ -668,13 +671,54 @@ once there are no other connections keeping it alive.</p>
 process&#39;s <a href="child_process.html#child_process_child_disconnect"><code>ChildProcess.disconnect()</code></a>.</p>
 <p>If the Node.js process was not spawned with an IPC channel,
 <code>process.disconnect()</code> will be <code>undefined</code>.</p>
-<h2>process.emitWarning(warning[, name][, ctor])<span><a class="mark" href="#process_process_emitwarning_warning_name_ctor" id="process_process_emitwarning_warning_name_ctor">#</a></span></h2>
+<h2>process.emitWarning(warning[, options])<span><a class="mark" href="#process_process_emitwarning_warning_options" id="process_process_emitwarning_warning_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: 8.0.0</span>
+</div><ul>
+<li><code>warning</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
+for the <em>type</em> of warning being emitted. Default: <code>Warning</code>.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
+<li><code>ctor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
+function used to limit the generated stack trace. Default
+<code>process.emitWarning</code></li>
+<li><code>detail</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Additional text to include with the error.</li>
+</ul>
+</li>
+</ul>
+<p>The <code>process.emitWarning()</code> method can be used to emit custom or application
+specific process warnings. These can be listened for by adding a handler to the
+<a href="#process_event_warning"><code>process.on(&#39;warning&#39;)</code></a> event.</p>
+<pre><code class="lang-js">// Emit a warning with a code and additional detail.
+process.emitWarning(&#39;Something happened!&#39;, {
+  code: &#39;MY_WARNING&#39;,
+  detail: &#39;This is some additional information&#39;
+});
+// Emits:
+// (node:56338) [MY_WARNING] Warning: Something happened!
+// This is some additional information
+</code></pre>
+<p>In this example, an <code>Error</code> object is generated internally by
+<code>process.emitWarning()</code> and passed through to the
+<a href="#process_event_warning"><code>process.on(&#39;warning&#39;)</code></a> event.</p>
+<pre><code class="lang-js">process.on(&#39;warning&#39;, (warning) =&gt; {
+  console.warn(warning.name);    // &#39;Warning&#39;
+  console.warn(warning.message); // &#39;Something happened!&#39;
+  console.warn(warning.code);    // &#39;MY_WARNING&#39;
+  console.warn(warning.stack);   // Stack trace
+  console.warn(warning.detail);  // &#39;This is some additional information&#39;
+});
+</code></pre>
+<p>If <code>warning</code> is passed as an <code>Error</code> object, the <code>options</code> argument is ignored.</p>
+<h2>process.emitWarning(warning[, type[, code]][, ctor])<span><a class="mark" href="#process_process_emitwarning_warning_type_code_ctor" id="process_process_emitwarning_warning_type_code_ctor">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
 <li><code>warning</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>name</code> is the name to use
-for the warning. Default: <code>Warning</code>.</li>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
+for the <em>type</em> of warning being emitted. Default: <code>Warning</code>.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
 <li><code>ctor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
 function used to limit the generated stack trace. Default
 <code>process.emitWarning</code></li>
@@ -682,13 +726,16 @@ function used to limit the generated stack trace. Default
 <p>The <code>process.emitWarning()</code> method can be used to emit custom or application
 specific process warnings. These can be listened for by adding a handler to the
 <a href="#process_event_warning"><code>process.on(&#39;warning&#39;)</code></a> event.</p>
-<pre><code class="lang-js">// Emit a warning using a string...
+<pre><code class="lang-js">// Emit a warning using a string.
 process.emitWarning(&#39;Something happened!&#39;);
 // Emits: (node: 56338) Warning: Something happened!
 </code></pre>
-<pre><code class="lang-js">// Emit a warning using a string and a name...
+<pre><code class="lang-js">// Emit a warning using a string and a type.
 process.emitWarning(&#39;Something Happened!&#39;, &#39;CustomWarning&#39;);
 // Emits: (node:56338) CustomWarning: Something Happened!
+</code></pre>
+<pre><code class="lang-js">process.emitWarning(&#39;Something happened!&#39;, &#39;CustomWarning&#39;, &#39;WARN001&#39;);
+// Emits: (node:56338) [WARN001] CustomWarning: Something happened!
 </code></pre>
 <p>In each of the previous examples, an <code>Error</code> object is generated internally by
 <code>process.emitWarning()</code> and passed through to the
@@ -696,24 +743,27 @@ process.emitWarning(&#39;Something Happened!&#39;, &#39;CustomWarning&#39;);
 <pre><code class="lang-js">process.on(&#39;warning&#39;, (warning) =&gt; {
   console.warn(warning.name);
   console.warn(warning.message);
+  console.warn(warning.code);
   console.warn(warning.stack);
 });
 </code></pre>
 <p>If <code>warning</code> is passed as an <code>Error</code> object, it will be passed through to the
-<code>process.on(&#39;warning&#39;)</code> event handler unmodified (and the optional <code>name</code>
-and <code>ctor</code> arguments will be ignored):</p>
-<pre><code class="lang-js">// Emit a warning using an Error object...
-const myWarning = new Error(&#39;Warning! Something happened!&#39;);
+<code>process.on(&#39;warning&#39;)</code> event handler unmodified (and the optional <code>type</code>,
+<code>code</code> and <code>ctor</code> arguments will be ignored):</p>
+<pre><code class="lang-js">// Emit a warning using an Error object.
+const myWarning = new Error(&#39;Something happened!&#39;);
+// Use the Error name property to specify the type name
 myWarning.name = &#39;CustomWarning&#39;;
+myWarning.code = &#39;WARN001&#39;;
 
 process.emitWarning(myWarning);
-// Emits: (node:56338) CustomWarning: Warning! Something Happened!
+// Emits: (node:56338) [WARN001] CustomWarning: Something happened!
 </code></pre>
 <p>A <code>TypeError</code> is thrown if <code>warning</code> is anything other than a string or <code>Error</code>
 object.</p>
 <p>Note that while process warnings use <code>Error</code> objects, the process warning
 mechanism is <strong>not</strong> a replacement for normal error handling mechanisms.</p>
-<p>The following additional handling is implemented if the warning <code>name</code> is
+<p>The following additional handling is implemented if the warning <code>type</code> is
 <code>DeprecationWarning</code>:</p>
 <ul>
 <li>If the <code>--throw-deprecation</code> command-line flag is used, the deprecation
@@ -747,6 +797,7 @@ emitMyWarning();
 <p>The <code>process.env</code> property returns an object containing the user environment.
 See <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
 <p>An example of this object looks like:</p>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   TERM: &#39;xterm-256color&#39;,
   SHELL: &#39;/usr/local/bin/bash&#39;,
@@ -808,9 +859,11 @@ the same execution environment as the parent.</p>
 <pre><code class="lang-console">$ node --harmony script.js --version
 </code></pre>
 <p>Results in <code>process.execArgv</code>:</p>
+<!-- eslint-disable semi -->
 <pre><code class="lang-js">[&#39;--harmony&#39;]
 </code></pre>
 <p>And <code>process.argv</code>:</p>
+<!-- eslint-disable semi -->
 <pre><code class="lang-js">[&#39;/usr/local/bin/node&#39;, &#39;script.js&#39;, &#39;--version&#39;]
 </code></pre>
 <h2>process.execPath<span><a class="mark" href="#process_process_execpath" id="process_process_execpath">#</a></span></h2>
@@ -822,6 +875,7 @@ the same execution environment as the parent.</p>
 <p>The <code>process.execPath</code> property returns the absolute pathname of the executable
 that started the Node.js process.</p>
 <p>For example:</p>
+<!-- eslint-disable semi -->
 <pre><code class="lang-js">&#39;/usr/local/bin/node&#39;
 </code></pre>
 <h2>process.exit([code])<span><a class="mark" href="#process_process_exit_code" id="process_process_exit_code">#</a></span></h2>
@@ -894,7 +948,7 @@ of the Node.js process. (See <a href="http://man7.org/linux/man-pages/man2/geteg
 }
 </code></pre>
 <p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
-or Android)</p>
+or Android).</p>
 <h2>process.geteuid()<span><a class="mark" href="#process_process_geteuid" id="process_process_geteuid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
@@ -907,8 +961,8 @@ the process. (See <a href="http://man7.org/linux/man-pages/man2/geteuid.2.html">
   console.log(`Current uid: ${process.geteuid()}`);
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.getgid()<span><a class="mark" href="#process_process_getgid" id="process_process_getgid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
@@ -921,8 +975,8 @@ process. (See <a href="http://man7.org/linux/man-pages/man2/getgid.2.html">getgi
   console.log(`Current gid: ${process.getgid()}`);
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.getgroups()<span><a class="mark" href="#process_process_getgroups" id="process_process_getgroups">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -932,8 +986,8 @@ Android)</p>
 <p>The <code>process.getgroups()</code> method returns an array with the supplementary group
 IDs. POSIX leaves it unspecified if the effective group ID is included but
 Node.js ensures it always is.</p>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.getuid()<span><a class="mark" href="#process_process_getuid" id="process_process_getuid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.28</span>
@@ -946,33 +1000,38 @@ Android)</p>
   console.log(`Current uid: ${process.getuid()}`);
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.hrtime([time])<span><a class="mark" href="#process_process_hrtime_time" id="process_process_hrtime_time">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.6</span>
-</div><p>The <code>process.hrtime()</code> method returns the current high-resolution real time in a
-<code>[seconds, nanoseconds]</code> tuple Array. <code>time</code> is an optional parameter that must
-be the result of a previous <code>process.hrtime()</code> call (and therefore, a real time
-in a <code>[seconds, nanoseconds]</code> tuple Array containing a previous time) to diff
-with the current time. These times are relative to an arbitrary time in the
+</div><ul>
+<li><code>time</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> The result of a previous call to <code>process.hrtime()</code></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>The <code>process.hrtime()</code> method returns the current high-resolution real time
+in a <code>[seconds, nanoseconds]</code> tuple Array, where <code>nanoseconds</code> is the
+remaining part of the real time that can&#39;t be represented in second precision.</p>
+<p><code>time</code> is an optional parameter that must be the result of a previous
+<code>process.hrtime()</code> call to diff with the current time. If the parameter
+passed in is not a tuple Array, a <code>TypeError</code> will be thrown. Passing in a
+user-defined array instead of the result of a previous call to
+<code>process.hrtime()</code> will lead to undefined behavior.</p>
+<p>These times are relative to an arbitrary time in the
 past, and not related to the time of day and therefore not subject to clock
-drift. The primary use is for measuring performance between intervals.</p>
-<p>Passing in the result of a previous call to <code>process.hrtime()</code> is useful for
-calculating an amount of time passed between calls:</p>
-<pre><code class="lang-js">var time = process.hrtime();
+drift. The primary use is for measuring performance between intervals:</p>
+<pre><code class="lang-js">const NS_PER_SEC = 1e9;
+const time = process.hrtime();
 // [ 1800216, 25 ]
 
 setTimeout(() =&gt; {
-  var diff = process.hrtime(time);
+  const diff = process.hrtime(time);
   // [ 1, 552 ]
 
-  console.log(`Benchmark took ${diff[0] * 1e9 + diff[1]} nanoseconds`);
-  // benchmark took 1000000527 nanoseconds
+  console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
+  // benchmark took 1000000552 nanoseconds
 }, 1000);
 </code></pre>
-<p>Constructing an array by some method other than calling <code>process.hrtime()</code> and
-passing the result to process.hrtime() will result in undefined behavior.</p>
 <h2>process.initgroups(user, extra_group)<span><a class="mark" href="#process_process_initgroups_user_extra_group" id="process_process_initgroups_user_extra_group">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -991,8 +1050,8 @@ console.log(process.getgroups());         // [ 27, 30, 46, 1000, 0 ]
 process.setgid(1000);                     // drop root gid
 console.log(process.getgroups());         // [ 27, 30, 46, 1000 ]
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.kill(pid[, signal])<span><a class="mark" href="#process_process_kill_pid_signal" id="process_process_kill_pid_signal">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.0.6</span>
@@ -1009,9 +1068,9 @@ and <a href="http://man7.org/linux/man-pages/man2/kill.2.html">kill(2)</a> for m
 case, a signal of <code>0</code> can be used to test for the existence of a process.
 Windows platforms will throw an error if the <code>pid</code> is used to kill a process
 group.</p>
-<p><em>Note</em>:Even though the name of this function is <code>process.kill()</code>, it is really
-just a signal sender, like the <code>kill</code> system call.  The signal sent may do
-something other than kill the target process.</p>
+<p><em>Note</em>: Even though the name of this function is <code>process.kill()</code>, it is
+really just a signal sender, like the <code>kill</code> system call.  The signal sent may
+do something other than kill the target process.</p>
 <p>For example:</p>
 <pre><code class="lang-js">process.on(&#39;SIGHUP&#39;, () =&gt; {
   console.log(&#39;Got SIGHUP signal.&#39;);
@@ -1024,8 +1083,8 @@ setTimeout(() =&gt; {
 
 process.kill(process.pid, &#39;SIGHUP&#39;);
 </code></pre>
-<p><em>Note</em>: When <code>SIGUSR1</code> is received by a Node.js process, Node.js will start the
-debugger, see <a href="#process_signal_events">Signal Events</a>.</p>
+<p><em>Note</em>: When <code>SIGUSR1</code> is received by a Node.js process, Node.js will start
+the debugger, see <a href="#process_signal_events">Signal Events</a>.</p>
 <h2>process.mainModule<span><a class="mark" href="#process_process_mainmodule" id="process_process_mainmodule">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
@@ -1064,6 +1123,7 @@ of the Node.js process measured in bytes.</p>
 <pre><code class="lang-js">console.log(process.memoryUsage());
 </code></pre>
 <p>Will generate:</p>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   rss: 4935680,
   heapTotal: 1826816,
@@ -1118,7 +1178,7 @@ I/O has occurred:</p>
   });
 }
 
-var thing = new MyThing();
+const thing = new MyThing();
 thing.getReadyForStuff();
 
 // thing.startDoingStuff() gets called now, not before.
@@ -1155,7 +1215,7 @@ bar();
   fs.stat(&#39;file&#39;, cb);
 }
 </code></pre>
-<p><em>Note</em>: the next tick queue is completely drained on each pass of the
+<p><em>Note</em>: The next tick queue is completely drained on each pass of the
 event loop <strong>before</strong> additional I/O is processed.  As a result,
 recursively setting nextTick callbacks will block any I/O from
 happening, just like a <code>while(true);</code> loop.</p>
@@ -1213,6 +1273,7 @@ builds of Node.js and will be missing on all other platforms.</em></li>
 If the Node.js release is not an LTS release, this will be <code>undefined</code>.</li>
 </ul>
 <p>For example:</p>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   name: &#39;node&#39;,
   lts: &#39;Argon&#39;,
@@ -1240,7 +1301,7 @@ used to send messages to the parent process. Messages will be received as a
 <p>If Node.js was not spawned with an IPC channel, <code>process.send()</code> will be
 <code>undefined</code>.</p>
 <p><em>Note</em>: This function uses <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a> internally to serialize the
-<code>message</code>.*</p>
+<code>message</code>.</p>
 <h2>process.setegid(id)<span><a class="mark" href="#process_process_setegid_id" id="process_process_setegid_id">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
@@ -1256,14 +1317,13 @@ the associated a numeric ID.</p>
   try {
     process.setegid(501);
     console.log(`New gid: ${process.getegid()}`);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`Failed to set gid: ${err}`);
   }
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.seteuid(id)<span><a class="mark" href="#process_process_seteuid_id" id="process_process_seteuid_id">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
@@ -1279,14 +1339,13 @@ associated numeric ID.</p>
   try {
     process.seteuid(501);
     console.log(`New uid: ${process.geteuid()}`);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`Failed to set uid: ${err}`);
   }
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.setgid(id)<span><a class="mark" href="#process_process_setgid_id" id="process_process_setgid_id">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
@@ -1302,14 +1361,13 @@ associated numeric ID.</p>
   try {
     process.setgid(501);
     console.log(`New gid: ${process.getgid()}`);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`Failed to set gid: ${err}`);
   }
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.setgroups(groups)<span><a class="mark" href="#process_process_setgroups_groups" id="process_process_setgroups_groups">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -1320,8 +1378,8 @@ Android)</p>
 Node.js process. This is a privileged operation that requires the Node.js process
 to have <code>root</code> or the <code>CAP_SETGID</code> capability.</p>
 <p>The <code>groups</code> array can contain numeric group IDs, group names or both.</p>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.setuid(id)<span><a class="mark" href="#process_process_setuid_id" id="process_process_setuid_id">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.28</span>
@@ -1334,14 +1392,13 @@ numeric ID.</p>
   try {
     process.setuid(501);
     console.log(`New uid: ${process.getuid()}`);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`Failed to set uid: ${err}`);
   }
 }
 </code></pre>
-<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows or
-Android)</p>
+<p><em>Note</em>: This function is only available on POSIX platforms (i.e. not Windows
+or Android).</p>
 <h2>process.stderr<span><a class="mark" href="#process_process_stderr" id="process_process_stderr">#</a></span></h2>
 <div class="signature"><ul>
 <li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
@@ -1350,7 +1407,7 @@ Android)</p>
 <code>stderr</code> (fd <code>2</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
 stream) unless fd <code>2</code> refers to a file, in which case it is
 a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
-<p>Note: <code>process.stderr</code> differs from other Node.js streams in important ways,
+<p><em>Note</em>: <code>process.stderr</code> differs from other Node.js streams in important ways,
 see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <div class="signature"><ul>
@@ -1364,7 +1421,7 @@ a <a href="stream.html#stream_readable_streams">Readable</a> stream.</p>
 <pre><code class="lang-js">process.stdin.setEncoding(&#39;utf8&#39;);
 
 process.stdin.on(&#39;readable&#39;, () =&gt; {
-  var chunk = process.stdin.read();
+  const chunk = process.stdin.read();
   if (chunk !== null) {
     process.stdout.write(`data: ${chunk}`);
   }
@@ -1391,7 +1448,7 @@ a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 <p>For example, to copy process.stdin to process.stdout:</p>
 <pre><code class="lang-js">process.stdin.pipe(process.stdout);
 </code></pre>
-<p>Note: <code>process.stdout</code> differs from other Node.js streams in important ways,
+<p><em>Note</em>: <code>process.stdout</code> differs from other Node.js streams in important ways,
 see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h3>A note on process I/O<span><a class="mark" href="#process_a_note_on_process_i_o" id="process_a_note_on_process_i_o">#</a></span></h3>
 <p><code>process.stdout</code> and <code>process.stderr</code> differ from other Node.js streams in
@@ -1409,7 +1466,7 @@ and whether the system is Windows or Unix:<ul>
 </ul>
 </li>
 </ol>
-<p>These behaviours are partly for historical reasons, as changing them would
+<p>These behaviors are partly for historical reasons, as changing them would
 create backwards incompatibility, but they are also expected by some users.</p>
 <p>Synchronous writes avoid problems such as output written with <code>console.log()</code> or
 <code>console.error()</code> being unexpectedly interleaved, or not written at all if
@@ -1445,14 +1502,14 @@ false
 <p>The <code>process.title</code> property returns the current process title (i.e. returns
 the current value of <code>ps</code>). Assigning a new value to <code>process.title</code> modifies
 the current value of <code>ps</code>.</p>
-<p><em>Note</em>: When a new value is assigned, different platforms will impose different
-maximum length restrictions on the title. Usually such restrictions are quite
-limited. For instance, on Linux and OS X, <code>process.title</code> is limited to the size
-of the binary name plus the length of the command line arguments because setting
-the <code>process.title</code> overwrites the <code>argv</code> memory of the process. Node.js v0.8
-allowed for longer process title strings by also overwriting the <code>environ</code>
-memory but that was potentially insecure and confusing in some (rather obscure)
-cases.</p>
+<p><em>Note</em>: When a new value is assigned, different platforms will impose
+different maximum length restrictions on the title. Usually such restrictions
+are quite limited. For instance, on Linux and macOS, <code>process.title</code> is limited
+to the size of the binary name plus the length of the command line arguments
+because setting the <code>process.title</code> overwrites the <code>argv</code> memory of the
+process.  Node.js v0.8 allowed for longer process title strings by also
+overwriting the <code>environ</code> memory but that was potentially insecure and
+confusing in some (rather obscure) cases.</p>
 <h2>process.umask([mask])<span><a class="mark" href="#process_process_umask_mask" id="process_process_umask_mask">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.19</span>
@@ -1477,7 +1534,7 @@ console.log(
 </ul>
 <p>The <code>process.uptime()</code> method returns the number of seconds the current Node.js
 process has been running.</p>
-<p><em>Note</em>: the return value includes fractions of a second. Use <code>Math.floor()</code>
+<p><em>Note</em>: The return value includes fractions of a second. Use <code>Math.floor()</code>
 to get whole seconds.</p>
 <h2>process.version<span><a class="mark" href="#process_process_version" id="process_process_version">#</a></span></h2>
 <div class="api_metadata">
@@ -1511,6 +1568,7 @@ to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate an object similar to:</p>
+<!-- eslint-disable -->
 <pre><code class="lang-js">{
   http_parser: &#39;2.3.0&#39;,
   node: &#39;1.1.1&#39;,
@@ -1561,9 +1619,8 @@ or an option requiring a value was provided without a value.</li>
 source code internal in Node.js&#39;s bootstrapping process threw an error
 when the bootstrapping function was called.  This is extremely rare,
 and generally can only happen during development of Node.js itself.</li>
-<li><code>12</code> <strong>Invalid Debug Argument</strong> - The <code>--debug</code>, <code>--inspect</code> and/or
-<code>--debug-brk</code> options were set, but the port number chosen was invalid
-or unavailable.</li>
+<li><code>12</code> <strong>Invalid Debug Argument</strong> - The <code>--inspect</code> and/or <code>--inspect-brk</code>
+options were set, but the port number chosen was invalid or unavailable.</li>
 <li><code>&gt;128</code> <strong>Signal Exits</strong> - If Node.js receives a fatal signal such as
 <code>SIGKILL</code> or <code>SIGHUP</code>, then its exit code will be <code>128</code> plus the
 value of the signal code.  This is a standard Unix practice, since

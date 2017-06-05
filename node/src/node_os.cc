@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "node.h"
 #include "v8.h"
 #include "env.h"
@@ -336,36 +357,43 @@ static void GetUserInfo(const FunctionCallbackInfo<Value>& args) {
     return env->ThrowUVException(err, "uv_os_get_passwd");
   }
 
+  Local<Value> error;
+
   Local<Value> uid = Number::New(env->isolate(), pwd.uid);
   Local<Value> gid = Number::New(env->isolate(), pwd.gid);
-  Local<Value> username = StringBytes::Encode(env->isolate(),
-                                              pwd.username,
-                                              encoding);
-  Local<Value> homedir = StringBytes::Encode(env->isolate(),
-                                             pwd.homedir,
-                                             encoding);
-  Local<Value> shell;
+  MaybeLocal<Value> username = StringBytes::Encode(env->isolate(),
+                                                   pwd.username,
+                                                   encoding,
+                                                   &error);
+  MaybeLocal<Value> homedir = StringBytes::Encode(env->isolate(),
+                                                  pwd.homedir,
+                                                  encoding,
+                                                  &error);
+  MaybeLocal<Value> shell;
 
   if (pwd.shell == NULL)
     shell = Null(env->isolate());
   else
-    shell = StringBytes::Encode(env->isolate(), pwd.shell, encoding);
+    shell = StringBytes::Encode(env->isolate(), pwd.shell, encoding, &error);
 
   uv_os_free_passwd(&pwd);
 
   if (username.IsEmpty()) {
+    // TODO(addaleax): Use `error` itself here.
     return env->ThrowUVException(UV_EINVAL,
                                  "uv_os_get_passwd",
                                  "Invalid character encoding for username");
   }
 
   if (homedir.IsEmpty()) {
+    // TODO(addaleax): Use `error` itself here.
     return env->ThrowUVException(UV_EINVAL,
                                  "uv_os_get_passwd",
                                  "Invalid character encoding for homedir");
   }
 
   if (shell.IsEmpty()) {
+    // TODO(addaleax): Use `error` itself here.
     return env->ThrowUVException(UV_EINVAL,
                                  "uv_os_get_passwd",
                                  "Invalid character encoding for shell");
@@ -375,9 +403,9 @@ static void GetUserInfo(const FunctionCallbackInfo<Value>& args) {
 
   entry->Set(env->uid_string(), uid);
   entry->Set(env->gid_string(), gid);
-  entry->Set(env->username_string(), username);
-  entry->Set(env->homedir_string(), homedir);
-  entry->Set(env->shell_string(), shell);
+  entry->Set(env->username_string(), username.ToLocalChecked());
+  entry->Set(env->homedir_string(), homedir.ToLocalChecked());
+  entry->Set(env->shell_string(), shell.ToLocalChecked());
 
   args.GetReturnValue().Set(entry);
 }

@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #ifndef SRC_ASYNC_WRAP_INL_H_
 #define SRC_ASYNC_WRAP_INL_H_
 
@@ -15,18 +36,18 @@
 
 namespace node {
 
-inline bool AsyncWrap::ran_init_callback() const {
-  return static_cast<bool>(bits_ & 1);
-}
-
-
 inline AsyncWrap::ProviderType AsyncWrap::provider_type() const {
-  return static_cast<ProviderType>(bits_ >> 1);
+  return provider_type_;
 }
 
 
-inline int64_t AsyncWrap::get_uid() const {
-  return uid_;
+inline double AsyncWrap::get_id() const {
+  return async_id_;
+}
+
+
+inline double AsyncWrap::get_trigger_id() const {
+  return trigger_id_;
 }
 
 

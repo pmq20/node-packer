@@ -1,12 +1,27 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 var domain;
-
-// This constructor is used to store event handlers. Instantiating this is
-// faster than explicitly calling `Object.create(null)` to get a "clean" empty
-// object (tested with v8 v4.9).
-function EventHandlers() {}
-EventHandlers.prototype = Object.create(null);
 
 function EventEmitter() {
   EventEmitter.init.call(this);
@@ -35,6 +50,10 @@ Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
     // force global console to be compiled.
     // see https://github.com/nodejs/node/issues/4467
     console;
+    // check whether the input is a positive number (whose value is zero or
+    // greater and not a NaN).
+    if (typeof arg !== 'number' || arg < 0 || arg !== arg)
+      throw new TypeError('"defaultMaxListeners" must be a positive number');
     defaultMaxListeners = arg;
   }
 });
@@ -50,7 +69,7 @@ EventEmitter.init = function() {
   }
 
   if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
-    this._events = new EventHandlers();
+    this._events = Object.create(null);
     this._eventsCount = 0;
   }
 
@@ -152,7 +171,7 @@ EventEmitter.prototype.emit = function emit(type) {
       er = arguments[1];
     if (domain) {
       if (!er)
-        er = new Error('Uncaught, unspecified "error" event');
+        er = new Error('Unhandled "error" event');
       if (typeof er === 'object' && er !== null) {
         er.domainEmitter = this;
         er.domain = domain;
@@ -163,7 +182,7 @@ EventEmitter.prototype.emit = function emit(type) {
       throw er; // Unhandled 'error' event
     } else {
       // At least give some kind of context to the user
-      var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+      const err = new Error('Unhandled "error" event. (' + er + ')');
       err.context = er;
       throw err;
     }
@@ -220,7 +239,7 @@ function _addListener(target, type, listener, prepend) {
 
   events = target._events;
   if (!events) {
-    events = target._events = new EventHandlers();
+    events = target._events = Object.create(null);
     target._eventsCount = 0;
   } else {
     // To avoid recursion in the case that type === "newListener"! Before
@@ -335,7 +354,7 @@ EventEmitter.prototype.removeListener =
 
       if (list === listener || list.listener === listener) {
         if (--this._eventsCount === 0)
-          this._events = new EventHandlers();
+          this._events = Object.create(null);
         else {
           delete events[type];
           if (events.removeListener)
@@ -355,22 +374,13 @@ EventEmitter.prototype.removeListener =
         if (position < 0)
           return this;
 
-        if (list.length === 1) {
-          if (--this._eventsCount === 0) {
-            this._events = new EventHandlers();
-            return this;
-          } else {
-            delete events[type];
-          }
-        } else if (position === 0) {
+        if (position === 0)
           list.shift();
-          if (list.length === 1)
-            events[type] = list[0];
-        } else {
+        else
           spliceOne(list, position);
-          if (list.length === 1)
-            events[type] = list[0];
-        }
+
+        if (list.length === 1)
+          events[type] = list[0];
 
         if (events.removeListener)
           this.emit('removeListener', type, originalListener || listener);
@@ -390,11 +400,11 @@ EventEmitter.prototype.removeAllListeners =
       // not listening for removeListener, no need to emit
       if (!events.removeListener) {
         if (arguments.length === 0) {
-          this._events = new EventHandlers();
+          this._events = Object.create(null);
           this._eventsCount = 0;
         } else if (events[type]) {
           if (--this._eventsCount === 0)
-            this._events = new EventHandlers();
+            this._events = Object.create(null);
           else
             delete events[type];
         }
@@ -411,7 +421,7 @@ EventEmitter.prototype.removeAllListeners =
           this.removeAllListeners(key);
         }
         this.removeAllListeners('removeListener');
-        this._events = new EventHandlers();
+        this._events = Object.create(null);
         this._eventsCount = 0;
         return this;
       }

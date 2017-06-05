@@ -3,18 +3,18 @@
 // test HTTP throughput in fragmented header case
 var common = require('../common.js');
 var net = require('net');
-var test = require('../../test/common.js');
+var test = require('../../test/common');
 
 var bench = common.createBenchmark(main, {
   len:  [1, 4, 8, 16, 32, 64, 128],
-  num:  [5, 50, 500, 2000],
+  n:  [5, 50, 500, 2000],
   type: ['send'],
 });
 
 
 function main(conf) {
   var len = +conf.len;
-  var num = +conf.num;
+  var num = +conf.n;
   var todo = [];
   var headers = [];
   // Chose 7 because 9 showed "Connection error" / "Connection closed"
@@ -37,7 +37,7 @@ function main(conf) {
     for (var i = 0; i < extra_header_count; i++) {
       // Utilize first three powers of a small integer for an odd cycle and
       // because the fourth power of some integers overloads the server.
-      todo.push('X-Header-' + i + ': ' + headers[i % 3]);
+      todo.push(`X-Header-${i}: ${headers[i % 3]}`);
     }
     todo.push('');
     todo.push('');

@@ -7,12 +7,12 @@ const common = require('../common');
 const join = require('path').join;
 const {
   assert, connect, keys
-} = require(join(common.fixturesDir, 'tls-connect'))();
+} = require(join(common.fixturesDir, 'tls-connect'));
 
 connect({
   client: {
     checkServerIdentity: (servername, cert) => { },
-    ca: keys.agent1.cert + '\n' + keys.agent6.ca,
+    ca: `${keys.agent1.cert}\n${keys.agent6.ca}`,
   },
   server: {
     cert: keys.agent6.cert,

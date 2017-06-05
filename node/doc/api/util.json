@@ -55,7 +55,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>util.deprecate()</code> method wraps the given <code>function</code> or class in such a way that\nit is marked as deprecated.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nexports.puts = util.deprecate(function() {\n  for (var i = 0, len = arguments.length; i &lt; len; ++i) {\n    process.stdout.write(arguments[i] + &#39;\\n&#39;);\n  }\n}, &#39;util.puts: Use console.log instead&#39;);\n</code></pre>\n<p>When called, <code>util.deprecate()</code> will return a function that will emit a\n<code>DeprecationWarning</code> using the <code>process.on(&#39;warning&#39;)</code> event. By default,\nthis warning will be emitted and printed to <code>stderr</code> exactly once, the first\ntime it is called. After the warning is emitted, the wrapped <code>function</code>\nis called.</p>\n<p>If either the <code>--no-deprecation</code> or <code>--no-warnings</code> command line flags are\nused, or if the <code>process.noDeprecation</code> property is set to <code>true</code> <em>prior</em> to\nthe first deprecation warning, the <code>util.deprecate()</code> method does nothing.</p>\n<p>If the <code>--trace-deprecation</code> or <code>--trace-warnings</code> command line flags are set,\nor the <code>process.traceDeprecation</code> property is set to <code>true</code>, a warning and a\nstack trace are printed to <code>stderr</code> the first time the deprecated function is\ncalled.</p>\n<p>If the <code>--throw-deprecation</code> command line flag is set, or the\n<code>process.throwDeprecation</code> property is set to <code>true</code>, then an exception will be\nthrown when the deprecated function is called.</p>\n<p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>\nproperty take precedence over <code>--trace-deprecation</code> and\n<code>process.traceDeprecation</code>.</p>\n",
+          "desc": "<p>The <code>util.deprecate()</code> method wraps the given <code>function</code> or class in such a way that\nit is marked as deprecated.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nexports.puts = util.deprecate(function() {\n  for (let i = 0, len = arguments.length; i &lt; len; ++i) {\n    process.stdout.write(arguments[i] + &#39;\\n&#39;);\n  }\n}, &#39;util.puts: Use console.log instead&#39;);\n</code></pre>\n<p>When called, <code>util.deprecate()</code> will return a function that will emit a\n<code>DeprecationWarning</code> using the <code>process.on(&#39;warning&#39;)</code> event. By default,\nthis warning will be emitted and printed to <code>stderr</code> exactly once, the first\ntime it is called. After the warning is emitted, the wrapped <code>function</code>\nis called.</p>\n<p>If either the <code>--no-deprecation</code> or <code>--no-warnings</code> command line flags are\nused, or if the <code>process.noDeprecation</code> property is set to <code>true</code> <em>prior</em> to\nthe first deprecation warning, the <code>util.deprecate()</code> method does nothing.</p>\n<p>If the <code>--trace-deprecation</code> or <code>--trace-warnings</code> command line flags are set,\nor the <code>process.traceDeprecation</code> property is set to <code>true</code>, a warning and a\nstack trace are printed to <code>stderr</code> the first time the deprecated function is\ncalled.</p>\n<p>If the <code>--throw-deprecation</code> command line flag is set, or the\n<code>process.throwDeprecation</code> property is set to <code>true</code>, then an exception will be\nthrown when the deprecated function is called.</p>\n<p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>\nproperty take precedence over <code>--trace-deprecation</code> and\n<code>process.traceDeprecation</code>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -124,7 +124,7 @@
               }
             ]
           },
-          "desc": "<p><em>Note: usage of <code>util.inherits()</code> is discouraged. Please use the ES6 <code>class</code> and\n<code>extends</code> keywords to get language level inheritance support. Also note that\nthe two styles are <a href=\"https://github.com/nodejs/node/issues/4179\">semantically incompatible</a>.</em></p>\n<ul>\n<li><code>constructor</code> {Function}</li>\n<li><code>superConstructor</code> {Function}</li>\n</ul>\n<p>Inherit the prototype methods from one <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/constructor\">constructor</a> into another.  The\nprototype of <code>constructor</code> will be set to a new object created from\n<code>superConstructor</code>.</p>\n<p>As an additional convenience, <code>superConstructor</code> will be accessible\nthrough the <code>constructor.super_</code> property.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst EventEmitter = require(&#39;events&#39;);\n\nfunction MyStream() {\n  EventEmitter.call(this);\n}\n\nutil.inherits(MyStream, EventEmitter);\n\nMyStream.prototype.write = function(data) {\n  this.emit(&#39;data&#39;, data);\n};\n\nconst stream = new MyStream();\n\nconsole.log(stream instanceof EventEmitter); // true\nconsole.log(MyStream.super_ === EventEmitter); // true\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;It works!&#39;); // Received data: &quot;It works!&quot;\n</code></pre>\n<p>ES6 example using <code>class</code> and <code>extends</code></p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n\nclass MyStream extends EventEmitter {\n  constructor() {\n    super();\n  }\n  write(data) {\n    this.emit(&#39;data&#39;, data);\n  }\n}\n\nconst stream = new MyStream();\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;With ES6&#39;);\n</code></pre>\n",
+          "desc": "<p><em>Note</em>: Usage of <code>util.inherits()</code> is discouraged. Please use the ES6 <code>class</code>\nand <code>extends</code> keywords to get language level inheritance support. Also note\nthat the two styles are <a href=\"https://github.com/nodejs/node/issues/4179\">semantically incompatible</a>.</p>\n<ul>\n<li><code>constructor</code> {Function}</li>\n<li><code>superConstructor</code> {Function}</li>\n</ul>\n<p>Inherit the prototype methods from one <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/constructor\">constructor</a> into another.  The\nprototype of <code>constructor</code> will be set to a new object created from\n<code>superConstructor</code>.</p>\n<p>As an additional convenience, <code>superConstructor</code> will be accessible\nthrough the <code>constructor.super_</code> property.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst EventEmitter = require(&#39;events&#39;);\n\nfunction MyStream() {\n  EventEmitter.call(this);\n}\n\nutil.inherits(MyStream, EventEmitter);\n\nMyStream.prototype.write = function(data) {\n  this.emit(&#39;data&#39;, data);\n};\n\nconst stream = new MyStream();\n\nconsole.log(stream instanceof EventEmitter); // true\nconsole.log(MyStream.super_ === EventEmitter); // true\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;It works!&#39;); // Received data: &quot;It works!&quot;\n</code></pre>\n<p>ES6 example using <code>class</code> and <code>extends</code></p>\n<pre><code class=\"lang-js\">const EventEmitter = require(&#39;events&#39;);\n\nclass MyStream extends EventEmitter {\n  constructor() {\n    super();\n  }\n  write(data) {\n    this.emit(&#39;data&#39;, data);\n  }\n}\n\nconst stream = new MyStream();\n\nstream.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`Received data: &quot;${data}&quot;`);\n});\nstream.write(&#39;With ES6&#39;);\n</code></pre>\n",
           "signatures": [
             {
               "params": [
@@ -254,7 +254,7 @@
               "textRaw": "Custom inspection functions on Objects",
               "name": "Custom inspection functions on Objects",
               "type": "misc",
-              "desc": "<p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>\n(or, equivalently <code>inspect(depth, opts)</code>) function that <code>util.inspect()</code> will\ninvoke and use the result of when inspecting the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  inspect(depth, options) {\n    if (depth &lt; 0) {\n      return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that&#39;s the size of &quot;Box&lt; &quot;.\n    const padding = &#39; &#39;.repeat(5);\n    const inner = util.inspect(this.value, newOptions).replace(/\\n/g, &#39;\\n&#39; + padding);\n    return options.stylize(&#39;Box&#39;, &#39;special&#39;) + &#39;&lt; &#39; + inner + &#39; &gt;&#39;;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: &quot;Box&lt; true &gt;&quot;\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj[util.inspect.custom] = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n<p>A custom inspection method can alternatively be provided by exposing\nan <code>inspect(depth, opts)</code> method on the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj.inspect = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n"
+              "desc": "<p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>\n(or, equivalently <code>inspect(depth, opts)</code>) function that <code>util.inspect()</code> will\ninvoke and use the result of when inspecting the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  inspect(depth, options) {\n    if (depth &lt; 0) {\n      return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that&#39;s the size of &quot;Box&lt; &quot;.\n    const padding = &#39; &#39;.repeat(5);\n    const inner = util.inspect(this.value, newOptions)\n                      .replace(/\\n/g, &#39;\\n&#39; + padding);\n    return options.stylize(&#39;Box&#39;, &#39;special&#39;) + &#39;&lt; &#39; + inner + &#39; &gt;&#39;;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: &quot;Box&lt; true &gt;&quot;\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj[util.inspect.custom] = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n<p>A custom inspection method can alternatively be provided by exposing\nan <code>inspect(depth, opts)</code> method on the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj.inspect = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n"
             }
           ],
           "modules": [
@@ -283,6 +283,58 @@
               "desc": "<p>The <code>defaultOptions</code> value allows customization of the default options used by\n<code>util.inspect</code>. This is useful for functions like <code>console.log</code> or\n<code>util.format</code> which implicitly call into <code>util.inspect</code>. It shall be set to an\nobject containing one or more valid <a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> options. Setting\noption properties directly is also supported.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst arr = Array(101);\n\nconsole.log(arr); // logs the truncated array\nutil.inspect.defaultOptions.maxArrayLength = null;\nconsole.log(arr); // logs the full array\n</code></pre>\n",
               "type": "module",
               "displayName": "util.inspect.defaultOptions"
+            }
+          ]
+        },
+        {
+          "textRaw": "util.promisify(original)",
+          "type": "method",
+          "name": "promisify",
+          "meta": {
+            "added": [
+              "v8.0.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`original` {Function} ",
+                  "name": "original",
+                  "type": "Function"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "original"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Takes a function following the common Node.js callback style, i.e. taking a\n<code>(err, value) =&gt; ...</code> callback as the last argument, and returns a version\nthat returns promises.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst stat = util.promisify(fs.stat);\nstat(&#39;.&#39;).then((stats) =&gt; {\n  // Do something with `stats`\n}).catch((error) =&gt; {\n  // Handle the error.\n});\n</code></pre>\n<p>Or, equivalently using <code>async function</code>s:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst stat = util.promisify(fs.stat);\n\nasync function callStat() {\n  const stats = await stat(&#39;.&#39;);\n  console.log(`This directory is owned by ${stats.uid}`);\n}\n</code></pre>\n<p>If there is an <code>original[util.promisify.custom]</code> property present, <code>promisify</code>\nwill return its value, see <a href=\"#util_custom_promisified_functions\">Custom promisified functions</a>.</p>\n<p><code>promisify()</code> assumes that <code>original</code> is a function taking a callback as its\nfinal argument in all cases, and the returned function will result in undefined\nbehavior if it does not.</p>\n",
+          "modules": [
+            {
+              "textRaw": "Custom promisified functions",
+              "name": "custom_promisified_functions",
+              "desc": "<p>Using the <code>util.promisify.custom</code> symbol one can override the return value of\n<a href=\"#util_util_promisify_original\"><code>util.promisify()</code></a>:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction doSomething(foo, callback) {\n  // ...\n}\n\ndoSomething[util.promisify.custom] = function(foo) {\n  return getPromiseSomehow();\n};\n\nconst promisified = util.promisify(doSomething);\nconsole.log(promisified === doSomething[util.promisify.custom]);\n  // prints &#39;true&#39;\n</code></pre>\n<p>This can be useful for cases where the original function does not follow the\nstandard format of taking an error-first callback as the last argument.</p>\n",
+              "type": "module",
+              "displayName": "Custom promisified functions"
+            },
+            {
+              "textRaw": "util.promisify.custom",
+              "name": "util.promisify.custom",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<ul>\n<li>{symbol}</li>\n</ul>\n<p>A Symbol that can be used to declare custom promisified variants of functions,\nsee <a href=\"#util_custom_promisified_functions\">Custom promisified functions</a>.</p>\n",
+              "type": "module",
+              "displayName": "util.promisify.custom"
             }
           ]
         }
@@ -429,7 +481,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Internal alias for <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray\"><code>Array.isArray</code></a>.</p>\n<p>Returns <code>true</code> if the given <code>object</code> is an <code>Array</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isArray([]);\n// Returns: true\nutil.isArray(new Array);\n// Returns: true\nutil.isArray({});\n// Returns: false\n</code></pre>\n"
+              "desc": "<p>Internal alias for <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray\"><code>Array.isArray</code></a>.</p>\n<p>Returns <code>true</code> if the given <code>object</code> is an <code>Array</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isArray([]);\n// Returns: true\nutil.isArray(new Array());\n// Returns: true\nutil.isArray({});\n// Returns: false\n</code></pre>\n"
             },
             {
               "textRaw": "util.isBoolean(object)",
@@ -604,7 +656,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Function</code>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction Foo() {}\nconst Bar = function() {};\n\nutil.isFunction({});\n// Returns: false\nutil.isFunction(Foo);\n// Returns: true\nutil.isFunction(Bar);\n// Returns: true\n</code></pre>\n"
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is a <code>Function</code>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction Foo() {}\nconst Bar = () =&gt; {};\n\nutil.isFunction({});\n// Returns: false\nutil.isFunction(Foo);\n// Returns: true\nutil.isFunction(Bar);\n// Returns: true\n</code></pre>\n"
             },
             {
               "textRaw": "util.isNull(object)",
@@ -744,7 +796,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is strictly an <code>Object</code> <strong>and</strong> not a\n<code>Function</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isObject(5);\n// Returns: false\nutil.isObject(null);\n// Returns: false\nutil.isObject({});\n// Returns: true\nutil.isObject(function(){});\n// Returns: false\n</code></pre>\n"
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is strictly an <code>Object</code> <strong>and</strong> not a\n<code>Function</code>. Otherwise, returns <code>false</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nutil.isObject(5);\n// Returns: false\nutil.isObject(null);\n// Returns: false\nutil.isObject({});\n// Returns: true\nutil.isObject(function() {});\n// Returns: false\n</code></pre>\n"
             },
             {
               "textRaw": "util.isPrimitive(object)",

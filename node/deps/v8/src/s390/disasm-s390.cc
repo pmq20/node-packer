@@ -562,6 +562,9 @@ bool Decoder::DecodeTwoByte(Instruction* instr) {
     case BKPT:
       Format(instr, "bkpt");
       break;
+    case LPR:
+      Format(instr, "lpr\t'r1, 'r2");
+      break;
     default:
       return false;
   }
@@ -709,6 +712,9 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
     case XGRK:
       Format(instr, "xgrk\t'r5,'r6,'r3");
       break;
+    case CGFR:
+      Format(instr, "cgfr\t'r5,'r6");
+      break;
     case CGR:
       Format(instr, "cgr\t'r5,'r6");
       break;
@@ -717,6 +723,15 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
       break;
     case LLGFR:
       Format(instr, "llgfr\t'r5,'r6");
+      break;
+    case POPCNT_Z:
+      Format(instr, "popcnt\t'r5,'r6");
+      break;
+    case LLGCR:
+      Format(instr, "llgcr\t'r5,'r6");
+      break;
+    case LLCR:
+      Format(instr, "llcr\t'r5,'r6");
       break;
     case LBR:
       Format(instr, "lbr\t'r5,'r6");
@@ -760,6 +775,9 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
     case MSR:
       Format(instr, "msr\t'r5,'r6");
       break;
+    case MSRKC:
+      Format(instr, "msrkc\t'r5,'r6,'r3");
+      break;
     case LGBR:
       Format(instr, "lgbr\t'r5,'r6");
       break;
@@ -769,8 +787,17 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
     case MSGR:
       Format(instr, "msgr\t'r5,'r6");
       break;
+    case MSGRKC:
+      Format(instr, "msgrkc\t'r5,'r6,'r3");
+      break;
     case DSGR:
       Format(instr, "dsgr\t'r5,'r6");
+      break;
+    case DSGFR:
+      Format(instr, "dsgfr\t'r5,'r6");
+      break;
+    case MSGFR:
+      Format(instr, "msgfr\t'r5,'r6");
       break;
     case LZDR:
       Format(instr, "lzdr\t'f5");
@@ -1036,6 +1063,12 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
       Format(instr, "trap4");
       break;
     }
+    case LPGR:
+      Format(instr, "lpgr\t'r1, 'r2");
+      break;
+    case LPGFR:
+      Format(instr, "lpgfr\t'r1,'r2");
+      break;
     default:
       return false;
   }
@@ -1052,6 +1085,15 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
 
   Opcode opcode = instr->S390OpcodeValue();
   switch (opcode) {
+    case DUMY:
+      Format(instr, "dumy\t'r1, 'd2 ( 'r2d, 'r3 )");
+      break;
+#define DECODE_VRR_C_INSTRUCTIONS(name, opcode_name, opcode_value) \
+  case opcode_name:                                                \
+    Format(instr, #name "\t'f1,'f2,'f3");                          \
+    break;
+      S390_VRR_C_OPCODE_LIST(DECODE_VRR_C_INSTRUCTIONS)
+#undef DECODE_VRR_C_INSTRUCTIONS
     case LLILF:
       Format(instr, "llilf\t'r1,'i7");
       break;
@@ -1060,6 +1102,9 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       break;
     case AFI:
       Format(instr, "afi\t'r1,'i7");
+      break;
+    case AIH:
+      Format(instr, "aih\t'r1,'i7");
       break;
     case ASI:
       Format(instr, "asi\t'd2('r3),'ic");
@@ -1081,6 +1126,12 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       break;
     case CLFI:
       Format(instr, "clfi\t'r1,'i7");
+      break;
+    case CLIH:
+      Format(instr, "clih\t'r1,'i7");
+      break;
+    case CIH:
+      Format(instr, "cih\t'r1,'i2");
       break;
     case CFI:
       Format(instr, "cfi\t'r1,'i2");
@@ -1364,6 +1415,15 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
     case MSG:
       Format(instr, "msg\t'r1,'d2('r2d,'r3)");
       break;
+    case DSG:
+      Format(instr, "dsg\t'r1,'d2('r2d,'r3)");
+      break;
+    case DSGF:
+      Format(instr, "dsgf\t'r1,'d2('r2d,'r3)");
+      break;
+    case MSGF:
+      Format(instr, "msgf\t'r1,'d2('r2d,'r3)");
+      break;
     case MSY:
       Format(instr, "msy\t'r1,'d2('r2d,'r3)");
       break;
@@ -1374,7 +1434,13 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       Format(instr, "stdy\t'f1,'d2('r2d,'r3)");
       break;
     case ADB:
-      Format(instr, "adb\t'r1,'d1('r2d, 'r3)");
+      Format(instr, "adb\t'f1,'d1('r2d, 'r3)");
+      break;
+    case CDB:
+      Format(instr, "cdb\t'f1,'d1('r2d, 'r3)");
+      break;
+    case CEB:
+      Format(instr, "ceb\t'f1,'d1('r2d, 'r3)");
       break;
     case SDB:
       Format(instr, "sdb\t'r1,'d1('r2d, 'r3)");
@@ -1387,6 +1453,9 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       break;
     case SQDB:
       Format(instr, "sqdb\t'r1,'d1('r2d, 'r3)");
+      break;
+    case PFD:
+      Format(instr, "pfd\t'm1,'d2('r2d,'r3)");
       break;
     default:
       return false;

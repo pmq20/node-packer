@@ -19,21 +19,6 @@ var Scope;
 var RawLocation;
 
 /** @typedef {{
-        id: number,
-        name: string,
-        sourceURL: (string|undefined),
-        sourceMappingURL: (string|undefined),
-        source: string,
-        startLine: number,
-        endLine: number,
-        startColumn: number,
-        endColumn: number,
-        executionContextId: number,
-        executionContextAuxData: string
-    }} */
-var FormattedScript;
-
-/** @typedef {{
         functionName: string,
         location: !RawLocation,
         this: !Object,
@@ -44,11 +29,9 @@ var FormattedScript;
 var JavaScriptCallFrameDetails;
 
 /** @typedef {{
-        sourceID: function():(number|undefined),
-        line: function():number,
-        column: function():number,
+        contextId: function():number,
         thisObject: !Object,
-        evaluate: function(string):*,
+        evaluate: function(string, boolean):*,
         restart: function():undefined,
         setVariableValue: function(number, string, *):undefined,
         isAtReturn: boolean,
@@ -60,19 +43,6 @@ var JavaScriptCallFrame;
  * @const
  */
 var Debug = {};
-
-Debug.setBreakOnException = function() {}
-
-Debug.clearBreakOnException = function() {}
-
-Debug.setBreakOnUncaughtException = function() {}
-
-/**
- * @return {undefined}
- */
-Debug.clearBreakOnUncaughtException = function() {}
-
-Debug.clearStepping = function() {}
 
 Debug.clearAllBreakPoints = function() {}
 
@@ -102,42 +72,12 @@ Debug.findBreakPointActualLocations = function(breakId) {}
  */
 Debug.findBreakPoint = function(breakId, remove) {}
 
-/** @return {!DebuggerFlags} */
-Debug.debuggerFlags = function() {}
-
-
 /** @enum */
 const BreakPositionAlignment = {
     Statement: 0,
     BreakPosition: 1
 };
 Debug.BreakPositionAlignment = BreakPositionAlignment;
-
-/** @enum */
-Debug.StepAction = { StepOut: 0,
-                     StepNext: 1,
-                     StepIn: 2,
-                     StepFrame: 3 };
-
-/** @enum */
-const ScriptCompilationType = { Host: 0,
-                              Eval: 1,
-                              JSON: 2 };
-Debug.ScriptCompilationType = ScriptCompilationType;
-
-
-/** @interface */
-function DebuggerFlag() {}
-
-/** @param {boolean} value */
-DebuggerFlag.prototype.setValue = function(value) {}
-
-
-/** @typedef {{
- *    breakPointsActive: !DebuggerFlag
- *  }}
- */
-var DebuggerFlags;
 
 /** @const */
 var LiveEdit = {}
@@ -187,31 +127,12 @@ BreakPoint.prototype.number = function() {}
 
 
 /** @interface */
-function CompileEvent() {}
-
-/** @return {!ScriptMirror} */
-CompileEvent.prototype.script = function() {}
-
-
-/** @interface */
-function BreakEvent() {}
-
-/** @return {!Array<!BreakPoint>|undefined} */
-BreakEvent.prototype.breakPointsHit = function() {}
-
-
-/** @interface */
 function ExecutionState() {}
-
-/** @param {!Debug.StepAction} action */
-ExecutionState.prototype.prepareStep = function(action) {}
 
 /**
  * @param {string} source
- * @param {boolean} disableBreak
- * @param {*=} additionalContext
  */
-ExecutionState.prototype.evaluateGlobal = function(source, disableBreak, additionalContext) {}
+ExecutionState.prototype.evaluateGlobal = function(source) {}
 
 /** @return {number} */
 ExecutionState.prototype.frameCount = function() {}
@@ -236,7 +157,9 @@ var ScopeType = { Global: 0,
                   Closure: 3,
                   Catch: 4,
                   Block: 5,
-                  Script: 6 };
+                  Script: 6,
+                  Eval: 7,
+                  Module: 8};
 
 
 /** @typedef {{
@@ -253,15 +176,6 @@ var SourceLocation;
 /** @typedef{{
  *    id: number,
  *    context_data: (string|undefined),
- *    source_url: (string|undefined),
- *    source_mapping_url: (string|undefined),
- *    is_debugger_script: boolean,
- *    source: string,
- *    line_ends: !Array<number>,
- *    line_offset: number,
- *    column_offset: number,
- *    nameOrSourceURL: function():string,
- *    compilationType: function():!ScriptCompilationType,
  *    }}
  */
 var Script;
@@ -288,6 +202,9 @@ FrameDetails.prototype.receiver = function() {}
 /** @return {function()} */
 FrameDetails.prototype.func = function() {}
 
+/** @return {!Object} */
+FrameDetails.prototype.script = function() {}
+
 /** @return {boolean} */
 FrameDetails.prototype.isAtReturn = function() {}
 
@@ -300,16 +217,11 @@ FrameDetails.prototype.returnValue = function() {}
 /** @return {number} */
 FrameDetails.prototype.scopeCount = function() {}
 
-
-/** @param {boolean} value */
-function ToggleMirrorCache(value) {}
-
 /**
  * @param {*} value
- * @param {boolean=} transient
  * @return {!Mirror}
  */
-function MakeMirror(value, transient) {}
+function MakeMirror(value) {}
 
 
 /** @interface */
@@ -320,16 +232,6 @@ Mirror.prototype.isFunction = function() {}
 
 /** @return {boolean} */
 Mirror.prototype.isGenerator = function() {}
-
-/** @return {boolean} */
-Mirror.prototype.isMap = function() {}
-
-/** @return {boolean} */
-Mirror.prototype.isSet = function() {}
-
-/** @return {boolean} */
-Mirror.prototype.isIterator = function() {}
-
 
 /**
  * @interface
@@ -380,60 +282,20 @@ FunctionMirror.prototype.context = function() {}
  */
 function UnresolvedFunctionMirror(value) {}
 
-
-/**
- * @interface
- * @extends {ObjectMirror}
- */
-function MapMirror () {}
-
-/**
- * @param {number=} limit
- * @return {!Array<!{key: *, value: *}>}
- */
-MapMirror.prototype.entries = function(limit) {}
-
-
-/**
- * @interface
- * @extends {ObjectMirror}
- */
-function SetMirror () {}
-
-/**
- * @param {number=} limit
- * @return {!Array<*>}
- */
-SetMirror.prototype.values = function(limit) {}
-
-
-/**
- * @interface
- * @extends {ObjectMirror}
- */
-function IteratorMirror () {}
-
-/**
- * @param {number=} limit
- * @return {!Array<*>}
- */
-IteratorMirror.prototype.preview = function(limit) {}
-
-
 /**
  * @interface
  * @extends {ObjectMirror}
  */
 function GeneratorMirror () {}
 
-/** @return {string} */
-GeneratorMirror.prototype.status = function() {}
+/** @return {number} */
+GeneratorMirror.prototype.scopeCount = function() {}
 
-/** @return {!SourceLocation|undefined} */
-GeneratorMirror.prototype.sourceLocation = function() {}
-
-/** @return {!FunctionMirror} */
-GeneratorMirror.prototype.func = function() {}
+/**
+ * @param {number} index
+ * @return {!ScopeMirror|undefined}
+ */
+GeneratorMirror.prototype.scope = function(index) {}
 
 
 /**
@@ -466,11 +328,14 @@ FrameMirror.prototype.allScopes = function(ignoreNestedScopes) {}
 /** @return {!FrameDetails} */
 FrameMirror.prototype.details = function() {}
 
+/** @return {!ScriptMirror} */
+FrameMirror.prototype.script = function() {}
+
 /**
  * @param {string} source
- * @param {boolean} disableBreak
+ * @param {boolean} throwOnSideEffect
  */
-FrameMirror.prototype.evaluate = function(source, disableBreak) {}
+FrameMirror.prototype.evaluate = function(source, throwOnSideEffect) {}
 
 FrameMirror.prototype.restart = function() {}
 

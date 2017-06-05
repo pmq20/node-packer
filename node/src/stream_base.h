@@ -53,6 +53,10 @@ class ShutdownWrap : public ReqWrap<uv_shutdown_t>,
     Wrap(req_wrap_obj, this);
   }
 
+  ~ShutdownWrap() {
+    ClearWrap(object());
+  }
+
   static ShutdownWrap* from_req(uv_shutdown_t* req) {
     return ContainerOf(&ShutdownWrap::req_, req);
   }
@@ -96,6 +100,10 @@ class WriteWrap: public ReqWrap<uv_write_t>,
         wrap_(wrap),
         storage_size_(storage_size) {
     Wrap(obj, this);
+  }
+
+  ~WriteWrap() {
+    ClearWrap(object());
   }
 
   void* operator new(size_t size) = delete;
@@ -240,7 +248,7 @@ class StreamBase : public StreamResource {
   virtual ~StreamBase() = default;
 
   // One of these must be implemented
-  virtual AsyncWrap* GetAsyncWrap();
+  virtual AsyncWrap* GetAsyncWrap() = 0;
   virtual v8::Local<v8::Object> GetObject();
 
   // Libuv callbacks

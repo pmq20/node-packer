@@ -12,6 +12,7 @@ user is able to stream data.
 
 HTTP message headers are represented by an object like this:
 
+<!-- eslint-disable -->
 ```js
 { 'content-length': '123',
   'content-type': 'text/plain',
@@ -34,6 +35,7 @@ property, which is an array of `[key, value, key2, value2, ...]`.  For
 example, the previous message header object might have a `rawHeaders`
 list like the following:
 
+<!-- eslint-disable semi -->
 ```js
 [ 'ConTent-Length', '123456',
   'content-LENGTH', '123',
@@ -266,8 +268,8 @@ Until the data is consumed, the `'end'` event will not fire.  Also, until
 the data is read it will consume memory that can eventually lead to a
 'process out of memory' error.
 
-Note: Node.js does not check whether Content-Length and the length of the body
-which has been transmitted are equal or not.
+*Note*: Node.js does not check whether Content-Length and the length of the
+body which has been transmitted are equal or not.
 
 The request implements the [Writable Stream][] interface. This is an
 [`EventEmitter`][] with the following events:
@@ -309,7 +311,7 @@ const net = require('net');
 const url = require('url');
 
 // Create an HTTP tunneling proxy
-const proxy = http.createServer( (req, res) => {
+const proxy = http.createServer((req, res) => {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('okay');
 });
@@ -405,7 +407,7 @@ A client server pair demonstrating how to listen for the `'upgrade'` event.
 const http = require('http');
 
 // Create an HTTP server
-const srv = http.createServer( (req, res) => {
+const srv = http.createServer((req, res) => {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('okay');
 });
@@ -554,7 +556,7 @@ Returns `request`.
 added: v0.1.17
 -->
 
-This class inherits from [`net.Server`][] and has the following additional events:
+This class inherits from [`net.Server`][] and has the following additional events:
 
 ### Event: 'checkContinue'
 <!-- YAML
@@ -763,7 +765,7 @@ Begin accepting connections on the specified `port` and `hostname`. If the
 [unspecified IPv6 address][] (`::`) when IPv6 is available, or the
 [unspecified IPv4 address][] (`0.0.0.0`) otherwise.
 
-*Note*: in most operating systems, listening to the
+*Note*: In most operating systems, listening to the
 [unspecified IPv6 address][] (`::`) may cause the `net.Server` to also listen on
 the [unspecified IPv4 address][] (`0.0.0.0`).
 
@@ -830,17 +832,33 @@ Returns `server`.
 added: v0.9.12
 -->
 
-* {number} Defaults to 120000 (2 minutes).
+* {number} Timeout in milliseconds. Defaults to 120000 (2 minutes).
 
 The number of milliseconds of inactivity before a socket is presumed
 to have timed out.
 
-Note that the socket timeout logic is set up on connection, so
-changing this value only affects *new* connections to the server, not
-any existing connections.
+A value of 0 will disable the timeout behavior on incoming connections.
 
-Set to 0 to disable any kind of automatic timeout behavior on incoming
-connections.
+*Note*: The socket timeout logic is set up on connection, so changing this
+value only affects new connections to the server, not any existing connections.
+
+### server.keepAliveTimeout
+<!-- YAML
+added: v8.0.0
+-->
+
+* {number} Timeout in milliseconds. Defaults to 5000 (5 seconds).
+
+The number of milliseconds of inactivity a server needs to wait for additional
+incoming data, after it has finished writing the last response, before a socket
+will be destroyed. If the server receives new data before the keep-alive
+timeout has fired, it will reset the regular inactivity timeout, i.e.,
+[`server.timeout`][].
+
+A value of 0 will disable the keep-alive timeout behavior on incoming connections.
+
+*Note*: The socket timeout logic is set up on connection, so changing this
+value only affects new connections to the server, not any existing connections.
 
 ## Class: http.ServerResponse
 <!-- YAML
@@ -979,6 +997,11 @@ is used, array values may be mutated without additional calls to various
 header-related http module methods. The keys of the returned object are the
 header names and the values are the respective header values. All header names
 are lowercase.
+
+*Note*: The object returned by the `response.getHeaders()` method _does not_
+prototypically inherit from the JavaScript `Object`. This means that typical
+`Object` methods such as `obj.toString()`, `obj.hasOwnProperty()`, and others
+are not defined and *will not work*.
 
 Example:
 
@@ -1170,7 +1193,7 @@ the second parameter specifies how to encode it into a byte stream.
 By default the `encoding` is `'utf8'`. `callback` will be called when this chunk
 of data is flushed.
 
-**Note**: This is the raw HTTP body and has nothing to do with
+*Note*: This is the raw HTTP body and has nothing to do with
 higher-level multi-part body encodings that may be used.
 
 The first time [`response.write()`][] is called, it will send the buffered
@@ -1460,6 +1483,7 @@ Accept: text/plain\r\n
 
 Then `request.url` will be:
 
+<!-- eslint-disable semi -->
 ```js
 '/status?name=ryan'
 ```
@@ -1570,10 +1594,10 @@ http.get('http://nodejs.org/dist/index.json', (res) => {
 
   let error;
   if (statusCode !== 200) {
-    error = new Error(`Request Failed.\n` +
+    error = new Error('Request Failed.\n' +
                       `Status Code: ${statusCode}`);
   } else if (!/^application\/json/.test(contentType)) {
-    error = new Error(`Invalid content-type.\n` +
+    error = new Error('Invalid content-type.\n' +
                       `Expected application/json but received ${contentType}`);
   }
   if (error) {
@@ -1731,23 +1755,24 @@ There are a few special headers that should be noted.
 [`'request'`]: #http_event_request
 [`'response'`]: #http_event_response
 [`Agent`]: #http_class_http_agent
+[`EventEmitter`]: events.html#events_class_eventemitter
+[`TypeError`]: errors.html#errors_class_typeerror
 [`agent.createConnection()`]: #http_agent_createconnection_options_callback
 [`destroy()`]: #http_agent_destroy
-[`EventEmitter`]: events.html#events_class_eventemitter
 [`http.Agent`]: #http_class_http_agent
 [`http.ClientRequest`]: #http_class_http_clientrequest
-[`http.globalAgent`]: #http_http_globalagent
 [`http.IncomingMessage`]: #http_class_http_incomingmessage
-[`http.request()`]: #http_http_request_options_callback
 [`http.Server`]: #http_class_http_server
+[`http.globalAgent`]: #http_http_globalagent
+[`http.request()`]: #http_http_request_options_callback
 [`message.headers`]: #http_message_headers
-[`net.createConnection()`]: net.html#net_net_createconnection_options_connectlistener
-[`net.Server`]: net.html#net_class_net_server
 [`net.Server.close()`]: net.html#net_server_close_callback
 [`net.Server.listen()`]: net.html#net_server_listen_handle_backlog_callback
 [`net.Server.listen(path)`]: net.html#net_server_listen_path_backlog_callback
 [`net.Server.listen(port)`]: net.html#net_server_listen_port_hostname_backlog_callback
+[`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
+[`net.createConnection()`]: net.html#net_net_createconnection_options_connectlistener
 [`request.socket.getPeerCertificate()`]: tls.html#tls_tlssocket_getpeercertificate_detailed
 [`response.end()`]: #http_response_end_data_encoding_callback
 [`response.setHeader()`]: #http_response_setheader_name_value
@@ -1755,14 +1780,13 @@ There are a few special headers that should be noted.
 [`response.write(data, encoding)`]: #http_response_write_chunk_encoding_callback
 [`response.writeContinue()`]: #http_response_writecontinue
 [`response.writeHead()`]: #http_response_writehead_statuscode_statusmessage_headers
+[`server.timeout`]: #http_server_timeout
 [`socket.setKeepAlive()`]: net.html#net_socket_setkeepalive_enable_initialdelay
 [`socket.setNoDelay()`]: net.html#net_socket_setnodelay_nodelay
 [`socket.setTimeout()`]: net.html#net_socket_settimeout_timeout_callback
-[`TypeError`]: errors.html#errors_class_typeerror
 [`url.parse()`]: url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
-[constructor options]: #http_new_agent_options
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [socket.unref()]: net.html#net_socket_unref
-[unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address
 [unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0
+[unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address

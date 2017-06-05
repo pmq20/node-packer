@@ -11,6 +11,7 @@
 #include "src/base/atomic-utils.h"
 #include "src/base/macros.h"
 #include "src/base/platform/condition-variable.h"
+#include "src/globals.h"
 
 namespace v8 {
 namespace internal {
@@ -21,27 +22,39 @@ class Isolate;
 
 // Keeps track of cancelable tasks. It is possible to register and remove tasks
 // from any fore- and background task/thread.
-class CancelableTaskManager {
+class V8_EXPORT_PRIVATE CancelableTaskManager {
  public:
   CancelableTaskManager();
 
   // Registers a new cancelable {task}. Returns the unique {id} of the task that
   // can be used to try to abort a task by calling {Abort}.
+  // Must not be called after CancelAndWait.
   uint32_t Register(Cancelable* task);
 
   // Try to abort running a task identified by {id}. The possible outcomes are:
-  // (1) The task is already finished running and thus has been removed from
-  //     the manager.
+  // (1) The task is already finished running or was canceled before and
+  //     thus has been removed from the manager.
   // (2) The task is currently running and cannot be canceled anymore.
   // (3) The task is not yet running (or finished) so it is canceled and
   //     removed.
   //
-  // Returns {false} for (1) and (2), and {true} for (3).
-  bool TryAbort(uint32_t id);
+  enum TryAbortResult { kTaskRemoved, kTaskRunning, kTaskAborted };
+  TryAbortResult TryAbort(uint32_t id);
 
   // Cancels all remaining registered tasks and waits for tasks that are
-  // already running.
+  // already running. This disallows subsequent Register calls.
   void CancelAndWait();
+
+  // Tries to cancel all remaining registered tasks. The return value indicates
+  // whether
+  //
+  // 1) No tasks were registered (kTaskRemoved), or
+  //
+  // 2) There is at least one remaining task that couldn't be cancelled
+  // (kTaskRunning), or
+  //
+  // 3) All registered tasks were cancelled (kTaskAborted).
+  TryAbortResult TryAbortAll();
 
  private:
   // Only called by {Cancelable} destructor. The task is done with executing,
@@ -59,13 +72,14 @@ class CancelableTaskManager {
   base::ConditionVariable cancelable_tasks_barrier_;
   base::Mutex mutex_;
 
+  bool canceled_;
+
   friend class Cancelable;
 
   DISALLOW_COPY_AND_ASSIGN(CancelableTaskManager);
 };
 
-
-class Cancelable {
+class V8_EXPORT_PRIVATE Cancelable {
  public:
   explicit Cancelable(CancelableTaskManager* parent);
   virtual ~Cancelable();
@@ -120,9 +134,11 @@ class Cancelable {
 
 
 // Multiple inheritance can be used because Task is a pure interface.
-class CancelableTask : public Cancelable, public Task {
+class V8_EXPORT_PRIVATE CancelableTask : public Cancelable,
+                                         NON_EXPORTED_BASE(public Task) {
  public:
   explicit CancelableTask(Isolate* isolate);
+  CancelableTask(Isolate* isolate, CancelableTaskManager* manager);
 
   // Task overrides.
   void Run() final {
@@ -145,6 +161,7 @@ class CancelableTask : public Cancelable, public Task {
 class CancelableIdleTask : public Cancelable, public IdleTask {
  public:
   explicit CancelableIdleTask(Isolate* isolate);
+  CancelableIdleTask(Isolate* isolate, CancelableTaskManager* manager);
 
   // IdleTask overrides.
   void Run(double deadline_in_seconds) final {

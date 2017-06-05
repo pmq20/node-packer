@@ -7,14 +7,20 @@
 
 #include "src/allocation.h"
 #include "src/base/atomicops.h"
-#include "src/handles.h"
+#include "src/globals.h"
 #include "src/utils.h"
 
 namespace v8 {
 namespace internal {
 
+template <typename T>
+class Handle;
+
 class Execution final : public AllStatic {
  public:
+  // Whether to report pending messages, or keep them pending on the isolate.
+  enum class MessageHandling { kReport, kKeepPending };
+
   // Call a function, the caller supplies a receiver and an array
   // of arguments.
   //
@@ -36,16 +42,18 @@ class Execution final : public AllStatic {
                                                  int argc,
                                                  Handle<Object> argv[]);
 
-  // Call a function, just like Call(), but make sure to silently catch
-  // any thrown exceptions. The return value is either the result of
-  // calling the function (if caught exception is false) or the exception
-  // that occurred (if caught exception is true).
-  // In the exception case, exception_out holds the caught exceptions, unless
-  // it is a termination exception.
+  // Call a function, just like Call(), but handle don't report exceptions
+  // externally.
+  // The return value is either the result of calling the function (if no
+  // exception occurred), or an empty handle.
+  // If message_handling is MessageHandling::kReport, exceptions (except for
+  // termination exceptions) will be stored in exception_out (if not a
+  // nullptr).
   static MaybeHandle<Object> TryCall(Isolate* isolate, Handle<Object> callable,
                                      Handle<Object> receiver, int argc,
                                      Handle<Object> argv[],
-                                     MaybeHandle<Object>* exception_out = NULL);
+                                     MessageHandling message_handling,
+                                     MaybeHandle<Object>* exception_out);
 };
 
 
@@ -56,7 +64,7 @@ class PostponeInterruptsScope;
 // StackGuard contains the handling of the limits that are used to limit the
 // number of nested invocations of JavaScript and the stack size used in each
 // invocation.
-class StackGuard final {
+class V8_EXPORT_PRIVATE StackGuard final {
  public:
   // Pass the address beyond which the stack should not grow.  The stack
   // is assumed to grow downwards.
@@ -79,14 +87,13 @@ class StackGuard final {
   // it has been set up.
   void ClearThread(const ExecutionAccess& lock);
 
-#define INTERRUPT_LIST(V)                                          \
-  V(DEBUGBREAK, DebugBreak, 0)                                     \
-  V(DEBUGCOMMAND, DebugCommand, 1)                                 \
-  V(TERMINATE_EXECUTION, TerminateExecution, 2)                    \
-  V(GC_REQUEST, GC, 3)                                             \
-  V(INSTALL_CODE, InstallCode, 4)                                  \
-  V(API_INTERRUPT, ApiInterrupt, 5)                                \
-  V(DEOPT_MARKED_ALLOCATION_SITES, DeoptMarkedAllocationSites, 6)
+#define INTERRUPT_LIST(V)                       \
+  V(DEBUGBREAK, DebugBreak, 0)                  \
+  V(TERMINATE_EXECUTION, TerminateExecution, 1) \
+  V(GC_REQUEST, GC, 2)                          \
+  V(INSTALL_CODE, InstallCode, 3)               \
+  V(API_INTERRUPT, ApiInterrupt, 4)             \
+  V(DEOPT_MARKED_ALLOCATION_SITES, DeoptMarkedAllocationSites, 5)
 
 #define V(NAME, Name, id)                                          \
   inline bool Check##Name() { return CheckInterrupt(NAME); }  \

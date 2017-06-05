@@ -9,27 +9,9 @@
 // -------------------------------------------------------------------
 // Imports
 
-var ArrayJoin;
-var GetSubstitution;
-var GlobalRegExp = global.RegExp;
 var GlobalString = global.String;
-var IsRegExp;
-var MaxSimple;
-var MinSimple;
-var RegExpInitialize;
 var matchSymbol = utils.ImportNow("match_symbol");
-var replaceSymbol = utils.ImportNow("replace_symbol");
 var searchSymbol = utils.ImportNow("search_symbol");
-var splitSymbol = utils.ImportNow("split_symbol");
-
-utils.Import(function(from) {
-  ArrayJoin = from.ArrayJoin;
-  GetSubstitution = from.GetSubstitution;
-  IsRegExp = from.IsRegExp;
-  MaxSimple = from.MaxSimple;
-  MinSimple = from.MinSimple;
-  RegExpInitialize = from.RegExpInitialize;
-});
 
 //-------------------------------------------------------------------
 
@@ -46,21 +28,6 @@ function StringConcat(other /* and more */) {  // length == 1
 }
 
 
-// ECMA-262 section 15.5.4.7
-function StringIndexOf(pattern, position) {  // length == 1
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.indexOf");
-
-  var subject = TO_STRING(this);
-  pattern = TO_STRING(pattern);
-  var index = TO_INTEGER(position);
-  if (index < 0) index = 0;
-  if (index > subject.length) index = subject.length;
-  return %StringIndexOf(subject, pattern, index);
-}
-
-%FunctionSetLength(StringIndexOf, 1);
-
-
 // ES6 21.1.3.11.
 function StringMatchJS(pattern) {
   CHECK_OBJECT_COERCIBLE(this, "String.prototype.match");
@@ -75,74 +42,9 @@ function StringMatchJS(pattern) {
   var subject = TO_STRING(this);
 
   // Equivalent to RegExpCreate (ES#sec-regexpcreate)
-  var regexp = %_NewObject(GlobalRegExp, GlobalRegExp);
-  RegExpInitialize(regexp, pattern);
+  var regexp = %RegExpCreate(pattern);
   return regexp[matchSymbol](subject);
 }
-
-
-// ES6, section 21.1.3.14
-function StringReplace(search, replace) {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.replace");
-
-  // Decision tree for dispatch
-  // .. regexp search (in src/js/regexp.js, RegExpReplace)
-  // .... string replace
-  // ...... non-global search
-  // ........ empty string replace
-  // ........ non-empty string replace (with $-expansion)
-  // ...... global search
-  // ........ no need to circumvent last match info override
-  // ........ need to circument last match info override
-  // .... function replace
-  // ...... global search
-  // ...... non-global search
-  // .. string search
-  // .... special case that replaces with one single character
-  // ...... function replace
-  // ...... string replace (with $-expansion)
-
-  if (!IS_NULL_OR_UNDEFINED(search)) {
-    var replacer = search[replaceSymbol];
-    if (!IS_UNDEFINED(replacer)) {
-      return %_Call(replacer, search, this, replace);
-    }
-  }
-
-  var subject = TO_STRING(this);
-
-  search = TO_STRING(search);
-
-  if (search.length == 1 &&
-      subject.length > 0xFF &&
-      IS_STRING(replace) &&
-      %StringIndexOf(replace, '$', 0) < 0) {
-    // Searching by traversing a cons string tree and replace with cons of
-    // slices works only when the replaced string is a single character, being
-    // replaced by a simple string and only pays off for long strings.
-    return %StringReplaceOneCharWithString(subject, search, replace);
-  }
-  var start = %StringIndexOf(subject, search, 0);
-  if (start < 0) return subject;
-  var end = start + search.length;
-
-  var result = %_SubString(subject, 0, start);
-
-  // Compute the string to replace with.
-  if (IS_CALLABLE(replace)) {
-    result += replace(search, start, subject);
-  } else {
-    // In this case, we don't have any capture groups and can get away with
-    // faking the captures object by simply setting its length to 1.
-    const captures = { length: 1 };
-    const matched = %_SubString(subject, start, end);
-    result += GetSubstitution(matched, subject, start, captures,
-                              TO_STRING(replace));
-  }
-
-  return result + %_SubString(subject, end, subject.length);
-}
-
 
 // ES6 21.1.3.15.
 function StringSearch(pattern) {
@@ -158,8 +60,7 @@ function StringSearch(pattern) {
   var subject = TO_STRING(this);
 
   // Equivalent to RegExpCreate (ES#sec-regexpcreate)
-  var regexp = %_NewObject(GlobalRegExp, GlobalRegExp);
-  RegExpInitialize(regexp, pattern);
+  var regexp = %RegExpCreate(pattern);
   return %_Call(regexp[searchSymbol], regexp, subject);
 }
 
@@ -206,73 +107,9 @@ function StringSlice(start, end) {
 }
 
 
-// ES6 21.1.3.17.
-function StringSplitJS(separator, limit) {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.split");
-
-  if (!IS_NULL_OR_UNDEFINED(separator)) {
-    var splitter = separator[splitSymbol];
-    if (!IS_UNDEFINED(splitter)) {
-      return %_Call(splitter, separator, this, limit);
-    }
-  }
-
-  var subject = TO_STRING(this);
-  limit = (IS_UNDEFINED(limit)) ? kMaxUint32 : TO_UINT32(limit);
-
-  var length = subject.length;
-  var separator_string = TO_STRING(separator);
-
-  if (limit === 0) return [];
-
-  // ECMA-262 says that if separator is undefined, the result should
-  // be an array of size 1 containing the entire string.
-  if (IS_UNDEFINED(separator)) return [subject];
-
-  var separator_length = separator_string.length;
-
-  // If the separator string is empty then return the elements in the subject.
-  if (separator_length === 0) return %StringToArray(subject, limit);
-
-  return %StringSplit(subject, separator_string, limit);
-}
-
-
-// ECMA-262, 15.5.4.16
-function StringToLowerCaseJS() {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.toLowerCase");
-
-  return %StringToLowerCase(TO_STRING(this));
-}
-
-
-// ECMA-262, 15.5.4.17
-function StringToLocaleLowerCase() {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.toLocaleLowerCase");
-
-  return %StringToLowerCase(TO_STRING(this));
-}
-
-
-// ECMA-262, 15.5.4.18
-function StringToUpperCaseJS() {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.toUpperCase");
-
-  return %StringToUpperCase(TO_STRING(this));
-}
-
-
-// ECMA-262, 15.5.4.19
-function StringToLocaleUpperCase() {
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.toLocaleUpperCase");
-
-  return %StringToUpperCase(TO_STRING(this));
-}
-
-
 // ES6 draft, revision 26 (2014-07-18), section B.2.3.2.1
 function HtmlEscape(str) {
-  return %_Call(StringReplace, TO_STRING(str), /"/g, "&quot;");
+  return %RegExpInternalReplace(/"/g, TO_STRING(str), "&quot;");
 }
 
 
@@ -395,87 +232,6 @@ function StringRepeat(count) {
 }
 
 
-// ES6 draft 04-05-14, section 21.1.3.18
-function StringStartsWith(searchString, position) {  // length == 1
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.startsWith");
-
-  var s = TO_STRING(this);
-
-  if (IsRegExp(searchString)) {
-    throw %make_type_error(kFirstArgumentNotRegExp, "String.prototype.startsWith");
-  }
-
-  var ss = TO_STRING(searchString);
-  var pos = TO_INTEGER(position);
-
-  var s_len = s.length;
-  var start = MinSimple(MaxSimple(pos, 0), s_len);
-  var ss_len = ss.length;
-  if (ss_len + start > s_len) {
-    return false;
-  }
-
-  return %_SubString(s, start, start + ss_len) === ss;
-}
-
-%FunctionSetLength(StringStartsWith, 1);
-
-
-// ES6 draft 04-05-14, section 21.1.3.7
-function StringEndsWith(searchString, position) {  // length == 1
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.endsWith");
-
-  var s = TO_STRING(this);
-
-  if (IsRegExp(searchString)) {
-    throw %make_type_error(kFirstArgumentNotRegExp, "String.prototype.endsWith");
-  }
-
-  var ss = TO_STRING(searchString);
-  var s_len = s.length;
-  var pos = !IS_UNDEFINED(position) ? TO_INTEGER(position) : s_len
-
-  var end = MinSimple(MaxSimple(pos, 0), s_len);
-  var ss_len = ss.length;
-  var start = end - ss_len;
-  if (start < 0) {
-    return false;
-  }
-
-  return %_SubString(s, start, start + ss_len) === ss;
-}
-
-%FunctionSetLength(StringEndsWith, 1);
-
-
-// ES6 draft 04-05-14, section 21.1.3.6
-function StringIncludes(searchString, position) {  // length == 1
-  CHECK_OBJECT_COERCIBLE(this, "String.prototype.includes");
-
-  var string = TO_STRING(this);
-
-  if (IsRegExp(searchString)) {
-    throw %make_type_error(kFirstArgumentNotRegExp, "String.prototype.includes");
-  }
-
-  searchString = TO_STRING(searchString);
-  var pos = TO_INTEGER(position);
-
-  var stringLength = string.length;
-  if (pos < 0) pos = 0;
-  if (pos > stringLength) pos = stringLength;
-  var searchStringLength = searchString.length;
-
-  if (searchStringLength + pos > stringLength) {
-    return false;
-  }
-
-  return %StringIndexOf(string, searchString, pos) !== -1;
-}
-
-%FunctionSetLength(StringIncludes, 1);
-
-
 // ES6 Draft 05-22-2014, section 21.1.3.3
 function StringCodePointAt(pos) {
   CHECK_OBJECT_COERCIBLE(this, "String.prototype.codePointAt");
@@ -533,20 +289,10 @@ utils.InstallFunctions(GlobalString, DONT_ENUM, [
 utils.InstallFunctions(GlobalString.prototype, DONT_ENUM, [
   "codePointAt", StringCodePointAt,
   "concat", StringConcat,
-  "endsWith", StringEndsWith,
-  "includes", StringIncludes,
-  "indexOf", StringIndexOf,
   "match", StringMatchJS,
   "repeat", StringRepeat,
-  "replace", StringReplace,
   "search", StringSearch,
   "slice", StringSlice,
-  "split", StringSplitJS,
-  "startsWith", StringStartsWith,
-  "toLowerCase", StringToLowerCaseJS,
-  "toLocaleLowerCase", StringToLocaleLowerCase,
-  "toUpperCase", StringToUpperCaseJS,
-  "toLocaleUpperCase", StringToLocaleUpperCase,
 
   "link", StringLink,
   "anchor", StringAnchor,
@@ -562,16 +308,5 @@ utils.InstallFunctions(GlobalString.prototype, DONT_ENUM, [
   "sub", StringSub,
   "sup", StringSup
 ]);
-
-// -------------------------------------------------------------------
-// Exports
-
-utils.Export(function(to) {
-  to.StringIndexOf = StringIndexOf;
-  to.StringMatch = StringMatchJS;
-  to.StringReplace = StringReplace;
-  to.StringSlice = StringSlice;
-  to.StringSplit = StringSplitJS;
-});
 
 })

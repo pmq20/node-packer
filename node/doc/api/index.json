@@ -73,7 +73,17 @@
     },
     {
       "type": "text",
-      "text": "[C/C++ Addons](addons.html)"
+      "text": "[C++ Addons](addons.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
+      "text": "[C/C++ Addons - N-API](n-api.html)"
     },
     {
       "type": "list_item_end"
@@ -224,6 +234,16 @@
     {
       "type": "text",
       "text": "[HTTPS](https.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
+      "text": "[Inspector](inspector.html)"
     },
     {
       "type": "list_item_end"

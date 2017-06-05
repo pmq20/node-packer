@@ -4,7 +4,7 @@
 
 #include "src/background-parsing-task.h"
 
-#include "src/debug/debug.h"
+#include "src/objects-inl.h"
 #include "src/parsing/parser.h"
 
 namespace v8 {
@@ -13,7 +13,6 @@ namespace internal {
 void StreamedSource::Release() {
   parser.reset();
   info.reset();
-  zone.reset();
 }
 
 BackgroundParsingTask::BackgroundParsingTask(
@@ -29,24 +28,18 @@ BackgroundParsingTask::BackgroundParsingTask(
 
   // Prepare the data for the internalization phase and compilation phase, which
   // will happen in the main thread after parsing.
-  Zone* zone = new Zone(isolate->allocator());
-  ParseInfo* info = new ParseInfo(zone);
-  source->zone.reset(zone);
+  ParseInfo* info = new ParseInfo(isolate->allocator());
+  info->set_toplevel();
   source->info.reset(info);
   info->set_isolate(isolate);
   info->set_source_stream(source->source_stream.get());
   info->set_source_stream_encoding(source->encoding);
   info->set_hash_seed(isolate->heap()->HashSeed());
-  info->set_global();
   info->set_unicode_cache(&source_->unicode_cache);
   info->set_compile_options(options);
-  // Parse eagerly with ignition since we will compile eagerly.
-  info->set_allow_lazy_parsing(!(i::FLAG_ignition && i::FLAG_ignition_eager));
+  info->set_allow_lazy_parsing();
 
-  if (options == ScriptCompiler::kProduceParserCache ||
-      options == ScriptCompiler::kProduceCodeCache) {
-    source_->info->set_cached_data(&script_data_);
-  }
+  source_->info->set_cached_data(&script_data_);
   // Parser needs to stay alive for finalizing the parsing on the main
   // thread.
   source_->parser.reset(new Parser(source_->info.get()));

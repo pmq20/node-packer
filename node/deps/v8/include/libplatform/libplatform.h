@@ -5,11 +5,14 @@
 #ifndef V8_LIBPLATFORM_LIBPLATFORM_H_
 #define V8_LIBPLATFORM_LIBPLATFORM_H_
 
+#include "libplatform/libplatform-export.h"
 #include "libplatform/v8-tracing.h"
 #include "v8-platform.h"  // NOLINT(build/include)
 
 namespace v8 {
 namespace platform {
+
+enum class IdleTaskSupport { kDisabled, kEnabled };
 
 /**
  * Returns a new instance of the default v8::Platform implementation.
@@ -19,8 +22,9 @@ namespace platform {
  * of zero is passed, a suitable default based on the current number of
  * processors online will be chosen.
  */
-v8::Platform* CreateDefaultPlatform(int thread_pool_size = 0);
-
+V8_PLATFORM_EXPORT v8::Platform* CreateDefaultPlatform(
+    int thread_pool_size = 0,
+    IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled);
 
 /**
  * Pumps the message loop for the given isolate.
@@ -30,14 +34,26 @@ v8::Platform* CreateDefaultPlatform(int thread_pool_size = 0);
  * not block if no task is pending. The |platform| has to be created using
  * |CreateDefaultPlatform|.
  */
-bool PumpMessageLoop(v8::Platform* platform, v8::Isolate* isolate);
+V8_PLATFORM_EXPORT bool PumpMessageLoop(v8::Platform* platform,
+                                        v8::Isolate* isolate);
+
+/**
+ * Runs pending idle tasks for at most |idle_time_in_seconds| seconds.
+ *
+ * The caller has to make sure that this is called from the right thread.
+ * This call does not block if no task is pending. The |platform| has to be
+ * created using |CreateDefaultPlatform|.
+ */
+V8_PLATFORM_EXPORT void RunIdleTasks(v8::Platform* platform,
+                                     v8::Isolate* isolate,
+                                     double idle_time_in_seconds);
 
 /**
  * Attempts to set the tracing controller for the given platform.
  *
  * The |platform| has to be created using |CreateDefaultPlatform|.
  */
-void SetTracingController(
+V8_PLATFORM_EXPORT void SetTracingController(
     v8::Platform* platform,
     v8::platform::tracing::TracingController* tracing_controller);
 

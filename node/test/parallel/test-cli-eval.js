@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 if (module.parent) {
   // Signal we've been loaded as a module.
@@ -73,6 +94,8 @@ child.exec(`${nodejs} --print "os.platform()"`,
            }));
 
 // Module path resolve bug regression test.
+const cwd = process.cwd();
+process.chdir(path.resolve(__dirname, '../../'));
 child.exec(`${nodejs} --eval "require('./test/parallel/test-cli-eval.js')"`,
            common.mustCall((err, stdout, stderr) => {
              assert.strictEqual(err.code, 42);
@@ -80,6 +103,7 @@ child.exec(`${nodejs} --eval "require('./test/parallel/test-cli-eval.js')"`,
                stdout, 'Loaded as a module, exiting with status code 42.\n');
              assert.strictEqual(stderr, '');
            }));
+process.chdir(cwd);
 
 // Missing argument should not crash.
 child.exec(`${nodejs} -e`, common.mustCall((err, stdout, stderr) => {
@@ -179,7 +203,7 @@ child.exec(`${nodejs} --use-strict -p process.execArgv`,
   const opt = ' --eval "console.log(process.argv.slice(1).join(\' \'))"';
   const cmd = `${nodejs}${opt} -- ${args}`;
   child.exec(cmd, common.mustCall(function(err, stdout, stderr) {
-    assert.strictEqual(stdout, args + '\n');
+    assert.strictEqual(stdout, `${args}\n`);
     assert.strictEqual(stderr, '');
     assert.strictEqual(err, null);
   }));
@@ -188,7 +212,7 @@ child.exec(`${nodejs} --use-strict -p process.execArgv`,
   const popt = ' --print "process.argv.slice(1).join(\' \')"';
   const pcmd = `${nodejs}${popt} -- ${args}`;
   child.exec(pcmd, common.mustCall(function(err, stdout, stderr) {
-    assert.strictEqual(stdout, args + '\n');
+    assert.strictEqual(stdout, `${args}\n`);
     assert.strictEqual(stderr, '');
     assert.strictEqual(err, null);
   }));
@@ -196,9 +220,9 @@ child.exec(`${nodejs} --use-strict -p process.execArgv`,
   // Ensure that arguments are successfully passed to a script.
   // The first argument after '--' should be interpreted as a script
   // filename.
-  const filecmd = `${nodejs} -- ${__filename} ${args}`;
+  const filecmd = `${nodejs} -- "${__filename}" ${args}`;
   child.exec(filecmd, common.mustCall(function(err, stdout, stderr) {
-    assert.strictEqual(stdout, args + '\n');
+    assert.strictEqual(stdout, `${args}\n`);
     assert.strictEqual(stderr, '');
     assert.strictEqual(err, null);
   }));

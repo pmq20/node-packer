@@ -48,8 +48,9 @@ class Deserializer : public SerializerDeserializer {
   void Deserialize(Isolate* isolate);
 
   // Deserialize a single object and the objects reachable from it.
-  MaybeHandle<Object> DeserializePartial(Isolate* isolate,
-                                         Handle<JSGlobalProxy> global_proxy);
+  MaybeHandle<Object> DeserializePartial(
+      Isolate* isolate, Handle<JSGlobalProxy> global_proxy,
+      v8::DeserializeInternalFieldsCallback internal_fields_deserializer);
 
   // Deserialize an object graph. Fail gracefully.
   MaybeHandle<HeapObject> DeserializeObject(Isolate* isolate);
@@ -83,11 +84,13 @@ class Deserializer : public SerializerDeserializer {
     DCHECK_EQ(kWordAligned, next_alignment_);
     int alignment = data - (kAlignmentPrefix - 1);
     DCHECK_LE(kWordAligned, alignment);
-    DCHECK_LE(alignment, kSimd128Unaligned);
+    DCHECK_LE(alignment, kDoubleUnaligned);
     next_alignment_ = static_cast<AllocationAlignment>(alignment);
   }
 
   void DeserializeDeferredObjects();
+  void DeserializeInternalFields(
+      v8::DeserializeInternalFieldsCallback internal_fields_deserializer);
 
   void FlushICacheForNewIsolate();
   void FlushICacheForNewCodeObjectsAndRecordEmbeddedObjects();
@@ -137,6 +140,7 @@ class Deserializer : public SerializerDeserializer {
 
   List<HeapObject*> deserialized_large_objects_;
   List<Code*> new_code_objects_;
+  List<AccessorInfo*> accessor_infos_;
   List<Handle<String> > new_internalized_strings_;
   List<Handle<Script> > new_scripts_;
 

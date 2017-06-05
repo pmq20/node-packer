@@ -69,6 +69,20 @@
     });
     process.argv[0] = process.execPath;
 
+    // Handle `--debug*` deprecation and invalidation
+    if (process._invalidDebug) {
+      process.emitWarning(
+        '`node --debug` and `node --debug-brk` are invalid. ' +
+        'Please use `node --inspect` or `node --inspect-brk` instead.',
+        'DeprecationWarning', 'DEP0062', startup, true);
+      process.exit(9);
+    } else if (process._deprecatedDebugBrk) {
+      process.emitWarning(
+        '`node --inspect --debug-brk` is deprecated. ' +
+        'Please use `node --inspect-brk` instead.',
+        'DeprecationWarning', 'DEP0062', startup, true);
+    }
+
     // There are various modes that Node can run in. The most common two
     // are running from a script and running the REPL - but there are a few
     // others like the debugger or running --eval arguments. Here we decide
@@ -82,11 +96,13 @@
         NativeModule.require('_third_party_main');
       });
 
-    } else if (process.argv[1] === 'debug') {
-      // Start the debugger agent
-      NativeModule.require('_debugger').start();
+    } else if (process.argv[1] === 'inspect' || process.argv[1] === 'debug') {
+      if (process.argv[1] === 'debug') {
+        process.emitWarning(
+          '`node debug` is deprecated. Please use `node inspect` instead.',
+          'DeprecationWarning', 'DEP0068');
+      }
 
-    } else if (process.argv[1] === 'inspect') {
       // Start the debugger agent
       process.nextTick(function() {
         NativeModule.require('node-inspect/lib/_inspect').start();
@@ -124,10 +140,8 @@
 
         const internalModule = NativeModule.require('internal/module');
         internalModule.addBuiltinLibsToObject(global);
-        run(() => {
-          evalScript('[eval]');
-        });
-      } else if (process.argv[1]) {
+        evalScript('[eval]');
+      } else if (process.argv[1] && process.argv[1] !== '-') {
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
         process.argv[1] = path.resolve(process.argv[1]);
@@ -136,23 +150,16 @@
 
         // check if user passed `-c` or `--check` arguments to Node.
         if (process._syntax_check_only != null) {
-          const vm = NativeModule.require('vm');
           const fs = NativeModule.require('fs');
-          const internalModule = NativeModule.require('internal/module');
           // read the source
           const filename = Module._resolveFilename(process.argv[1]);
           var source = fs.readFileSync(filename, 'utf-8');
-          // remove shebang and BOM
-          source = internalModule.stripBOM(source.replace(/^#!.*/, ''));
-          // wrap it
-          source = Module.wrap(source);
-          // compile the script, this will throw if it fails
-          new vm.Script(source, {filename: filename, displayErrors: true});
+          checkScriptSyntax(source, filename);
           process.exit(0);
         }
 
         preloadModules();
-        run(Module.runMain);
+        Module.runMain();
       } else {
         preloadModules();
         // If -i or --interactive were passed, or stdin is a TTY.
@@ -188,8 +195,12 @@
           });
 
           process.stdin.on('end', function() {
-            process._eval = code;
-            evalScript('[stdin]');
+            if (process._syntax_check_only != null) {
+              checkScriptSyntax(code, '[stdin]');
+            } else {
+              process._eval = code;
+              evalScript('[stdin]');
+            }
           });
         }
       }
@@ -215,23 +226,34 @@
     global.process = process;
     const util = NativeModule.require('util');
 
-    // Deprecate GLOBAL and root
-    ['GLOBAL', 'root'].forEach(function(name) {
-      // getter
-      const get = util.deprecate(function() {
+    function makeGetter(name) {
+      return util.deprecate(function() {
         return this;
-      }, `'${name}' is deprecated, use 'global'`);
-      // setter
-      const set = util.deprecate(function(value) {
+      }, `'${name}' is deprecated, use 'global'`, 'DEP0016');
+    }
+
+    function makeSetter(name) {
+      return util.deprecate(function(value) {
         Object.defineProperty(this, name, {
           configurable: true,
           writable: true,
           enumerable: true,
           value: value
         });
-      }, `'${name}' is deprecated, use 'global'`);
-      // define property
-      Object.defineProperty(global, name, { get, set, configurable: true });
+      }, `'${name}' is deprecated, use 'global'`, 'DEP0016');
+    }
+
+    Object.defineProperties(global, {
+      GLOBAL: {
+        configurable: true,
+        get: makeGetter('GLOBAL'),
+        set: makeSetter('GLOBAL')
+      },
+      root: {
+        configurable: true,
+        get: makeGetter('root'),
+        set: makeSetter('root')
+      }
     });
 
     global.Buffer = NativeModule.require('buffer').Buffer;
@@ -250,59 +272,62 @@
   }
 
   function setupGlobalConsole() {
-    var inspectorConsole;
-    var wrapConsoleCall;
-    if (process.inspector) {
-      inspectorConsole = global.console;
-      wrapConsoleCall = process.inspector.wrapConsoleCall;
-      delete process.inspector;
-    }
-    var console;
+    const originalConsole = global.console;
+    let console;
     Object.defineProperty(global, 'console', {
       configurable: true,
       enumerable: true,
       get: function() {
         if (!console) {
-          console = NativeModule.require('console');
-          installInspectorConsoleIfNeeded(console,
-                                          inspectorConsole,
-                                          wrapConsoleCall);
+          console = originalConsole === undefined ?
+              NativeModule.require('console') :
+              installInspectorConsole(originalConsole);
         }
         return console;
       }
     });
   }
 
-  function installInspectorConsoleIfNeeded(console,
-                                           inspectorConsole,
-                                           wrapConsoleCall) {
-    if (!inspectorConsole)
-      return;
+  function installInspectorConsole(globalConsole) {
+    const wrappedConsole = NativeModule.require('console');
+    const inspector = process.binding('inspector');
     const config = {};
-    for (const key of Object.keys(console)) {
-      if (!inspectorConsole.hasOwnProperty(key))
+    for (const key of Object.keys(wrappedConsole)) {
+      if (!globalConsole.hasOwnProperty(key))
         continue;
-      // If node console has the same method as inspector console,
+      // If global console has the same method as inspector console,
       // then wrap these two methods into one. Native wrapper will preserve
       // the original stack.
-      console[key] = wrapConsoleCall(inspectorConsole[key],
-                                     console[key],
-                                     config);
+      wrappedConsole[key] = inspector.consoleCall.bind(wrappedConsole,
+                                                       globalConsole[key],
+                                                       wrappedConsole[key],
+                                                       config);
     }
-    for (const key of Object.keys(inspectorConsole)) {
-      if (console.hasOwnProperty(key))
+    for (const key of Object.keys(globalConsole)) {
+      if (wrappedConsole.hasOwnProperty(key))
         continue;
-      console[key] = inspectorConsole[key];
+      wrappedConsole[key] = globalConsole[key];
     }
+    return wrappedConsole;
   }
 
   function setupProcessFatal() {
+    const async_wrap = process.binding('async_wrap');
+    // Arrays containing hook flags and ids for async_hook calls.
+    const { async_hook_fields, async_uid_fields } = async_wrap;
+    // Internal functions needed to manipulate the stack.
+    const { clearIdStack, popAsyncIds } = async_wrap;
+    const { kAfter, kCurrentAsyncId, kInitTriggerId } = async_wrap.constants;
 
     process._fatalException = function(er) {
       var caught;
 
+      // It's possible that kInitTriggerId was set for a constructor call that
+      // threw and was never cleared. So clear it now.
+      async_uid_fields[kInitTriggerId] = 0;
+
       if (process.domain && process.domain._errorHandler)
-        caught = process.domain._errorHandler(er) || caught;
+        caught = process.domain._errorHandler(er);
 
       if (!caught)
         caught = process.emit('uncaughtException', er);
@@ -319,9 +344,21 @@
           // nothing to be done about it at this point.
         }
 
-      // if we handled an error, then make sure any ticks get processed
       } else {
+        // If we handled an error, then make sure any ticks get processed
         NativeModule.require('timers').setImmediate(process._tickCallback);
+
+        // Emit the after() hooks now that the exception has been handled.
+        if (async_hook_fields[kAfter] > 0) {
+          do {
+            NativeModule.require('async_hooks').emitAfter(
+                async_uid_fields[kCurrentAsyncId]);
+          // popAsyncIds() returns true if there are more ids on the stack.
+          } while (popAsyncIds(async_uid_fields[kCurrentAsyncId]));
+        // Or completely empty the id stack.
+        } else {
+          clearIdStack();
+        }
       }
 
       return caught;
@@ -335,27 +372,31 @@
     // With no argument, getVersion() returns a comma separated list
     // of possible types.
     const versionTypes = icu.getVersion().split(',');
-    versionTypes.forEach((name) => {
-      // Copied from module.js:addBuiltinLibsToObject
+
+    function makeGetter(name) {
+      return () => {
+        // With an argument, getVersion(type) returns
+        // the actual version string.
+        const version = icu.getVersion(name);
+        // Replace the current getter with a new property.
+        delete process.versions[name];
+        Object.defineProperty(process.versions, name, {
+          value: version,
+          writable: false,
+          enumerable: true
+        });
+        return version;
+      };
+    }
+
+    for (var n = 0; n < versionTypes.length; n++) {
+      var name = versionTypes[n];
       Object.defineProperty(process.versions, name, {
         configurable: true,
         enumerable: true,
-        get: () => {
-          // With an argument, getVersion(type) returns
-          // the actual version string.
-          const version = icu.getVersion(name);
-          // Replace the current getter with a new
-          // property.
-          delete process.versions[name];
-          Object.defineProperty(process.versions, name, {
-            value: version,
-            writable: false,
-            enumerable: true
-          });
-          return version;
-        }
+        get: makeGetter(name)
       });
-    });
+    }
   }
 
   function tryGetCwd(path) {
@@ -405,31 +446,19 @@
     }
   }
 
-  function isDebugBreak() {
-    return process.execArgv.some((arg) => /^--debug-brk(=[0-9]+)?$/.test(arg));
-  }
+  function checkScriptSyntax(source, filename) {
+    const Module = NativeModule.require('module');
+    const vm = NativeModule.require('vm');
+    const internalModule = NativeModule.require('internal/module');
 
-  function run(entryFunction) {
-    if (process._debugWaitConnect && isDebugBreak()) {
-
-      // XXX Fix this terrible hack!
-      //
-      // Give the client program a few ticks to connect.
-      // Otherwise, there's a race condition where `node debug foo.js`
-      // will not be able to connect in time to catch the first
-      // breakpoint message on line 1.
-      //
-      // A better fix would be to somehow get a message from the
-      // V8 debug object about a connection, and runMain when
-      // that occurs.  --isaacs
-
-      const debugTimeout = +process.env.NODE_DEBUG_TIMEOUT || 50;
-      setTimeout(entryFunction, debugTimeout);
-
-    } else {
-      // Main entry point into most programs:
-      entryFunction();
-    }
+    // remove Shebang
+    source = internalModule.stripShebang(source);
+    // remove BOM
+    source = internalModule.stripBOM(source);
+    // wrap it
+    source = Module.wrap(source);
+    // compile the script, this will throw if it fails
+    new vm.Script(source, {displayErrors: true, filename});
   }
 
   // Below you find a minimal module system, which is used to load the node
@@ -464,7 +493,13 @@
     }
 
     if (!NativeModule.exists(id)) {
-      throw new Error(`No such native module ${id}`);
+      // Model the error off the internal/errors.js model, but
+      // do not use that module given that it could actually be
+      // the one causing the error if there's a bug in Node.js
+      const err = new Error(`No such built-in module: ${id}`);
+      err.code = 'ERR_UNKNOWN_BUILTIN_MODULE';
+      err.name = 'Error [ERR_UNKNOWN_BUILTIN_MODULE]';
+      throw err;
     }
 
     process.moduleLoadList.push(`NativeModule ${id}`);
@@ -485,11 +520,9 @@
     return NativeModule._source.hasOwnProperty(id);
   };
 
-  const EXPOSE_INTERNALS = process.execArgv.some(function(arg) {
-    return arg.match(/^--expose[-_]internals$/);
-  });
+  const config = process.binding('config');
 
-  if (EXPOSE_INTERNALS) {
+  if (config.exposeInternals) {
     NativeModule.nonInternalExists = NativeModule.exists;
 
     NativeModule.isInternal = function(id) {

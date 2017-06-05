@@ -51,6 +51,10 @@ endif
 ifeq ($(objectprint), on)
   GYPFLAGS += -Dv8_object_print=1
 endif
+# verifycsa=on
+ifeq ($(verifycsa), on)
+  GYPFLAGS += -Dv8_enable_verify_csa=1
+endif
 # verifyheap=on
 ifeq ($(verifyheap), on)
   GYPFLAGS += -Dv8_enable_verify_heap=1
@@ -162,6 +166,14 @@ ifdef warmupscript
 endif
 ifeq ($(goma), on)
   GYPFLAGS += -Duse_goma=1
+endif
+# v8_os_page_size=0, when 0 or not specified use build OS page size
+ifdef v8_os_page_size
+  ifneq ($(v8_os_page_size), 0)
+    ifneq ($(snapshot), off)
+      GYPFLAGS += -Dv8_os_page_size=$(v8_os_page_size)
+    endif
+  endif
 endif
 # arm specific flags.
 # arm_version=<number | "default">

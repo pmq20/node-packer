@@ -1,14 +1,12 @@
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 const cp = require('child_process');
-
-function noop() {}
 
 function fail(proc, args) {
   assert.throws(() => {
     proc.send.apply(proc, args);
-  }, /"options" argument must be an object/);
+  }, common.expectsError({code: 'ERR_INVALID_ARG_TYPE', type: TypeError}));
 }
 
 let target = process;
@@ -22,4 +20,4 @@ fail(target, ['msg', null, 'foo']);
 fail(target, ['msg', null, 0]);
 fail(target, ['msg', null, NaN]);
 fail(target, ['msg', null, 1]);
-fail(target, ['msg', null, null, noop]);
+fail(target, ['msg', null, null, common.noop]);

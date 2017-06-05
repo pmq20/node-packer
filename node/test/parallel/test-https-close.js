@@ -9,8 +9,8 @@ if (!common.hasCrypto) {
 const https = require('https');
 
 const options = {
-  key: fs.readFileSync(common.fixturesDir + '/keys/agent1-key.pem'),
-  cert: fs.readFileSync(common.fixturesDir + '/keys/agent1-cert.pem')
+  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
+  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`)
 };
 
 const connections = {};
@@ -23,7 +23,7 @@ const server = https.createServer(options, function(req, res) {
 });
 
 server.on('connection', function(connection) {
-  const key = connection.remoteAddress + ':' + connection.remotePort;
+  const key = `${connection.remoteAddress}:${connection.remotePort}`;
   connection.on('close', function() {
     delete connections[key];
   });
@@ -31,7 +31,7 @@ server.on('connection', function(connection) {
 });
 
 function shutdown() {
-  server.close(common.mustCall(function() {}));
+  server.close(common.mustCall());
 
   for (const key in connections) {
     connections[key].destroy();
@@ -49,7 +49,7 @@ server.listen(0, function() {
   };
 
   const req = https.request(requestOptions, function(res) {
-    res.on('data', function(d) {});
+    res.on('data', common.noop);
     setImmediate(shutdown);
   });
   req.end();

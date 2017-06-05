@@ -23,25 +23,26 @@ class AbstractCode;
 class FrameArray;
 class JSMessageObject;
 class LookupIterator;
+class SharedFunctionInfo;
 class SourceInfo;
 
 class MessageLocation {
  public:
   MessageLocation(Handle<Script> script, int start_pos, int end_pos);
   MessageLocation(Handle<Script> script, int start_pos, int end_pos,
-                  Handle<JSFunction> function);
+                  Handle<SharedFunctionInfo> shared);
   MessageLocation();
 
   Handle<Script> script() const { return script_; }
   int start_pos() const { return start_pos_; }
   int end_pos() const { return end_pos_; }
-  Handle<JSFunction> function() const { return function_; }
+  Handle<SharedFunctionInfo> shared() const { return shared_; }
 
  private:
   Handle<Script> script_;
   int start_pos_;
   int end_pos_;
-  Handle<JSFunction> function_;
+  Handle<SharedFunctionInfo> shared_;
 };
 
 class StackFrameBase {
@@ -56,7 +57,7 @@ class StackFrameBase {
   virtual Handle<Object> GetScriptNameOrSourceUrl() = 0;
   virtual Handle<Object> GetMethodName() = 0;
   virtual Handle<Object> GetTypeName() = 0;
-  virtual Handle<Object> GetEvalOrigin() = 0;
+  virtual Handle<Object> GetEvalOrigin();
 
   virtual int GetPosition() const = 0;
   // Return 1-based line number, including line offset.
@@ -66,11 +67,20 @@ class StackFrameBase {
 
   virtual bool IsNative() = 0;
   virtual bool IsToplevel() = 0;
-  virtual bool IsEval() = 0;
+  virtual bool IsEval();
   virtual bool IsConstructor() = 0;
   virtual bool IsStrict() const = 0;
 
   virtual MaybeHandle<String> ToString() = 0;
+
+ protected:
+  StackFrameBase() {}
+  explicit StackFrameBase(Isolate* isolate) : isolate_(isolate) {}
+  Isolate* isolate_;
+
+ private:
+  virtual bool HasScript() const = 0;
+  virtual Handle<Script> GetScript() const = 0;
 };
 
 class JSStackFrame : public StackFrameBase {
@@ -88,7 +98,6 @@ class JSStackFrame : public StackFrameBase {
   Handle<Object> GetScriptNameOrSourceUrl() override;
   Handle<Object> GetMethodName() override;
   Handle<Object> GetTypeName() override;
-  Handle<Object> GetEvalOrigin() override;
 
   int GetPosition() const override;
   int GetLineNumber() override;
@@ -96,7 +105,6 @@ class JSStackFrame : public StackFrameBase {
 
   bool IsNative() override;
   bool IsToplevel() override;
-  bool IsEval() override;
   bool IsConstructor() override;
   bool IsStrict() const override { return is_strict_; }
 
@@ -106,10 +114,8 @@ class JSStackFrame : public StackFrameBase {
   JSStackFrame();
   void FromFrameArray(Isolate* isolate, Handle<FrameArray> array, int frame_ix);
 
-  bool HasScript() const;
-  Handle<Script> GetScript() const;
-
-  Isolate* isolate_;
+  bool HasScript() const override;
+  Handle<Script> GetScript() const override;
 
   Handle<Object> receiver_;
   Handle<JSFunction> function_;
@@ -126,7 +132,7 @@ class WasmStackFrame : public StackFrameBase {
  public:
   virtual ~WasmStackFrame() {}
 
-  Handle<Object> GetReceiver() const override { return wasm_obj_; }
+  Handle<Object> GetReceiver() const override { return wasm_instance_; }
   Handle<Object> GetFunction() const override;
 
   Handle<Object> GetFileName() override { return Null(); }
@@ -134,7 +140,6 @@ class WasmStackFrame : public StackFrameBase {
   Handle<Object> GetScriptNameOrSourceUrl() override { return Null(); }
   Handle<Object> GetMethodName() override { return Null(); }
   Handle<Object> GetTypeName() override { return Null(); }
-  Handle<Object> GetEvalOrigin() override { return Null(); }
 
   int GetPosition() const override;
   int GetLineNumber() override { return wasm_func_index_; }
@@ -142,24 +147,53 @@ class WasmStackFrame : public StackFrameBase {
 
   bool IsNative() override { return false; }
   bool IsToplevel() override { return false; }
-  bool IsEval() override { return false; }
   bool IsConstructor() override { return false; }
   bool IsStrict() const override { return false; }
 
   MaybeHandle<String> ToString() override;
 
- private:
-  void FromFrameArray(Isolate* isolate, Handle<FrameArray> array, int frame_ix);
+ protected:
   Handle<Object> Null() const;
 
-  Isolate* isolate_;
+  bool HasScript() const override;
+  Handle<Script> GetScript() const override;
 
-  Handle<Object> wasm_obj_;
+  // TODO(wasm): Use proper typing.
+  Handle<Object> wasm_instance_;
   uint32_t wasm_func_index_;
   Handle<AbstractCode> code_;
   int offset_;
 
+ private:
+  WasmStackFrame();
+  void FromFrameArray(Isolate* isolate, Handle<FrameArray> array, int frame_ix);
+
   friend class FrameArrayIterator;
+  friend class AsmJsWasmStackFrame;
+};
+
+class AsmJsWasmStackFrame : public WasmStackFrame {
+ public:
+  virtual ~AsmJsWasmStackFrame() {}
+
+  Handle<Object> GetReceiver() const override;
+  Handle<Object> GetFunction() const override;
+
+  Handle<Object> GetFileName() override;
+  Handle<Object> GetScriptNameOrSourceUrl() override;
+
+  int GetPosition() const override;
+  int GetLineNumber() override;
+  int GetColumnNumber() override;
+
+  MaybeHandle<String> ToString() override;
+
+ private:
+  friend class FrameArrayIterator;
+  AsmJsWasmStackFrame();
+  void FromFrameArray(Isolate* isolate, Handle<FrameArray> array, int frame_ix);
+
+  bool is_at_number_conversion_;
 };
 
 class FrameArrayIterator {
@@ -179,6 +213,7 @@ class FrameArrayIterator {
   int next_frame_ix_;
 
   WasmStackFrame wasm_frame_;
+  AsmJsWasmStackFrame asm_wasm_frame_;
   JSStackFrame js_frame_;
 };
 
@@ -234,7 +269,7 @@ class ErrorUtils : public AllStatic {
     "ArrayBuffer subclass returned this from species constructor")             \
   T(ArrayFunctionsOnFrozen, "Cannot modify frozen array elements")             \
   T(ArrayFunctionsOnSealed, "Cannot add/remove sealed array elements")         \
-  T(ArrayNotSubclassable, "Subclassing Arrays is not currently supported.")    \
+  T(AtomicsWaitNotAllowed, "Atomics.wait cannot be called in this context")    \
   T(CalledNonCallable, "% is not a function")                                  \
   T(CalledOnNonObject, "% called on non-object")                               \
   T(CalledOnNullOrUndefined, "% called on null or undefined")                  \
@@ -261,7 +296,7 @@ class ErrorUtils : public AllStatic {
   T(DebuggerFrame, "Debugger: Invalid frame index.")                           \
   T(DebuggerType, "Debugger: Parameters have wrong types.")                    \
   T(DeclarationMissingInitializer, "Missing initializer in % declaration")     \
-  T(DefineDisallowed, "Cannot define property:%, object is not extensible.")   \
+  T(DefineDisallowed, "Cannot define property %, object is not extensible")    \
   T(DetachedOperation, "Cannot perform % on a detached ArrayBuffer")           \
   T(DuplicateTemplateProperty, "Object template has duplicate property '%'")   \
   T(ExtendsValueNotConstructor,                                                \
@@ -273,6 +308,7 @@ class ErrorUtils : public AllStatic {
   T(IllegalInvocation, "Illegal invocation")                                   \
   T(ImmutablePrototypeSet,                                                     \
     "Immutable prototype object '%' cannot have their prototype set")          \
+  T(ImportCallNotNewExpression, "Cannot use new with import")                  \
   T(IncompatibleMethodReceiver, "Method % called on incompatible receiver %")  \
   T(InstanceofNonobjectProto,                                                  \
     "Function has non-object prototype '%' in instanceof check")               \
@@ -280,7 +316,6 @@ class ErrorUtils : public AllStatic {
   T(InvalidInOperatorUse, "Cannot use 'in' operator to search for '%' in %")   \
   T(InvalidRegExpExecResult,                                                   \
     "RegExp exec method returned something other than an Object or null")      \
-  T(InvalidSimdOperation, "% is not a valid type for this SIMD operation.")    \
   T(IteratorResultNotAnObject, "Iterator result % is not an object")           \
   T(IteratorValueNotAnObject, "Iterator value % is not an entry object")       \
   T(LanguageID, "Language ID should be string or object.")                     \
@@ -308,13 +343,15 @@ class ErrorUtils : public AllStatic {
   T(NotIterable, "% is not iterable")                                          \
   T(NotPropertyName, "% is not a valid property name")                         \
   T(NotTypedArray, "this is not a typed array.")                               \
-  T(NotSharedTypedArray, "% is not a shared typed array.")                     \
+  T(NotSuperConstructor, "Super constructor % of % is not a constructor")      \
+  T(NotSuperConstructorAnonymousClass,                                         \
+    "Super constructor % of anonymous class is not a constructor")             \
   T(NotIntegerSharedTypedArray, "% is not an integer shared typed array.")     \
   T(NotInt32SharedTypedArray, "% is not an int32 shared typed array.")         \
   T(ObjectGetterExpectingFunction,                                             \
     "Object.prototype.__defineGetter__: Expecting function")                   \
   T(ObjectGetterCallable, "Getter must be a function: %")                      \
-  T(ObjectNotExtensible, "Can't add property %, object is not extensible")     \
+  T(ObjectNotExtensible, "Cannot add property %, object is not extensible")    \
   T(ObjectSetterExpectingFunction,                                             \
     "Object.prototype.__defineSetter__: Expecting function")                   \
   T(ObjectSetterCallable, "Setter must be a function: %")                      \
@@ -422,9 +459,6 @@ class ErrorUtils : public AllStatic {
   T(RegExpNonObject, "% getter called on non-object %")                        \
   T(RegExpNonRegExp, "% getter called on non-RegExp object")                   \
   T(ReinitializeIntl, "Trying to re-initialize % object.")                     \
-  T(ResolvedOptionsCalledOnNonObject,                                          \
-    "resolvedOptions method called on a non-object or on a object that is "    \
-    "not Intl.%.")                                                             \
   T(ResolverNotAFunction, "Promise resolver % is not a function")              \
   T(RestrictedFunctionProperties,                                              \
     "'caller' and 'arguments' are restricted function properties and cannot "  \
@@ -441,10 +475,11 @@ class ErrorUtils : public AllStatic {
   T(StrictCannotCreateProperty, "Cannot create property '%' on % '%'")         \
   T(SymbolIteratorInvalid,                                                     \
     "Result of the Symbol.iterator method is not an object")                   \
+  T(SymbolAsyncIteratorInvalid,                                                \
+    "Result of the Symbol.asyncIterator method is not an object")              \
   T(SymbolKeyFor, "% is not a symbol")                                         \
   T(SymbolToNumber, "Cannot convert a Symbol value to a number")               \
   T(SymbolToString, "Cannot convert a Symbol value to a string")               \
-  T(SimdToNumber, "Cannot convert a SIMD value to a number")                   \
   T(ThrowMethodMissing, "The iterator does not provide a 'throw' method.")     \
   T(UndefinedOrNullToObject, "Cannot convert undefined or null to object")     \
   T(ValueAndAccessor,                                                          \
@@ -453,8 +488,8 @@ class ErrorUtils : public AllStatic {
   T(VarRedeclaration, "Identifier '%' has already been declared")              \
   T(WrongArgs, "%: Arguments list has wrong type")                             \
   /* ReferenceError */                                                         \
-  T(NonMethod, "'super' is referenced from non-method")                        \
   T(NotDefined, "% is not defined")                                            \
+  T(SuperAlreadyCalled, "Super constructor may only be called once")           \
   T(UnsupportedSuper, "Unsupported reference to 'super'")                      \
   /* RangeError */                                                             \
   T(DateRange, "Provided date is not in valid range.")                         \
@@ -473,8 +508,7 @@ class ErrorUtils : public AllStatic {
   T(InvalidDataViewAccessorOffset,                                             \
     "Offset is outside the bounds of the DataView")                            \
   T(InvalidDataViewLength, "Invalid DataView length %")                        \
-  T(InvalidDataViewOffset,                                                     \
-    "Start offset % is outside the bounds of the buffer")                      \
+  T(InvalidOffset, "Start offset % is outside the bounds of the buffer")       \
   T(InvalidHint, "Invalid hint: %")                                            \
   T(InvalidLanguageTag, "Invalid language tag: %")                             \
   T(InvalidWeakMapKey, "Invalid value used as weak map key")                   \
@@ -482,10 +516,8 @@ class ErrorUtils : public AllStatic {
   T(InvalidStringLength, "Invalid string length")                              \
   T(InvalidTimeValue, "Invalid time value")                                    \
   T(InvalidTypedArrayAlignment, "% of % should be a multiple of %")            \
+  T(InvalidTypedArrayIndex, "Invalid typed array index")                       \
   T(InvalidTypedArrayLength, "Invalid typed array length")                     \
-  T(InvalidTypedArrayOffset, "Start offset is too large:")                     \
-  T(InvalidSimdIndex, "Index out of bounds for SIMD operation")                \
-  T(InvalidSimdLaneValue, "Lane value out of bounds for SIMD operation")       \
   T(LetInLexicalBinding, "let is disallowed as a lexically bound name")        \
   T(LocaleMatcher, "Illegal value for localeMatcher:%")                        \
   T(NormalizationForm, "The normalization form should be one of %.")           \
@@ -499,7 +531,8 @@ class ErrorUtils : public AllStatic {
   T(UnsupportedTimeZone, "Unsupported time zone specified %")                  \
   T(ValueOutOfRange, "Value % out of range for % options property %")          \
   /* SyntaxError */                                                            \
-  T(AmbiguousExport, "Multiple star exports provide name '%'")                 \
+  T(AmbiguousExport,                                                           \
+    "The requested module contains conflicting star exports for name '%'")     \
   T(BadGetterArity, "Getter must not have any formal parameters.")             \
   T(BadSetterArity, "Setter must have exactly one formal parameter.")          \
   T(ConstructorIsAccessor, "Class constructor may not be an accessor")         \
@@ -555,11 +588,14 @@ class ErrorUtils : public AllStatic {
   T(PushPastSafeLength,                                                        \
     "Pushing % elements on an array-like of length % "                         \
     "is disallowed, as the total surpasses 2**53-1")                           \
-  T(ElementAfterRest, "Rest element must be last element in array")            \
+  T(ElementAfterRest, "Rest element must be last element")                     \
   T(BadSetterRestParameter,                                                    \
     "Setter function argument must not be a rest parameter")                   \
   T(ParamDupe, "Duplicate parameter name not allowed in this context")         \
   T(ParenthesisInArgString, "Function arg string contains parenthesis")        \
+  T(ArgStringTerminatesParametersEarly,                                        \
+    "Arg string terminates parameters early")                                  \
+  T(UnexpectedEndOfArgString, "Unexpected end of arg string")                  \
   T(RuntimeWrongNumArgs, "Runtime function given wrong number of arguments")   \
   T(SingleFunctionLiteral, "Single function literal required")                 \
   T(SloppyFunction,                                                            \
@@ -573,9 +609,13 @@ class ErrorUtils : public AllStatic {
     "In strict mode code, functions can only be declared at top level or "     \
     "inside a block.")                                                         \
   T(StrictOctalLiteral, "Octal literals are not allowed in strict mode.")      \
+  T(StrictDecimalWithLeadingZero,                                              \
+    "Decimals with leading zeros are not allowed in strict mode.")             \
+  T(StrictOctalEscape,                                                         \
+    "Octal escape sequences are not allowed in strict mode.")                  \
   T(StrictWith, "Strict mode code may not include a with statement")           \
   T(TemplateOctalLiteral,                                                      \
-    "Octal literals are not allowed in template strings.")                     \
+    "Octal escape sequences are not allowed in template strings.")             \
   T(ThisFormalParameter, "'this' is not a valid formal parameter name")        \
   T(AwaitBindingIdentifier,                                                    \
     "'await' is not a valid identifier name in an async function")             \
@@ -603,8 +643,11 @@ class ErrorUtils : public AllStatic {
   T(UnexpectedTokenNumber, "Unexpected number")                                \
   T(UnexpectedTokenString, "Unexpected string")                                \
   T(UnexpectedTokenRegExp, "Unexpected regular expression")                    \
+  T(UnexpectedLexicalDeclaration,                                              \
+    "Lexical declaration cannot appear in a single-statement context")         \
   T(UnknownLabel, "Undefined label '%'")                                       \
-  T(UnresolvableExport, "Module does not provide an export named '%'")         \
+  T(UnresolvableExport,                                                        \
+    "The requested module does not provide an export named '%'")               \
   T(UnterminatedArgList, "missing ) after argument list")                      \
   T(UnterminatedRegExp, "Invalid regular expression: missing /")               \
   T(UnterminatedTemplate, "Unterminated template literal")                     \
@@ -616,6 +659,7 @@ class ErrorUtils : public AllStatic {
   T(YieldInParameter, "Yield expression not allowed in formal parameter")      \
   /* EvalError */                                                              \
   T(CodeGenFromStrings, "%")                                                   \
+  T(NoSideEffectDebugEvaluate, "Possible side-effect in debug-evaluate")       \
   /* URIError */                                                               \
   T(URIMalformed, "URI malformed")                                             \
   /* Wasm errors (currently Error) */                                          \
@@ -629,12 +673,17 @@ class ErrorUtils : public AllStatic {
   T(WasmTrapFuncSigMismatch, "function signature mismatch")                    \
   T(WasmTrapInvalidIndex, "invalid index into function table")                 \
   T(WasmTrapTypeError, "invalid type")                                         \
+  /* Asm.js validation related */                                              \
+  T(AsmJsInvalid, "Invalid asm.js: %")                                         \
+  T(AsmJsCompiled, "Converted asm.js to WebAssembly: %")                       \
+  T(AsmJsInstantiated, "Instantiated asm.js: %")                               \
   /* DataCloneError messages */                                                \
   T(DataCloneError, "% could not be cloned.")                                  \
+  T(DataCloneErrorOutOfMemory, "Data cannot be cloned, out of memory.")        \
   T(DataCloneErrorNeuteredArrayBuffer,                                         \
     "An ArrayBuffer is neutered and could not be cloned.")                     \
-  T(DataCloneErrorSharedArrayBufferNotTransferred,                             \
-    "A SharedArrayBuffer could not be cloned. SharedArrayBuffer must be "      \
+  T(DataCloneErrorSharedArrayBufferTransferred,                                \
+    "A SharedArrayBuffer could not be cloned. SharedArrayBuffer must not be "  \
     "transferred.")                                                            \
   T(DataCloneDeserializationError, "Unable to deserialize cloned data.")       \
   T(DataCloneDeserializationVersionError,                                      \
@@ -669,11 +718,11 @@ class MessageHandler {
   // Returns a message object for the API to use.
   static Handle<JSMessageObject> MakeMessageObject(
       Isolate* isolate, MessageTemplate::Template type,
-      MessageLocation* location, Handle<Object> argument,
+      const MessageLocation* location, Handle<Object> argument,
       Handle<JSArray> stack_frames);
 
   // Report a formatted message (needs JS allocation).
-  static void ReportMessage(Isolate* isolate, MessageLocation* loc,
+  static void ReportMessage(Isolate* isolate, const MessageLocation* loc,
                             Handle<JSMessageObject> message);
 
   static void DefaultMessageReport(Isolate* isolate, const MessageLocation* loc,
@@ -681,6 +730,12 @@ class MessageHandler {
   static Handle<String> GetMessage(Isolate* isolate, Handle<Object> data);
   static std::unique_ptr<char[]> GetLocalizedMessage(Isolate* isolate,
                                                      Handle<Object> data);
+
+ private:
+  static void ReportMessageNoExceptions(Isolate* isolate,
+                                        const MessageLocation* loc,
+                                        Handle<Object> message_obj,
+                                        v8::Local<v8::Value> api_exception_obj);
 };
 
 

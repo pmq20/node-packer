@@ -2,15 +2,28 @@
 
 exports.setup = setupStdio;
 
+var errors;
+
+function lazyErrors() {
+  if (!errors)
+    errors = require('internal/errors');
+  return errors;
+}
+
 function setupStdio() {
-  var stdin, stdout, stderr;
+  var stdin;
+  var stdout;
+  var stderr;
 
   function getStdout() {
     if (stdout) return stdout;
     stdout = createWritableStdioStream(1);
-    stdout.destroy = stdout.destroySoon = function(er) {
-      er = er || new Error('process.stdout cannot be closed.');
-      stdout.emit('error', er);
+    stdout.destroySoon = stdout.destroy;
+    stdout._destroy = function(er, cb) {
+      // avoid errors if we already emitted
+      const errors = lazyErrors();
+      er = er || new errors.Error('ERR_STDOUT_CLOSE');
+      cb(er);
     };
     if (stdout.isTTY) {
       process.on('SIGWINCH', () => stdout._refreshSize());
@@ -21,9 +34,12 @@ function setupStdio() {
   function getStderr() {
     if (stderr) return stderr;
     stderr = createWritableStdioStream(2);
-    stderr.destroy = stderr.destroySoon = function(er) {
-      er = er || new Error('process.stderr cannot be closed.');
-      stderr.emit('error', er);
+    stderr.destroySoon = stderr.destroy;
+    stderr._destroy = function(er, cb) {
+      // avoid errors if we already emitted
+      const errors = lazyErrors();
+      er = er || new errors.Error('ERR_STDERR_CLOSE');
+      cb(er);
     };
     if (stderr.isTTY) {
       process.on('SIGWINCH', () => stderr._refreshSize());
@@ -79,7 +95,8 @@ function setupStdio() {
 
       default:
         // Probably an error on in uv_guess_handle()
-        throw new Error('Implement me. Unknown stdin file type!');
+        const errors = lazyErrors();
+        throw new errors.Error('ERR_UNKNOWN_STDIN_TYPE');
     }
 
     // For supporting legacy API we put the FD here.
@@ -163,7 +180,8 @@ function createWritableStdioStream(fd) {
 
     default:
       // Probably an error on in uv_guess_handle()
-      throw new Error('Implement me. Unknown stream file type!');
+      const errors = lazyErrors();
+      throw new errors.Error('ERR_UNKNOWN_STREAM_TYPE');
   }
 
   // For supporting legacy API we put the FD here.

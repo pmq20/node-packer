@@ -1,3 +1,24 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 // Regression test for GH-784
 // https://github.com/joyent/node/issues/784
@@ -48,7 +69,7 @@ const responses = [];
 
 function afterPing(result) {
   responses.push(result);
-  console.error('afterPing. responses.length = ' + responses.length);
+  console.error(`afterPing. responses.length = ${responses.length}`);
   switch (responses.length) {
     case 2:
       assert.ok(/ECONNREFUSED/.test(responses[0]));
@@ -109,7 +130,7 @@ function ping() {
   let hadError = false;
 
   req.on('error', function(error) {
-    console.log('Error making ping req: ' + error);
+    console.log(`Error making ping req: ${error}`);
     hadError = true;
     assert.ok(!gotEnd);
     afterPing(error.message);

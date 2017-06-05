@@ -13,10 +13,10 @@ const { domainToASCII, domainToUnicode } = require('url');
 const tests = require('../fixtures/url-idna.js');
 
 {
-  assert.throws(() => domainToASCII(),
-                /^TypeError: "domain" argument must be specified$/);
-  assert.throws(() => domainToUnicode(),
-                /^TypeError: "domain" argument must be specified$/);
+  const expectedError = common.expectsError(
+      { code: 'ERR_MISSING_ARGS', type: TypeError });
+  assert.throws(() => domainToASCII(), expectedError);
+  assert.throws(() => domainToUnicode(), expectedError);
   assert.strictEqual(domainToASCII(undefined), 'undefined');
   assert.strictEqual(domainToUnicode(undefined), 'undefined');
 }
@@ -35,11 +35,8 @@ const tests = require('../fixtures/url-idna.js');
 }
 
 {
-  const convertFunc = {
-    ascii: domainToASCII,
-    unicode: domainToUnicode
-  };
-
-  for (const [i, { url, mode }] of tests.invalid.entries())
-    assert.strictEqual(convertFunc[mode](url), '', `Invalid case ${i + 1}`);
+  for (const [i, url] of tests.invalid.entries()) {
+    assert.strictEqual(domainToASCII(url), '', `Invalid case ${i + 1}`);
+    assert.strictEqual(domainToUnicode(url), '', `Invalid case ${i + 1}`);
+  }
 }

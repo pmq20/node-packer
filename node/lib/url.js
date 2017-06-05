@@ -1,20 +1,41 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const { toASCII } = process.binding('config').hasIntl ?
   process.binding('icu') : require('punycode');
-const { StorageObject, hexTable } = require('internal/querystring');
-const internalUrl = require('internal/url');
-exports.parse = urlParse;
-exports.resolve = urlResolve;
-exports.resolveObject = urlResolveObject;
-exports.format = urlFormat;
-exports.URL = internalUrl.URL;
-exports.URLSearchParams = internalUrl.URLSearchParams;
-exports.domainToASCII = internalUrl.domainToASCII;
-exports.domainToUnicode = internalUrl.domainToUnicode;
 
+const { hexTable } = require('internal/querystring');
 
-exports.Url = Url;
+// WHATWG URL implementation provided by internal/url
+const {
+  URL,
+  URLSearchParams,
+  domainToASCII,
+  domainToUnicode,
+  formatSymbol
+} = require('internal/url');
+
+// Original url.parse() API
 
 function Url() {
   this.protocol = null;
@@ -176,7 +197,7 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
         }
       } else if (parseQueryString) {
         this.search = '';
-        this.query = new StorageObject();
+        this.query = Object.create(null);
       }
       return this;
     }
@@ -369,7 +390,7 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
   } else if (parseQueryString) {
     // no query string, but parseQueryString still requested
     this.search = '';
-    this.query = new StorageObject();
+    this.query = Object.create(null);
   }
 
   var firstIdx = (questionIdx !== -1 &&
@@ -400,33 +421,22 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
 };
 
 function validateHostname(self, rest, hostname) {
-  for (var i = 0, lastPos; i <= hostname.length; ++i) {
-    var code;
-    if (i < hostname.length)
-      code = hostname.charCodeAt(i);
-    if (code === 46/*.*/ || i === hostname.length) {
-      if (i - lastPos > 0) {
-        if (i - lastPos > 63) {
-          self.hostname = hostname.slice(0, lastPos + 63);
-          return '/' + hostname.slice(lastPos + 63) + rest;
-        }
-      }
-      lastPos = i + 1;
-      continue;
-    } else if ((code >= 48/*0*/ && code <= 57/*9*/) ||
-               (code >= 97/*a*/ && code <= 122/*z*/) ||
-               code === 45/*-*/ ||
-               (code >= 65/*A*/ && code <= 90/*Z*/) ||
-               code === 43/*+*/ ||
-               code === 95/*_*/ ||
-               code > 127) {
-      continue;
-    }
+  for (var i = 0; i < hostname.length; ++i) {
+    const code = hostname.charCodeAt(i);
+    const isValid = (code >= 97/*a*/ && code <= 122/*z*/) ||
+                    code === 46/*.*/ ||
+                    (code >= 65/*A*/ && code <= 90/*Z*/) ||
+                    (code >= 48/*0*/ && code <= 57/*9*/) ||
+                    code === 45/*-*/ ||
+                    code === 43/*+*/ ||
+                    code === 95/*_*/ ||
+                    code > 127;
+
     // Invalid host character
-    self.hostname = hostname.slice(0, i);
-    if (i < hostname.length)
+    if (!isValid) {
+      self.hostname = hostname.slice(0, i);
       return '/' + hostname.slice(i) + rest;
-    break;
+    }
   }
 }
 
@@ -547,9 +557,9 @@ function urlFormat(obj, options) {
     obj = urlParse(obj);
   } else if (typeof obj !== 'object' || obj === null) {
     throw new TypeError('Parameter "urlObj" must be an object, not ' +
-                        obj === null ? 'null' : typeof obj);
+                        (obj === null ? 'null' : typeof obj));
   } else if (!(obj instanceof Url)) {
-    var format = obj[internalUrl.formatSymbol];
+    var format = obj[formatSymbol];
     return format ?
       format.call(obj, options) :
       Url.prototype.format.call(obj);
@@ -1020,3 +1030,18 @@ function encodeAuth(str) {
     return out + str.slice(lastPos);
   return out;
 }
+
+module.exports = {
+  // Original API
+  Url,
+  parse: urlParse,
+  resolve: urlResolve,
+  resolveObject: urlResolveObject,
+  format: urlFormat,
+
+  // WHATWG API
+  URL,
+  URLSearchParams,
+  domainToASCII,
+  domainToUnicode
+};

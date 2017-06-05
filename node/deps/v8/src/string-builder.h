@@ -180,7 +180,6 @@ class FixedArrayBuilder {
     return target_array;
   }
 
-
  private:
   Handle<FixedArray> array_;
   int length_;
@@ -310,6 +309,8 @@ class IncrementalStringBuilder {
   MaybeHandle<String> Finish();
 
   INLINE(bool HasOverflowed()) const { return overflowed_; }
+
+  INLINE(int Length()) const { return accumulator_->length() + current_index_; }
 
   // Change encoding to two-byte.
   void ChangeEncoding() {

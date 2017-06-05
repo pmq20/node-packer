@@ -39,12 +39,11 @@ function createRepl(env, opts, cb) {
 
   opts.replMode = {
     'strict': REPL.REPL_MODE_STRICT,
-    'sloppy': REPL.REPL_MODE_SLOPPY,
-    'magic': REPL.REPL_MODE_MAGIC
+    'sloppy': REPL.REPL_MODE_SLOPPY
   }[String(env.NODE_REPL_MODE).toLowerCase().trim()];
 
   if (opts.replMode === undefined) {
-    opts.replMode = REPL.REPL_MODE_MAGIC;
+    opts.replMode = REPL.REPL_MODE_SLOPPY;
   }
 
   const historySize = Number(env.NODE_REPL_HISTORY_SIZE);
@@ -173,23 +172,16 @@ function setupHistory(repl, historyPath, oldHistoryPath, ready) {
       return ready(err);
     }
     fs.ftruncate(hnd, 0, (err) => {
-      return onftruncate(err, hnd);
-    });
-  }
+      repl._historyHandle = hnd;
+      repl.on('line', online);
 
-  function onftruncate(err, hnd) {
-    if (err) {
-      return ready(err);
-    }
-    repl._historyHandle = hnd;
-    repl.on('line', online);
-
-    // reading the file data out erases it
-    repl.once('flushHistory', function() {
-      repl.resume();
-      ready(null, repl);
+      // reading the file data out erases it
+      repl.once('flushHistory', function() {
+        repl.resume();
+        ready(null, repl);
+      });
+      flushHistory();
     });
-    flushHistory();
   }
 
   // ------ history listeners ------

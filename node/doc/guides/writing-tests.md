@@ -56,7 +56,7 @@ const common = require('../common');
 The first line enables strict mode. All tests should be in strict mode unless
 the nature of the test requires that the test run without it.
 
-The second line loads the `common` module. The `common` module is a helper
+The second line loads the `common` module. The [`common` module][] is a helper
 module that provides useful tools for the tests.
 
 Even if a test uses no functions or other properties exported by `common`,
@@ -141,22 +141,22 @@ this with a real test from the test suite.
 
 ```javascript
 'use strict';
-var common = require('../common');
-var assert = require('assert');
-var http = require('http');
+require('../common');
+const assert = require('assert');
+const http = require('http');
 
-var request = 0;
-var response = 0;
+let request = 0;
+let response = 0;
 process.on('exit', function() {
   assert.equal(request, 1, 'http server "request" callback was not called');
   assert.equal(response, 1, 'http request "response" callback was not called');
 });
 
-var server = http.createServer(function(req, res) {
+const server = http.createServer(function(req, res) {
   request++;
   res.end();
 }).listen(0, function() {
-  var options = {
+  const options = {
     agent: null,
     port: this.address().port
   };
@@ -172,14 +172,13 @@ This test could be greatly simplified by using `common.mustCall` like this:
 
 ```javascript
 'use strict';
-var common = require('../common');
-var assert = require('assert');
-var http = require('http');
+const common = require('../common');
+const http = require('http');
 
-var server = http.createServer(common.mustCall(function(req, res) {
+const server = http.createServer(common.mustCall(function(req, res) {
   res.end();
 })).listen(0, function() {
-  var options = {
+  const options = {
     agent: null,
     port: this.address().port
   };
@@ -341,3 +340,4 @@ will depend on what is being tested if this is required or not.
 
 [Google Test]: https://github.com/google/googletest
 [Test fixture]: https://github.com/google/googletest/blob/master/googletest/docs/Primer.md#test-fixtures-using-the-same-data-configuration-for-multiple-tests
+[`common` module]: https://github.com/nodejs/node/blob/master/test/common/README.md

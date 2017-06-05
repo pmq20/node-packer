@@ -5,8 +5,9 @@
 #include "src/crankshaft/lithium-allocator.h"
 
 #include "src/crankshaft/hydrogen.h"
-#include "src/crankshaft/lithium-inl.h"
 #include "src/crankshaft/lithium-allocator-inl.h"
+#include "src/crankshaft/lithium-inl.h"
+#include "src/objects-inl.h"
 #include "src/register-configuration.h"
 #include "src/string-stream.h"
 
@@ -513,7 +514,7 @@ LifetimePosition LiveRange::FirstIntersection(LiveRange* other) {
 }
 
 LAllocator::LAllocator(int num_values, HGraph* graph)
-    : zone_(graph->isolate()->allocator()),
+    : zone_(graph->isolate()->allocator(), ZONE_NAME),
       chunk_(NULL),
       live_in_sets_(graph->blocks()->length(), zone()),
       live_ranges_(num_values * 2, zone()),

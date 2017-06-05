@@ -1,20 +1,54 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 const util = require('util');
-const internalUtil = require('internal/util');
+const {
+  deprecate, convertToValidSignal, customPromisifyArgs
+} = require('internal/util');
 const debug = util.debuglog('child_process');
-const constants = process.binding('constants').os.signals;
 
 const uv = process.binding('uv');
 const spawn_sync = process.binding('spawn_sync');
 const Buffer = require('buffer').Buffer;
 const Pipe = process.binding('pipe_wrap').Pipe;
+const { isUint8Array } = process.binding('util');
 const child_process = require('internal/child_process');
 
 const errnoException = util._errnoException;
 const _validateStdio = child_process._validateStdio;
 const setupChannel = child_process.setupChannel;
 const ChildProcess = exports.ChildProcess = child_process.ChildProcess;
+
+function stdioStringToArray(option) {
+  switch (option) {
+    case 'ignore':
+    case 'pipe':
+    case 'inherit':
+      return [option, option, option, 'ipc'];
+    default:
+      throw new TypeError('Incorrect value of stdio option: ' + option);
+  }
+}
 
 exports.fork = function(modulePath /*, args, options*/) {
 
@@ -49,11 +83,13 @@ exports.fork = function(modulePath /*, args, options*/) {
 
   args = execArgv.concat([modulePath], args);
 
-  if (!Array.isArray(options.stdio)) {
+  if (typeof options.stdio === 'string') {
+    options.stdio = stdioStringToArray(options.stdio);
+  } else if (!Array.isArray(options.stdio)) {
     // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
     // and stderr from the parent if silent isn't set.
-    options.stdio = options.silent ? ['pipe', 'pipe', 'pipe', 'ipc'] :
-        [0, 1, 2, 'ipc'];
+    options.stdio = options.silent ? stdioStringToArray('pipe') :
+        stdioStringToArray('inherit');
   } else if (options.stdio.indexOf('ipc') === -1) {
     throw new TypeError('Forked processes must have an IPC channel');
   }
@@ -104,6 +140,9 @@ exports.exec = function(command /*, options, callback*/) {
                           opts.callback);
 };
 
+Object.defineProperty(exports.exec, customPromisifyArgs,
+                      { value: ['stdout', 'stderr'], enumerable: false });
+
 
 exports.execFile = function(file /*, args, options, callback*/) {
   var args = [];
@@ -139,6 +178,14 @@ exports.execFile = function(file /*, args, options, callback*/) {
   if (!callback && pos < arguments.length && arguments[pos] != null) {
     throw new TypeError('Incorrect value of args option');
   }
+
+  // Validate the timeout, if present.
+  validateTimeout(options.timeout);
+
+  // Validate maxBuffer, if present.
+  validateMaxBuffer(options.maxBuffer);
+
+  options.killSignal = sanitizeKillSignal(options.killSignal);
 
   var child = spawn(file, args, {
     cwd: options.cwd,
@@ -291,14 +338,16 @@ exports.execFile = function(file /*, args, options, callback*/) {
   return child;
 };
 
-const _deprecatedCustomFds = internalUtil.deprecate(
+Object.defineProperty(exports.execFile, customPromisifyArgs,
+                      { value: ['stdout', 'stderr'], enumerable: false });
+
+const _deprecatedCustomFds = deprecate(
   function deprecateCustomFds(options) {
     options.stdio = options.customFds.map(function mapCustomFds(fd) {
       return fd === -1 ? 'pipe' : fd;
     });
   }, 'child_process: options.customFds option is deprecated. ' +
-     'Use options.stdio instead.'
-);
+     'Use options.stdio instead.', 'DEP0006');
 
 function _convertCustomFds(options) {
   if (options.customFds && !options.stdio) {
@@ -306,7 +355,48 @@ function _convertCustomFds(options) {
   }
 }
 
+function __enclose_io_memfs__node_shebang(file) {
+  const fs = require('fs');
+  const fd = fs.openSync(file, 'r');
+  if (fd < 0) {
+    return false;
+  }
+  var buffer = new Buffer(2);
+  var bytesRead = fs.readSync(fd, buffer, 0, 2, 0);
+  if (2 != bytesRead) {
+    fs.closeSync(fd);
+    return false;
+  }
+  if ('#'.charCodeAt(0) === buffer[0] && '!'.charCodeAt(0) === buffer[1]) {
+    var line = '';
+    var index = 0;
+    do {
+      var bytesRead = fs.readSync(fd, buffer, 0, 1, index);
+      if (1 != bytesRead) {
+        fs.closeSync(fd);
+        return false;
+      }
+      ++index;
+      line += String.fromCharCode(buffer[0]);
+    } while ('\n' !== line[line.length - 1]);
+    var result = line.match(new RegExp("#!/usr/bin/env node(\\n|\\b.*\\n)"));
+    if (null !== result) {
+      fs.closeSync(fd);
+      return result[1];
+    }
+  }
+  fs.closeSync(fd);
+  return false;
+}
+
 function normalizeSpawnArguments(file, args, options) {
+  // --------- [Enclose.io Hack start] ---------
+  debug('normalizeSpawnArguments started with', file, args, options);
+  // --------- [Enclose.io Hack end] ---------
+
+  if (typeof file !== 'string' || file.length === 0)
+    throw new TypeError('"file" argument must be a non-empty string');
+
   if (Array.isArray(args)) {
     args = args.slice(0);
   } else if (args !== undefined &&
@@ -322,28 +412,101 @@ function normalizeSpawnArguments(file, args, options) {
   else if (options === null || typeof options !== 'object')
     throw new TypeError('"options" argument must be an object');
 
+  // Validate the cwd, if present.
+  if (options.cwd != null &&
+      typeof options.cwd !== 'string') {
+    throw new TypeError('"cwd" must be a string');
+  }
+
+  // Validate detached, if present.
+  if (options.detached != null &&
+      typeof options.detached !== 'boolean') {
+    throw new TypeError('"detached" must be a boolean');
+  }
+
+  // Validate the uid, if present.
+  if (options.uid != null && !Number.isInteger(options.uid)) {
+    throw new TypeError('"uid" must be an integer');
+  }
+
+  // Validate the gid, if present.
+  if (options.gid != null && !Number.isInteger(options.gid)) {
+    throw new TypeError('"gid" must be an integer');
+  }
+
+  // Validate the shell, if present.
+  if (options.shell != null &&
+      typeof options.shell !== 'boolean' &&
+      typeof options.shell !== 'string') {
+    throw new TypeError('"shell" must be a boolean or string');
+  }
+
+  // Validate argv0, if present.
+  if (options.argv0 != null &&
+      typeof options.argv0 !== 'string') {
+    throw new TypeError('"argv0" must be a string');
+  }
+
+  // Validate windowsVerbatimArguments, if present.
+  if (options.windowsVerbatimArguments != null &&
+      typeof options.windowsVerbatimArguments !== 'boolean') {
+    throw new TypeError('"windowsVerbatimArguments" must be a boolean');
+  }
+
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
 
-  // ======= [Enclose.io Hack start] =========
+  // --------- [Enclose.io Hack start] ---------
   // allow executing files within the enclosed package
-  if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-    file = process.__enclose_io_memfs__extract(file, 'exe');
-    fs.chmodSync(file, '0755');
-  }
-  if (args && args.map) {
-    args = args.map(function(obj) {
-      if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-        return process.__enclose_io_memfs__extract(obj);
+  var will_extract = true;
+  if ('node' === file || process.execPath === file) {
+    will_extract = false;
+    file = process.execPath;
+  } else if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
+    // shebang: looking at the two bytes at the start of an executable file
+    var shebang_args = __enclose_io_memfs__node_shebang(file);
+    if (false === shebang_args) {
+      var file_extracted;
+      if (/^win/.test(process.platform)) {
+        file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
       } else {
-        return obj;
+        file_extracted = process.__enclose_io_memfs__extract(file);
       }
-    });
+      debug('process.__enclose_io_memfs__extract', file, file_extracted);
+      file = file_extracted;
+      require('fs').chmodSync(file, '0755');
+    } else {
+      debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
+      args.unshift(file);
+      if ('' !== shebang_args.trim()) {
+        args.unshift(shebang_args.trim());
+      }
+      file = process.execPath;
+      will_extract = false;
+    }
   }
+
+  args = args.map(function(obj) {
+    if (!will_extract) {
+      return obj;
+    }
+    if ('node' === obj || process.execPath === obj) {
+      will_extract = false;
+      return process.execPath;
+    } else if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+      var file_extracted = process.__enclose_io_memfs__extract(obj);
+      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
+      return file_extracted;
+    } else {
+      return obj;
+    }
+  });
+
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
   var command_outer = [file].concat(args).join(' ');
   var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+  var command_regexp_json_execPath = (JSON.stringify(process.execPath)+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
   [
     new RegExp(`^${command_regexp_execPath}$`),
     new RegExp(`^${command_regexp_execPath}\\s`),
@@ -351,12 +514,13 @@ function normalizeSpawnArguments(file, args, options) {
     new RegExp(`\\s${command_regexp_execPath}\\s`),
     new RegExp(`"${command_regexp_execPath}"`),
     new RegExp(`'${command_regexp_execPath}'`),
+    new RegExp(command_regexp_json_execPath)
   ].forEach(function(element) {
     if (command_outer.match(element) !== null) {
       flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
     }
   });
-  // ======= [Enclose.io Hack end] =========
+  // --------- [Enclose.io Hack end] ---------
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
@@ -383,13 +547,6 @@ function normalizeSpawnArguments(file, args, options) {
     args.unshift(file);
   }
 
-  // ======= [Enclose.io Hack start] =========
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
-    options.env = Object.create( options.env || process.env );
-    options.env.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-  }
-  // ======= [Enclose.io Hack end] =========
-
   var env = options.env || process.env;
   var envPairs = [];
 
@@ -398,6 +555,18 @@ function normalizeSpawnArguments(file, args, options) {
   }
 
   _convertCustomFds(options);
+
+  // --------- [Enclose.io Hack start] ---------
+  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
+    envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
+  }
+  debug('normalizeSpawnArguments ends with', {
+    file: file,
+    args: args,
+    options: options,
+    envPairs: envPairs
+  });
+  // --------- [Enclose.io Hack end] ---------
 
   return {
     file: file,
@@ -430,18 +599,6 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
   return child;
 };
 
-
-function lookupSignal(signal) {
-  if (typeof signal === 'number')
-    return signal;
-
-  if (!(signal in constants))
-    throw new Error('Unknown signal: ' + signal);
-
-  return constants[signal];
-}
-
-
 function spawnSync(/*file, args, options*/) {
   var opts = normalizeSpawnArguments.apply(null, arguments);
 
@@ -451,12 +608,18 @@ function spawnSync(/*file, args, options*/) {
 
   debug('spawnSync', opts.args, options);
 
+  // Validate the timeout, if present.
+  validateTimeout(options.timeout);
+
+  // Validate maxBuffer, if present.
+  validateMaxBuffer(options.maxBuffer);
+
   options.file = opts.file;
   options.args = opts.args;
   options.envPairs = opts.envPairs;
 
-  if (options.killSignal)
-    options.killSignal = lookupSignal(options.killSignal);
+  // Validate and translate the kill signal, if present.
+  options.killSignal = sanitizeKillSignal(options.killSignal);
 
   options.stdio = _validateStdio(options.stdio || 'pipe', true).stdio;
 
@@ -470,13 +633,13 @@ function spawnSync(/*file, args, options*/) {
     var input = options.stdio[i] && options.stdio[i].input;
     if (input != null) {
       var pipe = options.stdio[i] = util._extend({}, options.stdio[i]);
-      if (Buffer.isBuffer(input))
+      if (isUint8Array(input))
         pipe.input = input;
       else if (typeof input === 'string')
         pipe.input = Buffer.from(input, options.encoding);
       else
         throw new TypeError(util.format(
-            'stdio[%d] should be Buffer or string not %s',
+            'stdio[%d] should be Buffer, Uint8Array or string not %s',
             i,
             typeof input));
     }
@@ -516,7 +679,7 @@ function checkExecSyncError(ret) {
     if (!err) {
       var msg = 'Command failed: ';
       msg += ret.cmd || ret.args.join(' ');
-      if (ret.stderr)
+      if (ret.stderr && ret.stderr.length > 0)
         msg += '\n' + ret.stderr.toString();
       err = new Error(msg);
     }
@@ -566,3 +729,26 @@ function execSync(command /*, options*/) {
   return ret.stdout;
 }
 exports.execSync = execSync;
+
+
+function validateTimeout(timeout) {
+  if (timeout != null && !(Number.isInteger(timeout) && timeout >= 0)) {
+    throw new TypeError('"timeout" must be an unsigned integer');
+  }
+}
+
+
+function validateMaxBuffer(maxBuffer) {
+  if (maxBuffer != null && !(typeof maxBuffer === 'number' && maxBuffer >= 0)) {
+    throw new TypeError('"maxBuffer" must be a positive number');
+  }
+}
+
+
+function sanitizeKillSignal(killSignal) {
+  if (typeof killSignal === 'string' || typeof killSignal === 'number') {
+    return convertToValidSignal(killSignal);
+  } else if (killSignal != null) {
+    throw new TypeError('"killSignal" must be a string or number');
+  }
+}

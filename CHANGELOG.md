@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v1.1.0
+
+work in progress
+
 ## v1.0.0
 
 - upgrade Node.js runtime to v8.0.0

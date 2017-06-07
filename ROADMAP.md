@@ -8,9 +8,10 @@
 - Support writing options down to package.json
 - Support arbitrary node.js runtime versions
   - https://github.com/pmq20/node-compiler/issues/40
-- detect simultaneous runs of nodec
+- Detect simultaneous runs of nodec
   - https://github.com/pmq20/node-compiler/issues/31
-- add a check procedure at compile time to warn the user that some symbolic link links to the outside of the project
+- Warn the user that some symbolic link links to the outside of the project
+  - Add a check procedure at compile time
   - https://github.com/pmq20/node-compiler/issues/37
 
 ## v2.x

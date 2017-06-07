@@ -13,7 +13,7 @@
 - add a check procedure at compile time to warn the user that some symbolic link links to the outside of the project
   - https://github.com/pmq20/node-compiler/issues/37
 
-## v2.0.0
+## v2.x
 
 - Compile to bytecode via v8 Ignition
 - Support ARM architecture

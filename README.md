@@ -1,6 +1,6 @@
 # Node.js Compiler
 
-Ahead-of-time (AOT) Compiler Designed for Node.js.
+Ahead-of-time (AOT) Compiler designed for Node.js.
 
 - Compiling your Node.js application into a single executable
 - Dynamic require and C++ modules Fully Supported

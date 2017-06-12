@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.0.0 Documentation</title>
+  <title>N-API | Node.js v8.1.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api active" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -314,7 +315,7 @@ handling section <a href="#n_api_error_handling">Error Handling</a>.</li>
 <li><a href="#n_api_working_with_javascript_properties">Working with JavaScript Properties</a></li>
 <li><a href="#n_api_working_with_javascript_functions">Working with JavaScript Functions</a></li>
 <li><a href="#n_api_object_wrap">Object Wrap</a></li>
-<li><a href="#n_api_asynchronous_operations">Aynchronous Operations</a></li>
+<li>[Aynchronous Operations][]</li>
 </ul>
 <p>The N-API is a C API that ensures ABI stability across Node.js versions
 and different compiler levels. However, we also understand that a C++
@@ -329,6 +330,11 @@ example is: <a href="https://github.com/nodejs/node-api">node-api</a>.</p>
 which is located in the src directory in the node development tree.
 For example:</p>
 <pre><code class="lang-C">#include &lt;node_api.h&gt;
+</code></pre>
+<p>As the feature is experimental it must be enabled with the
+following command line
+<a href="https://nodejs.org/dist/latest-v8.x/docs/api/cli.html#cli_napi_modules">option</a>:</p>
+<pre><code class="lang-bash">--napi-modules
 </code></pre>
 <h2>Basic N-API Data Types<span><a class="mark" href="#n_api_basic_n_api_data_types" id="n_api_basic_n_api_data_types">#</a></span></h2>
 <p>N-API exposes the following fundamental datatypes as abstractions that are
@@ -706,7 +712,7 @@ must be closed before returning from that method.</p>
 <p>Taking the earlier example, adding calls to <a href="#n_api_napi_open_handle_scope"><code>napi_open_handle_scope</code></a> and
 <a href="#n_api_napi_close_handle_scope"><code>napi_close_handle_scope</code></a> would ensure that at most a single handle
 is valid throughout the execution of the loop:</p>
-<pre><code class="lang-C">for (int i = 0; i &lt; 1000000; i++) {napi_
+<pre><code class="lang-C">for (int i = 0; i &lt; 1000000; i++) {
   napi_handle_scope scope;
   napi_status status = napi_open_handle_scope(env, &amp;scope);
   if (status != napi_ok) {
@@ -843,7 +849,7 @@ individual count.</p>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_reference(napi_env env,
                                               napi_value value,
                                               int initial_refcount,
-                                              ndapi_ref* result);
+                                              napi_ref* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -1140,19 +1146,22 @@ structure, in most cases using a TypedArray will suffice.</p>
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] data</code>: Raw pointer to the external data being wrapped.</li>
-<li><code>[in] finalize_cb</code>: Optional callback to call when the wrapped object
+<li><code>[in] data</code>: Raw pointer to the external data.</li>
+<li><code>[in] finalize_cb</code>: Optional callback to call when the external value
 is being collected.</li>
 <li><code>[in] finalize_hint</code>: Optional hint to pass to the finalize callback
 during collection.</li>
-<li><code>[out] result</code>: A <code>napi_value</code> representing an external object.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing an external value.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API allocates a JavaScript object with external data attached to it.
-This is used to wrap native objects and project them into JavaScript.
-The API allows the caller to pass in a finalize callback, in case the
-underlying native resource needs to be cleaned up when the wrapper
-JavaScript object gets collected.</p>
+<p>This API allocates a JavaScript value with external data attached to it. This
+is used to pass external data through JavaScript code, so it can be retrieved
+later by native code. The API allows the caller to pass in a finalize callback,
+in case the underlying native resource needs to be cleaned up when the external
+JavaScript value gets collected.</p>
+<p><em>Note</em>: The created value is not an object, and therefore does not support
+additional properties. It is considered a distinct value type: calling
+<code>napi_typeof()</code> with an external value yields <code>napi_external</code>.</p>
 <h4>napi_create_external_arraybuffer<span><a class="mark" href="#n_api_napi_create_external_arraybuffer" id="n_api_napi_create_external_arraybuffer">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1388,8 +1397,8 @@ of the ECMAScript Language Specification.</p>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API is used to retrieve the underlying data buffer of an ArrayBuffer and
-its length.
-WARNING: Use caution while using this API. The lifetime of the underlying data
+its length.</p>
+<p><em>WARNING</em>: Use caution while using this API. The lifetime of the underlying data
 buffer is managed by the ArrayBuffer even after it&#39;s returned. A
 possible safe way to use this API is in conjunction with <a href="#n_api_napi_create_reference"><code>napi_create_reference</code></a>,
 which can be used to guarantee control over the lifetime of the
@@ -1411,8 +1420,8 @@ callback as long as there are no calls to other APIs that might trigger a GC.</p
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API is used to retrieve the underlying data buffer of a <code>node::Buffer</code>
-and it&#39;s length.
-Warning: Use caution while using this API since the underlying data buffer&#39;s
+and it&#39;s length.</p>
+<p><em>Warning</em>: Use caution while using this API since the underlying data buffer&#39;s
 lifetime is not guaranteed if it&#39;s managed by the VM.</p>
 <h4><em>napi_get_prototype</em><span><a class="mark" href="#n_api_napi_get_prototype" id="n_api_napi_get_prototype">#</a></span></h4>
 <div class="api_metadata">
@@ -1451,8 +1460,8 @@ properties to query.</li>
 to start projecting the TypedArray.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API returns various properties of a typed array.
-Warning: Use caution while using this API since the underlying data buffer
+<p>This API returns various properties of a typed array.</p>
+<p><em>Warning</em>: Use caution while using this API since the underlying data buffer
 is managed by the VM</p>
 <h4><em>napi_get_value_bool</em><span><a class="mark" href="#n_api_napi_get_value_bool" id="n_api_napi_get_value_bool">#</a></span></h4>
 <div class="api_metadata">
@@ -1467,8 +1476,8 @@ Boolean.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded. If a non-boolean <code>napi_value</code> is
 passed in it returns <code>napi_boolean_expected</code>.</p>
-<p>This API returns C boolean primitive equivalent of the given JavaScript
-Boolea</p>
+<p>This API returns the C boolean primitive equivalent of the given JavaScript
+Boolean.</p>
 <h4><em>napi_get_value_double</em><span><a class="mark" href="#n_api_napi_get_value_double" id="n_api_napi_get_value_double">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1495,13 +1504,13 @@ Number.</p>
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript External value.</li>
-<li><code>[out] result</code>: Pointer to the data wrapped by the JavaScript External value.</li>
+<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript external value.</li>
+<li><code>[out] result</code>: Pointer to the data wrapped by the JavaScript external value.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded. If a non-external <code>napi_value</code> is
 passed in it returns <code>napi_invalid_arg</code>.</p>
-<p>This API returns the pointer to the data wrapped by the JavaScript
-External value</p>
+<p>This API retrieves the external data pointer that was previously passed to
+<code>napi_create_external()</code>.</p>
 <h4><em>napi_get_value_int32</em><span><a class="mark" href="#n_api_napi_get_value_int32" id="n_api_napi_get_value_int32">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2479,7 +2488,7 @@ add-on. This API is similar to <code>napi_call_function</code>. However, it is u
 operation (when there is no other script on the stack). It is a fairly simple
 wrapper around <code>node::MakeCallback</code>.</p>
 <p>For an example on how to use <code>napi_make_callback</code>, see the section on
-[Asynchronous Operations][].</p>
+<a href="#n_api_asynchronous_operations">Asynchronous Operations</a>.</p>
 <h2>Object Wrap<span><a class="mark" href="#n_api_object_wrap" id="n_api_object_wrap">#</a></span></h2>
 <p>N-API offers a way to &quot;wrap&quot; C++ classes and instances so that the class
 constructor and methods can be called from JavaScript.</p>
@@ -2568,7 +2577,8 @@ finalize callback.</li>
 <li><code>[out] result</code>: Optional reference to the wrapped object.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>Wraps a native instance in JavaScript object of the corresponding type.</p>
+<p>Wraps a native instance in JavaScript object of the corresponding type.
+The native instance can be retrieved later using <code>napi_unwrap()</code>.</p>
 <p>When JavaScript code invokes a constructor for a class that was defined using
 <code>napi_define_class()</code>, the <code>napi_callback</code> for the constructor is invoked.
 After constructing an instance of the native class, the callback must then call
@@ -2582,11 +2592,14 @@ argument to the finalize callback.</p>
 <p>The optional returned reference is initially a weak reference, meaning it
 has a reference count of 0. Typically this reference count would be incremented
 temporarily during async operations that require the instance to remain valid.</p>
-<p>Caution: The optional returned reference (if obtained) should be deleted via
-<a href="#n_api_napi_delete_reference"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback invocation.
-(If it is deleted before then, then the finalize callback may never be
-invoked.) Therefore when obtaining a reference a finalize callback is also
+<p><em>Caution</em>: The optional returned reference (if obtained) should be deleted via
+<a href="#n_api_napi_delete_reference"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback
+invocation. (If it is deleted before then, then the finalize callback may never
+be invoked.) Therefore, when obtaining a reference a finalize callback is also
 required in order to enable correct proper of the reference.</p>
+<p><em>Note</em>: This API may modify the prototype chain of the wrapper object.
+Afterward, additional manipulation of the wrapper&#39;s prototype chain may cause
+<code>napi_unwrap()</code> to fail.</p>
 <h3><em>napi_unwrap</em><span><a class="mark" href="#n_api_napi_unwrap" id="n_api_napi_unwrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2600,6 +2613,8 @@ required in order to enable correct proper of the reference.</p>
 <li><code>[out] result</code>: Pointer to the wrapped C++ class instance.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>Retrieves a native instance that was previously wrapped in a JavaScript
+object using <code>napi_wrap()</code>.</p>
 <p>When JavaScript code invokes a method or property accessor on the class, the
 corresponding <code>napi_callback</code> is invoked. If the callback is for an instance
 method or accessor, then the <code>this</code> argument to the callback is the wrapper

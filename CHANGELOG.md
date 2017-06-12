@@ -2,7 +2,11 @@
 
 ## v1.1.0
 
-work in progress
+- upgrade Node.js runtime to v8.1.0
+  - https://nodejs.org/en/blog/release/v8.1.0/
+- upgrade libsquash to v0.5.0
+  - deprecate use of swprintf() to ease compiling on Windows
+  - interpret system calls to access()
 
 ## v1.0.0
 

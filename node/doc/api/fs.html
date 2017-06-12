@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v8.0.0 Documentation</title>
+  <title>File System | Node.js v8.1.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -286,6 +287,11 @@ fs.js:88
 Error: EISDIR: illegal operation on a directory, read
     &lt;stack trace.&gt;
 </code></pre>
+<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.
+This behavior can be observed when using a drive path without a backslash. For
+example <code>fs.readdirSync(&#39;c:\\&#39;)</code> can potentially return a different result than
+<code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see
+<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths">this MSDN page</a>.</p>
 <h2>WHATWG URL object support<span><a class="mark" href="#fs_whatwg_url_object_support" id="fs_whatwg_url_object_support">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
@@ -386,7 +392,7 @@ support. If <code>filename</code> is provided, it will be provided as a <code>Bu
 <code>fs.watch()</code> is called with its <code>encoding</code> option set to <code>&#39;buffer&#39;</code>, otherwise
 <code>filename</code> will be a string.</p>
 <pre><code class="lang-js">// Example when handled through fs.watch listener
-fs.watch(&#39;./tmp&#39;, {encoding: &#39;buffer&#39;}, (eventType, filename) =&gt; {
+fs.watch(&#39;./tmp&#39;, { encoding: &#39;buffer&#39; }, (eventType, filename) =&gt; {
   if (filename)
     console.log(filename);
     // Prints: &lt;Buffer ...&gt;
@@ -432,9 +438,19 @@ argument to <code>fs.createReadStream()</code>. If <code>path</code> is passed a
 <code>readStream.path</code> will be a <code>Buffer</code>.</p>
 <h2>Class: fs.Stats<span><a class="mark" href="#fs_class_fs_stats" id="fs_class_fs_stats">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.1.21</span>
-</div><p>Objects returned from <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a>, <a href="#fs_fs_lstat_path_callback"><code>fs.lstat()</code></a> and <a href="#fs_fs_fstat_fd_callback"><code>fs.fstat()</code></a> and their
-synchronous counterparts are of this type.</p>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.1.0</td>
+<td><p>Added times as numbers.</p>
+</td></tr>
+<tr><td>v0.1.21</td>
+<td><p><span>Added in: v0.1.21</span></p>
+</td></tr>
+</table>
+</details>
+</div><p>Objects returned from <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a>, <a href="#fs_fs_lstat_path_callback"><code>fs.lstat()</code></a> and <a href="#fs_fs_fstat_fd_callback"><code>fs.fstat()</code></a> and
+their synchronous counterparts are of this type.</p>
 <ul>
 <li><code>stats.isFile()</code></li>
 <li><code>stats.isDirectory()</code></li>
@@ -457,19 +473,21 @@ similar to this:</p>
   size: 527,
   blksize: 4096,
   blocks: 8,
+  atimeMs: 1318289051000.1,
+  mtimeMs: 1318289051000.1,
+  ctimeMs: 1318289051000.1,
+  birthtimeMs: 1318289051000.1,
   atime: Mon, 10 Oct 2011 23:24:11 GMT,
   mtime: Mon, 10 Oct 2011 23:24:11 GMT,
   ctime: Mon, 10 Oct 2011 23:24:11 GMT,
   birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
 </code></pre>
-<p>Please note that <code>atime</code>, <code>mtime</code>, <code>birthtime</code>, and <code>ctime</code> are
-instances of <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object and appropriate methods should be used
-to compare the values of these objects. For most general uses
-<a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime"><code>getTime()</code></a> will return the number of milliseconds elapsed
-since <em>1 January 1970 00:00:00 UTC</em> and this integer should be sufficient for
-any comparison, however there are additional methods which can be used for
-displaying fuzzy information. More details can be found in the
-<a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date">MDN JavaScript Reference</a> page.</p>
+<p><em>Note</em>: <code>atimeMs</code>, <code>mtimeMs</code>, <code>ctimeMs</code>, <code>birthtimeMs</code> are <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type">numbers</a>
+that hold the corresponding times in milliseconds. Their precision is platform
+specific. <code>atime</code>, <code>mtime</code>, <code>ctime</code>, and <code>birthtime</code> are <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a>
+object alternate representations of the various times. The <code>Date</code> and number
+values are not connected. Assigning a new number value, or mutating the <code>Date</code>
+value, will not be reflected in the corresponding alternate representation.</p>
 <h3>Stat Time Values<span><a class="mark" href="#fs_stat_time_values" id="fs_stat_time_values">#</a></span></h3>
 <p>The times in the stat object have the following semantics:</p>
 <ul>
@@ -897,7 +915,7 @@ automatically.</p>
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the
 file was created.</p>
 <p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>
-<pre><code class="lang-js">fs.createReadStream(&#39;sample.txt&#39;, {start: 90, end: 99});
+<pre><code class="lang-js">fs.createReadStream(&#39;sample.txt&#39;, { start: 90, end: 99 });
 </code></pre>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.createWriteStream(path[, options])<span><a class="mark" href="#fs_fs_createwritestream_path_options" id="fs_fs_createwritestream_path_options">#</a></span></h2>

@@ -21,7 +21,7 @@
               }
             ]
           },
-          "desc": "<p>The <code>Console</code> class can be used to create a simple logger with configurable\noutput streams and can be accessed using either <code>require(&#39;console&#39;).Console</code>\nor <code>console.Console</code>:</p>\n<pre><code class=\"lang-js\">const Console = require(&#39;console&#39;).Console;\n</code></pre>\n<pre><code class=\"lang-js\">const Console = console.Console;\n</code></pre>\n",
+          "desc": "<p>The <code>Console</code> class can be used to create a simple logger with configurable\noutput streams and can be accessed using either <code>require(&#39;console&#39;).Console</code>\nor <code>console.Console</code> (or their destructured counterparts):</p>\n<pre><code class=\"lang-js\">const { Console } = require(&#39;console&#39;);\n</code></pre>\n<pre><code class=\"lang-js\">const { Console } = console;\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "console.assert(value[, message][, ...args])",

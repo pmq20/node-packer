@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Net | Node.js v8.0.0 Documentation</title>
+  <title>Net | Node.js v8.1.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="net" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -686,6 +687,7 @@ connection is destroyed no further data can be transferred using it.</p>
 server will still send some data.</p>
 <p>If <code>data</code> is specified, it is equivalent to calling
 <code>socket.write(data, encoding)</code> followed by <a href="#net_socket_end_data_encoding"><code>socket.end()</code></a>.</p>
+<p>Returns <code>socket</code>.</p>
 <h3>socket.localAddress<span><a class="mark" href="#net_socket_localaddress" id="net_socket_localaddress">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.6</span>
@@ -851,7 +853,7 @@ it starts the connection.</li>
 <p>Following is an example of a client of the echo server described
 in the <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> section:</p>
 <pre><code class="lang-js">const net = require(&#39;net&#39;);
-const client = net.createConnection({port: 8124}, () =&gt; {
+const client = net.createConnection({ port: 8124 }, () =&gt; {
   //&#39;connect&#39; listener
   console.log(&#39;connected to server!&#39;);
   client.write(&#39;world!\r\n&#39;);
@@ -866,7 +868,7 @@ client.on(&#39;end&#39;, () =&gt; {
 </code></pre>
 <p>To connect on the socket <code>/tmp/echo.sock</code> the second line would just be
 changed to</p>
-<pre><code class="lang-js">const client = net.createConnection({path: &#39;/tmp/echo.sock&#39;});
+<pre><code class="lang-js">const client = net.createConnection({ path: &#39;/tmp/echo.sock&#39; });
 </code></pre>
 <h3>net.createConnection(path[, connectListener])<span><a class="mark" href="#net_net_createconnection_path_connectlistener" id="net_net_createconnection_path_connectlistener">#</a></span></h3>
 <div class="api_metadata">

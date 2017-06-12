@@ -7,6 +7,81 @@
       "stability": 1,
       "stabilityText": "Experimental",
       "desc": "<p>The <code>inspector</code> module provides an API for interacting with the V8 inspector.</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const inspector = require(&#39;inspector&#39;);\n</code></pre>\n",
+      "methods": [
+        {
+          "textRaw": "inspector.open([port[, host[, wait]]])",
+          "type": "method",
+          "name": "open",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "port {number} Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "name": "port",
+                  "type": "number",
+                  "desc": "Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "host {string} Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "name": "host",
+                  "type": "string",
+                  "desc": "Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "wait {boolean} Block until a client has connected. Optional, defaults to false. ",
+                  "name": "wait",
+                  "type": "boolean",
+                  "desc": "Block until a client has connected. Optional, defaults to false.",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "port",
+                  "optional": true
+                },
+                {
+                  "name": "host",
+                  "optional": true
+                },
+                {
+                  "name": "wait",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Activate inspector on host and port. Equivalent to <code>node\n--inspect=[[host:]port]</code>, but can be done programatically after node has\nstarted.</p>\n<p>If wait is <code>true</code>, will block until a client has connected to the inspect port\nand flow control has been passed to the debugger client.</p>\n",
+          "methods": [
+            {
+              "textRaw": "inspector.close()",
+              "type": "method",
+              "name": "close",
+              "desc": "<p>Deactivate the inspector. Blocks until there are no active connections.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "inspector.url()",
+              "type": "method",
+              "name": "url",
+              "desc": "<p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "classes": [
         {
           "textRaw": "Class: inspector.Session",
@@ -141,7 +216,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({params}) =&gt; console.log(params.hitBreakpoints));\n// [ &#39;/node/test/inspector/test-bindings.js:11:0&#39; ]\n</code></pre>\n"
+              "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({ params }) =&gt; {\n  console.log(params.hitBreakpoints);\n});\n// [ &#39;/node/test/inspector/test-bindings.js:11:0&#39; ]\n</code></pre>\n"
             }
           ]
         }

@@ -63,6 +63,16 @@
     },
     {
       "type": "text",
+      "text": "[Async Hooks](async_hooks.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[Buffer](buffer.html)"
     },
     {

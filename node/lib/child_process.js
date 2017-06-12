@@ -472,9 +472,14 @@ function normalizeSpawnArguments(file, args, options) {
       } else {
         file_extracted = process.__enclose_io_memfs__extract(file);
       }
-      debug('process.__enclose_io_memfs__extract', file, file_extracted);
-      file = file_extracted;
-      require('fs').chmodSync(file, '0755');
+      if (false === file_extracted) {
+        debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
+        will_extract = false;
+      } else {
+        debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
+        file = file_extracted;
+        require('fs').chmodSync(file, '0755');
+      }
     } else {
       debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
       args.unshift(file);
@@ -495,8 +500,14 @@ function normalizeSpawnArguments(file, args, options) {
       return process.execPath;
     } else if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
       var file_extracted = process.__enclose_io_memfs__extract(obj);
-      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
-      return file_extracted;
+      if (false === file_extracted) {
+        debug('process.__enclose_io_memfs__extract failed with', obj, file_extracted);
+        will_extract = false;
+        return obj;
+      } else {
+        debug('process.__enclose_io_memfs__extract succeeded with', obj, file_extracted);
+        return file_extracted;
+      }
     } else {
       return obj;
     }

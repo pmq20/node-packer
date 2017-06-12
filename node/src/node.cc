@@ -1945,7 +1945,8 @@ static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value
 		ret = squash_extract(enclose_io_fs, *path, NULL);
 	}
 	if (!ret) {
-		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
+		args.GetReturnValue().Set(false);
+		return;
 	}
 
 #ifdef _WIN32

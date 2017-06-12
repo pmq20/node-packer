@@ -11,7 +11,7 @@ require "compiler"
 require 'optparse'
 
 STDERR.puts %Q{
-Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_version})
+Node.js Compiler (nodec) v#{::Compiler::VERSION}
 }.strip
 STDERR.puts
 

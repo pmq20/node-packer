@@ -201,7 +201,7 @@ void* enclose_io_dlopen(const char* path, int mode)
         size_t enclose_io_cwd_len;
         size_t memcpy_len;
         ENCLOSE_IO_GEN_EXPANDED_NAME(path);
-        return dlopen(squash_extract(enclose_io_fs, path, NULL), mode);
+        return dlopen(squash_extract(enclose_io_fs, enclose_io_expanded, NULL), mode);
     }
     else if (enclose_io_is_path(path)) {
         return dlopen(squash_extract(enclose_io_fs, path, NULL), mode);
@@ -209,6 +209,23 @@ void* enclose_io_dlopen(const char* path, int mode)
     else {
         return dlopen(path, mode);
     }
+}
+
+int enclose_io_access(const char *path, int mode)
+{
+	if (enclose_io_cwd[0] && '/' != *path) {
+		struct stat buf;
+		sqfs_path enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
+		return squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
+	} else if (enclose_io_is_path(path)) {
+		struct stat buf;
+		return squash_stat(enclose_io_fs, path, &buf);
+	} else {
+		return access(path, mode);
+	}
 }
 #endif // !_WIN32
 

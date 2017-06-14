@@ -47,7 +47,7 @@ Dir.chdir('microtime')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} index.js")
+pid = spawn("ruby ../bin/nodec -V#{ENV['NODEC_NODE_VERSION']} --tmpdir=#{escape tmpdir} index.js")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for microtime" unless status.success?
 

@@ -6,6 +6,12 @@ os:
   - linux
   - osx
 
+env:
+  - NODEC_NODE_VERSION=8
+  - NODEC_NODE_VERSION=7
+  - NODEC_NODE_VERSION=6
+  - NODEC_NODE_VERSION=4
+
 addons:
   apt:
     sources:

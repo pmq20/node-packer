@@ -1,4 +1,7 @@
 'use strict';
+
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 require('../common');
 const assert = require('assert');
 

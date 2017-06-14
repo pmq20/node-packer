@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v8.1.0 Documentation</title>
+  <title>File System | Node.js v8.1.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -77,7 +77,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v8.1.0 Documentation</h1>
+        <h1>Node.js v8.1.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -546,6 +546,9 @@ argument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed 
 <tr><th>Version</th><th>Changes</th></tr>
 <tr><td>v7.6.0</td>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
+</td></tr>
+<tr><td>v6.3.0</td>
+<td><p>The constants like <code>fs.R_OK</code>, etc which were present directly on <code>fs</code> were moved into <code>fs.constants</code> as a soft deprecation. Thus for Node <code>&lt; v6.3.0</code> use <code>fs</code> to access those constants, or do something like <code>(fs.constants || fs).R_OK</code> to work with all versions.</p>
 </td></tr>
 <tr><td>v0.11.15</td>
 <td><p><span>Added in: v0.11.15</span></p>
@@ -1808,7 +1811,7 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 <td><p>The <code>callback</code> will always be called with <code>null</code> as the <code>error</code> parameter in case of success.</p>
 </td></tr>
 <tr><td>v5.0.0</td>
-<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+<td><p>The <code>path</code> parameter can be a file descriptor now.</p>
 </td></tr>
 <tr><td>v0.1.29</td>
 <td><p><span>Added in: v0.1.29</span></p>
@@ -1837,7 +1840,7 @@ contents of the file.</p>
 <pre><code class="lang-js">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);
 </code></pre>
 <p><em>Note</em>: When the path is a directory, the behavior of
-<code>fs.readFile()</code> and [<code>fs.readFileSync()</code>][] is platform-specific. On macOS,
+<code>fs.readFile()</code> and <a href="#fs_fs_readfilesync_path_options"><code>fs.readFileSync()</code></a> is platform-specific. On macOS,
 Linux, and Windows, an error will be returned. On FreeBSD, a representation
 of the directory&#39;s contents will be returned.</p>
 <pre><code class="lang-js">// macOS, Linux and Windows
@@ -1862,7 +1865,7 @@ automatically.</p>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
 </td></tr>
 <tr><td>v5.0.0</td>
-<td><p>The <code>file</code> parameter can be a file descriptor now.</p>
+<td><p>The <code>path</code> parameter can be a file descriptor now.</p>
 </td></tr>
 <tr><td>v0.1.8</td>
 <td><p><span>Added in: v0.1.8</span></p>
@@ -1877,10 +1880,10 @@ automatically.</p>
 </ul>
 </li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_readfile_file_options_callback"><code>fs.readFile</code></a>. Returns the contents of the <code>file</code>.</p>
+<p>Synchronous version of <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>
 <p>If the <code>encoding</code> option is specified then this function returns a
 string. Otherwise it returns a buffer.</p>
-<p><em>Note</em>: Similar to [<code>fs.readFile()</code>][], when the path is a directory, the
+<p><em>Note</em>: Similar to <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>, when the path is a directory, the
 behavior of <code>fs.readFileSync()</code> is platform-specific.</p>
 <pre><code class="lang-js">// macOS, Linux and Windows
 fs.readFileSync(&#39;&lt;directory&gt;&#39;);
@@ -2358,7 +2361,7 @@ converted to the corresponding number.</li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_futimes_fd_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
+<p>Synchronous version of <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>

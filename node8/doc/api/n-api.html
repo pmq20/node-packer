@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.1.0 Documentation</title>
+  <title>N-API | Node.js v8.1.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -77,7 +77,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.1.0 Documentation</h1>
+        <h1>Node.js v8.1.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -191,7 +191,6 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_external"><em>napi_get_value_external</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_int32"><em>napi_get_value_int32</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_int64"><em>napi_get_value_int64</em></a></span></li>
-<li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_length"><em>napi_get_value_string_length</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_utf8"><em>napi_get_value_string_utf8</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_utf16"><em>napi_get_value_string_utf16</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_uint32"><em>napi_get_value_uint32</em></a></span></li>
@@ -611,7 +610,9 @@ an error, false otherwise.</li>
 <h4>napi_create_error<span><a class="mark" href="#n_api_napi_create_error" id="n_api_napi_create_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_error(napi_env env,
+                                          const char* msg,
+                                          napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -623,7 +624,9 @@ an error, false otherwise.</li>
 <h4>napi_create_type_error<span><a class="mark" href="#n_api_napi_create_type_error" id="n_api_napi_create_type_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_type_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_type_error(napi_env env,
+                                               const char* msg,
+                                               napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -635,7 +638,9 @@ an error, false otherwise.</li>
 <h4>napi_create_range_error<span><a class="mark" href="#n_api_napi_create_range_error" id="n_api_napi_create_range_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_range_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_range_error(napi_env env,
+                                                const char* msg,
+                                                napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -1546,21 +1551,6 @@ a negative number if the the value is &gt; 2^31 -1.</p>
 is passed in it returns <code>napi_number_expected</code>.</p>
 <p>This API returns the C int64 primitive equivalent of the given
 JavaScript Number</p>
-<h4><em>napi_get_value_string_length</em><span><a class="mark" href="#n_api_napi_get_value_string_length" id="n_api_napi_get_value_string_length">#</a></span></h4>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_get_value_string_length(napi_env env,
-                                         napi_value value,
-                                         int* result)
-</code></pre>
-<ul>
-<li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>
-<li><code>[out] result</code>: Number of characters in the given JavaScript string.</li>
-</ul>
-<p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>
-is passed in it returns <code>napi_string_expected</code>.</p>
-<p>This API returns the number of characters in the given JavaScript string.</p>
 <h4><em>napi_get_value_string_utf8</em><span><a class="mark" href="#n_api_napi_get_value_string_utf8" id="n_api_napi_get_value_string_utf8">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1989,37 +1979,40 @@ if (status != napi_ok) return status;
 <h4><em>napi_property_attributes</em><span><a class="mark" href="#n_api_napi_property_attributes" id="n_api_napi_property_attributes">#</a></span></h4>
 <pre><code class="lang-C">typedef enum {
   napi_default = 0,
-  napi_read_only = 1 &lt;&lt; 0,
-  napi_dont_enum = 1 &lt;&lt; 1,
-  napi_dont_delete = 1 &lt;&lt; 2,
-  napi_static_property = 1 &lt;&lt; 10,
+  napi_writable = 1 &lt;&lt; 0,
+  napi_enumerable = 1 &lt;&lt; 1,
+  napi_configurable = 1 &lt;&lt; 2,
+
+  // Used with napi_define_class to distinguish static properties
+  // from instance properties. Ignored by napi_define_properties.
+  napi_static = 1 &lt;&lt; 10,
 } napi_property_attributes;
 </code></pre>
 <p><code>napi_property_attributes</code> are flags used to control the behavior of properties
-set on a JavaScript object. They roughly correspond to the attributes listed in
-<a href="https://tc39.github.io/ecma262/#table-2">Section 6.1.7.1</a> of the
-<a href="https://tc39.github.io/ecma262/">ECMAScript Language Specification</a>. They can
-be one or more of the following bitflags:</p>
+set on a JavaScript object. Other than <code>napi_static</code> they correspond to the
+attributes listed in <a href="https://tc39.github.io/ecma262/#table-2">Section 6.1.7.1</a>
+of the <a href="https://tc39.github.io/ecma262/">ECMAScript Language Specification</a>.
+They can be one or more of the following bitflags:</p>
 <ul>
 <li><code>napi_default</code> - Used to indicate that no explicit attributes are set on the
-given property. By default, a property is Writable, Enumerable, and
-Configurable. This is a deviation from the ECMAScript specification,
-where generally the values for a property descriptor attribute default to
-false if they&#39;re not provided.</li>
-<li><code>napi_read_only</code> - Used to indicate that a given property is not Writable.</li>
-<li><code>napi_dont_enum</code> - Used to indicate that a given property is not Enumerable.</li>
-<li><code>napi_dont_delete</code> - Used to indicate that a given property is not.
-Configurable, as defined in
+given property. By default, a property is read only, not enumerable and not
+configurable.</li>
+<li><code>napi_writable</code>  - Used to indicate that a given property is writable.</li>
+<li><code>napi_enumerable</code> - Used to indicate that a given property is enumerable.</li>
+<li><code>napi_configurable</code> - Used to indicate that a given property is
+configurable, as defined in
 <a href="https://tc39.github.io/ecma262/#table-2">Section 6.1.7.1</a> of the
 <a href="https://tc39.github.io/ecma262/">ECMAScript Language Specification</a>.</li>
-<li><code>napi_static_property</code> - Used to indicate that the property will be defined as
+<li><code>napi_static</code> - Used to indicate that the property will be defined as
 a static property on a class as opposed to an instance property, which is the
 default. This is used only by <a href="#n_api_napi_define_class"><code>napi_define_class</code></a>. It is ignored by
 <code>napi_define_properties</code>.</li>
 </ul>
 <h4><em>napi_property_descriptor</em><span><a class="mark" href="#n_api_napi_property_descriptor" id="n_api_napi_property_descriptor">#</a></span></h4>
 <pre><code class="lang-C">typedef struct {
+  // One of utf8name or name should be NULL.
   const char* utf8name;
+  napi_value name;
 
   napi_callback method;
   napi_callback getter;
@@ -2031,7 +2024,12 @@ default. This is used only by <a href="#n_api_napi_define_class"><code>napi_defi
 } napi_property_descriptor;
 </code></pre>
 <ul>
-<li><code>utf8name</code>: String describing the key for the property, encoded as UTF8.</li>
+<li><code>utf8name</code>: Optional String describing the key for the property,
+encoded as UTF8. One of <code>utf8name</code> or <code>name</code> must be provided for the
+property.</li>
+<li><code>name</code>: Optional napi_value that points to a JavaScript string or symbol
+to be used as the key for the property.  One of <code>utf8name</code> or <code>name</code> must
+be provided for the property.</li>
 <li><code>value</code>: The value that&#39;s retrieved by a get access of the property if the
 property is a data property. If this is passed in, set <code>getter</code>, <code>setter</code>,
 <code>method</code> and <code>data</code> to <code>NULL</code> (since these members won&#39;t be used).</li>

@@ -304,6 +304,11 @@
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",
                 "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
+              },
+              {
+                "version": "v6.3.0",
+                "pr-url": "https://github.com/nodejs/node/pull/6534",
+                "description": "The constants like `fs.R_OK`, etc which were present directly on `fs` were moved into `fs.constants` as a soft deprecation. Thus for Node `< v6.3.0` use `fs` to access those constants, or do something like `(fs.constants || fs).R_OK` to work with all versions."
               }
             ]
           },
@@ -2706,7 +2711,7 @@
               {
                 "version": "v5.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/3163",
-                "description": "The `file` parameter can be a file descriptor now."
+                "description": "The `path` parameter can be a file descriptor now."
               }
             ]
           },
@@ -2761,7 +2766,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p><em>Note</em>: When the path is a directory, the behavior of\n<code>fs.readFile()</code> and [<code>fs.readFileSync()</code>][] is platform-specific. On macOS,\nLinux, and Windows, an error will be returned. On FreeBSD, a representation\nof the directory&#39;s contents will be returned.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n});\n\n//  FreeBSD\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; null, &lt;data&gt;\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n"
+          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p><em>Note</em>: When the path is a directory, the behavior of\n<code>fs.readFile()</code> and <a href=\"#fs_fs_readfilesync_path_options\"><code>fs.readFileSync()</code></a> is platform-specific. On macOS,\nLinux, and Windows, an error will be returned. On FreeBSD, a representation\nof the directory&#39;s contents will be returned.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n});\n\n//  FreeBSD\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; null, &lt;data&gt;\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n"
         },
         {
           "textRaw": "fs.readFileSync(path[, options])",
@@ -2780,7 +2785,7 @@
               {
                 "version": "v5.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/3163",
-                "description": "The `file` parameter can be a file descriptor now."
+                "description": "The `path` parameter can be a file descriptor now."
               }
             ]
           },
@@ -2827,7 +2832,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_file_options_callback\"><code>fs.readFile</code></a>. Returns the contents of the <code>file</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n<p><em>Note</em>: Similar to [<code>fs.readFile()</code>][], when the path is a directory, the\nbehavior of <code>fs.readFileSync()</code> is platform-specific.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFileSync(&#39;&lt;directory&gt;&#39;);\n// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n\n//  FreeBSD\nfs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;\n</code></pre>\n"
+          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n<p><em>Note</em>: Similar to <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>, when the path is a directory, the\nbehavior of <code>fs.readFileSync()</code> is platform-specific.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFileSync(&#39;&lt;directory&gt;&#39;);\n// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n\n//  FreeBSD\nfs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;\n</code></pre>\n"
         },
         {
           "textRaw": "fs.readlink(path[, options], callback)",
@@ -3898,7 +3903,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"#fs_fs_futimes_fd_atime_mtime_callback\"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronous version of <a href=\"#fs_fs_utimes_path_atime_mtime_callback\"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>\n"
         },
         {
           "textRaw": "fs.watch(filename[, options][, listener])",

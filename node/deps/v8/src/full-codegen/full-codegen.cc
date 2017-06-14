@@ -17,7 +17,6 @@
 #include "src/frames-inl.h"
 #include "src/globals.h"
 #include "src/isolate-inl.h"
-#include "src/macro-assembler-inl.h"
 #include "src/macro-assembler.h"
 #include "src/snapshot/snapshot.h"
 #include "src/tracing/trace-event.h"
@@ -211,14 +210,13 @@ void FullCodeGenerator::CallLoadIC(FeedbackSlot slot, Handle<Object> name) {
 
   EmitLoadSlot(LoadDescriptor::SlotRegister(), slot);
 
-  Handle<Code> code =
-      Builtins::CallableFor(isolate(), Builtins::kLoadICTrampoline).code();
+  Handle<Code> code = CodeFactory::LoadIC(isolate()).code();
   __ Call(code, RelocInfo::CODE_TARGET);
   RestoreContext();
 }
 
 void FullCodeGenerator::CallStoreIC(FeedbackSlot slot, Handle<Object> name,
-                                    StoreICKind store_ic_kind) {
+                                    bool store_own_property) {
   DCHECK(name->IsName());
   __ Move(StoreDescriptor::NameRegister(), name);
 
@@ -232,26 +230,16 @@ void FullCodeGenerator::CallStoreIC(FeedbackSlot slot, Handle<Object> name,
   }
 
   Handle<Code> code;
-  switch (store_ic_kind) {
-    case kStoreOwn:
-      DCHECK_EQ(FeedbackSlotKind::kStoreOwnNamed,
-                feedback_vector_spec()->GetKind(slot));
-      code = CodeFactory::StoreOwnIC(isolate()).code();
-      break;
-    case kStoreGlobal:
-      // Ensure that language mode is in sync with the IC slot kind.
-      DCHECK_EQ(
-          GetLanguageModeFromSlotKind(feedback_vector_spec()->GetKind(slot)),
-          language_mode());
-      code = CodeFactory::StoreGlobalIC(isolate(), language_mode()).code();
-      break;
-    case kStoreNamed:
-      // Ensure that language mode is in sync with the IC slot kind.
-      DCHECK_EQ(
-          GetLanguageModeFromSlotKind(feedback_vector_spec()->GetKind(slot)),
-          language_mode());
-      code = CodeFactory::StoreIC(isolate(), language_mode()).code();
-      break;
+  if (store_own_property) {
+    DCHECK_EQ(FeedbackSlotKind::kStoreOwnNamed,
+              feedback_vector_spec()->GetKind(slot));
+    code = CodeFactory::StoreOwnIC(isolate()).code();
+  } else {
+    // Ensure that language mode is in sync with the IC slot kind.
+    DCHECK_EQ(
+        GetLanguageModeFromSlotKind(feedback_vector_spec()->GetKind(slot)),
+        language_mode());
+    code = CodeFactory::StoreIC(isolate(), language_mode()).code();
   }
   __ Call(code, RelocInfo::CODE_TARGET);
   RestoreContext();
@@ -615,35 +603,30 @@ void FullCodeGenerator::EmitIntrinsicAsStubCall(CallRuntime* expr,
 
 
 void FullCodeGenerator::EmitToString(CallRuntime* expr) {
-  EmitIntrinsicAsStubCall(
-      expr, Builtins::CallableFor(isolate(), Builtins::kToString));
+  EmitIntrinsicAsStubCall(expr, CodeFactory::ToString(isolate()));
 }
 
 
 void FullCodeGenerator::EmitToLength(CallRuntime* expr) {
-  EmitIntrinsicAsStubCall(
-      expr, Builtins::CallableFor(isolate(), Builtins::kToLength));
+  EmitIntrinsicAsStubCall(expr, CodeFactory::ToLength(isolate()));
 }
 
 void FullCodeGenerator::EmitToInteger(CallRuntime* expr) {
-  EmitIntrinsicAsStubCall(
-      expr, Builtins::CallableFor(isolate(), Builtins::kToInteger));
+  EmitIntrinsicAsStubCall(expr, CodeFactory::ToInteger(isolate()));
 }
 
 void FullCodeGenerator::EmitToNumber(CallRuntime* expr) {
-  EmitIntrinsicAsStubCall(
-      expr, Builtins::CallableFor(isolate(), Builtins::kToNumber));
+  EmitIntrinsicAsStubCall(expr, CodeFactory::ToNumber(isolate()));
 }
 
 
 void FullCodeGenerator::EmitToObject(CallRuntime* expr) {
-  EmitIntrinsicAsStubCall(
-      expr, Builtins::CallableFor(isolate(), Builtins::kToObject));
+  EmitIntrinsicAsStubCall(expr, CodeFactory::ToObject(isolate()));
 }
 
 
 void FullCodeGenerator::EmitHasProperty() {
-  Callable callable = Builtins::CallableFor(isolate(), Builtins::kHasProperty);
+  Callable callable = CodeFactory::HasProperty(isolate());
   PopOperand(callable.descriptor().GetRegisterParameter(1));
   PopOperand(callable.descriptor().GetRegisterParameter(0));
   __ Call(callable.code(), RelocInfo::CODE_TARGET);
@@ -1041,8 +1024,7 @@ void FullCodeGenerator::EmitNewClosure(Handle<SharedFunctionInfo> info,
   // doesn't just get a copy of the existing unoptimized code.
   if (!FLAG_always_opt && !FLAG_prepare_always_opt && !pretenure &&
       scope()->is_function_scope()) {
-    Callable callable =
-        Builtins::CallableFor(isolate(), Builtins::kFastNewClosure);
+    Callable callable = CodeFactory::FastNewClosure(isolate());
     __ Move(callable.descriptor().GetRegisterParameter(0), info);
     __ EmitLoadFeedbackVector(callable.descriptor().GetRegisterParameter(1));
     __ Move(callable.descriptor().GetRegisterParameter(2), SmiFromSlot(slot));
@@ -1072,8 +1054,7 @@ void FullCodeGenerator::EmitKeyedPropertyLoad(Property* prop) {
 
   EmitLoadSlot(LoadDescriptor::SlotRegister(), prop->PropertyFeedbackSlot());
 
-  Handle<Code> code =
-      Builtins::CallableFor(isolate(), Builtins::kKeyedLoadICTrampoline).code();
+  Handle<Code> code = CodeFactory::KeyedLoadIC(isolate()).code();
   __ Call(code, RelocInfo::CODE_TARGET);
   RestoreContext();
 }
@@ -1311,8 +1292,7 @@ void FullCodeGenerator::VisitClassLiteral(ClassLiteral* lit) {
 
 void FullCodeGenerator::VisitRegExpLiteral(RegExpLiteral* expr) {
   Comment cmnt(masm_, "[ RegExpLiteral");
-  Callable callable =
-      Builtins::CallableFor(isolate(), Builtins::kFastCloneRegExp);
+  Callable callable = CodeFactory::FastCloneRegExp(isolate());
   CallInterfaceDescriptor descriptor = callable.descriptor();
   LoadFromFrameField(JavaScriptFrameConstants::kFunctionOffset,
                      descriptor.GetRegisterParameter(0));
@@ -1457,10 +1437,6 @@ void FullCodeGenerator::VisitEmptyParentheses(EmptyParentheses* expr) {
 
 void FullCodeGenerator::VisitGetIterator(GetIterator* expr) { UNREACHABLE(); }
 
-void FullCodeGenerator::VisitImportCallExpression(ImportCallExpression* expr) {
-  UNREACHABLE();
-}
-
 void FullCodeGenerator::VisitRewritableExpression(RewritableExpression* expr) {
   Visit(expr->expression());
 }
@@ -1468,11 +1444,10 @@ void FullCodeGenerator::VisitRewritableExpression(RewritableExpression* expr) {
 
 bool FullCodeGenerator::TryLiteralCompare(CompareOperation* expr) {
   Expression* sub_expr;
-  Literal* literal;
-  if (expr->IsLiteralCompareTypeof(&sub_expr, &literal)) {
+  Handle<String> check;
+  if (expr->IsLiteralCompareTypeof(&sub_expr, &check)) {
     SetExpressionPosition(expr);
-    EmitLiteralCompareTypeof(expr, sub_expr,
-                             Handle<String>::cast(literal->value()));
+    EmitLiteralCompareTypeof(expr, sub_expr, check);
     return true;
   }
 

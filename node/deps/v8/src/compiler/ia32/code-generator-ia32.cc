@@ -74,9 +74,11 @@ class IA32OperandConverter : public InstructionOperandConverter {
       case Constant::kInt32:
         return Immediate(constant.ToInt32());
       case Constant::kFloat32:
-        return Immediate::EmbeddedNumber(constant.ToFloat32());
+        return Immediate(
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED));
       case Constant::kFloat64:
-        return Immediate::EmbeddedNumber(constant.ToFloat64());
+        return Immediate(
+            isolate()->factory()->NewNumber(constant.ToFloat64(), TENURED));
       case Constant::kExternalReference:
         return Immediate(constant.ToExternalReference());
       case Constant::kHeapObject:
@@ -87,6 +89,7 @@ class IA32OperandConverter : public InstructionOperandConverter {
         return Immediate::CodeRelativeOffset(ToLabel(operand));
     }
     UNREACHABLE();
+    return Immediate(-1);
   }
 
   static size_t NextOffset(size_t* offset) {
@@ -162,8 +165,10 @@ class IA32OperandConverter : public InstructionOperandConverter {
       }
       case kMode_None:
         UNREACHABLE();
+        return Operand(no_reg, 0);
     }
     UNREACHABLE();
+    return Operand(no_reg, 0);
   }
 
   Operand MemoryOperand(size_t first_input = 0) {
@@ -755,33 +760,6 @@ class OutOfLineRecordWrite final : public OutOfLineCode {
     __ add(esp, Immediate(kDoubleSize));                                      \
   } while (false)
 
-#define ASSEMBLE_BINOP(asm_instr)                                     \
-  do {                                                                \
-    if (AddressingModeField::decode(instr->opcode()) != kMode_None) { \
-      size_t index = 1;                                               \
-      Operand right = i.MemoryOperand(&index);                        \
-      __ asm_instr(i.InputRegister(0), right);                        \
-    } else {                                                          \
-      if (HasImmediateInput(instr, 1)) {                              \
-        __ asm_instr(i.InputOperand(0), i.InputImmediate(1));         \
-      } else {                                                        \
-        __ asm_instr(i.InputRegister(0), i.InputOperand(1));          \
-      }                                                               \
-    }                                                                 \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_BINOP(bin_inst, mov_inst, cmpxchg_inst) \
-  do {                                                          \
-    Label binop;                                                \
-    __ bind(&binop);                                            \
-    __ mov_inst(eax, i.MemoryOperand(1));                       \
-    __ Move(i.TempRegister(0), eax);                            \
-    __ bin_inst(i.TempRegister(0), i.InputRegister(0));         \
-    __ lock();                                                  \
-    __ cmpxchg_inst(i.MemoryOperand(1), i.TempRegister(0));     \
-    __ j(not_equal, &binop);                                    \
-  } while (false)
-
 void CodeGenerator::AssembleDeconstructFrame() {
   __ mov(esp, ebp);
   __ pop(ebp);
@@ -1152,10 +1130,18 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       ASSEMBLE_IEEE754_UNOP(tanh);
       break;
     case kIA32Add:
-      ASSEMBLE_BINOP(add);
+      if (HasImmediateInput(instr, 1)) {
+        __ add(i.InputOperand(0), i.InputImmediate(1));
+      } else {
+        __ add(i.InputRegister(0), i.InputOperand(1));
+      }
       break;
     case kIA32And:
-      ASSEMBLE_BINOP(and_);
+      if (HasImmediateInput(instr, 1)) {
+        __ and_(i.InputOperand(0), i.InputImmediate(1));
+      } else {
+        __ and_(i.InputRegister(0), i.InputOperand(1));
+      }
       break;
     case kIA32Cmp:
       ASSEMBLE_COMPARE(cmp);
@@ -1203,13 +1189,25 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       __ neg(i.OutputOperand());
       break;
     case kIA32Or:
-      ASSEMBLE_BINOP(or_);
+      if (HasImmediateInput(instr, 1)) {
+        __ or_(i.InputOperand(0), i.InputImmediate(1));
+      } else {
+        __ or_(i.InputRegister(0), i.InputOperand(1));
+      }
       break;
     case kIA32Xor:
-      ASSEMBLE_BINOP(xor_);
+      if (HasImmediateInput(instr, 1)) {
+        __ xor_(i.InputOperand(0), i.InputImmediate(1));
+      } else {
+        __ xor_(i.InputRegister(0), i.InputOperand(1));
+      }
       break;
     case kIA32Sub:
-      ASSEMBLE_BINOP(sub);
+      if (HasImmediateInput(instr, 1)) {
+        __ sub(i.InputOperand(0), i.InputImmediate(1));
+      } else {
+        __ sub(i.InputRegister(0), i.InputOperand(1));
+      }
       break;
     case kIA32Shl:
       if (HasImmediateInput(instr, 1)) {
@@ -1616,10 +1614,10 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       }
       break;
     case kSSEFloat64InsertLowWord32:
-      __ Pinsrd(i.OutputDoubleRegister(), i.InputOperand(1), 0, true);
+      __ Pinsrd(i.OutputDoubleRegister(), i.InputOperand(1), 0);
       break;
     case kSSEFloat64InsertHighWord32:
-      __ Pinsrd(i.OutputDoubleRegister(), i.InputOperand(1), 1, true);
+      __ Pinsrd(i.OutputDoubleRegister(), i.InputOperand(1), 1);
       break;
     case kSSEFloat64LoadLowWord32:
       __ movd(i.OutputDoubleRegister(), i.InputOperand(0));
@@ -1890,45 +1888,22 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       }
       break;
     }
-    case kIA32I32x4Splat: {
-      XMMRegister dst = i.OutputSimd128Register();
-      __ Movd(dst, i.InputOperand(0));
-      __ Pshufd(dst, dst, 0x0);
+    case kIA32Xchgb: {
+      size_t index = 0;
+      Operand operand = i.MemoryOperand(&index);
+      __ xchg_b(i.InputRegister(index), operand);
       break;
     }
-    case kIA32I32x4ExtractLane: {
-      __ Pextrd(i.OutputRegister(), i.InputSimd128Register(0), i.InputInt8(1));
+    case kIA32Xchgw: {
+      size_t index = 0;
+      Operand operand = i.MemoryOperand(&index);
+      __ xchg_w(i.InputRegister(index), operand);
       break;
     }
-    case kSSEI32x4ReplaceLane: {
-      CpuFeatureScope sse_scope(masm(), SSE4_1);
-      __ pinsrd(i.OutputSimd128Register(), i.InputOperand(2), i.InputInt8(1));
-      break;
-    }
-    case kSSEI32x4Add: {
-      __ paddd(i.OutputSimd128Register(), i.InputOperand(1));
-      break;
-    }
-    case kSSEI32x4Sub: {
-      __ psubd(i.OutputSimd128Register(), i.InputOperand(1));
-      break;
-    }
-    case kAVXI32x4ReplaceLane: {
-      CpuFeatureScope avx_scope(masm(), AVX);
-      __ vpinsrd(i.OutputSimd128Register(), i.InputSimd128Register(0),
-                 i.InputOperand(2), i.InputInt8(1));
-      break;
-    }
-    case kAVXI32x4Add: {
-      CpuFeatureScope avx_scope(masm(), AVX);
-      __ vpaddd(i.OutputSimd128Register(), i.InputSimd128Register(0),
-                i.InputOperand(1));
-      break;
-    }
-    case kAVXI32x4Sub: {
-      CpuFeatureScope avx_scope(masm(), AVX);
-      __ vpsubd(i.OutputSimd128Register(), i.InputSimd128Register(0),
-                i.InputOperand(1));
+    case kIA32Xchgl: {
+      size_t index = 0;
+      Operand operand = i.MemoryOperand(&index);
+      __ xchg(i.InputRegister(index), operand);
       break;
     }
     case kCheckedLoadInt8:
@@ -1977,90 +1952,6 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
     case kCheckedStoreWord64:
       UNREACHABLE();  // currently unsupported checked int64 load/store.
       break;
-    case kAtomicExchangeInt8: {
-      __ xchg_b(i.InputRegister(0), i.MemoryOperand(1));
-      __ movsx_b(i.InputRegister(0), i.InputRegister(0));
-      break;
-    }
-    case kAtomicExchangeUint8: {
-      __ xchg_b(i.InputRegister(0), i.MemoryOperand(1));
-      __ movzx_b(i.InputRegister(0), i.InputRegister(0));
-      break;
-    }
-    case kAtomicExchangeInt16: {
-      __ xchg_w(i.InputRegister(0), i.MemoryOperand(1));
-      __ movsx_w(i.InputRegister(0), i.InputRegister(0));
-      break;
-    }
-    case kAtomicExchangeUint16: {
-      __ xchg_w(i.InputRegister(0), i.MemoryOperand(1));
-      __ movzx_w(i.InputRegister(0), i.InputRegister(0));
-      break;
-    }
-    case kAtomicExchangeWord32: {
-      __ xchg(i.InputRegister(0), i.MemoryOperand(1));
-      break;
-    }
-    case kAtomicCompareExchangeInt8: {
-      __ lock();
-      __ cmpxchg_b(i.MemoryOperand(2), i.InputRegister(1));
-      __ movsx_b(eax, eax);
-      break;
-    }
-    case kAtomicCompareExchangeUint8: {
-      __ lock();
-      __ cmpxchg_b(i.MemoryOperand(2), i.InputRegister(1));
-      __ movzx_b(eax, eax);
-      break;
-    }
-    case kAtomicCompareExchangeInt16: {
-      __ lock();
-      __ cmpxchg_w(i.MemoryOperand(2), i.InputRegister(1));
-      __ movsx_w(eax, eax);
-      break;
-    }
-    case kAtomicCompareExchangeUint16: {
-      __ lock();
-      __ cmpxchg_w(i.MemoryOperand(2), i.InputRegister(1));
-      __ movzx_w(eax, eax);
-      break;
-    }
-    case kAtomicCompareExchangeWord32: {
-      __ lock();
-      __ cmpxchg(i.MemoryOperand(2), i.InputRegister(1));
-      break;
-    }
-#define ATOMIC_BINOP_CASE(op, inst)                \
-  case kAtomic##op##Int8: {                        \
-    ASSEMBLE_ATOMIC_BINOP(inst, mov_b, cmpxchg_b); \
-    __ movsx_b(eax, eax);                          \
-    break;                                         \
-  }                                                \
-  case kAtomic##op##Uint8: {                       \
-    ASSEMBLE_ATOMIC_BINOP(inst, mov_b, cmpxchg_b); \
-    __ movzx_b(eax, eax);                          \
-    break;                                         \
-  }                                                \
-  case kAtomic##op##Int16: {                       \
-    ASSEMBLE_ATOMIC_BINOP(inst, mov_w, cmpxchg_w); \
-    __ movsx_w(eax, eax);                          \
-    break;                                         \
-  }                                                \
-  case kAtomic##op##Uint16: {                      \
-    ASSEMBLE_ATOMIC_BINOP(inst, mov_w, cmpxchg_w); \
-    __ movzx_w(eax, eax);                          \
-    break;                                         \
-  }                                                \
-  case kAtomic##op##Word32: {                      \
-    ASSEMBLE_ATOMIC_BINOP(inst, mov, cmpxchg);     \
-    break;                                         \
-  }
-      ATOMIC_BINOP_CASE(Add, add)
-      ATOMIC_BINOP_CASE(Sub, sub)
-      ATOMIC_BINOP_CASE(And, and_)
-      ATOMIC_BINOP_CASE(Or, or_)
-      ATOMIC_BINOP_CASE(Xor, xor_)
-#undef ATOMIC_BINOP_CASE
     case kAtomicLoadInt8:
     case kAtomicLoadUint8:
     case kAtomicLoadInt16:
@@ -2117,6 +2008,7 @@ static Condition FlagsConditionToCondition(FlagsCondition condition) {
       break;
     default:
       UNREACHABLE();
+      return no_condition;
       break;
   }
 }
@@ -2182,7 +2074,7 @@ void CodeGenerator::AssembleArchTrap(Instruction* instr,
         __ Ret();
       } else {
         gen_->AssembleSourcePosition(instr_);
-        __ Call(isolate()->builtins()->builtin_handle(trap_id),
+        __ Call(handle(isolate()->builtins()->builtin(trap_id), isolate()),
                 RelocInfo::CODE_TARGET);
         ReferenceMap* reference_map =
             new (gen_->zone()) ReferenceMap(gen_->zone());
@@ -2287,9 +2179,7 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleDeoptimizerCall(
   Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
       isolate(), deoptimization_id, bailout_type);
   if (deopt_entry == nullptr) return kTooManyDeoptimizationBailouts;
-  if (info()->is_source_positions_enabled()) {
-    __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
-  }
+  __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
   __ call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
   return kSuccess;
 }
@@ -2533,7 +2423,6 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   }
 }
 
-void CodeGenerator::FinishCode() {}
 
 void CodeGenerator::AssembleMove(InstructionOperand* source,
                                  InstructionOperand* destination) {
@@ -2566,7 +2455,13 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       } else {
         DCHECK(destination->IsStackSlot());
         Operand dst = g.ToOperand(destination);
-        __ mov(dst, src);
+        AllowDeferredHandleDereference embedding_raw_address;
+        if (isolate()->heap()->InNewSpace(*src)) {
+          __ PushHeapObject(src);
+          __ pop(dst);
+        } else {
+          __ mov(dst, src);
+        }
       }
     } else if (destination->IsRegister()) {
       Register dst = g.ToRegister(destination);

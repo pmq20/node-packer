@@ -6,15 +6,13 @@
 #define V8_COMPILATION_CACHE_H_
 
 #include "src/allocation.h"
-#include "src/objects/compilation-cache.h"
+#include "src/objects.h"
 
 namespace v8 {
 namespace internal {
 
 template <typename T>
 class Handle;
-
-class RootVisitor;
 
 // The compilation cache consists of several generational sub-caches which uses
 // this class as a base class. A sub-cache contains a compilation cache tables
@@ -51,7 +49,8 @@ class CompilationSubCache {
   void Age();
 
   // GC support.
-  void Iterate(RootVisitor* v);
+  void Iterate(ObjectVisitor* v);
+  void IterateFunctions(ObjectVisitor* v);
 
   // Clear this sub-cache evicting all its content.
   void Clear();
@@ -198,7 +197,8 @@ class CompilationCache {
   void Remove(Handle<SharedFunctionInfo> function_info);
 
   // GC support.
-  void Iterate(RootVisitor* v);
+  void Iterate(ObjectVisitor* v);
+  void IterateFunctions(ObjectVisitor* v);
 
   // Notify the cache that a mark-sweep garbage collection is about to
   // take place. This is used to retire entries from the cache to

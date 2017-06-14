@@ -20,15 +20,14 @@
 namespace v8 {
 namespace internal {
 
-MacroAssembler::MacroAssembler(Isolate* isolate, void* buffer, int size,
+MacroAssembler::MacroAssembler(Isolate* arg_isolate, void* buffer, int size,
                                CodeObjectRequired create_code_object)
-    : Assembler(isolate, buffer, size),
+    : Assembler(arg_isolate, buffer, size),
       generating_stub_(false),
-      has_frame_(false),
-      isolate_(isolate) {
+      has_frame_(false) {
   if (create_code_object == CodeObjectRequired::kYes) {
     code_object_ =
-        Handle<Object>::New(isolate_->heap()->undefined_value(), isolate_);
+        Handle<Object>::New(isolate()->heap()->undefined_value(), isolate());
   }
 }
 
@@ -308,7 +307,7 @@ void MacroAssembler::RecordWriteField(
   Add(dst, object, offset - kHeapObjectTag, r0);
   if (emit_debug_code()) {
     Label ok;
-    andi(r0, dst, Operand(kPointerSize - 1));
+    andi(r0, dst, Operand((1 << kPointerSizeLog2) - 1));
     beq(&ok, cr0);
     stop("Unaligned cell in write barrier");
     bind(&ok);
@@ -363,7 +362,7 @@ void MacroAssembler::RecordWriteForMap(Register object, Register map,
   addi(dst, object, Operand(HeapObject::kMapOffset - kHeapObjectTag));
   if (emit_debug_code()) {
     Label ok;
-    andi(r0, dst, Operand(kPointerSize - 1));
+    andi(r0, dst, Operand((1 << kPointerSizeLog2) - 1));
     beq(&ok, cr0);
     stop("Unaligned cell in write barrier");
     bind(&ok);
@@ -810,9 +809,8 @@ void MacroAssembler::ConvertDoubleToUnsignedInt64(
 void MacroAssembler::ShiftLeftPair(Register dst_low, Register dst_high,
                                    Register src_low, Register src_high,
                                    Register scratch, Register shift) {
-  DCHECK(!AreAliased(dst_low, src_high));
-  DCHECK(!AreAliased(dst_high, src_low));
-  DCHECK(!AreAliased(dst_low, dst_high, shift));
+  DCHECK(!AreAliased(dst_low, src_high, shift));
+  DCHECK(!AreAliased(dst_high, src_low, shift));
   Label less_than_32;
   Label done;
   cmpi(shift, Operand(32));
@@ -857,9 +855,8 @@ void MacroAssembler::ShiftLeftPair(Register dst_low, Register dst_high,
 void MacroAssembler::ShiftRightPair(Register dst_low, Register dst_high,
                                     Register src_low, Register src_high,
                                     Register scratch, Register shift) {
-  DCHECK(!AreAliased(dst_low, src_high));
-  DCHECK(!AreAliased(dst_high, src_low));
-  DCHECK(!AreAliased(dst_low, dst_high, shift));
+  DCHECK(!AreAliased(dst_low, src_high, shift));
+  DCHECK(!AreAliased(dst_high, src_low, shift));
   Label less_than_32;
   Label done;
   cmpi(shift, Operand(32));
@@ -1499,6 +1496,9 @@ void MacroAssembler::InvokeFunction(Register fun, Register new_target,
   LoadWordArith(expected_reg,
                 FieldMemOperand(
                     temp_reg, SharedFunctionInfo::kFormalParameterCountOffset));
+#if !defined(V8_TARGET_ARCH_PPC64)
+  SmiUntag(expected_reg);
+#endif
 
   ParameterCount expected(expected_reg);
   InvokeFunctionCode(fun, new_target, expected, actual, flag, call_wrapper);
@@ -1544,12 +1544,21 @@ void MacroAssembler::IsObjectJSStringType(Register object, Register scratch,
 }
 
 
+void MacroAssembler::IsObjectNameType(Register object, Register scratch,
+                                      Label* fail) {
+  LoadP(scratch, FieldMemOperand(object, HeapObject::kMapOffset));
+  lbz(scratch, FieldMemOperand(scratch, Map::kInstanceTypeOffset));
+  cmpi(scratch, Operand(LAST_NAME_TYPE));
+  bgt(fail);
+}
+
+
 void MacroAssembler::MaybeDropFrames() {
   // Check whether we need to drop frames to restart a function on the stack.
   ExternalReference restart_fp =
       ExternalReference::debug_restart_fp_address(isolate());
   mov(r4, Operand(restart_fp));
-  LoadP(r4, MemOperand(r4));
+  LoadWordArith(r4, MemOperand(r4));
   cmpi(r4, Operand::Zero());
   Jump(isolate()->builtins()->FrameDropperTrampoline(), RelocInfo::CODE_TARGET,
        ne);
@@ -2080,6 +2089,29 @@ void MacroAssembler::CheckMap(Register obj, Register scratch,
 }
 
 
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
+  Label fail;
+  if (smi_check_type == DO_SMI_CHECK) {
+    JumpIfSmi(obj, &fail);
+  }
+  LoadP(scratch1, FieldMemOperand(obj, HeapObject::kMapOffset));
+  CmpWeakValue(scratch1, cell, scratch2);
+  Jump(success, RelocInfo::CODE_TARGET, eq);
+  bind(&fail);
+}
+
+
+void MacroAssembler::CmpWeakValue(Register value, Handle<WeakCell> cell,
+                                  Register scratch, CRegister cr) {
+  mov(scratch, Operand(cell));
+  LoadP(scratch, FieldMemOperand(scratch, WeakCell::kValueOffset));
+  cmp(value, scratch, cr);
+}
+
+
 void MacroAssembler::GetWeakValue(Register value, Handle<WeakCell> cell) {
   mov(value, Operand(cell));
   LoadP(value, FieldMemOperand(value, WeakCell::kValueOffset));
@@ -2091,6 +2123,7 @@ void MacroAssembler::LoadWeakValue(Register value, Handle<WeakCell> cell,
   GetWeakValue(value, cell);
   JumpIfSmi(value, miss);
 }
+
 
 void MacroAssembler::GetMapConstructor(Register result, Register map,
                                        Register temp, Register temp2) {
@@ -2431,6 +2464,27 @@ void MacroAssembler::Assert(Condition cond, BailoutReason reason,
 }
 
 
+void MacroAssembler::AssertFastElements(Register elements) {
+  if (emit_debug_code()) {
+    DCHECK(!elements.is(r0));
+    Label ok;
+    push(elements);
+    LoadP(elements, FieldMemOperand(elements, HeapObject::kMapOffset));
+    LoadRoot(r0, Heap::kFixedArrayMapRootIndex);
+    cmp(elements, r0);
+    beq(&ok);
+    LoadRoot(r0, Heap::kFixedDoubleArrayMapRootIndex);
+    cmp(elements, r0);
+    beq(&ok);
+    LoadRoot(r0, Heap::kFixedCOWArrayMapRootIndex);
+    cmp(elements, r0);
+    beq(&ok);
+    Abort(kJSObjectWithFastElementsMapHasSlowElements);
+    bind(&ok);
+    pop(elements);
+  }
+}
+
 
 void MacroAssembler::Check(Condition cond, BailoutReason reason, CRegister cr) {
   Label L;
@@ -2581,6 +2635,18 @@ void MacroAssembler::JumpIfEitherSmi(Register reg1, Register reg2,
   JumpIfSmi(reg2, on_either_smi);
 }
 
+void MacroAssembler::AssertNotNumber(Register object) {
+  if (emit_debug_code()) {
+    STATIC_ASSERT(kSmiTag == 0);
+    TestIfSmi(object, r0);
+    Check(ne, kOperandIsANumber, cr0);
+    push(object);
+    CompareObjectType(object, object, object, HEAP_NUMBER_TYPE);
+    pop(object);
+    Check(ne, kOperandIsANumber);
+  }
+}
+
 void MacroAssembler::AssertNotSmi(Register object) {
   if (emit_debug_code()) {
     STATIC_ASSERT(kSmiTag == 0);
@@ -2598,17 +2664,34 @@ void MacroAssembler::AssertSmi(Register object) {
   }
 }
 
-void MacroAssembler::AssertFixedArray(Register object) {
+
+void MacroAssembler::AssertString(Register object) {
   if (emit_debug_code()) {
     STATIC_ASSERT(kSmiTag == 0);
     TestIfSmi(object, r0);
-    Check(ne, kOperandIsASmiAndNotAFixedArray, cr0);
+    Check(ne, kOperandIsASmiAndNotAString, cr0);
     push(object);
-    CompareObjectType(object, object, object, FIXED_ARRAY_TYPE);
+    LoadP(object, FieldMemOperand(object, HeapObject::kMapOffset));
+    CompareInstanceType(object, object, FIRST_NONSTRING_TYPE);
     pop(object);
-    Check(eq, kOperandIsNotAFixedArray);
+    Check(lt, kOperandIsNotAString);
   }
 }
+
+
+void MacroAssembler::AssertName(Register object) {
+  if (emit_debug_code()) {
+    STATIC_ASSERT(kSmiTag == 0);
+    TestIfSmi(object, r0);
+    Check(ne, kOperandIsASmiAndNotAName, cr0);
+    push(object);
+    LoadP(object, FieldMemOperand(object, HeapObject::kMapOffset));
+    CompareInstanceType(object, object, LAST_NAME_TYPE);
+    pop(object);
+    Check(le, kOperandIsNotAName);
+  }
+}
+
 
 void MacroAssembler::AssertFunction(Register object) {
   if (emit_debug_code()) {
@@ -2635,33 +2718,29 @@ void MacroAssembler::AssertBoundFunction(Register object) {
   }
 }
 
-void MacroAssembler::AssertGeneratorObject(Register object, Register flags) {
-  // `flags` should be an untagged integer. See `SuspendFlags` in src/globals.h
-  if (!emit_debug_code()) return;
-  TestIfSmi(object, r0);
-  Check(ne, kOperandIsASmiAndNotAGeneratorObject, cr0);
+void MacroAssembler::AssertGeneratorObject(Register object) {
+  if (emit_debug_code()) {
+    STATIC_ASSERT(kSmiTag == 0);
+    TestIfSmi(object, r0);
+    Check(ne, kOperandIsASmiAndNotAGeneratorObject, cr0);
+    push(object);
+    CompareObjectType(object, object, object, JS_GENERATOR_OBJECT_TYPE);
+    pop(object);
+    Check(eq, kOperandIsNotAGeneratorObject);
+  }
+}
 
-  // Load map
-  Register map = object;
-  push(object);
-  LoadP(map, FieldMemOperand(object, HeapObject::kMapOffset));
-
-  Label async, do_check;
-  TestBitMask(flags, static_cast<int>(SuspendFlags::kGeneratorTypeMask), r0);
-  bne(&async, cr0);
-
-  // Check if JSGeneratorObject
-  CompareInstanceType(map, object, JS_GENERATOR_OBJECT_TYPE);
-  b(&do_check);
-
-  bind(&async);
-  // Check if JSAsyncGeneratorObject
-  CompareInstanceType(map, object, JS_ASYNC_GENERATOR_OBJECT_TYPE);
-
-  bind(&do_check);
-  // Restore generator object to register and perform assertion
-  pop(object);
-  Check(eq, kOperandIsNotAGeneratorObject);
+void MacroAssembler::AssertReceiver(Register object) {
+  if (emit_debug_code()) {
+    STATIC_ASSERT(kSmiTag == 0);
+    TestIfSmi(object, r0);
+    Check(ne, kOperandIsASmiAndNotAReceiver, cr0);
+    push(object);
+    STATIC_ASSERT(LAST_TYPE == LAST_JS_RECEIVER_TYPE);
+    CompareObjectType(object, object, object, FIRST_JS_RECEIVER_TYPE);
+    pop(object);
+    Check(ge, kOperandIsNotAReceiver);
+  }
 }
 
 void MacroAssembler::AssertUndefinedOrAllocationSite(Register object,
@@ -2968,7 +3047,6 @@ void MacroAssembler::CallCFunction(Register function, int num_arguments) {
 void MacroAssembler::CallCFunctionHelper(Register function,
                                          int num_reg_arguments,
                                          int num_double_arguments) {
-  DCHECK_LE(num_reg_arguments + num_double_arguments, kMaxCParameters);
   DCHECK(has_frame());
 
   // Just call directly. The function called cannot cause a GC, or
@@ -4175,6 +4253,7 @@ Register GetRegisterThatIsNotOneOf(Register reg1, Register reg2, Register reg3,
     return candidate;
   }
   UNREACHABLE();
+  return no_reg;
 }
 
 #ifdef DEBUG

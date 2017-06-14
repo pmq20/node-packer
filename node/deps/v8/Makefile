@@ -240,6 +240,7 @@ ifdef android_ndk_root
 endif
 
 # ----------------- available targets: --------------------
+# - "grokdump": rebuilds heap constants lists used by grokdump
 # - any arch listed in ARCHES (see below)
 # - any mode listed in MODES
 # - every combination <arch>.<mode>, e.g. "ia32.release"
@@ -272,7 +273,9 @@ GYPFILES = third_party/icu/icu.gypi third_party/icu/icu.gyp \
 	   test/cctest/cctest.gyp test/fuzzer/fuzzer.gyp \
 	   test/unittests/unittests.gyp src/v8.gyp \
 	   tools/parser-shell.gyp testing/gmock.gyp testing/gtest.gyp \
-	   samples/samples.gyp src/third_party/vtune/v8vtune.gyp src/d8.gyp
+	   buildtools/third_party/libc++abi/libc++abi.gyp \
+	   buildtools/third_party/libc++/libc++.gyp samples/samples.gyp \
+	   src/third_party/vtune/v8vtune.gyp src/d8.gyp
 
 # If vtunejit=on, the v8vtune.gyp will be appended.
 ifeq ($(vtunejit), on)
@@ -463,6 +466,12 @@ $(ENVFILE).new:
 	$(eval CXX_TARGET_ARCH:=$(subst aarch64,arm64,$(CXX_TARGET_ARCH)))
 	$(eval CXX_TARGET_ARCH:=$(subst x86_64,x64,$(CXX_TARGET_ARCH)))
 	@mkdir -p $(OUTDIR); echo "GYPFLAGS=$(GYPFLAGS) -Dtarget_arch=$(CXX_TARGET_ARCH)" > $(ENVFILE).new;
+
+# Heap constants for grokdump.
+DUMP_FILE = tools/v8heapconst.py
+grokdump: ia32.release
+	@cat $(DUMP_FILE).tmpl > $(DUMP_FILE)
+	@$(OUTDIR)/ia32.release/d8 --dump-heap-constants >> $(DUMP_FILE)
 
 # Support for the GNU GLOBAL Source Code Tag System.
 gtags.files: $(GYPFILES) $(ENVFILE)

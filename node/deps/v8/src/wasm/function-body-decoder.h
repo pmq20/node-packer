@@ -42,11 +42,13 @@ static inline FunctionBody FunctionBodyForTesting(const byte* start,
   return {nullptr, start, start, end};
 }
 
-// A {DecodeResult} only stores the failure / success status, but no data. Thus
-// we use {nullptr_t} as data value, such that the only valid data stored in
-// this type is a nullptr.
-// Storing {void} would require template specialization.
-using DecodeResult = Result<std::nullptr_t>;
+struct DecodeStruct {
+  int unused;
+};
+typedef Result<DecodeStruct*> DecodeResult;
+inline std::ostream& operator<<(std::ostream& os, const DecodeStruct& tree) {
+  return os;
+}
 
 V8_EXPORT_PRIVATE DecodeResult VerifyWasmCode(AccountingAllocator* allocator,
                                               const wasm::WasmModule* module,
@@ -79,12 +81,12 @@ struct BodyLocalDecls {
 
   ZoneVector<ValueType> type_list;
 
+  // Constructor initializes the vector.
   explicit BodyLocalDecls(Zone* zone) : encoded_size(0), type_list(zone) {}
 };
 
 V8_EXPORT_PRIVATE bool DecodeLocalDecls(BodyLocalDecls* decls,
                                         const byte* start, const byte* end);
-
 V8_EXPORT_PRIVATE BitVector* AnalyzeLoopAssignmentForTesting(Zone* zone,
                                                              size_t num_locals,
                                                              const byte* start,
@@ -92,15 +94,6 @@ V8_EXPORT_PRIVATE BitVector* AnalyzeLoopAssignmentForTesting(Zone* zone,
 
 // Computes the length of the opcode at the given address.
 V8_EXPORT_PRIVATE unsigned OpcodeLength(const byte* pc, const byte* end);
-
-// Computes the stack effect of the opcode at the given address.
-// Returns <pop count, push count>.
-// Be cautious with control opcodes: This function only covers their immediate,
-// local stack effect (e.g. BrIf pops 1, Br pops 0). Those opcodes can have
-// non-local stack effect though, which are not covered here.
-std::pair<uint32_t, uint32_t> StackEffect(const WasmModule* module,
-                                          FunctionSig* sig, const byte* pc,
-                                          const byte* end);
 
 // A simple forward iterator for bytecodes.
 class V8_EXPORT_PRIVATE BytecodeIterator : public NON_EXPORTED_BASE(Decoder) {
@@ -177,7 +170,8 @@ class V8_EXPORT_PRIVATE BytecodeIterator : public NON_EXPORTED_BASE(Decoder) {
   }
 
   WasmOpcode current() {
-    return static_cast<WasmOpcode>(read_u8<false>(pc_, "expected bytecode"));
+    return static_cast<WasmOpcode>(
+        checked_read_u8(pc_, 0, "expected bytecode"));
   }
 
   void next() {

@@ -5,16 +5,12 @@
 #ifndef V8_WASM_LEB_HELPER_H_
 #define V8_WASM_LEB_HELPER_H_
 
-#include <cstddef>
-#include <cstdint>
-
 namespace v8 {
 namespace internal {
 namespace wasm {
 
-constexpr size_t kPaddedVarInt32Size = 5;
-constexpr size_t kMaxVarInt32Size = 5;
-constexpr size_t kMaxVarInt64Size = 10;
+static const size_t kPaddedVarInt32Size = 5;
+static const size_t kMaxVarInt32Size = 5;
 
 class LEBHelper {
  public:

@@ -29,7 +29,8 @@ RUNTIME_FUNCTION(Runtime_FunctionGetName) {
   }
 }
 
-RUNTIME_FUNCTION(Runtime_FunctionSetSharedName) {
+
+RUNTIME_FUNCTION(Runtime_FunctionSetName) {
   HandleScope scope(isolate);
   DCHECK_EQ(2, args.length());
 
@@ -37,7 +38,7 @@ RUNTIME_FUNCTION(Runtime_FunctionSetSharedName) {
   CONVERT_ARG_HANDLE_CHECKED(String, name, 1);
 
   name = String::Flatten(name);
-  f->shared()->set_raw_name(*name);
+  f->shared()->set_name(*name);
   return isolate->heap()->undefined_value();
 }
 
@@ -110,7 +111,8 @@ RUNTIME_FUNCTION(Runtime_FunctionGetContextData) {
   DCHECK_EQ(1, args.length());
 
   CONVERT_ARG_CHECKED(JSFunction, fun, 0);
-  return fun->native_context()->debug_context_id();
+  FixedArray* array = fun->native_context()->embedder_data();
+  return array->get(v8::Context::kDebugIdIndex);
 }
 
 RUNTIME_FUNCTION(Runtime_FunctionSetInstanceClassName) {
@@ -143,7 +145,8 @@ RUNTIME_FUNCTION(Runtime_FunctionSetPrototype) {
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 1);
   CHECK(fun->IsConstructor());
-  JSFunction::SetPrototype(fun, value);
+  RETURN_FAILURE_ON_EXCEPTION(isolate,
+                              Accessors::FunctionSetPrototype(fun, value));
   return args[0];  // return TOS
 }
 
@@ -171,6 +174,13 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
     return isolate->heap()->exception();
   }
 
+  // Mark both, the source and the target, as un-flushable because the
+  // shared unoptimized code makes them impossible to enqueue in a list.
+  DCHECK(target_shared->code()->gc_metadata() == NULL);
+  DCHECK(source_shared->code()->gc_metadata() == NULL);
+  target_shared->set_dont_flush(true);
+  source_shared->set_dont_flush(true);
+
   // Set the code, scope info, formal parameter count, and the length
   // of the target shared function info.
   target_shared->ReplaceCode(source_shared->code());
@@ -179,7 +189,7 @@ RUNTIME_FUNCTION(Runtime_SetCode) {
   }
   target_shared->set_scope_info(source_shared->scope_info());
   target_shared->set_outer_scope_info(source_shared->outer_scope_info());
-  target_shared->set_length(source_shared->GetLength());
+  target_shared->set_length(source_shared->length());
   target_shared->set_feedback_metadata(source_shared->feedback_metadata());
   target_shared->set_internal_formal_parameter_count(
       source_shared->internal_formal_parameter_count());

@@ -93,8 +93,7 @@ class ScopeIterator {
   };
 
   Isolate* isolate_;
-  FrameInspector* const frame_inspector_ = nullptr;
-  Handle<JSGeneratorObject> generator_;
+  FrameInspector* const frame_inspector_;
   Handle<Context> context_;
   List<ExtendedScopeInfo> nested_scope_chain_;
   Handle<StringSet> non_locals_;
@@ -104,14 +103,9 @@ class ScopeIterator {
     return frame_inspector_->GetArgumentsFrame();
   }
 
-  Handle<Context> GetContext();
-  Handle<JSFunction> GetFunction();
-  int GetSourcePosition();
-
-  void MaterializeStackLocals(Handle<JSObject> local_scope,
-                              Handle<ScopeInfo> scope_info);
-
-  void TryParseAndRetrieveScopes(ScopeIterator::Option option);
+  inline Handle<JSFunction> GetFunction() {
+    return frame_inspector_->GetFunction();
+  }
 
   void RetrieveScopeChain(DeclarationScope* scope);
 
@@ -137,11 +131,9 @@ class ScopeIterator {
                               Handle<Object> new_value);
   bool SetCatchVariableValue(Handle<String> variable_name,
                              Handle<Object> new_value);
-  bool SetModuleVariableValue(Handle<String> variable_name,
-                              Handle<Object> new_value);
 
   // Helper functions.
-  bool SetParameterValue(Handle<ScopeInfo> scope_info,
+  bool SetParameterValue(Handle<ScopeInfo> scope_info, JavaScriptFrame* frame,
                          Handle<String> parameter_name,
                          Handle<Object> new_value);
   bool SetStackVariableValue(Handle<ScopeInfo> scope_info,

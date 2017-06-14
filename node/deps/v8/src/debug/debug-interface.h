@@ -17,7 +17,6 @@
 namespace v8 {
 
 namespace internal {
-struct CoverageBlock;
 struct CoverageFunction;
 struct CoverageScript;
 class Coverage;
@@ -25,9 +24,6 @@ class Script;
 }
 
 namespace debug {
-
-void SetContextId(Local<Context> context, int id);
-int GetContextId(Local<Context> context);
 
 /**
  * Debugger is running in its own context which is entered while debugger
@@ -65,7 +61,7 @@ MaybeLocal<Value> Call(Local<Context> context, v8::Local<v8::Function> fun,
  * (default Isolate if not provided). V8 will abort if LiveEdit is
  * unexpectedly used. LiveEdit is enabled by default.
  */
-V8_EXPORT_PRIVATE void SetLiveEditEnabled(Isolate* isolate, bool enable);
+void SetLiveEditEnabled(Isolate* isolate, bool enable);
 
 // Schedule a debugger break to happen when JavaScript code is run
 // in the given isolate.
@@ -106,10 +102,8 @@ enum StepAction {
 };
 
 void PrepareStep(Isolate* isolate, StepAction action);
-void ClearStepping(Isolate* isolate);
-void BreakRightNow(Isolate* isolate);
 
-bool AllFramesOnStackAreBlackboxed(Isolate* isolate);
+bool HasNonBlackboxedFrameOnStack(Isolate* isolate);
 
 /**
  * Out-of-memory callback function.
@@ -130,7 +124,6 @@ class V8_EXPORT_PRIVATE Script {
 
   ScriptOriginOptions OriginOptions() const;
   bool WasCompiled() const;
-  bool IsEmbedded() const;
   int Id() const;
   int LineOffset() const;
   int ColumnOffset() const;
@@ -138,16 +131,16 @@ class V8_EXPORT_PRIVATE Script {
   MaybeLocal<String> Name() const;
   MaybeLocal<String> SourceURL() const;
   MaybeLocal<String> SourceMappingURL() const;
-  Maybe<int> ContextId() const;
+  MaybeLocal<Value> ContextData() const;
   MaybeLocal<String> Source() const;
   bool IsWasm() const;
   bool IsModule() const;
-  bool GetPossibleBreakpoints(
-      const debug::Location& start, const debug::Location& end,
-      bool restrict_to_function,
-      std::vector<debug::BreakLocation>* locations) const;
-  int GetSourceOffset(const debug::Location& location) const;
-  v8::debug::Location GetSourceLocation(int offset) const;
+  bool GetPossibleBreakpoints(const debug::Location& start,
+                              const debug::Location& end,
+                              std::vector<debug::Location>* locations) const;
+
+ private:
+  int GetSourcePosition(const debug::Location& location) const;
 };
 
 // Specialization for wasm Scripts.
@@ -172,7 +165,7 @@ class DebugDelegate {
  public:
   virtual ~DebugDelegate() {}
   virtual void PromiseEventOccurred(debug::PromiseDebugActionType type, int id,
-                                    int parent_id, bool created_by_user) {}
+                                    int parent_id) {}
   virtual void ScriptCompiled(v8::Local<Script> script,
                               bool has_compile_error) {}
   virtual void BreakProgramRequested(v8::Local<v8::Context> paused_context,
@@ -201,21 +194,6 @@ v8::MaybeLocal<v8::Array> EntriesPreview(Isolate* isolate,
                                          v8::Local<v8::Value> value,
                                          bool* is_key_value);
 
-enum Builtin {
-  kObjectKeys,
-  kObjectGetPrototypeOf,
-  kObjectGetOwnPropertyDescriptor,
-  kObjectGetOwnPropertyNames,
-  kObjectGetOwnPropertySymbols,
-};
-
-Local<Function> GetBuiltin(Isolate* isolate, Builtin builtin);
-
-V8_EXPORT_PRIVATE void SetConsoleDelegate(Isolate* isolate,
-                                          ConsoleDelegate* delegate);
-
-int GetStackFrameId(v8::Local<v8::StackFrame> frame);
-
 /**
  * Native wrapper around v8::internal::JSGeneratorObject object.
  */
@@ -234,63 +212,30 @@ class GeneratorObject {
  */
 class V8_EXPORT_PRIVATE Coverage {
  public:
-  enum Mode {
-    // Make use of existing information in feedback vectors on the heap.
-    // Only return a yes/no result. Optimization and GC are not affected.
-    // Collecting best effort coverage does not reset counters.
-    kBestEffort,
-    // Disable optimization and prevent feedback vectors from being garbage
-    // collected in order to preserve precise invocation counts. Collecting
-    // precise count coverage resets counters to get incremental updates.
-    kPreciseCount,
-    // We are only interested in a yes/no result for the function. Optimization
-    // and GC can be allowed once a function has been invoked. Collecting
-    // precise binary coverage resets counters for incremental updates.
-    kPreciseBinary,
-    // Similar to the precise coverage modes but provides coverage at a
-    // lower granularity. Design doc: goo.gl/lA2swZ.
-    kBlockCount,
-  };
-
-  // Forward declarations.
-  class ScriptData;
-  class FunctionData;
-
-  class V8_EXPORT_PRIVATE BlockData {
-   public:
-    int StartOffset() const;
-    int EndOffset() const;
-    uint32_t Count() const;
-
-   private:
-    explicit BlockData(i::CoverageBlock* block) : block_(block) {}
-    i::CoverageBlock* block_;
-
-    friend class v8::debug::Coverage::FunctionData;
-  };
+  class ScriptData;  // Forward declaration.
 
   class V8_EXPORT_PRIVATE FunctionData {
    public:
-    int StartOffset() const;
-    int EndOffset() const;
-    uint32_t Count() const;
-    MaybeLocal<String> Name() const;
-    size_t BlockCount() const;
-    BlockData GetBlockData(size_t i) const;
+    // 0-based line and colum numbers.
+    Location Start() { return start_; }
+    Location End() { return end_; }
+    uint32_t Count();
+    MaybeLocal<String> Name();
 
    private:
-    explicit FunctionData(i::CoverageFunction* function)
-        : function_(function) {}
+    FunctionData(i::CoverageFunction* function, Local<debug::Script> script);
     i::CoverageFunction* function_;
+    Location start_;
+    Location end_;
 
     friend class v8::debug::Coverage::ScriptData;
   };
 
   class V8_EXPORT_PRIVATE ScriptData {
    public:
-    Local<debug::Script> GetScript() const;
-    size_t FunctionCount() const;
-    FunctionData GetFunctionData(size_t i) const;
+    Local<debug::Script> GetScript();
+    size_t FunctionCount();
+    FunctionData GetFunctionData(size_t i);
 
    private:
     explicit ScriptData(i::CoverageScript* script) : script_(script) {}
@@ -299,14 +244,13 @@ class V8_EXPORT_PRIVATE Coverage {
     friend class v8::debug::Coverage;
   };
 
-  static Coverage CollectPrecise(Isolate* isolate);
-  static Coverage CollectBestEffort(Isolate* isolate);
+  static Coverage Collect(Isolate* isolate, bool reset_count);
 
-  static void SelectMode(Isolate* isolate, Mode mode);
+  static void TogglePrecise(Isolate* isolate, bool enable);
 
-  size_t ScriptCount() const;
-  ScriptData GetScriptData(size_t i) const;
-  bool IsEmpty() const { return coverage_ == nullptr; }
+  size_t ScriptCount();
+  ScriptData GetScriptData(size_t i);
+  bool IsEmpty() { return coverage_ == nullptr; }
 
   ~Coverage();
 

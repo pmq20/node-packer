@@ -20,8 +20,10 @@ class BasicBlock;
 class BasicBlockInstrumentor;
 class Node;
 
+
 typedef ZoneVector<BasicBlock*> BasicBlockVector;
 typedef ZoneVector<Node*> NodeVector;
+
 
 // A basic block contains an ordered list of nodes and ends with a control
 // node. Note that if a basic block has phis, then all phis must appear as the
@@ -58,14 +60,6 @@ class V8_EXPORT_PRIVATE BasicBlock final
   BasicBlock(Zone* zone, Id id);
 
   Id id() const { return id_; }
-#if DEBUG
-  void set_debug_info(AssemblerDebugInfo debug_info) {
-    debug_info_ = debug_info;
-  }
-  AssemblerDebugInfo debug_info() const { return debug_info_; }
-#endif  // DEBUG
-
-  void Print();
 
   // Predecessors.
   BasicBlockVector& predecessors() { return predecessors_; }
@@ -96,8 +90,6 @@ class V8_EXPORT_PRIVATE BasicBlock final
   typedef NodeVector::iterator iterator;
   iterator begin() { return nodes_.begin(); }
   iterator end() { return nodes_.end(); }
-
-  void RemoveNode(iterator it) { nodes_.erase(it); }
 
   typedef NodeVector::const_iterator const_iterator;
   const_iterator begin() const { return nodes_.begin(); }
@@ -175,15 +167,11 @@ class V8_EXPORT_PRIVATE BasicBlock final
 
   BasicBlockVector successors_;
   BasicBlockVector predecessors_;
-#if DEBUG
-  AssemblerDebugInfo debug_info_;
-#endif
   Id id_;
 
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-std::ostream& operator<<(std::ostream&, const BasicBlock&);
 std::ostream& operator<<(std::ostream&, const BasicBlock::Control&);
 std::ostream& operator<<(std::ostream&, const BasicBlock::Id&);
 
@@ -278,8 +266,6 @@ class V8_EXPORT_PRIVATE Schedule final : public NON_EXPORTED_BASE(ZoneObject) {
   void EnsureSplitEdgeForm(BasicBlock* block);
   // Ensure entry into a deferred block happens from a single hot block.
   void EnsureDeferredCodeSingleEntryPoint(BasicBlock* block);
-  // Move Phi operands to newly created merger blocks
-  void MovePhis(BasicBlock* from, BasicBlock* to);
   // Copy deferred block markers down as far as possible
   void PropagateDeferredMark();
 

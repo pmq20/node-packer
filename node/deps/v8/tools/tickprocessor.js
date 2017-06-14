@@ -30,31 +30,17 @@ function inherits(childCtor, parentCtor) {
 };
 
 
-function V8Profile(separateIc, separateBytecodes, separateBuiltins,
-    separateStubs) {
+function V8Profile(separateIc) {
   Profile.call(this);
-  var regexps = [];
-  if (!separateIc) regexps.push(V8Profile.IC_RE);
-  if (!separateBytecodes) regexps.push(V8Profile.BYTECODES_RE);
-  if (!separateBuiltins) regexps.push(V8Profile.BUILTINS_RE);
-  if (!separateStubs) regexps.push(V8Profile.STUBS_RE);
-  if (regexps.length > 0) {
-    this.skipThisFunction = function(name) {
-      for (var i=0; i<regexps.length; i++) {
-        if (regexps[i].test(name)) return true;
-      }
-      return false;
-    };
+  if (!separateIc) {
+    this.skipThisFunction = function(name) { return V8Profile.IC_RE.test(name); };
   }
 };
 inherits(V8Profile, Profile);
 
 
 V8Profile.IC_RE =
-    /^(LoadGlobalIC: )|(Handler: )|(?:CallIC|LoadIC|StoreIC)|(?:Builtin: (?:Keyed)?(?:Load|Store)IC_)/;
-V8Profile.BYTECODES_RE = /^(BytecodeHandler: )/
-V8Profile.BUILTINS_RE = /^(Builtin: )/
-V8Profile.STUBS_RE = /^(Stub: )/
+    /^(LoadGlobalIC: )|(Handler: )|(Stub: )|(Builtin: )|(BytecodeHandler: )|(?:CallIC|LoadIC|StoreIC)|(?:Builtin: (?:Keyed)?(?:Load|Store)IC_)/;
 
 
 /**
@@ -64,7 +50,7 @@ function readFile(fileName) {
   try {
     return read(fileName);
   } catch (e) {
-    printErr(fileName + ': ' + (e.message || e));
+    print(fileName + ': ' + (e.message || e));
     throw e;
   }
 }
@@ -86,9 +72,6 @@ function parseState(s) {
 function TickProcessor(
     cppEntriesProvider,
     separateIc,
-    separateBytecodes,
-    separateBuiltins,
-    separateStubs,
     callGraphSize,
     ignoreUnknown,
     stateFilter,
@@ -98,21 +81,14 @@ function TickProcessor(
     timedRange,
     pairwiseTimedRange,
     onlySummary,
-    runtimeTimerFilter,
-    preprocessJson) {
-  this.preprocessJson = preprocessJson;
+    runtimeTimerFilter) {
   LogReader.call(this, {
       'shared-library': { parsers: [null, parseInt, parseInt, parseInt],
           processor: this.processSharedLibrary },
       'code-creation': {
-          parsers: [null, parseInt, parseInt, parseInt, parseInt,
-                    null, 'var-args'],
+          parsers: [null, parseInt, parseInt, parseInt, null, 'var-args'],
           processor: this.processCodeCreation },
-      'code-deopt': {
-          parsers: [parseInt, parseInt, parseInt, parseInt, parseInt,
-                    null, null, null],
-          processor: this.processCodeDeopt },
-      'code-move': { parsers: [parseInt, parseInt, ],
+      'code-move': { parsers: [parseInt, parseInt],
           processor: this.processCodeMove },
       'code-delete': { parsers: [parseInt],
           processor: this.processCodeDelete },
@@ -173,10 +149,10 @@ function TickProcessor(
     var op = Profile.Operation;
     switch (operation) {
       case op.MOVE:
-        printErr('Code move event for unknown code: 0x' + addr.toString(16));
+        print('Code move event for unknown code: 0x' + addr.toString(16));
         break;
       case op.DELETE:
-        printErr('Code delete event for unknown code: 0x' + addr.toString(16));
+        print('Code delete event for unknown code: 0x' + addr.toString(16));
         break;
       case op.TICK:
         // Only unknown PCs (the first frame) are reported as unaccounted,
@@ -189,12 +165,7 @@ function TickProcessor(
     }
   };
 
-  if (preprocessJson) {
-    this.profile_ = new JsonProfile();
-  } else {
-    this.profile_ = new V8Profile(separateIc, separateBytecodes,
-        separateBuiltins, separateStubs);
-  }
+  this.profile_ = new V8Profile(separateIc);
   this.codeTypes_ = {};
   // Count each tick as a time unit.
   this.viewBuilder_ = new ViewBuilder(1);
@@ -225,7 +196,7 @@ TickProcessor.CodeTypes = {
 // codeTypes_ map because there can be zillions of them.
 
 
-TickProcessor.CALL_PROFILE_CUTOFF_PCT = 1.0;
+TickProcessor.CALL_PROFILE_CUTOFF_PCT = 2.0;
 
 TickProcessor.CALL_GRAPH_SIZE = 5;
 
@@ -233,7 +204,7 @@ TickProcessor.CALL_GRAPH_SIZE = 5;
  * @override
  */
 TickProcessor.prototype.printError = function(str) {
-  printErr(str);
+  print(str);
 };
 
 
@@ -289,23 +260,15 @@ TickProcessor.prototype.processSharedLibrary = function(
 
 
 TickProcessor.prototype.processCodeCreation = function(
-    type, kind, timestamp, start, size, name, maybe_func) {
+    type, kind, start, size, name, maybe_func) {
   name = this.deserializedEntriesNames_[start] || name;
   if (maybe_func.length) {
     var funcAddr = parseInt(maybe_func[0]);
     var state = parseState(maybe_func[1]);
-    this.profile_.addFuncCode(type, name, timestamp, start, size, funcAddr, state);
+    this.profile_.addFuncCode(type, name, start, size, funcAddr, state);
   } else {
-    this.profile_.addCode(type, name, timestamp, start, size);
+    this.profile_.addCode(type, name, start, size);
   }
-};
-
-
-TickProcessor.prototype.processCodeDeopt = function(
-    timestamp, size, code, inliningId, scriptOffset, bailoutType,
-    sourcePositionText, deoptReasonText) {
-  this.profile_.deoptCode(timestamp, code, inliningId, scriptOffset,
-      bailoutType, sourcePositionText, deoptReasonText);
 };
 
 
@@ -370,9 +333,7 @@ TickProcessor.prototype.processTick = function(pc,
     }
   }
 
-  this.profile_.recordTick(
-      ns_since_start, vmState,
-      this.processStack(pc, tos_or_external_callback, stack));
+  this.profile_.recordTick(this.processStack(pc, tos_or_external_callback, stack));
 };
 
 
@@ -406,11 +367,6 @@ TickProcessor.prototype.processHeapSampleEnd = function(space, state) {
 
 
 TickProcessor.prototype.printStatistics = function() {
-  if (this.preprocessJson) {
-    this.profile_.writeJson();
-    return;
-  }
-
   print('Statistical profiling result from ' + this.lastLogFileName_ +
         ', (' + this.ticks_.total +
         ' ticks, ' + this.ticks_.unaccounted + ' unaccounted, ' +
@@ -720,7 +676,7 @@ UnixCppEntriesProvider.prototype.parseNextLine = function() {
 function MacCppEntriesProvider(nmExec, targetRootFS) {
   UnixCppEntriesProvider.call(this, nmExec, targetRootFS);
   // Note an empty group. It is required, as UnixCppEntriesProvider expects 3 groups.
-  this.FUNC_RE = /^([0-9a-fA-F]{8,16})() (.*)$/;
+  this.FUNC_RE = /^([0-9a-fA-F]{8,16}) ()[iItT] (.*)$/;
 };
 inherits(MacCppEntriesProvider, UnixCppEntriesProvider);
 
@@ -826,10 +782,6 @@ WindowsCppEntriesProvider.prototype.unmangleName = function(name) {
 function ArgumentsProcessor(args) {
   this.args_ = args;
   this.result_ = ArgumentsProcessor.DEFAULTS;
-  function parseBool(str) {
-    if (str == "true" || str == "1") return true;
-    return false;
-  }
 
   this.argsDispatch_ = {
     '-j': ['stateFilter', TickProcessor.VmStates.JS,
@@ -848,14 +800,8 @@ function ArgumentsProcessor(args) {
         'Set the call graph size'],
     '--ignore-unknown': ['ignoreUnknown', true,
         'Exclude ticks of unknown code entries from processing'],
-    '--separate-ic': ['separateIc', parseBool,
+    '--separate-ic': ['separateIc', true,
         'Separate IC entries'],
-    '--separate-bytecodes': ['separateBytecodes', parseBool,
-        'Separate Bytecode entries'],
-    '--separate-builtins': ['separateBuiltins', parseBool,
-        'Separate Builtin entries'],
-    '--separate-stubs': ['separateStubs', parseBool,
-        'Separate Stub entries'],
     '--unix': ['platform', 'unix',
         'Specify that we are running on *nix platform'],
     '--windows': ['platform', 'windows',
@@ -877,9 +823,7 @@ function ArgumentsProcessor(args) {
     '--pairwise-timed-range': ['pairwiseTimedRange', true,
         'Ignore ticks outside pairs of Date.now() calls'],
     '--only-summary': ['onlySummary', true,
-        'Print only tick summary, exclude other information'],
-    '--preprocess': ['preprocessJson', true,
-        'Preprocess for consumption with web interface']
+        'Print only tick summary, exclude other information']
   };
   this.argsDispatch_['--js'] = this.argsDispatch_['-j'];
   this.argsDispatch_['--gc'] = this.argsDispatch_['-g'];
@@ -896,11 +840,7 @@ ArgumentsProcessor.DEFAULTS = {
   stateFilter: null,
   callGraphSize: 5,
   ignoreUnknown: false,
-  separateIc: true,
-  separateBytecodes: false,
-  separateBuiltins: true,
-  separateStubs: true,
-  preprocessJson: null,
+  separateIc: false,
   targetRootFS: '',
   nm: 'nm',
   range: 'auto,auto',
@@ -927,14 +867,7 @@ ArgumentsProcessor.prototype.parse = function() {
     }
     if (arg in this.argsDispatch_) {
       var dispatch = this.argsDispatch_[arg];
-      var property = dispatch[0];
-      var defaultValue = dispatch[1];
-      if (typeof defaultValue == "function") {
-        userValue = defaultValue(userValue);
-      } else if (userValue == null) {
-        userValue = defaultValue;
-      }
-      this.result_[property] = userValue;
+      this.result_[dispatch[0]] = userValue == null ? dispatch[1] : userValue;
     } else {
       return false;
     }

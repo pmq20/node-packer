@@ -24,6 +24,7 @@ static BignumDtoaMode DtoaToBignumDtoaMode(DtoaMode dtoa_mode) {
     case DTOA_PRECISION: return BIGNUM_DTOA_PRECISION;
     default:
       UNREACHABLE();
+      return BIGNUM_DTOA_SHORTEST;  // To silence compiler.
   }
 }
 

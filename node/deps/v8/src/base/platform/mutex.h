@@ -57,7 +57,7 @@ class V8_BASE_EXPORT Mutex final {
 #if V8_OS_POSIX
   typedef pthread_mutex_t NativeHandle;
 #elif V8_OS_WIN
-  typedef SRWLOCK NativeHandle;
+  typedef CRITICAL_SECTION NativeHandle;
 #endif
 
   NativeHandle& native_handle() {
@@ -153,11 +153,7 @@ class V8_BASE_EXPORT RecursiveMutex final {
   bool TryLock() WARN_UNUSED_RESULT;
 
   // The implementation-defined native handle type.
-#if V8_OS_POSIX
-  typedef pthread_mutex_t NativeHandle;
-#elif V8_OS_WIN
-  typedef CRITICAL_SECTION NativeHandle;
-#endif
+  typedef Mutex::NativeHandle NativeHandle;
 
   NativeHandle& native_handle() {
     return native_handle_;

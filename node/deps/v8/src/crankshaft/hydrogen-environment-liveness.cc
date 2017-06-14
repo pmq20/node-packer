@@ -222,7 +222,7 @@ void HEnvironmentLivenessAnalysisPhase::Run() {
 #ifdef DEBUG
 bool HEnvironmentLivenessAnalysisPhase::VerifyClosures(
     Handle<JSFunction> a, Handle<JSFunction> b) {
-  base::LockGuard<base::Mutex> guard(isolate()->heap()->relocation_mutex());
+  Heap::RelocationLock for_heap_access(isolate()->heap());
   AllowHandleDereference for_verification;
   return a.is_identical_to(b);
 }

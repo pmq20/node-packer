@@ -329,6 +329,7 @@ UnobservablesSet RedundantStoreFinder::RecomputeSet(Node* node,
       }
   }
   UNREACHABLE();
+  return UnobservablesSet::Unvisited();
 }
 
 bool RedundantStoreFinder::CannotObserveStoreField(Node* node) {

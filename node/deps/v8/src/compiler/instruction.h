@@ -34,6 +34,8 @@ class V8_EXPORT_PRIVATE InstructionOperand {
  public:
   static const int kInvalidVirtualRegister = -1;
 
+  // TODO(dcarney): recover bit. INVALID can be represented as UNALLOCATED with
+  // kInvalidVirtualRegister and some DCHECKS.
   enum Kind {
     INVALID,
     UNALLOCATED,
@@ -165,7 +167,7 @@ std::ostream& operator<<(std::ostream& os,
     return *static_cast<const OperandType*>(&op);                \
   }
 
-class UnallocatedOperand final : public InstructionOperand {
+class UnallocatedOperand : public InstructionOperand {
  public:
   enum BasicPolicy { FIXED_SLOT, EXTENDED_POLICY };
 
@@ -181,14 +183,15 @@ class UnallocatedOperand final : public InstructionOperand {
 
   // Lifetime of operand inside the instruction.
   enum Lifetime {
-    // USED_AT_START operand is guaranteed to be live only at instruction start.
-    // The register allocator is free to assign the same register to some other
-    // operand used inside instruction (i.e. temporary or output).
+    // USED_AT_START operand is guaranteed to be live only at
+    // instruction start. Register allocator is free to assign the same register
+    // to some other operand used inside instruction (i.e. temporary or
+    // output).
     USED_AT_START,
 
-    // USED_AT_END operand is treated as live until the end of instruction.
-    // This means that register allocator will not reuse its register for any
-    // other operand inside instruction.
+    // USED_AT_END operand is treated as live until the end of
+    // instruction. This means that register allocator will not reuse it's
+    // register for any other operand inside instruction.
     USED_AT_END
   };
 
@@ -228,12 +231,6 @@ class UnallocatedOperand final : public InstructionOperand {
       : UnallocatedOperand(FIXED_REGISTER, reg_id, virtual_register) {
     value_ |= HasSecondaryStorageField::encode(true);
     value_ |= SecondaryStorageField::encode(slot_id);
-  }
-
-  UnallocatedOperand(const UnallocatedOperand& other, int virtual_register) {
-    DCHECK_NE(kInvalidVirtualRegister, virtual_register);
-    value_ = VirtualRegisterField::update(
-        other.value_, static_cast<uint32_t>(virtual_register));
   }
 
   // Predicates for the operand policy.
@@ -278,6 +275,7 @@ class UnallocatedOperand final : public InstructionOperand {
 
   // [basic_policy]: Distinguish between FIXED_SLOT and all other policies.
   BasicPolicy basic_policy() const {
+    DCHECK_EQ(UNALLOCATED, kind());
     return BasicPolicyField::decode(value_);
   }
 
@@ -302,7 +300,14 @@ class UnallocatedOperand final : public InstructionOperand {
 
   // [virtual_register]: The virtual register ID for this operand.
   int32_t virtual_register() const {
+    DCHECK_EQ(UNALLOCATED, kind());
     return static_cast<int32_t>(VirtualRegisterField::decode(value_));
+  }
+
+  // TODO(dcarney): remove this.
+  void set_virtual_register(int32_t id) {
+    DCHECK_EQ(UNALLOCATED, kind());
+    value_ = VirtualRegisterField::update(value_, static_cast<uint32_t>(id));
   }
 
   // [lifetime]: Only for non-FIXED_SLOT.
@@ -479,6 +484,9 @@ class LocationOperand : public InstructionOperand {
       case MachineRepresentation::kFloat32:
       case MachineRepresentation::kFloat64:
       case MachineRepresentation::kSimd128:
+      case MachineRepresentation::kSimd1x4:
+      case MachineRepresentation::kSimd1x8:
+      case MachineRepresentation::kSimd1x16:
       case MachineRepresentation::kTaggedSigned:
       case MachineRepresentation::kTaggedPointer:
       case MachineRepresentation::kTagged:
@@ -490,6 +498,7 @@ class LocationOperand : public InstructionOperand {
         return false;
     }
     UNREACHABLE();
+    return false;
   }
 
   static LocationOperand* cast(InstructionOperand* op) {
@@ -587,8 +596,9 @@ bool InstructionOperand::IsDoubleRegister() const {
 }
 
 bool InstructionOperand::IsSimd128Register() const {
-  return IsAnyRegister() && LocationOperand::cast(this)->representation() ==
-                                MachineRepresentation::kSimd128;
+  return IsAnyRegister() &&
+         LocationOperand::cast(this)->representation() ==
+             MachineRepresentation::kSimd128;
 }
 
 bool InstructionOperand::IsAnyStackSlot() const {
@@ -893,10 +903,6 @@ class V8_EXPORT_PRIVATE Instruction final {
            FlagsModeField::decode(opcode()) == kFlags_deoptimize;
   }
 
-  bool IsTrap() const {
-    return FlagsModeField::decode(opcode()) == kFlags_trap;
-  }
-
   bool IsJump() const { return arch_opcode() == ArchOpcode::kArchJmp; }
   bool IsRet() const { return arch_opcode() == ArchOpcode::kArchRet; }
   bool IsTailCall() const {
@@ -1103,12 +1109,12 @@ class V8_EXPORT_PRIVATE Constant final {
 
  private:
   Type type_;
+  int64_t value_;
 #if V8_TARGET_ARCH_32_BIT
   RelocInfo::Mode rmode_ = RelocInfo::NONE32;
 #else
   RelocInfo::Mode rmode_ = RelocInfo::NONE64;
 #endif
-  int64_t value_;
 };
 
 
@@ -1119,8 +1125,7 @@ std::ostream& operator<<(std::ostream& os, const Constant& constant);
 class FrameStateDescriptor;
 
 enum class StateValueKind : uint8_t {
-  kArgumentsElements,
-  kArgumentsLength,
+  kArguments,
   kPlain,
   kOptimizedOut,
   kNested,
@@ -1130,72 +1135,45 @@ enum class StateValueKind : uint8_t {
 class StateValueDescriptor {
  public:
   StateValueDescriptor()
-      : kind_(StateValueKind::kPlain), type_(MachineType::AnyTagged()) {}
+      : kind_(StateValueKind::kPlain),
+        type_(MachineType::AnyTagged()),
+        id_(0) {}
 
-  static StateValueDescriptor ArgumentsElements(bool is_rest) {
-    StateValueDescriptor descr(StateValueKind::kArgumentsElements,
-                               MachineType::AnyTagged());
-    descr.is_rest_ = is_rest;
-    return descr;
-  }
-  static StateValueDescriptor ArgumentsLength(bool is_rest) {
-    StateValueDescriptor descr(StateValueKind::kArgumentsLength,
-                               MachineType::AnyTagged());
-    descr.is_rest_ = is_rest;
-    return descr;
+  static StateValueDescriptor Arguments() {
+    return StateValueDescriptor(StateValueKind::kArguments,
+                                MachineType::AnyTagged(), 0);
   }
   static StateValueDescriptor Plain(MachineType type) {
-    return StateValueDescriptor(StateValueKind::kPlain, type);
+    return StateValueDescriptor(StateValueKind::kPlain, type, 0);
   }
   static StateValueDescriptor OptimizedOut() {
     return StateValueDescriptor(StateValueKind::kOptimizedOut,
-                                MachineType::AnyTagged());
+                                MachineType::AnyTagged(), 0);
   }
   static StateValueDescriptor Recursive(size_t id) {
-    StateValueDescriptor descr(StateValueKind::kNested,
-                               MachineType::AnyTagged());
-    descr.id_ = id;
-    return descr;
+    return StateValueDescriptor(StateValueKind::kNested,
+                                MachineType::AnyTagged(), id);
   }
   static StateValueDescriptor Duplicate(size_t id) {
-    StateValueDescriptor descr(StateValueKind::kDuplicate,
-                               MachineType::AnyTagged());
-    descr.id_ = id;
-    return descr;
+    return StateValueDescriptor(StateValueKind::kDuplicate,
+                                MachineType::AnyTagged(), id);
   }
 
-  bool IsArgumentsElements() const {
-    return kind_ == StateValueKind::kArgumentsElements;
-  }
-  bool IsArgumentsLength() const {
-    return kind_ == StateValueKind::kArgumentsLength;
-  }
+  bool IsArguments() const { return kind_ == StateValueKind::kArguments; }
   bool IsPlain() const { return kind_ == StateValueKind::kPlain; }
   bool IsOptimizedOut() const { return kind_ == StateValueKind::kOptimizedOut; }
   bool IsNested() const { return kind_ == StateValueKind::kNested; }
   bool IsDuplicate() const { return kind_ == StateValueKind::kDuplicate; }
   MachineType type() const { return type_; }
-  size_t id() const {
-    DCHECK(kind_ == StateValueKind::kDuplicate ||
-           kind_ == StateValueKind::kNested);
-    return id_;
-  }
-  int is_rest() const {
-    DCHECK(kind_ == StateValueKind::kArgumentsElements ||
-           kind_ == StateValueKind::kArgumentsLength);
-    return is_rest_;
-  }
+  size_t id() const { return id_; }
 
  private:
-  StateValueDescriptor(StateValueKind kind, MachineType type)
-      : kind_(kind), type_(type) {}
+  StateValueDescriptor(StateValueKind kind, MachineType type, size_t id)
+      : kind_(kind), type_(type), id_(id) {}
 
   StateValueKind kind_;
   MachineType type_;
-  union {
-    size_t id_;
-    bool is_rest_;
-  };
+  size_t id_;
 };
 
 class StateValueList {
@@ -1254,12 +1232,7 @@ class StateValueList {
     nested_.push_back(nested);
     return nested;
   }
-  void PushArgumentsElements(bool is_rest) {
-    fields_.push_back(StateValueDescriptor::ArgumentsElements(is_rest));
-  }
-  void PushArgumentsLength(bool is_rest) {
-    fields_.push_back(StateValueDescriptor::ArgumentsLength(is_rest));
-  }
+  void PushArguments() { fields_.push_back(StateValueDescriptor::Arguments()); }
   void PushDuplicate(size_t id) {
     fields_.push_back(StateValueDescriptor::Duplicate(id));
   }
@@ -1296,8 +1269,7 @@ class FrameStateDescriptor : public ZoneObject {
   MaybeHandle<SharedFunctionInfo> shared_info() const { return shared_info_; }
   FrameStateDescriptor* outer_state() const { return outer_state_; }
   bool HasContext() const {
-    return FrameStateFunctionInfo::IsJSFunctionType(type_) ||
-           type_ == FrameStateType::kBuiltinContinuation;
+    return FrameStateFunctionInfo::IsJSFunctionType(type_);
   }
 
   size_t GetSize(OutputFrameStateCombine combine =
@@ -1464,8 +1436,7 @@ std::ostream& operator<<(std::ostream& os,
 
 typedef ZoneDeque<Constant> ConstantDeque;
 typedef std::map<int, Constant, std::less<int>,
-                 ZoneAllocator<std::pair<const int, Constant> > >
-    ConstantMap;
+                 zone_allocator<std::pair<const int, Constant> > > ConstantMap;
 
 typedef ZoneDeque<Instruction*> InstructionDeque;
 typedef ZoneDeque<ReferenceMap*> ReferenceMapDeque;
@@ -1594,6 +1565,7 @@ class V8_EXPORT_PRIVATE InstructionSequence final
       }
     }
     UNREACHABLE();
+    return Constant(static_cast<int32_t>(0));
   }
 
   int AddDeoptimizationEntry(FrameStateDescriptor* descriptor,

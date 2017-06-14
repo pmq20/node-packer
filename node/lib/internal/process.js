@@ -1,6 +1,5 @@
 'use strict';
 
-const errors = require('internal/errors');
 var _lazyConstants = null;
 
 function lazyConstants() {
@@ -11,7 +10,7 @@ function lazyConstants() {
 }
 
 const assert = process.assert = function(x, msg) {
-  if (!x) throw new errors.Error('ERR_ASSERTION', msg || 'assertion error');
+  if (!x) throw new Error(msg || 'assertion error');
 };
 
 
@@ -29,20 +28,18 @@ function setup_cpuUsage() {
     // If a previous value was passed in, ensure it has the correct shape.
     if (prevValue) {
       if (!previousValueIsValid(prevValue.user)) {
-        throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                   'preValue.user', 'Number');
+        throw new TypeError('value of user property of argument is invalid');
       }
 
       if (!previousValueIsValid(prevValue.system)) {
-        throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                   'preValue.system', 'Number');
+        throw new TypeError('value of system property of argument is invalid');
       }
     }
 
     // Call the native function to get the current values.
     const errmsg = _cpuUsage(cpuValues);
     if (errmsg) {
-      throw new errors.Error('ERR_CPU_USAGE', errmsg);
+      throw new Error('unable to obtain CPU usage: ' + errmsg);
     }
 
     // If a previous value was passed in, return diff of current from previous.
@@ -84,8 +81,8 @@ function setup_hrtime() {
         const needsBorrow = nsec < 0;
         return [needsBorrow ? sec - 1 : sec, needsBorrow ? nsec + 1e9 : nsec];
       }
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                 'process.hrtime()', 'Array');
+
+      throw new TypeError('process.hrtime() only accepts an Array tuple');
     }
 
     return [
@@ -135,7 +132,8 @@ function setupConfig(_source) {
     des.value = require('internal/util').deprecate(function v8BreakIterator() {
       if (processConfig.hasSmallICU && !processConfig.icuDataDir) {
         // Intl.v8BreakIterator() would crash w/ fatal error, so throw instead.
-        throw new errors.Error('ERR_V8BREAKITERATOR');
+        throw new Error('v8BreakIterator: full ICU data not installed. ' +
+                        'See https://github.com/nodejs/node/wiki/Intl');
       }
       return Reflect.construct(oldV8BreakIterator, arguments);
     }, 'Intl.v8BreakIterator is deprecated and will be removed soon.',
@@ -163,7 +161,7 @@ function setupKillAndExit() {
 
     // eslint-disable-next-line eqeqeq
     if (pid != (pid | 0)) {
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'pid', 'Number');
+      throw new TypeError('invalid pid');
     }
 
     // preserve null signal
@@ -174,7 +172,7 @@ function setupKillAndExit() {
       if (lazyConstants()[sig]) {
         err = process._kill(pid, lazyConstants()[sig]);
       } else {
-        throw new errors.Error('ERR_UNKNOWN_SIGNAL', `${sig}`);
+        throw new Error(`Unknown signal: ${sig}`);
       }
     }
 

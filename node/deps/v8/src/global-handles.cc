@@ -8,7 +8,6 @@
 #include "src/cancelable-task.h"
 #include "src/objects-inl.h"
 #include "src/v8.h"
-#include "src/visitors.h"
 #include "src/vm-state-inl.h"
 
 namespace v8 {
@@ -163,7 +162,7 @@ class GlobalHandles::Node {
   bool IsPendingPhantomCallback() const {
     return state() == PENDING &&
            (weakness_type() == PHANTOM_WEAK ||
-            weakness_type() == PHANTOM_WEAK_2_EMBEDDER_FIELDS);
+            weakness_type() == PHANTOM_WEAK_2_INTERNAL_FIELDS);
   }
 
   bool IsPendingPhantomResetHandle() const {
@@ -192,6 +191,10 @@ class GlobalHandles::Node {
     DCHECK(IsInUse());
     set_independent(true);
   }
+
+  // Callback accessor.
+  // TODO(svenpanne) Re-enable or nuke later.
+  // WeakReferenceCallback callback() { return callback_; }
 
   // Callback parameter accessors.
   void set_parameter(void* parameter) {
@@ -225,7 +228,7 @@ class GlobalHandles::Node {
         set_weakness_type(PHANTOM_WEAK);
         break;
       case v8::WeakCallbackType::kInternalFields:
-        set_weakness_type(PHANTOM_WEAK_2_EMBEDDER_FIELDS);
+        set_weakness_type(PHANTOM_WEAK_2_INTERNAL_FIELDS);
         break;
       case v8::WeakCallbackType::kFinalizer:
         set_weakness_type(FINALIZER_WEAK);
@@ -256,19 +259,19 @@ class GlobalHandles::Node {
       Isolate* isolate,
       List<PendingPhantomCallback>* pending_phantom_callbacks) {
     DCHECK(weakness_type() == PHANTOM_WEAK ||
-           weakness_type() == PHANTOM_WEAK_2_EMBEDDER_FIELDS);
+           weakness_type() == PHANTOM_WEAK_2_INTERNAL_FIELDS);
     DCHECK(state() == PENDING);
     DCHECK(weak_callback_ != nullptr);
 
-    void* embedder_fields[v8::kEmbedderFieldsInWeakCallback] = {nullptr,
+    void* internal_fields[v8::kInternalFieldsInWeakCallback] = {nullptr,
                                                                 nullptr};
     if (weakness_type() != PHANTOM_WEAK && object()->IsJSObject()) {
       auto jsobject = JSObject::cast(object());
-      int field_count = jsobject->GetEmbedderFieldCount();
-      for (int i = 0; i < v8::kEmbedderFieldsInWeakCallback; ++i) {
+      int field_count = jsobject->GetInternalFieldCount();
+      for (int i = 0; i < v8::kInternalFieldsInWeakCallback; ++i) {
         if (field_count == i) break;
-        auto field = jsobject->GetEmbedderField(i);
-        if (field->IsSmi()) embedder_fields[i] = field;
+        auto field = jsobject->GetInternalField(i);
+        if (field->IsSmi()) internal_fields[i] = field;
       }
     }
 
@@ -278,7 +281,7 @@ class GlobalHandles::Node {
     typedef v8::WeakCallbackInfo<void> Data;
     auto callback = reinterpret_cast<Data::Callback>(weak_callback_);
     pending_phantom_callbacks->Add(
-        PendingPhantomCallback(this, callback, parameter(), embedder_fields));
+        PendingPhantomCallback(this, callback, parameter(), internal_fields));
     DCHECK(IsInUse());
     set_state(NEAR_DEATH);
   }
@@ -314,10 +317,10 @@ class GlobalHandles::Node {
     // Leaving V8.
     VMState<EXTERNAL> vmstate(isolate);
     HandleScope handle_scope(isolate);
-    void* embedder_fields[v8::kEmbedderFieldsInWeakCallback] = {nullptr,
+    void* internal_fields[v8::kInternalFieldsInWeakCallback] = {nullptr,
                                                                 nullptr};
     v8::WeakCallbackInfo<void> data(reinterpret_cast<v8::Isolate*>(isolate),
-                                    parameter(), embedder_fields, nullptr);
+                                    parameter(), internal_fields, nullptr);
     weak_callback_(data);
 
     // Absence of explicit cleanup or revival of weak handle
@@ -503,7 +506,7 @@ class GlobalHandles::PendingPhantomCallbacksSecondPassTask
   // the same state it would be after a call to Clear().
   PendingPhantomCallbacksSecondPassTask(
       List<PendingPhantomCallback>* pending_phantom_callbacks, Isolate* isolate)
-      : CancelableTask(isolate), isolate_(isolate) {
+      : CancelableTask(isolate) {
     pending_phantom_callbacks_.Swap(pending_phantom_callbacks);
   }
 
@@ -516,10 +519,7 @@ class GlobalHandles::PendingPhantomCallbacksSecondPassTask
         GCType::kGCTypeProcessWeakCallbacks, kNoGCCallbackFlags);
   }
 
-  Isolate* isolate() { return isolate_; }
-
  private:
-  Isolate* isolate_;
   List<PendingPhantomCallback> pending_phantom_callbacks_;
 
   DISALLOW_COPY_AND_ASSIGN(PendingPhantomCallbacksSecondPassTask);
@@ -612,7 +612,7 @@ bool GlobalHandles::IsWeak(Object** location) {
 }
 
 DISABLE_CFI_PERF
-void GlobalHandles::IterateWeakRoots(RootVisitor* v) {
+void GlobalHandles::IterateWeakRoots(ObjectVisitor* v) {
   for (NodeIterator it(this); !it.done(); it.Advance()) {
     Node* node = it.node();
     if (node->IsWeakRetainer()) {
@@ -624,7 +624,7 @@ void GlobalHandles::IterateWeakRoots(RootVisitor* v) {
         node->CollectPhantomCallbackData(isolate(),
                                          &pending_phantom_callbacks_);
       } else {
-        v->VisitRootPointer(Root::kGlobalHandles, node->location());
+        v->VisitPointer(node->location());
       }
     }
   }
@@ -639,31 +639,51 @@ void GlobalHandles::IdentifyWeakHandles(WeakSlotCallback f) {
   }
 }
 
-void GlobalHandles::IterateNewSpaceStrongAndDependentRoots(RootVisitor* v) {
+
+void GlobalHandles::IterateNewSpaceStrongAndDependentRoots(ObjectVisitor* v) {
   for (int i = 0; i < new_space_nodes_.length(); ++i) {
     Node* node = new_space_nodes_[i];
     if (node->IsStrongRetainer() ||
         (node->IsWeakRetainer() && !node->is_independent() &&
          node->is_active())) {
-      v->VisitRootPointer(Root::kGlobalHandles, node->location());
+      v->VisitPointer(node->location());
     }
   }
 }
 
-void GlobalHandles::IterateNewSpaceStrongAndDependentRootsAndIdentifyUnmodified(
-    RootVisitor* v, size_t start, size_t end) {
-  for (size_t i = start; i < end; ++i) {
-    Node* node = new_space_nodes_[static_cast<int>(i)];
-    if (node->IsWeak() && !JSObject::IsUnmodifiedApiObject(node->location())) {
-      node->set_active(true);
-    }
-    if (node->IsStrongRetainer() ||
-        (node->IsWeakRetainer() && !node->is_independent() &&
-         node->is_active())) {
-      v->VisitRootPointer(Root::kGlobalHandles, node->location());
+
+void GlobalHandles::IdentifyNewSpaceWeakIndependentHandles(
+    WeakSlotCallbackWithHeap f) {
+  for (int i = 0; i < new_space_nodes_.length(); ++i) {
+    Node* node = new_space_nodes_[i];
+    DCHECK(node->is_in_new_space_list());
+    if (node->is_independent() && node->IsWeak() &&
+        f(isolate_->heap(), node->location())) {
+      node->MarkPending();
     }
   }
 }
+
+
+void GlobalHandles::IterateNewSpaceWeakIndependentRoots(ObjectVisitor* v) {
+  for (int i = 0; i < new_space_nodes_.length(); ++i) {
+    Node* node = new_space_nodes_[i];
+    DCHECK(node->is_in_new_space_list());
+    if (node->is_independent() && node->IsWeakRetainer()) {
+      // Pending weak phantom handles die immediately. Everything else survives.
+      if (node->IsPendingPhantomResetHandle()) {
+        node->ResetPhantomHandle();
+        ++number_of_phantom_handle_resets_;
+      } else if (node->IsPendingPhantomCallback()) {
+        node->CollectPhantomCallbackData(isolate(),
+                                         &pending_phantom_callbacks_);
+      } else {
+        v->VisitPointer(node->location());
+      }
+    }
+  }
+}
+
 
 void GlobalHandles::IdentifyWeakUnmodifiedObjects(
     WeakSlotCallback is_unmodified) {
@@ -688,7 +708,8 @@ void GlobalHandles::MarkNewSpaceWeakUnmodifiedObjectsPending(
   }
 }
 
-void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots(RootVisitor* v) {
+template <GlobalHandles::IterationMode mode>
+void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots(ObjectVisitor* v) {
   for (int i = 0; i < new_space_nodes_.length(); ++i) {
     Node* node = new_space_nodes_[i];
     DCHECK(node->is_in_new_space_list());
@@ -696,17 +717,35 @@ void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots(RootVisitor* v) {
         node->IsWeakRetainer()) {
       // Pending weak phantom handles die immediately. Everything else survives.
       if (node->IsPendingPhantomResetHandle()) {
-        node->ResetPhantomHandle();
-        ++number_of_phantom_handle_resets_;
+        if (mode == IterationMode::HANDLE_PHANTOM_NODES ||
+            mode == IterationMode::HANDLE_PHANTOM_NODES_VISIT_OTHERS) {
+          node->ResetPhantomHandle();
+          ++number_of_phantom_handle_resets_;
+        }
       } else if (node->IsPendingPhantomCallback()) {
-        node->CollectPhantomCallbackData(isolate(),
-                                         &pending_phantom_callbacks_);
+        if (mode == IterationMode::HANDLE_PHANTOM_NODES ||
+            mode == IterationMode::HANDLE_PHANTOM_NODES_VISIT_OTHERS) {
+          node->CollectPhantomCallbackData(isolate(),
+                                           &pending_phantom_callbacks_);
+        }
       } else {
-        v->VisitRootPointer(Root::kGlobalHandles, node->location());
+        if (mode == IterationMode::VISIT_OTHERS ||
+            mode == IterationMode::HANDLE_PHANTOM_NODES_VISIT_OTHERS) {
+          v->VisitPointer(node->location());
+        }
       }
     }
   }
 }
+
+template void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots<
+    GlobalHandles::HANDLE_PHANTOM_NODES>(ObjectVisitor* v);
+
+template void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots<
+    GlobalHandles::VISIT_OTHERS>(ObjectVisitor* v);
+
+template void GlobalHandles::IterateNewSpaceWeakUnmodifiedRoots<
+    GlobalHandles::HANDLE_PHANTOM_NODES_VISIT_OTHERS>(ObjectVisitor* v);
 
 void GlobalHandles::InvokeSecondPassPhantomCallbacks(
     List<PendingPhantomCallback>* callbacks, Isolate* isolate) {
@@ -847,7 +886,7 @@ void GlobalHandles::PendingPhantomCallback::Invoke(Isolate* isolate) {
     callback_addr = &callback_;
   }
   Data data(reinterpret_cast<v8::Isolate*>(isolate), parameter_,
-            embedder_fields_, callback_addr);
+            internal_fields_, callback_addr);
   Data::Callback callback = callback_;
   callback_ = nullptr;
   callback(data);
@@ -893,87 +932,82 @@ int GlobalHandles::PostGarbageCollectionProcessing(
   return freed_nodes;
 }
 
-void GlobalHandles::IterateStrongRoots(RootVisitor* v) {
+
+void GlobalHandles::IterateStrongRoots(ObjectVisitor* v) {
   for (NodeIterator it(this); !it.done(); it.Advance()) {
     if (it.node()->IsStrongRetainer()) {
-      v->VisitRootPointer(Root::kGlobalHandles, it.node()->location());
+      v->VisitPointer(it.node()->location());
     }
   }
 }
 
 
 DISABLE_CFI_PERF
-void GlobalHandles::IterateAllRoots(RootVisitor* v) {
+void GlobalHandles::IterateAllRoots(ObjectVisitor* v) {
   for (NodeIterator it(this); !it.done(); it.Advance()) {
     if (it.node()->IsRetainer()) {
-      v->VisitRootPointer(Root::kGlobalHandles, it.node()->location());
+      v->VisitPointer(it.node()->location());
     }
   }
 }
 
-DISABLE_CFI_PERF
-void GlobalHandles::IterateAllNewSpaceRoots(RootVisitor* v) {
-  for (int i = 0; i < new_space_nodes_.length(); ++i) {
-    Node* node = new_space_nodes_[i];
-    if (node->IsRetainer()) {
-      v->VisitRootPointer(Root::kGlobalHandles, node->location());
-    }
-  }
-}
 
 DISABLE_CFI_PERF
-void GlobalHandles::IterateNewSpaceRoots(RootVisitor* v, size_t start,
-                                         size_t end) {
-  for (size_t i = start; i < end; ++i) {
-    Node* node = new_space_nodes_[static_cast<int>(i)];
-    if (node->IsRetainer()) {
-      v->VisitRootPointer(Root::kGlobalHandles, node->location());
-    }
-  }
-}
-
-DISABLE_CFI_PERF
-void GlobalHandles::ApplyPersistentHandleVisitor(
-    v8::PersistentHandleVisitor* visitor, GlobalHandles::Node* node) {
-  v8::Value* value = ToApi<v8::Value>(Handle<Object>(node->location()));
-  visitor->VisitPersistentHandle(
-      reinterpret_cast<v8::Persistent<v8::Value>*>(&value),
-      node->wrapper_class_id());
-}
-
-DISABLE_CFI_PERF
-void GlobalHandles::IterateAllRootsWithClassIds(
-    v8::PersistentHandleVisitor* visitor) {
+void GlobalHandles::IterateAllRootsWithClassIds(ObjectVisitor* v) {
   for (NodeIterator it(this); !it.done(); it.Advance()) {
     if (it.node()->IsRetainer() && it.node()->has_wrapper_class_id()) {
-      ApplyPersistentHandleVisitor(visitor, it.node());
+      v->VisitEmbedderReference(it.node()->location(),
+                                it.node()->wrapper_class_id());
     }
   }
 }
 
 
 DISABLE_CFI_PERF
-void GlobalHandles::IterateAllRootsInNewSpaceWithClassIds(
-    v8::PersistentHandleVisitor* visitor) {
+void GlobalHandles::IterateAllRootsInNewSpaceWithClassIds(ObjectVisitor* v) {
   for (int i = 0; i < new_space_nodes_.length(); ++i) {
     Node* node = new_space_nodes_[i];
     if (node->IsRetainer() && node->has_wrapper_class_id()) {
-      ApplyPersistentHandleVisitor(visitor, node);
+      v->VisitEmbedderReference(node->location(),
+                                node->wrapper_class_id());
     }
   }
 }
 
 
 DISABLE_CFI_PERF
-void GlobalHandles::IterateWeakRootsInNewSpaceWithClassIds(
-    v8::PersistentHandleVisitor* visitor) {
+void GlobalHandles::IterateWeakRootsInNewSpaceWithClassIds(ObjectVisitor* v) {
   for (int i = 0; i < new_space_nodes_.length(); ++i) {
     Node* node = new_space_nodes_[i];
     if (node->has_wrapper_class_id() && node->IsWeak()) {
-      ApplyPersistentHandleVisitor(visitor, node);
+      v->VisitEmbedderReference(node->location(), node->wrapper_class_id());
     }
   }
 }
+
+
+int GlobalHandles::NumberOfWeakHandles() {
+  int count = 0;
+  for (NodeIterator it(this); !it.done(); it.Advance()) {
+    if (it.node()->IsWeakRetainer()) {
+      count++;
+    }
+  }
+  return count;
+}
+
+
+int GlobalHandles::NumberOfGlobalObjectWeakHandles() {
+  int count = 0;
+  for (NodeIterator it(this); !it.done(); it.Advance()) {
+    if (it.node()->IsWeakRetainer() &&
+        it.node()->object()->IsJSGlobalObject()) {
+      count++;
+    }
+  }
+  return count;
+}
+
 
 void GlobalHandles::RecordStats(HeapStats* stats) {
   *stats->global_handle_count = 0;
@@ -1034,7 +1068,9 @@ void GlobalHandles::Print() {
 
 #endif
 
-void GlobalHandles::TearDown() {}
+void GlobalHandles::TearDown() {
+  // TODO(1428): invoke weak callbacks.
+}
 
 EternalHandles::EternalHandles() : size_(0) {
   for (unsigned i = 0; i < arraysize(singleton_handles_); i++) {
@@ -1047,21 +1083,21 @@ EternalHandles::~EternalHandles() {
   for (int i = 0; i < blocks_.length(); i++) delete[] blocks_[i];
 }
 
-void EternalHandles::IterateAllRoots(RootVisitor* visitor) {
+
+void EternalHandles::IterateAllRoots(ObjectVisitor* visitor) {
   int limit = size_;
   for (int i = 0; i < blocks_.length(); i++) {
     DCHECK(limit > 0);
     Object** block = blocks_[i];
-    visitor->VisitRootPointers(Root::kEternalHandles, block,
-                               block + Min(limit, kSize));
+    visitor->VisitPointers(block, block + Min(limit, kSize));
     limit -= kSize;
   }
 }
 
-void EternalHandles::IterateNewSpaceRoots(RootVisitor* visitor) {
+
+void EternalHandles::IterateNewSpaceRoots(ObjectVisitor* visitor) {
   for (int i = 0; i < new_space_indices_.length(); i++) {
-    visitor->VisitRootPointer(Root::kEternalHandles,
-                              GetLocation(new_space_indices_[i]));
+    visitor->VisitPointer(GetLocation(new_space_indices_[i]));
   }
 }
 

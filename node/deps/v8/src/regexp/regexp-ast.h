@@ -6,7 +6,6 @@
 #define V8_REGEXP_REGEXP_AST_H_
 
 #include "src/objects.h"
-#include "src/objects/string.h"
 #include "src/utils.h"
 #include "src/zone/zone-containers.h"
 #include "src/zone/zone.h"
@@ -82,9 +81,6 @@ class CharacterRange {
   CharacterRange(void* null) { DCHECK_NULL(null); }  // NOLINT
   static void AddClassEscape(uc16 type, ZoneList<CharacterRange>* ranges,
                              Zone* zone);
-  // Add class escapes. Add case equivalent closure for \w and \W if necessary.
-  static void AddClassEscape(uc16 type, ZoneList<CharacterRange>* ranges,
-                             bool add_unicode_case_equivalents, Zone* zone);
   static Vector<const int> GetWordBounds();
   static inline CharacterRange Singleton(uc32 value) {
     return CharacterRange(value, value);
@@ -292,20 +288,9 @@ class RegExpAssertion final : public RegExpTree {
 
 class RegExpCharacterClass final : public RegExpTree {
  public:
-  // NEGATED: The character class is negated and should match everything but
-  //     the specified ranges.
-  // CONTAINS_SPLIT_SURROGATE: The character class contains part of a split
-  //     surrogate and should not be unicode-desugared (crbug.com/641091).
-  enum Flag {
-    NEGATED = 1 << 0,
-    CONTAINS_SPLIT_SURROGATE = 1 << 1,
-  };
-  typedef base::Flags<Flag> Flags;
-
-  explicit RegExpCharacterClass(ZoneList<CharacterRange>* ranges,
-                                Flags flags = Flags())
-      : set_(ranges), flags_(flags) {}
-  explicit RegExpCharacterClass(uc16 type) : set_(type), flags_(0) {}
+  RegExpCharacterClass(ZoneList<CharacterRange>* ranges, bool is_negated)
+      : set_(ranges), is_negated_(is_negated) {}
+  explicit RegExpCharacterClass(uc16 type) : set_(type), is_negated_(false) {}
   void* Accept(RegExpVisitor* visitor, void* data) override;
   RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success) override;
   RegExpCharacterClass* AsCharacterClass() override;
@@ -334,14 +319,11 @@ class RegExpCharacterClass final : public RegExpTree {
   // * : All characters, for advancing unanchored regexp
   uc16 standard_type() { return set_.standard_set_type(); }
   ZoneList<CharacterRange>* ranges(Zone* zone) { return set_.ranges(zone); }
-  bool is_negated() const { return (flags_ & NEGATED) != 0; }
-  bool contains_split_surrogate() const {
-    return (flags_ & CONTAINS_SPLIT_SURROGATE) != 0;
-  }
+  bool is_negated() { return is_negated_; }
 
  private:
   CharacterSet set_;
-  const Flags flags_;
+  bool is_negated_;
 };
 
 

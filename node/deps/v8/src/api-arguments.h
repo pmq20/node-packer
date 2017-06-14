@@ -7,7 +7,6 @@
 
 #include "src/api.h"
 #include "src/isolate.h"
-#include "src/visitors.h"
 
 namespace v8 {
 namespace internal {
@@ -18,8 +17,8 @@ namespace internal {
 template <int kArrayLength>
 class CustomArgumentsBase : public Relocatable {
  public:
-  virtual inline void IterateInstance(RootVisitor* v) {
-    v->VisitRootPointers(Root::kRelocatable, values_, values_ + kArrayLength);
+  virtual inline void IterateInstance(ObjectVisitor* v) {
+    v->VisitPointers(values_, values_ + kArrayLength);
   }
 
  protected:

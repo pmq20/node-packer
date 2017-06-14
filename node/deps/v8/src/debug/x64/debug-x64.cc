@@ -117,8 +117,8 @@ void DebugCodegen::GenerateFrameDropperTrampoline(MacroAssembler* masm) {
   __ leave();
 
   __ movp(rbx, FieldOperand(rdi, JSFunction::kSharedFunctionInfoOffset));
-  __ movsxlq(
-      rbx, FieldOperand(rbx, SharedFunctionInfo::kFormalParameterCountOffset));
+  __ LoadSharedFunctionInfoSpecialField(
+      rbx, rbx, SharedFunctionInfo::kFormalParameterCountOffset);
 
   ParameterCount dummy(rbx);
   __ InvokeFunction(rdi, no_reg, dummy, dummy, JUMP_FUNCTION,

@@ -19,7 +19,6 @@
 namespace v8 {
 namespace internal {
 
-class CoverageInfo;
 class DeclarationScope;
 class DeferredHandles;
 class FunctionLiteral;
@@ -52,10 +51,9 @@ class V8_EXPORT_PRIVATE CompilationInfo final {
     kBailoutOnUninitialized = 1 << 14,
     kOptimizeFromBytecode = 1 << 15,
     kLoopPeelingEnabled = 1 << 16,
-    kBlockCoverageEnabled = 1 << 17,
   };
 
-  CompilationInfo(Zone* zone, ParseInfo* parse_info, Isolate* isolate,
+  CompilationInfo(Zone* zone, ParseInfo* parse_info,
                   Handle<JSFunction> closure);
   CompilationInfo(Vector<const char> debug_name, Isolate* isolate, Zone* zone,
                   Code::Flags code_flags);
@@ -181,16 +179,10 @@ class V8_EXPORT_PRIVATE CompilationInfo final {
 
   bool is_loop_peeling_enabled() const { return GetFlag(kLoopPeelingEnabled); }
 
-  void MarkAsBlockCoverageEnabled() { SetFlag(kBlockCoverageEnabled); }
-
-  bool is_block_coverage_enabled() const {
-    return GetFlag(kBlockCoverageEnabled);
-  }
-
   bool GeneratePreagedPrologue() const {
     // Generate a pre-aged prologue if we are optimizing for size, which
-    // will make code old more aggressive. Only apply to Code::FUNCTION,
-    // since only functions are aged in the compilation cache.
+    // will make code flushing more aggressive. Only apply to Code::FUNCTION,
+    // since StaticMarkingVisitor::IsFlushable only flushes proper functions.
     return FLAG_optimize_for_size && FLAG_age_code && !is_debug() &&
            output_code_kind() == Code::FUNCTION;
   }
@@ -288,11 +280,18 @@ class V8_EXPORT_PRIVATE CompilationInfo final {
   struct InlinedFunctionHolder {
     Handle<SharedFunctionInfo> shared_info;
 
+    // Root that holds the unoptimized code of the inlined function alive
+    // (and out of reach of code flushing) until we finish compilation.
+    // Do not remove.
+    Handle<Code> inlined_code_object_root;
+
     InliningPosition position;
 
     InlinedFunctionHolder(Handle<SharedFunctionInfo> inlined_shared_info,
+                          Handle<Code> inlined_code_object_root,
                           SourcePosition pos)
-        : shared_info(inlined_shared_info) {
+        : shared_info(inlined_shared_info),
+          inlined_code_object_root(inlined_code_object_root) {
       position.position = pos;
       // initialized when generating the deoptimization literals
       position.inlined_function_id = DeoptimizationInputData::kNotInlinedIndex;
@@ -319,12 +318,6 @@ class V8_EXPORT_PRIVATE CompilationInfo final {
   int GetDeclareGlobalsFlags() const;
 
   SourcePositionTableBuilder::RecordingMode SourcePositionRecordingMode() const;
-
-  bool has_coverage_info() const { return !coverage_info_.is_null(); }
-  Handle<CoverageInfo> coverage_info() const { return coverage_info_; }
-  void set_coverage_info(Handle<CoverageInfo> coverage_info) {
-    coverage_info_ = coverage_info;
-  }
 
  private:
   // Compilation mode.
@@ -395,10 +388,6 @@ class V8_EXPORT_PRIVATE CompilationInfo final {
   JavaScriptFrame* osr_frame_ = nullptr;
 
   Vector<const char> debug_name_;
-
-  // Encapsulates coverage information gathered by the bytecode generator.
-  // Needs to be stored on the shared function info once compilation completes.
-  Handle<CoverageInfo> coverage_info_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationInfo);
 };

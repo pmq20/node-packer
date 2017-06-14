@@ -69,6 +69,7 @@ std::ostream& operator<<(std::ostream& os, const HType& t) {
 #undef DEFINE_CASE
   }
   UNREACHABLE();
+  return os;
 }
 
 }  // namespace internal

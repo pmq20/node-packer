@@ -8,7 +8,7 @@
 #include "src/base/flags.h"
 #include "src/compiler/graph-reducer.h"
 #include "src/deoptimize-reason.h"
-#include "src/objects/map.h"
+#include "src/feedback-vector.h"
 
 namespace v8 {
 namespace internal {
@@ -16,7 +16,6 @@ namespace internal {
 // Forward declarations.
 class CompilationDependencies;
 class Factory;
-class FeedbackNexus;
 
 namespace compiler {
 
@@ -41,7 +40,8 @@ class JSNativeContextSpecialization final : public AdvancedReducer {
   enum Flag {
     kNoFlags = 0u,
     kAccessorInliningEnabled = 1u << 0,
-    kBailoutOnUninitialized = 1u << 1
+    kBailoutOnUninitialized = 1u << 1,
+    kDeoptimizationEnabled = 1u << 2,
   };
   typedef base::Flags<Flag> Flags;
 
@@ -68,7 +68,7 @@ class JSNativeContextSpecialization final : public AdvancedReducer {
   Reduction ReduceJSStoreDataPropertyInLiteral(Node* node);
 
   Reduction ReduceElementAccess(Node* node, Node* index, Node* value,
-                                MapHandles const& receiver_maps,
+                                MapHandleList const& receiver_maps,
                                 AccessMode access_mode,
                                 LanguageMode language_mode,
                                 KeyedAccessStoreMode store_mode);
@@ -83,9 +83,10 @@ class JSNativeContextSpecialization final : public AdvancedReducer {
                                        AccessMode access_mode,
                                        LanguageMode language_mode);
   Reduction ReduceNamedAccess(Node* node, Node* value,
-                              MapHandles const& receiver_maps,
+                              MapHandleList const& receiver_maps,
                               Handle<Name> name, AccessMode access_mode,
                               LanguageMode language_mode,
+                              Handle<FeedbackVector> vector, FeedbackSlot slot,
                               Node* index = nullptr);
   Reduction ReduceGlobalAccess(Node* node, Node* receiver, Node* value,
                                Handle<Name> name, AccessMode access_mode,
@@ -113,8 +114,9 @@ class JSNativeContextSpecialization final : public AdvancedReducer {
   ValueEffectControl BuildPropertyAccess(
       Node* receiver, Node* value, Node* context, Node* frame_state,
       Node* effect, Node* control, Handle<Name> name,
-      ZoneVector<Node*>* if_exceptions, PropertyAccessInfo const& access_info,
-      AccessMode access_mode, LanguageMode language_mode);
+      PropertyAccessInfo const& access_info, AccessMode access_mode,
+      LanguageMode language_mode, Handle<FeedbackVector> vector,
+      FeedbackSlot slot);
 
   // Construct the appropriate subgraph for element access.
   ValueEffectControl BuildElementAccess(Node* receiver, Node* index,
@@ -129,45 +131,30 @@ class JSNativeContextSpecialization final : public AdvancedReducer {
 
   // Construct an appropriate map check.
   Node* BuildCheckMaps(Node* receiver, Node* effect, Node* control,
-                       MapHandles const& maps);
-
-  // Construct appropriate subgraph to extend properties backing store.
-  Node* BuildExtendPropertiesBackingStore(Handle<Map> map, Node* properties,
-                                          Node* effect, Node* control);
+                       std::vector<Handle<Map>> const& maps);
 
   // Adds stability dependencies on all prototypes of every class in
   // {receiver_type} up to (and including) the {holder}.
-  void AssumePrototypesStable(MapHandles const& receiver_maps,
+  void AssumePrototypesStable(std::vector<Handle<Map>> const& receiver_maps,
                               Handle<JSObject> holder);
 
   // Checks if we can turn the hole into undefined when loading an element
   // from an object with one of the {receiver_maps}; sets up appropriate
   // code dependencies and might use the array protector cell.
-  bool CanTreatHoleAsUndefined(MapHandles const& receiver_maps);
-
-  // Checks if we know at compile time that the {receiver} either definitely
-  // has the {prototype} in it's prototype chain, or the {receiver} definitely
-  // doesn't have the {prototype} in it's prototype chain.
-  enum InferHasInPrototypeChainResult {
-    kIsInPrototypeChain,
-    kIsNotInPrototypeChain,
-    kMayBeInPrototypeChain
-  };
-  InferHasInPrototypeChainResult InferHasInPrototypeChain(
-      Node* receiver, Node* effect, Handle<JSReceiver> prototype);
+  bool CanTreatHoleAsUndefined(std::vector<Handle<Map>> const& receiver_maps);
 
   // Extract receiver maps from {nexus} and filter based on {receiver} if
   // possible.
   bool ExtractReceiverMaps(Node* receiver, Node* effect,
                            FeedbackNexus const& nexus,
-                           MapHandles* receiver_maps);
+                           MapHandleList* receiver_maps);
 
   // Try to infer maps for the given {receiver} at the current {effect}.
   // If maps are returned then you can be sure that the {receiver} definitely
   // has one of the returned maps at this point in the program (identified
   // by {effect}).
   bool InferReceiverMaps(Node* receiver, Node* effect,
-                         MapHandles* receiver_maps);
+                         MapHandleList* receiver_maps);
   // Try to infer a root map for the {receiver} independent of the current
   // program location.
   MaybeHandle<Map> InferReceiverRootMap(Node* receiver);

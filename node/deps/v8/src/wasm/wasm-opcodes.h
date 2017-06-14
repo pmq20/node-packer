@@ -21,7 +21,10 @@ enum ValueTypeCode {
   kLocalI64 = 0x7e,
   kLocalF32 = 0x7d,
   kLocalF64 = 0x7c,
-  kLocalS128 = 0x7b
+  kLocalS128 = 0x7b,
+  kLocalS1x4 = 0x7a,
+  kLocalS1x8 = 0x79,
+  kLocalS1x16 = 0x78
 };
 
 // Type code for multi-value block types.
@@ -29,23 +32,25 @@ static const uint8_t kMultivalBlock = 0x41;
 
 // We reuse the internal machine type to represent WebAssembly types.
 // A typedef improves readability without adding a whole new type system.
-using ValueType = MachineRepresentation;
-constexpr ValueType kWasmStmt = MachineRepresentation::kNone;
-constexpr ValueType kWasmI32 = MachineRepresentation::kWord32;
-constexpr ValueType kWasmI64 = MachineRepresentation::kWord64;
-constexpr ValueType kWasmF32 = MachineRepresentation::kFloat32;
-constexpr ValueType kWasmF64 = MachineRepresentation::kFloat64;
-constexpr ValueType kWasmS128 = MachineRepresentation::kSimd128;
-constexpr ValueType kWasmVar = MachineRepresentation::kTagged;
+typedef MachineRepresentation ValueType;
+const ValueType kWasmStmt = MachineRepresentation::kNone;
+const ValueType kWasmI32 = MachineRepresentation::kWord32;
+const ValueType kWasmI64 = MachineRepresentation::kWord64;
+const ValueType kWasmF32 = MachineRepresentation::kFloat32;
+const ValueType kWasmF64 = MachineRepresentation::kFloat64;
+const ValueType kWasmS128 = MachineRepresentation::kSimd128;
+const ValueType kWasmS1x4 = MachineRepresentation::kSimd1x4;
+const ValueType kWasmS1x8 = MachineRepresentation::kSimd1x8;
+const ValueType kWasmS1x16 = MachineRepresentation::kSimd1x16;
+const ValueType kWasmVar = MachineRepresentation::kTagged;
 
-using FunctionSig = Signature<ValueType>;
+typedef Signature<ValueType> FunctionSig;
 std::ostream& operator<<(std::ostream& os, const FunctionSig& function);
-bool IsJSCompatibleSignature(const FunctionSig* sig);
 
-using WasmName = Vector<const char>;
+typedef Vector<const char> WasmName;
 
-using WasmCodePosition = int;
-constexpr WasmCodePosition kNoCodePosition = -1;
+typedef int WasmCodePosition;
+const WasmCodePosition kNoCodePosition = -1;
 
 // Control expressions and blocks.
 #define FOREACH_CONTROL_OPCODE(V)      \
@@ -95,8 +100,7 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(I64LoadMem16S, 0x32, l_i)      \
   V(I64LoadMem16U, 0x33, l_i)      \
   V(I64LoadMem32S, 0x34, l_i)      \
-  V(I64LoadMem32U, 0x35, l_i)      \
-  V(S128LoadMem, 0xc0, s_i)
+  V(I64LoadMem32U, 0x35, l_i)
 
 // Store memory expressions.
 #define FOREACH_STORE_MEM_OPCODE(V) \
@@ -108,8 +112,7 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(I32StoreMem16, 0x3b, i_ii)      \
   V(I64StoreMem8, 0x3c, l_il)       \
   V(I64StoreMem16, 0x3d, l_il)      \
-  V(I64StoreMem32, 0x3e, l_il)      \
-  V(S128StoreMem, 0xc1, s_is)
+  V(I64StoreMem32, 0x3e, l_il)
 
 // Miscellaneous memory expressions
 #define FOREACH_MISC_MEM_OPCODE(V) \
@@ -244,17 +247,17 @@ constexpr WasmCodePosition kNoCodePosition = -1;
 
 // For compatibility with Asm.js.
 #define FOREACH_ASMJS_COMPAT_OPCODE(V) \
-  V(F64Acos, 0xc2, d_d)                \
-  V(F64Asin, 0xc3, d_d)                \
-  V(F64Atan, 0xc4, d_d)                \
-  V(F64Cos, 0xc5, d_d)                 \
-  V(F64Sin, 0xc6, d_d)                 \
-  V(F64Tan, 0xc7, d_d)                 \
-  V(F64Exp, 0xc8, d_d)                 \
-  V(F64Log, 0xc9, d_d)                 \
-  V(F64Atan2, 0xca, d_dd)              \
-  V(F64Pow, 0xcb, d_dd)                \
-  V(F64Mod, 0xcc, d_dd)                \
+  V(F64Acos, 0xc0, d_d)                \
+  V(F64Asin, 0xc1, d_d)                \
+  V(F64Atan, 0xc2, d_d)                \
+  V(F64Cos, 0xc3, d_d)                 \
+  V(F64Sin, 0xc4, d_d)                 \
+  V(F64Tan, 0xc5, d_d)                 \
+  V(F64Exp, 0xc6, d_d)                 \
+  V(F64Log, 0xc7, d_d)                 \
+  V(F64Atan2, 0xc8, d_dd)              \
+  V(F64Pow, 0xc9, d_dd)                \
+  V(F64Mod, 0xca, d_dd)                \
   V(I32AsmjsDivS, 0xd0, i_ii)          \
   V(I32AsmjsDivU, 0xd1, i_ii)          \
   V(I32AsmjsRemS, 0xd2, i_ii)          \
@@ -280,78 +283,69 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(F32x4Splat, 0xe500, s_f)             \
   V(F32x4Abs, 0xe503, s_s)               \
   V(F32x4Neg, 0xe504, s_s)               \
+  V(F32x4Sqrt, 0xe505, s_s)              \
   V(F32x4RecipApprox, 0xe506, s_s)       \
-  V(F32x4RecipSqrtApprox, 0xe507, s_s)   \
+  V(F32x4SqrtApprox, 0xe507, s_s)        \
   V(F32x4Add, 0xe508, s_ss)              \
-  V(F32x4AddHoriz, 0xe5b9, s_ss)         \
   V(F32x4Sub, 0xe509, s_ss)              \
   V(F32x4Mul, 0xe50a, s_ss)              \
+  V(F32x4Div, 0xe50b, s_ss)              \
   V(F32x4Min, 0xe50c, s_ss)              \
   V(F32x4Max, 0xe50d, s_ss)              \
-  V(F32x4Eq, 0xe510, s_ss)               \
-  V(F32x4Ne, 0xe511, s_ss)               \
-  V(F32x4Lt, 0xe512, s_ss)               \
-  V(F32x4Le, 0xe513, s_ss)               \
-  V(F32x4Gt, 0xe514, s_ss)               \
-  V(F32x4Ge, 0xe515, s_ss)               \
+  V(F32x4MinNum, 0xe50e, s_ss)           \
+  V(F32x4MaxNum, 0xe50f, s_ss)           \
+  V(F32x4Eq, 0xe510, s1x4_ss)            \
+  V(F32x4Ne, 0xe511, s1x4_ss)            \
+  V(F32x4Lt, 0xe512, s1x4_ss)            \
+  V(F32x4Le, 0xe513, s1x4_ss)            \
+  V(F32x4Gt, 0xe514, s1x4_ss)            \
+  V(F32x4Ge, 0xe515, s1x4_ss)            \
   V(F32x4SConvertI32x4, 0xe519, s_s)     \
   V(F32x4UConvertI32x4, 0xe51a, s_s)     \
   V(I32x4Splat, 0xe51b, s_i)             \
   V(I32x4Neg, 0xe51e, s_s)               \
   V(I32x4Add, 0xe51f, s_ss)              \
-  V(I32x4AddHoriz, 0xe5ba, s_ss)         \
   V(I32x4Sub, 0xe520, s_ss)              \
   V(I32x4Mul, 0xe521, s_ss)              \
   V(I32x4MinS, 0xe522, s_ss)             \
   V(I32x4MaxS, 0xe523, s_ss)             \
-  V(I32x4Eq, 0xe526, s_ss)               \
-  V(I32x4Ne, 0xe527, s_ss)               \
-  V(I32x4LtS, 0xe528, s_ss)              \
-  V(I32x4LeS, 0xe529, s_ss)              \
-  V(I32x4GtS, 0xe52a, s_ss)              \
-  V(I32x4GeS, 0xe52b, s_ss)              \
+  V(I32x4Eq, 0xe526, s1x4_ss)            \
+  V(I32x4Ne, 0xe527, s1x4_ss)            \
+  V(I32x4LtS, 0xe528, s1x4_ss)           \
+  V(I32x4LeS, 0xe529, s1x4_ss)           \
+  V(I32x4GtS, 0xe52a, s1x4_ss)           \
+  V(I32x4GeS, 0xe52b, s1x4_ss)           \
   V(I32x4SConvertF32x4, 0xe52f, s_s)     \
-  V(I32x4UConvertF32x4, 0xe537, s_s)     \
-  V(I32x4SConvertI16x8Low, 0xe594, s_s)  \
-  V(I32x4SConvertI16x8High, 0xe595, s_s) \
-  V(I32x4UConvertI16x8Low, 0xe596, s_s)  \
-  V(I32x4UConvertI16x8High, 0xe597, s_s) \
   V(I32x4MinU, 0xe530, s_ss)             \
   V(I32x4MaxU, 0xe531, s_ss)             \
-  V(I32x4LtU, 0xe533, s_ss)              \
-  V(I32x4LeU, 0xe534, s_ss)              \
-  V(I32x4GtU, 0xe535, s_ss)              \
-  V(I32x4GeU, 0xe536, s_ss)              \
+  V(I32x4LtU, 0xe533, s1x4_ss)           \
+  V(I32x4LeU, 0xe534, s1x4_ss)           \
+  V(I32x4GtU, 0xe535, s1x4_ss)           \
+  V(I32x4GeU, 0xe536, s1x4_ss)           \
+  V(I32x4UConvertF32x4, 0xe537, s_s)     \
   V(I16x8Splat, 0xe538, s_i)             \
   V(I16x8Neg, 0xe53b, s_s)               \
   V(I16x8Add, 0xe53c, s_ss)              \
   V(I16x8AddSaturateS, 0xe53d, s_ss)     \
-  V(I16x8AddHoriz, 0xe5bb, s_ss)         \
   V(I16x8Sub, 0xe53e, s_ss)              \
   V(I16x8SubSaturateS, 0xe53f, s_ss)     \
   V(I16x8Mul, 0xe540, s_ss)              \
   V(I16x8MinS, 0xe541, s_ss)             \
   V(I16x8MaxS, 0xe542, s_ss)             \
-  V(I16x8Eq, 0xe545, s_ss)               \
-  V(I16x8Ne, 0xe546, s_ss)               \
-  V(I16x8LtS, 0xe547, s_ss)              \
-  V(I16x8LeS, 0xe548, s_ss)              \
-  V(I16x8GtS, 0xe549, s_ss)              \
-  V(I16x8GeS, 0xe54a, s_ss)              \
+  V(I16x8Eq, 0xe545, s1x8_ss)            \
+  V(I16x8Ne, 0xe546, s1x8_ss)            \
+  V(I16x8LtS, 0xe547, s1x8_ss)           \
+  V(I16x8LeS, 0xe548, s1x8_ss)           \
+  V(I16x8GtS, 0xe549, s1x8_ss)           \
+  V(I16x8GeS, 0xe54a, s1x8_ss)           \
   V(I16x8AddSaturateU, 0xe54e, s_ss)     \
   V(I16x8SubSaturateU, 0xe54f, s_ss)     \
   V(I16x8MinU, 0xe550, s_ss)             \
   V(I16x8MaxU, 0xe551, s_ss)             \
-  V(I16x8LtU, 0xe553, s_ss)              \
-  V(I16x8LeU, 0xe554, s_ss)              \
-  V(I16x8GtU, 0xe555, s_ss)              \
-  V(I16x8GeU, 0xe556, s_ss)              \
-  V(I16x8SConvertI32x4, 0xe598, s_ss)    \
-  V(I16x8UConvertI32x4, 0xe599, s_ss)    \
-  V(I16x8SConvertI8x16Low, 0xe59a, s_s)  \
-  V(I16x8SConvertI8x16High, 0xe59b, s_s) \
-  V(I16x8UConvertI8x16Low, 0xe59c, s_s)  \
-  V(I16x8UConvertI8x16High, 0xe59d, s_s) \
+  V(I16x8LtU, 0xe553, s1x8_ss)           \
+  V(I16x8LeU, 0xe554, s1x8_ss)           \
+  V(I16x8GtU, 0xe555, s1x8_ss)           \
+  V(I16x8GeU, 0xe556, s1x8_ss)           \
   V(I8x16Splat, 0xe557, s_i)             \
   V(I8x16Neg, 0xe55a, s_s)               \
   V(I8x16Add, 0xe55b, s_ss)              \
@@ -361,33 +355,33 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(I8x16Mul, 0xe55f, s_ss)              \
   V(I8x16MinS, 0xe560, s_ss)             \
   V(I8x16MaxS, 0xe561, s_ss)             \
-  V(I8x16Eq, 0xe564, s_ss)               \
-  V(I8x16Ne, 0xe565, s_ss)               \
-  V(I8x16LtS, 0xe566, s_ss)              \
-  V(I8x16LeS, 0xe567, s_ss)              \
-  V(I8x16GtS, 0xe568, s_ss)              \
-  V(I8x16GeS, 0xe569, s_ss)              \
+  V(I8x16Eq, 0xe564, s1x16_ss)           \
+  V(I8x16Ne, 0xe565, s1x16_ss)           \
+  V(I8x16LtS, 0xe566, s1x16_ss)          \
+  V(I8x16LeS, 0xe567, s1x16_ss)          \
+  V(I8x16GtS, 0xe568, s1x16_ss)          \
+  V(I8x16GeS, 0xe569, s1x16_ss)          \
   V(I8x16AddSaturateU, 0xe56d, s_ss)     \
   V(I8x16SubSaturateU, 0xe56e, s_ss)     \
   V(I8x16MinU, 0xe56f, s_ss)             \
   V(I8x16MaxU, 0xe570, s_ss)             \
-  V(I8x16LtU, 0xe572, s_ss)              \
-  V(I8x16LeU, 0xe573, s_ss)              \
-  V(I8x16GtU, 0xe574, s_ss)              \
-  V(I8x16GeU, 0xe575, s_ss)              \
-  V(I8x16SConvertI16x8, 0xe59e, s_ss)    \
-  V(I8x16UConvertI16x8, 0xe59f, s_ss)    \
+  V(I8x16LtU, 0xe572, s1x16_ss)          \
+  V(I8x16LeU, 0xe573, s1x16_ss)          \
+  V(I8x16GtU, 0xe574, s1x16_ss)          \
+  V(I8x16GeU, 0xe575, s1x16_ss)          \
   V(S128And, 0xe576, s_ss)               \
   V(S128Or, 0xe577, s_ss)                \
   V(S128Xor, 0xe578, s_ss)               \
   V(S128Not, 0xe579, s_s)                \
-  V(S128Select, 0xe52c, s_sss)           \
-  V(S1x4AnyTrue, 0xe584, i_s)            \
-  V(S1x4AllTrue, 0xe585, i_s)            \
-  V(S1x8AnyTrue, 0xe58a, i_s)            \
-  V(S1x8AllTrue, 0xe58b, i_s)            \
-  V(S1x16AnyTrue, 0xe590, i_s)           \
-  V(S1x16AllTrue, 0xe591, i_s)
+  V(S32x4Select, 0xe52c, s_s1x4ss)       \
+  V(S32x4Swizzle, 0xe52d, s_s)           \
+  V(S32x4Shuffle, 0xe52e, s_ss)          \
+  V(S16x8Select, 0xe54b, s_s1x8ss)       \
+  V(S16x8Swizzle, 0xe54c, s_s)           \
+  V(S16x8Shuffle, 0xe54d, s_ss)          \
+  V(S8x16Select, 0xe56a, s_s1x16ss)      \
+  V(S8x16Swizzle, 0xe56b, s_s)           \
+  V(S8x16Shuffle, 0xe56c, s_ss)
 
 #define FOREACH_SIMD_1_OPERAND_OPCODE(V) \
   V(F32x4ExtractLane, 0xe501, _)         \
@@ -407,11 +401,6 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(I8x16Shl, 0xe562, _)                 \
   V(I8x16ShrS, 0xe563, _)                \
   V(I8x16ShrU, 0xe571, _)
-
-#define FOREACH_SIMD_MASK_OPERAND_OPCODE(V) \
-  V(S32x4Shuffle, 0xe52d, s_ss)             \
-  V(S16x8Shuffle, 0xe54c, s_ss)             \
-  V(S8x16Shuffle, 0xe56b, s_ss)
 
 #define FOREACH_ATOMIC_OPCODE(V)               \
   V(I32AtomicAdd8S, 0xe601, i_ii)              \
@@ -451,17 +440,16 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(I32AtomicXor, 0xe623, i_ii)
 
 // All opcodes.
-#define FOREACH_OPCODE(V)             \
-  FOREACH_CONTROL_OPCODE(V)           \
-  FOREACH_MISC_OPCODE(V)              \
-  FOREACH_SIMPLE_OPCODE(V)            \
-  FOREACH_STORE_MEM_OPCODE(V)         \
-  FOREACH_LOAD_MEM_OPCODE(V)          \
-  FOREACH_MISC_MEM_OPCODE(V)          \
-  FOREACH_ASMJS_COMPAT_OPCODE(V)      \
-  FOREACH_SIMD_0_OPERAND_OPCODE(V)    \
-  FOREACH_SIMD_1_OPERAND_OPCODE(V)    \
-  FOREACH_SIMD_MASK_OPERAND_OPCODE(V) \
+#define FOREACH_OPCODE(V)          \
+  FOREACH_CONTROL_OPCODE(V)        \
+  FOREACH_MISC_OPCODE(V)           \
+  FOREACH_SIMPLE_OPCODE(V)         \
+  FOREACH_STORE_MEM_OPCODE(V)      \
+  FOREACH_LOAD_MEM_OPCODE(V)       \
+  FOREACH_MISC_MEM_OPCODE(V)       \
+  FOREACH_ASMJS_COMPAT_OPCODE(V)   \
+  FOREACH_SIMD_0_OPERAND_OPCODE(V) \
+  FOREACH_SIMD_1_OPERAND_OPCODE(V) \
   FOREACH_ATOMIC_OPCODE(V)
 
 // All signatures.
@@ -495,14 +483,19 @@ constexpr WasmCodePosition kNoCodePosition = -1;
   V(f_if, kWasmF32, kWasmI32, kWasmF32) \
   V(l_il, kWasmI64, kWasmI32, kWasmI64)
 
-#define FOREACH_SIMD_SIGNATURE(V)          \
-  V(s_s, kWasmS128, kWasmS128)             \
-  V(s_f, kWasmS128, kWasmF32)              \
-  V(s_ss, kWasmS128, kWasmS128, kWasmS128) \
-  V(s_i, kWasmS128, kWasmI32)              \
-  V(s_si, kWasmS128, kWasmS128, kWasmI32)  \
-  V(i_s, kWasmI32, kWasmS128)              \
-  V(s_sss, kWasmS128, kWasmS128, kWasmS128, kWasmS128)
+#define FOREACH_SIMD_SIGNATURE(V)                         \
+  V(s_s, kWasmS128, kWasmS128)                            \
+  V(s_f, kWasmS128, kWasmF32)                             \
+  V(s_ss, kWasmS128, kWasmS128, kWasmS128)                \
+  V(s1x4_ss, kWasmS1x4, kWasmS128, kWasmS128)             \
+  V(s1x8_ss, kWasmS1x8, kWasmS128, kWasmS128)             \
+  V(s1x16_ss, kWasmS1x16, kWasmS128, kWasmS128)           \
+  V(s_i, kWasmS128, kWasmI32)                             \
+  V(s_si, kWasmS128, kWasmS128, kWasmI32)                 \
+  V(i_s, kWasmI32, kWasmS128)                             \
+  V(s_s1x4ss, kWasmS128, kWasmS1x4, kWasmS128, kWasmS128) \
+  V(s_s1x8ss, kWasmS128, kWasmS1x8, kWasmS128, kWasmS128) \
+  V(s_s1x16ss, kWasmS128, kWasmS1x16, kWasmS128, kWasmS128)
 
 #define FOREACH_PREFIX(V) \
   V(Simd, 0xe5)           \
@@ -544,10 +537,6 @@ class V8_EXPORT_PRIVATE WasmOpcodes {
   static FunctionSig* AsmjsSignature(WasmOpcode opcode);
   static FunctionSig* AtomicSignature(WasmOpcode opcode);
   static bool IsPrefixOpcode(WasmOpcode opcode);
-  static bool IsControlOpcode(WasmOpcode opcode);
-  // Check whether the given opcode always jumps, i.e. all instructions after
-  // this one in the current block are dead. Returns false for |end|.
-  static bool IsUnconditionalJump(WasmOpcode opcode);
 
   static int TrapReasonToMessageId(TrapReason reason);
   static const char* TrapReasonMessage(TrapReason reason);
@@ -570,10 +559,17 @@ class V8_EXPORT_PRIVATE WasmOpcodes {
         return kLocalF64;
       case kWasmS128:
         return kLocalS128;
+      case kWasmS1x4:
+        return kLocalS1x4;
+      case kWasmS1x8:
+        return kLocalS1x8;
+      case kWasmS1x16:
+        return kLocalS1x16;
       case kWasmStmt:
         return kLocalVoid;
       default:
         UNREACHABLE();
+        return kLocalVoid;
     }
   }
 
@@ -589,29 +585,79 @@ class V8_EXPORT_PRIVATE WasmOpcodes {
         return MachineType::Float64();
       case kWasmS128:
         return MachineType::Simd128();
+      case kWasmS1x4:
+        return MachineType::Simd1x4();
+      case kWasmS1x8:
+        return MachineType::Simd1x8();
+      case kWasmS1x16:
+        return MachineType::Simd1x16();
       case kWasmStmt:
         return MachineType::None();
       default:
         UNREACHABLE();
+        return MachineType::None();
     }
   }
 
   static ValueType ValueTypeFor(MachineType type) {
-    switch (type.representation()) {
-      case MachineRepresentation::kWord8:
-      case MachineRepresentation::kWord16:
-      case MachineRepresentation::kWord32:
-        return kWasmI32;
-      case MachineRepresentation::kWord64:
-        return kWasmI64;
-      case MachineRepresentation::kFloat32:
-        return kWasmF32;
-      case MachineRepresentation::kFloat64:
-        return kWasmF64;
-      case MachineRepresentation::kSimd128:
-        return kWasmS128;
-      default:
-        UNREACHABLE();
+    if (type == MachineType::Int8()) {
+      return kWasmI32;
+    } else if (type == MachineType::Uint8()) {
+      return kWasmI32;
+    } else if (type == MachineType::Int16()) {
+      return kWasmI32;
+    } else if (type == MachineType::Uint16()) {
+      return kWasmI32;
+    } else if (type == MachineType::Int32()) {
+      return kWasmI32;
+    } else if (type == MachineType::Uint32()) {
+      return kWasmI32;
+    } else if (type == MachineType::Int64()) {
+      return kWasmI64;
+    } else if (type == MachineType::Uint64()) {
+      return kWasmI64;
+    } else if (type == MachineType::Float32()) {
+      return kWasmF32;
+    } else if (type == MachineType::Float64()) {
+      return kWasmF64;
+    } else if (type == MachineType::Simd128()) {
+      return kWasmS128;
+    } else if (type == MachineType::Simd1x4()) {
+      return kWasmS1x4;
+    } else if (type == MachineType::Simd1x8()) {
+      return kWasmS1x8;
+    } else if (type == MachineType::Simd1x16()) {
+      return kWasmS1x16;
+    } else {
+      UNREACHABLE();
+      return kWasmI32;
+    }
+  }
+
+  static WasmOpcode LoadStoreOpcodeOf(MachineType type, bool store) {
+    if (type == MachineType::Int8()) {
+      return store ? kExprI32StoreMem8 : kExprI32LoadMem8S;
+    } else if (type == MachineType::Uint8()) {
+      return store ? kExprI32StoreMem8 : kExprI32LoadMem8U;
+    } else if (type == MachineType::Int16()) {
+      return store ? kExprI32StoreMem16 : kExprI32LoadMem16S;
+    } else if (type == MachineType::Uint16()) {
+      return store ? kExprI32StoreMem16 : kExprI32LoadMem16U;
+    } else if (type == MachineType::Int32()) {
+      return store ? kExprI32StoreMem : kExprI32LoadMem;
+    } else if (type == MachineType::Uint32()) {
+      return store ? kExprI32StoreMem : kExprI32LoadMem;
+    } else if (type == MachineType::Int64()) {
+      return store ? kExprI64StoreMem : kExprI64LoadMem;
+    } else if (type == MachineType::Uint64()) {
+      return store ? kExprI64StoreMem : kExprI64LoadMem;
+    } else if (type == MachineType::Float32()) {
+      return store ? kExprF32StoreMem : kExprF32LoadMem;
+    } else if (type == MachineType::Float64()) {
+      return store ? kExprF64StoreMem : kExprF64LoadMem;
+    } else {
+      UNREACHABLE();
+      return kExprNop;
     }
   }
 
@@ -626,6 +672,9 @@ class V8_EXPORT_PRIVATE WasmOpcodes {
       case kWasmF64:
         return 'd';
       case kWasmS128:
+      case kWasmS1x4:
+      case kWasmS1x8:
+      case kWasmS1x16:
         return 's';
       case kWasmStmt:
         return 'v';
@@ -648,6 +697,12 @@ class V8_EXPORT_PRIVATE WasmOpcodes {
         return "f64";
       case kWasmS128:
         return "s128";
+      case kWasmS1x4:
+        return "s1x4";
+      case kWasmS1x8:
+        return "s1x8";
+      case kWasmS1x16:
+        return "s1x16";
       case kWasmStmt:
         return "<stmt>";
       case kWasmVar:

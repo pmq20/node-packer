@@ -28,7 +28,6 @@ const { isAnyArrayBuffer, isUint8Array } = process.binding('util');
 const bindingObj = {};
 const internalUtil = require('internal/util');
 const pendingDeprecation = !!config.pendingDeprecation;
-const errors = require('internal/errors');
 
 class FastBuffer extends Uint8Array {
   constructor(arg1, arg2, arg3) {
@@ -630,28 +629,28 @@ Buffer.prototype.compare = function compare(target,
   if (start === undefined)
     start = 0;
   else if (start < 0)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('out of range index');
   else
     start >>>= 0;
 
   if (end === undefined)
     end = target.length;
   else if (end > target.length)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('out of range index');
   else
     end >>>= 0;
 
   if (thisStart === undefined)
     thisStart = 0;
   else if (thisStart < 0)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('out of range index');
   else
     thisStart >>>= 0;
 
   if (thisEnd === undefined)
     thisEnd = this.length;
   else if (thisEnd > this.length)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('out of range index');
   else
     thisEnd >>>= 0;
 
@@ -796,7 +795,7 @@ Buffer.prototype.fill = function fill(val, start, end, encoding) {
 
   // Invalid ranges are not set to a default, so can range check early.
   if (start < 0 || end > this.length)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('Out of range index');
 
   if (end <= start)
     return this;
@@ -932,7 +931,7 @@ Buffer.prototype.slice = function slice(start, end) {
 
 function checkOffset(offset, ext, length) {
   if (offset + ext > length)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('Index out of range');
 }
 
 
@@ -1142,7 +1141,7 @@ function checkInt(buffer, value, offset, ext, max, min) {
   if (value > max || value < min)
     throw new TypeError('"value" argument is out of bounds');
   if (offset + ext > buffer.length)
-    throw new errors.RangeError('ERR_INDEX_OUT_OF_RANGE');
+    throw new RangeError('Index out of range');
 }
 
 

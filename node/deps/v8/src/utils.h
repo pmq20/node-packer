@@ -161,6 +161,13 @@ int Compare(const T& a, const T& b) {
     return 1;
 }
 
+
+template <typename T>
+int PointerValueCompare(const T* a, const T* b) {
+  return Compare<T>(*a, *b);
+}
+
+
 // Compare function to compare the object pointer value of two
 // handlified objects. The handles are passed as pointers to the
 // handles.
@@ -185,17 +192,22 @@ inline bool IsAddressAligned(Address addr,
   return IsAligned(offs, alignment);
 }
 
+template <typename T, typename U>
+inline T RoundUpToMultipleOfPowOf2(T value, U multiple) {
+  DCHECK(multiple && ((multiple & (multiple - 1)) == 0));
+  return (value + multiple - 1) & ~(multiple - 1);
+}
 
 // Returns the maximum of the two parameters.
 template <typename T>
-constexpr T Max(T a, T b) {
+T Max(T a, T b) {
   return a < b ? b : a;
 }
 
 
 // Returns the minimum of the two parameters.
 template <typename T>
-constexpr T Min(T a, T b) {
+T Min(T a, T b) {
   return a < b ? a : b;
 }
 
@@ -267,6 +279,25 @@ inline int32_t WhichPowerOf2Abs(int32_t x) {
 }
 
 
+// Obtains the unsigned type corresponding to T
+// available in C++11 as std::make_unsigned
+template<typename T>
+struct make_unsigned {
+  typedef T type;
+};
+
+
+// Template specializations necessary to have make_unsigned work
+template<> struct make_unsigned<int32_t> {
+  typedef uint32_t type;
+};
+
+
+template<> struct make_unsigned<int64_t> {
+  typedef uint64_t type;
+};
+
+
 // ----------------------------------------------------------------------------
 // BitField is a help template for encoding and decode bitfield with
 // unsigned content.
@@ -274,8 +305,6 @@ inline int32_t WhichPowerOf2Abs(int32_t x) {
 template<class T, int shift, int size, class U>
 class BitFieldBase {
  public:
-  typedef T FieldType;
-
   // A type U mask of bit field.  To use all bits of a type U of x bits
   // in a bitfield without compiler warnings we have to compute 2^x
   // without using a shift count of x in the computation.
@@ -289,7 +318,7 @@ class BitFieldBase {
   static const T kMax = static_cast<T>((kOne << size) - 1);
 
   // Tells whether the provided value fits into the bit field.
-  static constexpr bool is_valid(T value) {
+  static bool is_valid(T value) {
     return (static_cast<U>(value) & ~static_cast<U>(kMax)) == 0;
   }
 
@@ -327,41 +356,6 @@ class BitField : public BitFieldBase<T, shift, size, uint32_t> { };
 template<class T, int shift, int size>
 class BitField64 : public BitFieldBase<T, shift, size, uint64_t> { };
 
-// Helper macros for defining a contiguous sequence of bit fields. Example:
-// (backslashes at the ends of respective lines of this multi-line macro
-// definition are omitted here to please the compiler)
-//
-// #define MAP_BIT_FIELD1(V, _)
-//   V(IsAbcBit, bool, 1, _)
-//   V(IsBcdBit, bool, 1, _)
-//   V(CdeBits, int, 5, _)
-//   V(DefBits, MutableMode, 1, _)
-//
-// DEFINE_BIT_FIELDS(MAP_BIT_FIELD1)
-// or
-// DEFINE_BIT_FIELDS_64(MAP_BIT_FIELD1)
-//
-#define DEFINE_BIT_FIELD_RANGE_TYPE(Name, Type, Size, _) \
-  k##Name##Start, k##Name##End = k##Name##Start + Size - 1,
-
-#define DEFINE_BIT_RANGESS(LIST_MACRO)                   \
-  struct LIST_MACRO##_Ranges {                           \
-    enum { LIST_MACRO(DEFINE_BIT_FIELD_RANGE_TYPE, _) }; \
-  };
-
-#define DEFINE_BIT_FIELD_TYPE(Name, Type, Size, RangesName) \
-  typedef BitField<Type, RangesName::k##Name##Start, Size> Name;
-
-#define DEFINE_BIT_FIELD_64_TYPE(Name, Type, Size, RangesName) \
-  typedef BitField64<Type, RangesName::k##Name##Start, Size> Name;
-
-#define DEFINE_BIT_FIELDS(LIST_MACRO) \
-  DEFINE_BIT_RANGESS(LIST_MACRO)      \
-  LIST_MACRO(DEFINE_BIT_FIELD_TYPE, LIST_MACRO##_Ranges)
-
-#define DEFINE_BIT_FIELDS_64(LIST_MACRO) \
-  DEFINE_BIT_RANGESS(LIST_MACRO)         \
-  LIST_MACRO(DEFINE_BIT_FIELD_64_TYPE, LIST_MACRO##_Ranges)
 
 // ----------------------------------------------------------------------------
 // BitSetComputer is a help template for encoding and decoding information for
@@ -959,8 +953,6 @@ class BailoutId {
   V8_EXPORT_PRIVATE friend std::ostream& operator<<(std::ostream&, BailoutId);
 
  private:
-  friend class Builtins;
-
   static const int kNoneId = -1;
 
   // Using 0 could disguise errors.
@@ -978,11 +970,6 @@ class BailoutId {
 
   // Every compiled stub starts with this id.
   static const int kStubEntryId = 6;
-
-  // Builtin continuations bailout ids start here. If you need to add a
-  // non-builtin BailoutId, add it before this id so that this Id has the
-  // highest number.
-  static const int kFirstBuiltinContinuationId = 7;
 
   int id_;
 };
@@ -1004,7 +991,7 @@ void PRINTF_FORMAT(2, 3) PrintIsolate(void* isolate, const char* format, ...);
 // Safe formatting print. Ensures that str is always null-terminated.
 // Returns the number of chars written, or -1 if output was truncated.
 int PRINTF_FORMAT(2, 3) SNPrintF(Vector<char> str, const char* format, ...);
-V8_EXPORT_PRIVATE int PRINTF_FORMAT(2, 0)
+int PRINTF_FORMAT(2, 0)
     VSNPrintF(Vector<char> str, const char* format, va_list args);
 
 void StrNCpy(Vector<char> dest, const char* src, size_t n);
@@ -1067,8 +1054,11 @@ int WriteAsCFile(const char* filename, const char* varname,
 template <typename T>
 inline void CopyWords(T* dst, const T* src, size_t num_words) {
   STATIC_ASSERT(sizeof(T) == kPointerSize);
-  DCHECK(Min(dst, const_cast<T*>(src)) + num_words <=
-         Max(dst, const_cast<T*>(src)));
+  // TODO(mvstanton): disabled because mac builds are bogus failing on this
+  // assert. They are doing a signed comparison. Investigate in
+  // the morning.
+  // DCHECK(Min(dst, const_cast<T*>(src)) + num_words <=
+  //       Max(dst, const_cast<T*>(src)));
   DCHECK(num_words > 0);
 
   // Use block copying MemCopy if the segment we're copying is
@@ -1650,7 +1640,6 @@ class ThreadedList final {
     }
     bool operator!=(const Iterator& other) { return entry_ != other.entry_; }
     T* operator*() { return *entry_; }
-    T* operator->() { return *entry_; }
     Iterator& operator=(T* entry) {
       T* next = *(*entry_)->next();
       *entry->next() = next;

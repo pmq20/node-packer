@@ -19,7 +19,6 @@
 #include "src/elements.h"
 #include "src/objects-inl.h"
 #include "src/objects/literal-objects.h"
-#include "src/objects/map.h"
 #include "src/property-details.h"
 #include "src/property.h"
 #include "src/string-stream.h"
@@ -52,7 +51,6 @@ static const char* NameForNativeContextIntrinsicIndex(uint32_t idx) {
 void AstNode::Print() { Print(Isolate::Current()); }
 
 void AstNode::Print(Isolate* isolate) {
-  AllowHandleDereference allow_deref;
   AstPrinter::PrintOut(isolate, this);
 }
 
@@ -148,8 +146,8 @@ bool Expression::IsValidReferenceExpressionOrThis() const {
 bool Expression::IsAnonymousFunctionDefinition() const {
   return (IsFunctionLiteral() &&
           AsFunctionLiteral()->IsAnonymousFunctionDefinition()) ||
-         (IsClassLiteral() &&
-          AsClassLiteral()->IsAnonymousFunctionDefinition());
+         (IsDoExpression() &&
+          AsDoExpression()->IsAnonymousFunctionDefinition());
 }
 
 void Expression::MarkTail() {
@@ -160,6 +158,12 @@ void Expression::MarkTail() {
   } else if (IsBinaryOperation()) {
     AsBinaryOperation()->MarkTail();
   }
+}
+
+bool DoExpression::IsAnonymousFunctionDefinition() const {
+  // This is specifically to allow DoExpressions to represent ClassLiterals.
+  return represented_function_ != nullptr &&
+         represented_function_->raw_name()->length() == 0;
 }
 
 bool Statement::IsJump() const {
@@ -245,16 +249,16 @@ static void AssignVectorSlots(Expression* expr, FeedbackVectorSpec* spec,
                               FeedbackSlot* out_slot) {
   Property* property = expr->AsProperty();
   LhsKind assign_type = Property::GetAssignType(property);
-  // TODO(ishell): consider using ICSlotCache for variables here.
-  if (assign_type == VARIABLE &&
-      expr->AsVariableProxy()->var()->IsUnallocated()) {
-    *out_slot = spec->AddStoreGlobalICSlot(language_mode);
+  if ((assign_type == VARIABLE &&
+       expr->AsVariableProxy()->var()->IsUnallocated()) ||
+      assign_type == NAMED_PROPERTY || assign_type == KEYED_PROPERTY) {
+    // TODO(ishell): consider using ICSlotCache for variables here.
+    if (assign_type == KEYED_PROPERTY) {
+      *out_slot = spec->AddKeyedStoreICSlot(language_mode);
 
-  } else if (assign_type == NAMED_PROPERTY) {
-    *out_slot = spec->AddStoreICSlot(language_mode);
-
-  } else if (assign_type == KEYED_PROPERTY) {
-    *out_slot = spec->AddKeyedStoreICSlot(language_mode);
+    } else {
+      *out_slot = spec->AddStoreICSlot(language_mode);
+    }
   }
 }
 
@@ -343,23 +347,6 @@ bool FunctionLiteral::NeedsHomeObject(Expression* expr) {
   if (expr == nullptr || !expr->IsFunctionLiteral()) return false;
   DCHECK_NOT_NULL(expr->AsFunctionLiteral()->scope());
   return expr->AsFunctionLiteral()->scope()->NeedsHomeObject();
-}
-
-void FunctionLiteral::ReplaceBodyAndScope(FunctionLiteral* other) {
-  DCHECK_NULL(body_);
-  DCHECK_NOT_NULL(scope_);
-  DCHECK_NOT_NULL(other->scope());
-
-  Scope* outer_scope = scope_->outer_scope();
-
-  body_ = other->body();
-  scope_ = other->scope();
-  scope_->ReplaceOuterScope(outer_scope);
-#ifdef DEBUG
-  scope_->set_replaced_from_parse_task(true);
-#endif
-
-  function_length_ = other->function_length_;
 }
 
 ObjectLiteralProperty::ObjectLiteralProperty(Expression* key, Expression* value,
@@ -502,7 +489,7 @@ void ObjectLiteral::AssignFeedbackSlots(FeedbackVectorSpec* spec,
     ObjectLiteral::Property* property = properties()->at(property_index);
 
     Expression* value = property->value();
-    if (!property->IsPrototype()) {
+    if (property->kind() != ObjectLiteral::Property::PROTOTYPE) {
       if (FunctionLiteral::NeedsHomeObject(value)) {
         property->SetSlot(spec->AddStoreICSlot(language_mode));
       }
@@ -524,7 +511,7 @@ void ObjectLiteral::CalculateEmitStore(Zone* zone) {
   for (int i = properties()->length() - 1; i >= 0; i--) {
     ObjectLiteral::Property* property = properties()->at(i);
     if (property->is_computed_name()) continue;
-    if (property->IsPrototype()) continue;
+    if (property->kind() == ObjectLiteral::Property::PROTOTYPE) continue;
     Literal* literal = property->key()->AsLiteral();
     DCHECK(!literal->IsNullLiteral());
 
@@ -544,42 +531,31 @@ void ObjectLiteral::CalculateEmitStore(Zone* zone) {
   }
 }
 
-void ObjectLiteral::InitFlagsForPendingNullPrototype(int i) {
-  // We still check for __proto__:null after computed property names.
-  for (; i < properties()->length(); i++) {
-    if (properties()->at(i)->IsNullPrototype()) {
-      set_has_null_protoype(true);
-      break;
-    }
-  }
+
+bool ObjectLiteral::IsBoilerplateProperty(ObjectLiteral::Property* property) {
+  return property != NULL &&
+         property->kind() != ObjectLiteral::Property::PROTOTYPE;
 }
 
 void ObjectLiteral::InitDepthAndFlags() {
-  if (is_initialized()) return;
+  if (depth_ > 0) return;
+
+  int position = 0;
+  // Accumulate the value in local variables and store it at the end.
   bool is_simple = true;
-  bool has_seen_prototype = false;
   int depth_acc = 1;
-  uint32_t nof_properties = 0;
-  uint32_t elements = 0;
   uint32_t max_element_index = 0;
+  uint32_t elements = 0;
   for (int i = 0; i < properties()->length(); i++) {
     ObjectLiteral::Property* property = properties()->at(i);
-    if (property->IsPrototype()) {
-      has_seen_prototype = true;
-      // __proto__:null has no side-effects and is set directly on the
-      // boilerplate.
-      if (property->IsNullPrototype()) {
-        set_has_null_protoype(true);
-        continue;
-      }
-      DCHECK(!has_null_prototype());
+    if (!IsBoilerplateProperty(property)) {
       is_simple = false;
       continue;
     }
-    if (nof_properties == boilerplate_properties_) {
+
+    if (static_cast<uint32_t>(position) == boilerplate_properties_ * 2) {
       DCHECK(property->is_computed_name());
       is_simple = false;
-      if (!has_seen_prototype) InitFlagsForPendingNullPrototype(i);
       break;
     }
     DCHECK(!property->is_computed_name());
@@ -594,6 +570,16 @@ void ObjectLiteral::InitDepthAndFlags() {
     Expression* value = property->value();
 
     bool is_compile_time_value = CompileTimeValue::IsCompileTimeValue(value);
+
+    // Ensure objects that may, at any point in time, contain fields with double
+    // representation are always treated as nested objects. This is true for
+    // computed fields, and smi and double literals.
+    // TODO(verwaest): Remove once we can store them inline.
+    if (FLAG_track_double_fields &&
+        (value->IsNumberLiteral() || !is_compile_time_value)) {
+      bit_field_ = MayStoreDoublesField::update(bit_field_, true);
+    }
+
     is_simple = is_simple && is_compile_time_value;
 
     // Keep track of the number of elements in the object literal and
@@ -609,12 +595,15 @@ void ObjectLiteral::InitDepthAndFlags() {
       elements++;
     }
 
-    nof_properties++;
+    // Increment the position for the key and the value.
+    position += 2;
   }
 
-  set_fast_elements((max_element_index <= 32) ||
-                    ((2 * elements) >= max_element_index));
-  set_has_elements(elements > 0);
+  bit_field_ = FastElementsField::update(
+      bit_field_,
+      (max_element_index <= 32) || ((2 * elements) >= max_element_index));
+  bit_field_ = HasElementsField::update(bit_field_, elements > 0);
+
   set_is_simple(is_simple);
   set_depth(depth_acc);
 }
@@ -626,7 +615,7 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
   bool has_seen_proto = false;
   for (int i = 0; i < properties()->length(); i++) {
     ObjectLiteral::Property* property = properties()->at(i);
-    if (property->IsPrototype()) {
+    if (!IsBoilerplateProperty(property)) {
       has_seen_proto = true;
       continue;
     }
@@ -651,7 +640,9 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
   int position = 0;
   for (int i = 0; i < properties()->length(); i++) {
     ObjectLiteral::Property* property = properties()->at(i);
-    if (property->IsPrototype()) continue;
+    if (!IsBoilerplateProperty(property)) {
+      continue;
+    }
 
     if (static_cast<uint32_t>(position) == boilerplate_properties_ * 2) {
       DCHECK(property->is_computed_name());
@@ -690,8 +681,8 @@ bool ObjectLiteral::IsFastCloningSupported() const {
   // literals don't support copy-on-write (COW) elements for now.
   // TODO(mvstanton): make object literals support COW elements.
   return fast_elements() && has_shallow_properties() &&
-         properties_count() <=
-             ConstructorBuiltins::kMaximumClonedShallowObjectProperties;
+         properties_count() <= ConstructorBuiltinsAssembler::
+                                   kMaximumClonedShallowObjectProperties;
 }
 
 ElementsKind ArrayLiteral::constant_elements_kind() const {
@@ -701,7 +692,7 @@ ElementsKind ArrayLiteral::constant_elements_kind() const {
 void ArrayLiteral::InitDepthAndFlags() {
   DCHECK_LT(first_spread_index_, 0);
 
-  if (is_initialized()) return;
+  if (depth_ > 0) return;
 
   int constants_length = values()->length();
 
@@ -795,7 +786,7 @@ void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
 bool ArrayLiteral::IsFastCloningSupported() const {
   return depth() <= 1 &&
          values()->length() <=
-             ConstructorBuiltins::kMaximumClonedShallowArrayElements;
+             ConstructorBuiltinsAssembler::kMaximumClonedShallowArrayElements;
 }
 
 void ArrayLiteral::RewindSpreads() {
@@ -892,30 +883,6 @@ void BinaryOperation::AssignFeedbackSlots(FeedbackVectorSpec* spec,
   }
 }
 
-static bool IsCommutativeOperationWithSmiLiteral(Token::Value op) {
-  // Add is not commutative due to potential for string addition.
-  return op == Token::MUL || op == Token::BIT_AND || op == Token::BIT_OR ||
-         op == Token::BIT_XOR;
-}
-
-// Check for the pattern: x + 1.
-static bool MatchSmiLiteralOperation(Expression* left, Expression* right,
-                                     Expression** expr, Smi** literal) {
-  if (right->IsSmiLiteral()) {
-    *expr = left;
-    *literal = right->AsLiteral()->AsSmiLiteral();
-    return true;
-  }
-  return false;
-}
-
-bool BinaryOperation::IsSmiLiteralOperation(Expression** subexpr,
-                                            Smi** literal) {
-  return MatchSmiLiteralOperation(left_, right_, subexpr, literal) ||
-         (IsCommutativeOperationWithSmiLiteral(op()) &&
-          MatchSmiLiteralOperation(right_, left_, subexpr, literal));
-}
-
 static bool IsTypeof(Expression* expr) {
   UnaryOperation* maybe_unary = expr->AsUnaryOperation();
   return maybe_unary != NULL && maybe_unary->op() == Token::TYPEOF;
@@ -937,21 +904,24 @@ void CompareOperation::AssignFeedbackSlots(FeedbackVectorSpec* spec,
 }
 
 // Check for the pattern: typeof <expression> equals <string literal>.
-static bool MatchLiteralCompareTypeof(Expression* left, Token::Value op,
-                                      Expression* right, Expression** expr,
-                                      Literal** literal) {
+static bool MatchLiteralCompareTypeof(Expression* left,
+                                      Token::Value op,
+                                      Expression* right,
+                                      Expression** expr,
+                                      Handle<String>* check) {
   if (IsTypeof(left) && right->IsStringLiteral() && Token::IsEqualityOp(op)) {
     *expr = left->AsUnaryOperation()->expression();
-    *literal = right->AsLiteral();
+    *check = Handle<String>::cast(right->AsLiteral()->value());
     return true;
   }
   return false;
 }
 
+
 bool CompareOperation::IsLiteralCompareTypeof(Expression** expr,
-                                              Literal** literal) {
-  return MatchLiteralCompareTypeof(left_, op(), right_, expr, literal) ||
-         MatchLiteralCompareTypeof(right_, op(), left_, expr, literal);
+                                              Handle<String>* check) {
+  return MatchLiteralCompareTypeof(left_, op(), right_, expr, check) ||
+         MatchLiteralCompareTypeof(right_, op(), left_, expr, check);
 }
 
 
@@ -1021,24 +991,6 @@ void Expression::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
   }
 }
 
-void SmallMapList::AddMapIfMissing(Handle<Map> map, Zone* zone) {
-  if (!Map::TryUpdate(map).ToHandle(&map)) return;
-  for (int i = 0; i < length(); ++i) {
-    if (at(i).is_identical_to(map)) return;
-  }
-  Add(map, zone);
-}
-
-void SmallMapList::FilterForPossibleTransitions(Map* root_map) {
-  for (int i = list_.length() - 1; i >= 0; i--) {
-    if (at(i)->FindRootMap() != root_map) {
-      list_.RemoveElement(list_.at(i));
-    }
-  }
-}
-
-Handle<Map> SmallMapList::at(int i) const { return Handle<Map>(list_.at(i)); }
-
 SmallMapList* Expression::GetReceiverTypes() {
   switch (node_type()) {
 #define NODE_LIST(V)    \
@@ -1052,6 +1004,7 @@ SmallMapList* Expression::GetReceiverTypes() {
 #undef GENERATE_CASE
     default:
       UNREACHABLE();
+      return nullptr;
   }
 }
 
@@ -1064,6 +1017,7 @@ KeyedAccessStoreMode Expression::GetStoreMode() const {
 #undef GENERATE_CASE
     default:
       UNREACHABLE();
+      return STANDARD_STORE;
   }
 }
 
@@ -1076,6 +1030,7 @@ IcCheckType Expression::GetKeyType() const {
 #undef GENERATE_CASE
     default:
       UNREACHABLE();
+      return PROPERTY;
   }
 }
 
@@ -1089,6 +1044,7 @@ bool Expression::IsMonomorphic() const {
 #undef GENERATE_CASE
     default:
       UNREACHABLE();
+      return false;
   }
 }
 

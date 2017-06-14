@@ -6,11 +6,9 @@
 
 #include <sstream>
 
-#include "src/arm64/assembler-arm64-inl.h"
 #include "src/crankshaft/arm64/lithium-codegen-arm64.h"
 #include "src/crankshaft/hydrogen-osr.h"
 #include "src/crankshaft/lithium-inl.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -85,12 +83,16 @@ void LCallNewArray::PrintDataTo(StringStream* stream) {
   stream->Add(" (%s) ", ElementsKindToString(kind));
 }
 
+
 void LClassOfTestAndBranch::PrintDataTo(StringStream* stream) {
   stream->Add("if class_of_test(");
   value()->PrintTo(stream);
-  stream->Add(", \"%o\") then B%d else B%d", *hydrogen()->class_name(),
-              true_block_id(), false_block_id());
+  stream->Add(", \"%o\") then B%d else B%d",
+              *hydrogen()->class_name(),
+              true_block_id(),
+              false_block_id());
 }
+
 
 void LCompareNumericAndBranch::PrintDataTo(StringStream* stream) {
   stream->Add("if ");
@@ -281,6 +283,7 @@ const char* LArithmeticD::Mnemonic() const {
     case Token::MOD: return "mod-d";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -301,6 +304,7 @@ const char* LArithmeticT::Mnemonic() const {
     case Token::SHR: return "shr-t";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -1114,6 +1118,7 @@ LInstruction* LChunkBuilder::DoChange(HChange* instr) {
     }
   }
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -1185,13 +1190,16 @@ LInstruction* LChunkBuilder::DoClampToUint8(HClampToUint8* instr) {
   }
 }
 
+
 LInstruction* LChunkBuilder::DoClassOfTestAndBranch(
     HClassOfTestAndBranch* instr) {
   DCHECK(instr->value()->representation().IsTagged());
   LOperand* value = UseRegisterAtStart(instr->value());
-  return new (zone())
-      LClassOfTestAndBranch(value, TempRegister(), TempRegister());
+  return new(zone()) LClassOfTestAndBranch(value,
+                                           TempRegister(),
+                                           TempRegister());
 }
+
 
 LInstruction* LChunkBuilder::DoCompareNumericAndBranch(
     HCompareNumericAndBranch* instr) {
@@ -1271,6 +1279,7 @@ LInstruction* LChunkBuilder::DoConstant(HConstant* instr) {
     return DefineAsRegister(new(zone()) LConstantT);
   } else {
     UNREACHABLE();
+    return NULL;
   }
 }
 
@@ -1399,6 +1408,7 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
 
 LInstruction* LChunkBuilder::DoEnvironmentMarker(HEnvironmentMarker* instr) {
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -1407,6 +1417,7 @@ LInstruction* LChunkBuilder::DoForceRepresentation(
   // All HForceRepresentation instructions should be eliminated in the
   // representation change phase of Hydrogen.
   UNREACHABLE();
+  return NULL;
 }
 
 LInstruction* LChunkBuilder::DoGoto(HGoto* instr) {
@@ -2414,6 +2425,7 @@ LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
     }
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 

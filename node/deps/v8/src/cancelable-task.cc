@@ -112,16 +112,17 @@ CancelableTaskManager::TryAbortResult CancelableTaskManager::TryAbortAll() {
 }
 
 CancelableTask::CancelableTask(Isolate* isolate)
-    : CancelableTask(isolate->cancelable_task_manager()) {}
+    : CancelableTask(isolate, isolate->cancelable_task_manager()) {}
 
-CancelableTask::CancelableTask(CancelableTaskManager* manager)
-    : Cancelable(manager) {}
+CancelableTask::CancelableTask(Isolate* isolate, CancelableTaskManager* manager)
+    : Cancelable(manager), isolate_(isolate) {}
 
 CancelableIdleTask::CancelableIdleTask(Isolate* isolate)
-    : CancelableIdleTask(isolate->cancelable_task_manager()) {}
+    : CancelableIdleTask(isolate, isolate->cancelable_task_manager()) {}
 
-CancelableIdleTask::CancelableIdleTask(CancelableTaskManager* manager)
-    : Cancelable(manager) {}
+CancelableIdleTask::CancelableIdleTask(Isolate* isolate,
+                                       CancelableTaskManager* manager)
+    : Cancelable(manager), isolate_(isolate) {}
 
 }  // namespace internal
 }  // namespace v8

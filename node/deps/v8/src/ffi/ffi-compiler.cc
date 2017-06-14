@@ -16,14 +16,14 @@ void InstallFFIMap(Isolate* isolate) {
   Handle<Map> prev_map = Handle<Map>(context->sloppy_function_map(), isolate);
 
   InstanceType instance_type = prev_map->instance_type();
-  int embedder_fields = JSObject::GetEmbedderFieldCount(*prev_map);
-  CHECK_EQ(0, embedder_fields);
+  int internal_fields = JSObject::GetInternalFieldCount(*prev_map);
+  CHECK_EQ(0, internal_fields);
   int pre_allocated =
       prev_map->GetInObjectProperties() - prev_map->unused_property_fields();
   int instance_size;
   int in_object_properties;
   JSFunction::CalculateInstanceSizeHelper(
-      instance_type, embedder_fields, 0, &instance_size, &in_object_properties);
+      instance_type, internal_fields, 0, &instance_size, &in_object_properties);
   int unused_property_fields = in_object_properties - pre_allocated;
   Handle<Map> map = Map::CopyInitialMap(
       prev_map, instance_size, in_object_properties, unused_property_fields);
@@ -42,6 +42,7 @@ class FFIAssembler : public CodeStubAssembler {
         return ChangeInt32ToTagged(node);
     }
     UNREACHABLE();
+    return nullptr;
   }
 
   Node* FromJS(Node* node, Node* context, FFIType type) {
@@ -50,6 +51,7 @@ class FFIAssembler : public CodeStubAssembler {
         return TruncateTaggedToWord32(context, node);
     }
     UNREACHABLE();
+    return nullptr;
   }
 
   MachineType FFIToMachineType(FFIType type) {
@@ -58,6 +60,7 @@ class FFIAssembler : public CodeStubAssembler {
         return MachineType::Int32();
     }
     UNREACHABLE();
+    return MachineType::None();
   }
 
   Signature<MachineType>* FFIToMachineSignature(FFISignature* sig) {

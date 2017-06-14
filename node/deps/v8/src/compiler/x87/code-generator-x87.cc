@@ -83,6 +83,7 @@ class X87OperandConverter : public InstructionOperandConverter {
         return Immediate::CodeRelativeOffset(ToLabel(operand));
     }
     UNREACHABLE();
+    return Immediate(-1);
   }
 
   static size_t NextOffset(size_t* offset) {
@@ -158,8 +159,10 @@ class X87OperandConverter : public InstructionOperandConverter {
       }
       case kMode_None:
         UNREACHABLE();
+        return Operand(no_reg, 0);
     }
     UNREACHABLE();
+    return Operand(no_reg, 0);
   }
 
   Operand MemoryOperand(size_t first_input = 0) {
@@ -2065,6 +2068,7 @@ static Condition FlagsConditionToCondition(FlagsCondition condition) {
       break;
     default:
       UNREACHABLE();
+      return no_condition;
       break;
   }
 }
@@ -2536,7 +2540,6 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   }
 }
 
-void CodeGenerator::FinishCode() {}
 
 void CodeGenerator::AssembleMove(InstructionOperand* source,
                                  InstructionOperand* destination) {

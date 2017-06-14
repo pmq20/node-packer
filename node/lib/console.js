@@ -21,7 +21,6 @@
 
 'use strict';
 
-const errors = require('internal/errors');
 const util = require('util');
 
 function Console(stdout, stderr, ignoreErrors = true) {
@@ -29,12 +28,12 @@ function Console(stdout, stderr, ignoreErrors = true) {
     return new Console(stdout, stderr, ignoreErrors);
   }
   if (!stdout || typeof stdout.write !== 'function') {
-    throw new errors.TypeError('ERR_CONSOLE_WRITABLE_STREAM', 'stdout');
+    throw new TypeError('Console expects a writable stream instance');
   }
   if (!stderr) {
     stderr = stdout;
   } else if (typeof stderr.write !== 'function') {
-    throw new errors.TypeError('ERR_CONSOLE_WRITABLE_STREAM', 'stderr');
+    throw new TypeError('Console expects writable stream instances');
   }
 
   var prop = {

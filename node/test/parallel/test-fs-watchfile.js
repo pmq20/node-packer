@@ -16,7 +16,7 @@ assert.throws(function() {
 
 assert.throws(function() {
   fs.watchFile(new Object(), common.noop);
-}, common.expectsError({code: 'ERR_INVALID_ARG_TYPE', type: TypeError}));
+}, /Path must be a string/);
 
 const enoentFile = path.join(common.tmpDir, 'non-existent-file');
 const expectedStatObject = new fs.Stats(

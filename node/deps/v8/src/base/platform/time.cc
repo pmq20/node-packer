@@ -63,12 +63,14 @@ V8_INLINE int64_t ClockNow(clockid_t clk_id) {
   if (clk_id == CLOCK_THREAD_CPUTIME_ID) {
     if (thread_cputime(-1, &tc) != 0) {
       UNREACHABLE();
+      return 0;
     }
   }
 #endif
   struct timespec ts;
   if (clock_gettime(clk_id, &ts) != 0) {
     UNREACHABLE();
+    return 0;
   }
   v8::base::internal::CheckedNumeric<int64_t> result(ts.tv_sec);
   result *= v8::base::Time::kMicrosecondsPerSecond;
@@ -659,6 +661,7 @@ ThreadTicks ThreadTicks::Now() {
   return ThreadTicks::GetForThread(::GetCurrentThread());
 #else
   UNREACHABLE();
+  return ThreadTicks();
 #endif
 }
 

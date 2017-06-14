@@ -126,30 +126,15 @@ bool NodeProperties::IsControlEdge(Edge edge) {
 
 
 // static
-bool NodeProperties::IsExceptionalCall(Node* node, Node** out_exception) {
+bool NodeProperties::IsExceptionalCall(Node* node) {
   if (node->op()->HasProperty(Operator::kNoThrow)) return false;
   for (Edge const edge : node->use_edges()) {
     if (!NodeProperties::IsControlEdge(edge)) continue;
-    if (edge.from()->opcode() == IrOpcode::kIfException) {
-      if (out_exception != nullptr) *out_exception = edge.from();
-      return true;
-    }
+    if (edge.from()->opcode() == IrOpcode::kIfException) return true;
   }
   return false;
 }
 
-// static
-Node* NodeProperties::FindSuccessfulControlProjection(Node* node) {
-  DCHECK_GT(node->op()->ControlOutputCount(), 0);
-  if (node->op()->HasProperty(Operator::kNoThrow)) return node;
-  for (Edge const edge : node->use_edges()) {
-    if (!NodeProperties::IsControlEdge(edge)) continue;
-    if (edge.from()->opcode() == IrOpcode::kIfSuccess) {
-      return edge.from();
-    }
-  }
-  return node;
-}
 
 // static
 void NodeProperties::ReplaceValueInput(Node* node, Node* value, int index) {
@@ -416,13 +401,6 @@ NodeProperties::InferReceiverMapsResult NodeProperties::InferReceiverMaps(
         // These never change the map of objects.
         break;
       }
-      case IrOpcode::kFinishRegion: {
-        // FinishRegion renames the output of allocations, so we need
-        // to update the {receiver} that we are looking for, if the
-        // {receiver} matches the current {effect}.
-        if (IsSame(receiver, effect)) receiver = GetValueInput(effect, 0);
-        break;
-      }
       default: {
         DCHECK_EQ(1, effect->op()->EffectOutputCount());
         if (effect->op()->EffectInputCount() != 1) {
@@ -437,16 +415,35 @@ NodeProperties::InferReceiverMapsResult NodeProperties::InferReceiverMaps(
         break;
       }
     }
-
-    // Stop walking the effect chain once we hit the definition of
-    // the {receiver} along the {effect}s.
-    if (IsSame(receiver, effect)) return kNoReceiverMaps;
-
-    // Continue with the next {effect}.
     DCHECK_EQ(1, effect->op()->EffectInputCount());
     effect = NodeProperties::GetEffectInput(effect);
   }
 }
+
+// static
+MaybeHandle<Context> NodeProperties::GetSpecializationContext(
+    Node* node, MaybeHandle<Context> context) {
+  switch (node->opcode()) {
+    case IrOpcode::kHeapConstant:
+      return Handle<Context>::cast(OpParameter<Handle<HeapObject>>(node));
+    case IrOpcode::kParameter: {
+      Node* const start = NodeProperties::GetValueInput(node, 0);
+      DCHECK_EQ(IrOpcode::kStart, start->opcode());
+      int const index = ParameterIndexOf(node->op());
+      // The context is always the last parameter to a JavaScript function, and
+      // {Parameter} indices start at -1, so value outputs of {Start} look like
+      // this: closure, receiver, param0, ..., paramN, context.
+      if (index == start->op()->ValueOutputCount() - 2) {
+        return context;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return MaybeHandle<Context>();
+}
+
 
 // static
 Node* NodeProperties::GetOuterContext(Node* node, size_t* depth) {

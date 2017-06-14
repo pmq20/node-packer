@@ -5,9 +5,6 @@
 #ifndef V8_INSPECTOR_INSPECTEDCONTEXT_H_
 #define V8_INSPECTOR_INSPECTEDCONTEXT_H_
 
-#include <unordered_map>
-#include <unordered_set>
-
 #include "src/base/macros.h"
 #include "src/inspector/string-16.h"
 
@@ -33,15 +30,15 @@ class InspectedContext {
   String16 humanReadableName() const { return m_humanReadableName; }
   String16 auxData() const { return m_auxData; }
 
-  bool isReported(int sessionId) const;
-  void setReported(int sessionId, bool reported);
+  bool isReported() const { return m_reported; }
+  void setReported(bool reported) { m_reported = reported; }
 
   v8::Isolate* isolate() const;
   V8InspectorImpl* inspector() const { return m_inspector; }
 
-  InjectedScript* getInjectedScript(int sessionId);
-  bool createInjectedScript(int sessionId);
-  void discardInjectedScript(int sessionId);
+  InjectedScript* getInjectedScript() { return m_injectedScript.get(); }
+  bool createInjectedScript();
+  void discardInjectedScript();
 
  private:
   friend class V8InspectorImpl;
@@ -54,8 +51,9 @@ class InspectedContext {
   const String16 m_origin;
   const String16 m_humanReadableName;
   const String16 m_auxData;
-  std::unordered_set<int> m_reportedSessionIds;
-  std::unordered_map<int, std::unique_ptr<InjectedScript>> m_injectedScripts;
+  bool m_reported;
+  std::unique_ptr<InjectedScript> m_injectedScript;
+  v8::Global<v8::Object> m_console;
 
   DISALLOW_COPY_AND_ASSIGN(InspectedContext);
 };

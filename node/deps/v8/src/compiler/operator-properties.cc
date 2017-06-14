@@ -32,10 +32,7 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op) {
 
     // Strict equality cannot lazily deoptimize.
     case IrOpcode::kJSStrictEqual:
-      return false;
-
-    // Generator creation cannot call back into arbitrary JavaScript.
-    case IrOpcode::kJSCreateGeneratorObject:
+    case IrOpcode::kJSStrictNotEqual:
       return false;
 
     // Binary operations
@@ -57,6 +54,7 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op) {
 
     // Compare operations
     case IrOpcode::kJSEqual:
+    case IrOpcode::kJSNotEqual:
     case IrOpcode::kJSGreaterThan:
     case IrOpcode::kJSGreaterThanOrEqual:
     case IrOpcode::kJSLessThan:
@@ -94,10 +92,8 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op) {
     case IrOpcode::kJSToNumber:
     case IrOpcode::kJSToObject:
     case IrOpcode::kJSToString:
-    case IrOpcode::kJSToPrimitiveToString:
 
     // Call operations
-    case IrOpcode::kJSConstructForwardVarargs:
     case IrOpcode::kJSConstruct:
     case IrOpcode::kJSConstructWithSpread:
     case IrOpcode::kJSCallForwardVarargs:

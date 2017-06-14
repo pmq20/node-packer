@@ -6,17 +6,11 @@
 #define V8_FRAMES_H_
 
 #include "src/allocation.h"
-#include "src/flags.h"
 #include "src/handles.h"
-#include "src/objects.h"
 #include "src/safepoint-table.h"
 
 namespace v8 {
 namespace internal {
-
-class AbstractCode;
-class ObjectVisitor;
-class StringStream;
 
 #if V8_TARGET_ARCH_ARM64
 typedef uint64_t RegList;
@@ -36,7 +30,6 @@ int JSCallerSavedCode(int n);
 // Forward declarations.
 class ExternalCallbackScope;
 class Isolate;
-class RootVisitor;
 class StackFrameIteratorBase;
 class ThreadLocalTop;
 class WasmInstanceObject;
@@ -98,25 +91,23 @@ class StackHandler BASE_EMBEDDED {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackHandler);
 };
 
-#define STACK_FRAME_TYPE_LIST(V)                                          \
-  V(ENTRY, EntryFrame)                                                    \
-  V(ENTRY_CONSTRUCT, EntryConstructFrame)                                 \
-  V(EXIT, ExitFrame)                                                      \
-  V(JAVA_SCRIPT, JavaScriptFrame)                                         \
-  V(OPTIMIZED, OptimizedFrame)                                            \
-  V(WASM_COMPILED, WasmCompiledFrame)                                     \
-  V(WASM_TO_JS, WasmToJsFrame)                                            \
-  V(JS_TO_WASM, JsToWasmFrame)                                            \
-  V(WASM_INTERPRETER_ENTRY, WasmInterpreterEntryFrame)                    \
-  V(INTERPRETED, InterpretedFrame)                                        \
-  V(STUB, StubFrame)                                                      \
-  V(STUB_FAILURE_TRAMPOLINE, StubFailureTrampolineFrame)                  \
-  V(BUILTIN_CONTINUATION, BuiltinContinuationFrame)                       \
-  V(JAVA_SCRIPT_BUILTIN_CONTINUATION, JavaScriptBuiltinContinuationFrame) \
-  V(INTERNAL, InternalFrame)                                              \
-  V(CONSTRUCT, ConstructFrame)                                            \
-  V(ARGUMENTS_ADAPTOR, ArgumentsAdaptorFrame)                             \
-  V(BUILTIN, BuiltinFrame)                                                \
+#define STACK_FRAME_TYPE_LIST(V)                         \
+  V(ENTRY, EntryFrame)                                   \
+  V(ENTRY_CONSTRUCT, EntryConstructFrame)                \
+  V(EXIT, ExitFrame)                                     \
+  V(JAVA_SCRIPT, JavaScriptFrame)                        \
+  V(OPTIMIZED, OptimizedFrame)                           \
+  V(WASM_COMPILED, WasmCompiledFrame)                    \
+  V(WASM_TO_JS, WasmToJsFrame)                           \
+  V(JS_TO_WASM, JsToWasmFrame)                           \
+  V(WASM_INTERPRETER_ENTRY, WasmInterpreterEntryFrame)   \
+  V(INTERPRETED, InterpretedFrame)                       \
+  V(STUB, StubFrame)                                     \
+  V(STUB_FAILURE_TRAMPOLINE, StubFailureTrampolineFrame) \
+  V(INTERNAL, InternalFrame)                             \
+  V(CONSTRUCT, ConstructFrame)                           \
+  V(ARGUMENTS_ADAPTOR, ArgumentsAdaptorFrame)            \
+  V(BUILTIN, BuiltinFrame)                               \
   V(BUILTIN_EXIT, BuiltinExitFrame)
 
 // Every pointer in a frame has a slot id. On 32-bit platforms, doubles consume
@@ -355,19 +346,8 @@ class ConstructFrameConstants : public TypedFrameConstants {
   // FP-relative.
   static const int kContextOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(0);
   static const int kLengthOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(1);
-  static const int kConstructorOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(2);
-  static const int kNewTargetOrImplicitReceiverOffset =
-      TYPED_FRAME_PUSHED_VALUE_OFFSET(3);
-  DEFINE_TYPED_FRAME_SIZES(4);
-};
-
-class BuiltinContinuationFrameConstants : public TypedFrameConstants {
- public:
-  // FP-relative.
-  static const int kFunctionOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(0);
-  static const int kBuiltinOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(1);
-  static const int kArgCOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(2);
-  DEFINE_TYPED_FRAME_SIZES(2);
+  static const int kImplicitReceiverOffset = TYPED_FRAME_PUSHED_VALUE_OFFSET(2);
+  DEFINE_TYPED_FRAME_SIZES(3);
 };
 
 class StubFailureTrampolineFrameConstants : public InternalFrameConstants {
@@ -536,12 +516,6 @@ class StackFrame BASE_EMBEDDED {
   bool is_stub_failure_trampoline() const {
     return type() == STUB_FAILURE_TRAMPOLINE;
   }
-  bool is_builtin_continuation() const {
-    return type() == BUILTIN_CONTINUATION;
-  }
-  bool is_java_script_builtin_continuation() const {
-    return type() == JAVA_SCRIPT_BUILTIN_CONTINUATION;
-  }
   bool is_construct() const { return type() == CONSTRUCT; }
   bool is_builtin_exit() const { return type() == BUILTIN_EXIT; }
   virtual bool is_standard() const { return false; }
@@ -549,8 +523,7 @@ class StackFrame BASE_EMBEDDED {
   bool is_java_script() const {
     Type type = this->type();
     return (type == JAVA_SCRIPT) || (type == OPTIMIZED) ||
-           (type == INTERPRETED) || (type == BUILTIN) ||
-           (type == JAVA_SCRIPT_BUILTIN_CONTINUATION);
+           (type == INTERPRETED) || (type == BUILTIN);
   }
   bool is_wasm() const {
     Type type = this->type();
@@ -616,8 +589,8 @@ class StackFrame BASE_EMBEDDED {
                                 SafepointEntry* safepoint_entry,
                                 unsigned* stack_slots);
 
-  virtual void Iterate(RootVisitor* v) const = 0;
-  static void IteratePc(RootVisitor* v, Address* pc_address,
+  virtual void Iterate(ObjectVisitor* v) const = 0;
+  static void IteratePc(ObjectVisitor* v, Address* pc_address,
                         Address* constant_pool_address, Code* holder);
 
   // Sets a callback function for return-address rewriting profilers
@@ -688,7 +661,7 @@ class EntryFrame: public StackFrame {
   Code* unchecked_code() const override;
 
   // Garbage collection support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   static EntryFrame* cast(StackFrame* frame) {
     DCHECK(frame->is_entry());
@@ -741,7 +714,7 @@ class ExitFrame: public StackFrame {
   Object*& code_slot() const;
 
   // Garbage collection support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   void SetCallerFp(Address caller_fp) override;
 
@@ -1020,7 +993,7 @@ class StandardFrame : public StackFrame {
 
   // Iterate over expression stack including stack handlers, locals,
   // and parts of the fixed part including context and code fields.
-  void IterateExpressions(RootVisitor* v) const;
+  void IterateExpressions(ObjectVisitor* v) const;
 
   // Returns the address of the n'th expression stack element.
   virtual Address GetExpressionAddress(int n) const;
@@ -1034,7 +1007,7 @@ class StandardFrame : public StackFrame {
   static inline bool IsConstructFrame(Address fp);
 
   // Used by OptimizedFrames and StubFrames.
-  void IterateCompiledFrame(RootVisitor* v) const;
+  void IterateCompiledFrame(ObjectVisitor* v) const;
 
  private:
   friend class StackFrame;
@@ -1084,7 +1057,7 @@ class JavaScriptFrame : public StandardFrame {
   int GetArgumentsLength() const;
 
   // Garbage collection support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Printing support.
   void Print(StringStream* accumulator, PrintMode mode,
@@ -1136,7 +1109,7 @@ class JavaScriptFrame : public StandardFrame {
 
   // Garbage collection support. Iterates over incoming arguments,
   // receiver, and any callee-saved registers.
-  void IterateArguments(RootVisitor* v) const;
+  void IterateArguments(ObjectVisitor* v) const;
 
   virtual void PrintFrameKind(StringStream* accumulator) const {}
 
@@ -1152,16 +1125,10 @@ class StubFrame : public StandardFrame {
   Type type() const override { return STUB; }
 
   // GC support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Determine the code for the frame.
   Code* unchecked_code() const override;
-
-  // Lookup exception handler for current {pc}, returns -1 if none found. Only
-  // TurboFan stub frames are supported. Also returns data associated with the
-  // handler site:
-  //  - TurboFan stub: Data is the stack slot count of the entire frame.
-  int LookupExceptionHandlerInTable(int* data);
 
  protected:
   inline explicit StubFrame(StackFrameIteratorBase* iterator);
@@ -1179,7 +1146,7 @@ class OptimizedFrame : public JavaScriptFrame {
   Type type() const override { return OPTIMIZED; }
 
   // GC support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Return a list with {SharedFunctionInfo} objects of this frame.
   // The functions are ordered bottom-to-top (i.e. functions.last()
@@ -1307,12 +1274,12 @@ class BuiltinFrame final : public JavaScriptFrame {
   friend class StackFrameIteratorBase;
 };
 
-class WasmCompiledFrame final : public StandardFrame {
+class WasmCompiledFrame : public StandardFrame {
  public:
   Type type() const override { return WASM_COMPILED; }
 
   // GC support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Printing support.
   void Print(StringStream* accumulator, PrintMode mode,
@@ -1349,12 +1316,12 @@ class WasmCompiledFrame final : public StandardFrame {
   friend class StackFrameIteratorBase;
 };
 
-class WasmInterpreterEntryFrame final : public StandardFrame {
+class WasmInterpreterEntryFrame : public StandardFrame {
  public:
   Type type() const override { return WASM_INTERPRETER_ENTRY; }
 
   // GC support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Printing support.
   void Print(StringStream* accumulator, PrintMode mode,
@@ -1371,7 +1338,6 @@ class WasmInterpreterEntryFrame final : public StandardFrame {
   WasmInstanceObject* wasm_instance() const;
   Script* script() const override;
   int position() const override;
-  Object* context() const override;
 
   static WasmInterpreterEntryFrame* cast(StackFrame* frame) {
     DCHECK(frame->is_wasm_interpreter_entry());
@@ -1414,7 +1380,7 @@ class InternalFrame: public StandardFrame {
   Type type() const override { return INTERNAL; }
 
   // Garbage collection support.
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Determine the code for the frame.
   Code* unchecked_code() const override;
@@ -1442,7 +1408,7 @@ class StubFailureTrampolineFrame: public StandardFrame {
   // This method could be called during marking phase of GC.
   Code* unchecked_code() const override;
 
-  void Iterate(RootVisitor* v) const override;
+  void Iterate(ObjectVisitor* v) const override;
 
   // Architecture-specific register description.
   static Register fp_register();
@@ -1478,40 +1444,6 @@ class ConstructFrame: public InternalFrame {
   friend class StackFrameIteratorBase;
 };
 
-class BuiltinContinuationFrame : public InternalFrame {
- public:
-  Type type() const override { return BUILTIN_CONTINUATION; }
-
-  static BuiltinContinuationFrame* cast(StackFrame* frame) {
-    DCHECK(frame->is_builtin_continuation());
-    return static_cast<BuiltinContinuationFrame*>(frame);
-  }
-
- protected:
-  inline explicit BuiltinContinuationFrame(StackFrameIteratorBase* iterator);
-
- private:
-  friend class StackFrameIteratorBase;
-};
-
-class JavaScriptBuiltinContinuationFrame : public JavaScriptFrame {
- public:
-  Type type() const override { return JAVA_SCRIPT_BUILTIN_CONTINUATION; }
-
-  static JavaScriptBuiltinContinuationFrame* cast(StackFrame* frame) {
-    DCHECK(frame->is_java_script_builtin_continuation());
-    return static_cast<JavaScriptBuiltinContinuationFrame*>(frame);
-  }
-
-  int ComputeParametersCount() const override;
-
- protected:
-  inline explicit JavaScriptBuiltinContinuationFrame(
-      StackFrameIteratorBase* iterator);
-
- private:
-  friend class StackFrameIteratorBase;
-};
 
 class StackFrameIteratorBase BASE_EMBEDDED {
  public:
@@ -1588,8 +1520,8 @@ class JavaScriptFrameIterator BASE_EMBEDDED {
 };
 
 // NOTE: The stack trace frame iterator is an iterator that only traverse proper
-// JavaScript frames that have proper JavaScript functions and WebAssembly
-// frames.
+// JavaScript frames that have proper JavaScript functions and WASM frames.
+// This excludes the problematic functions in runtime.js.
 class StackTraceFrameIterator BASE_EMBEDDED {
  public:
   explicit StackTraceFrameIterator(Isolate* isolate);

@@ -27,7 +27,6 @@ Variable::Variable(Scope* scope, const AstRawString* name, VariableMode mode,
                  InitializationFlagField::encode(initialization_flag) |
                  VariableModeField::encode(mode) | IsUsedField::encode(false) |
                  ForceContextAllocationField::encode(false) |
-                 ForceHoleInitializationField::encode(false) |
                  LocationField::encode(VariableLocation::UNALLOCATED) |
                  VariableKindField::encode(kind)) {
   // Var declared variables never need initialization.

@@ -49,12 +49,11 @@ TEST_DIR = os.path.join(BASE_DIR, "test")
 
 
 class Instructions(object):
-  def __init__(self, command, test_id, timeout, verbose, env):
+  def __init__(self, command, test_id, timeout, verbose):
     self.command = command
     self.id = test_id
     self.timeout = timeout
     self.verbose = verbose
-    self.env = env
 
 
 # Structure that keeps global information per worker process.
@@ -62,18 +61,17 @@ ProcessContext = collections.namedtuple(
     "process_context", ["suites", "context"])
 
 
-def MakeProcessContext(context, suite_names):
+def MakeProcessContext(context):
   """Generate a process-local context.
 
   This reloads all suites per process and stores the global context.
 
   Args:
     context: The global context from the test runner.
-    suite_names (list of str): Suite names as loaded by the parent process.
-        Load the same suites in each subprocess.
   """
+  suite_paths = utils.GetSuitePaths(TEST_DIR)
   suites = {}
-  for root in suite_names:
+  for root in suite_paths:
     # Don't reinitialize global state as this is concurrently called from
     # different processes.
     suite = testsuite.TestSuite.LoadTestSuite(
@@ -113,7 +111,7 @@ def _GetInstructions(test, context):
   # the like.
   if statusfile.IsSlow(test.outcomes or [statusfile.PASS]):
     timeout *= 2
-  return Instructions(command, test.id, timeout, context.verbose, test.env)
+  return Instructions(command, test.id, timeout, context.verbose)
 
 
 class Job(object):
@@ -180,8 +178,7 @@ class TestJob(Job):
       return SetupProblem(e, self.test)
 
     start_time = time.time()
-    output = commands.Execute(instr.command, instr.verbose, instr.timeout,
-                              instr.env)
+    output = commands.Execute(instr.command, instr.verbose, instr.timeout)
     self._rename_coverage_data(output, process_context.context)
     return (instr.id, output, time.time() - start_time)
 
@@ -199,8 +196,7 @@ class Runner(object):
     self.perfdata = self.perf_data_manager.GetStore(context.arch, context.mode)
     self.perf_failures = False
     self.printed_allocations = False
-    self.tests = [t for s in suites for t in s.tests]
-    self.suite_names = [s.name for s in suites]
+    self.tests = [ t for s in suites for t in s.tests ]
 
     # Always pre-sort by status file, slowest tests first.
     slow_key = lambda t: statusfile.IsSlow(t.outcomes)
@@ -355,7 +351,7 @@ class Runner(object):
           fn=RunTest,
           gen=gen_tests(),
           process_context_fn=MakeProcessContext,
-          process_context_args=[self.context, self.suite_names],
+          process_context_args=[self.context],
       )
       for result in it:
         if result.heartbeat:

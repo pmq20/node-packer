@@ -4,61 +4,91 @@
 
 #include "src/builtins/builtins-utils.h"
 #include "src/builtins/builtins.h"
-#include "src/globals.h"
-#include "src/handles-inl.h"
 #include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
 
-Handle<Code> Builtins::InterpreterPushArgsThenCall(
-    ConvertReceiverMode receiver_mode, TailCallMode tail_call_mode,
-    InterpreterPushArgsMode mode) {
+Handle<Code> Builtins::InterpreterPushArgsAndCall(
+    TailCallMode tail_call_mode, InterpreterPushArgsMode mode) {
   switch (mode) {
     case InterpreterPushArgsMode::kJSFunction:
       if (tail_call_mode == TailCallMode::kDisallow) {
-        switch (receiver_mode) {
-          case ConvertReceiverMode::kNullOrUndefined:
-            return InterpreterPushUndefinedAndArgsThenCallFunction();
-          case ConvertReceiverMode::kNotNullOrUndefined:
-          case ConvertReceiverMode::kAny:
-            return InterpreterPushArgsThenCallFunction();
-        }
+        return InterpreterPushArgsAndCallFunction();
       } else {
-        CHECK_EQ(receiver_mode, ConvertReceiverMode::kAny);
-        return InterpreterPushArgsThenTailCallFunction();
+        return InterpreterPushArgsAndTailCallFunction();
       }
     case InterpreterPushArgsMode::kWithFinalSpread:
       CHECK(tail_call_mode == TailCallMode::kDisallow);
-      return InterpreterPushArgsThenCallWithFinalSpread();
+      return InterpreterPushArgsAndCallWithFinalSpread();
     case InterpreterPushArgsMode::kOther:
       if (tail_call_mode == TailCallMode::kDisallow) {
-        switch (receiver_mode) {
-          case ConvertReceiverMode::kNullOrUndefined:
-            return InterpreterPushUndefinedAndArgsThenCall();
-          case ConvertReceiverMode::kNotNullOrUndefined:
-          case ConvertReceiverMode::kAny:
-            return InterpreterPushArgsThenCall();
-        }
+        return InterpreterPushArgsAndCall();
       } else {
-        CHECK_EQ(receiver_mode, ConvertReceiverMode::kAny);
-        return InterpreterPushArgsThenTailCall();
+        return InterpreterPushArgsAndTailCall();
       }
   }
   UNREACHABLE();
+  return Handle<Code>::null();
 }
 
-Handle<Code> Builtins::InterpreterPushArgsThenConstruct(
+void Builtins::Generate_InterpreterPushArgsAndCall(MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndCallImpl(
+      masm, TailCallMode::kDisallow, InterpreterPushArgsMode::kOther);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndCallFunction(
+    MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndCallImpl(
+      masm, TailCallMode::kDisallow, InterpreterPushArgsMode::kJSFunction);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndCallWithFinalSpread(
+    MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndCallImpl(
+      masm, TailCallMode::kDisallow, InterpreterPushArgsMode::kWithFinalSpread);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndTailCall(MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndCallImpl(
+      masm, TailCallMode::kAllow, InterpreterPushArgsMode::kOther);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndTailCallFunction(
+    MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndCallImpl(
+      masm, TailCallMode::kAllow, InterpreterPushArgsMode::kJSFunction);
+}
+
+Handle<Code> Builtins::InterpreterPushArgsAndConstruct(
     InterpreterPushArgsMode mode) {
   switch (mode) {
     case InterpreterPushArgsMode::kJSFunction:
-      return InterpreterPushArgsThenConstructFunction();
+      return InterpreterPushArgsAndConstructFunction();
     case InterpreterPushArgsMode::kWithFinalSpread:
-      return InterpreterPushArgsThenConstructWithFinalSpread();
+      return InterpreterPushArgsAndConstructWithFinalSpread();
     case InterpreterPushArgsMode::kOther:
-      return InterpreterPushArgsThenConstruct();
+      return InterpreterPushArgsAndConstruct();
   }
   UNREACHABLE();
+  return Handle<Code>::null();
+}
+
+void Builtins::Generate_InterpreterPushArgsAndConstruct(MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndConstructImpl(
+      masm, InterpreterPushArgsMode::kOther);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndConstructWithFinalSpread(
+    MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndConstructImpl(
+      masm, InterpreterPushArgsMode::kWithFinalSpread);
+}
+
+void Builtins::Generate_InterpreterPushArgsAndConstructFunction(
+    MacroAssembler* masm) {
+  return Generate_InterpreterPushArgsAndConstructImpl(
+      masm, InterpreterPushArgsMode::kJSFunction);
 }
 
 }  // namespace internal

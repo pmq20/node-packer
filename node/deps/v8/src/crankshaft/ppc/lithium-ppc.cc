@@ -122,6 +122,7 @@ const char* LArithmeticD::Mnemonic() const {
       return "mod-d";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -154,6 +155,7 @@ const char* LArithmeticT::Mnemonic() const {
       return "shr-t";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -224,6 +226,7 @@ void LClassOfTestAndBranch::PrintDataTo(StringStream* stream) {
   stream->Add(", \"%o\") then B%d else B%d", *hydrogen()->class_name(),
               true_block_id(), false_block_id());
 }
+
 
 void LTypeofIsAndBranch::PrintDataTo(StringStream* stream) {
   stream->Add("if typeof ");
@@ -619,6 +622,7 @@ LInstruction* LChunkBuilder::DoDummyUse(HDummyUse* instr) {
 
 LInstruction* LChunkBuilder::DoEnvironmentMarker(HEnvironmentMarker* instr) {
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -1072,6 +1076,7 @@ LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
       return DoMathClz32(instr);
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -1696,6 +1701,7 @@ LInstruction* LChunkBuilder::DoClassOfTestAndBranch(
   return new (zone()) LClassOfTestAndBranch(value, TempRegister());
 }
 
+
 LInstruction* LChunkBuilder::DoSeqStringGetChar(HSeqStringGetChar* instr) {
   LOperand* string = UseRegisterAtStart(instr->string());
   LOperand* index = UseRegisterOrConstantAtStart(instr->index());
@@ -1742,6 +1748,7 @@ LInstruction* LChunkBuilder::DoForceRepresentation(HForceRepresentation* bad) {
   // All HForceRepresentation instructions should be eliminated in the
   // representation change phase of Hydrogen.
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -1841,6 +1848,7 @@ LInstruction* LChunkBuilder::DoChange(HChange* instr) {
     }
   }
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -1935,6 +1943,7 @@ LInstruction* LChunkBuilder::DoConstant(HConstant* instr) {
     return DefineAsRegister(new (zone()) LConstantT);
   } else {
     UNREACHABLE();
+    return NULL;
   }
 }
 

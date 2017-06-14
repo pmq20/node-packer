@@ -4,6 +4,9 @@
 
 #include "src/api-natives.h"
 #include "src/api.h"
+#include "src/asmjs/asm-js.h"
+#include "src/asmjs/asm-typer.h"
+#include "src/asmjs/asm-wasm-builder.h"
 #include "src/assert-scope.h"
 #include "src/ast/ast.h"
 #include "src/execution.h"
@@ -29,16 +32,9 @@ namespace v8 {
 
 namespace {
 
-#define ASSIGN(type, var, expr)                      \
-  Local<type> var;                                   \
-  do {                                               \
-    if (!expr.ToLocal(&var)) {                       \
-      DCHECK(i_isolate->has_scheduled_exception());  \
-      return;                                        \
-    } else {                                         \
-      DCHECK(!i_isolate->has_scheduled_exception()); \
-    }                                                \
-  } while (false)
+#define RANGE_ERROR_MSG                                                        \
+  "Wasm compilation exceeds internal limits in this context for the provided " \
+  "arguments"
 
 // TODO(wasm): move brand check to the respective types, and don't throw
 // in it, rather, use a provided ErrorThrower, or let caller handle it.
@@ -80,6 +76,44 @@ i::MaybeHandle<i::WasmModuleObject> GetFirstArgumentAsModule(
   Local<Object> module_obj = Local<Object>::Cast(args[0]);
   return i::Handle<i::WasmModuleObject>::cast(
       v8::Utils::OpenHandle(*module_obj));
+}
+
+bool IsCompilationAllowed(i::Isolate* isolate, ErrorThrower* thrower,
+                          v8::Local<v8::Value> source, bool is_async) {
+  // Allow caller to do one final check on thrower state, rather than
+  // one at each step. No information is lost - failure reason is captured
+  // in the thrower state.
+  if (thrower->error()) return false;
+
+  AllowWasmCompileCallback callback = isolate->allow_wasm_compile_callback();
+  if (callback != nullptr &&
+      !callback(reinterpret_cast<v8::Isolate*>(isolate), source, is_async)) {
+    thrower->RangeError(RANGE_ERROR_MSG);
+    return false;
+  }
+  return true;
+}
+
+bool IsInstantiationAllowed(i::Isolate* isolate, ErrorThrower* thrower,
+                            v8::Local<v8::Value> module_or_bytes,
+                            i::MaybeHandle<i::JSReceiver> ffi, bool is_async) {
+  // Allow caller to do one final check on thrower state, rather than
+  // one at each step. No information is lost - failure reason is captured
+  // in the thrower state.
+  if (thrower->error()) return false;
+  v8::MaybeLocal<v8::Value> v8_ffi;
+  if (!ffi.is_null()) {
+    v8_ffi = v8::Local<v8::Value>::Cast(Utils::ToLocal(ffi.ToHandleChecked()));
+  }
+  AllowWasmInstantiateCallback callback =
+      isolate->allow_wasm_instantiate_callback();
+  if (callback != nullptr &&
+      !callback(reinterpret_cast<v8::Isolate*>(isolate), module_or_bytes,
+                v8_ffi, is_async)) {
+    thrower->RangeError(RANGE_ERROR_MSG);
+    return false;
+  }
+  return true;
 }
 
 i::wasm::ModuleWireBytes GetFirstArgumentAsBytes(
@@ -125,48 +159,38 @@ i::wasm::ModuleWireBytes GetFirstArgumentAsBytes(
   return i::wasm::ModuleWireBytes(start, start + length);
 }
 
-i::MaybeHandle<i::JSReceiver> GetValueAsImports(Local<Value> arg,
-                                                ErrorThrower* thrower) {
-  if (arg->IsUndefined()) return {};
+i::MaybeHandle<i::JSReceiver> GetSecondArgumentAsImports(
+    const v8::FunctionCallbackInfo<v8::Value>& args, ErrorThrower* thrower) {
+  if (args.Length() < 2) return {};
+  if (args[1]->IsUndefined()) return {};
 
-  if (!arg->IsObject()) {
+  if (!args[1]->IsObject()) {
     thrower->TypeError("Argument 1 must be an object");
     return {};
   }
-  Local<Object> obj = Local<Object>::Cast(arg);
+  Local<Object> obj = Local<Object>::Cast(args[1]);
   return i::Handle<i::JSReceiver>::cast(v8::Utils::OpenHandle(*obj));
-}
-
-void WebAssemblyCompileStreaming(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
-  v8::Isolate* isolate = args.GetIsolate();
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  MicrotasksScope runs_microtasks(isolate, MicrotasksScope::kRunMicrotasks);
-  DCHECK_NOT_NULL(i_isolate->wasm_compile_streaming_callback());
-  i_isolate->wasm_compile_streaming_callback()(args);
 }
 
 // WebAssembly.compile(bytes) -> Promise
 void WebAssemblyCompile(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::Isolate* isolate = args.GetIsolate();
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  MicrotasksScope runs_microtasks(isolate, MicrotasksScope::kRunMicrotasks);
-
   HandleScope scope(isolate);
   ErrorThrower thrower(i_isolate, "WebAssembly.compile()");
 
   Local<Context> context = isolate->GetCurrentContext();
-  ASSIGN(Promise::Resolver, resolver, Promise::Resolver::New(context));
+  v8::Local<v8::Promise::Resolver> resolver;
+  if (!v8::Promise::Resolver::New(context).ToLocal(&resolver)) return;
   v8::ReturnValue<v8::Value> return_value = args.GetReturnValue();
   return_value.Set(resolver->GetPromise());
 
   auto bytes = GetFirstArgumentAsBytes(args, &thrower);
-  if (thrower.error()) {
-    auto maybe = resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
-    CHECK_IMPLIES(!maybe.FromMaybe(false),
-                  i_isolate->has_scheduled_exception());
+  if (!IsCompilationAllowed(i_isolate, &thrower, args[0], true)) {
+    resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
     return;
   }
+  DCHECK(!thrower.error());
   i::Handle<i::JSPromise> promise = Utils::OpenHandle(*resolver->GetPromise());
   i::wasm::AsyncCompile(i_isolate, promise, bytes);
 }
@@ -182,10 +206,11 @@ void WebAssemblyValidate(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
   v8::ReturnValue<v8::Value> return_value = args.GetReturnValue();
   if (!thrower.error() &&
-      i::wasm::SyncValidate(reinterpret_cast<i::Isolate*>(isolate), bytes)) {
+      i::wasm::SyncValidate(reinterpret_cast<i::Isolate*>(isolate), &thrower,
+                            bytes)) {
     return_value.Set(v8::True(isolate));
   } else {
-    if (thrower.wasm_error()) thrower.Reset();  // Clear error.
+    if (thrower.wasm_error()) thrower.Reify();  // Clear error.
     return_value.Set(v8::False(isolate));
   }
 }
@@ -194,16 +219,13 @@ void WebAssemblyValidate(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void WebAssemblyModule(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::Isolate* isolate = args.GetIsolate();
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  if (i_isolate->wasm_module_callback()(args)) return;
-
   HandleScope scope(isolate);
   ErrorThrower thrower(i_isolate, "WebAssembly.Module()");
 
   auto bytes = GetFirstArgumentAsBytes(args, &thrower);
+  if (!IsCompilationAllowed(i_isolate, &thrower, args[0], false)) return;
 
-  if (thrower.error()) {
-    return;
-  }
+  DCHECK(!thrower.error());
   i::MaybeHandle<i::Object> module_obj =
       i::wasm::SyncCompile(i_isolate, &thrower, bytes);
   if (module_obj.is_null()) return;
@@ -267,134 +289,28 @@ void WebAssemblyModuleCustomSections(
   args.GetReturnValue().Set(Utils::ToLocal(custom_sections));
 }
 
-MaybeLocal<Value> WebAssemblyInstantiateImpl(Isolate* isolate,
-                                             Local<Value> module,
-                                             Local<Value> ffi) {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-
-  ErrorThrower thrower(i_isolate, "WebAssembly Instantiation");
-  i::MaybeHandle<i::JSReceiver> maybe_imports =
-      GetValueAsImports(ffi, &thrower);
-  if (thrower.error()) return {};
-
-  i::Handle<i::WasmModuleObject> module_obj =
-      i::Handle<i::WasmModuleObject>::cast(
-          Utils::OpenHandle(Object::Cast(*module)));
-  i::MaybeHandle<i::Object> instance_object =
-      i::wasm::SyncInstantiate(i_isolate, &thrower, module_obj, maybe_imports,
-                               i::MaybeHandle<i::JSArrayBuffer>());
-
-  if (instance_object.is_null()) {
-    // TODO(wasm): this *should* mean there's an error to throw, but
-    // we exit sometimes the instantiation pipeline without throwing.
-    // v8:6232.
-    return {};
-  }
-  return Utils::ToLocal(instance_object.ToHandleChecked());
-}
-
-// Entered as internal implementation detail of sync and async instantiate.
-// args[0] *must* be a WebAssembly.Module.
-void WebAssemblyInstantiateImplCallback(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
-  DCHECK_GE(args.Length(), 1);
-  v8::Isolate* isolate = args.GetIsolate();
-  MicrotasksScope does_not_run_microtasks(isolate,
-                                          MicrotasksScope::kDoNotRunMicrotasks);
-
-  HandleScope scope(args.GetIsolate());
-  Local<Value> module = args[0];
-  Local<Value> ffi = args.Data();
-  Local<Value> instance;
-  if (WebAssemblyInstantiateImpl(isolate, module, ffi).ToLocal(&instance)) {
-    args.GetReturnValue().Set(instance);
-  }
-}
-
-void WebAssemblyInstantiateToPairCallback(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
-  DCHECK_GE(args.Length(), 1);
-  Isolate* isolate = args.GetIsolate();
-  MicrotasksScope does_not_run_microtasks(isolate,
-                                          MicrotasksScope::kDoNotRunMicrotasks);
-
-  HandleScope scope(args.GetIsolate());
-
-  Local<Context> context = isolate->GetCurrentContext();
-  Local<Value> module = args[0];
-
-  const uint8_t* instance_str = reinterpret_cast<const uint8_t*>("instance");
-  const uint8_t* module_str = reinterpret_cast<const uint8_t*>("module");
-  Local<Value> instance;
-  if (!WebAssemblyInstantiateImpl(isolate, module, args.Data())
-           .ToLocal(&instance)) {
-    return;
-  }
-
-  Local<Object> ret = Object::New(isolate);
-  Local<String> instance_name =
-      String::NewFromOneByte(isolate, instance_str,
-                             NewStringType::kInternalized)
-          .ToLocalChecked();
-  Local<String> module_name =
-      String::NewFromOneByte(isolate, module_str, NewStringType::kInternalized)
-          .ToLocalChecked();
-
-  CHECK(ret->CreateDataProperty(context, instance_name, instance).IsJust());
-  CHECK(ret->CreateDataProperty(context, module_name, module).IsJust());
-  args.GetReturnValue().Set(ret);
-}
-
 // new WebAssembly.Instance(module, imports) -> WebAssembly.Instance
 void WebAssemblyInstance(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  Isolate* isolate = args.GetIsolate();
-  MicrotasksScope does_not_run_microtasks(isolate,
-                                          MicrotasksScope::kDoNotRunMicrotasks);
-
   HandleScope scope(args.GetIsolate());
+  v8::Isolate* isolate = args.GetIsolate();
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  if (i_isolate->wasm_instance_callback()(args)) return;
-
   ErrorThrower thrower(i_isolate, "WebAssembly.Instance()");
 
   auto maybe_module = GetFirstArgumentAsModule(args, &thrower);
   if (thrower.error()) return;
 
-  // If args.Length < 2, this will be undefined - see FunctionCallbackInfo.
-  // We'll check for that in WebAssemblyInstantiateImpl.
-  Local<Value> data = args[1];
-
-  Local<Value> instance;
-  if (WebAssemblyInstantiateImpl(isolate, args[0], data).ToLocal(&instance)) {
-    args.GetReturnValue().Set(instance);
+  auto maybe_imports = GetSecondArgumentAsImports(args, &thrower);
+  if (!IsInstantiationAllowed(i_isolate, &thrower, args[0], maybe_imports,
+                              false)) {
+    return;
   }
-}
+  DCHECK(!thrower.error());
 
-void WebAssemblyInstantiateStreaming(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
-  v8::Isolate* isolate = args.GetIsolate();
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  // we use i_isolate in DCHECKS in the ASSIGN statements.
-  USE(i_isolate);
-  MicrotasksScope runs_microtasks(isolate, MicrotasksScope::kRunMicrotasks);
-  HandleScope scope(isolate);
-
-  Local<Context> context = isolate->GetCurrentContext();
-  ASSIGN(Promise::Resolver, resolver, Promise::Resolver::New(context));
-  Local<Value> first_arg_value = args[0];
-
-  ASSIGN(Function, compileStreaming,
-         Function::New(context, WebAssemblyCompileStreaming));
-  ASSIGN(Value, compile_retval,
-         compileStreaming->Call(context, args.Holder(), 1, &first_arg_value));
-  Local<Promise> module_promise = Local<Promise>::Cast(compile_retval);
-
-  DCHECK(!module_promise.IsEmpty());
-  Local<Value> data = args[1];
-  ASSIGN(Function, instantiate_impl,
-         Function::New(context, WebAssemblyInstantiateToPairCallback, data));
-  ASSIGN(Promise, result, module_promise->Then(context, instantiate_impl));
-  args.GetReturnValue().Set(result);
+  i::MaybeHandle<i::Object> instance_object = i::wasm::SyncInstantiate(
+      i_isolate, &thrower, maybe_module.ToHandleChecked(), maybe_imports,
+      i::MaybeHandle<i::JSArrayBuffer>());
+  if (instance_object.is_null()) return;
+  args.GetReturnValue().Set(Utils::ToLocal(instance_object.ToHandleChecked()));
 }
 
 // WebAssembly.instantiate(module, imports) -> WebAssembly.Instance
@@ -403,8 +319,6 @@ void WebAssemblyInstantiateStreaming(
 void WebAssemblyInstantiate(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::Isolate* isolate = args.GetIsolate();
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  MicrotasksScope runs_microtasks(isolate, MicrotasksScope::kRunMicrotasks);
-
   ErrorThrower thrower(i_isolate, "WebAssembly.instantiate()");
 
   HandleScope scope(isolate);
@@ -412,52 +326,53 @@ void WebAssemblyInstantiate(const v8::FunctionCallbackInfo<v8::Value>& args) {
   Local<Context> context = isolate->GetCurrentContext();
   i::Handle<i::Context> i_context = Utils::OpenHandle(*context);
 
-  ASSIGN(Promise::Resolver, resolver, Promise::Resolver::New(context));
-  Local<Promise> module_promise = resolver->GetPromise();
-  args.GetReturnValue().Set(module_promise);
+  v8::Local<v8::Promise::Resolver> resolver;
+  if (!v8::Promise::Resolver::New(context).ToLocal(&resolver)) return;
+  v8::ReturnValue<v8::Value> return_value = args.GetReturnValue();
+  return_value.Set(resolver->GetPromise());
 
   if (args.Length() < 1) {
     thrower.TypeError(
         "Argument 0 must be provided and must be either a buffer source or a "
         "WebAssembly.Module object");
-    auto maybe = resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
-    CHECK_IMPLIES(!maybe.FromMaybe(false),
-                  i_isolate->has_scheduled_exception());
+    resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
     return;
   }
 
-  Local<Value> first_arg_value = args[0];
-  i::Handle<i::Object> first_arg = Utils::OpenHandle(*first_arg_value);
+  i::Handle<i::Object> first_arg = Utils::OpenHandle(*args[0]);
   if (!first_arg->IsJSObject()) {
     thrower.TypeError(
         "Argument 0 must be a buffer source or a WebAssembly.Module object");
-    auto maybe = resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
-    CHECK_IMPLIES(!maybe.FromMaybe(false),
-                  i_isolate->has_scheduled_exception());
+    resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
     return;
   }
 
-  FunctionCallback instantiator = nullptr;
-  if (HasBrand(first_arg, i::Handle<i::Symbol>(i_context->wasm_module_sym()))) {
-    module_promise = resolver->GetPromise();
-    if (!resolver->Resolve(context, first_arg_value).IsJust()) return;
-    instantiator = WebAssemblyInstantiateImplCallback;
-  } else {
-    ASSIGN(Function, async_compile, Function::New(context, WebAssemblyCompile));
-    ASSIGN(Value, async_compile_retval,
-           async_compile->Call(context, args.Holder(), 1, &first_arg_value));
-    module_promise = Local<Promise>::Cast(async_compile_retval);
-    instantiator = WebAssemblyInstantiateToPairCallback;
+  auto maybe_imports = GetSecondArgumentAsImports(args, &thrower);
+  if (thrower.error()) {
+    resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
+    return;
   }
-  DCHECK(!module_promise.IsEmpty());
-  DCHECK_NOT_NULL(instantiator);
-  // If args.Length < 2, this will be undefined - see FunctionCallbackInfo.
-  // We'll check for that in WebAssemblyInstantiateImpl.
-  Local<Value> data = args[1];
-  ASSIGN(Function, instantiate_impl,
-         Function::New(context, instantiator, data));
-  ASSIGN(Promise, result, module_promise->Then(context, instantiate_impl));
-  args.GetReturnValue().Set(result);
+  if (!IsInstantiationAllowed(i_isolate, &thrower, args[0], maybe_imports,
+                              true)) {
+    resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
+    return;
+  }
+  i::Handle<i::JSPromise> promise = Utils::OpenHandle(*resolver->GetPromise());
+  if (HasBrand(first_arg, i::Handle<i::Symbol>(i_context->wasm_module_sym()))) {
+    // WebAssembly.instantiate(module, imports) -> WebAssembly.Instance
+    auto module_object = GetFirstArgumentAsModule(args, &thrower);
+    i::wasm::AsyncInstantiate(i_isolate, promise,
+                              module_object.ToHandleChecked(), maybe_imports);
+  } else {
+    // WebAssembly.instantiate(bytes, imports) -> {module, instance}
+    auto bytes = GetFirstArgumentAsBytes(args, &thrower);
+    if (thrower.error()) {
+      resolver->Reject(context, Utils::ToLocal(thrower.Reify()));
+      return;
+    }
+    i::wasm::AsyncCompileAndInstantiate(i_isolate, promise, bytes,
+                                        maybe_imports);
+  }
 }
 
 bool GetIntegerProperty(v8::Isolate* isolate, ErrorThrower* thrower,
@@ -640,7 +555,8 @@ void WebAssemblyTableGrow(const v8::FunctionCallbackInfo<v8::Value>& args) {
   }
 
   int new_size = static_cast<int>(new_size64);
-  receiver->grow(i_isolate, static_cast<uint32_t>(new_size - old_size));
+  i::WasmTableObject::Grow(i_isolate, receiver,
+                           static_cast<uint32_t>(new_size - old_size));
 
   if (new_size != old_size) {
     i::Handle<i::FixedArray> new_array =
@@ -702,16 +618,6 @@ void WebAssemblyTableSet(const v8::FunctionCallbackInfo<v8::Value>& args) {
     thrower.TypeError("Argument 1 must be null or a function");
     return;
   }
-
-  // {This} parameter.
-  auto receiver =
-      i::Handle<i::WasmTableObject>::cast(Utils::OpenHandle(*args.This()));
-
-  // Parameter 0.
-  int32_t index;
-  if (!args[0]->Int32Value(context).To(&index)) return;
-
-  // Parameter 1.
   i::Handle<i::Object> value = Utils::OpenHandle(*args[1]);
   if (!value->IsNull(i_isolate) &&
       (!value->IsJSFunction() ||
@@ -721,10 +627,27 @@ void WebAssemblyTableSet(const v8::FunctionCallbackInfo<v8::Value>& args) {
     return;
   }
 
-  i::wasm::TableSet(&thrower, i_isolate, receiver, index,
-                    value->IsNull(i_isolate)
-                        ? i::Handle<i::JSFunction>::null()
-                        : i::Handle<i::JSFunction>::cast(value));
+  auto receiver =
+      i::Handle<i::WasmTableObject>::cast(Utils::OpenHandle(*args.This()));
+  i::Handle<i::FixedArray> array(receiver->functions(), i_isolate);
+  int i;
+  if (!args[0]->Int32Value(context).To(&i)) return;
+  if (i < 0 || i >= array->length()) {
+    thrower.RangeError("index out of bounds");
+    return;
+  }
+
+  i::Handle<i::FixedArray> dispatch_tables(receiver->dispatch_tables(),
+                                           i_isolate);
+  if (value->IsNull(i_isolate)) {
+    i::wasm::UpdateDispatchTables(i_isolate, dispatch_tables, i,
+                                  i::Handle<i::JSFunction>::null());
+  } else {
+    i::wasm::UpdateDispatchTables(i_isolate, dispatch_tables, i,
+                                  i::Handle<i::JSFunction>::cast(value));
+  }
+
+  i::Handle<i::FixedArray>::cast(array)->set(i, *value);
 }
 
 // WebAssembly.Memory.grow(num) -> num
@@ -761,14 +684,13 @@ void WebAssemblyMemoryGrow(const v8::FunctionCallbackInfo<v8::Value>& args) {
                                              : "maximum memory size exceeded");
     return;
   }
-  int32_t ret = i::WasmMemoryObject::Grow(i_isolate, receiver,
-                                          static_cast<uint32_t>(delta_size));
+  int32_t ret = i::wasm::GrowWebAssemblyMemory(
+      i_isolate, receiver, static_cast<uint32_t>(delta_size));
   if (ret == -1) {
     thrower.RangeError("Unable to grow instance memory.");
     return;
   }
-  bool free_memory = (delta_size != 0);
-  i::wasm::DetachWebAssemblyMemoryBuffer(i_isolate, old_buffer, free_memory);
+  i::wasm::DetachWebAssemblyMemoryBuffer(i_isolate, old_buffer);
   v8::ReturnValue<v8::Value> return_value = args.GetReturnValue();
   return_value.Set(ret);
 }
@@ -848,16 +770,16 @@ void WasmJs::Install(Isolate* isolate) {
   Handle<Map> prev_map = Handle<Map>(context->sloppy_function_map(), isolate);
 
   InstanceType instance_type = prev_map->instance_type();
-  int embedder_fields = JSObject::GetEmbedderFieldCount(*prev_map);
-  CHECK_EQ(0, embedder_fields);
+  int internal_fields = JSObject::GetInternalFieldCount(*prev_map);
+  CHECK_EQ(0, internal_fields);
   int pre_allocated =
       prev_map->GetInObjectProperties() - prev_map->unused_property_fields();
   int instance_size = 0;
   int in_object_properties = 0;
-  int wasm_embedder_fields = embedder_fields + 1  // module instance object
-                             + 1                  // function arity
-                             + 1;                 // function signature
-  JSFunction::CalculateInstanceSizeHelper(instance_type, wasm_embedder_fields,
+  int wasm_internal_fields = internal_fields + 1  // module instance object
+      + 1                  // function arity
+      + 1;                 // function signature
+  JSFunction::CalculateInstanceSizeHelper(instance_type, wasm_internal_fields,
                                           0, &instance_size,
                                           &in_object_properties);
 
@@ -888,7 +810,8 @@ void WasmJs::Install(Isolate* isolate) {
   // Setup WebAssembly
   Handle<String> name = v8_str(isolate, "WebAssembly");
   Handle<JSFunction> cons = factory->NewFunction(name);
-  JSFunction::SetPrototype(cons, isolate->initial_object_prototype());
+  JSFunction::SetInstancePrototype(
+      cons, Handle<Object>(context->initial_object_prototype(), isolate));
   cons->shared()->set_instance_class_name(*name);
   Handle<JSObject> webassembly = factory->NewJSObject(cons, TENURED);
   PropertyAttributes attributes = static_cast<PropertyAttributes>(DONT_ENUM);
@@ -900,13 +823,6 @@ void WasmJs::Install(Isolate* isolate) {
   InstallFunc(isolate, webassembly, "compile", WebAssemblyCompile, 1);
   InstallFunc(isolate, webassembly, "validate", WebAssemblyValidate, 1);
   InstallFunc(isolate, webassembly, "instantiate", WebAssemblyInstantiate, 1);
-
-  if (isolate->wasm_compile_streaming_callback() != nullptr) {
-    InstallFunc(isolate, webassembly, "compileStreaming",
-                WebAssemblyCompileStreaming, 1);
-    InstallFunc(isolate, webassembly, "instantiateStreaming",
-                WebAssemblyInstantiateStreaming, 1);
-  }
 
   // Setup Module
   Handle<JSFunction> module_constructor =

@@ -69,6 +69,7 @@ bool AsmType::IsA(AsmType* that) {
   }
 
   UNREACHABLE();
+  return that == this;
 }
 
 int32_t AsmType::ElementSizeInBytes() {

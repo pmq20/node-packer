@@ -58,6 +58,7 @@ inline Dst saturated_cast(Src value) {
   }
 
   UNREACHABLE();
+  return static_cast<Dst>(value);
 }
 
 }  // namespace base

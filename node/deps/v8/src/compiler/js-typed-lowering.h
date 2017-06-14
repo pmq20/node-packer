@@ -57,8 +57,9 @@ class V8_EXPORT_PRIVATE JSTypedLowering final
   Reduction ReduceJSStoreContext(Node* node);
   Reduction ReduceJSLoadModule(Node* node);
   Reduction ReduceJSStoreModule(Node* node);
-  Reduction ReduceJSEqual(Node* node);
-  Reduction ReduceJSStrictEqual(Node* node);
+  Reduction ReduceJSEqualTypeOf(Node* node, bool invert);
+  Reduction ReduceJSEqual(Node* node, bool invert);
+  Reduction ReduceJSStrictEqual(Node* node, bool invert);
   Reduction ReduceJSToBoolean(Node* node);
   Reduction ReduceJSToInteger(Node* node);
   Reduction ReduceJSToLength(Node* node);
@@ -67,10 +68,8 @@ class V8_EXPORT_PRIVATE JSTypedLowering final
   Reduction ReduceJSToNumber(Node* node);
   Reduction ReduceJSToStringInput(Node* input);
   Reduction ReduceJSToString(Node* node);
-  Reduction ReduceJSToPrimitiveToString(Node* node);
   Reduction ReduceJSToObject(Node* node);
   Reduction ReduceJSConvertReceiver(Node* node);
-  Reduction ReduceJSConstructForwardVarargs(Node* node);
   Reduction ReduceJSConstruct(Node* node);
   Reduction ReduceJSCallForwardVarargs(Node* node);
   Reduction ReduceJSCall(Node* node);
@@ -86,12 +85,7 @@ class V8_EXPORT_PRIVATE JSTypedLowering final
   Reduction ReduceUI32Shift(Node* node, Signedness signedness);
   Reduction ReduceCreateConsString(Node* node);
   Reduction ReduceSpeculativeNumberAdd(Node* node);
-  Reduction ReduceSpeculativeNumberMultiply(Node* node);
   Reduction ReduceSpeculativeNumberBinop(Node* node);
-  Reduction ReduceSpeculativeNumberComparison(Node* node);
-
-  // Helper for ReduceJSLoadModule and ReduceJSStoreModule.
-  Node* BuildGetModuleCell(Node* node);
 
   Factory* factory() const;
   Graph* graph() const;

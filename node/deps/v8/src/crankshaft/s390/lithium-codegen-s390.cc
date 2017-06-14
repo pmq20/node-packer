@@ -178,7 +178,8 @@ void LCodeGen::DoPrologue(LPrologue* instr) {
       __ CallRuntime(Runtime::kNewScriptContext);
       deopt_mode = Safepoint::kLazyDeopt;
     } else {
-      if (slots <= ConstructorBuiltins::MaximumFunctionContextSlots()) {
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
         Callable callable = CodeFactory::FastNewFunctionContext(
             isolate(), info()->scope()->scope_type());
         __ mov(FastNewFunctionContextDescriptor::SlotsRegister(),
@@ -412,6 +413,7 @@ Register LCodeGen::EmitLoadRegister(LOperand* op, Register scratch) {
     return scratch;
   }
   UNREACHABLE();
+  return scratch;
 }
 
 void LCodeGen::EmitLoadIntegerConstant(LConstantOperand* const_op,
@@ -493,6 +495,7 @@ Operand LCodeGen::ToOperand(LOperand* op) {
   }
   // Stack slots not implemented, use ToMemOperand instead.
   UNREACHABLE();
+  return Operand::Zero();
 }
 
 static int ArgumentsOffsetWithoutFrame(int index) {
@@ -1357,7 +1360,7 @@ void LCodeGen::DoMulI(LMulI* instr) {
 #if V8_TARGET_ARCH_S390X
           } else {
             __ LoadComplementRR(result, left);
-            __ TestIfInt32(result);
+            __ TestIfInt32(result, r0);
             DeoptimizeIf(ne, instr, DeoptimizeReason::kOverflow);
           }
 #endif
@@ -1442,7 +1445,7 @@ void LCodeGen::DoMulI(LMulI* instr) {
           __ LoadRR(result, left);
           __ msgr(result, right);
         }
-        __ TestIfInt32(result);
+        __ TestIfInt32(result, r0);
         DeoptimizeIf(ne, instr, DeoptimizeReason::kOverflow);
         if (instr->hydrogen()->representation().IsSmi()) {
           __ SmiTag(result);
@@ -1450,15 +1453,16 @@ void LCodeGen::DoMulI(LMulI* instr) {
 #else
         // r0:scratch = scratch * right
         if (instr->hydrogen()->representation().IsSmi()) {
-          __ SmiUntag(result, left);
-          __ lgfr(result, result);
-          __ msgfr(result, right);
+          __ SmiUntag(scratch, left);
+          __ mr_z(r0, right);
+          __ LoadRR(result, scratch);
         } else {
           // r0:scratch = scratch * right
-          __ lgfr(result, left);
-          __ msgfr(result, right);
+          __ LoadRR(scratch, left);
+          __ mr_z(r0, right);
+          __ LoadRR(result, scratch);
         }
-        __ TestIfInt32(result);
+        __ TestIfInt32(r0, result, scratch);
         DeoptimizeIf(ne, instr, DeoptimizeReason::kOverflow);
 #endif
       }
@@ -2430,6 +2434,7 @@ static Condition ComputeCompareCondition(Token::Value op) {
       return ge;
     default:
       UNREACHABLE();
+      return kNoCondition;
   }
 }
 
@@ -2459,6 +2464,7 @@ static Condition BranchCondition(HHasInstanceTypeAndBranch* instr) {
   if (to == LAST_TYPE) return ge;
   if (from == FIRST_TYPE) return le;
   UNREACHABLE();
+  return eq;
 }
 
 void LCodeGen::DoHasInstanceTypeAndBranch(LHasInstanceTypeAndBranch* instr) {
@@ -3146,9 +3152,8 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
              FieldMemOperand(function, JSFunction::kSharedFunctionInfoOffset));
     __ LoadlW(scratch, FieldMemOperand(
                            scratch, SharedFunctionInfo::kCompilerHintsOffset));
-    __ AndP(r0, scratch,
-            Operand(SharedFunctionInfo::IsStrictBit::kMask |
-                    SharedFunctionInfo::IsNativeBit::kMask));
+    __ AndP(r0, scratch, Operand((1 << SharedFunctionInfo::kStrictModeBit) |
+                                 (1 << SharedFunctionInfo::kNativeBit)));
     __ bne(&result_in_receiver, Label::kNear);
   }
 
@@ -4480,16 +4485,16 @@ void LCodeGen::DoInteger32ToDouble(LInteger32ToDouble* instr) {
   if (input->IsStackSlot()) {
     Register scratch = scratch0();
     __ LoadP(scratch, ToMemOperand(input));
-    __ ConvertIntToDouble(ToDoubleRegister(output), scratch);
+    __ ConvertIntToDouble(scratch, ToDoubleRegister(output));
   } else {
-    __ ConvertIntToDouble(ToDoubleRegister(output), ToRegister(input));
+    __ ConvertIntToDouble(ToRegister(input), ToDoubleRegister(output));
   }
 }
 
 void LCodeGen::DoUint32ToDouble(LUint32ToDouble* instr) {
   LOperand* input = instr->value();
   LOperand* output = instr->result();
-  __ ConvertUnsignedIntToDouble(ToDoubleRegister(output), ToRegister(input));
+  __ ConvertUnsignedIntToDouble(ToRegister(input), ToDoubleRegister(output));
 }
 
 void LCodeGen::DoNumberTagI(LNumberTagI* instr) {
@@ -4565,9 +4570,9 @@ void LCodeGen::DoDeferredNumberTagIU(LInstruction* instr, LOperand* value,
       __ SmiUntag(src, dst);
       __ xilf(src, Operand(HeapNumber::kSignMask));
     }
-    __ ConvertIntToDouble(dbl_scratch, src);
+    __ ConvertIntToDouble(src, dbl_scratch);
   } else {
-    __ ConvertUnsignedIntToDouble(dbl_scratch, src);
+    __ ConvertUnsignedIntToDouble(src, dbl_scratch);
   }
 
   if (FLAG_inline_new) {
@@ -4732,7 +4737,7 @@ void LCodeGen::EmitNumberUntagD(LNumberUntagD* instr, Register input_reg,
   // Smi to double register conversion
   __ bind(&load_smi);
   // scratch: untagged value of input_reg
-  __ ConvertIntToDouble(result_reg, scratch);
+  __ ConvertIntToDouble(scratch, result_reg);
   __ bind(&done);
 }
 
@@ -5297,7 +5302,7 @@ void LCodeGen::DoTypeof(LTypeof* instr) {
   __ mov(r2, Operand(isolate()->factory()->number_string()));
   __ b(&end);
   __ bind(&do_call);
-  Callable callable = Builtins::CallableFor(isolate(), Builtins::kTypeof);
+  Callable callable = CodeFactory::Typeof(isolate());
   CallCode(callable.code(), RelocInfo::CODE_TARGET, instr);
   __ bind(&end);
 }
@@ -5521,8 +5526,7 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
 
   __ bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
-  __ LoadP(result,
-           FieldMemOperand(result, DescriptorArray::kEnumCacheBridgeOffset));
+  __ LoadP(result, FieldMemOperand(result, DescriptorArray::kEnumCacheOffset));
   __ LoadP(result, FieldMemOperand(result, FixedArray::SizeFor(instr->idx())));
   __ CmpP(result, Operand::Zero());
   DeoptimizeIf(eq, instr, DeoptimizeReason::kNoCache);

@@ -73,9 +73,6 @@
 
     # Enable/disable JavaScript API accessors.
     'v8_js_accessors%': 0,
-
-    # Temporary flag to allow embedders to update their microtasks scopes.
-    'v8_check_microtasks_scopes_consistency%': 'false',
   },
   'target_defaults': {
     'conditions': [
@@ -98,7 +95,7 @@
         'defines': ['VERIFY_HEAP',],
       }],
       ['v8_trace_maps==1', {
-        'defines': ['V8_TRACE_MAPS',],
+        'defines': ['TRACE_MAPS',],
       }],
       ['v8_enable_verify_predictable==1', {
         'defines': ['VERIFY_PREDICTABLE',],
@@ -113,16 +110,13 @@
         'defines': ['V8_IMMINENT_DEPRECATION_WARNINGS',],
       }],
       ['v8_enable_i18n_support==1', {
-        'defines': ['V8_INTL_SUPPORT',],
+        'defines': ['V8_I18N_SUPPORT',],
       }],
       ['v8_use_snapshot=="true" and v8_use_external_startup_data==1', {
         'defines': ['V8_USE_EXTERNAL_STARTUP_DATA',],
       }],
       ['dcheck_always_on!=0', {
         'defines': ['DEBUG',],
-      }],
-      ['v8_check_microtasks_scopes_consistency=="true"', {
-        'defines': ['V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY',],
       }],
     ],  # conditions
     'configurations': {
@@ -139,7 +133,7 @@
       },  # Debug
       'Release': {
         'variables': {
-          'v8_enable_handle_zapping%': 1,
+          'v8_enable_handle_zapping%': 0,
         },
         'conditions': [
           ['v8_enable_handle_zapping==1', {
@@ -148,8 +142,5 @@
         ],  # conditions
       },  # Release
     },  # configurations
-    'defines': [
-      'V8_GYP_BUILD',
-    ],  # defines
   },  # target_defaults
 }

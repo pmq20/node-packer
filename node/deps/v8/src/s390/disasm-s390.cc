@@ -188,6 +188,7 @@ int Decoder::FormatRegister(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
+  return -1;
 }
 
 int Decoder::FormatFloatingRegister(Instruction* instr, const char* format) {
@@ -221,6 +222,7 @@ int Decoder::FormatFloatingRegister(Instruction* instr, const char* format) {
     return 2;
   }
   UNREACHABLE();
+  return -1;
 }
 
 // FormatOption takes a formatting string and interprets it based on
@@ -302,6 +304,7 @@ int Decoder::FormatOption(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
+  return -1;
 }
 
 int Decoder::FormatMask(Instruction* instr, const char* format) {
@@ -453,6 +456,7 @@ int Decoder::FormatImmediate(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
+  return -1;
 }
 
 // Format takes a formatting string for a whole instruction and prints it into
@@ -635,9 +639,6 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
       break;
     case LM:
       Format(instr, "lm\t'r1,'r2,'d1('r3)");
-      break;
-    case CS:
-      Format(instr, "cs\t'r1,'r2,'d1('r3)");
       break;
     case SLL:
       Format(instr, "sll\t'r1,'d1('r3)");
@@ -1063,10 +1064,10 @@ bool Decoder::DecodeFourByte(Instruction* instr) {
       break;
     }
     case LPGR:
-      Format(instr, "lpgr\t'r5,'r6");
+      Format(instr, "lpgr\t'r1, 'r2");
       break;
     case LPGFR:
-      Format(instr, "lpgfr\t'r5,'r6");
+      Format(instr, "lpgfr\t'r1,'r2");
       break;
     default:
       return false;
@@ -1206,12 +1207,6 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       break;
     case LMG:
       Format(instr, "lmg\t'r1,'r2,'d2('r3)");
-      break;
-    case CSY:
-      Format(instr, "csy\t'r1,'r2,'d2('r3)");
-      break;
-    case CSG:
-      Format(instr, "csg\t'r1,'r2,'d2('r3)");
       break;
     case STMY:
       Format(instr, "stmy\t'r1,'r2,'d2('r3)");
@@ -1432,12 +1427,6 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
     case MSY:
       Format(instr, "msy\t'r1,'d2('r2d,'r3)");
       break;
-    case MSC:
-      Format(instr, "msc\t'r1,'d2('r2d,'r3)");
-      break;
-    case MSGC:
-      Format(instr, "msgc\t'r1,'d2('r2d,'r3)");
-      break;
     case STEY:
       Format(instr, "stey\t'f1,'d2('r2d,'r3)");
       break;
@@ -1446,9 +1435,6 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
       break;
     case ADB:
       Format(instr, "adb\t'f1,'d1('r2d, 'r3)");
-      break;
-    case AEB:
-      Format(instr, "aeb\t'f1,'d1('r2d, 'r3)");
       break;
     case CDB:
       Format(instr, "cdb\t'f1,'d1('r2d, 'r3)");
@@ -1459,20 +1445,11 @@ bool Decoder::DecodeSixByte(Instruction* instr) {
     case SDB:
       Format(instr, "sdb\t'r1,'d1('r2d, 'r3)");
       break;
-    case SEB:
-      Format(instr, "seb\t'r1,'d1('r2d, 'r3)");
-      break;
     case MDB:
       Format(instr, "mdb\t'r1,'d1('r2d, 'r3)");
       break;
-    case MEEB:
-      Format(instr, "meeb\t'r1,'d1('r2d, 'r3)");
-      break;
     case DDB:
       Format(instr, "ddb\t'r1,'d1('r2d, 'r3)");
-      break;
-    case DEB:
-      Format(instr, "deb\t'r1,'d1('r2d, 'r3)");
       break;
     case SQDB:
       Format(instr, "sqdb\t'r1,'d1('r2d, 'r3)");
@@ -1532,6 +1509,7 @@ const char* NameConverter::NameOfXMMRegister(int reg) const {
   // S390 does not have XMM register
   // TODO(joransiu): Consider update this for Vector Regs
   UNREACHABLE();
+  return "noxmmreg";
 }
 
 const char* NameConverter::NameInCode(byte* addr) const {

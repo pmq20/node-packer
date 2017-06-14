@@ -7,7 +7,6 @@
 #include <iomanip>
 
 #include "src/interpreter/interpreter-intrinsics.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -75,11 +74,12 @@ const char* NameForRuntimeId(uint32_t idx) {
   case Runtime::k##name:           \
     return #name;                  \
   case Runtime::kInline##name:     \
-    return "_" #name;
+    return #name;
     FOR_EACH_INTRINSIC(CASE)
 #undef CASE
     default:
       UNREACHABLE();
+      return nullptr;
   }
 }
 }  // anonymous namespace
@@ -174,7 +174,6 @@ std::ostream& BytecodeDecoder::Decode(std::ostream& os,
            << reg_list.last_register().ToString(parameter_count);
         break;
       }
-      case interpreter::OperandType::kRegOutList:
       case interpreter::OperandType::kRegList: {
         DCHECK_LT(i, number_of_operands - 1);
         DCHECK_EQ(Bytecodes::GetOperandType(bytecode, i + 1),

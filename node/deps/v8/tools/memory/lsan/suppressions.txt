@@ -14,3 +14,6 @@ leak:v8::internal::compiler::JumpThreading::ApplyForwarding
 # mjsunit
 leak:v8::internal::FuncNameInferrer::FuncNameInferrer
 leak:v8::internal::JSArrayBuffer::SetupAllocatingData
+
+# unittests
+leak:v8::internal::Isolate::FindOrAllocatePerThreadDataForThisThread

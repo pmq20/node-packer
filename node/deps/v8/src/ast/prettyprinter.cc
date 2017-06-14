@@ -254,7 +254,9 @@ void CallPrinter::VisitAssignment(Assignment* node) {
   Find(node->value());
 }
 
-void CallPrinter::VisitSuspend(Suspend* node) { Find(node->expression()); }
+
+void CallPrinter::VisitYield(Yield* node) { Find(node->expression()); }
+
 
 void CallPrinter::VisitThrow(Throw* node) { Find(node->exception()); }
 
@@ -370,23 +372,8 @@ void CallPrinter::VisitEmptyParentheses(EmptyParentheses* node) {
 }
 
 void CallPrinter::VisitGetIterator(GetIterator* node) {
-  // Because CallPrinter is used by RenderCallSite() in runtime-internal.cc,
-  // and the GetIterator node results in a Call, either to a [@@iterator] or
-  // [@@asyncIterator]. It's unknown which call this error refers to, so we
-  // assume it's the first call.
-  bool was_found = !found_ && node->position() == position_;
-  if (was_found) {
-    found_ = true;
-  }
+  Print("GetIterator(");
   Find(node->iterable(), true);
-  Print(node->hint() == IteratorType::kNormal ? "[Symbol.iterator]"
-                                              : "[Symbol.asyncIterator]");
-  if (was_found) done_ = true;
-}
-
-void CallPrinter::VisitImportCallExpression(ImportCallExpression* node) {
-  Print("ImportCall(");
-  Find(node->argument(), true);
   Print(")");
 }
 
@@ -515,12 +502,7 @@ void AstPrinter::PrintLabels(ZoneList<const AstRawString*>* labels) {
   }
 }
 
-void AstPrinter::PrintLiteral(MaybeHandle<Object> maybe_value, bool quote) {
-  Handle<Object> value;
-  if (!maybe_value.ToHandle(&value)) {
-    Print("<nil>");
-    return;
-  }
+void AstPrinter::PrintLiteral(Handle<Object> value, bool quote) {
   Object* object = *value;
   if (object->IsString()) {
     String* string = String::cast(object);
@@ -622,12 +604,13 @@ void AstPrinter::PrintIndented(const char* txt) {
   Print("%s", txt);
 }
 
+
 void AstPrinter::PrintLiteralIndented(const char* info,
-                                      MaybeHandle<Object> maybe_value,
+                                      Handle<Object> value,
                                       bool quote) {
   PrintIndented(info);
   Print(" ");
-  PrintLiteral(maybe_value, quote);
+  PrintLiteral(value, quote);
   Print("\n");
 }
 
@@ -640,8 +623,7 @@ void AstPrinter::PrintLiteralWithModeIndented(const char* info,
   } else {
     EmbeddedVector<char, 256> buf;
     int pos =
-        SNPrintF(buf, "%s (%p) (mode = %s", info, reinterpret_cast<void*>(var),
-                 VariableMode2String(var->mode()));
+        SNPrintF(buf, "%s (mode = %s", info, VariableMode2String(var->mode()));
     SNPrintF(buf + pos, ")");
     PrintLiteralIndented(buf.start(), value, true);
   }
@@ -667,8 +649,8 @@ const char* AstPrinter::PrintProgram(FunctionLiteral* program) {
   { IndentedScope indent(this, "FUNC", program->position());
     PrintIndented("KIND");
     Print(" %d\n", program->kind());
-    PrintIndented("SUSPEND COUNT");
-    Print(" %d\n", program->suspend_count());
+    PrintIndented("YIELD COUNT");
+    Print(" %d\n", program->yield_count());
     PrintLiteralIndented("NAME", program->name(), true);
     PrintLiteralIndented("INFERRED NAME", program->inferred_name(), true);
     PrintParameters(program->scope());
@@ -819,8 +801,8 @@ void AstPrinter::VisitCaseClause(CaseClause* clause) {
 
 void AstPrinter::VisitDoWhileStatement(DoWhileStatement* node) {
   IndentedScope indent(this, "DO", node->position());
-  PrintIndented("SUSPEND COUNT");
-  Print(" %d\n", node->suspend_count());
+  PrintIndented("YIELD COUNT");
+  Print(" %d\n", node->yield_count());
   PrintLabelsIndented(node->labels());
   PrintIndentedVisit("BODY", node->body());
   PrintIndentedVisit("COND", node->cond());
@@ -829,8 +811,8 @@ void AstPrinter::VisitDoWhileStatement(DoWhileStatement* node) {
 
 void AstPrinter::VisitWhileStatement(WhileStatement* node) {
   IndentedScope indent(this, "WHILE", node->position());
-  PrintIndented("SUSPEND COUNT");
-  Print(" %d\n", node->suspend_count());
+  PrintIndented("YIELD COUNT");
+  Print(" %d\n", node->yield_count());
   PrintLabelsIndented(node->labels());
   PrintIndentedVisit("COND", node->cond());
   PrintIndentedVisit("BODY", node->body());
@@ -839,8 +821,8 @@ void AstPrinter::VisitWhileStatement(WhileStatement* node) {
 
 void AstPrinter::VisitForStatement(ForStatement* node) {
   IndentedScope indent(this, "FOR", node->position());
-  PrintIndented("SUSPEND COUNT");
-  Print(" %d\n", node->suspend_count());
+  PrintIndented("YIELD COUNT");
+  Print(" %d\n", node->yield_count());
   PrintLabelsIndented(node->labels());
   if (node->init()) PrintIndentedVisit("INIT", node->init());
   if (node->cond()) PrintIndentedVisit("COND", node->cond());
@@ -851,8 +833,8 @@ void AstPrinter::VisitForStatement(ForStatement* node) {
 
 void AstPrinter::VisitForInStatement(ForInStatement* node) {
   IndentedScope indent(this, "FOR IN", node->position());
-  PrintIndented("SUSPEND COUNT");
-  Print(" %d\n", node->suspend_count());
+  PrintIndented("YIELD COUNT");
+  Print(" %d\n", node->yield_count());
   PrintIndentedVisit("FOR", node->each());
   PrintIndentedVisit("IN", node->enumerable());
   PrintIndentedVisit("BODY", node->body());
@@ -861,8 +843,8 @@ void AstPrinter::VisitForInStatement(ForInStatement* node) {
 
 void AstPrinter::VisitForOfStatement(ForOfStatement* node) {
   IndentedScope indent(this, "FOR OF", node->position());
-  PrintIndented("SUSPEND COUNT");
-  Print(" %d\n", node->suspend_count());
+  PrintIndented("YIELD COUNT");
+  Print(" %d\n", node->yield_count());
   PrintIndentedVisit("INIT", node->assign_iterator());
   PrintIndentedVisit("NEXT", node->next_result());
   PrintIndentedVisit("DONE", node->result_done());
@@ -874,8 +856,9 @@ void AstPrinter::VisitForOfStatement(ForOfStatement* node) {
 void AstPrinter::VisitTryCatchStatement(TryCatchStatement* node) {
   IndentedScope indent(this, "TRY CATCH", node->position());
   PrintTryStatement(node);
-  PrintLiteralWithModeIndented("CATCHVAR", node->scope()->catch_variable(),
-                               node->scope()->catch_variable()->name());
+  PrintLiteralWithModeIndented("CATCHVAR",
+                               node->variable(),
+                               node->variable()->name());
   PrintIndentedVisit("CATCH", node->catch_block());
 }
 
@@ -1112,9 +1095,10 @@ void AstPrinter::VisitAssignment(Assignment* node) {
   Visit(node->value());
 }
 
-void AstPrinter::VisitSuspend(Suspend* node) {
+
+void AstPrinter::VisitYield(Yield* node) {
   EmbeddedVector<char, 128> buf;
-  SNPrintF(buf, "SUSPEND id %d", node->suspend_id());
+  SNPrintF(buf, "YIELD id %d", node->yield_id());
   IndentedScope indent(this, buf.start(), node->position());
   Visit(node->expression());
 }
@@ -1162,8 +1146,14 @@ void AstPrinter::VisitCallNew(CallNew* node) {
 
 void AstPrinter::VisitCallRuntime(CallRuntime* node) {
   EmbeddedVector<char, 128> buf;
-  SNPrintF(buf, "CALL RUNTIME %s%s", node->debug_name(),
-           node->is_jsruntime() ? " (JS function)" : "");
+  if (node->is_jsruntime()) {
+    SNPrintF(
+        buf, "CALL RUNTIME %s code = %p", node->debug_name(),
+        static_cast<void*>(isolate_->context()->get(node->context_index())));
+  } else {
+    SNPrintF(buf, "CALL RUNTIME %s", node->debug_name());
+  }
+
   IndentedScope indent(this, buf.start(), node->position());
   PrintArguments(node->arguments());
 }
@@ -1211,11 +1201,6 @@ void AstPrinter::VisitEmptyParentheses(EmptyParentheses* node) {
 void AstPrinter::VisitGetIterator(GetIterator* node) {
   IndentedScope indent(this, "GET-ITERATOR", node->position());
   Visit(node->iterable());
-}
-
-void AstPrinter::VisitImportCallExpression(ImportCallExpression* node) {
-  IndentedScope indent(this, "IMPORT-CALL", node->position());
-  Visit(node->argument());
 }
 
 void AstPrinter::VisitThisFunction(ThisFunction* node) {

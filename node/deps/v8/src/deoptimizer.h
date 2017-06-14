@@ -132,8 +132,7 @@ class TranslatedValue {
     Float32 float_value_;
     // kind is kDouble
     Float64 double_value_;
-    // kind is kDuplicatedObject or kArgumentsObject or
-    // kCapturedObject.
+    // kind is kDuplicatedObject or kArgumentsObject or kCapturedObject.
     MaterializedObjectInfo materialization_info_;
   };
 
@@ -159,8 +158,6 @@ class TranslatedFrame {
     kArgumentsAdaptor,
     kConstructStub,
     kCompiledStub,
-    kBuiltinContinuation,
-    kJavaScriptBuiltinContinuation,
     kInvalid
   };
 
@@ -232,10 +229,6 @@ class TranslatedFrame {
   static TranslatedFrame ConstructStubFrame(BailoutId bailout_id,
                                             SharedFunctionInfo* shared_info,
                                             int height);
-  static TranslatedFrame BuiltinContinuationFrame(
-      BailoutId bailout_id, SharedFunctionInfo* shared_info, int height);
-  static TranslatedFrame JavaScriptBuiltinContinuationFrame(
-      BailoutId bailout_id, SharedFunctionInfo* shared_info, int height);
   static TranslatedFrame CompiledStubFrame(int height, Isolate* isolate) {
     return TranslatedFrame(kCompiledStub, isolate, nullptr, height);
   }
@@ -312,7 +305,7 @@ class TranslatedState {
 
   void Init(Address input_frame_pointer, TranslationIterator* iterator,
             FixedArray* literal_array, RegisterValues* registers,
-            FILE* trace_file, int parameter_count);
+            FILE* trace_file);
 
  private:
   friend TranslatedValue;
@@ -321,14 +314,12 @@ class TranslatedState {
                                             FixedArray* literal_array,
                                             Address fp,
                                             FILE* trace_file);
-  int CreateNextTranslatedValue(int frame_index, TranslationIterator* iterator,
-                                FixedArray* literal_array, Address fp,
-                                RegisterValues* registers, FILE* trace_file);
-  Address ComputeArgumentsPosition(Address input_frame_pointer, bool is_rest,
-                                   int* length);
-  void CreateArgumentsElementsTranslatedValues(int frame_index,
-                                               Address input_frame_pointer,
-                                               bool is_rest, FILE* trace_file);
+  TranslatedValue CreateNextTranslatedValue(int frame_index, int value_index,
+                                            TranslationIterator* iterator,
+                                            FixedArray* literal_array,
+                                            Address fp,
+                                            RegisterValues* registers,
+                                            FILE* trace_file);
 
   void UpdateFromPreviouslyMaterializedObjects();
   Handle<Object> MaterializeAt(int frame_index, int* value_index);
@@ -346,7 +337,6 @@ class TranslatedState {
   Isolate* isolate_;
   Address stack_frame_pointer_;
   bool has_adapted_arguments_;
-  int formal_parameter_count_;
 
   struct ObjectPosition {
     int frame_index_;
@@ -359,7 +349,16 @@ class TranslatedState {
 class OptimizedFunctionVisitor BASE_EMBEDDED {
  public:
   virtual ~OptimizedFunctionVisitor() {}
+
+  // Function which is called before iteration of any optimized functions
+  // from given native context.
+  virtual void EnterContext(Context* context) = 0;
+
   virtual void VisitFunction(JSFunction* function) = 0;
+
+  // Function which is called after iteration of all optimized functions
+  // from given native context.
+  virtual void LeaveContext(Context* context) = 0;
 };
 
 class Deoptimizer : public Malloced {
@@ -379,6 +378,7 @@ class Deoptimizer : public Malloced {
         return "TOS_REGISTER";
     }
     UNREACHABLE();
+    return nullptr;
   }
 
   struct DeoptInfo {
@@ -472,8 +472,6 @@ class Deoptimizer : public Malloced {
   static void VisitAllOptimizedFunctions(
       Isolate* isolate, OptimizedFunctionVisitor* visitor);
 
-  static void UnlinkOptimizedCode(Code* code, Context* native_context);
-
   // The size in bytes of the code required at a lazy deopt patch site.
   static int patch_size();
 
@@ -545,7 +543,6 @@ class Deoptimizer : public Malloced {
   static void EnsureCodeForDeoptimizationEntry(Isolate* isolate,
                                                BailoutType type,
                                                int max_entry_id);
-  static void EnsureCodeForMaxDeoptimizationEntries(Isolate* isolate);
 
   Isolate* isolate() const { return isolate_; }
 
@@ -574,8 +571,6 @@ class Deoptimizer : public Malloced {
                                   int frame_index, bool is_setter_stub_frame);
   void DoComputeCompiledStubFrame(TranslatedFrame* translated_frame,
                                   int frame_index);
-  void DoComputeBuiltinContinuation(TranslatedFrame* translated_frame,
-                                    int frame_index, bool java_script_frame);
 
   void WriteTranslatedValueToOutput(
       TranslatedFrame::iterator* iterator, int* input_index, int frame_index,
@@ -824,10 +819,6 @@ class FrameDescription {
     return OFFSET_OF(FrameDescription, register_values_.double_registers_);
   }
 
-  static int float_registers_offset() {
-    return OFFSET_OF(FrameDescription, register_values_.float_registers_);
-  }
-
   static int frame_size_offset() {
     return offsetof(FrameDescription, frame_size_);
   }
@@ -929,35 +920,31 @@ class TranslationIterator BASE_EMBEDDED {
   int index_;
 };
 
-#define TRANSLATION_OPCODE_LIST(V)          \
-  V(BEGIN)                                  \
-  V(JS_FRAME)                               \
-  V(INTERPRETED_FRAME)                      \
-  V(BUILTIN_CONTINUATION_FRAME)             \
-  V(JAVA_SCRIPT_BUILTIN_CONTINUATION_FRAME) \
-  V(CONSTRUCT_STUB_FRAME)                   \
-  V(GETTER_STUB_FRAME)                      \
-  V(SETTER_STUB_FRAME)                      \
-  V(ARGUMENTS_ADAPTOR_FRAME)                \
-  V(TAIL_CALLER_FRAME)                      \
-  V(COMPILED_STUB_FRAME)                    \
-  V(DUPLICATED_OBJECT)                      \
-  V(ARGUMENTS_OBJECT)                       \
-  V(ARGUMENTS_ELEMENTS)                     \
-  V(ARGUMENTS_LENGTH)                       \
-  V(CAPTURED_OBJECT)                        \
-  V(REGISTER)                               \
-  V(INT32_REGISTER)                         \
-  V(UINT32_REGISTER)                        \
-  V(BOOL_REGISTER)                          \
-  V(FLOAT_REGISTER)                         \
-  V(DOUBLE_REGISTER)                        \
-  V(STACK_SLOT)                             \
-  V(INT32_STACK_SLOT)                       \
-  V(UINT32_STACK_SLOT)                      \
-  V(BOOL_STACK_SLOT)                        \
-  V(FLOAT_STACK_SLOT)                       \
-  V(DOUBLE_STACK_SLOT)                      \
+#define TRANSLATION_OPCODE_LIST(V) \
+  V(BEGIN)                         \
+  V(JS_FRAME)                      \
+  V(INTERPRETED_FRAME)             \
+  V(CONSTRUCT_STUB_FRAME)          \
+  V(GETTER_STUB_FRAME)             \
+  V(SETTER_STUB_FRAME)             \
+  V(ARGUMENTS_ADAPTOR_FRAME)       \
+  V(TAIL_CALLER_FRAME)             \
+  V(COMPILED_STUB_FRAME)           \
+  V(DUPLICATED_OBJECT)             \
+  V(ARGUMENTS_OBJECT)              \
+  V(CAPTURED_OBJECT)               \
+  V(REGISTER)                      \
+  V(INT32_REGISTER)                \
+  V(UINT32_REGISTER)               \
+  V(BOOL_REGISTER)                 \
+  V(FLOAT_REGISTER)                \
+  V(DOUBLE_REGISTER)               \
+  V(STACK_SLOT)                    \
+  V(INT32_STACK_SLOT)              \
+  V(UINT32_STACK_SLOT)             \
+  V(BOOL_STACK_SLOT)               \
+  V(FLOAT_STACK_SLOT)              \
+  V(DOUBLE_STACK_SLOT)             \
   V(LITERAL)
 
 class Translation BASE_EMBEDDED {
@@ -990,15 +977,9 @@ class Translation BASE_EMBEDDED {
   void BeginTailCallerFrame(int literal_id);
   void BeginConstructStubFrame(BailoutId bailout_id, int literal_id,
                                unsigned height);
-  void BeginBuiltinContinuationFrame(BailoutId bailout_id, int literal_id,
-                                     unsigned height);
-  void BeginJavaScriptBuiltinContinuationFrame(BailoutId bailout_id,
-                                               int literal_id, unsigned height);
   void BeginGetterStubFrame(int literal_id);
   void BeginSetterStubFrame(int literal_id);
   void BeginArgumentsObject(int args_length);
-  void ArgumentsElements(bool is_rest);
-  void ArgumentsLength(bool is_rest);
   void BeginCapturedObject(int length);
   void DuplicateObject(int object_index);
   void StoreRegister(Register reg);
@@ -1042,7 +1023,7 @@ class MaterializedObjectStore {
   bool Remove(Address fp);
 
  private:
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() { return isolate_; }
   Handle<FixedArray> GetStackEntries();
   Handle<FixedArray> EnsureStackEntries(int size);
 

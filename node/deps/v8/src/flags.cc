@@ -154,6 +154,7 @@ struct Flag {
         return args_variable()->argc == 0;
     }
     UNREACHABLE();
+    return true;
   }
 
   // Set a flag back to it's default value.
@@ -206,6 +207,7 @@ static const char* Type2String(Flag::FlagType type) {
     case Flag::TYPE_ARGS: return "arguments";
   }
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -573,19 +575,18 @@ void FlagList::PrintHelp() {
 
   OFStream os(stdout);
   os << "Usage:\n"
-        "  shell [options] -e string\n"
-        "    execute string in V8\n"
-        "  shell [options] file1 file2 ... filek\n"
-        "    run JavaScript scripts in file1, file2, ..., filek\n"
-        "  shell [options]\n"
-        "  shell [options] --shell [file1 file2 ... filek]\n"
-        "    run an interactive JavaScript shell\n"
-        "  d8 [options] file1 file2 ... filek\n"
-        "  d8 [options]\n"
-        "  d8 [options] --shell [file1 file2 ... filek]\n"
-        "    run the new debugging shell\n\n"
-        "Options:\n";
-
+     << "  shell [options] -e string\n"
+     << "    execute string in V8\n"
+     << "  shell [options] file1 file2 ... filek\n"
+     << "    run JavaScript scripts in file1, file2, ..., filek\n"
+     << "  shell [options]\n"
+     << "  shell [options] --shell [file1 file2 ... filek]\n"
+     << "    run an interactive JavaScript shell\n"
+     << "  d8 [options] file1 file2 ... filek\n"
+     << "  d8 [options]\n"
+     << "  d8 [options] --shell [file1 file2 ... filek]\n"
+     << "    run the new debugging shell\n\n"
+     << "Options:\n";
   for (size_t i = 0; i < num_flags; ++i) {
     Flag* f = &flags[i];
     os << "  --" << f->name() << " (" << f->comment() << ")\n"

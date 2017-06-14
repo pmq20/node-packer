@@ -8,11 +8,10 @@
 #include "src/factory.h"
 #include "src/globals.h"
 #include "src/objects-inl.h"
-#include "src/objects/compilation-cache-inl.h"
-#include "src/visitors.h"
 
 namespace v8 {
 namespace internal {
+
 
 // The number of generations for each sub cache.
 static const int kRegExpGenerations = 2;
@@ -34,7 +33,9 @@ CompilationCache::CompilationCache(Isolate* isolate)
   }
 }
 
+
 CompilationCache::~CompilationCache() {}
+
 
 Handle<CompilationCacheTable> CompilationSubCache::GetTable(int generation) {
   DCHECK(generation < generations_);
@@ -49,6 +50,7 @@ Handle<CompilationCacheTable> CompilationSubCache::GetTable(int generation) {
   }
   return result;
 }
+
 
 void CompilationSubCache::Age() {
   // Don't directly age single-generation caches.
@@ -68,14 +70,26 @@ void CompilationSubCache::Age() {
   tables_[0] = isolate()->heap()->undefined_value();
 }
 
-void CompilationSubCache::Iterate(RootVisitor* v) {
-  v->VisitRootPointers(Root::kCompilationCache, &tables_[0],
-                       &tables_[generations_]);
+
+void CompilationSubCache::IterateFunctions(ObjectVisitor* v) {
+  Object* undefined = isolate()->heap()->undefined_value();
+  for (int i = 0; i < generations_; i++) {
+    if (tables_[i] != undefined) {
+      reinterpret_cast<CompilationCacheTable*>(tables_[i])->IterateElements(v);
+    }
+  }
 }
+
+
+void CompilationSubCache::Iterate(ObjectVisitor* v) {
+  v->VisitPointers(&tables_[0], &tables_[generations_]);
+}
+
 
 void CompilationSubCache::Clear() {
   MemsetPointer(tables_, isolate()->heap()->undefined_value(), generations_);
 }
+
 
 void CompilationSubCache::Remove(Handle<SharedFunctionInfo> function_info) {
   // Probe the script generation tables. Make sure not to leak handles
@@ -118,6 +132,7 @@ bool CompilationCacheScript::HasOrigin(Handle<SharedFunctionInfo> function_info,
                         Handle<String>(String::cast(script->name())));
 }
 
+
 // TODO(245): Need to allow identical code from different contexts to
 // be cached in the same script generation. Currently the first use
 // will be cached, but subsequent code from different source / line
@@ -155,19 +170,11 @@ InfoVectorPair CompilationCacheScript::Lookup(
   // to see if we actually found a cached script. If so, we return a
   // handle created in the caller's handle scope.
   if (result.has_shared()) {
-#ifdef DEBUG
-    // Since HasOrigin can allocate, we need to protect the SharedFunctionInfo
-    // and the FeedbackVector with handles during the call.
     Handle<SharedFunctionInfo> shared(result.shared(), isolate());
-    Handle<Cell> vector_handle;
-    if (result.has_vector()) {
-      vector_handle = Handle<Cell>(result.vector(), isolate());
-    }
+    // TODO(mvstanton): Make sure HasOrigin can't allocate, or it will
+    // mess up our InfoVectorPair.
     DCHECK(
         HasOrigin(shared, name, line_offset, column_offset, resource_options));
-    result =
-        InfoVectorPair(*shared, result.has_vector() ? *vector_handle : nullptr);
-#endif
     isolate()->counters()->compilation_cache_hits()->Increment();
   } else {
     isolate()->counters()->compilation_cache_misses()->Increment();
@@ -219,6 +226,7 @@ void CompilationCacheEval::Put(Handle<String> source,
   SetFirstTable(table);
 }
 
+
 MaybeHandle<FixedArray> CompilationCacheRegExp::Lookup(
     Handle<String> source,
     JSRegExp::Flags flags) {
@@ -246,6 +254,7 @@ MaybeHandle<FixedArray> CompilationCacheRegExp::Lookup(
   }
 }
 
+
 void CompilationCacheRegExp::Put(Handle<String> source,
                                  JSRegExp::Flags flags,
                                  Handle<FixedArray> data) {
@@ -253,6 +262,7 @@ void CompilationCacheRegExp::Put(Handle<String> source,
   Handle<CompilationCacheTable> table = GetFirstTable();
   SetFirstTable(CompilationCacheTable::PutRegExp(table, source, flags, data));
 }
+
 
 void CompilationCache::Remove(Handle<SharedFunctionInfo> function_info) {
   if (!IsEnabled()) return;
@@ -292,6 +302,7 @@ InfoVectorPair CompilationCache::LookupEval(
   return result;
 }
 
+
 MaybeHandle<FixedArray> CompilationCache::LookupRegExp(Handle<String> source,
                                                        JSRegExp::Flags flags) {
   if (!IsEnabled()) return MaybeHandle<FixedArray>();
@@ -327,6 +338,8 @@ void CompilationCache::PutEval(Handle<String> source,
   }
 }
 
+
+
 void CompilationCache::PutRegExp(Handle<String> source,
                                  JSRegExp::Flags flags,
                                  Handle<FixedArray> data) {
@@ -337,17 +350,27 @@ void CompilationCache::PutRegExp(Handle<String> source,
   reg_exp_.Put(source, flags, data);
 }
 
+
 void CompilationCache::Clear() {
   for (int i = 0; i < kSubCacheCount; i++) {
     subcaches_[i]->Clear();
   }
 }
 
-void CompilationCache::Iterate(RootVisitor* v) {
+
+void CompilationCache::Iterate(ObjectVisitor* v) {
   for (int i = 0; i < kSubCacheCount; i++) {
     subcaches_[i]->Iterate(v);
   }
 }
+
+
+void CompilationCache::IterateFunctions(ObjectVisitor* v) {
+  for (int i = 0; i < kSubCacheCount; i++) {
+    subcaches_[i]->IterateFunctions(v);
+  }
+}
+
 
 void CompilationCache::MarkCompactPrologue() {
   for (int i = 0; i < kSubCacheCount; i++) {
@@ -355,14 +378,17 @@ void CompilationCache::MarkCompactPrologue() {
   }
 }
 
+
 void CompilationCache::Enable() {
   enabled_ = true;
 }
+
 
 void CompilationCache::Disable() {
   enabled_ = false;
   Clear();
 }
+
 
 }  // namespace internal
 }  // namespace v8

@@ -73,6 +73,7 @@ const char* CompilerDispatcherTracer::Scope::Name(ScopeID scope_id) {
       return "V8.BackgroundCompile_FinalizeCompiling";
   }
   UNREACHABLE();
+  return nullptr;
 }
 
 CompilerDispatcherTracer::CompilerDispatcherTracer(Isolate* isolate)

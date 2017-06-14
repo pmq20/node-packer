@@ -15,7 +15,6 @@
 #if defined(DEBUG) && defined(V8_OS_LINUX) && !defined(V8_OS_ANDROID)
 #define SYMBOLIZE_FUNCTION
 #include <execinfo.h>
-#include <vector>
 #endif  // DEBUG && V8_OS_LINUX && !V8_OS_ANDROID
 
 namespace v8 {
@@ -46,16 +45,8 @@ ExternalReferenceTable::ExternalReferenceTable(Isolate* isolate) {
   AddIsolateAddresses(isolate);
   AddAccessors(isolate);
   AddStubCache(isolate);
-  // API references must be added last.
+  AddDeoptEntries(isolate);
   AddApiReferences(isolate);
-}
-
-ExternalReferenceTable::~ExternalReferenceTable() {
-#ifdef SYMBOLIZE_FUNCTION
-  for (char** table : symbol_tables_) {
-    free(table);
-  }
-#endif
 }
 
 #ifdef DEBUG
@@ -71,12 +62,10 @@ void ExternalReferenceTable::PrintCount() {
 }
 #endif  // DEBUG
 
-const char* ExternalReferenceTable::ResolveSymbol(void* address,
-                                                  std::vector<char**>* tables) {
+// static
+const char* ExternalReferenceTable::ResolveSymbol(void* address) {
 #ifdef SYMBOLIZE_FUNCTION
-  char** table = backtrace_symbols(&address, 1);
-  if (tables) tables->push_back(table);
-  return table[0];
+  return backtrace_symbols(&address, 1)[0];
 #else
   return "<unresolved>";
 #endif  // SYMBOLIZE_FUNCTION
@@ -244,41 +233,6 @@ void ExternalReferenceTable::AddReferences(Isolate* isolate) {
       "wasm::call_trap_callback_for_testing");
   Add(ExternalReference::libc_memchr_function(isolate).address(),
       "libc_memchr");
-  Add(ExternalReference::libc_memcpy_function(isolate).address(),
-      "libc_memcpy");
-  Add(ExternalReference::libc_memmove_function(isolate).address(),
-      "libc_memmove");
-  Add(ExternalReference::libc_memset_function(isolate).address(),
-      "libc_memset");
-  Add(ExternalReference::try_internalize_string_function(isolate).address(),
-      "try_internalize_string_function");
-#ifdef V8_INTL_SUPPORT
-  Add(ExternalReference::intl_convert_one_byte_to_lower(isolate).address(),
-      "intl_convert_one_byte_to_lower");
-  Add(ExternalReference::intl_to_latin1_lower_table(isolate).address(),
-      "intl_to_latin1_lower_table");
-#endif  // V8_INTL_SUPPORT
-  Add(ExternalReference::search_string_raw<const uint8_t, const uint8_t>(
-          isolate)
-          .address(),
-      "search_string_raw<1-byte, 1-byte>");
-  Add(ExternalReference::search_string_raw<const uint8_t, const uc16>(isolate)
-          .address(),
-      "search_string_raw<1-byte, 2-byte>");
-  Add(ExternalReference::search_string_raw<const uc16, const uint8_t>(isolate)
-          .address(),
-      "search_string_raw<2-byte, 1-byte>");
-  Add(ExternalReference::search_string_raw<const uc16, const uc16>(isolate)
-          .address(),
-      "search_string_raw<1-byte, 2-byte>");
-  Add(ExternalReference::orderedhashmap_get_raw(isolate).address(),
-      "orderedhashmap_get_raw");
-  Add(ExternalReference::orderedhashtable_has_raw<OrderedHashMap, 2>(isolate)
-          .address(),
-      "orderedhashtable_has_raw<OrderedHashMap, 2>");
-  Add(ExternalReference::orderedhashtable_has_raw<OrderedHashSet, 1>(isolate)
-          .address(),
-      "orderedhashtable_has_raw<OrderedHashSet, 1>");
   Add(ExternalReference::log_enter_external_function(isolate).address(),
       "Logger::EnterExternal");
   Add(ExternalReference::log_leave_external_function(isolate).address(),
@@ -315,9 +269,6 @@ void ExternalReferenceTable::AddReferences(Isolate* isolate) {
       "Debug::step_suspended_generator_address()");
   Add(ExternalReference::debug_restart_fp_address(isolate).address(),
       "Debug::restart_fp_address()");
-
-  Add(ExternalReference::address_of_regexp_dotall_flag(isolate).address(),
-      "FLAG_harmony_regexp_dotall");
 
 #ifndef V8_INTERPRETED_REGEXP
   Add(ExternalReference::re_case_insensitive_compare_uc16(isolate).address(),
@@ -477,6 +428,19 @@ void ExternalReferenceTable::AddStubCache(Isolate* isolate) {
       "Store StubCache::secondary_->map");
 }
 
+void ExternalReferenceTable::AddDeoptEntries(Isolate* isolate) {
+  // Add a small set of deopt entry addresses to encoder without generating
+  // the
+  // deopt table code, which isn't possible at deserialization time.
+  HandleScope scope(isolate);
+  for (int entry = 0; entry < kDeoptTableSerializeEntryCount; ++entry) {
+    Address address = Deoptimizer::GetDeoptimizationEntry(
+        isolate, entry, Deoptimizer::LAZY,
+        Deoptimizer::CALCULATE_ENTRY_ADDRESS);
+    Add(address, "lazy_deopt");
+  }
+}
+
 void ExternalReferenceTable::AddApiReferences(Isolate* isolate) {
   // Add external references provided by the embedder (a null-terminated
   // array).
@@ -485,11 +449,7 @@ void ExternalReferenceTable::AddApiReferences(Isolate* isolate) {
   if (api_external_references != nullptr) {
     while (*api_external_references != 0) {
       Address address = reinterpret_cast<Address>(*api_external_references);
-#ifdef SYMBOLIZE_FUNCTION
-      Add(address, ResolveSymbol(address, &symbol_tables_));
-#else
       Add(address, ResolveSymbol(address));
-#endif
       api_external_references++;
     }
   }

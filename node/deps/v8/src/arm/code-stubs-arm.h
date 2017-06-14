@@ -197,7 +197,9 @@ class RecordWriteStub: public PlatformCodeStub {
       Mode mode);
   void InformIncrementalMarker(MacroAssembler* masm);
 
-  void Activate(Code* code) override;
+  void Activate(Code* code) override {
+    code->GetHeap()->incremental_marking()->ActivateGeneratedStub(code);
+  }
 
   Register object() const {
     return Register::from_code(ObjectBits::decode(minor_key_));

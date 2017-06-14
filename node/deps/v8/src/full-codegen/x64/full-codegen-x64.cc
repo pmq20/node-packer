@@ -190,7 +190,8 @@ void FullCodeGenerator::Generate() {
       if (info->scope()->new_target_var() != nullptr) {
         __ Push(rdx);  // Preserve new target.
       }
-      if (slots <= ConstructorBuiltins::MaximumFunctionContextSlots()) {
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
         Callable callable = CodeFactory::FastNewFunctionContext(
             isolate(), info->scope()->scope_type());
         __ Set(FastNewFunctionContextDescriptor::SlotsRegister(), slots);
@@ -987,7 +988,7 @@ void FullCodeGenerator::VisitForInStatement(ForInStatement* stmt) {
   __ j(equal, &no_descriptors);
 
   __ LoadInstanceDescriptors(rax, rcx);
-  __ movp(rcx, FieldOperand(rcx, DescriptorArray::kEnumCacheBridgeOffset));
+  __ movp(rcx, FieldOperand(rcx, DescriptorArray::kEnumCacheOffset));
   __ movp(rcx, FieldOperand(rcx, DescriptorArray::kEnumCacheBridgeCacheOffset));
 
   // Set up the four remaining stack slots.
@@ -1185,8 +1186,8 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
     __ Move(rbx, SmiFromSlot(expr->literal_slot()));
     __ Move(rcx, constant_properties);
     __ Move(rdx, Smi::FromInt(flags));
-    Callable callable =
-        Builtins::CallableFor(isolate(), Builtins::kFastCloneShallowObject);
+    Callable callable = CodeFactory::FastCloneShallowObject(
+        isolate(), expr->properties_count());
     __ Call(callable.code(), RelocInfo::CODE_TARGET);
     RestoreContext();
   }
@@ -1224,7 +1225,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
             VisitForAccumulatorValue(value);
             DCHECK(StoreDescriptor::ValueRegister().is(rax));
             __ movp(StoreDescriptor::ReceiverRegister(), Operand(rsp, 0));
-            CallStoreIC(property->GetSlot(0), key->value(), kStoreOwn);
+            CallStoreIC(property->GetSlot(0), key->value(), true);
             PrepareForBailoutForId(key->id(), BailoutState::NO_REGISTERS);
 
             if (NeedsHomeObject(value)) {
@@ -1464,7 +1465,8 @@ void FullCodeGenerator::VisitAssignment(Assignment* expr) {
   }
 }
 
-void FullCodeGenerator::VisitSuspend(Suspend* expr) {
+
+void FullCodeGenerator::VisitYield(Yield* expr) {
   // Resumable functions are not supported.
   UNREACHABLE();
 }
@@ -1636,7 +1638,7 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var, Token::Value op,
   if (var->IsUnallocated()) {
     // Global var, const, or let.
     __ LoadGlobalObject(StoreDescriptor::ReceiverRegister());
-    CallStoreIC(slot, var->name(), kStoreGlobal);
+    CallStoreIC(slot, var->name());
 
   } else if (IsLexicalVariableMode(var->mode()) && op != Token::INIT) {
     DCHECK(!var->IsLookupSlot());
@@ -1678,6 +1680,12 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var, Token::Value op,
     // Assignment to var or initializing assignment to let/const in harmony
     // mode.
     MemOperand location = VarOperand(var, rcx);
+    if (FLAG_debug_code && var->mode() == LET && op == Token::INIT) {
+      // Check for an uninitialized let binding.
+      __ movp(rdx, location);
+      __ CompareRoot(rdx, Heap::kTheHoleValueRootIndex);
+      __ Check(equal, kLetBindingReInitialization);
+    }
     EmitStoreToStackLocalOrContextSlot(var, location);
   }
 }
@@ -1946,6 +1954,7 @@ void FullCodeGenerator::EmitIsJSProxy(CallRuntime* expr) {
   context()->Plug(if_true, if_false);
 }
 
+
 void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   DCHECK(args->length() == 1);
@@ -1994,6 +2003,7 @@ void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
 
   context()->Plug(rax);
 }
+
 
 void FullCodeGenerator::EmitStringCharCodeAt(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
@@ -2140,8 +2150,9 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
       if (property != NULL) {
         VisitForStackValue(property->obj());
         VisitForStackValue(property->key());
-        PushOperand(Smi::FromInt(language_mode()));
-        CallRuntimeWithOperands(Runtime::kDeleteProperty);
+        CallRuntimeWithOperands(is_strict(language_mode())
+                                    ? Runtime::kDeleteProperty_Strict
+                                    : Runtime::kDeleteProperty_Sloppy);
         context()->Plug(rax);
       } else if (proxy != NULL) {
         Variable* var = proxy->var();
@@ -2153,8 +2164,7 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
           __ movp(rax, NativeContextOperand());
           __ Push(ContextOperand(rax, Context::EXTENSION_INDEX));
           __ Push(var->name());
-          __ Push(Smi::FromInt(SLOPPY));
-          __ CallRuntime(Runtime::kDeleteProperty);
+          __ CallRuntime(Runtime::kDeleteProperty_Sloppy);
           context()->Plug(rax);
         } else {
           DCHECK(!var->IsLookupSlot());

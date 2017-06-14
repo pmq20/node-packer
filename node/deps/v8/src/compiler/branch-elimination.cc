@@ -175,8 +175,9 @@ Reduction BranchElimination::ReduceStart(Node* node) {
   return UpdateConditions(node, ControlPathConditions::Empty(zone_));
 }
 
+
 const BranchElimination::ControlPathConditions*
-BranchElimination::PathConditionsForControlNodes::Get(Node* node) const {
+BranchElimination::PathConditionsForControlNodes::Get(Node* node) {
   if (static_cast<size_t>(node->id()) < info_for_node_.size()) {
     return info_for_node_[node->id()];
   }
@@ -306,6 +307,7 @@ bool BranchElimination::ControlPathConditions::operator==(
     other_condition = other_condition->next;
   }
   UNREACHABLE();
+  return false;
 }
 
 Graph* BranchElimination::graph() const { return jsgraph()->graph(); }

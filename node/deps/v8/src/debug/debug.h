@@ -17,7 +17,6 @@
 #include "src/flags.h"
 #include "src/frames.h"
 #include "src/globals.h"
-#include "src/objects/debug-objects.h"
 #include "src/runtime/runtime.h"
 #include "src/source-position-table.h"
 #include "src/string-stream.h"
@@ -66,11 +65,6 @@ enum DebugBreakType {
   DEBUG_BREAK_SLOT_AT_TAIL_CALL,
 };
 
-enum IgnoreBreakMode {
-  kIgnoreIfAllFramesBlackboxed,
-  kIgnoreIfTopFrameBlackboxed
-};
-
 class BreakLocation {
  public:
   static BreakLocation FromFrame(Handle<DebugInfo> debug_info,
@@ -93,8 +87,6 @@ class BreakLocation {
   bool HasBreakPoint(Handle<DebugInfo> debug_info) const;
 
   inline int position() const { return position_; }
-
-  debug::BreakLocationType type() const;
 
  private:
   BreakLocation(Handle<AbstractCode> abstract_code, DebugBreakType type,
@@ -178,7 +170,10 @@ class CodeBreakIterator : public BreakIterator {
 
   void SkipToPosition(int position, BreakPositionAlignment alignment);
 
-  int code_offset() override;
+  int code_offset() override {
+    return static_cast<int>(rinfo()->pc() -
+                            debug_info_->DebugCode()->instruction_start());
+  }
 
  private:
   int GetModeMask();
@@ -279,7 +274,7 @@ class Debug {
   MUST_USE_RESULT MaybeHandle<Object> Call(Handle<Object> fun,
                                            Handle<Object> data);
   Handle<Context> GetDebugContext();
-  void HandleDebugBreak(IgnoreBreakMode ignore_break_mode);
+  void HandleDebugBreak();
 
   // Internal logic
   bool Load();
@@ -317,8 +312,7 @@ class Debug {
 
   bool PrepareFunctionForBreakPoints(Handle<SharedFunctionInfo> shared);
   bool GetPossibleBreakpoints(Handle<Script> script, int start_position,
-                              int end_position, bool restrict_to_function,
-                              std::vector<BreakLocation>* locations);
+                              int end_position, std::set<int>* positions);
 
   void RecordGenerator(Handle<JSGeneratorObject> generator_object);
 
@@ -332,13 +326,9 @@ class Debug {
   void SetDebugDelegate(debug::DebugDelegate* delegate, bool pass_ownership);
 
   // Returns whether the operation succeeded.
-  bool EnsureBreakInfo(Handle<SharedFunctionInfo> shared);
-  void CreateBreakInfo(Handle<SharedFunctionInfo> shared);
-  Handle<DebugInfo> GetOrCreateDebugInfo(Handle<SharedFunctionInfo> shared);
-
-  void InstallCoverageInfo(Handle<SharedFunctionInfo> shared,
-                           Handle<CoverageInfo> coverage_info);
-  void RemoveAllCoverageInfos();
+  bool EnsureDebugInfo(Handle<SharedFunctionInfo> shared);
+  void CreateDebugInfo(Handle<SharedFunctionInfo> shared);
+  static Handle<DebugInfo> GetDebugInfo(Handle<SharedFunctionInfo> shared);
 
   template <typename C>
   bool CompileToRevealInnerFunctions(C* compilable);
@@ -360,14 +350,14 @@ class Debug {
   // Support for LiveEdit
   void ScheduleFrameRestart(StackFrame* frame);
 
-  bool AllFramesOnStackAreBlackboxed();
+  bool IsFrameBlackboxed(JavaScriptFrame* frame);
 
   // Threading support.
   char* ArchiveDebug(char* to);
   char* RestoreDebug(char* from);
   static int ArchiveSpacePerThread();
   void FreeThreadResources() { }
-  void Iterate(RootVisitor* v);
+  void Iterate(ObjectVisitor* v);
 
   bool CheckExecutionState(int id) {
     return CheckExecutionState() && break_id() == id;
@@ -383,7 +373,7 @@ class Debug {
   // Flags and states.
   DebugScope* debugger_entry() {
     return reinterpret_cast<DebugScope*>(
-        base::Relaxed_Load(&thread_local_.current_debug_scope_));
+        base::NoBarrier_Load(&thread_local_.current_debug_scope_));
   }
   inline Handle<Context> debug_context() { return debug_context_; }
 
@@ -395,7 +385,7 @@ class Debug {
   inline bool is_active() const { return is_active_; }
   inline bool is_loaded() const { return !debug_context_.is_null(); }
   inline bool in_debug_scope() const {
-    return !!base::Relaxed_Load(&thread_local_.current_debug_scope_);
+    return !!base::NoBarrier_Load(&thread_local_.current_debug_scope_);
   }
   void set_break_points_active(bool v) { break_points_active_ = v; }
   bool break_points_active() const { return break_points_active_; }
@@ -492,14 +482,12 @@ class Debug {
   // Clear all code from instrumentation.
   void ClearAllBreakPoints();
   // Instrument a function with one-shots.
-  void FloodWithOneShot(Handle<SharedFunctionInfo> function,
-                        bool returns_only = false);
+  void FloodWithOneShot(Handle<SharedFunctionInfo> function);
   // Clear all one-shot instrumentations, but restore break points.
   void ClearOneShot();
 
-  bool IsFrameBlackboxed(JavaScriptFrame* frame);
-
   void ActivateStepOut(StackFrame* frame);
+  void RemoveDebugInfoAndClearFromShared(Handle<DebugInfo> debug_info);
   MaybeHandle<FixedArray> CheckBreakPoints(Handle<DebugInfo> debug_info,
                                            BreakLocation* location,
                                            bool* has_break_points = nullptr);
@@ -516,15 +504,6 @@ class Debug {
   void ThreadInit();
 
   void PrintBreakLocation();
-
-  // Wraps logic for clearing and maybe freeing all debug infos.
-  typedef std::function<bool(Handle<DebugInfo>)> DebugInfoClearFunction;
-  void ClearAllDebugInfos(DebugInfoClearFunction clear_function);
-
-  void RemoveBreakInfoAndMaybeFree(Handle<DebugInfo> debug_info);
-  void FindDebugInfo(Handle<DebugInfo> debug_info, DebugInfoListNode** prev,
-                     DebugInfoListNode** curr);
-  void FreeDebugInfoListNode(DebugInfoListNode* prev, DebugInfoListNode* node);
 
   // Global handles.
   Handle<Context> debug_context_;
@@ -576,13 +555,6 @@ class Debug {
     // Step action for last step performed.
     StepAction last_step_action_;
 
-    // If set, next PrepareStepIn will ignore this function until stepped into
-    // another function, at which point this will be cleared.
-    Object* ignore_step_into_function_;
-
-    // If set then we need to repeat StepOut action at return.
-    bool fast_forward_to_return_;
-
     // Source statement position from last step next action.
     int last_statement_position_;
 
@@ -627,7 +599,7 @@ class LegacyDebugDelegate : public v8::debug::DebugDelegate {
  public:
   explicit LegacyDebugDelegate(Isolate* isolate) : isolate_(isolate) {}
   void PromiseEventOccurred(v8::debug::PromiseDebugActionType type, int id,
-                            int parent_id, bool created_by_user) override;
+                            int parent_id) override;
   void ScriptCompiled(v8::Local<v8::debug::Script> script,
                       bool has_compile_error) override;
   void BreakProgramRequested(v8::Local<v8::Context> paused_context,

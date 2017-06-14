@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "src/accessors.h"
-#include "src/assembler-inl.h"
 #include "src/ast/prettyprinter.h"
 #include "src/codegen.h"
 #include "src/disasm.h"
@@ -16,7 +15,6 @@
 #include "src/global-handles.h"
 #include "src/interpreter/interpreter.h"
 #include "src/macro-assembler.h"
-#include "src/objects/debug-objects-inl.h"
 #include "src/tracing/trace-event.h"
 #include "src/v8.h"
 
@@ -147,6 +145,8 @@ void Deoptimizer::VisitAllOptimizedFunctionsForContext(
 
   CHECK(context->IsNativeContext());
 
+  visitor->EnterContext(context);
+
   // Visit the list of optimized functions, removing elements that
   // no longer refer to optimized code.
   JSFunction* prev = NULL;
@@ -180,29 +180,8 @@ void Deoptimizer::VisitAllOptimizedFunctionsForContext(
     }
     element = next;
   }
-}
 
-void Deoptimizer::UnlinkOptimizedCode(Code* code, Context* native_context) {
-  class CodeUnlinker : public OptimizedFunctionVisitor {
-   public:
-    explicit CodeUnlinker(Code* code) : code_(code) {}
-
-    virtual void VisitFunction(JSFunction* function) {
-      if (function->code() == code_) {
-        if (FLAG_trace_deopt) {
-          PrintF("[removing optimized code for: ");
-          function->ShortPrint();
-          PrintF("]\n");
-        }
-        function->set_code(function->shared()->code());
-      }
-    }
-
-   private:
-    Code* code_;
-  };
-  CodeUnlinker unlinker(code);
-  VisitAllOptimizedFunctionsForContext(native_context, &unlinker);
+  visitor->LeaveContext(context);
 }
 
 
@@ -230,21 +209,14 @@ void Deoptimizer::DeoptimizeMarkedCodeForContext(Context* context) {
   // deoptimized from the functions that refer to it.
   class SelectedCodeUnlinker: public OptimizedFunctionVisitor {
    public:
+    virtual void EnterContext(Context* context) { }  // Don't care.
+    virtual void LeaveContext(Context* context)  { }  // Don't care.
     virtual void VisitFunction(JSFunction* function) {
-      // The code in the function's optimized code feedback vector slot might
-      // be different from the code on the function - evict it if necessary.
-      function->feedback_vector()->EvictOptimizedCodeMarkedForDeoptimization(
-          function->shared(), "unlinking code marked for deopt");
-
       Code* code = function->code();
       if (!code->marked_for_deoptimization()) return;
 
-      // Unlink this function.
+      // Unlink this function and evict from optimized code map.
       SharedFunctionInfo* shared = function->shared();
-      if (!code->deopt_already_counted()) {
-        shared->increment_deopt_count();
-        code->set_deopt_already_counted(true);
-      }
       function->set_code(shared->code());
 
       if (FLAG_trace_deopt) {
@@ -348,12 +320,12 @@ void Deoptimizer::DeoptimizeMarkedCodeForContext(Context* context) {
 #endif
     // It is finally time to die, code object.
 
-    // Remove the code from the osr optimized code cache.
+    // Remove the code from optimized code map.
     DeoptimizationInputData* deopt_data =
         DeoptimizationInputData::cast(codes[i]->deoptimization_data());
-    if (deopt_data->OsrAstId()->value() != BailoutId::None().ToInt()) {
-      isolate->EvictOSROptimizedCode(codes[i], "deoptimized code");
-    }
+    SharedFunctionInfo* shared =
+        SharedFunctionInfo::cast(deopt_data->SharedFunctionInfo());
+    shared->EvictFromOptimizedCodeMap(codes[i], "deoptimized code");
 
     // Do platform-specific patching to force any activations to lazy deopt.
     PatchCodeForDeoptimization(isolate, codes[i]);
@@ -455,23 +427,6 @@ const char* Deoptimizer::MessageFor(BailoutType type) {
   return NULL;
 }
 
-namespace {
-
-CodeEventListener::DeoptKind DeoptKindOfBailoutType(
-    Deoptimizer::BailoutType bailout_type) {
-  switch (bailout_type) {
-    case Deoptimizer::EAGER:
-      return CodeEventListener::kEager;
-    case Deoptimizer::SOFT:
-      return CodeEventListener::kSoft;
-    case Deoptimizer::LAZY:
-      return CodeEventListener::kLazy;
-  }
-  UNREACHABLE();
-}
-
-}  // namespace
-
 Deoptimizer::Deoptimizer(Isolate* isolate, JSFunction* function,
                          BailoutType type, unsigned bailout_id, Address from,
                          int fp_to_sp_delta)
@@ -506,6 +461,17 @@ Deoptimizer::Deoptimizer(Isolate* isolate, JSFunction* function,
     function = nullptr;
   }
   DCHECK(from != nullptr);
+  if (function != nullptr && function->IsOptimized()) {
+    function->shared()->increment_deopt_count();
+    if (bailout_type_ == Deoptimizer::SOFT) {
+      isolate->counters()->soft_deopts_executed()->Increment();
+      // Soft deopts shouldn't count against the overall re-optimization count
+      // that can eventually lead to disabling optimization for a function.
+      int opt_count = function->shared()->opt_count();
+      if (opt_count > 0) opt_count--;
+      function->shared()->set_opt_count(opt_count);
+    }
+  }
   compiled_code_ = FindOptimizedCode(function);
 #if DEBUG
   DCHECK(compiled_code_ != NULL);
@@ -524,26 +490,8 @@ Deoptimizer::Deoptimizer(Isolate* isolate, JSFunction* function,
   CHECK(AllowHeapAllocation::IsAllowed());
   disallow_heap_allocation_ = new DisallowHeapAllocation();
 #endif  // DEBUG
-  if (function != nullptr && function->IsOptimized() &&
-      (compiled_code_->kind() != Code::OPTIMIZED_FUNCTION ||
-       !compiled_code_->deopt_already_counted())) {
-    // If the function is optimized, and we haven't counted that deopt yet, then
-    // increment the function's deopt count so that we can avoid optimising
-    // functions that deopt too often.
-
-    if (bailout_type_ == Deoptimizer::SOFT) {
-      // Soft deopts shouldn't count against the overall deoptimization count
-      // that can eventually lead to disabling optimization for a function.
-      isolate->counters()->soft_deopts_executed()->Increment();
-    } else {
-      function->shared()->increment_deopt_count();
-    }
-  }
   if (compiled_code_->kind() == Code::OPTIMIZED_FUNCTION) {
-    compiled_code_->set_deopt_already_counted(true);
-    PROFILE(isolate_,
-            CodeDeoptEvent(compiled_code_, DeoptKindOfBailoutType(type), from_,
-                           fp_to_sp_delta_));
+    PROFILE(isolate_, CodeDeoptEvent(compiled_code_, from_, fp_to_sp_delta_));
   }
   unsigned size = ComputeInputFrameSize();
   int parameter_count =
@@ -563,7 +511,7 @@ Code* Deoptimizer::FindOptimizedCode(JSFunction* function) {
 
 
 void Deoptimizer::PrintFunctionName() {
-  if (function_->IsHeapObject() && function_->IsJSFunction()) {
+  if (function_ != nullptr && function_->IsJSFunction()) {
     function_->ShortPrint(trace_scope_->file());
   } else {
     PrintF(trace_scope_->file(),
@@ -760,10 +708,7 @@ void Deoptimizer::DoComputeOutputFrames() {
   translated_state_.Init(
       input_->GetFramePointerAddress(), &state_iterator,
       input_data->LiteralArray(), input_->GetRegisterValues(),
-      trace_scope_ == nullptr ? nullptr : trace_scope_->file(),
-      function_->IsHeapObject()
-          ? function_->shared()->internal_formal_parameter_count()
-          : 0);
+      trace_scope_ == nullptr ? nullptr : trace_scope_->file());
 
   // Do the input frame to output frame(s) translation.
   size_t count = translated_state_.frames().size();
@@ -826,12 +771,6 @@ void Deoptimizer::DoComputeOutputFrames() {
         break;
       case TranslatedFrame::kCompiledStub:
         DoComputeCompiledStubFrame(translated_frame, frame_index);
-        break;
-      case TranslatedFrame::kBuiltinContinuation:
-        DoComputeBuiltinContinuation(translated_frame, frame_index, false);
-        break;
-      case TranslatedFrame::kJavaScriptBuiltinContinuation:
-        DoComputeBuiltinContinuation(translated_frame, frame_index, true);
         break;
       case TranslatedFrame::kInvalid:
         FATAL("invalid frame");
@@ -1269,7 +1208,7 @@ void Deoptimizer::DoComputeInterpretedFrame(TranslatedFrame* translated_frame,
 
   // Set the bytecode array pointer.
   output_offset -= kPointerSize;
-  Object* bytecode_array = shared->HasBreakInfo()
+  Object* bytecode_array = shared->HasDebugInfo()
                                ? shared->GetDebugInfo()->DebugBytecodeArray()
                                : shared->bytecode_array();
   WriteValueToOutput(bytecode_array, 0, frame_index, output_offset,
@@ -1567,10 +1506,7 @@ void Deoptimizer::DoComputeConstructStubFrame(TranslatedFrame* translated_frame,
   int input_index = 0;
 
   Builtins* builtins = isolate_->builtins();
-  Code* construct_stub = builtins->builtin(
-      FLAG_harmony_restrict_constructor_return
-          ? Builtins::kJSConstructStubGenericRestrictedReturn
-          : Builtins::kJSConstructStubGenericUnrestrictedReturn);
+  Code* construct_stub = builtins->builtin(Builtins::kJSConstructStubGeneric);
   BailoutId bailout_id = translated_frame->node_id();
   unsigned height = translated_frame->height();
   unsigned height_in_bytes = height * kPointerSize;
@@ -1676,22 +1612,18 @@ void Deoptimizer::DoComputeConstructStubFrame(TranslatedFrame* translated_frame,
     PrintF(trace_scope_->file(), "(%d)\n", height - 1);
   }
 
-  // The constructor function was mentioned explicitly in the
-  // CONSTRUCT_STUB_FRAME.
-  output_offset -= kPointerSize;
-  value = reinterpret_cast<intptr_t>(function);
-  WriteValueToOutput(function, 0, frame_index, output_offset,
-                     "constructor function ");
-
-  // The deopt info contains the implicit receiver or the new target at the
-  // position of the receiver. Copy it to the top of stack.
-  output_offset -= kPointerSize;
-  value = output_frame->GetFrameSlot(output_frame_size - kPointerSize);
-  output_frame->SetFrameSlot(output_offset, value);
   if (bailout_id == BailoutId::ConstructStubCreate()) {
-    DebugPrintOutputSlot(value, frame_index, output_offset, "new target\n");
+    // The function was mentioned explicitly in the CONSTRUCT_STUB_FRAME.
+    output_offset -= kPointerSize;
+    value = reinterpret_cast<intptr_t>(function);
+    WriteValueToOutput(function, 0, frame_index, output_offset, "function ");
   } else {
-    CHECK(bailout_id == BailoutId::ConstructStubInvoke());
+    DCHECK(bailout_id == BailoutId::ConstructStubInvoke());
+    // The newly allocated object was passed as receiver in the artificial
+    // constructor stub environment created by HEnvironment::CopyForInlining().
+    output_offset -= kPointerSize;
+    value = output_frame->GetFrameSlot(output_frame_size - kPointerSize);
+    output_frame->SetFrameSlot(output_offset, value);
     DebugPrintOutputSlot(value, frame_index, output_offset,
                          "allocated receiver\n");
   }
@@ -1702,7 +1634,8 @@ void Deoptimizer::DoComputeConstructStubFrame(TranslatedFrame* translated_frame,
     Register result_reg = FullCodeGenerator::result_register();
     value = input_->GetRegister(result_reg.code());
     output_frame->SetFrameSlot(output_offset, value);
-    DebugPrintOutputSlot(value, frame_index, output_offset, "subcall result\n");
+    DebugPrintOutputSlot(value, frame_index, output_offset,
+                         "constructor result\n");
 
     output_frame->SetState(
         Smi::FromInt(static_cast<int>(BailoutState::TOS_REGISTER)));
@@ -2167,292 +2100,6 @@ void Deoptimizer::DoComputeCompiledStubFrame(TranslatedFrame* translated_frame,
       reinterpret_cast<intptr_t>(notify_failure->entry()));
 }
 
-// BuiltinContinuationFrames capture the machine state that is expected as input
-// to a builtin, including both input register values and stack parameters. When
-// the frame is reactivated (i.e. the frame below it returns), a
-// ContinueToBuiltin stub restores the register state from the frame and tail
-// calls to the actual target builtin, making it appear that the stub had been
-// directly called by the frame above it. The input values to populate the frame
-// are taken from the deopt's FrameState.
-//
-// Frame translation happens in two modes, EAGER and LAZY. In EAGER mode, all of
-// the parameters to the Builtin are explicitly specified in the TurboFan
-// FrameState node. In LAZY mode, there is always one fewer parameters specified
-// in the FrameState than expected by the Builtin. In that case, construction of
-// BuiltinContinuationFrame adds the final missing parameter during
-// deoptimization, and that parameter is always on the stack and contains the
-// value returned from the callee of the call site triggering the LAZY deopt
-// (e.g. rax on x64). This requires that continuation Builtins for LAZY deopts
-// must have at least one stack parameter.
-//
-//                TO
-//    |          ....           |
-//    +-------------------------+
-//    |     builtin param 0     |<- FrameState input value n becomes
-//    +-------------------------+
-//    |           ...           |
-//    +-------------------------+
-//    |     builtin param m     |<- FrameState input value n+m-1, or in
-//    +-------------------------+   the LAZY case, return LAZY result value
-//    | ContinueToBuiltin entry |
-//    +-------------------------+
-// |  |    saved frame (FP)     |
-// |  +=========================+<- fpreg
-// |  |constant pool (if ool_cp)|
-// v  +-------------------------+
-//    |BUILTIN_CONTINUATION mark|
-//    +-------------------------+
-//    |  JS Builtin code object |
-//    +-------------------------+
-//    | builtin input GPR reg0  |<- populated from deopt FrameState using
-//    +-------------------------+   the builtin's CallInterfaceDescriptor
-//    |          ...            |   to map a FrameState's 0..n-1 inputs to
-//    +-------------------------+   the builtin's n input register params.
-//    | builtin input GPR regn  |
-//    |-------------------------|<- spreg
-//
-void Deoptimizer::DoComputeBuiltinContinuation(
-    TranslatedFrame* translated_frame, int frame_index,
-    bool java_script_builtin) {
-  TranslatedFrame::iterator value_iterator = translated_frame->begin();
-  int input_index = 0;
-
-  // The output frame must have room for all of the parameters that need to be
-  // passed to the builtin continuation.
-  int height_in_words = translated_frame->height();
-
-  BailoutId bailout_id = translated_frame->node_id();
-  Builtins::Name builtin_name = Builtins::GetBuiltinFromBailoutId(bailout_id);
-  Code* builtin = isolate()->builtins()->builtin(builtin_name);
-  Callable continuation_callable =
-      Builtins::CallableFor(isolate(), builtin_name);
-  CallInterfaceDescriptor continuation_descriptor =
-      continuation_callable.descriptor();
-
-  bool is_bottommost = (0 == frame_index);
-  bool is_topmost = (output_count_ - 1 == frame_index);
-  bool must_handle_result = !is_topmost || bailout_type_ == LAZY;
-
-  const RegisterConfiguration* config(RegisterConfiguration::Turbofan());
-  int allocatable_register_count = config->num_allocatable_general_registers();
-  int register_parameter_count =
-      continuation_descriptor.GetRegisterParameterCount();
-  // Make sure to account for the context by removing it from the register
-  // parameter count.
-  int stack_param_count = height_in_words - register_parameter_count - 1;
-  if (must_handle_result) stack_param_count++;
-  int output_frame_size =
-      kPointerSize * (stack_param_count + allocatable_register_count) +
-      TYPED_FRAME_SIZE(2);  // For destination builtin code and registers
-
-  // Validate types of parameters. They must all be tagged except for argc for
-  // JS builtins.
-  bool has_argc = false;
-  for (int i = 0; i < register_parameter_count; ++i) {
-    MachineType type = continuation_descriptor.GetParameterType(i);
-    int code = continuation_descriptor.GetRegisterParameter(i).code();
-    // Only tagged and int32 arguments are supported, and int32 only for the
-    // arguments count on JavaScript builtins.
-    if (type == MachineType::Int32()) {
-      CHECK_EQ(code, kJavaScriptCallArgCountRegister.code());
-      has_argc = true;
-    } else {
-      // Any other argument must be a tagged value.
-      CHECK(IsAnyTagged(type.representation()));
-    }
-  }
-  CHECK_EQ(java_script_builtin, has_argc);
-
-  if (trace_scope_ != NULL) {
-    PrintF(trace_scope_->file(),
-           "  translating BuiltinContinuation to %s, stack param count %d\n",
-           Builtins::name(builtin_name), stack_param_count);
-  }
-
-  unsigned output_frame_offset = output_frame_size;
-  FrameDescription* output_frame =
-      new (output_frame_size) FrameDescription(output_frame_size);
-  output_[frame_index] = output_frame;
-
-  // The top address of the frame is computed from the previous frame's top and
-  // this frame's size.
-  intptr_t top_address;
-  if (is_bottommost) {
-    top_address = caller_frame_top_ - output_frame_size;
-  } else {
-    top_address = output_[frame_index - 1]->GetTop() - output_frame_size;
-  }
-  output_frame->SetTop(top_address);
-
-  output_frame->SetState(
-      Smi::FromInt(static_cast<int>(BailoutState::NO_REGISTERS)));
-
-  // Get the possible JSFunction for the case that
-  intptr_t maybe_function =
-      reinterpret_cast<intptr_t>(value_iterator->GetRawValue());
-  ++value_iterator;
-
-  std::vector<intptr_t> register_values;
-  int total_registers = config->num_general_registers();
-  register_values.resize(total_registers, 0);
-  for (int i = 0; i < total_registers; ++i) {
-    register_values[i] = 0;
-  }
-
-  intptr_t value;
-
-  Register result_reg = FullCodeGenerator::result_register();
-  if (must_handle_result) {
-    value = input_->GetRegister(result_reg.code());
-  } else {
-    value = reinterpret_cast<intptr_t>(isolate()->heap()->undefined_value());
-  }
-  output_frame->SetRegister(result_reg.code(), value);
-
-  int translated_stack_parameters =
-      must_handle_result ? stack_param_count - 1 : stack_param_count;
-
-  for (int i = 0; i < translated_stack_parameters; ++i) {
-    output_frame_offset -= kPointerSize;
-    WriteTranslatedValueToOutput(&value_iterator, &input_index, frame_index,
-                                 output_frame_offset);
-  }
-
-  if (must_handle_result) {
-    output_frame_offset -= kPointerSize;
-    WriteValueToOutput(isolate()->heap()->the_hole_value(), input_index,
-                       frame_index, output_frame_offset,
-                       "placeholder for return result on lazy deopt ");
-  }
-
-  for (int i = 0; i < register_parameter_count; ++i) {
-    value = reinterpret_cast<intptr_t>(value_iterator->GetRawValue());
-    int code = continuation_descriptor.GetRegisterParameter(i).code();
-    register_values[code] = value;
-    ++input_index;
-    ++value_iterator;
-  }
-
-  // The context register is always implicit in the CallInterfaceDescriptor but
-  // its register must be explicitly set when continuing to the builtin. Make
-  // sure that it's harvested from the translation and copied into the register
-  // set (it was automatically added at the end of the FrameState by the
-  // instruction selector).
-  value = reinterpret_cast<intptr_t>(value_iterator->GetRawValue());
-  register_values[kContextRegister.code()] = value;
-  output_frame->SetContext(value);
-  output_frame->SetRegister(kContextRegister.code(), value);
-  ++input_index;
-  ++value_iterator;
-
-  // Set caller's PC (JSFunction continuation).
-  output_frame_offset -= kPCOnStackSize;
-  if (is_bottommost) {
-    value = caller_pc_;
-  } else {
-    value = output_[frame_index - 1]->GetPc();
-  }
-  output_frame->SetCallerPc(output_frame_offset, value);
-  DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                       "caller's pc\n");
-
-  // Read caller's FP from the previous frame, and set this frame's FP.
-  output_frame_offset -= kFPOnStackSize;
-  if (is_bottommost) {
-    value = caller_fp_;
-  } else {
-    value = output_[frame_index - 1]->GetFp();
-  }
-  output_frame->SetCallerFp(output_frame_offset, value);
-  intptr_t fp_value = top_address + output_frame_offset;
-  output_frame->SetFp(fp_value);
-  DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                       "caller's fp\n");
-
-  if (FLAG_enable_embedded_constant_pool) {
-    // Read the caller's constant pool from the previous frame.
-    output_frame_offset -= kPointerSize;
-    if (is_bottommost) {
-      value = caller_constant_pool_;
-    } else {
-      value = output_[frame_index - 1]->GetConstantPool();
-    }
-    output_frame->SetCallerConstantPool(output_frame_offset, value);
-    DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                         "caller's constant_pool\n");
-  }
-
-  // A marker value is used in place of the context.
-  output_frame_offset -= kPointerSize;
-  intptr_t marker =
-      java_script_builtin
-          ? StackFrame::TypeToMarker(
-                StackFrame::JAVA_SCRIPT_BUILTIN_CONTINUATION)
-          : StackFrame::TypeToMarker(StackFrame::BUILTIN_CONTINUATION);
-  output_frame->SetFrameSlot(output_frame_offset, marker);
-  DebugPrintOutputSlot(marker, frame_index, output_frame_offset,
-                       "context (builtin continuation sentinel)\n");
-
-  output_frame_offset -= kPointerSize;
-  value = java_script_builtin ? maybe_function : 0;
-  output_frame->SetFrameSlot(output_frame_offset, value);
-  DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                       java_script_builtin ? "JSFunction\n" : "unused\n");
-
-  // The builtin to continue to
-  output_frame_offset -= kPointerSize;
-  value = reinterpret_cast<intptr_t>(builtin);
-  output_frame->SetFrameSlot(output_frame_offset, value);
-  DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                       "builtin address\n");
-
-  for (int i = 0; i < allocatable_register_count; ++i) {
-    output_frame_offset -= kPointerSize;
-    int code = config->GetAllocatableGeneralCode(i);
-    value = register_values[code];
-    output_frame->SetFrameSlot(output_frame_offset, value);
-    if (trace_scope_ != nullptr) {
-      ScopedVector<char> str(128);
-      if (java_script_builtin &&
-          code == kJavaScriptCallArgCountRegister.code()) {
-        SNPrintF(
-            str,
-            "tagged argument count %s (will be untagged by continuation)\n",
-            config->GetGeneralRegisterName(code));
-      } else {
-        SNPrintF(str, "builtin register argument %s\n",
-                 config->GetGeneralRegisterName(code));
-      }
-      DebugPrintOutputSlot(value, frame_index, output_frame_offset,
-                           str.start());
-    }
-  }
-
-  // Ensure the frame pointer register points to the callee's frame. The builtin
-  // will build its own frame once we continue to it.
-  Register fp_reg = JavaScriptFrame::fp_register();
-  output_frame->SetRegister(fp_reg.code(), output_[frame_index - 1]->GetFp());
-
-  Code* continue_to_builtin =
-      java_script_builtin
-          ? (must_handle_result
-                 ? isolate()->builtins()->builtin(
-                       Builtins::kContinueToJavaScriptBuiltinWithResult)
-                 : isolate()->builtins()->builtin(
-                       Builtins::kContinueToJavaScriptBuiltin))
-          : (must_handle_result
-                 ? isolate()->builtins()->builtin(
-                       Builtins::kContinueToCodeStubBuiltinWithResult)
-                 : isolate()->builtins()->builtin(
-                       Builtins::kContinueToCodeStubBuiltin));
-  output_frame->SetPc(
-      reinterpret_cast<intptr_t>(continue_to_builtin->instruction_start()));
-
-  Code* continuation =
-      isolate()->builtins()->builtin(Builtins::kNotifyBuiltinContinuation);
-  output_frame->SetContinuation(
-      reinterpret_cast<intptr_t>(continuation->entry()));
-}
 
 void Deoptimizer::MaterializeHeapObjects(JavaScriptFrameIterator* it) {
   // Walk to the last JavaScript output frame to find out if it has
@@ -2612,8 +2259,8 @@ void Deoptimizer::EnsureCodeForDeoptimizationEntry(Isolate* isolate,
   masm.set_emit_debug_code(false);
   GenerateDeoptimizationEntries(&masm, entry_count, type);
   CodeDesc desc;
-  masm.GetCode(isolate, &desc);
-  DCHECK(!RelocInfo::RequiresRelocation(isolate, desc));
+  masm.GetCode(&desc);
+  DCHECK(!RelocInfo::RequiresRelocation(desc));
 
   MemoryChunk* chunk = data->deopt_entry_code_[type];
   CHECK(static_cast<int>(Deoptimizer::GetMaxDeoptTableSize()) >=
@@ -2627,12 +2274,6 @@ void Deoptimizer::EnsureCodeForDeoptimizationEntry(Isolate* isolate,
   Assembler::FlushICache(isolate, chunk->area_start(), desc.instr_size);
 
   data->deopt_entry_code_entries_[type] = entry_count;
-}
-
-void Deoptimizer::EnsureCodeForMaxDeoptimizationEntries(Isolate* isolate) {
-  EnsureCodeForDeoptimizationEntry(isolate, EAGER, kMaxNumberOfEntries - 1);
-  EnsureCodeForDeoptimizationEntry(isolate, LAZY, kMaxNumberOfEntries - 1);
-  EnsureCodeForDeoptimizationEntry(isolate, SOFT, kMaxNumberOfEntries - 1);
 }
 
 FrameDescription::FrameDescription(uint32_t frame_size, int parameter_count)
@@ -2697,24 +2338,6 @@ Handle<ByteArray> TranslationBuffer::CreateByteArray(Factory* factory) {
   return result;
 }
 
-void Translation::BeginBuiltinContinuationFrame(BailoutId bailout_id,
-                                                int literal_id,
-                                                unsigned height) {
-  buffer_->Add(BUILTIN_CONTINUATION_FRAME);
-  buffer_->Add(bailout_id.ToInt());
-  buffer_->Add(literal_id);
-  buffer_->Add(height);
-}
-
-void Translation::BeginJavaScriptBuiltinContinuationFrame(BailoutId bailout_id,
-                                                          int literal_id,
-                                                          unsigned height) {
-  buffer_->Add(JAVA_SCRIPT_BUILTIN_CONTINUATION_FRAME);
-  buffer_->Add(bailout_id.ToInt());
-  buffer_->Add(literal_id);
-  buffer_->Add(height);
-}
-
 void Translation::BeginConstructStubFrame(BailoutId bailout_id, int literal_id,
                                           unsigned height) {
   buffer_->Add(CONSTRUCT_STUB_FRAME);
@@ -2776,15 +2399,6 @@ void Translation::BeginArgumentsObject(int args_length) {
   buffer_->Add(args_length);
 }
 
-void Translation::ArgumentsElements(bool is_rest) {
-  buffer_->Add(ARGUMENTS_ELEMENTS);
-  buffer_->Add(is_rest);
-}
-
-void Translation::ArgumentsLength(bool is_rest) {
-  buffer_->Add(ARGUMENTS_LENGTH);
-  buffer_->Add(is_rest);
-}
 
 void Translation::BeginCapturedObject(int length) {
   buffer_->Add(CAPTURED_OBJECT);
@@ -2917,12 +2531,7 @@ int Translation::NumberOfOperandsFor(Opcode opcode) {
     case JS_FRAME:
     case INTERPRETED_FRAME:
     case CONSTRUCT_STUB_FRAME:
-    case BUILTIN_CONTINUATION_FRAME:
-    case JAVA_SCRIPT_BUILTIN_CONTINUATION_FRAME:
       return 3;
-    case ARGUMENTS_ELEMENTS:
-    case ARGUMENTS_LENGTH:
-      return 1;
   }
   FATAL("Unexpected translation type");
   return -1;
@@ -2938,6 +2547,7 @@ const char* Translation::StringFor(Opcode opcode) {
   }
 #undef TRANSLATION_OPCODE_CASE
   UNREACHABLE();
+  return "";
 }
 
 #endif
@@ -3180,6 +2790,7 @@ TranslatedValue TranslatedValue::NewArgumentsObject(TranslatedState* container,
   return slot;
 }
 
+
 // static
 TranslatedValue TranslatedValue::NewDeferredObject(TranslatedState* container,
                                                    int length,
@@ -3408,6 +3019,10 @@ void TranslatedValue::MaterializeSimple() {
     }
 
     case kDouble: {
+      if (double_value().is_hole_nan()) {
+        value_ = isolate()->factory()->hole_nan_value();
+        return;
+      }
       double scalar_value = double_value().get_scalar();
       value_ = Handle<Object>(isolate()->factory()->NewNumber(scalar_value));
       return;
@@ -3460,11 +3075,7 @@ uint32_t TranslatedState::GetUInt32Slot(Address fp, int slot_offset) {
 }
 
 Float32 TranslatedState::GetFloatSlot(Address fp, int slot_offset) {
-#if !V8_TARGET_ARCH_S390X && !V8_TARGET_ARCH_PPC64
   return Float32::FromBits(GetUInt32Slot(fp, slot_offset));
-#else
-  return Float32::FromBits(Memory::uint32_at(fp + slot_offset));
-#endif
 }
 
 Float64 TranslatedState::GetDoubleSlot(Address fp, int slot_offset) {
@@ -3525,22 +3136,6 @@ TranslatedFrame TranslatedFrame::ConstructStubFrame(
   return frame;
 }
 
-TranslatedFrame TranslatedFrame::BuiltinContinuationFrame(
-    BailoutId bailout_id, SharedFunctionInfo* shared_info, int height) {
-  base::OS::DebugBreak();
-  TranslatedFrame frame(kBuiltinContinuation, shared_info->GetIsolate(),
-                        shared_info, height);
-  frame.node_id_ = bailout_id;
-  return frame;
-}
-
-TranslatedFrame TranslatedFrame::JavaScriptBuiltinContinuationFrame(
-    BailoutId bailout_id, SharedFunctionInfo* shared_info, int height) {
-  TranslatedFrame frame(kJavaScriptBuiltinContinuation,
-                        shared_info->GetIsolate(), shared_info, height);
-  frame.node_id_ = bailout_id;
-  return frame;
-}
 
 int TranslatedFrame::GetValueCount() {
   switch (kind()) {
@@ -3566,8 +3161,6 @@ int TranslatedFrame::GetValueCount() {
 
     case kArgumentsAdaptor:
     case kConstructStub:
-    case kBuiltinContinuation:
-    case kJavaScriptBuiltinContinuation:
       return 1 + height_;
 
     case kTailCallerFunction:
@@ -3581,6 +3174,7 @@ int TranslatedFrame::GetValueCount() {
       break;
   }
   UNREACHABLE();
+  return -1;
 }
 
 
@@ -3671,38 +3265,6 @@ TranslatedFrame TranslatedState::CreateNextTranslatedFrame(
                                                  height);
     }
 
-    case Translation::BUILTIN_CONTINUATION_FRAME: {
-      BailoutId bailout_id = BailoutId(iterator->Next());
-      SharedFunctionInfo* shared_info =
-          SharedFunctionInfo::cast(literal_array->get(iterator->Next()));
-      int height = iterator->Next();
-      if (trace_file != nullptr) {
-        std::unique_ptr<char[]> name = shared_info->DebugName()->ToCString();
-        PrintF(trace_file, "  reading builtin continuation frame %s",
-               name.get());
-        PrintF(trace_file, " => bailout_id=%d, height=%d; inputs:\n",
-               bailout_id.ToInt(), height);
-      }
-      return TranslatedFrame::BuiltinContinuationFrame(bailout_id, shared_info,
-                                                       height);
-    }
-
-    case Translation::JAVA_SCRIPT_BUILTIN_CONTINUATION_FRAME: {
-      BailoutId bailout_id = BailoutId(iterator->Next());
-      SharedFunctionInfo* shared_info =
-          SharedFunctionInfo::cast(literal_array->get(iterator->Next()));
-      int height = iterator->Next();
-      if (trace_file != nullptr) {
-        std::unique_ptr<char[]> name = shared_info->DebugName()->ToCString();
-        PrintF(trace_file, "  reading JavaScript builtin continuation frame %s",
-               name.get());
-        PrintF(trace_file, " => bailout_id=%d, height=%d; inputs:\n",
-               bailout_id.ToInt(), height);
-      }
-      return TranslatedFrame::JavaScriptBuiltinContinuationFrame(
-          bailout_id, shared_info, height + 1);
-    }
-
     case Translation::GETTER_STUB_FRAME: {
       SharedFunctionInfo* shared_info =
           SharedFunctionInfo::cast(literal_array->get(iterator->Next()));
@@ -3738,8 +3300,6 @@ TranslatedFrame TranslatedState::CreateNextTranslatedFrame(
     case Translation::BEGIN:
     case Translation::DUPLICATED_OBJECT:
     case Translation::ARGUMENTS_OBJECT:
-    case Translation::ARGUMENTS_ELEMENTS:
-    case Translation::ARGUMENTS_LENGTH:
     case Translation::CAPTURED_OBJECT:
     case Translation::REGISTER:
     case Translation::INT32_REGISTER:
@@ -3775,89 +3335,15 @@ void TranslatedFrame::AdvanceIterator(
   }
 }
 
-Address TranslatedState::ComputeArgumentsPosition(Address input_frame_pointer,
-                                                  bool is_rest, int* length) {
-  Address parent_frame_pointer = *reinterpret_cast<Address*>(
-      input_frame_pointer + StandardFrameConstants::kCallerFPOffset);
-  intptr_t parent_frame_type = Memory::intptr_at(
-      parent_frame_pointer + CommonFrameConstants::kContextOrFrameTypeOffset);
 
-  Address arguments_frame;
-  if (parent_frame_type ==
-      StackFrame::TypeToMarker(StackFrame::ARGUMENTS_ADAPTOR)) {
-    if (length)
-      *length = Smi::cast(*reinterpret_cast<Object**>(
-                              parent_frame_pointer +
-                              ArgumentsAdaptorFrameConstants::kLengthOffset))
-                    ->value();
-    arguments_frame = parent_frame_pointer;
-  } else {
-    if (length) *length = formal_parameter_count_;
-    arguments_frame = input_frame_pointer;
-  }
-
-  if (is_rest) {
-    // If the actual number of arguments is less than the number of formal
-    // parameters, we have zero rest parameters.
-    if (length) *length = std::max(0, *length - formal_parameter_count_);
-  }
-
-  return arguments_frame;
-}
-
-// Creates translated values for an arguments backing store, or the backing
-// store for the rest parameters if {is_rest} is true. The TranslatedValue
-// objects for the fields are not read from the TranslationIterator, but instead
-// created on-the-fly based on dynamic information in the optimized frame.
-void TranslatedState::CreateArgumentsElementsTranslatedValues(
-    int frame_index, Address input_frame_pointer, bool is_rest,
-    FILE* trace_file) {
-  TranslatedFrame& frame = frames_[frame_index];
-
-  int length;
-  Address arguments_frame =
-      ComputeArgumentsPosition(input_frame_pointer, is_rest, &length);
-
-  int object_index = static_cast<int>(object_positions_.size());
-  int value_index = static_cast<int>(frame.values_.size());
-  if (trace_file != nullptr) {
-    PrintF(trace_file,
-           "arguments elements object #%d (is_rest = %d, length = %d)",
-           object_index, is_rest, length);
-  }
-  object_positions_.push_back({frame_index, value_index});
-  frame.Add(TranslatedValue::NewDeferredObject(
-      this, length + FixedArray::kHeaderSize / kPointerSize, object_index));
-
-  frame.Add(
-      TranslatedValue::NewTagged(this, isolate_->heap()->fixed_array_map()));
-  frame.Add(TranslatedValue::NewInt32(this, length));
-
-  for (int i = length - 1; i >= 0; --i) {
-    Address argument_slot = arguments_frame +
-                            CommonFrameConstants::kFixedFrameSizeAboveFp +
-                            i * kPointerSize;
-    frame.Add(TranslatedValue::NewTagged(
-        this, *reinterpret_cast<Object**>(argument_slot)));
-  }
-}
-
-// We can't intermix stack decoding and allocations because the deoptimization
-// infrastracture is not GC safe.
+// We can't intermix stack decoding and allocations because
+// deoptimization infrastracture is not GC safe.
 // Thus we build a temporary structure in malloced space.
-// The TranslatedValue objects created correspond to the static translation
-// instructions from the TranslationIterator, except for
-// Translation::ARGUMENTS_ELEMENTS, where the number and values of the
-// FixedArray elements depend on dynamic information from the optimized frame.
-// Returns the number of expected nested translations from the
-// TranslationIterator.
-int TranslatedState::CreateNextTranslatedValue(
-    int frame_index, TranslationIterator* iterator, FixedArray* literal_array,
-    Address fp, RegisterValues* registers, FILE* trace_file) {
+TranslatedValue TranslatedState::CreateNextTranslatedValue(
+    int frame_index, int value_index, TranslationIterator* iterator,
+    FixedArray* literal_array, Address fp, RegisterValues* registers,
+    FILE* trace_file) {
   disasm::NameConverter converter;
-
-  TranslatedFrame& frame = frames_[frame_index];
-  int value_index = static_cast<int>(frame.values_.size());
 
   Translation::Opcode opcode =
       static_cast<Translation::Opcode>(iterator->Next());
@@ -3871,8 +3357,6 @@ int TranslatedState::CreateNextTranslatedValue(
     case Translation::GETTER_STUB_FRAME:
     case Translation::SETTER_STUB_FRAME:
     case Translation::COMPILED_STUB_FRAME:
-    case Translation::JAVA_SCRIPT_BUILTIN_CONTINUATION_FRAME:
-    case Translation::BUILTIN_CONTINUATION_FRAME:
       // Peeled off before getting here.
       break;
 
@@ -3882,43 +3366,18 @@ int TranslatedState::CreateNextTranslatedValue(
         PrintF(trace_file, "duplicated object #%d", object_id);
       }
       object_positions_.push_back(object_positions_[object_id]);
-      TranslatedValue translated_value =
-          TranslatedValue::NewDuplicateObject(this, object_id);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewDuplicateObject(this, object_id);
     }
 
     case Translation::ARGUMENTS_OBJECT: {
       int arg_count = iterator->Next();
       int object_index = static_cast<int>(object_positions_.size());
       if (trace_file != nullptr) {
-        PrintF(trace_file, "arguments object #%d (length = %d)", object_index,
+        PrintF(trace_file, "argumets object #%d (length = %d)", object_index,
                arg_count);
       }
       object_positions_.push_back({frame_index, value_index});
-      TranslatedValue translated_value =
-          TranslatedValue::NewArgumentsObject(this, arg_count, object_index);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
-    }
-
-    case Translation::ARGUMENTS_ELEMENTS: {
-      bool is_rest = iterator->Next();
-      CreateArgumentsElementsTranslatedValues(frame_index, fp, is_rest,
-                                              trace_file);
-      return 0;
-    }
-
-    case Translation::ARGUMENTS_LENGTH: {
-      bool is_rest = iterator->Next();
-      int length;
-      ComputeArgumentsPosition(fp, is_rest, &length);
-      if (trace_file != nullptr) {
-        PrintF(trace_file, "arguments length field (is_rest = %d, length = %d)",
-               is_rest, length);
-      }
-      frame.Add(TranslatedValue::NewInt32(this, length));
-      return 0;
+      return TranslatedValue::NewArgumentsObject(this, arg_count, object_index);
     }
 
     case Translation::CAPTURED_OBJECT: {
@@ -3929,121 +3388,78 @@ int TranslatedState::CreateNextTranslatedValue(
                field_count);
       }
       object_positions_.push_back({frame_index, value_index});
-      TranslatedValue translated_value =
-          TranslatedValue::NewDeferredObject(this, field_count, object_index);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewDeferredObject(this, field_count,
+                                                object_index);
     }
 
     case Translation::REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       intptr_t value = registers->GetRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "0x%08" V8PRIxPTR " ; %s ", value,
                converter.NameOfCPURegister(input_reg));
         reinterpret_cast<Object*>(value)->ShortPrint(trace_file);
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewTagged(this, reinterpret_cast<Object*>(value));
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewTagged(this, reinterpret_cast<Object*>(value));
     }
 
     case Translation::INT32_REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       intptr_t value = registers->GetRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "%" V8PRIdPTR " ; %s ", value,
                converter.NameOfCPURegister(input_reg));
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewInt32(this, static_cast<int32_t>(value));
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewInt32(this, static_cast<int32_t>(value));
     }
 
     case Translation::UINT32_REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       intptr_t value = registers->GetRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "%" V8PRIuPTR " ; %s (uint)", value,
                converter.NameOfCPURegister(input_reg));
         reinterpret_cast<Object*>(value)->ShortPrint(trace_file);
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewUInt32(this, static_cast<uint32_t>(value));
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewUInt32(this, static_cast<uint32_t>(value));
     }
 
     case Translation::BOOL_REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       intptr_t value = registers->GetRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "%" V8PRIdPTR " ; %s (bool)", value,
                converter.NameOfCPURegister(input_reg));
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewBool(this, static_cast<uint32_t>(value));
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewBool(this, static_cast<uint32_t>(value));
     }
 
     case Translation::FLOAT_REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       Float32 value = registers->GetFloatRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "%e ; %s (float)", value.get_scalar(),
                RegisterConfiguration::Crankshaft()->GetFloatRegisterName(
                    input_reg));
       }
-      TranslatedValue translated_value = TranslatedValue::NewFloat(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewFloat(this, value);
     }
 
     case Translation::DOUBLE_REGISTER: {
       int input_reg = iterator->Next();
-      if (registers == nullptr) {
-        TranslatedValue translated_value = TranslatedValue::NewInvalid(this);
-        frame.Add(translated_value);
-        return translated_value.GetChildrenCount();
-      }
+      if (registers == nullptr) return TranslatedValue::NewInvalid(this);
       Float64 value = registers->GetDoubleRegister(input_reg);
       if (trace_file != nullptr) {
         PrintF(trace_file, "%e ; %s (double)", value.get_scalar(),
                RegisterConfiguration::Crankshaft()->GetDoubleRegisterName(
                    input_reg));
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewDouble(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewDouble(this, value);
     }
 
     case Translation::STACK_SLOT: {
@@ -4055,10 +3471,7 @@ int TranslatedState::CreateNextTranslatedValue(
                slot_offset < 0 ? '-' : '+', std::abs(slot_offset));
         reinterpret_cast<Object*>(value)->ShortPrint(trace_file);
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewTagged(this, reinterpret_cast<Object*>(value));
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewTagged(this, reinterpret_cast<Object*>(value));
     }
 
     case Translation::INT32_STACK_SLOT: {
@@ -4070,9 +3483,7 @@ int TranslatedState::CreateNextTranslatedValue(
                static_cast<int32_t>(value), slot_offset < 0 ? '-' : '+',
                std::abs(slot_offset));
       }
-      TranslatedValue translated_value = TranslatedValue::NewInt32(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewInt32(this, value);
     }
 
     case Translation::UINT32_STACK_SLOT: {
@@ -4083,10 +3494,7 @@ int TranslatedState::CreateNextTranslatedValue(
         PrintF(trace_file, "%u ; (uint) [fp %c %d] ", value,
                slot_offset < 0 ? '-' : '+', std::abs(slot_offset));
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewUInt32(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewUInt32(this, value);
     }
 
     case Translation::BOOL_STACK_SLOT: {
@@ -4097,9 +3505,7 @@ int TranslatedState::CreateNextTranslatedValue(
         PrintF(trace_file, "%u ; (bool) [fp %c %d] ", value,
                slot_offset < 0 ? '-' : '+', std::abs(slot_offset));
       }
-      TranslatedValue translated_value = TranslatedValue::NewBool(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewBool(this, value);
     }
 
     case Translation::FLOAT_STACK_SLOT: {
@@ -4110,9 +3516,7 @@ int TranslatedState::CreateNextTranslatedValue(
         PrintF(trace_file, "%e ; (float) [fp %c %d] ", value.get_scalar(),
                slot_offset < 0 ? '-' : '+', std::abs(slot_offset));
       }
-      TranslatedValue translated_value = TranslatedValue::NewFloat(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewFloat(this, value);
     }
 
     case Translation::DOUBLE_STACK_SLOT: {
@@ -4123,10 +3527,7 @@ int TranslatedState::CreateNextTranslatedValue(
         PrintF(trace_file, "%e ; (double) [fp %c %d] ", value.get_scalar(),
                slot_offset < 0 ? '-' : '+', std::abs(slot_offset));
       }
-      TranslatedValue translated_value =
-          TranslatedValue::NewDouble(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewDouble(this, value);
     }
 
     case Translation::LITERAL: {
@@ -4138,18 +3539,12 @@ int TranslatedState::CreateNextTranslatedValue(
         reinterpret_cast<Object*>(value)->ShortPrint(trace_file);
       }
 
-      TranslatedValue translated_value =
-          TranslatedValue::NewTagged(this, value);
-      frame.Add(translated_value);
-      return translated_value.GetChildrenCount();
+      return TranslatedValue::NewTagged(this, value);
     }
   }
 
   FATAL("We should never get here - unexpected deopt info.");
-  TranslatedValue translated_value =
-      TranslatedValue(nullptr, TranslatedValue::kInvalid);
-  frame.Add(translated_value);
-  return translated_value.GetChildrenCount();
+  return TranslatedValue(nullptr, TranslatedValue::kInvalid);
 }
 
 
@@ -4164,8 +3559,7 @@ TranslatedState::TranslatedState(JavaScriptFrame* frame)
   TranslationIterator it(data->TranslationByteArray(),
                          data->TranslationIndex(deopt_index)->value());
   Init(frame->fp(), &it, data->LiteralArray(), nullptr /* registers */,
-       nullptr /* trace file */,
-       frame->function()->shared()->internal_formal_parameter_count());
+       nullptr /* trace file */);
 }
 
 
@@ -4174,13 +3568,12 @@ TranslatedState::TranslatedState()
       stack_frame_pointer_(nullptr),
       has_adapted_arguments_(false) {}
 
+
 void TranslatedState::Init(Address input_frame_pointer,
                            TranslationIterator* iterator,
                            FixedArray* literal_array, RegisterValues* registers,
-                           FILE* trace_file, int formal_parameter_count) {
+                           FILE* trace_file) {
   DCHECK(frames_.empty());
-
-  formal_parameter_count_ = formal_parameter_count;
 
   isolate_ = literal_array->GetIsolate();
   // Read out the 'header' translation.
@@ -4196,7 +3589,7 @@ void TranslatedState::Init(Address input_frame_pointer,
   std::stack<int> nested_counts;
 
   // Read the frames
-  for (int frame_index = 0; frame_index < count; frame_index++) {
+  for (int i = 0; i < count; i++) {
     // Read the frame descriptor.
     frames_.push_back(CreateNextTranslatedFrame(
         iterator, literal_array, input_frame_pointer, trace_file));
@@ -4219,9 +3612,10 @@ void TranslatedState::Init(Address input_frame_pointer,
         }
       }
 
-      int nested_count =
-          CreateNextTranslatedValue(frame_index, iterator, literal_array,
-                                    input_frame_pointer, registers, trace_file);
+      TranslatedValue value = CreateNextTranslatedValue(
+          i, static_cast<int>(frame.values_.size()), iterator, literal_array,
+          input_frame_pointer, registers, trace_file);
+      frame.Add(value);
 
       if (trace_file != nullptr) {
         PrintF(trace_file, "\n");
@@ -4229,9 +3623,10 @@ void TranslatedState::Init(Address input_frame_pointer,
 
       // Update the value count and resolve the nesting.
       values_to_process--;
-      if (nested_count > 0) {
+      int children_count = value.GetChildrenCount();
+      if (children_count > 0) {
         nested_counts.push(values_to_process);
-        values_to_process = nested_count;
+        values_to_process = children_count;
       } else {
         while (values_to_process == 0 && !nested_counts.empty()) {
           values_to_process = nested_counts.top();
@@ -4322,8 +3717,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
       Handle<Object> elements = materializer.FieldAt(value_index);
       object->set_properties(FixedArray::cast(*properties));
       object->set_elements(FixedArrayBase::cast(*elements));
-      int in_object_properties = map->GetInObjectProperties();
-      for (int i = 0; i < in_object_properties; ++i) {
+      for (int i = 0; i < length - 3; ++i) {
         Handle<Object> value = materializer.FieldAt(value_index);
         FieldIndex index = FieldIndex::ForPropertyIndex(object->map(), i);
         object->FastPropertyAtPut(index, *value);
@@ -4419,57 +3813,39 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
       slot->value_ = object;
       Handle<Object> properties = materializer.FieldAt(value_index);
       Handle<Object> elements = materializer.FieldAt(value_index);
-      Handle<Object> array_length = materializer.FieldAt(value_index);
+      Handle<Object> length = materializer.FieldAt(value_index);
       object->set_properties(FixedArray::cast(*properties));
       object->set_elements(FixedArrayBase::cast(*elements));
-      object->set_length(*array_length);
+      object->set_length(*length);
       return object;
     }
-    case JS_BOUND_FUNCTION_TYPE: {
-      Handle<JSBoundFunction> object = Handle<JSBoundFunction>::cast(
-          isolate_->factory()->NewJSObjectFromMap(map, NOT_TENURED));
+    case JS_FUNCTION_TYPE: {
+      Handle<SharedFunctionInfo> temporary_shared =
+          isolate_->factory()->NewSharedFunctionInfo(
+              isolate_->factory()->empty_string(), MaybeHandle<Code>(), false);
+      Handle<JSFunction> object =
+          isolate_->factory()->NewFunctionFromSharedFunctionInfo(
+              map, temporary_shared, isolate_->factory()->undefined_value(),
+              NOT_TENURED);
       slot->value_ = object;
       Handle<Object> properties = materializer.FieldAt(value_index);
       Handle<Object> elements = materializer.FieldAt(value_index);
-      Handle<Object> bound_target_function = materializer.FieldAt(value_index);
-      Handle<Object> bound_this = materializer.FieldAt(value_index);
-      Handle<Object> bound_arguments = materializer.FieldAt(value_index);
-      object->set_properties(FixedArray::cast(*properties));
-      object->set_elements(FixedArrayBase::cast(*elements));
-      object->set_bound_target_function(
-          JSReceiver::cast(*bound_target_function));
-      object->set_bound_this(*bound_this);
-      object->set_bound_arguments(FixedArray::cast(*bound_arguments));
-      return object;
-    }
-    case JS_GENERATOR_OBJECT_TYPE: {
-      Handle<JSGeneratorObject> object = Handle<JSGeneratorObject>::cast(
-          isolate_->factory()->NewJSObjectFromMap(map, NOT_TENURED));
-      slot->value_ = object;
-      Handle<Object> properties = materializer.FieldAt(value_index);
-      Handle<Object> elements = materializer.FieldAt(value_index);
-      Handle<Object> function = materializer.FieldAt(value_index);
+      Handle<Object> prototype = materializer.FieldAt(value_index);
+      Handle<Object> shared = materializer.FieldAt(value_index);
       Handle<Object> context = materializer.FieldAt(value_index);
-      Handle<Object> receiver = materializer.FieldAt(value_index);
-      Handle<Object> input_or_debug_pos = materializer.FieldAt(value_index);
-      Handle<Object> resume_mode = materializer.FieldAt(value_index);
-      Handle<Object> continuation_offset = materializer.FieldAt(value_index);
-      Handle<Object> register_file = materializer.FieldAt(value_index);
+      Handle<Object> vector_cell = materializer.FieldAt(value_index);
+      Handle<Object> entry = materializer.FieldAt(value_index);
+      Handle<Object> next_link = materializer.FieldAt(value_index);
+      object->ReplaceCode(*isolate_->builtins()->CompileLazy());
+      object->set_map(*map);
       object->set_properties(FixedArray::cast(*properties));
       object->set_elements(FixedArrayBase::cast(*elements));
-      object->set_function(JSFunction::cast(*function));
+      object->set_prototype_or_initial_map(*prototype);
+      object->set_shared(SharedFunctionInfo::cast(*shared));
       object->set_context(Context::cast(*context));
-      object->set_receiver(*receiver);
-      object->set_input_or_debug_pos(*input_or_debug_pos);
-      object->set_resume_mode(Smi::cast(*resume_mode)->value());
-      object->set_continuation(Smi::cast(*continuation_offset)->value());
-      object->set_register_file(FixedArray::cast(*register_file));
-      int in_object_properties = map->GetInObjectProperties();
-      for (int i = 0; i < in_object_properties; ++i) {
-        Handle<Object> value = materializer.FieldAt(value_index);
-        FieldIndex index = FieldIndex::ForPropertyIndex(object->map(), i);
-        object->FastPropertyAtPut(index, *value);
-      }
+      object->set_feedback_vector_cell(Cell::cast(*vector_cell));
+      CHECK(entry->IsNumber());  // Entry to compile lazy stub.
+      CHECK(next_link->IsUndefined(isolate_));
       return object;
     }
     case CONS_STRING_TYPE: {
@@ -4480,11 +3856,11 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
               .ToHandleChecked());
       slot->value_ = object;
       Handle<Object> hash = materializer.FieldAt(value_index);
-      Handle<Object> string_length = materializer.FieldAt(value_index);
+      Handle<Object> length = materializer.FieldAt(value_index);
       Handle<Object> first = materializer.FieldAt(value_index);
       Handle<Object> second = materializer.FieldAt(value_index);
       object->set_map(*map);
-      object->set_length(Smi::cast(*string_length)->value());
+      object->set_length(Smi::cast(*length)->value());
       object->set_first(String::cast(*first));
       object->set_second(String::cast(*second));
       CHECK(hash->IsNumber());  // The {Name::kEmptyHashField} value.
@@ -4504,16 +3880,15 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
     }
     case FIXED_ARRAY_TYPE: {
       Handle<Object> lengthObject = materializer.FieldAt(value_index);
-      int32_t array_length = 0;
-      CHECK(lengthObject->ToInt32(&array_length));
-      Handle<FixedArray> object =
-          isolate_->factory()->NewFixedArray(array_length);
+      int32_t length = 0;
+      CHECK(lengthObject->ToInt32(&length));
+      Handle<FixedArray> object = isolate_->factory()->NewFixedArray(length);
       // We need to set the map, because the fixed array we are
       // materializing could be a context or an arguments object,
       // in which case we must retain that information.
       object->set_map(*map);
       slot->value_ = object;
-      for (int i = 0; i < array_length; ++i) {
+      for (int i = 0; i < length; ++i) {
         Handle<Object> value = materializer.FieldAt(value_index);
         object->set(i, *value);
       }
@@ -4522,20 +3897,20 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
     case FIXED_DOUBLE_ARRAY_TYPE: {
       DCHECK_EQ(*map, isolate_->heap()->fixed_double_array_map());
       Handle<Object> lengthObject = materializer.FieldAt(value_index);
-      int32_t array_length = 0;
-      CHECK(lengthObject->ToInt32(&array_length));
+      int32_t length = 0;
+      CHECK(lengthObject->ToInt32(&length));
       Handle<FixedArrayBase> object =
-          isolate_->factory()->NewFixedDoubleArray(array_length);
+          isolate_->factory()->NewFixedDoubleArray(length);
       slot->value_ = object;
-      if (array_length > 0) {
+      if (length > 0) {
         Handle<FixedDoubleArray> double_array =
             Handle<FixedDoubleArray>::cast(object);
-        for (int i = 0; i < array_length; ++i) {
+        for (int i = 0; i < length; ++i) {
           Handle<Object> value = materializer.FieldAt(value_index);
-          if (value.is_identical_to(isolate_->factory()->the_hole_value())) {
+          CHECK(value->IsNumber());
+          if (value.is_identical_to(isolate_->factory()->hole_nan_value())) {
             double_array->set_the_hole(isolate_, i);
           } else {
-            CHECK(value->IsNumber());
             double_array->set(i, value->Number());
           }
         }
@@ -4570,11 +3945,10 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
     case JS_API_OBJECT_TYPE:
     case JS_SPECIAL_API_OBJECT_TYPE:
     case JS_VALUE_TYPE:
-    case JS_FUNCTION_TYPE:
     case JS_MESSAGE_OBJECT_TYPE:
     case JS_DATE_TYPE:
     case JS_CONTEXT_EXTENSION_OBJECT_TYPE:
-    case JS_ASYNC_GENERATOR_OBJECT_TYPE:
+    case JS_GENERATOR_OBJECT_TYPE:
     case JS_MODULE_NAMESPACE_TYPE:
     case JS_ARRAY_BUFFER_TYPE:
     case JS_REGEXP_TYPE:
@@ -4588,6 +3962,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
     case JS_WEAK_SET_TYPE:
     case JS_PROMISE_CAPABILITY_TYPE:
     case JS_PROMISE_TYPE:
+    case JS_BOUND_FUNCTION_TYPE:
     case JS_PROXY_TYPE:
     case MAP_TYPE:
     case ALLOCATION_SITE_TYPE:
@@ -4612,24 +3987,21 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
     case FILLER_TYPE:
     case ACCESS_CHECK_INFO_TYPE:
     case INTERCEPTOR_INFO_TYPE:
+    case CALL_HANDLER_INFO_TYPE:
     case OBJECT_TEMPLATE_INFO_TYPE:
     case ALLOCATION_MEMENTO_TYPE:
+    case TYPE_FEEDBACK_INFO_TYPE:
     case ALIASED_ARGUMENTS_ENTRY_TYPE:
     case PROMISE_RESOLVE_THENABLE_JOB_INFO_TYPE:
     case PROMISE_REACTION_JOB_INFO_TYPE:
     case DEBUG_INFO_TYPE:
-    case STACK_FRAME_INFO_TYPE:
+    case BREAK_POINT_INFO_TYPE:
     case CELL_TYPE:
     case WEAK_CELL_TYPE:
-    case SMALL_ORDERED_HASH_SET_TYPE:
     case PROTOTYPE_INFO_TYPE:
     case TUPLE2_TYPE:
     case TUPLE3_TYPE:
-    case ASYNC_GENERATOR_REQUEST_TYPE:
-    case PADDING_TYPE_1:
-    case PADDING_TYPE_2:
-    case PADDING_TYPE_3:
-    case PADDING_TYPE_4:
+    case CONSTANT_ELEMENTS_PAIR_TYPE:
       OFStream os(stderr);
       os << "[couldn't handle instance type " << map->instance_type() << "]"
          << std::endl;
@@ -4637,6 +4009,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
       break;
   }
   UNREACHABLE();
+  return Handle<Object>::null();
 }
 
 Handle<Object> TranslatedState::MaterializeAt(int frame_index,

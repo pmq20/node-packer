@@ -4,7 +4,7 @@
 
 #include "src/compiler/linkage.h"
 
-#include "src/assembler-inl.h"
+#include "src/ast/scopes.h"
 #include "src/code-stubs.h"
 #include "src/compilation-info.h"
 #include "src/compiler/common-operator.h"
@@ -121,6 +121,7 @@ int CallDescriptor::CalculateFixedFrameSize() const {
       return TypedFrameConstants::kFixedSlotCount;
   }
   UNREACHABLE();
+  return 0;
 }
 
 CallDescriptor* Linkage::ComputeIncoming(Zone* zone, CompilationInfo* info) {
@@ -150,7 +151,6 @@ bool Linkage::NeedsFrameStateInput(Runtime::FunctionId function) {
     case Runtime::kDefineGetterPropertyUnchecked:  // TODO(jarin): Is it safe?
     case Runtime::kDefineSetterPropertyUnchecked:  // TODO(jarin): Is it safe?
     case Runtime::kGeneratorGetContinuation:
-    case Runtime::kIncBlockCounter:
     case Runtime::kIsFunction:
     case Runtime::kNewClosure:
     case Runtime::kNewClosure_Tenured:
@@ -176,17 +176,9 @@ bool Linkage::NeedsFrameStateInput(Runtime::FunctionId function) {
     case Runtime::kInlineFixedArrayGet:
     case Runtime::kInlineFixedArraySet:
     case Runtime::kInlineGeneratorClose:
-    case Runtime::kInlineGeneratorGetContext:
     case Runtime::kInlineGeneratorGetInputOrDebugPos:
     case Runtime::kInlineGeneratorGetResumeMode:
-    case Runtime::kInlineCreateJSGeneratorObject:
     case Runtime::kInlineIsArray:
-    case Runtime::kInlineIsJSMap:
-    case Runtime::kInlineIsJSSet:
-    case Runtime::kInlineIsJSMapIterator:
-    case Runtime::kInlineIsJSSetIterator:
-    case Runtime::kInlineIsJSWeakMap:
-    case Runtime::kInlineIsJSWeakSet:
     case Runtime::kInlineIsJSReceiver:
     case Runtime::kInlineIsRegExp:
     case Runtime::kInlineIsSmi:

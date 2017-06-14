@@ -51,13 +51,19 @@ double charactersToDouble(const uint16_t* characters, size_t length, bool* ok)
         buffer.push_back(static_cast<char>(characters[i]));
     }
     buffer.push_back('\0');
-    return StringUtil::toDouble(buffer.data(), length, ok);
+    char* endptr;
+    double result = std::strtod(buffer.data(), &endptr);
+    *ok = !(*endptr);
+    return result;
 }
 
 double charactersToDouble(const uint8_t* characters, size_t length, bool* ok)
 {
     std::string buffer(reinterpret_cast<const char*>(characters), length);
-    return StringUtil::toDouble(buffer.data(), length, ok);
+    char* endptr;
+    double result = std::strtod(buffer.data(), &endptr);
+    *ok = !(*endptr);
+    return result;
 }
 
 template<typename Char>

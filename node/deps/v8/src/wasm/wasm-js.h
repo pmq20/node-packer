@@ -10,8 +10,7 @@
 
 namespace v8 {
 namespace internal {
-
-// Exposes a WebAssembly API to JavaScript through the V8 API.
+// Exposes a WASM API to JavaScript through the V8 API.
 class WasmJs {
  public:
   V8_EXPORT_PRIVATE static void Install(Isolate* isolate);

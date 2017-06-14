@@ -49,7 +49,6 @@ namespace internal {
   V(NotAJavaScriptObject, "not a JavaScript object")                         \
   V(NotANumberOrOddball, "not a Number or Oddball")                          \
   V(NotASmi, "not a Smi")                                                    \
-  V(NotASymbol, "not a Symbol")                                              \
   V(OutOfBounds, "out of bounds")                                            \
   V(OutsideOfRange, "Outside of range")                                      \
   V(Overflow, "overflow")                                                    \

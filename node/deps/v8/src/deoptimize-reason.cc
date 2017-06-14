@@ -16,6 +16,7 @@ std::ostream& operator<<(std::ostream& os, DeoptimizeReason reason) {
 #undef DEOPTIMIZE_REASON
   }
   UNREACHABLE();
+  return os;
 }
 
 size_t hash_value(DeoptimizeReason reason) {

@@ -1,5 +1,5 @@
 'use strict';
-const common = require('../common');
+require('../common');
 const assert = require('assert');
 
 // testing basic buffer read functions
@@ -10,7 +10,7 @@ function read(buff, funx, args, expected) {
   assert.strictEqual(buff[funx](...args), expected);
   assert.throws(
     () => buff[funx](-1),
-    common.expectsError({code: 'ERR_INDEX_OUT_OF_RANGE'})
+    /^RangeError: Index out of range$/
   );
 
   assert.doesNotThrow(

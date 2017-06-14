@@ -141,8 +141,7 @@ enum class CheckForMinusZeroMode : uint8_t {
 
 size_t hash_value(CheckForMinusZeroMode);
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&,
-                                           CheckForMinusZeroMode);
+std::ostream& operator<<(std::ostream&, CheckForMinusZeroMode);
 
 CheckForMinusZeroMode CheckMinusZeroModeOf(const Operator*) WARN_UNUSED_RESULT;
 
@@ -243,32 +242,9 @@ V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&, NumberOperationHint);
 NumberOperationHint NumberOperationHintOf(const Operator* op)
     WARN_UNUSED_RESULT;
 
-int FormalParameterCountOf(const Operator* op) WARN_UNUSED_RESULT;
-bool IsRestLengthOf(const Operator* op) WARN_UNUSED_RESULT;
-
-class AllocateParameters {
- public:
-  AllocateParameters(Type* type, PretenureFlag pretenure)
-      : type_(type), pretenure_(pretenure) {}
-
-  Type* type() const { return type_; }
-  PretenureFlag pretenure() const { return pretenure_; }
-
- private:
-  Type* type_;
-  PretenureFlag pretenure_;
-};
-
-size_t hash_value(AllocateParameters);
-
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&, AllocateParameters);
-
-bool operator==(AllocateParameters const&, AllocateParameters const&);
-bool operator!=(AllocateParameters const&, AllocateParameters const&);
+int ParameterCountOf(const Operator* op) WARN_UNUSED_RESULT;
 
 PretenureFlag PretenureFlagOf(const Operator* op) WARN_UNUSED_RESULT;
-
-Type* AllocateTypeOf(const Operator* op) WARN_UNUSED_RESULT;
 
 UnicodeEncoding UnicodeEncodingOf(const Operator*) WARN_UNUSED_RESULT;
 
@@ -378,12 +354,9 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* StringLessThanOrEqual();
   const Operator* StringCharAt();
   const Operator* StringCharCodeAt();
-  const Operator* SeqStringCharCodeAt();
   const Operator* StringFromCharCode();
   const Operator* StringFromCodePoint(UnicodeEncoding encoding);
   const Operator* StringIndexOf();
-
-  const Operator* SpeculativeToNumber(NumberOperationHint hint);
 
   const Operator* PlainPrimitiveToNumber();
   const Operator* PlainPrimitiveToWord32();
@@ -397,14 +370,13 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* ChangeInt31ToTaggedSigned();
   const Operator* ChangeInt32ToTagged();
   const Operator* ChangeUint32ToTagged();
-  const Operator* ChangeFloat64ToTagged(CheckForMinusZeroMode);
+  const Operator* ChangeFloat64ToTagged();
   const Operator* ChangeFloat64ToTaggedPointer();
   const Operator* ChangeTaggedToBit();
   const Operator* ChangeBitToTagged();
   const Operator* TruncateTaggedToWord32();
   const Operator* TruncateTaggedToFloat64();
   const Operator* TruncateTaggedToBit();
-  const Operator* TruncateTaggedPointerToBit();
 
   const Operator* CheckIf();
   const Operator* CheckBounds();
@@ -415,9 +387,6 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* CheckNumber();
   const Operator* CheckSmi();
   const Operator* CheckString();
-  const Operator* CheckSeqString();
-  const Operator* CheckNonEmptyString();
-  const Operator* CheckSymbol();
   const Operator* CheckReceiver();
 
   const Operator* CheckedInt32Add();
@@ -436,28 +405,25 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* CheckedTaggedToFloat64(CheckTaggedInputMode);
   const Operator* CheckedTaggedToTaggedSigned();
   const Operator* CheckedTaggedToTaggedPointer();
-  const Operator* CheckedTruncateTaggedToWord32(CheckTaggedInputMode);
+  const Operator* CheckedTruncateTaggedToWord32();
 
   const Operator* CheckFloat64Hole(CheckFloat64HoleMode);
-  const Operator* CheckNotTaggedHole();
+  const Operator* CheckTaggedHole();
   const Operator* ConvertTaggedHoleToUndefined();
 
   const Operator* ObjectIsDetectableCallable();
-  const Operator* ObjectIsNaN();
   const Operator* ObjectIsNonCallable();
   const Operator* ObjectIsNumber();
   const Operator* ObjectIsReceiver();
   const Operator* ObjectIsSmi();
   const Operator* ObjectIsString();
-  const Operator* ObjectIsSymbol();
   const Operator* ObjectIsUndetectable();
 
-  const Operator* ArgumentsFrame();
-  const Operator* ArgumentsLength(int formal_parameter_count,
-                                  bool is_rest_length);
+  // new-rest-parameter-elements
+  const Operator* NewRestParameterElements(int parameter_count);
 
   // new-unmapped-arguments-elements
-  const Operator* NewUnmappedArgumentsElements();
+  const Operator* NewUnmappedArgumentsElements(int parameter_count);
 
   // array-buffer-was-neutered buffer
   const Operator* ArrayBufferWasNeutered();
@@ -471,7 +437,7 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   // transition-elements-kind object, from-map, to-map
   const Operator* TransitionElementsKind(ElementsTransition transition);
 
-  const Operator* Allocate(Type* type, PretenureFlag pretenure = NOT_TENURED);
+  const Operator* Allocate(PretenureFlag pretenure = NOT_TENURED);
 
   const Operator* LoadField(FieldAccess const&);
   const Operator* StoreField(FieldAccess const&);

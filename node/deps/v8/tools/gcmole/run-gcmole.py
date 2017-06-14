@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 import os
-import signal
 import subprocess
 import sys
 
@@ -17,19 +16,8 @@ BASE_PATH = os.path.dirname(os.path.dirname(GCMOLE_PATH))
 
 assert len(sys.argv) == 2
 
-proc = subprocess.Popen(
+sys.exit(subprocess.call(
     [LUA, DRIVER, sys.argv[1]],
     env={'CLANG_BIN': CLANG_BIN, 'CLANG_PLUGINS': CLANG_PLUGINS},
     cwd=BASE_PATH,
-)
-
-def handle_sigterm(*args):
-  try:
-    proc.kill()
-  except OSError:
-    pass
-
-signal.signal(signal.SIGTERM, handle_sigterm)
-
-proc.communicate()
-sys.exit(proc.returncode)
+))

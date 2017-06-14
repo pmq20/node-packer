@@ -147,7 +147,8 @@ void LCodeGen::DoPrologue(LPrologue* instr) {
       __ CallRuntime(Runtime::kNewScriptContext);
       deopt_mode = Safepoint::kLazyDeopt;
     } else {
-      if (slots <= ConstructorBuiltins::MaximumFunctionContextSlots()) {
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
         Callable callable = CodeFactory::FastNewFunctionContext(
             isolate(), info()->scope()->scope_type());
         __ mov(FastNewFunctionContextDescriptor::SlotsRegister(),
@@ -465,6 +466,7 @@ int LCodeGen::X87Stack::ArrayIndex(X87Register reg) {
     if (stack_[i].is(reg)) return i;
   }
   UNREACHABLE();
+  return -1;
 }
 
 
@@ -2422,6 +2424,7 @@ static Condition ComputeCompareCondition(Token::Value op) {
       return greater_equal;
     default:
       UNREACHABLE();
+      return no_condition;
   }
 }
 
@@ -2454,6 +2457,7 @@ static Condition BranchCondition(HHasInstanceTypeAndBranch* instr) {
   if (to == LAST_TYPE) return above_equal;
   if (from == FIRST_TYPE) return below_equal;
   UNREACHABLE();
+  return equal;
 }
 
 
@@ -2471,9 +2475,12 @@ void LCodeGen::DoHasInstanceTypeAndBranch(LHasInstanceTypeAndBranch* instr) {
 
 // Branches to a label or falls through with the answer in the z flag.  Trashes
 // the temp registers, but not the input.
-void LCodeGen::EmitClassOfTest(Label* is_true, Label* is_false,
-                               Handle<String> class_name, Register input,
-                               Register temp, Register temp2) {
+void LCodeGen::EmitClassOfTest(Label* is_true,
+                               Label* is_false,
+                               Handle<String>class_name,
+                               Register input,
+                               Register temp,
+                               Register temp2) {
   DCHECK(!input.is(temp));
   DCHECK(!input.is(temp2));
   DCHECK(!temp.is(temp2));
@@ -2501,8 +2508,8 @@ void LCodeGen::EmitClassOfTest(Label* is_true, Label* is_false,
   // temp now contains the constructor function. Grab the
   // instance class name from there.
   __ mov(temp, FieldOperand(temp, JSFunction::kSharedFunctionInfoOffset));
-  __ mov(temp,
-         FieldOperand(temp, SharedFunctionInfo::kInstanceClassNameOffset));
+  __ mov(temp, FieldOperand(temp,
+                            SharedFunctionInfo::kInstanceClassNameOffset));
   // The class name we are testing against is internalized since it's a literal.
   // The name in the constructor is internalized because of the way the context
   // is booted.  This routine isn't expected to work for random API-created
@@ -2513,6 +2520,7 @@ void LCodeGen::EmitClassOfTest(Label* is_true, Label* is_false,
   // End with the answer in the z flag.
 }
 
+
 void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   Register input = ToRegister(instr->value());
   Register temp = ToRegister(instr->temp());
@@ -2521,10 +2529,11 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   Handle<String> class_name = instr->hydrogen()->class_name();
 
   EmitClassOfTest(instr->TrueLabel(chunk_), instr->FalseLabel(chunk_),
-                  class_name, input, temp, temp2);
+      class_name, input, temp, temp2);
 
   EmitBranch(instr, equal);
 }
+
 
 void LCodeGen::DoCmpMapAndBranch(LCmpMapAndBranch* instr) {
   Register reg = ToRegister(instr->value());
@@ -3019,13 +3028,17 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   Register scratch = ToRegister(instr->temp());
 
   if (!instr->hydrogen()->known_function()) {
-    // Do not transform the receiver to object for strict mode functions or
-    // builtins.
+    // Do not transform the receiver to object for strict mode
+    // functions.
     __ mov(scratch,
            FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
-    __ test(FieldOperand(scratch, SharedFunctionInfo::kCompilerHintsOffset),
-            Immediate(SharedFunctionInfo::IsStrictBit::kMask |
-                      SharedFunctionInfo::IsNativeBit::kMask));
+    __ test_b(FieldOperand(scratch, SharedFunctionInfo::kStrictModeByteOffset),
+              Immediate(1 << SharedFunctionInfo::kStrictModeBitWithinByte));
+    __ j(not_equal, &receiver_ok, dist);
+
+    // Do not transform the receiver to object for builtins.
+    __ test_b(FieldOperand(scratch, SharedFunctionInfo::kNativeByteOffset),
+              Immediate(1 << SharedFunctionInfo::kNativeBitWithinByte));
     __ j(not_equal, &receiver_ok, dist);
   }
 
@@ -5306,7 +5319,7 @@ void LCodeGen::DoTypeof(LTypeof* instr) {
   __ mov(eax, Immediate(isolate()->factory()->number_string()));
   __ jmp(&end);
   __ bind(&do_call);
-  Callable callable = Builtins::CallableFor(isolate(), Builtins::kTypeof);
+  Callable callable = CodeFactory::Typeof(isolate());
   CallCode(callable.code(), RelocInfo::CODE_TARGET, instr);
   __ bind(&end);
 }
@@ -5548,7 +5561,8 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
 
   __ bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
-  __ mov(result, FieldOperand(result, DescriptorArray::kEnumCacheBridgeOffset));
+  __ mov(result,
+         FieldOperand(result, DescriptorArray::kEnumCacheOffset));
   __ mov(result,
          FieldOperand(result, FixedArray::SizeFor(instr->idx())));
   __ bind(&done);

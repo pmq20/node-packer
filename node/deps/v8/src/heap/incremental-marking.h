@@ -32,64 +32,9 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
 
   enum GCRequestType { NONE, COMPLETE_MARKING, FINALIZATION };
 
-  class PauseBlackAllocationScope {
-   public:
-    explicit PauseBlackAllocationScope(IncrementalMarking* marking)
-        : marking_(marking), paused_(false) {
-      if (marking_->black_allocation()) {
-        paused_ = true;
-        marking_->PauseBlackAllocation();
-      }
-    }
-
-    ~PauseBlackAllocationScope() {
-      if (paused_) {
-        marking_->StartBlackAllocation();
-      }
-    }
-
-   private:
-    IncrementalMarking* marking_;
-    bool paused_;
-  };
-
-  static void Initialize();
-
   explicit IncrementalMarking(Heap* heap);
 
-  MarkingState marking_state(HeapObject* object) const {
-    return MarkingState::Internal(object);
-  }
-
-  MarkingState marking_state(MemoryChunk* chunk) const {
-    return MarkingState::Internal(chunk);
-  }
-
-  void NotifyLeftTrimming(HeapObject* from, HeapObject* to);
-
-  // Transfers color including live byte count, requiring properly set up
-  // objects.
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE void TransferColor(HeapObject* from, HeapObject* to) {
-    if (ObjectMarking::IsBlack<access_mode>(to, marking_state(to))) {
-      DCHECK(black_allocation());
-      return;
-    }
-
-    DCHECK(ObjectMarking::IsWhite<access_mode>(to, marking_state(to)));
-    if (ObjectMarking::IsGrey<access_mode>(from, marking_state(from))) {
-      bool success =
-          ObjectMarking::WhiteToGrey<access_mode>(to, marking_state(to));
-      DCHECK(success);
-      USE(success);
-    } else if (ObjectMarking::IsBlack<access_mode>(from, marking_state(from))) {
-      bool success =
-          ObjectMarking::WhiteToBlack<access_mode>(to, marking_state(to));
-      DCHECK(success);
-      USE(success);
-    }
-  }
-
+  static void Initialize();
 
   State state() {
     DCHECK(state_ == STOPPED || FLAG_incremental_marking);
@@ -181,12 +126,6 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   static const intptr_t kActivationThreshold = 0;
 #endif
 
-#ifdef V8_CONCURRENT_MARKING
-  static const MarkBit::AccessMode kAtomicity = MarkBit::AccessMode::ATOMIC;
-#else
-  static const MarkBit::AccessMode kAtomicity = MarkBit::AccessMode::NON_ATOMIC;
-#endif
-
   void FinalizeSweeping();
 
   size_t Step(size_t bytes_to_process, CompletionAction action,
@@ -218,14 +157,7 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   void RecordCodeTargetPatch(Code* host, Address pc, HeapObject* value);
   void RecordCodeTargetPatch(Address pc, HeapObject* value);
 
-  // Returns true if the function succeeds in transitioning the object
-  // from white to grey.
-  bool WhiteToGreyAndPush(HeapObject* obj);
-
-  // This function is used to color the object black before it undergoes an
-  // unsafe layout change. This is a part of synchronization protocol with
-  // the concurrent marker.
-  void MarkBlackAndPush(HeapObject* obj);
+  void WhiteToGreyAndPush(HeapObject* obj);
 
   inline void SetOldSpacePageFlags(MemoryChunk* chunk) {
     SetOldSpacePageFlags(chunk, IsMarking(), IsCompacting());
@@ -247,6 +179,34 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
 
   bool IsIdleMarkingDelayCounterLimitReached();
 
+  static void MarkGrey(Heap* heap, HeapObject* object);
+
+  static void MarkBlack(HeapObject* object, int size);
+
+  static void TransferMark(Heap* heap, HeapObject* from, HeapObject* to);
+
+  // Returns true if the color transfer requires live bytes updating.
+  INLINE(static bool TransferColor(HeapObject* from, HeapObject* to,
+                                   int size)) {
+    MarkBit from_mark_bit = ObjectMarking::MarkBitFrom(from);
+    MarkBit to_mark_bit = ObjectMarking::MarkBitFrom(to);
+
+    if (Marking::IsBlack(to_mark_bit)) {
+      DCHECK(to->GetHeap()->incremental_marking()->black_allocation());
+      return false;
+    }
+
+    DCHECK(Marking::IsWhite(to_mark_bit));
+    if (from_mark_bit.Get()) {
+      to_mark_bit.Set();
+      if (from_mark_bit.Next().Get()) {
+        to_mark_bit.Next().Set();
+        return true;
+      }
+    }
+    return false;
+  }
+
   void IterateBlackObject(HeapObject* object);
 
   Heap* heap() const { return heap_; }
@@ -261,15 +221,6 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
 
   void AbortBlackAllocation();
 
-  MarkingDeque* marking_deque() {
-    SLOW_DCHECK(marking_deque_ != nullptr);
-    return marking_deque_;
-  }
-
-  void set_marking_deque(MarkingDeque* marking_deque) {
-    marking_deque_ = marking_deque;
-  }
-
  private:
   class Observer : public AllocationObserver {
    public:
@@ -277,7 +228,9 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
         : AllocationObserver(step_size),
           incremental_marking_(incremental_marking) {}
 
-    void Step(int bytes_allocated, Address, size_t) override;
+    void Step(int bytes_allocated, Address, size_t) override {
+      incremental_marking_.AdvanceIncrementalMarkingOnAllocation();
+    }
 
    private:
     IncrementalMarking& incremental_marking_;
@@ -288,7 +241,6 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   void StartMarking();
 
   void StartBlackAllocation();
-  void PauseBlackAllocation();
   void FinishBlackAllocation();
 
   void MarkRoots();
@@ -316,7 +268,6 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
       intptr_t bytes_to_process,
       ForceCompletionAction completion = DO_NOT_FORCE_COMPLETION));
 
-  INLINE(bool IsFixedArrayWithProgressBar(HeapObject* object));
   INLINE(void VisitObject(Map* map, HeapObject* obj, int size));
 
   void IncrementIdleMarkingDelayCounter();
@@ -327,7 +278,8 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   size_t StepSizeToMakeProgress();
 
   Heap* heap_;
-  MarkingDeque* marking_deque_;
+
+  State state_;
 
   double start_time_ms_;
   size_t initial_old_generation_size_;
@@ -335,8 +287,6 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   size_t bytes_allocated_;
   size_t bytes_marked_ahead_of_schedule_;
   size_t unscanned_bytes_of_large_object_;
-
-  State state_;
 
   int idle_marking_delay_counter_;
   int incremental_marking_finalization_rounds_;
@@ -347,10 +297,10 @@ class V8_EXPORT_PRIVATE IncrementalMarking {
   bool black_allocation_;
   bool finalize_marking_completed_;
   bool trace_wrappers_toggle_;
-  IncrementalMarkingJob incremental_marking_job_;
 
   GCRequestType request_type_;
 
+  IncrementalMarkingJob incremental_marking_job_;
   Observer new_generation_observer_;
   Observer old_generation_observer_;
 

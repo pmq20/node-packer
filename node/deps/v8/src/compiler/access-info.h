@@ -10,7 +10,6 @@
 #include "src/field-index.h"
 #include "src/machine-type.h"
 #include "src/objects.h"
-#include "src/objects/map.h"
 #include "src/zone/zone-containers.h"
 
 namespace v8 {
@@ -32,6 +31,8 @@ enum class AccessMode { kLoad, kStore, kStoreInLiteral };
 
 std::ostream& operator<<(std::ostream&, AccessMode);
 
+typedef std::vector<Handle<Map>> MapList;
+
 // Mapping of transition source to transition target.
 typedef std::vector<std::pair<Handle<Map>, Handle<Map>>> MapTransitionList;
 
@@ -39,17 +40,16 @@ typedef std::vector<std::pair<Handle<Map>, Handle<Map>>> MapTransitionList;
 class ElementAccessInfo final {
  public:
   ElementAccessInfo();
-  ElementAccessInfo(MapHandles const& receiver_maps,
-                    ElementsKind elements_kind);
+  ElementAccessInfo(MapList const& receiver_maps, ElementsKind elements_kind);
 
   ElementsKind elements_kind() const { return elements_kind_; }
-  MapHandles const& receiver_maps() const { return receiver_maps_; }
+  MapList const& receiver_maps() const { return receiver_maps_; }
   MapTransitionList& transitions() { return transitions_; }
   MapTransitionList const& transitions() const { return transitions_; }
 
  private:
   ElementsKind elements_kind_;
-  MapHandles receiver_maps_;
+  MapList receiver_maps_;
   MapTransitionList transitions_;
 };
 
@@ -63,28 +63,29 @@ class PropertyAccessInfo final {
     kDataConstant,
     kDataField,
     kDataConstantField,
-    kAccessorConstant
+    kAccessorConstant,
+    kGeneric
   };
 
-  static PropertyAccessInfo NotFound(MapHandles const& receiver_maps,
+  static PropertyAccessInfo NotFound(MapList const& receiver_maps,
                                      MaybeHandle<JSObject> holder);
-  static PropertyAccessInfo DataConstant(MapHandles const& receiver_maps,
+  static PropertyAccessInfo DataConstant(MapList const& receiver_maps,
                                          Handle<Object> constant,
                                          MaybeHandle<JSObject> holder);
   static PropertyAccessInfo DataField(
-      PropertyConstness constness, MapHandles const& receiver_maps,
+      PropertyConstness constness, MapList const& receiver_maps,
       FieldIndex field_index, MachineRepresentation field_representation,
       Type* field_type, MaybeHandle<Map> field_map = MaybeHandle<Map>(),
       MaybeHandle<JSObject> holder = MaybeHandle<JSObject>(),
       MaybeHandle<Map> transition_map = MaybeHandle<Map>());
-  static PropertyAccessInfo AccessorConstant(MapHandles const& receiver_maps,
+  static PropertyAccessInfo AccessorConstant(MapList const& receiver_maps,
                                              Handle<Object> constant,
                                              MaybeHandle<JSObject> holder);
+  static PropertyAccessInfo Generic(MapList const& receiver_maps);
 
   PropertyAccessInfo();
 
-  bool Merge(PropertyAccessInfo const* that, AccessMode access_mode,
-             Zone* zone) WARN_UNUSED_RESULT;
+  bool Merge(PropertyAccessInfo const* that) WARN_UNUSED_RESULT;
 
   bool IsNotFound() const { return kind() == kNotFound; }
   bool IsDataConstant() const { return kind() == kDataConstant; }
@@ -93,6 +94,7 @@ class PropertyAccessInfo final {
   // is done.
   bool IsDataConstantField() const { return kind() == kDataConstantField; }
   bool IsAccessorConstant() const { return kind() == kAccessorConstant; }
+  bool IsGeneric() const { return kind() == kGeneric; }
 
   bool HasTransitionMap() const { return !transition_map().is_null(); }
 
@@ -106,21 +108,21 @@ class PropertyAccessInfo final {
     return field_representation_;
   }
   MaybeHandle<Map> field_map() const { return field_map_; }
-  MapHandles const& receiver_maps() const { return receiver_maps_; }
+  MapList const& receiver_maps() const { return receiver_maps_; }
 
  private:
   PropertyAccessInfo(MaybeHandle<JSObject> holder,
-                     MapHandles const& receiver_maps);
+                     MapList const& receiver_maps);
   PropertyAccessInfo(Kind kind, MaybeHandle<JSObject> holder,
-                     Handle<Object> constant, MapHandles const& receiver_maps);
+                     Handle<Object> constant, MapList const& receiver_maps);
   PropertyAccessInfo(Kind kind, MaybeHandle<JSObject> holder,
                      MaybeHandle<Map> transition_map, FieldIndex field_index,
                      MachineRepresentation field_representation,
                      Type* field_type, MaybeHandle<Map> field_map,
-                     MapHandles const& receiver_maps);
+                     MapList const& receiver_maps);
 
   Kind kind_;
-  MapHandles receiver_maps_;
+  MapList receiver_maps_;
   Handle<Object> constant_;
   MaybeHandle<Map> transition_map_;
   MaybeHandle<JSObject> holder_;
@@ -139,18 +141,17 @@ class AccessInfoFactory final {
 
   bool ComputeElementAccessInfo(Handle<Map> map, AccessMode access_mode,
                                 ElementAccessInfo* access_info);
-  bool ComputeElementAccessInfos(MapHandles const& maps, AccessMode access_mode,
+  bool ComputeElementAccessInfos(MapHandleList const& maps,
+                                 AccessMode access_mode,
                                  ZoneVector<ElementAccessInfo>* access_infos);
   bool ComputePropertyAccessInfo(Handle<Map> map, Handle<Name> name,
                                  AccessMode access_mode,
                                  PropertyAccessInfo* access_info);
-  bool ComputePropertyAccessInfos(MapHandles const& maps, Handle<Name> name,
+  bool ComputePropertyAccessInfos(MapHandleList const& maps, Handle<Name> name,
                                   AccessMode access_mode,
                                   ZoneVector<PropertyAccessInfo>* access_infos);
 
  private:
-  bool ConsolidateElementLoad(MapHandles const& maps,
-                              ElementAccessInfo* access_info);
   bool LookupSpecialFieldAccessor(Handle<Map> map, Handle<Name> name,
                                   PropertyAccessInfo* access_info);
   bool LookupTransition(Handle<Map> map, Handle<Name> name,

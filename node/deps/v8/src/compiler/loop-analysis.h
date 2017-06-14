@@ -123,6 +123,7 @@ class LoopTree : public ZoneObject {
       if (node->opcode() == IrOpcode::kLoop) return node;
     }
     UNREACHABLE();
+    return nullptr;
   }
 
   Zone* zone() const { return zone_; }

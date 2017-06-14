@@ -43,8 +43,10 @@ int ElementsKindToShiftSize(ElementsKind elements_kind) {
       return kPointerSizeLog2;
     case NO_ELEMENTS:
       UNREACHABLE();
+      return 0;
   }
   UNREACHABLE();
+  return 0;
 }
 
 
@@ -109,6 +111,7 @@ int GetSequenceIndexFromFastElementsKind(ElementsKind elements_kind) {
     }
   }
   UNREACHABLE();
+  return 0;
 }
 
 

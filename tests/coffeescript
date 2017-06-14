@@ -39,7 +39,7 @@ Dir.chdir('coffeescript')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-pid = spawn("ruby ../bin/nodec -V#{ENV['NODEC_NODE_VERSION']} --tmpdir=#{escape tmpdir} bin/coffee")
+pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} bin/coffee")
 pid, status = Process.wait2(pid)
 raise "Failed running nodec for coffeescript" unless status.success?
 

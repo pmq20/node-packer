@@ -6,7 +6,6 @@
 
 #include "src/base/bits.h"
 #include "src/base/division-by-constant.h"
-#include "src/base/utils/random-number-generator.h"
 #include "src/bootstrapper.h"
 #include "src/codegen.h"
 #include "src/counters.h"
@@ -21,20 +20,15 @@
 namespace v8 {
 namespace internal {
 
-MacroAssembler::MacroAssembler(Isolate* isolate, void* buffer, int size,
+MacroAssembler::MacroAssembler(Isolate* arg_isolate, void* buffer, int size,
                                CodeObjectRequired create_code_object)
-    : Assembler(isolate, buffer, size),
+    : Assembler(arg_isolate, buffer, size),
       generating_stub_(false),
       has_frame_(false),
-      isolate_(isolate),
-      root_array_available_(true),
-      jit_cookie_(0) {
-  if (FLAG_mask_constants_with_cookie) {
-    jit_cookie_ = isolate->random_number_generator()->NextInt();
-  }
+      root_array_available_(true) {
   if (create_code_object == CodeObjectRequired::kYes) {
     code_object_ =
-        Handle<Object>::New(isolate_->heap()->undefined_value(), isolate_);
+        Handle<Object>::New(isolate()->heap()->undefined_value(), isolate());
   }
 }
 
@@ -292,7 +286,7 @@ void MacroAssembler::RecordWriteField(
   leap(dst, FieldOperand(object, offset));
   if (emit_debug_code()) {
     Label ok;
-    testb(dst, Immediate(kPointerSize - 1));
+    testb(dst, Immediate((1 << kPointerSizeLog2) - 1));
     j(zero, &ok, Label::kNear);
     int3();
     bind(&ok);
@@ -308,6 +302,42 @@ void MacroAssembler::RecordWriteField(
   if (emit_debug_code()) {
     Move(value, kZapValue, Assembler::RelocInfoNone());
     Move(dst, kZapValue, Assembler::RelocInfoNone());
+  }
+}
+
+
+void MacroAssembler::RecordWriteArray(
+    Register object,
+    Register value,
+    Register index,
+    SaveFPRegsMode save_fp,
+    RememberedSetAction remembered_set_action,
+    SmiCheck smi_check,
+    PointersToHereCheck pointers_to_here_check_for_value) {
+  // First, check if a write barrier is even needed. The tests below
+  // catch stores of Smis.
+  Label done;
+
+  // Skip barrier if writing a smi.
+  if (smi_check == INLINE_SMI_CHECK) {
+    JumpIfSmi(value, &done);
+  }
+
+  // Array access: calculate the destination address. Index is not a smi.
+  Register dst = index;
+  leap(dst, Operand(object, index, times_pointer_size,
+                   FixedArray::kHeaderSize - kHeapObjectTag));
+
+  RecordWrite(object, dst, value, save_fp, remembered_set_action,
+              OMIT_SMI_CHECK, pointers_to_here_check_for_value);
+
+  bind(&done);
+
+  // Clobber clobbered input registers when running with the debug-code flag
+  // turned on to provoke errors.
+  if (emit_debug_code()) {
+    Move(value, kZapValue, Assembler::RelocInfoNone());
+    Move(index, kZapValue, Assembler::RelocInfoNone());
   }
 }
 
@@ -542,6 +572,24 @@ void MacroAssembler::Assert(Condition cc, BailoutReason reason) {
 }
 
 
+void MacroAssembler::AssertFastElements(Register elements) {
+  if (emit_debug_code()) {
+    Label ok;
+    CompareRoot(FieldOperand(elements, HeapObject::kMapOffset),
+                Heap::kFixedArrayMapRootIndex);
+    j(equal, &ok, Label::kNear);
+    CompareRoot(FieldOperand(elements, HeapObject::kMapOffset),
+                Heap::kFixedDoubleArrayMapRootIndex);
+    j(equal, &ok, Label::kNear);
+    CompareRoot(FieldOperand(elements, HeapObject::kMapOffset),
+                Heap::kFixedCOWArrayMapRootIndex);
+    j(equal, &ok, Label::kNear);
+    Abort(kJSObjectWithFastElementsMapHasSlowElements);
+    bind(&ok);
+  }
+}
+
+
 void MacroAssembler::Check(Condition cc, BailoutReason reason) {
   Label L;
   j(cc, &L, Label::kNear);
@@ -563,6 +611,18 @@ void MacroAssembler::CheckStackAlignment() {
     int3();
     bind(&alignment_as_expected);
   }
+}
+
+
+void MacroAssembler::NegativeZeroTest(Register result,
+                                      Register op,
+                                      Label* then_label) {
+  Label ok;
+  testl(result, result);
+  j(not_zero, &ok, Label::kNear);
+  testl(op, op);
+  j(sign, then_label);
+  bind(&ok);
 }
 
 
@@ -606,6 +666,12 @@ void MacroAssembler::CallStub(CodeStub* stub, TypeFeedbackId ast_id) {
 
 void MacroAssembler::TailCallStub(CodeStub* stub) {
   Jump(stub->GetCode(), RelocInfo::CODE_TARGET);
+}
+
+
+void MacroAssembler::StubReturn(int argc) {
+  DCHECK(argc >= 1 && generating_stub());
+  ret((argc - 1) * kPointerSize);
 }
 
 
@@ -1278,6 +1344,17 @@ void MacroAssembler::Cmp(const Operand& dst, Smi* src) {
 }
 
 
+void MacroAssembler::SmiCompareInteger32(const Operand& dst, Register src) {
+  if (SmiValuesAre32Bits()) {
+    cmpl(Operand(dst, kSmiShift / kBitsPerByte), src);
+  } else {
+    DCHECK(SmiValuesAre31Bits());
+    SmiToInteger32(kScratchRegister, dst);
+    cmpl(kScratchRegister, src);
+  }
+}
+
+
 void MacroAssembler::PositiveSmiTimesPowerOfTwoToInteger64(Register dst,
                                                            Register src,
                                                            int power) {
@@ -1294,6 +1371,36 @@ void MacroAssembler::PositiveSmiTimesPowerOfTwoToInteger64(Register dst,
     sarp(dst, Immediate(kSmiShift - power));
   } else if (power > kSmiShift) {
     shlp(dst, Immediate(power - kSmiShift));
+  }
+}
+
+
+void MacroAssembler::PositiveSmiDivPowerOfTwoToInteger32(Register dst,
+                                                         Register src,
+                                                         int power) {
+  DCHECK((0 <= power) && (power < 32));
+  if (dst.is(src)) {
+    shrp(dst, Immediate(power + kSmiShift));
+  } else {
+    UNIMPLEMENTED();  // Not used.
+  }
+}
+
+
+void MacroAssembler::SmiOrIfSmis(Register dst, Register src1, Register src2,
+                                 Label* on_not_smis,
+                                 Label::Distance near_jump) {
+  if (dst.is(src1) || dst.is(src2)) {
+    DCHECK(!src1.is(kScratchRegister));
+    DCHECK(!src2.is(kScratchRegister));
+    movp(kScratchRegister, src1);
+    orp(kScratchRegister, src2);
+    JumpIfNotSmi(kScratchRegister, on_not_smis, near_jump);
+    movp(dst, kScratchRegister);
+  } else {
+    movp(dst, src1);
+    orp(dst, src2);
+    JumpIfNotSmi(dst, on_not_smis, near_jump);
   }
 }
 
@@ -1394,6 +1501,27 @@ Condition MacroAssembler::CheckUInteger32ValidSmiValue(Register src) {
     DCHECK(SmiValuesAre31Bits());
     testl(src, Immediate(0xc0000000));
     return zero;
+  }
+}
+
+
+void MacroAssembler::CheckSmiToIndicator(Register dst, Register src) {
+  if (dst.is(src)) {
+    andl(dst, Immediate(kSmiTagMask));
+  } else {
+    movl(dst, Immediate(kSmiTagMask));
+    andl(dst, src);
+  }
+}
+
+
+void MacroAssembler::CheckSmiToIndicator(Register dst, const Operand& src) {
+  if (!(src.AddressUsesRegister(dst))) {
+    movl(dst, Immediate(kSmiTagMask));
+    andl(dst, src);
+  } else {
+    movl(dst, src);
+    andl(dst, Immediate(kSmiTagMask));
   }
 }
 
@@ -2501,14 +2629,6 @@ void MacroAssembler::Move(Register dst, Register src) {
   }
 }
 
-void MacroAssembler::MoveNumber(Register dst, double value) {
-  int32_t smi;
-  if (DoubleToSmiInteger(value, &smi)) {
-    Move(dst, Smi::FromInt(smi));
-  } else {
-    movp_heap_number(dst, value);
-  }
-}
 
 void MacroAssembler::Move(Register dst, Handle<Object> source) {
   AllowDeferredHandleDereference smi_check;
@@ -2928,6 +3048,24 @@ void MacroAssembler::MoveHeapObject(Register result,
 }
 
 
+void MacroAssembler::LoadGlobalCell(Register dst, Handle<Cell> cell) {
+  if (dst.is(rax)) {
+    AllowDeferredHandleDereference embedding_raw_address;
+    load_rax(cell.location(), RelocInfo::CELL);
+  } else {
+    Move(dst, cell, RelocInfo::CELL);
+    movp(dst, Operand(dst, 0));
+  }
+}
+
+
+void MacroAssembler::CmpWeakValue(Register value, Handle<WeakCell> cell,
+                                  Register scratch) {
+  Move(scratch, cell, RelocInfo::EMBEDDED_OBJECT);
+  cmpp(value, FieldOperand(scratch, WeakCell::kValueOffset));
+}
+
+
 void MacroAssembler::GetWeakValue(Register value, Handle<WeakCell> cell) {
   Move(value, cell, RelocInfo::EMBEDDED_OBJECT);
   movp(value, FieldOperand(value, WeakCell::kValueOffset));
@@ -3051,6 +3189,37 @@ void MacroAssembler::PopQuad(const Operand& dst) {
     popq(kScratchRegister);
     movp(dst, kScratchRegister);
   }
+}
+
+
+void MacroAssembler::LoadSharedFunctionInfoSpecialField(Register dst,
+                                                        Register base,
+                                                        int offset) {
+  DCHECK(offset > SharedFunctionInfo::kLengthOffset &&
+         offset <= SharedFunctionInfo::kSize &&
+         (((offset - SharedFunctionInfo::kLengthOffset) / kIntSize) % 2 == 1));
+  if (kPointerSize == kInt64Size) {
+    movsxlq(dst, FieldOperand(base, offset));
+  } else {
+    movp(dst, FieldOperand(base, offset));
+    SmiToInteger32(dst, dst);
+  }
+}
+
+
+void MacroAssembler::TestBitSharedFunctionInfoSpecialField(Register base,
+                                                           int offset,
+                                                           int bits) {
+  DCHECK(offset > SharedFunctionInfo::kLengthOffset &&
+         offset <= SharedFunctionInfo::kSize &&
+         (((offset - SharedFunctionInfo::kLengthOffset) / kIntSize) % 2 == 1));
+  if (kPointerSize == kInt32Size) {
+    // On x32, this field is represented by SMI.
+    bits += kSmiShift;
+  }
+  int byte_offset = bits / kBitsPerByte;
+  int bit_in_byte = bits & (kBitsPerByte - 1);
+  testb(FieldOperand(base, offset + byte_offset), Immediate(1 << bit_in_byte));
 }
 
 
@@ -3389,6 +3558,11 @@ void MacroAssembler::Popad() {
 }
 
 
+void MacroAssembler::Dropad() {
+  addp(rsp, Immediate(kNumSafepointRegisters * kPointerSize));
+}
+
+
 // Order general registers are pushed by Pushad:
 // rax, rcx, rdx, rbx, rsi, rdi, r8, r9, r11, r14, r15.
 const int
@@ -3663,6 +3837,43 @@ void MacroAssembler::LoadAccessor(Register dst, Register holder,
 }
 
 
+void MacroAssembler::DispatchWeakMap(Register obj, Register scratch1,
+                                     Register scratch2, Handle<WeakCell> cell,
+                                     Handle<Code> success,
+                                     SmiCheckType smi_check_type) {
+  Label fail;
+  if (smi_check_type == DO_SMI_CHECK) {
+    JumpIfSmi(obj, &fail);
+  }
+  movq(scratch1, FieldOperand(obj, HeapObject::kMapOffset));
+  CmpWeakValue(scratch1, cell, scratch2);
+  j(equal, success, RelocInfo::CODE_TARGET);
+  bind(&fail);
+}
+
+
+void MacroAssembler::AssertNumber(Register object) {
+  if (emit_debug_code()) {
+    Label ok;
+    Condition is_smi = CheckSmi(object);
+    j(is_smi, &ok, Label::kNear);
+    Cmp(FieldOperand(object, HeapObject::kMapOffset),
+        isolate()->factory()->heap_number_map());
+    Check(equal, kOperandIsNotANumber);
+    bind(&ok);
+  }
+}
+
+void MacroAssembler::AssertNotNumber(Register object) {
+  if (emit_debug_code()) {
+    Condition is_smi = CheckSmi(object);
+    Check(NegateCondition(is_smi), kOperandIsANumber);
+    Cmp(FieldOperand(object, HeapObject::kMapOffset),
+        isolate()->factory()->heap_number_map());
+    Check(not_equal, kOperandIsANumber);
+  }
+}
+
 void MacroAssembler::AssertNotSmi(Register object) {
   if (emit_debug_code()) {
     Condition is_smi = CheckSmi(object);
@@ -3686,16 +3897,6 @@ void MacroAssembler::AssertSmi(const Operand& object) {
   }
 }
 
-void MacroAssembler::AssertFixedArray(Register object) {
-  if (emit_debug_code()) {
-    testb(object, Immediate(kSmiTagMask));
-    Check(not_equal, kOperandIsASmiAndNotAFixedArray);
-    Push(object);
-    CmpObjectType(object, FIXED_ARRAY_TYPE, object);
-    Pop(object);
-    Check(equal, kOperandIsNotAFixedArray);
-  }
-}
 
 void MacroAssembler::AssertZeroExtended(Register int32_register) {
   if (emit_debug_code()) {
@@ -3703,6 +3904,32 @@ void MacroAssembler::AssertZeroExtended(Register int32_register) {
     movq(kScratchRegister, V8_INT64_C(0x0000000100000000));
     cmpq(kScratchRegister, int32_register);
     Check(above_equal, k32BitValueInRegisterIsNotZeroExtended);
+  }
+}
+
+
+void MacroAssembler::AssertString(Register object) {
+  if (emit_debug_code()) {
+    testb(object, Immediate(kSmiTagMask));
+    Check(not_equal, kOperandIsASmiAndNotAString);
+    Push(object);
+    movp(object, FieldOperand(object, HeapObject::kMapOffset));
+    CmpInstanceType(object, FIRST_NONSTRING_TYPE);
+    Pop(object);
+    Check(below, kOperandIsNotAString);
+  }
+}
+
+
+void MacroAssembler::AssertName(Register object) {
+  if (emit_debug_code()) {
+    testb(object, Immediate(kSmiTagMask));
+    Check(not_equal, kOperandIsASmiAndNotAName);
+    Push(object);
+    movp(object, FieldOperand(object, HeapObject::kMapOffset));
+    CmpInstanceType(object, LAST_NAME_TYPE);
+    Pop(object);
+    Check(below_equal, kOperandIsNotAName);
   }
 }
 
@@ -3730,34 +3957,29 @@ void MacroAssembler::AssertBoundFunction(Register object) {
   }
 }
 
-void MacroAssembler::AssertGeneratorObject(Register object, Register flags) {
-  // `flags` should be an untagged integer. See `SuspendFlags` in src/globals.h
-  if (!emit_debug_code()) return;
-  testb(object, Immediate(kSmiTagMask));
-  Check(not_equal, kOperandIsASmiAndNotAGeneratorObject);
-
-  // Load map
-  Register map = object;
-  Push(object);
-  movp(map, FieldOperand(object, HeapObject::kMapOffset));
-
-  Label async, do_check;
-  testb(flags, Immediate(static_cast<int>(SuspendFlags::kGeneratorTypeMask)));
-  j(not_zero, &async);
-
-  // Check if JSGeneratorObject
-  CmpInstanceType(map, JS_GENERATOR_OBJECT_TYPE);
-  jmp(&do_check);
-
-  bind(&async);
-  // Check if JSAsyncGeneratorObject
-  CmpInstanceType(map, JS_ASYNC_GENERATOR_OBJECT_TYPE);
-
-  bind(&do_check);
-  // Restore generator object to register and perform assertion
-  Pop(object);
-  Check(equal, kOperandIsNotAGeneratorObject);
+void MacroAssembler::AssertGeneratorObject(Register object) {
+  if (emit_debug_code()) {
+    testb(object, Immediate(kSmiTagMask));
+    Check(not_equal, kOperandIsASmiAndNotAGeneratorObject);
+    Push(object);
+    CmpObjectType(object, JS_GENERATOR_OBJECT_TYPE, object);
+    Pop(object);
+    Check(equal, kOperandIsNotAGeneratorObject);
+  }
 }
+
+void MacroAssembler::AssertReceiver(Register object) {
+  if (emit_debug_code()) {
+    testb(object, Immediate(kSmiTagMask));
+    Check(not_equal, kOperandIsASmiAndNotAReceiver);
+    Push(object);
+    STATIC_ASSERT(LAST_TYPE == LAST_JS_RECEIVER_TYPE);
+    CmpObjectType(object, FIRST_JS_RECEIVER_TYPE, object);
+    Pop(object);
+    Check(above_equal, kOperandIsNotAReceiver);
+  }
+}
+
 
 void MacroAssembler::AssertUndefinedOrAllocationSite(Register object) {
   if (emit_debug_code()) {
@@ -3772,6 +3994,19 @@ void MacroAssembler::AssertUndefinedOrAllocationSite(Register object) {
 }
 
 
+void MacroAssembler::AssertRootValue(Register src,
+                                     Heap::RootListIndex root_value_index,
+                                     BailoutReason reason) {
+  if (emit_debug_code()) {
+    DCHECK(!src.is(kScratchRegister));
+    LoadRoot(kScratchRegister, root_value_index);
+    cmpp(src, kScratchRegister);
+    Check(equal, reason);
+  }
+}
+
+
+
 Condition MacroAssembler::IsObjectStringType(Register heap_object,
                                              Register map,
                                              Register instance_type) {
@@ -3781,6 +4016,17 @@ Condition MacroAssembler::IsObjectStringType(Register heap_object,
   testb(instance_type, Immediate(kIsNotStringMask));
   return zero;
 }
+
+
+Condition MacroAssembler::IsObjectNameType(Register heap_object,
+                                           Register map,
+                                           Register instance_type) {
+  movp(map, FieldOperand(heap_object, HeapObject::kMapOffset));
+  movzxbl(instance_type, FieldOperand(map, Map::kInstanceTypeOffset));
+  cmpb(instance_type, Immediate(static_cast<uint8_t>(LAST_NAME_TYPE)));
+  return below_equal;
+}
+
 
 void MacroAssembler::GetMapConstructor(Register result, Register map,
                                        Register temp) {
@@ -3916,8 +4162,8 @@ void MacroAssembler::InvokeFunction(Register function,
                                     InvokeFlag flag,
                                     const CallWrapper& call_wrapper) {
   movp(rbx, FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
-  movsxlq(rbx,
-          FieldOperand(rbx, SharedFunctionInfo::kFormalParameterCountOffset));
+  LoadSharedFunctionInfoSpecialField(
+      rbx, rbx, SharedFunctionInfo::kFormalParameterCountOffset);
 
   ParameterCount expected(rbx);
   InvokeFunction(function, new_target, expected, actual, flag, call_wrapper);
@@ -4789,7 +5035,6 @@ void MacroAssembler::CallCFunction(ExternalReference function,
 
 
 void MacroAssembler::CallCFunction(Register function, int num_arguments) {
-  DCHECK_LE(num_arguments, kMaxCParameters);
   DCHECK(has_frame());
   // Check stack alignment.
   if (emit_debug_code()) {

@@ -11,13 +11,15 @@
 namespace v8 {
 namespace internal {
 
-VisitorId StaticVisitorBase::GetVisitorId(Map* map) {
+
+StaticVisitorBase::VisitorId StaticVisitorBase::GetVisitorId(Map* map) {
   return GetVisitorId(map->instance_type(), map->instance_size(),
                       FLAG_unbox_double_fields && !map->HasFastPointerLayout());
 }
 
-VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
-                                          bool has_unboxed_fields) {
+
+StaticVisitorBase::VisitorId StaticVisitorBase::GetVisitorId(
+    int instance_type, int instance_size, bool has_unboxed_fields) {
   if (instance_type < FIRST_NONSTRING_TYPE) {
     switch (instance_type & kStringRepresentationMask) {
       case kSeqStringTag:
@@ -38,7 +40,8 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
         return kVisitSlicedString;
 
       case kExternalStringTag:
-        return kVisitDataObject;
+        return GetVisitorIdForSize(kVisitDataObject, kVisitDataObjectGeneric,
+                                   instance_size, has_unboxed_fields);
 
       case kThinStringTag:
         return kVisitThinString;
@@ -94,7 +97,8 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
       return kVisitSharedFunctionInfo;
 
     case JS_PROXY_TYPE:
-      return kVisitStruct;
+      return GetVisitorIdForSize(kVisitStruct, kVisitStructGeneric,
+                                 instance_size, has_unboxed_fields);
 
     case SYMBOL_TYPE:
       return kVisitSymbol;
@@ -102,16 +106,12 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
     case JS_ARRAY_BUFFER_TYPE:
       return kVisitJSArrayBuffer;
 
-    case SMALL_ORDERED_HASH_SET_TYPE:
-      return kVisitSmallOrderedHashSet;
-
     case JS_OBJECT_TYPE:
     case JS_ERROR_TYPE:
     case JS_ARGUMENTS_TYPE:
     case JS_ASYNC_FROM_SYNC_ITERATOR_TYPE:
     case JS_CONTEXT_EXTENSION_OBJECT_TYPE:
     case JS_GENERATOR_OBJECT_TYPE:
-    case JS_ASYNC_GENERATOR_OBJECT_TYPE:
     case JS_MODULE_NAMESPACE_TYPE:
     case JS_VALUE_TYPE:
     case JS_DATE_TYPE:
@@ -166,19 +166,24 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
     case JS_PROMISE_CAPABILITY_TYPE:
     case JS_PROMISE_TYPE:
     case JS_BOUND_FUNCTION_TYPE:
-      return has_unboxed_fields ? kVisitJSObject : kVisitJSObjectFast;
+      return GetVisitorIdForSize(kVisitJSObject, kVisitJSObjectGeneric,
+                                 instance_size, has_unboxed_fields);
     case JS_API_OBJECT_TYPE:
     case JS_SPECIAL_API_OBJECT_TYPE:
-      return kVisitJSApiObject;
+      return GetVisitorIdForSize(kVisitJSApiObject, kVisitJSApiObjectGeneric,
+                                 instance_size, has_unboxed_fields);
 
     case JS_FUNCTION_TYPE:
       return kVisitJSFunction;
 
     case FILLER_TYPE:
+      if (instance_size == kPointerSize) return kVisitDataObjectGeneric;
+    // Fall through.
     case FOREIGN_TYPE:
     case HEAP_NUMBER_TYPE:
     case MUTABLE_HEAP_NUMBER_TYPE:
-      return kVisitDataObject;
+      return GetVisitorIdForSize(kVisitDataObject, kVisitDataObjectGeneric,
+                                 instance_size, has_unboxed_fields);
 
     case FIXED_UINT8_ARRAY_TYPE:
     case FIXED_INT8_ARRAY_TYPE:
@@ -188,7 +193,7 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
     case FIXED_INT32_ARRAY_TYPE:
     case FIXED_FLOAT32_ARRAY_TYPE:
     case FIXED_UINT8_CLAMPED_ARRAY_TYPE:
-      return kVisitFixedTypedArrayBase;
+      return kVisitFixedTypedArray;
 
     case FIXED_FLOAT64_ARRAY_TYPE:
       return kVisitFixedFloat64Array;
@@ -200,10 +205,12 @@ VisitorId StaticVisitorBase::GetVisitorId(int instance_type, int instance_size,
         return kVisitAllocationSite;
       }
 
-      return kVisitStruct;
+      return GetVisitorIdForSize(kVisitStruct, kVisitStructGeneric,
+                                 instance_size, has_unboxed_fields);
 
     default:
       UNREACHABLE();
+      return kVisitorIdCount;
   }
 }
 

@@ -24,7 +24,7 @@ class Processor final : public AstVisitor<Processor> {
         breakable_(false),
         zone_(ast_value_factory->zone()),
         closure_scope_(closure_scope),
-        factory_(ast_value_factory, ast_value_factory->zone()) {
+        factory_(ast_value_factory) {
     DCHECK_EQ(closure_scope, closure_scope->GetClosureScope());
     InitializeAstVisitor(stack_limit);
   }
@@ -38,7 +38,7 @@ class Processor final : public AstVisitor<Processor> {
         breakable_(false),
         zone_(ast_value_factory->zone()),
         closure_scope_(closure_scope),
-        factory_(ast_value_factory, zone_) {
+        factory_(ast_value_factory) {
     DCHECK_EQ(closure_scope, closure_scope->GetClosureScope());
     InitializeAstVisitor(parser->stack_limit());
   }
@@ -112,8 +112,10 @@ class Processor final : public AstVisitor<Processor> {
 
 
 Statement* Processor::AssignUndefinedBefore(Statement* s) {
+  Expression* result_proxy = factory()->NewVariableProxy(result_);
   Expression* undef = factory()->NewUndefinedLiteral(kNoSourcePosition);
-  Expression* assignment = SetResult(undef);
+  Expression* assignment = factory()->NewAssignment(Token::ASSIGN, result_proxy,
+                                                    undef, kNoSourcePosition);
   Block* b = factory()->NewBlock(NULL, 2, false, kNoSourcePosition);
   b->statements()->Add(
       factory()->NewExpressionStatement(assignment, kNoSourcePosition), zone());
@@ -352,63 +354,49 @@ DECLARATION_NODE_LIST(DEF_VISIT)
 
 // Assumes code has been parsed.  Mutates the AST, so the AST should not
 // continue to be used in the case of failure.
-bool Rewriter::Rewrite(ParseInfo* info, Isolate* isolate) {
+bool Rewriter::Rewrite(ParseInfo* info) {
   DisallowHeapAllocation no_allocation;
   DisallowHandleAllocation no_handles;
   DisallowHandleDereference no_deref;
 
   RuntimeCallTimerScope runtimeTimer(
-      info->runtime_call_stats(),
-      &RuntimeCallStats::CompileRewriteReturnResult);
+      info->isolate(), &RuntimeCallStats::CompileRewriteReturnResult);
 
   FunctionLiteral* function = info->literal();
   DCHECK_NOT_NULL(function);
   Scope* scope = function->scope();
   DCHECK_NOT_NULL(scope);
-  DCHECK_EQ(scope, scope->GetClosureScope());
+  if (!scope->is_script_scope() && !scope->is_eval_scope()) return true;
 
-  if (!(scope->is_script_scope() || scope->is_eval_scope() ||
-        scope->is_module_scope())) {
-    return true;
-  }
+  DeclarationScope* closure_scope = scope->GetClosureScope();
 
   ZoneList<Statement*>* body = function->body();
-  DCHECK_IMPLIES(scope->is_module_scope(), !body->is_empty());
   if (!body->is_empty()) {
-    Variable* result = scope->AsDeclarationScope()->NewTemporary(
+    Variable* result = closure_scope->NewTemporary(
         info->ast_value_factory()->dot_result_string());
-    Processor processor(info->stack_limit(), scope->AsDeclarationScope(),
-                        result, info->ast_value_factory());
+    Processor processor(info->isolate()->stack_guard()->real_climit(),
+                        closure_scope, result, info->ast_value_factory());
     processor.Process(body);
 
-    DCHECK_IMPLIES(scope->is_module_scope(), processor.result_assigned());
-    if (processor.result_assigned()) {
-      int pos = kNoSourcePosition;
-      Expression* result_value =
-          processor.factory()->NewVariableProxy(result, pos);
-      if (scope->is_module_scope()) {
-        auto args = new (info->zone()) ZoneList<Expression*>(2, info->zone());
-        args->Add(result_value, info->zone());
-        args->Add(processor.factory()->NewBooleanLiteral(true, pos),
-                  info->zone());
-        result_value = processor.factory()->NewCallRuntime(
-            Runtime::kInlineCreateIterResultObject, args, pos);
-      }
-      Statement* result_statement =
-          processor.factory()->NewReturnStatement(result_value, pos);
-      body->Add(result_statement, info->zone());
-    }
-
     // TODO(leszeks): Remove this check and releases once internalization is
-    // moved out of parsing/analysis. Also remove the parameter once done.
-    DCHECK(ThreadId::Current().Equals(isolate->thread_id()));
+    // moved out of parsing/analysis.
+    DCHECK(ThreadId::Current().Equals(info->isolate()->thread_id()));
     no_deref.Release();
     no_handles.Release();
     no_allocation.Release();
 
     // Internalize any values created during rewriting.
-    info->ast_value_factory()->Internalize(isolate);
+    info->ast_value_factory()->Internalize(info->isolate());
     if (processor.HasStackOverflow()) return false;
+
+    if (processor.result_assigned()) {
+      int pos = kNoSourcePosition;
+      VariableProxy* result_proxy =
+          processor.factory()->NewVariableProxy(result, pos);
+      Statement* result_statement =
+          processor.factory()->NewReturnStatement(result_proxy, pos);
+      body->Add(result_statement, info->zone());
+    }
   }
 
   return true;

@@ -5,13 +5,11 @@
 #include "src/compiler/code-generator.h"
 
 #include "src/arm/macro-assembler-arm.h"
-#include "src/assembler-inl.h"
 #include "src/compilation-info.h"
 #include "src/compiler/code-generator-impl.h"
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/osr.h"
-#include "src/heap/heap-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -40,6 +38,7 @@ class ArmOperandConverter final : public InstructionOperandConverter {
         return LeaveCC;
     }
     UNREACHABLE();
+    return LeaveCC;
   }
 
   Operand InputImmediate(size_t index) {
@@ -48,9 +47,11 @@ class ArmOperandConverter final : public InstructionOperandConverter {
       case Constant::kInt32:
         return Operand(constant.ToInt32());
       case Constant::kFloat32:
-        return Operand::EmbeddedNumber(constant.ToFloat32());
+        return Operand(
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED));
       case Constant::kFloat64:
-        return Operand::EmbeddedNumber(constant.ToFloat64());
+        return Operand(
+            isolate()->factory()->NewNumber(constant.ToFloat64(), TENURED));
       case Constant::kInt64:
       case Constant::kExternalReference:
       case Constant::kHeapObject:
@@ -58,6 +59,7 @@ class ArmOperandConverter final : public InstructionOperandConverter {
         break;
     }
     UNREACHABLE();
+    return Operand::Zero();
   }
 
   Operand InputOperand2(size_t first_index) {
@@ -89,6 +91,7 @@ class ArmOperandConverter final : public InstructionOperandConverter {
         return Operand(InputRegister(index + 0), ROR, InputRegister(index + 1));
     }
     UNREACHABLE();
+    return Operand::Zero();
   }
 
   MemOperand InputOffset(size_t* first_index) {
@@ -117,6 +120,7 @@ class ArmOperandConverter final : public InstructionOperandConverter {
         return MemOperand(InputRegister(index + 0), InputRegister(index + 1));
     }
     UNREACHABLE();
+    return MemOperand(r0);
   }
 
   MemOperand InputOffset(size_t first_index = 0) {
@@ -338,14 +342,7 @@ Condition FlagsConditionToCondition(FlagsCondition condition) {
       break;
   }
   UNREACHABLE();
-}
-
-int GetVtblTableSize(const Simd128Register& src0, const Simd128Register& src1) {
-  // If unary shuffle, table is src0 (2 d-registers).
-  if (src0.is(src1)) return 2;
-  // Binary shuffle, table is src0, src1. They must be consecutive
-  DCHECK_EQ(src0.code() + 1, src1.code());
-  return 4;  // 4 d-registers.
+  return kNoCondition;
 }
 
 }  // namespace
@@ -423,51 +420,6 @@ int GetVtblTableSize(const Simd128Register& src0, const Simd128Register& src1) {
     __ dmb(ISH);                                                      \
   } while (0)
 
-#define ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(load_instr, store_instr)             \
-  do {                                                                        \
-    Label exchange;                                                           \
-    __ dmb(ISH);                                                              \
-    __ bind(&exchange);                                                       \
-    __ add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1));        \
-    __ load_instr(i.OutputRegister(0), i.TempRegister(0));                    \
-    __ store_instr(i.TempRegister(0), i.InputRegister(2), i.TempRegister(0)); \
-    __ teq(i.TempRegister(0), Operand(0));                                    \
-    __ b(ne, &exchange);                                                      \
-    __ dmb(ISH);                                                              \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(load_instr, store_instr)     \
-  do {                                                                        \
-    Label compareExchange;                                                    \
-    Label exit;                                                               \
-    __ dmb(ISH);                                                              \
-    __ bind(&compareExchange);                                                \
-    __ add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1));        \
-    __ load_instr(i.OutputRegister(0), i.TempRegister(0));                    \
-    __ teq(i.TempRegister(1), Operand(i.OutputRegister(0)));                  \
-    __ b(ne, &exit);                                                          \
-    __ store_instr(i.TempRegister(0), i.InputRegister(3), i.TempRegister(0)); \
-    __ teq(i.TempRegister(0), Operand(0));                                    \
-    __ b(ne, &compareExchange);                                               \
-    __ bind(&exit);                                                           \
-    __ dmb(ISH);                                                              \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_BINOP(load_instr, store_instr, bin_instr)            \
-  do {                                                                       \
-    Label binop;                                                             \
-    __ add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1));       \
-    __ dmb(ISH);                                                             \
-    __ bind(&binop);                                                         \
-    __ load_instr(i.OutputRegister(0), i.TempRegister(0));                   \
-    __ bin_instr(i.TempRegister(1), i.OutputRegister(0),                     \
-                 Operand(i.InputRegister(2)));                               \
-    __ store_instr(i.TempRegister(1), i.TempRegister(1), i.TempRegister(0)); \
-    __ teq(i.TempRegister(1), Operand(0));                                   \
-    __ b(ne, &binop);                                                        \
-    __ dmb(ISH);                                                             \
-  } while (0)
-
 #define ASSEMBLE_IEEE754_BINOP(name)                                           \
   do {                                                                         \
     /* TODO(bmeurer): We should really get rid of this special instruction, */ \
@@ -497,41 +449,6 @@ int GetVtblTableSize(const Simd128Register& src0, const Simd128Register& src1) {
     DCHECK_EQ(LeaveCC, i.OutputSBit());                                        \
   } while (0)
 
-#define ASSEMBLE_NEON_NARROWING_OP(dt)                \
-  do {                                                \
-    Simd128Register dst = i.OutputSimd128Register(),  \
-                    src0 = i.InputSimd128Register(0), \
-                    src1 = i.InputSimd128Register(1); \
-    if (dst.is(src0) && dst.is(src1)) {               \
-      __ vqmovn(dt, dst.low(), src0);                 \
-      __ vmov(dst.high(), dst.low());                 \
-    } else if (dst.is(src0)) {                        \
-      __ vqmovn(dt, dst.low(), src0);                 \
-      __ vqmovn(dt, dst.high(), src1);                \
-    } else {                                          \
-      __ vqmovn(dt, dst.high(), src1);                \
-      __ vqmovn(dt, dst.low(), src0);                 \
-    }                                                 \
-  } while (0)
-
-#define ASSEMBLE_NEON_PAIRWISE_OP(op, size)               \
-  do {                                                    \
-    Simd128Register dst = i.OutputSimd128Register(),      \
-                    src0 = i.InputSimd128Register(0),     \
-                    src1 = i.InputSimd128Register(1);     \
-    if (dst.is(src0)) {                                   \
-      __ op(size, dst.low(), src0.low(), src0.high());    \
-      if (dst.is(src1)) {                                 \
-        __ vmov(dst.high(), dst.low());                   \
-      } else {                                            \
-        __ op(size, dst.high(), src1.low(), src1.high()); \
-      }                                                   \
-    } else {                                              \
-      __ op(size, dst.high(), src1.low(), src1.high());   \
-      __ op(size, dst.low(), src0.low(), src0.high());    \
-    }                                                     \
-  } while (0)
-
 void CodeGenerator::AssembleDeconstructFrame() {
   __ LeaveFrame(StackFrame::MANUAL);
   unwinding_info_writer_.MarkFrameDeconstructed(__ pc_offset());
@@ -539,6 +456,9 @@ void CodeGenerator::AssembleDeconstructFrame() {
 
 void CodeGenerator::AssemblePrepareTailCall() {
   if (frame_access_state()->has_frame()) {
+    if (FLAG_enable_embedded_constant_pool) {
+      __ ldr(cp, MemOperand(fp, StandardFrameConstants::kConstantPoolOffset));
+    }
     __ ldr(lr, MemOperand(fp, StandardFrameConstants::kCallerPCOffset));
     __ ldr(fp, MemOperand(fp, StandardFrameConstants::kCallerFPOffset));
   }
@@ -690,11 +610,6 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
   ArchOpcode arch_opcode = ArchOpcodeField::decode(opcode);
   switch (arch_opcode) {
     case kArchCallCodeObject: {
-      // We must not share code targets for calls to builtins for wasm code, as
-      // they might need to be patched individually.
-      internal::Assembler::BlockCodeTargetSharingScope scope;
-      if (info()->IsWasm()) scope.Open(masm());
-
       EnsureSpaceForLazyDeopt();
       if (instr->InputAt(0)->IsImmediate()) {
         __ Call(Handle<Code>::cast(i.InputHeapObject(0)),
@@ -711,11 +626,6 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
     }
     case kArchTailCallCodeObjectFromJSFunction:
     case kArchTailCallCodeObject: {
-      // We must not share code targets for calls to builtins for wasm code, as
-      // they might need to be patched individually.
-      internal::Assembler::BlockCodeTargetSharingScope scope;
-      if (info()->IsWasm()) scope.Open(masm());
-
       if (arch_opcode == kArchTailCallCodeObjectFromJSFunction) {
         AssemblePopArgumentsAdaptorFrame(kJavaScriptCallArgCountRegister,
                                          i.TempRegister(0), i.TempRegister(1),
@@ -1501,26 +1411,6 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       __ vstr(i.InputFloatRegister(0), i.InputOffset(1));
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
-    case kArmVld1F64: {
-      __ vld1(Neon8, NeonListOperand(i.OutputDoubleRegister()),
-              NeonMemOperand(i.InputRegister(0)));
-      break;
-    }
-    case kArmVst1F64: {
-      __ vst1(Neon8, NeonListOperand(i.InputDoubleRegister(0)),
-              NeonMemOperand(i.InputRegister(1)));
-      break;
-    }
-    case kArmVld1S128: {
-      __ vld1(Neon8, NeonListOperand(i.OutputSimd128Register()),
-              NeonMemOperand(i.InputRegister(0)));
-      break;
-    }
-    case kArmVst1S128: {
-      __ vst1(Neon8, NeonListOperand(i.InputSimd128Register(0)),
-              NeonMemOperand(i.InputRegister(1)));
-      break;
-    }
     case kArmVldrF64:
       __ vldr(i.OutputDoubleRegister(), i.InputOffset());
       DCHECK_EQ(LeaveCC, i.OutputSBit());
@@ -1614,879 +1504,436 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       DCHECK_EQ(LeaveCC, i.OutputSBit());
       break;
     }
-    case kArmF32x4Splat: {
-      int src_code = i.InputFloatRegister(0).code();
-      __ vdup(Neon32, i.OutputSimd128Register(),
-              DwVfpRegister::from_code(src_code / 2), src_code & 0x1);
+    case kArmFloat32x4Splat: {
+      __ vdup(i.OutputSimd128Register(), i.InputFloatRegister(0));
       break;
     }
-    case kArmF32x4ExtractLane: {
+    case kArmFloat32x4ExtractLane: {
       __ ExtractLane(i.OutputFloatRegister(), i.InputSimd128Register(0),
-                     i.InputInt8(1));
+                     kScratchReg, i.InputInt8(1));
       break;
     }
-    case kArmF32x4ReplaceLane: {
+    case kArmFloat32x4ReplaceLane: {
       __ ReplaceLane(i.OutputSimd128Register(), i.InputSimd128Register(0),
-                     i.InputFloatRegister(2), i.InputInt8(1));
+                     i.InputFloatRegister(2), kScratchReg, i.InputInt8(1));
       break;
     }
-    case kArmF32x4SConvertI32x4: {
+    case kArmFloat32x4FromInt32x4: {
       __ vcvt_f32_s32(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmF32x4UConvertI32x4: {
+    case kArmFloat32x4FromUint32x4: {
       __ vcvt_f32_u32(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmF32x4Abs: {
+    case kArmFloat32x4Abs: {
       __ vabs(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmF32x4Neg: {
+    case kArmFloat32x4Neg: {
       __ vneg(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmF32x4RecipApprox: {
-      __ vrecpe(i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmF32x4RecipSqrtApprox: {
-      __ vrsqrte(i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmF32x4Add: {
+    case kArmFloat32x4Add: {
       __ vadd(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmF32x4AddHoriz: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src0 = i.InputSimd128Register(0),
-                      src1 = i.InputSimd128Register(1);
-      // Make sure we don't overwrite source data before it's used.
-      if (dst.is(src0)) {
-        __ vpadd(dst.low(), src0.low(), src0.high());
-        if (dst.is(src1)) {
-          __ vmov(dst.high(), dst.low());
-        } else {
-          __ vpadd(dst.high(), src1.low(), src1.high());
-        }
-      } else {
-        __ vpadd(dst.high(), src1.low(), src1.high());
-        __ vpadd(dst.low(), src0.low(), src0.high());
-      }
-      break;
-    }
-    case kArmF32x4Sub: {
+    case kArmFloat32x4Sub: {
       __ vsub(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmF32x4Mul: {
-      __ vmul(i.OutputSimd128Register(), i.InputSimd128Register(0),
-              i.InputSimd128Register(1));
-      break;
-    }
-    case kArmF32x4Min: {
-      __ vmin(i.OutputSimd128Register(), i.InputSimd128Register(0),
-              i.InputSimd128Register(1));
-      break;
-    }
-    case kArmF32x4Max: {
-      __ vmax(i.OutputSimd128Register(), i.InputSimd128Register(0),
-              i.InputSimd128Register(1));
-      break;
-    }
-    case kArmF32x4Eq: {
+    case kArmFloat32x4Equal: {
       __ vceq(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmF32x4Ne: {
+    case kArmFloat32x4NotEqual: {
       Simd128Register dst = i.OutputSimd128Register();
       __ vceq(dst, i.InputSimd128Register(0), i.InputSimd128Register(1));
       __ vmvn(dst, dst);
       break;
     }
-    case kArmF32x4Lt: {
-      __ vcgt(i.OutputSimd128Register(), i.InputSimd128Register(1),
-              i.InputSimd128Register(0));
-      break;
-    }
-    case kArmF32x4Le: {
-      __ vcge(i.OutputSimd128Register(), i.InputSimd128Register(1),
-              i.InputSimd128Register(0));
-      break;
-    }
-    case kArmI32x4Splat: {
+    case kArmInt32x4Splat: {
       __ vdup(Neon32, i.OutputSimd128Register(), i.InputRegister(0));
       break;
     }
-    case kArmI32x4ExtractLane: {
+    case kArmInt32x4ExtractLane: {
       __ ExtractLane(i.OutputRegister(), i.InputSimd128Register(0), NeonS32,
                      i.InputInt8(1));
       break;
     }
-    case kArmI32x4ReplaceLane: {
+    case kArmInt32x4ReplaceLane: {
       __ ReplaceLane(i.OutputSimd128Register(), i.InputSimd128Register(0),
                      i.InputRegister(2), NeonS32, i.InputInt8(1));
       break;
     }
-    case kArmI32x4SConvertF32x4: {
+    case kArmInt32x4FromFloat32x4: {
       __ vcvt_s32_f32(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmI32x4SConvertI16x8Low: {
-      __ vmovl(NeonS16, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).low());
+    case kArmUint32x4FromFloat32x4: {
+      __ vcvt_u32_f32(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmI32x4SConvertI16x8High: {
-      __ vmovl(NeonS16, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).high());
-      break;
-    }
-    case kArmI32x4Neg: {
+    case kArmInt32x4Neg: {
       __ vneg(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmI32x4Shl: {
+    case kArmInt32x4ShiftLeftByScalar: {
       __ vshl(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt5(1));
       break;
     }
-    case kArmI32x4ShrS: {
+    case kArmInt32x4ShiftRightByScalar: {
       __ vshr(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt5(1));
       break;
     }
-    case kArmI32x4Add: {
+    case kArmInt32x4Add: {
       __ vadd(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4AddHoriz:
-      ASSEMBLE_NEON_PAIRWISE_OP(vpadd, Neon32);
-      break;
-    case kArmI32x4Sub: {
+    case kArmInt32x4Sub: {
       __ vsub(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4Mul: {
+    case kArmInt32x4Mul: {
       __ vmul(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4MinS: {
+    case kArmInt32x4Min: {
       __ vmin(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4MaxS: {
+    case kArmInt32x4Max: {
       __ vmax(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4Eq: {
+    case kArmInt32x4Equal: {
       __ vceq(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4Ne: {
+    case kArmInt32x4NotEqual: {
       Simd128Register dst = i.OutputSimd128Register();
       __ vceq(Neon32, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       __ vmvn(dst, dst);
       break;
     }
-    case kArmI32x4GtS: {
+    case kArmInt32x4GreaterThan: {
       __ vcgt(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4GeS: {
-      __ vcge(NeonS32, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmInt32x4GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonS32, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4UConvertF32x4: {
-      __ vcvt_u32_f32(i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmI32x4UConvertI16x8Low: {
-      __ vmovl(NeonU16, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).low());
-      break;
-    }
-    case kArmI32x4UConvertI16x8High: {
-      __ vmovl(NeonU16, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).high());
-      break;
-    }
-    case kArmI32x4ShrU: {
+    case kArmUint32x4ShiftRightByScalar: {
       __ vshr(NeonU32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt5(1));
       break;
     }
-    case kArmI32x4MinU: {
+    case kArmUint32x4Min: {
       __ vmin(NeonU32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4MaxU: {
+    case kArmUint32x4Max: {
       __ vmax(NeonU32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4GtU: {
+    case kArmUint32x4GreaterThan: {
       __ vcgt(NeonU32, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI32x4GeU: {
-      __ vcge(NeonU32, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmUint32x4GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonU32, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8Splat: {
+    case kArmInt16x8Splat: {
       __ vdup(Neon16, i.OutputSimd128Register(), i.InputRegister(0));
       break;
     }
-    case kArmI16x8ExtractLane: {
+    case kArmInt16x8ExtractLane: {
       __ ExtractLane(i.OutputRegister(), i.InputSimd128Register(0), NeonS16,
                      i.InputInt8(1));
       break;
     }
-    case kArmI16x8ReplaceLane: {
+    case kArmInt16x8ReplaceLane: {
       __ ReplaceLane(i.OutputSimd128Register(), i.InputSimd128Register(0),
                      i.InputRegister(2), NeonS16, i.InputInt8(1));
       break;
     }
-    case kArmI16x8SConvertI8x16Low: {
-      __ vmovl(NeonS8, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).low());
-      break;
-    }
-    case kArmI16x8SConvertI8x16High: {
-      __ vmovl(NeonS8, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).high());
-      break;
-    }
-    case kArmI16x8Neg: {
+    case kArmInt16x8Neg: {
       __ vneg(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmI16x8Shl: {
+    case kArmInt16x8ShiftLeftByScalar: {
       __ vshl(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt4(1));
       break;
     }
-    case kArmI16x8ShrS: {
+    case kArmInt16x8ShiftRightByScalar: {
       __ vshr(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt4(1));
       break;
     }
-    case kArmI16x8SConvertI32x4:
-      ASSEMBLE_NEON_NARROWING_OP(NeonS16);
-      break;
-    case kArmI16x8Add: {
+    case kArmInt16x8Add: {
       __ vadd(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8AddSaturateS: {
+    case kArmInt16x8AddSaturate: {
       __ vqadd(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8AddHoriz:
-      ASSEMBLE_NEON_PAIRWISE_OP(vpadd, Neon16);
-      break;
-    case kArmI16x8Sub: {
+    case kArmInt16x8Sub: {
       __ vsub(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8SubSaturateS: {
+    case kArmInt16x8SubSaturate: {
       __ vqsub(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8Mul: {
+    case kArmInt16x8Mul: {
       __ vmul(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8MinS: {
+    case kArmInt16x8Min: {
       __ vmin(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8MaxS: {
+    case kArmInt16x8Max: {
       __ vmax(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8Eq: {
+    case kArmInt16x8Equal: {
       __ vceq(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8Ne: {
+    case kArmInt16x8NotEqual: {
       Simd128Register dst = i.OutputSimd128Register();
       __ vceq(Neon16, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       __ vmvn(dst, dst);
       break;
     }
-    case kArmI16x8GtS: {
+    case kArmInt16x8GreaterThan: {
       __ vcgt(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8GeS: {
-      __ vcge(NeonS16, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmInt16x8GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonS16, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8UConvertI8x16Low: {
-      __ vmovl(NeonU8, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).low());
-      break;
-    }
-    case kArmI16x8UConvertI8x16High: {
-      __ vmovl(NeonU8, i.OutputSimd128Register(),
-               i.InputSimd128Register(0).high());
-      break;
-    }
-    case kArmI16x8ShrU: {
+    case kArmUint16x8ShiftRightByScalar: {
       __ vshr(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt4(1));
       break;
     }
-    case kArmI16x8UConvertI32x4:
-      ASSEMBLE_NEON_NARROWING_OP(NeonU16);
-      break;
-    case kArmI16x8AddSaturateU: {
+    case kArmUint16x8AddSaturate: {
       __ vqadd(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8SubSaturateU: {
+    case kArmUint16x8SubSaturate: {
       __ vqsub(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8MinU: {
+    case kArmUint16x8Min: {
       __ vmin(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8MaxU: {
+    case kArmUint16x8Max: {
       __ vmax(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8GtU: {
+    case kArmUint16x8GreaterThan: {
       __ vcgt(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI16x8GeU: {
-      __ vcge(NeonU16, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmUint16x8GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonU16, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16Splat: {
+    case kArmInt8x16Splat: {
       __ vdup(Neon8, i.OutputSimd128Register(), i.InputRegister(0));
       break;
     }
-    case kArmI8x16ExtractLane: {
+    case kArmInt8x16ExtractLane: {
       __ ExtractLane(i.OutputRegister(), i.InputSimd128Register(0), NeonS8,
                      i.InputInt8(1));
       break;
     }
-    case kArmI8x16ReplaceLane: {
+    case kArmInt8x16ReplaceLane: {
       __ ReplaceLane(i.OutputSimd128Register(), i.InputSimd128Register(0),
                      i.InputRegister(2), NeonS8, i.InputInt8(1));
       break;
     }
-    case kArmI8x16Neg: {
+    case kArmInt8x16Neg: {
       __ vneg(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmI8x16Shl: {
+    case kArmInt8x16ShiftLeftByScalar: {
       __ vshl(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt3(1));
       break;
     }
-    case kArmI8x16ShrS: {
+    case kArmInt8x16ShiftRightByScalar: {
       __ vshr(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt3(1));
       break;
     }
-    case kArmI8x16SConvertI16x8:
-      ASSEMBLE_NEON_NARROWING_OP(NeonS8);
-      break;
-    case kArmI8x16Add: {
+    case kArmInt8x16Add: {
       __ vadd(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16AddSaturateS: {
+    case kArmInt8x16AddSaturate: {
       __ vqadd(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16Sub: {
+    case kArmInt8x16Sub: {
       __ vsub(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16SubSaturateS: {
+    case kArmInt8x16SubSaturate: {
       __ vqsub(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16Mul: {
+    case kArmInt8x16Mul: {
       __ vmul(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16MinS: {
+    case kArmInt8x16Min: {
       __ vmin(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16MaxS: {
+    case kArmInt8x16Max: {
       __ vmax(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16Eq: {
+    case kArmInt8x16Equal: {
       __ vceq(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16Ne: {
+    case kArmInt8x16NotEqual: {
       Simd128Register dst = i.OutputSimd128Register();
       __ vceq(Neon8, dst, i.InputSimd128Register(0), i.InputSimd128Register(1));
       __ vmvn(dst, dst);
       break;
     }
-    case kArmI8x16GtS: {
+    case kArmInt8x16GreaterThan: {
       __ vcgt(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16GeS: {
-      __ vcge(NeonS8, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmInt8x16GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonS8, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16ShrU: {
+    case kArmUint8x16ShiftRightByScalar: {
       __ vshr(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputInt3(1));
       break;
     }
-    case kArmI8x16UConvertI16x8:
-      ASSEMBLE_NEON_NARROWING_OP(NeonU8);
-      break;
-    case kArmI8x16AddSaturateU: {
+    case kArmUint8x16AddSaturate: {
       __ vqadd(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16SubSaturateU: {
+    case kArmUint8x16SubSaturate: {
       __ vqsub(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
                i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16MinU: {
+    case kArmUint8x16Min: {
       __ vmin(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16MaxU: {
+    case kArmUint8x16Max: {
       __ vmax(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16GtU: {
+    case kArmUint8x16GreaterThan: {
       __ vcgt(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmI8x16GeU: {
-      __ vcge(NeonU8, i.OutputSimd128Register(), i.InputSimd128Register(0),
+    case kArmUint8x16GreaterThanOrEqual: {
+      Simd128Register dst = i.OutputSimd128Register();
+      __ vcge(NeonU8, dst, i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmS128Zero: {
-      __ veor(i.OutputSimd128Register(), i.OutputSimd128Register(),
-              i.OutputSimd128Register());
-      break;
-    }
-    case kArmS128And: {
+    case kArmSimd128And: {
       __ vand(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmS128Or: {
+    case kArmSimd128Or: {
       __ vorr(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmS128Xor: {
+    case kArmSimd128Xor: {
       __ veor(i.OutputSimd128Register(), i.InputSimd128Register(0),
               i.InputSimd128Register(1));
       break;
     }
-    case kArmS128Not: {
+    case kArmSimd128Not: {
       __ vmvn(i.OutputSimd128Register(), i.InputSimd128Register(0));
       break;
     }
-    case kArmS128Select: {
-      Simd128Register dst = i.OutputSimd128Register();
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      __ vbsl(dst, i.InputSimd128Register(1), i.InputSimd128Register(2));
-      break;
-    }
-    case kArmS32x4ZipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3], src1 = [4, 5, 6, 7]
-      __ vmov(dst.high(), src1.low());         // dst = [0, 1, 4, 5]
-      __ vtrn(Neon32, dst.low(), dst.high());  // dst = [0, 4, 1, 5]
-      break;
-    }
-    case kArmS32x4ZipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [4, 5, 6, 7], src1 = [0, 1, 2, 3] (flipped from ZipLeft).
-      __ vmov(dst.low(), src1.high());         // dst = [2, 3, 6, 7]
-      __ vtrn(Neon32, dst.low(), dst.high());  // dst = [2, 6, 3, 7]
-      break;
-    }
-    case kArmS32x4UnzipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3], src1 = [4, 5, 6, 7]
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon32, dst, kScratchQuadReg);  // dst = [0, 2, 4, 6]
-      break;
-    }
-    case kArmS32x4UnzipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [4, 5, 6, 7], src1 = [0, 1, 2, 3] (flipped from UnzipLeft).
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon32, kScratchQuadReg, dst);  // dst = [1, 3, 5, 7]
-      break;
-    }
-    case kArmS32x4TransposeLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3], src1 = [4, 5, 6, 7]
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon32, dst, kScratchQuadReg);  // dst = [0, 4, 2, 6]
-      break;
-    }
-    case kArmS32x4Shuffle: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src0 = i.InputSimd128Register(0),
-                      src1 = i.InputSimd128Register(1);
-      // Check for in-place shuffles.
-      // If dst == src0 == src1, then the shuffle is unary and we only use src0.
-      if (dst.is(src0)) {
-        __ vmov(kScratchQuadReg, src0);
-        src0 = kScratchQuadReg;
-      } else if (dst.is(src1)) {
-        __ vmov(kScratchQuadReg, src1);
-        src1 = kScratchQuadReg;
-      }
-      // Perform shuffle as a vmov per lane.
-      int dst_code = dst.code() * 4;
-      int src0_code = src0.code() * 4;
-      int src1_code = src1.code() * 4;
-      int32_t shuffle = i.InputInt32(2);
-      for (int i = 0; i < 4; i++) {
-        int lane = shuffle & 0x7;
-        int src_code = src0_code;
-        if (lane >= 4) {
-          src_code = src1_code;
-          lane &= 0x3;
-        }
-        __ VmovExtended(dst_code + i, src_code + lane);
-        shuffle >>= 8;
-      }
-      break;
-    }
-    case kArmS32x4TransposeRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [4, 5, 6, 7], src1 = [0, 1, 2, 3] (flipped from TransposeLeft).
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon32, kScratchQuadReg, dst);  // dst = [1, 5, 3, 7]
-      break;
-    }
-    case kArmS16x8ZipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      // src0 = [0, 1, 2, 3, ... 7], src1 = [8, 9, 10, 11, ... 15]
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      __ vmov(dst.high(), src1.low());         // dst = [0, 1, 2, 3, 8, ... 11]
-      __ vzip(Neon16, dst.low(), dst.high());  // dst = [0, 8, 1, 9, ... 11]
-      break;
-    }
-    case kArmS16x8ZipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [8, 9, 10, 11, ... 15], src1 = [0, 1, 2, 3, ... 7] (flipped).
-      __ vmov(dst.low(), src1.high());
-      __ vzip(Neon16, dst.low(), dst.high());  // dst = [4, 12, 5, 13, ... 15]
-      break;
-    }
-    case kArmS16x8UnzipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3, ... 7], src1 = [8, 9, 10, 11, ... 15]
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon16, dst, kScratchQuadReg);  // dst = [0, 2, 4, 6, ... 14]
-      break;
-    }
-    case kArmS16x8UnzipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [8, 9, 10, 11, ... 15], src1 = [0, 1, 2, 3, ... 7] (flipped).
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon16, kScratchQuadReg, dst);  // dst = [1, 3, 5, 7, ... 15]
-      break;
-    }
-    case kArmS16x8TransposeLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3, ... 7], src1 = [8, 9, 10, 11, ... 15]
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon16, dst, kScratchQuadReg);  // dst = [0, 8, 2, 10, ... 14]
-      break;
-    }
-    case kArmS16x8TransposeRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [8, 9, 10, 11, ... 15], src1 = [0, 1, 2, 3, ... 7] (flipped).
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon16, kScratchQuadReg, dst);  // dst = [1, 9, 3, 11, ... 15]
-      break;
-    }
-    case kArmS16x8Shuffle: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src0 = i.InputSimd128Register(0),
-                      src1 = i.InputSimd128Register(1);
-      DwVfpRegister table_base = src0.low();
-      int table_size = GetVtblTableSize(src0, src1);
-      // Convert the shuffle lane masks to byte masks in kScratchQuadReg.
-      int scratch_s_base = kScratchQuadReg.code() * 4;
-      for (int j = 0; j < 2; j++) {
-        int32_t four_lanes = i.InputInt32(2 + j);
-        for (int k = 0; k < 2; k++) {
-          uint8_t w0 = (four_lanes & 0xF) * kShortSize;
-          four_lanes >>= 8;
-          uint8_t w1 = (four_lanes & 0xF) * kShortSize;
-          four_lanes >>= 8;
-          int32_t mask = w0 | ((w0 + 1) << 8) | (w1 << 16) | ((w1 + 1) << 24);
-          // Ensure byte indices are in [0, 31] so masks are never NaNs.
-          four_lanes &= 0x1F1F1F1F;
-          __ vmov(SwVfpRegister::from_code(scratch_s_base + 2 * j + k),
-                  bit_cast<float>(mask));
-        }
-      }
-      NeonListOperand table(table_base, table_size);
-      if (!dst.is(src0) && !dst.is(src1)) {
-        __ vtbl(dst.low(), table, kScratchQuadReg.low());
-        __ vtbl(dst.high(), table, kScratchQuadReg.high());
-      } else {
-        __ vtbl(kScratchQuadReg.low(), table, kScratchQuadReg.low());
-        __ vtbl(kScratchQuadReg.high(), table, kScratchQuadReg.high());
-        __ vmov(dst, kScratchQuadReg);
-      }
-      break;
-    }
-    case kArmS8x16ZipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3, ... 15], src1 = [16, 17, 18, 19, ... 31]
-      __ vmov(dst.high(), src1.low());
-      __ vzip(Neon8, dst.low(), dst.high());  // dst = [0, 16, 1, 17, ... 23]
-      break;
-    }
-    case kArmS8x16ZipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [16, 17, 18, 19, ... 31], src1 = [0, 1, 2, 3, ... 15] (flipped).
-      __ vmov(dst.low(), src1.high());
-      __ vzip(Neon8, dst.low(), dst.high());  // dst = [8, 24, 9, 25, ... 31]
-      break;
-    }
-    case kArmS8x16UnzipLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3, ... 15], src1 = [16, 17, 18, 19, ... 31]
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon8, dst, kScratchQuadReg);  // dst = [0, 2, 4, 6, ... 30]
-      break;
-    }
-    case kArmS8x16UnzipRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [16, 17, 18, 19, ... 31], src1 = [0, 1, 2, 3, ... 15] (flipped).
-      __ vmov(kScratchQuadReg, src1);
-      __ vuzp(Neon8, kScratchQuadReg, dst);  // dst = [1, 3, 5, 7, ... 31]
-      break;
-    }
-    case kArmS8x16TransposeLeft: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [0, 1, 2, 3, ... 15], src1 = [16, 17, 18, 19, ... 31]
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon8, dst, kScratchQuadReg);  // dst = [0, 16, 2, 18, ... 30]
-      break;
-    }
-    case kArmS8x16TransposeRight: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src1 = i.InputSimd128Register(1);
-      DCHECK(dst.is(i.InputSimd128Register(0)));
-      // src0 = [16, 17, 18, 19, ... 31], src1 = [0, 1, 2, 3, ... 15] (flipped).
-      __ vmov(kScratchQuadReg, src1);
-      __ vtrn(Neon8, kScratchQuadReg, dst);  // dst = [1, 17, 3, 19, ... 31]
-      break;
-    }
-    case kArmS8x16Concat: {
-      __ vext(i.OutputSimd128Register(), i.InputSimd128Register(0),
-              i.InputSimd128Register(1), i.InputInt4(2));
-      break;
-    }
-    case kArmS8x16Shuffle: {
-      Simd128Register dst = i.OutputSimd128Register(),
-                      src0 = i.InputSimd128Register(0),
-                      src1 = i.InputSimd128Register(1);
-      DwVfpRegister table_base = src0.low();
-      int table_size = GetVtblTableSize(src0, src1);
-      // The shuffle lane mask is a byte mask, materialize in kScratchQuadReg.
-      int scratch_s_base = kScratchQuadReg.code() * 4;
-      for (int j = 0; j < 4; j++) {
-        int32_t four_lanes = i.InputInt32(2 + j);
-        // Ensure byte indices are in [0, 31] so masks are never NaNs.
-        four_lanes &= 0x1F1F1F1F;
-        __ vmov(SwVfpRegister::from_code(scratch_s_base + j),
-                bit_cast<float>(four_lanes));
-      }
-      NeonListOperand table(table_base, table_size);
-      if (!dst.is(src0) && !dst.is(src1)) {
-        __ vtbl(dst.low(), table, kScratchQuadReg.low());
-        __ vtbl(dst.high(), table, kScratchQuadReg.high());
-      } else {
-        __ vtbl(kScratchQuadReg.low(), table, kScratchQuadReg.low());
-        __ vtbl(kScratchQuadReg.high(), table, kScratchQuadReg.high());
-        __ vmov(dst, kScratchQuadReg);
-      }
-      break;
-    }
-    case kArmS32x2Reverse: {
-      __ vrev64(Neon32, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS16x4Reverse: {
-      __ vrev64(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS16x2Reverse: {
-      __ vrev32(Neon16, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS8x8Reverse: {
-      __ vrev64(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS8x4Reverse: {
-      __ vrev32(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS8x2Reverse: {
-      __ vrev16(Neon8, i.OutputSimd128Register(), i.InputSimd128Register(0));
-      break;
-    }
-    case kArmS1x4AnyTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmax(NeonU32, kScratchDoubleReg, src.low(), src.high());
-      __ vpmax(NeonU32, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS32, 0);
-      break;
-    }
-    case kArmS1x4AllTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmin(NeonU32, kScratchDoubleReg, src.low(), src.high());
-      __ vpmin(NeonU32, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS32, 0);
-      break;
-    }
-    case kArmS1x8AnyTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmax(NeonU16, kScratchDoubleReg, src.low(), src.high());
-      __ vpmax(NeonU16, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ vpmax(NeonU16, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS16, 0);
-      break;
-    }
-    case kArmS1x8AllTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmin(NeonU16, kScratchDoubleReg, src.low(), src.high());
-      __ vpmin(NeonU16, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ vpmin(NeonU16, kScratchDoubleReg, kScratchDoubleReg,
-               kScratchDoubleReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS16, 0);
-      break;
-    }
-    case kArmS1x16AnyTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmax(NeonU8, kScratchDoubleReg, src.low(), src.high());
-      __ vpmax(NeonU8, kScratchDoubleReg, kScratchDoubleReg, kScratchDoubleReg);
-      // vtst to detect any bits in the bottom 32 bits of kScratchDoubleReg.
-      // This saves an instruction vs. the naive sequence of vpmax.
-      // kDoubleRegZero is not changed, since it is 0.
-      __ vtst(Neon32, kScratchQuadReg, kScratchQuadReg, kScratchQuadReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS32, 0);
-      break;
-    }
-    case kArmS1x16AllTrue: {
-      const QwNeonRegister& src = i.InputSimd128Register(0);
-      __ vpmin(NeonU8, kScratchDoubleReg, src.low(), src.high());
-      __ vpmin(NeonU8, kScratchDoubleReg, kScratchDoubleReg, kScratchDoubleReg);
-      __ vpmin(NeonU8, kScratchDoubleReg, kScratchDoubleReg, kScratchDoubleReg);
-      __ vpmin(NeonU8, kScratchDoubleReg, kScratchDoubleReg, kScratchDoubleReg);
-      __ ExtractLane(i.OutputRegister(), kScratchDoubleReg, NeonS8, 0);
+    case kArmSimd32x4Select:
+    case kArmSimd16x8Select:
+    case kArmSimd8x16Select: {
+      // vbsl clobbers the mask input so make sure it was DefineSameAsFirst.
+      DCHECK(i.OutputSimd128Register().is(i.InputSimd128Register(0)));
+      __ vbsl(i.OutputSimd128Register(), i.InputSimd128Register(1),
+              i.InputSimd128Register(2));
       break;
     }
     case kCheckedLoadInt8:
@@ -2555,69 +2002,6 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
     case kAtomicStoreWord32:
       ASSEMBLE_ATOMIC_STORE_INTEGER(str);
       break;
-    case kAtomicExchangeInt8:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldrexb, strexb);
-      __ sxtb(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicExchangeUint8:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldrexb, strexb);
-      break;
-    case kAtomicExchangeInt16:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldrexh, strexh);
-      __ sxth(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicExchangeUint16:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldrexh, strexh);
-      break;
-    case kAtomicExchangeWord32:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldrex, strex);
-      break;
-    case kAtomicCompareExchangeInt8:
-      __ uxtb(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldrexb, strexb);
-      __ sxtb(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicCompareExchangeUint8:
-      __ uxtb(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldrexb, strexb);
-      break;
-    case kAtomicCompareExchangeInt16:
-      __ uxth(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldrexh, strexh);
-      __ sxth(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicCompareExchangeUint16:
-      __ uxth(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldrexh, strexh);
-      break;
-    case kAtomicCompareExchangeWord32:
-      __ mov(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldrex, strex);
-      break;
-#define ATOMIC_BINOP_CASE(op, inst)                    \
-  case kAtomic##op##Int8:                              \
-    ASSEMBLE_ATOMIC_BINOP(ldrexb, strexb, inst);       \
-    __ sxtb(i.OutputRegister(0), i.OutputRegister(0)); \
-    break;                                             \
-  case kAtomic##op##Uint8:                             \
-    ASSEMBLE_ATOMIC_BINOP(ldrexb, strexb, inst);       \
-    break;                                             \
-  case kAtomic##op##Int16:                             \
-    ASSEMBLE_ATOMIC_BINOP(ldrexh, strexh, inst);       \
-    __ sxth(i.OutputRegister(0), i.OutputRegister(0)); \
-    break;                                             \
-  case kAtomic##op##Uint16:                            \
-    ASSEMBLE_ATOMIC_BINOP(ldrexh, strexh, inst);       \
-    break;                                             \
-  case kAtomic##op##Word32:                            \
-    ASSEMBLE_ATOMIC_BINOP(ldrex, strex, inst);         \
-    break;
-      ATOMIC_BINOP_CASE(Add, add)
-      ATOMIC_BINOP_CASE(Sub, sub)
-      ATOMIC_BINOP_CASE(And, and_)
-      ATOMIC_BINOP_CASE(Or, orr)
-      ATOMIC_BINOP_CASE(Xor, eor)
-#undef ATOMIC_BINOP_CASE
   }
   return kSuccess;
 }  // NOLINT(readability/fn_size)
@@ -2679,7 +2063,7 @@ void CodeGenerator::AssembleArchTrap(Instruction* instr,
         __ Ret();
       } else {
         gen_->AssembleSourcePosition(instr_);
-        __ Call(isolate()->builtins()->builtin_handle(trap_id),
+        __ Call(handle(isolate()->builtins()->builtin(trap_id), isolate()),
                 RelocInfo::CODE_TARGET);
         ReferenceMap* reference_map =
             new (gen_->zone()) ReferenceMap(gen_->zone());
@@ -2757,9 +2141,7 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleDeoptimizerCall(
   // actual final call site and just bl'ing to it here, similar to what we do
   // in the lithium backend.
   if (deopt_entry == nullptr) return kTooManyDeoptimizationBailouts;
-  if (info()->is_source_positions_enabled()) {
-    __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
-  }
+  __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
   __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
   __ CheckConstPool(false, false);
   return kSuccess;
@@ -2782,7 +2164,9 @@ void CodeGenerator::FinishFrame(Frame* frame) {
     frame->AllocateSavedCalleeRegisterSlots((last - first + 1) *
                                             (kDoubleSize / kPointerSize));
   }
-  const RegList saves = descriptor->CalleeSavedRegisters();
+  const RegList saves = FLAG_enable_embedded_constant_pool
+                            ? (descriptor->CalleeSavedRegisters() & ~pp.bit())
+                            : descriptor->CalleeSavedRegisters();
   if (saves != 0) {
     // Save callee-saved registers.
     frame->AllocateSavedCalleeRegisterSlots(
@@ -2794,8 +2178,14 @@ void CodeGenerator::AssembleConstructFrame() {
   CallDescriptor* descriptor = linkage()->GetIncomingDescriptor();
   if (frame_access_state()->has_frame()) {
     if (descriptor->IsCFunctionCall()) {
-      __ Push(lr, fp);
-      __ mov(fp, sp);
+      if (FLAG_enable_embedded_constant_pool) {
+        __ Push(lr, fp, pp);
+        // Adjust FP to point to saved FP.
+        __ sub(fp, sp, Operand(StandardFrameConstants::kConstantPoolOffset));
+      } else {
+        __ Push(lr, fp);
+        __ mov(fp, sp);
+      }
     } else if (descriptor->IsJSFunctionCall()) {
       __ Prologue(this->info()->GeneratePreagedPrologue());
       if (descriptor->PushArgumentCount()) {
@@ -2828,47 +2218,6 @@ void CodeGenerator::AssembleConstructFrame() {
 
   const RegList saves_fp = descriptor->CalleeSavedFPRegisters();
   if (shrink_slots > 0) {
-    if (info()->IsWasm()) {
-      if (shrink_slots > 128) {
-        // For WebAssembly functions with big frames we have to do the stack
-        // overflow check before we construct the frame. Otherwise we may not
-        // have enough space on the stack to call the runtime for the stack
-        // overflow.
-        Label done;
-
-        // If the frame is bigger than the stack, we throw the stack overflow
-        // exception unconditionally. Thereby we can avoid the integer overflow
-        // check in the condition code.
-        if (shrink_slots * kPointerSize < FLAG_stack_size * 1024) {
-          __ Move(kScratchReg,
-                  Operand(ExternalReference::address_of_real_stack_limit(
-                      isolate())));
-          __ ldr(kScratchReg, MemOperand(kScratchReg));
-          __ add(kScratchReg, kScratchReg,
-                 Operand(shrink_slots * kPointerSize));
-          __ cmp(sp, kScratchReg);
-          __ b(cs, &done);
-        }
-
-        if (!frame_access_state()->has_frame()) {
-          __ set_has_frame(true);
-          // There is no need to leave the frame, we will not return from the
-          // runtime call.
-          __ EnterFrame(StackFrame::WASM_COMPILED);
-        }
-        __ Move(cp, Smi::kZero);
-        __ CallRuntime(Runtime::kThrowWasmStackOverflow);
-        // We come from WebAssembly, there are no references for the GC.
-        ReferenceMap* reference_map = new (zone()) ReferenceMap(zone());
-        RecordSafepoint(reference_map, Safepoint::kSimple, 0,
-                        Safepoint::kNoLazyDeopt);
-        if (FLAG_debug_code) {
-          __ stop(GetBailoutReason(kUnexpectedReturnFromThrow));
-        }
-
-        __ bind(&done);
-      }
-    }
     __ sub(sp, sp, Operand(shrink_slots * kPointerSize));
   }
 
@@ -2881,7 +2230,9 @@ void CodeGenerator::AssembleConstructFrame() {
     __ vstm(db_w, sp, DwVfpRegister::from_code(first),
             DwVfpRegister::from_code(last));
   }
-  const RegList saves = descriptor->CalleeSavedRegisters();
+  const RegList saves = FLAG_enable_embedded_constant_pool
+                            ? (descriptor->CalleeSavedRegisters() & ~pp.bit())
+                            : descriptor->CalleeSavedRegisters();
   if (saves != 0) {
     // Save callee-saved registers.
     __ stm(db_w, sp, saves);
@@ -2893,7 +2244,9 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   int pop_count = static_cast<int>(descriptor->StackParameterCount());
 
   // Restore registers.
-  const RegList saves = descriptor->CalleeSavedRegisters();
+  const RegList saves = FLAG_enable_embedded_constant_pool
+                            ? (descriptor->CalleeSavedRegisters() & ~pp.bit())
+                            : descriptor->CalleeSavedRegisters();
   if (saves != 0) {
     __ ldm(ia_w, sp, saves);
   }
@@ -2939,8 +2292,6 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   __ Ret();
 }
 
-void CodeGenerator::FinishCode() { masm()->CheckConstPool(true, false); }
-
 void CodeGenerator::AssembleMove(InstructionOperand* source,
                                  InstructionOperand* destination) {
   ArmOperandConverter g(this, nullptr);
@@ -2981,10 +2332,12 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
           UNREACHABLE();
           break;
         case Constant::kFloat32:
-          __ mov(dst, Operand::EmbeddedNumber(src.ToFloat32()));
+          __ Move(dst,
+                  isolate()->factory()->NewNumber(src.ToFloat32(), TENURED));
           break;
         case Constant::kFloat64:
-          __ mov(dst, Operand::EmbeddedNumber(src.ToFloat64()));
+          __ Move(dst,
+                  isolate()->factory()->NewNumber(src.ToFloat64(), TENURED));
           break;
         case Constant::kExternalReference:
           __ mov(dst, Operand(src.ToExternalReference()));
@@ -3040,10 +2393,10 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       int src_code = LocationOperand::cast(source)->register_code();
       if (destination->IsFloatRegister()) {
         int dst_code = LocationOperand::cast(destination)->register_code();
-        __ VmovExtended(dst_code, src_code);
+        __ VmovExtended(dst_code, src_code, kScratchReg);
       } else {
         DCHECK(destination->IsFloatStackSlot());
-        __ VmovExtended(g.ToMemOperand(destination), src_code);
+        __ VmovExtended(g.ToMemOperand(destination), src_code, kScratchReg);
       }
     } else {
       DCHECK_EQ(MachineRepresentation::kSimd128, rep);
@@ -3070,7 +2423,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         // GapResolver may give us reg codes that don't map to actual
         // s-registers. Generate code to work around those cases.
         int dst_code = LocationOperand::cast(destination)->register_code();
-        __ VmovExtended(dst_code, src);
+        __ VmovExtended(dst_code, src, kScratchReg);
       } else {
         DCHECK_EQ(MachineRepresentation::kSimd128, rep);
         QwNeonRegister dst = g.ToSimd128Register(destination);
@@ -3097,6 +2450,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
         __ add(kScratchReg, dst.rn(), Operand(dst.offset()));
         __ vst1(Neon8, NeonListOperand(kScratchQuadReg.low(), 2),
                 NeonMemOperand(kScratchReg));
+        __ veor(kDoubleRegZero, kDoubleRegZero, kDoubleRegZero);
       }
     }
   } else {
@@ -3154,14 +2508,14 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
       int src_code = LocationOperand::cast(source)->register_code();
       if (destination->IsFPRegister()) {
         int dst_code = LocationOperand::cast(destination)->register_code();
-        __ VmovExtended(temp.low().code(), src_code);
-        __ VmovExtended(src_code, dst_code);
-        __ VmovExtended(dst_code, temp.low().code());
+        __ VmovExtended(temp.low().code(), src_code, kScratchReg);
+        __ VmovExtended(src_code, dst_code, kScratchReg);
+        __ VmovExtended(dst_code, temp.low().code(), kScratchReg);
       } else {
         DCHECK(destination->IsFPStackSlot());
         MemOperand dst = g.ToMemOperand(destination);
-        __ VmovExtended(temp.low().code(), src_code);
-        __ VmovExtended(src_code, dst);
+        __ VmovExtended(temp.low().code(), src_code, kScratchReg);
+        __ VmovExtended(src_code, dst, kScratchReg);
         __ vstr(temp.low(), dst);
       }
     } else {
@@ -3179,41 +2533,40 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
                 NeonMemOperand(kScratchReg));
         __ vst1(Neon8, NeonListOperand(kScratchQuadReg.low(), 2),
                 NeonMemOperand(kScratchReg));
+        __ veor(kDoubleRegZero, kDoubleRegZero, kDoubleRegZero);
       }
     }
   } else if (source->IsFPStackSlot()) {
     DCHECK(destination->IsFPStackSlot());
-    Register temp_0 = kScratchReg;
-    LowDwVfpRegister temp_1 = kScratchDoubleReg;
-    MemOperand src0 = g.ToMemOperand(source);
-    MemOperand dst0 = g.ToMemOperand(destination);
+    MemOperand src = g.ToMemOperand(source);
+    MemOperand dst = g.ToMemOperand(destination);
     MachineRepresentation rep = LocationOperand::cast(source)->representation();
     if (rep == MachineRepresentation::kFloat64) {
-      MemOperand src1(src0.rn(), src0.offset() + kPointerSize);
-      MemOperand dst1(dst0.rn(), dst0.offset() + kPointerSize);
-      __ vldr(temp_1, dst0);  // Save destination in temp_1.
-      __ ldr(temp_0, src0);   // Then use temp_0 to copy source to destination.
-      __ str(temp_0, dst0);
-      __ ldr(temp_0, src1);
-      __ str(temp_0, dst1);
-      __ vstr(temp_1, src0);
+      __ vldr(kScratchDoubleReg, dst);
+      __ vldr(kDoubleRegZero, src);
+      __ vstr(kScratchDoubleReg, src);
+      __ vstr(kDoubleRegZero, dst);
+      // Restore the 0 register.
+      __ veor(kDoubleRegZero, kDoubleRegZero, kDoubleRegZero);
     } else if (rep == MachineRepresentation::kFloat32) {
-      __ vldr(temp_1.low(), dst0);  // Save destination in temp_1.
-      __ ldr(temp_0, src0);  // Then use temp_0 to copy source to destination.
-      __ str(temp_0, dst0);
-      __ vstr(temp_1.low(), src0);
+      __ vldr(kScratchDoubleReg.low(), dst);
+      __ vldr(kScratchDoubleReg.high(), src);
+      __ vstr(kScratchDoubleReg.low(), src);
+      __ vstr(kScratchDoubleReg.high(), dst);
     } else {
       DCHECK_EQ(MachineRepresentation::kSimd128, rep);
-      MemOperand src1(src0.rn(), src0.offset() + kDoubleSize);
-      MemOperand dst1(dst0.rn(), dst0.offset() + kDoubleSize);
-      __ vldr(kScratchQuadReg.low(), dst0);
-      __ vldr(kScratchQuadReg.high(), src0);
-      __ vstr(kScratchQuadReg.low(), src0);
-      __ vstr(kScratchQuadReg.high(), dst0);
-      __ vldr(kScratchQuadReg.low(), dst1);
-      __ vldr(kScratchQuadReg.high(), src1);
-      __ vstr(kScratchQuadReg.low(), src1);
-      __ vstr(kScratchQuadReg.high(), dst1);
+      __ vldr(kScratchDoubleReg, dst);
+      __ vldr(kDoubleRegZero, src);
+      __ vstr(kScratchDoubleReg, src);
+      __ vstr(kDoubleRegZero, dst);
+      src.set_offset(src.offset() + kDoubleSize);
+      dst.set_offset(dst.offset() + kDoubleSize);
+      __ vldr(kScratchDoubleReg, dst);
+      __ vldr(kDoubleRegZero, src);
+      __ vstr(kScratchDoubleReg, src);
+      __ vstr(kDoubleRegZero, dst);
+      // Restore the 0 register.
+      __ veor(kDoubleRegZero, kDoubleRegZero, kDoubleRegZero);
     }
   } else {
     // No other combinations are possible.

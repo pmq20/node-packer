@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/assembler-inl.h"
+#include "src/assembler.h"
 #include "src/base/lazy-instance.h"
 #include "src/macro-assembler.h"
 #include "src/objects-inl.h"
@@ -16,7 +16,7 @@
 
 namespace v8 {
 namespace internal {
-// TODO(titzer): this should not be in the wasm namespace.
+// TODO(titzer): this should not be in the WASM namespace.
 namespace wasm {
 
 using compiler::LocationSignature;
@@ -39,6 +39,7 @@ MachineType MachineTypeFor(ValueType type) {
       return MachineType::Simd128();
     default:
       UNREACHABLE();
+      return MachineType::AnyTagged();
   }
 }
 
@@ -301,7 +302,7 @@ CallDescriptor* ModuleEnv::GetWasmCallDescriptor(Zone* zone,
   const RegList kCalleeSaveRegisters = 0;
   const RegList kCalleeSaveFPRegisters = 0;
 
-  // The target for wasm calls is always a code object.
+  // The target for WASM calls is always a code object.
   MachineType target_type = MachineType::AnyTagged();
   LinkageLocation target_loc = LinkageLocation::ForAnyRegister(target_type);
 

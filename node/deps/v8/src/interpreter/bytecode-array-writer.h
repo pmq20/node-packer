@@ -7,7 +7,7 @@
 
 #include "src/base/compiler-specific.h"
 #include "src/globals.h"
-#include "src/interpreter/bytecodes.h"
+#include "src/interpreter/bytecode-pipeline.h"
 #include "src/source-position-table.h"
 
 namespace v8 {
@@ -18,27 +18,26 @@ class SourcePositionTableBuilder;
 namespace interpreter {
 
 class BytecodeLabel;
-class BytecodeNode;
-class BytecodeJumpTable;
 class ConstantArrayBuilder;
 
 // Class for emitting bytecode as the final stage of the bytecode
 // generation pipeline.
-class V8_EXPORT_PRIVATE BytecodeArrayWriter final {
+class V8_EXPORT_PRIVATE BytecodeArrayWriter final
+    : public NON_EXPORTED_BASE(BytecodePipelineStage) {
  public:
   BytecodeArrayWriter(
       Zone* zone, ConstantArrayBuilder* constant_array_builder,
       SourcePositionTableBuilder::RecordingMode source_position_mode);
+  virtual ~BytecodeArrayWriter();
 
-  void Write(BytecodeNode* node);
-  void WriteJump(BytecodeNode* node, BytecodeLabel* label);
-  void WriteSwitch(BytecodeNode* node, BytecodeJumpTable* jump_table);
-  void BindLabel(BytecodeLabel* label);
-  void BindLabel(const BytecodeLabel& target, BytecodeLabel* label);
-  void BindJumpTableEntry(BytecodeJumpTable* jump_table, int case_value);
-  Handle<BytecodeArray> ToBytecodeArray(Isolate* isolate, int register_count,
-                                        int parameter_count,
-                                        Handle<FixedArray> handler_table);
+  // BytecodePipelineStage interface.
+  void Write(BytecodeNode* node) override;
+  void WriteJump(BytecodeNode* node, BytecodeLabel* label) override;
+  void BindLabel(BytecodeLabel* label) override;
+  void BindLabel(const BytecodeLabel& target, BytecodeLabel* label) override;
+  Handle<BytecodeArray> ToBytecodeArray(
+      Isolate* isolate, int register_count, int parameter_count,
+      Handle<FixedArray> handler_table) override;
 
  private:
   // Maximum sized packed bytecode is comprised of a prefix bytecode,
@@ -64,13 +63,7 @@ class V8_EXPORT_PRIVATE BytecodeArrayWriter final {
 
   void EmitBytecode(const BytecodeNode* const node);
   void EmitJump(BytecodeNode* node, BytecodeLabel* label);
-  void EmitSwitch(BytecodeNode* node, BytecodeJumpTable* jump_table);
   void UpdateSourcePositionTable(const BytecodeNode* const node);
-
-  void UpdateExitSeenInBlock(Bytecode bytecode);
-
-  void MaybeElideLastBytecode(Bytecode next_bytecode, bool has_source_info);
-  void InvalidateLastBytecode();
 
   ZoneVector<uint8_t>* bytecodes() { return &bytecodes_; }
   SourcePositionTableBuilder* source_position_table_builder() {
@@ -84,13 +77,6 @@ class V8_EXPORT_PRIVATE BytecodeArrayWriter final {
   int unbound_jumps_;
   SourcePositionTableBuilder source_position_table_builder_;
   ConstantArrayBuilder* constant_array_builder_;
-
-  Bytecode last_bytecode_;
-  size_t last_bytecode_offset_;
-  bool last_bytecode_had_source_info_;
-  bool elide_noneffectful_bytecodes_;
-
-  bool exit_seen_in_block_;
 
   friend class BytecodeArrayWriterUnittest;
   DISALLOW_COPY_AND_ASSIGN(BytecodeArrayWriter);

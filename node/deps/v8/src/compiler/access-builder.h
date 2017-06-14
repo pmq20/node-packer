@@ -73,15 +73,6 @@ class V8_EXPORT_PRIVATE AccessBuilder final
   // Provides access to JSFunction::next_function_link() field.
   static FieldAccess ForJSFunctionNextFunctionLink();
 
-  // Provides access to JSBoundFunction::bound_target_function() field.
-  static FieldAccess ForJSBoundFunctionBoundTargetFunction();
-
-  // Provides access to JSBoundFunction::bound_this() field.
-  static FieldAccess ForJSBoundFunctionBoundThis();
-
-  // Provides access to JSBoundFunction::bound_arguments() field.
-  static FieldAccess ForJSBoundFunctionBoundArguments();
-
   // Provides access to JSGeneratorObject::context() field.
   static FieldAccess ForJSGeneratorObjectContext();
 
@@ -94,24 +85,8 @@ class V8_EXPORT_PRIVATE AccessBuilder final
   // Provides access to JSGeneratorObject::register_file() field.
   static FieldAccess ForJSGeneratorObjectRegisterFile();
 
-  // Provides access to JSGeneratorObject::function() field.
-  static FieldAccess ForJSGeneratorObjectFunction();
-
-  // Provides access to JSGeneratorObject::receiver() field.
-  static FieldAccess ForJSGeneratorObjectReceiver();
-
   // Provides access to JSGeneratorObject::resume_mode() field.
   static FieldAccess ForJSGeneratorObjectResumeMode();
-
-  // Provides access to JSAsyncGeneratorObject::queue() field.
-  static FieldAccess ForJSAsyncGeneratorObjectQueue();
-
-  // Provides access to JSAsyncGeneratorObject::await_input_or_debug_pos()
-  // field.
-  static FieldAccess ForJSAsyncGeneratorObjectAwaitInputOrDebugPos();
-
-  // Provides access to JSAsyncGeneratorObject::awaited_promise() field.
-  static FieldAccess ForJSAsyncGeneratorObjectAwaitedPromise();
 
   // Provides access to JSArray::length() field.
   static FieldAccess ForJSArrayLength(ElementsKind elements_kind);
@@ -161,8 +136,8 @@ class V8_EXPORT_PRIVATE AccessBuilder final
   // Provides access to FixedTypedArrayBase::external_pointer() field.
   static FieldAccess ForFixedTypedArrayBaseExternalPointer();
 
-  // Provides access to DescriptorArray::enum_cache_bridge() field.
-  static FieldAccess ForDescriptorArrayEnumCacheBridge();
+  // Provides access to DescriptorArray::enum_cache() field.
+  static FieldAccess ForDescriptorArrayEnumCache();
 
   // Provides access to DescriptorArray::enum_cache_bridge_cache() field.
   static FieldAccess ForDescriptorArrayEnumCacheBridgeCache();

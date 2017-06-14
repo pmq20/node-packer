@@ -46,6 +46,7 @@ class SmallMapList;
   V(ControlInstruction)                       \
   V(Instruction)
 
+
 #define HYDROGEN_CONCRETE_INSTRUCTION_LIST(V) \
   V(AbnormalExit)                             \
   V(AccessArgumentsAt)                        \
@@ -709,6 +710,7 @@ class HValue : public ZoneObject {
   virtual bool HandleSideEffectDominator(GVNFlag side_effect,
                                          HValue* dominator) {
     UNREACHABLE();
+    return false;
   }
 
   // Check if this instruction has some reason that prevents elimination.
@@ -742,6 +744,7 @@ class HValue : public ZoneObject {
   // compare the non-Operand parts of the instruction.
   virtual bool DataEquals(HValue* other) {
     UNREACHABLE();
+    return false;
   }
 
   bool ToStringOrToNumberCanBeObserved() const {
@@ -2310,6 +2313,7 @@ class HUnaryMathOperation final : public HTemplateInstruction<2> {
           return Representation::Integer32();
         default:
           UNREACHABLE();
+          return Representation::None();
       }
     }
   }
@@ -2656,6 +2660,7 @@ class HCheckInstanceType final : public HUnaryOperation {
       case IS_INTERNALIZED_STRING: return HType::String();
     }
     UNREACHABLE();
+    return HType::Tagged();
   }
 
   HValue* Canonicalize() override;
@@ -4023,10 +4028,12 @@ class HClassOfTestAndBranch final : public HUnaryControlInstruction {
 
  private:
   HClassOfTestAndBranch(HValue* value, Handle<String> class_name)
-      : HUnaryControlInstruction(value, NULL, NULL), class_name_(class_name) {}
+      : HUnaryControlInstruction(value, NULL, NULL),
+        class_name_(class_name) { }
 
   Handle<String> class_name_;
 };
+
 
 class HTypeofIsAndBranch final : public HUnaryControlInstruction {
  public:
@@ -5192,6 +5199,11 @@ class HObjectAccess final {
 
   static HObjectAccess ForCodeOffset() {
     return HObjectAccess(kInobject, SharedFunctionInfo::kCodeOffset);
+  }
+
+  static HObjectAccess ForOptimizedCodeMap() {
+    return HObjectAccess(kInobject,
+                         SharedFunctionInfo::kOptimizedCodeMapOffset);
   }
 
   static HObjectAccess ForFunctionContextPointer() {

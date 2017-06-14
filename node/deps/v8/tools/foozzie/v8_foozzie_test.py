@@ -18,7 +18,7 @@ class UnitTest(unittest.TestCase):
   def testDiff(self):
     # TODO(machenbach): Mock out suppression configuration.
     suppress = v8_suppressions.get_suppression(
-        'x64', 'ignition', 'x64', 'ignition_turbo')
+        'x64', 'fullcode', 'x64', 'default')
     one = ''
     two = ''
     diff = None, None
@@ -29,12 +29,15 @@ class UnitTest(unittest.TestCase):
     diff = None, None
     self.assertEquals(diff, suppress.diff(one, two))
 
-    # Ignore line before caret, caret position and error message.
+    # Ignore line before caret, caret position, stack trace char numbers
+    # error message and validator output.
     one = """
 undefined
 weird stuff
       ^
+Validation of asm.js module failed: foo bar
 somefile.js: TypeError: undefined is not a function
+stack line :15: foo
   undefined
 """
     two = """
@@ -42,6 +45,8 @@ undefined
 other weird stuff
             ^
 somefile.js: TypeError: baz is not a function
+stack line :2: foo
+Validation of asm.js module failed: baz
   undefined
 """
     diff = None, None
@@ -91,7 +96,7 @@ def run_foozzie(first_d8, second_d8):
     '--first-d8', os.path.join(TEST_DATA, first_d8),
     '--second-d8', os.path.join(TEST_DATA, second_d8),
     '--first-config', 'ignition',
-    '--second-config', 'ignition_turbo',
+    '--second-config', 'ignition_staging',
     os.path.join(TEST_DATA, 'fuzz-123.js'),
   ])
 

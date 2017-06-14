@@ -110,8 +110,6 @@ namespace internal {
 #define V8_DEFAULT_STACK_SIZE_KB 984
 #endif
 
-// Minimum stack size in KB required by compilers.
-const int kStackSpaceRequiredForCompilation = 40;
 
 // Determine whether double field unboxing feature is enabled.
 #if V8_TARGET_ARCH_64_BIT
@@ -120,10 +118,6 @@ const int kStackSpaceRequiredForCompilation = 40;
 #define V8_DOUBLE_FIELDS_UNBOXING 0
 #endif
 
-// Some types of tracing require the SFI to store a unique ID.
-#if defined(V8_TRACE_MAPS) || defined(V8_TRACE_IGNITION)
-#define V8_SFI_HAS_UNIQUE_ID 1
-#endif
 
 typedef uint8_t byte;
 typedef byte* Address;
@@ -153,7 +147,6 @@ const int kShortSize = sizeof(short);  // NOLINT
 const int kIntSize = sizeof(int);
 const int kInt32Size = sizeof(int32_t);
 const int kInt64Size = sizeof(int64_t);
-const int kUInt32Size = sizeof(uint32_t);
 const int kSizetSize = sizeof(size_t);
 const int kFloatSize = sizeof(float);
 const int kDoubleSize = sizeof(double);
@@ -359,6 +352,7 @@ inline std::ostream& operator<<(std::ostream& os, DeoptimizeKind kind) {
       return os << "Soft";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Mask for the sign bit in a smi.
@@ -537,6 +531,7 @@ inline std::ostream& operator<<(std::ostream& os, Decision decision) {
       return os << "False";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Supported write barrier modes.
@@ -563,6 +558,7 @@ inline std::ostream& operator<<(std::ostream& os, WriteBarrierKind kind) {
       return os << "FullWriteBarrier";
   }
   UNREACHABLE();
+  return os;
 }
 
 // A flag that indicates whether objects should be pretenured when
@@ -579,6 +575,7 @@ inline std::ostream& operator<<(std::ostream& os, const PretenureFlag& flag) {
       return os << "Tenured";
   }
   UNREACHABLE();
+  return os;
 }
 
 enum MinimumCapacity {
@@ -592,8 +589,6 @@ enum Executability { NOT_EXECUTABLE, EXECUTABLE };
 
 enum VisitMode {
   VISIT_ALL,
-  VISIT_ALL_IN_MINOR_MC_MARK,
-  VISIT_ALL_IN_MINOR_MC_UPDATE,
   VISIT_ALL_IN_SCAVENGE,
   VISIT_ALL_IN_SWEEP_NEWSPACE,
   VISIT_ONLY_STRONG,
@@ -676,9 +671,14 @@ enum InlineCacheState {
   GENERIC,
 };
 
-enum WhereToStart { kStartAtReceiver, kStartAtPrototype };
+enum CacheHolderFlag {
+  kCacheOnPrototype,
+  kCacheOnPrototypeReceiverIsDictionary,
+  kCacheOnPrototypeReceiverIsPrimitive,
+  kCacheOnReceiver
+};
 
-enum ResultSentinel { kNotFound = -1, kUnsupported = -2 };
+enum WhereToStart { kStartAtReceiver, kStartAtPrototype };
 
 // The Store Buffer (GC).
 typedef enum {
@@ -785,7 +785,6 @@ enum CpuFeature {
   MIPSr1,
   MIPSr2,
   MIPSr6,
-  MIPS_SIMD,  // MSA instructions
   // ARM64
   ALWAYS_ALIGN_CSP,
   // PPC
@@ -831,6 +830,7 @@ inline std::ostream& operator<<(std::ostream& os, ConvertReceiverMode mode) {
       return os << "ANY";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Defines whether tail call optimization is allowed.
@@ -846,6 +846,7 @@ inline std::ostream& operator<<(std::ostream& os, TailCallMode mode) {
       return os << "DISALLOW_TAIL_CALLS";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Valid hints for the abstract operation OrdinaryToPrimitive,
@@ -877,6 +878,7 @@ inline std::ostream& operator<<(std::ostream& os, CreateArgumentsType type) {
       return os << "REST_PARAMETER";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Used to specify if a macro instruction must perform a smi check on tagged
@@ -978,6 +980,7 @@ inline const char* VariableMode2String(VariableMode mode) {
       return "TEMPORARY";
   }
   UNREACHABLE();
+  return NULL;
 }
 #endif
 
@@ -1036,12 +1039,12 @@ enum VariableLocation : uint8_t {
   kLastVariableLocation = MODULE
 };
 
-// ES6 specifies declarative environment records with mutable and immutable
-// bindings that can be in two states: initialized and uninitialized.
-// When accessing a binding, it needs to be checked for initialization.
-// However in the following cases the binding is initialized immediately
-// after creation so the initialization check can always be skipped:
-//
+// ES6 Draft Rev3 10.2 specifies declarative environment records with mutable
+// and immutable bindings that can be in two states: initialized and
+// uninitialized. In ES5 only immutable bindings have these two states. When
+// accessing a binding, it needs to be checked for initialization. However in
+// the following cases the binding is initialized immediately after creation
+// so the initialization check can always be skipped:
 // 1. Var declared local variables.
 //      var foo;
 // 2. A local variable introduced by a function declaration.
@@ -1050,10 +1053,19 @@ enum VariableLocation : uint8_t {
 //      function x(foo) {}
 // 4. Catch bound variables.
 //      try {} catch (foo) {}
-// 6. Function name variables of named function expressions.
+// 6. Function variables of named function expressions.
 //      var x = function foo() {}
 // 7. Implicit binding of 'this'.
 // 8. Implicit binding of 'arguments' in functions.
+//
+// ES5 specified object environment records which are introduced by ES elements
+// such as Program and WithStatement that associate identifier bindings with the
+// properties of some object. In the specification only mutable bindings exist
+// (which may be non-writable) and have no distinct initialization step. However
+// V8 allows const declarations in global code with distinct creation and
+// initialization steps which are represented by non-writable properties in the
+// global object. As a result also these bindings need to be checked for
+// initialization.
 //
 // The following enum specifies a flag that indicates if the binding needs a
 // distinct initialization step (kNeedsInitialization) or if the binding is
@@ -1095,11 +1107,7 @@ enum FunctionKind : uint16_t {
   kClassConstructor =
       kBaseConstructor | kDerivedConstructor | kDefaultConstructor,
   kAsyncArrowFunction = kArrowFunction | kAsyncFunction,
-  kAsyncConciseMethod = kAsyncFunction | kConciseMethod,
-
-  // https://tc39.github.io/proposal-async-iteration/
-  kAsyncConciseGeneratorMethod = kAsyncFunction | kConciseGeneratorMethod,
-  kAsyncGeneratorFunction = kAsyncFunction | kGeneratorFunction
+  kAsyncConciseMethod = kAsyncFunction | kConciseMethod
 };
 
 inline bool IsValidFunctionKind(FunctionKind kind) {
@@ -1118,37 +1126,29 @@ inline bool IsValidFunctionKind(FunctionKind kind) {
          kind == FunctionKind::kDerivedConstructor ||
          kind == FunctionKind::kAsyncFunction ||
          kind == FunctionKind::kAsyncArrowFunction ||
-         kind == FunctionKind::kAsyncConciseMethod ||
-         kind == FunctionKind::kAsyncConciseGeneratorMethod ||
-         kind == FunctionKind::kAsyncGeneratorFunction;
+         kind == FunctionKind::kAsyncConciseMethod;
 }
 
 
 inline bool IsArrowFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kArrowFunction) != 0;
+  return kind & FunctionKind::kArrowFunction;
 }
 
 
 inline bool IsGeneratorFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kGeneratorFunction) != 0;
+  return kind & FunctionKind::kGeneratorFunction;
 }
 
 inline bool IsModule(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kModule) != 0;
+  return kind & FunctionKind::kModule;
 }
 
 inline bool IsAsyncFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kAsyncFunction) != 0;
-}
-
-inline bool IsAsyncGeneratorFunction(FunctionKind kind) {
-  DCHECK(IsValidFunctionKind(kind));
-  const FunctionKind kMask = FunctionKind::kAsyncGeneratorFunction;
-  return (kind & kMask) == kMask;
+  return kind & FunctionKind::kAsyncFunction;
 }
 
 inline bool IsResumableFunction(FunctionKind kind) {
@@ -1157,48 +1157,49 @@ inline bool IsResumableFunction(FunctionKind kind) {
 
 inline bool IsConciseMethod(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kConciseMethod) != 0;
+  return kind & FunctionKind::kConciseMethod;
 }
 
 inline bool IsGetterFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kGetterFunction) != 0;
+  return kind & FunctionKind::kGetterFunction;
 }
 
 inline bool IsSetterFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kSetterFunction) != 0;
+  return kind & FunctionKind::kSetterFunction;
 }
 
 inline bool IsAccessorFunction(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kAccessorFunction) != 0;
+  return kind & FunctionKind::kAccessorFunction;
 }
 
 
 inline bool IsDefaultConstructor(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kDefaultConstructor) != 0;
+  return kind & FunctionKind::kDefaultConstructor;
 }
 
 
 inline bool IsBaseConstructor(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kBaseConstructor) != 0;
+  return kind & FunctionKind::kBaseConstructor;
 }
 
 inline bool IsDerivedConstructor(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kDerivedConstructor) != 0;
+  return kind & FunctionKind::kDerivedConstructor;
 }
 
 
 inline bool IsClassConstructor(FunctionKind kind) {
   DCHECK(IsValidFunctionKind(kind));
-  return (kind & FunctionKind::kClassConstructor) != 0;
+  return kind & FunctionKind::kClassConstructor;
 }
 
-inline bool IsConstructable(FunctionKind kind) {
+
+inline bool IsConstructable(FunctionKind kind, LanguageMode mode) {
   if (IsAccessorFunction(kind)) return false;
   if (IsConciseMethod(kind)) return false;
   if (IsArrowFunction(kind)) return false;
@@ -1228,6 +1229,7 @@ inline std::ostream& operator<<(std::ostream& os,
       return os << "Other";
   }
   UNREACHABLE();
+  return os;
 }
 
 inline uint32_t ObjectHash(Address address) {
@@ -1241,7 +1243,7 @@ inline uint32_t ObjectHash(Address address) {
 // at different points by performing an 'OR' operation. Type feedback moves
 // to a more generic type when we combine feedback.
 // kSignedSmall -> kNumber  -> kNumberOrOddball -> kAny
-//          kNonEmptyString -> kString          -> kAny
+//                             kString          -> kAny
 // TODO(mythria): Remove kNumber type when crankshaft can handle Oddballs
 // similar to Numbers. We don't need kNumber feedback for Turbofan. Extra
 // information about Number might reduce few instructions but causes more
@@ -1254,9 +1256,8 @@ class BinaryOperationFeedback {
     kSignedSmall = 0x1,
     kNumber = 0x3,
     kNumberOrOddball = 0x7,
-    kNonEmptyString = 0x8,
-    kString = 0x18,
-    kAny = 0x3F
+    kString = 0x8,
+    kAny = 0x1F
   };
 };
 
@@ -1265,7 +1266,6 @@ class BinaryOperationFeedback {
 // to a more generic type when we combine feedback.
 // kSignedSmall        -> kNumber   -> kAny
 // kInternalizedString -> kString   -> kAny
-//                        kSymbol   -> kAny
 //                        kReceiver -> kAny
 // TODO(epertoso): consider unifying this with BinaryOperationFeedback.
 class CompareOperationFeedback {
@@ -1277,9 +1277,8 @@ class CompareOperationFeedback {
     kNumberOrOddball = 0x7,
     kInternalizedString = 0x8,
     kString = 0x18,
-    kSymbol = 0x20,
-    kReceiver = 0x40,
-    kAny = 0xff
+    kReceiver = 0x20,
+    kAny = 0x7F
   };
 };
 
@@ -1301,6 +1300,7 @@ inline std::ostream& operator<<(std::ostream& os, UnicodeEncoding encoding) {
       return os << "UTF32";
   }
   UNREACHABLE();
+  return os;
 }
 
 enum class IterationKind { kKeys, kValues, kEntries };
@@ -1315,6 +1315,7 @@ inline std::ostream& operator<<(std::ostream& os, IterationKind kind) {
       return os << "IterationKind::kEntries";
   }
   UNREACHABLE();
+  return os;
 }
 
 // Flags for the runtime function kDefineDataPropertyInLiteral. A property can
@@ -1339,76 +1340,6 @@ enum ExternalArrayType {
   kExternalFloat64Array,
   kExternalUint8ClampedArray,
 };
-
-// Static information used by SuspendGenerator bytecode & GeneratorStore, in
-// order to determine where to store bytecode offset in generator.
-enum class SuspendFlags {
-  kYield = 0,
-  kYieldStar = 1,
-  kAwait = 2,
-  kSuspendTypeMask = 3,
-
-  kGenerator = 0 << 2,
-  kAsyncGenerator = 1 << 2,
-  kGeneratorTypeMask = 1 << 2,
-
-  kBitWidth = 3,
-
-  // Aliases
-  kGeneratorYield = kGenerator | kYield,
-  kGeneratorYieldStar = kGenerator | kYieldStar,
-  kGeneratorAwait = kGenerator | kAwait,
-  kAsyncGeneratorYield = kAsyncGenerator | kYield,
-  kAsyncGeneratorYieldStar = kAsyncGenerator | kYieldStar,
-  kAsyncGeneratorAwait = kAsyncGenerator | kAwait
-};
-
-inline constexpr SuspendFlags operator&(SuspendFlags lhs, SuspendFlags rhs) {
-  return static_cast<SuspendFlags>(static_cast<uint8_t>(lhs) &
-                                   static_cast<uint8_t>(rhs));
-}
-
-inline constexpr SuspendFlags operator|(SuspendFlags lhs, SuspendFlags rhs) {
-  return static_cast<SuspendFlags>(static_cast<uint8_t>(lhs) |
-                                   static_cast<uint8_t>(rhs));
-}
-
-inline SuspendFlags& operator|=(SuspendFlags& lhs, SuspendFlags rhs) {
-  lhs = lhs | rhs;
-  return lhs;
-}
-
-inline SuspendFlags operator~(SuspendFlags lhs) {
-  return static_cast<SuspendFlags>(~static_cast<uint8_t>(lhs));
-}
-
-inline const char* SuspendTypeFor(SuspendFlags flags) {
-  switch (flags & SuspendFlags::kSuspendTypeMask) {
-    case SuspendFlags::kYield:
-      return "yield";
-    case SuspendFlags::kYieldStar:
-      return "yield*";
-    case SuspendFlags::kAwait:
-      return "await";
-    default:
-      break;
-  }
-  UNREACHABLE();
-}
-
-struct AssemblerDebugInfo {
-  AssemblerDebugInfo(const char* name, const char* file, int line)
-      : name(name), file(file), line(line) {}
-  const char* name;
-  const char* file;
-  int line;
-};
-
-inline std::ostream& operator<<(std::ostream& os,
-                                const AssemblerDebugInfo& info) {
-  os << "(" << info.name << ":" << info.file << ":" << info.line << ")";
-  return os;
-}
 
 }  // namespace internal
 }  // namespace v8

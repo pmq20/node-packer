@@ -4,8 +4,8 @@
 
 #include "src/builtins/builtins-utils.h"
 #include "src/builtins/builtins.h"
-#include "src/handles-inl.h"
 #include "src/isolate.h"
+#include "src/macro-assembler.h"
 #include "src/objects-inl.h"
 
 namespace v8 {
@@ -36,6 +36,7 @@ Handle<Code> Builtins::CallFunction(ConvertReceiverMode mode,
       break;
   }
   UNREACHABLE();
+  return Handle<Code>::null();
 }
 
 Handle<Code> Builtins::Call(ConvertReceiverMode mode,
@@ -63,6 +64,7 @@ Handle<Code> Builtins::Call(ConvertReceiverMode mode,
       break;
   }
   UNREACHABLE();
+  return Handle<Code>::null();
 }
 
 Handle<Code> Builtins::CallBoundFunction(TailCallMode tail_call_mode) {
@@ -73,6 +75,88 @@ Handle<Code> Builtins::CallBoundFunction(TailCallMode tail_call_mode) {
       return TailCallBoundFunction();
   }
   UNREACHABLE();
+  return Handle<Code>::null();
+}
+
+void Builtins::Generate_CallFunction_ReceiverIsNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kNullOrUndefined,
+                        TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_CallFunction_ReceiverIsNotNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kNotNullOrUndefined,
+                        TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_CallFunction_ReceiverIsAny(MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kAny,
+                        TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_TailCallFunction_ReceiverIsNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kNullOrUndefined,
+                        TailCallMode::kAllow);
+}
+
+void Builtins::Generate_TailCallFunction_ReceiverIsNotNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kNotNullOrUndefined,
+                        TailCallMode::kAllow);
+}
+
+void Builtins::Generate_TailCallFunction_ReceiverIsAny(MacroAssembler* masm) {
+  Generate_CallFunction(masm, ConvertReceiverMode::kAny, TailCallMode::kAllow);
+}
+
+void Builtins::Generate_CallBoundFunction(MacroAssembler* masm) {
+  Generate_CallBoundFunctionImpl(masm, TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_TailCallBoundFunction(MacroAssembler* masm) {
+  Generate_CallBoundFunctionImpl(masm, TailCallMode::kAllow);
+}
+
+void Builtins::Generate_Call_ReceiverIsNullOrUndefined(MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kNullOrUndefined,
+                TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_Call_ReceiverIsNotNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kNotNullOrUndefined,
+                TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_Call_ReceiverIsAny(MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kAny, TailCallMode::kDisallow);
+}
+
+void Builtins::Generate_TailCall_ReceiverIsNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kNullOrUndefined,
+                TailCallMode::kAllow);
+}
+
+void Builtins::Generate_TailCall_ReceiverIsNotNullOrUndefined(
+    MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kNotNullOrUndefined,
+                TailCallMode::kAllow);
+}
+
+void Builtins::Generate_TailCall_ReceiverIsAny(MacroAssembler* masm) {
+  Generate_Call(masm, ConvertReceiverMode::kAny, TailCallMode::kAllow);
+}
+
+void Builtins::Generate_CallForwardVarargs(MacroAssembler* masm) {
+  Generate_CallForwardVarargs(masm, masm->isolate()->builtins()->Call());
+}
+
+void Builtins::Generate_CallFunctionForwardVarargs(MacroAssembler* masm) {
+  Generate_CallForwardVarargs(masm,
+                              masm->isolate()->builtins()->CallFunction());
 }
 
 }  // namespace internal

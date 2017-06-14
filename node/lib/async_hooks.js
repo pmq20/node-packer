@@ -38,8 +38,8 @@ var tmp_async_hook_fields = null;
 // Each constant tracks how many callbacks there are for any given step of
 // async execution. These are tracked so if the user didn't include callbacks
 // for a given step, that step can bail out early.
-const { kInit, kBefore, kAfter, kDestroy, kTotals, kCurrentAsyncId,
-  kCurrentTriggerId, kAsyncUidCntr, kInitTriggerId } = async_wrap.constants;
+const { kInit, kBefore, kAfter, kDestroy, kCurrentAsyncId, kCurrentTriggerId,
+    kAsyncUidCntr, kInitTriggerId } = async_wrap.constants;
 
 const { async_id_symbol, trigger_id_symbol } = async_wrap;
 
@@ -49,14 +49,7 @@ const before_symbol = Symbol('before');
 const after_symbol = Symbol('after');
 const destroy_symbol = Symbol('destroy');
 
-// Setup the callbacks that node::AsyncWrap will call when there are hooks to
-// process. They use the same functions as the JS embedder API. These callbacks
-// are setup immediately to prevent async_wrap.setupHooks() from being hijacked
-// and the cost of doing so is negligible.
-async_wrap.setupHooks({ init,
-                        before: emitBeforeN,
-                        after: emitAfterN,
-                        destroy: emitDestroyN });
+let setupHooksCalled = false;
 
 // Used to fatally abort the process if a callback throws.
 function fatalError(e) {
@@ -105,21 +98,24 @@ class AsyncHook {
     if (hooks_array.includes(this))
       return this;
 
-    const prev_kTotals = hook_fields[kTotals];
-    hook_fields[kTotals] = 0;
+    if (!setupHooksCalled) {
+      setupHooksCalled = true;
+      // Setup the callbacks that node::AsyncWrap will call when there are
+      // hooks to process. They use the same functions as the JS embedder API.
+      async_wrap.setupHooks({ init,
+                              before: emitBeforeN,
+                              after: emitAfterN,
+                              destroy: emitDestroyN });
+    }
 
     // createHook() has already enforced that the callbacks are all functions,
     // so here simply increment the count of whether each callbacks exists or
     // not.
-    hook_fields[kTotals] += hook_fields[kInit] += +!!this[init_symbol];
-    hook_fields[kTotals] += hook_fields[kBefore] += +!!this[before_symbol];
-    hook_fields[kTotals] += hook_fields[kAfter] += +!!this[after_symbol];
-    hook_fields[kTotals] += hook_fields[kDestroy] += +!!this[destroy_symbol];
+    hook_fields[kInit] += +!!this[init_symbol];
+    hook_fields[kBefore] += +!!this[before_symbol];
+    hook_fields[kAfter] += +!!this[after_symbol];
+    hook_fields[kDestroy] += +!!this[destroy_symbol];
     hooks_array.push(this);
-
-    if (prev_kTotals === 0 && hook_fields[kTotals] > 0)
-      async_wrap.enablePromiseHook();
-
     return this;
   }
 
@@ -130,18 +126,11 @@ class AsyncHook {
     if (index === -1)
       return this;
 
-    const prev_kTotals = hook_fields[kTotals];
-    hook_fields[kTotals] = 0;
-
-    hook_fields[kTotals] += hook_fields[kInit] -= +!!this[init_symbol];
-    hook_fields[kTotals] += hook_fields[kBefore] -= +!!this[before_symbol];
-    hook_fields[kTotals] += hook_fields[kAfter] -= +!!this[after_symbol];
-    hook_fields[kTotals] += hook_fields[kDestroy] -= +!!this[destroy_symbol];
+    hook_fields[kInit] -= +!!this[init_symbol];
+    hook_fields[kBefore] -= +!!this[before_symbol];
+    hook_fields[kAfter] -= +!!this[after_symbol];
+    hook_fields[kDestroy] -= +!!this[destroy_symbol];
     hooks_array.splice(index, 1);
-
-    if (prev_kTotals > 0 && hook_fields[kTotals] === 0)
-      async_wrap.disablePromiseHook();
-
     return this;
   }
 }

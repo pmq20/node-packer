@@ -138,7 +138,7 @@ class V8_EXPORT_PRIVATE CancelableTask : public Cancelable,
                                          NON_EXPORTED_BASE(public Task) {
  public:
   explicit CancelableTask(Isolate* isolate);
-  explicit CancelableTask(CancelableTaskManager* manager);
+  CancelableTask(Isolate* isolate, CancelableTaskManager* manager);
 
   // Task overrides.
   void Run() final {
@@ -149,7 +149,10 @@ class V8_EXPORT_PRIVATE CancelableTask : public Cancelable,
 
   virtual void RunInternal() = 0;
 
+  Isolate* isolate() { return isolate_; }
+
  private:
+  Isolate* isolate_;
   DISALLOW_COPY_AND_ASSIGN(CancelableTask);
 };
 
@@ -158,7 +161,7 @@ class V8_EXPORT_PRIVATE CancelableTask : public Cancelable,
 class CancelableIdleTask : public Cancelable, public IdleTask {
  public:
   explicit CancelableIdleTask(Isolate* isolate);
-  explicit CancelableIdleTask(CancelableTaskManager* manager);
+  CancelableIdleTask(Isolate* isolate, CancelableTaskManager* manager);
 
   // IdleTask overrides.
   void Run(double deadline_in_seconds) final {
@@ -169,7 +172,10 @@ class CancelableIdleTask : public Cancelable, public IdleTask {
 
   virtual void RunInternal(double deadline_in_seconds) = 0;
 
+  Isolate* isolate() { return isolate_; }
+
  private:
+  Isolate* isolate_;
   DISALLOW_COPY_AND_ASSIGN(CancelableIdleTask);
 };
 

@@ -61,12 +61,12 @@ namespace {
 template <typename Callback>
 class ProtocolPromiseHandler {
  public:
-  static void add(V8InspectorSessionImpl* session,
-                  v8::Local<v8::Context> context,
+  static void add(V8InspectorImpl* inspector, v8::Local<v8::Context> context,
                   v8::MaybeLocal<v8::Value> value,
-                  const String16& notPromiseError, int executionContextId,
-                  const String16& objectGroup, bool returnByValue,
-                  bool generatePreview, std::unique_ptr<Callback> callback) {
+                  const String16& notPromiseError, int contextGroupId,
+                  int executionContextId, const String16& objectGroup,
+                  bool returnByValue, bool generatePreview,
+                  std::unique_ptr<Callback> callback) {
     if (value.IsEmpty()) {
       callback->sendFailure(Response::InternalError());
       return;
@@ -75,15 +75,14 @@ class ProtocolPromiseHandler {
       callback->sendFailure(Response::Error(notPromiseError));
       return;
     }
-    V8InspectorImpl* inspector = session->inspector();
     v8::MicrotasksScope microtasks_scope(inspector->isolate(),
                                          v8::MicrotasksScope::kRunMicrotasks);
     v8::Local<v8::Promise> promise =
         v8::Local<v8::Promise>::Cast(value.ToLocalChecked());
     Callback* rawCallback = callback.get();
     ProtocolPromiseHandler<Callback>* handler = new ProtocolPromiseHandler(
-        session, executionContextId, objectGroup, returnByValue,
-        generatePreview, std::move(callback));
+        inspector, contextGroupId, executionContextId, objectGroup,
+        returnByValue, generatePreview, std::move(callback));
     v8::Local<v8::Value> wrapper = handler->m_wrapper.Get(inspector->isolate());
 
     v8::Local<v8::Function> thenCallbackFunction =
@@ -155,20 +154,19 @@ class ProtocolPromiseHandler {
                                      std::move(exceptionDetails));
   }
 
-  ProtocolPromiseHandler(V8InspectorSessionImpl* session,
+  ProtocolPromiseHandler(V8InspectorImpl* inspector, int contextGroupId,
                          int executionContextId, const String16& objectGroup,
                          bool returnByValue, bool generatePreview,
                          std::unique_ptr<Callback> callback)
-      : m_inspector(session->inspector()),
-        m_sessionId(session->sessionId()),
-        m_contextGroupId(session->contextGroupId()),
+      : m_inspector(inspector),
+        m_contextGroupId(contextGroupId),
         m_executionContextId(executionContextId),
         m_objectGroup(objectGroup),
         m_returnByValue(returnByValue),
         m_generatePreview(generatePreview),
         m_callback(std::move(callback)),
-        m_wrapper(m_inspector->isolate(),
-                  v8::External::New(m_inspector->isolate(), this)) {
+        m_wrapper(inspector->isolate(),
+                  v8::External::New(inspector->isolate(), this)) {
     m_wrapper.SetWeak(this, cleanup, v8::WeakCallbackType::kParameter);
   }
 
@@ -186,13 +184,8 @@ class ProtocolPromiseHandler {
 
   std::unique_ptr<protocol::Runtime::RemoteObject> wrapObject(
       v8::Local<v8::Value> value) {
-    V8InspectorSessionImpl* session =
-        m_inspector->sessionById(m_contextGroupId, m_sessionId);
-    if (!session) {
-      m_callback->sendFailure(Response::Error("No session"));
-      return nullptr;
-    }
-    InjectedScript::ContextScope scope(session, m_executionContextId);
+    InjectedScript::ContextScope scope(m_inspector, m_contextGroupId,
+                                       m_executionContextId);
     Response response = scope.initialize();
     if (!response.isSuccess()) {
       m_callback->sendFailure(response);
@@ -210,7 +203,6 @@ class ProtocolPromiseHandler {
   }
 
   V8InspectorImpl* m_inspector;
-  int m_sessionId;
   int m_contextGroupId;
   int m_executionContextId;
   String16 m_objectGroup;
@@ -284,7 +276,8 @@ void V8RuntimeAgentImpl::evaluate(
     return;
   }
 
-  InjectedScript::ContextScope scope(m_session, contextId);
+  InjectedScript::ContextScope scope(m_inspector, m_session->contextGroupId(),
+                                     contextId);
   response = scope.initialize();
   if (!response.isSuccess()) {
     callback->sendFailure(response);
@@ -304,9 +297,7 @@ void V8RuntimeAgentImpl::evaluate(
   v8::Local<v8::Script> script;
   if (m_inspector->compileScript(scope.context(), expression, String16())
           .ToLocal(&script)) {
-    v8::MicrotasksScope microtasksScope(m_inspector->isolate(),
-                                        v8::MicrotasksScope::kRunMicrotasks);
-    maybeResultValue = script->Run(scope.context());
+    maybeResultValue = m_inspector->runCompiledScript(scope.context(), script);
   }
 
   if (evalIsDisabled) scope.context()->AllowCodeGenerationFromStrings(false);
@@ -327,8 +318,8 @@ void V8RuntimeAgentImpl::evaluate(
     return;
   }
   ProtocolPromiseHandler<EvaluateCallback>::add(
-      m_session, scope.context(), maybeResultValue,
-      "Result of the evaluation is not a promise",
+      m_inspector, scope.context(), maybeResultValue,
+      "Result of the evaluation is not a promise", m_session->contextGroupId(),
       scope.injectedScript()->context()->contextId(), objectGroup.fromMaybe(""),
       returnByValue.fromMaybe(false), generatePreview.fromMaybe(false),
       std::move(callback));
@@ -338,15 +329,16 @@ void V8RuntimeAgentImpl::awaitPromise(
     const String16& promiseObjectId, Maybe<bool> returnByValue,
     Maybe<bool> generatePreview,
     std::unique_ptr<AwaitPromiseCallback> callback) {
-  InjectedScript::ObjectScope scope(m_session, promiseObjectId);
+  InjectedScript::ObjectScope scope(m_inspector, m_session->contextGroupId(),
+                                    promiseObjectId);
   Response response = scope.initialize();
   if (!response.isSuccess()) {
     callback->sendFailure(response);
     return;
   }
   ProtocolPromiseHandler<AwaitPromiseCallback>::add(
-      m_session, scope.context(), scope.object(),
-      "Could not find promise with given id",
+      m_inspector, scope.context(), scope.object(),
+      "Could not find promise with given id", m_session->contextGroupId(),
       scope.injectedScript()->context()->contextId(), scope.objectGroupName(),
       returnByValue.fromMaybe(false), generatePreview.fromMaybe(false),
       std::move(callback));
@@ -358,7 +350,8 @@ void V8RuntimeAgentImpl::callFunctionOn(
     Maybe<bool> silent, Maybe<bool> returnByValue, Maybe<bool> generatePreview,
     Maybe<bool> userGesture, Maybe<bool> awaitPromise,
     std::unique_ptr<CallFunctionOnCallback> callback) {
-  InjectedScript::ObjectScope scope(m_session, objectId);
+  InjectedScript::ObjectScope scope(m_inspector, m_session->contextGroupId(),
+                                    objectId);
   Response response = scope.initialize();
   if (!response.isSuccess()) {
     callback->sendFailure(response);
@@ -392,9 +385,8 @@ void V8RuntimeAgentImpl::callFunctionOn(
   if (m_inspector
           ->compileScript(scope.context(), "(" + expression + ")", String16())
           .ToLocal(&functionScript)) {
-    v8::MicrotasksScope microtasksScope(m_inspector->isolate(),
-                                        v8::MicrotasksScope::kRunMicrotasks);
-    maybeFunctionValue = functionScript->Run(scope.context());
+    maybeFunctionValue =
+        m_inspector->runCompiledScript(scope.context(), functionScript);
   }
   // Re-initialize after running client's code, as it could have destroyed
   // context or session.
@@ -419,13 +411,9 @@ void V8RuntimeAgentImpl::callFunctionOn(
     return;
   }
 
-  v8::MaybeLocal<v8::Value> maybeResultValue;
-  {
-    v8::MicrotasksScope microtasksScope(m_inspector->isolate(),
-                                        v8::MicrotasksScope::kRunMicrotasks);
-    maybeResultValue = functionValue.As<v8::Function>()->Call(
-        scope.context(), scope.object(), argc, argv.get());
-  }
+  v8::MaybeLocal<v8::Value> maybeResultValue = m_inspector->callFunction(
+      functionValue.As<v8::Function>(), scope.context(), scope.object(), argc,
+      argv.get());
   // Re-initialize after running client's code, as it could have destroyed
   // context or session.
   response = scope.initialize();
@@ -443,8 +431,9 @@ void V8RuntimeAgentImpl::callFunctionOn(
   }
 
   ProtocolPromiseHandler<CallFunctionOnCallback>::add(
-      m_session, scope.context(), maybeResultValue,
+      m_inspector, scope.context(), maybeResultValue,
       "Result of the function call is not a promise",
+      m_session->contextGroupId(),
       scope.injectedScript()->context()->contextId(), scope.objectGroupName(),
       returnByValue.fromMaybe(false), generatePreview.fromMaybe(false),
       std::move(callback));
@@ -460,7 +449,8 @@ Response V8RuntimeAgentImpl::getProperties(
     Maybe<protocol::Runtime::ExceptionDetails>* exceptionDetails) {
   using protocol::Runtime::InternalPropertyDescriptor;
 
-  InjectedScript::ObjectScope scope(m_session, objectId);
+  InjectedScript::ObjectScope scope(m_inspector, m_session->contextGroupId(),
+                                    objectId);
   Response response = scope.initialize();
   if (!response.isSuccess()) return response;
 
@@ -510,7 +500,8 @@ Response V8RuntimeAgentImpl::getProperties(
 }
 
 Response V8RuntimeAgentImpl::releaseObject(const String16& objectId) {
-  InjectedScript::ObjectScope scope(m_session, objectId);
+  InjectedScript::ObjectScope scope(m_inspector, m_session->contextGroupId(),
+                                    objectId);
   Response response = scope.initialize();
   if (!response.isSuccess()) return response;
   scope.injectedScript()->releaseObject(objectId);
@@ -530,7 +521,6 @@ Response V8RuntimeAgentImpl::runIfWaitingForDebugger() {
 Response V8RuntimeAgentImpl::setCustomObjectFormatterEnabled(bool enabled) {
   m_state->setBoolean(V8RuntimeAgentImplState::customObjectFormatterEnabled,
                       enabled);
-  if (!m_enabled) return Response::Error("Runtime agent is not enabled");
   m_session->setCustomObjectFormatterEnabled(enabled);
   return Response::OK();
 }
@@ -552,7 +542,8 @@ Response V8RuntimeAgentImpl::compileScript(
   Response response = ensureContext(m_inspector, m_session->contextGroupId(),
                                     std::move(executionContextId), &contextId);
   if (!response.isSuccess()) return response;
-  InjectedScript::ContextScope scope(m_session, contextId);
+  InjectedScript::ContextScope scope(m_inspector, m_session->contextGroupId(),
+                                     contextId);
   response = scope.initialize();
   if (!response.isSuccess()) return response;
 
@@ -608,7 +599,8 @@ void V8RuntimeAgentImpl::runScript(
     return;
   }
 
-  InjectedScript::ContextScope scope(m_session, contextId);
+  InjectedScript::ContextScope scope(m_inspector, m_session->contextGroupId(),
+                                     contextId);
   response = scope.initialize();
   if (!response.isSuccess()) {
     callback->sendFailure(response);
@@ -627,12 +619,8 @@ void V8RuntimeAgentImpl::runScript(
 
   if (includeCommandLineAPI.fromMaybe(false)) scope.installCommandLineAPI();
 
-  v8::MaybeLocal<v8::Value> maybeResultValue;
-  {
-    v8::MicrotasksScope microtasksScope(m_inspector->isolate(),
-                                        v8::MicrotasksScope::kRunMicrotasks);
-    maybeResultValue = script->Run(scope.context());
-  }
+  v8::MaybeLocal<v8::Value> maybeResultValue =
+      m_inspector->runCompiledScript(scope.context(), script);
 
   // Re-initialize after running client's code, as it could have destroyed
   // context or session.
@@ -650,8 +638,9 @@ void V8RuntimeAgentImpl::runScript(
     return;
   }
   ProtocolPromiseHandler<RunScriptCallback>::add(
-      m_session, scope.context(), maybeResultValue.ToLocalChecked(),
+      m_inspector, scope.context(), maybeResultValue.ToLocalChecked(),
       "Result of the script execution is not a promise",
+      m_session->contextGroupId(),
       scope.injectedScript()->context()->contextId(), objectGroup.fromMaybe(""),
       returnByValue.fromMaybe(false), generatePreview.fromMaybe(false),
       std::move(callback));
@@ -689,7 +678,6 @@ Response V8RuntimeAgentImpl::disable() {
   m_state->setBoolean(V8RuntimeAgentImplState::runtimeEnabled, false);
   m_inspector->disableStackCapturingIfNeeded();
   m_session->discardInjectedScripts();
-  m_session->setCustomObjectFormatterEnabled(false);
   reset();
   m_inspector->client()->endEnsureAllContextsInGroup(
       m_session->contextGroupId());
@@ -699,11 +687,10 @@ Response V8RuntimeAgentImpl::disable() {
 void V8RuntimeAgentImpl::reset() {
   m_compiledScripts.clear();
   if (m_enabled) {
-    int sessionId = m_session->sessionId();
-    m_inspector->forEachContext(m_session->contextGroupId(),
-                                [&sessionId](InspectedContext* context) {
-                                  context->setReported(sessionId, false);
-                                });
+    if (const V8InspectorImpl::ContextByIdMap* contexts =
+            m_inspector->contextGroup(m_session->contextGroupId())) {
+      for (auto& idContext : *contexts) idContext.second->setReported(false);
+    }
     m_frontend.executionContextsCleared();
   }
 }
@@ -711,7 +698,7 @@ void V8RuntimeAgentImpl::reset() {
 void V8RuntimeAgentImpl::reportExecutionContextCreated(
     InspectedContext* context) {
   if (!m_enabled) return;
-  context->setReported(m_session->sessionId(), true);
+  context->setReported(true);
   std::unique_ptr<protocol::Runtime::ExecutionContextDescription> description =
       protocol::Runtime::ExecutionContextDescription::create()
           .setId(context->contextId())
@@ -726,8 +713,8 @@ void V8RuntimeAgentImpl::reportExecutionContextCreated(
 
 void V8RuntimeAgentImpl::reportExecutionContextDestroyed(
     InspectedContext* context) {
-  if (m_enabled && context->isReported(m_session->sessionId())) {
-    context->setReported(m_session->sessionId(), false);
+  if (m_enabled && context->isReported()) {
+    context->setReported(false);
     m_frontend.executionContextDestroyed(context->contextId());
   }
 }

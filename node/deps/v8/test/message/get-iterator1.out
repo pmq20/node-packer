@@ -1,5 +1,0 @@
-*%(basename)s:7: TypeError: nonIterable(...)[Symbol.iterator] is not a function
-[...nonIterable()];
-    ^
-TypeError: nonIterable(...)[Symbol.iterator] is not a function
-    at *%(basename)s:7:5

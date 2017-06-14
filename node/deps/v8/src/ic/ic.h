@@ -10,7 +10,6 @@
 #include "src/ic/ic-state.h"
 #include "src/macro-assembler.h"
 #include "src/messages.h"
-#include "src/objects/map.h"
 
 namespace v8 {
 namespace internal {
@@ -26,10 +25,6 @@ class IC {
   // The IC code is either invoked with no extra frames on the stack
   // or with a single extra frame for supporting calls.
   enum FrameDepth { NO_EXTRA_FRAME = 0, EXTRA_CALL_FRAME = 1 };
-
-  // A polymorphic IC can handle at most 4 distinct maps before transitioning
-  // to megamorphic state.
-  static constexpr int kMaxPolymorphicMapCount = 4;
 
   // Construct the IC structure with the given number of extra
   // JavaScript frames on the stack.
@@ -56,8 +51,26 @@ class IC {
     return IsLoadIC() || IsLoadGlobalIC() || IsKeyedLoadIC();
   }
   bool IsAnyStore() const {
-    return IsStoreIC() || IsStoreOwnIC() || IsStoreGlobalIC() ||
-           IsKeyedStoreIC();
+    return IsStoreIC() || IsStoreOwnIC() || IsKeyedStoreIC();
+  }
+
+  static inline Handle<Map> GetHandlerCacheHolder(Handle<Map> receiver_map,
+                                                  bool receiver_is_holder,
+                                                  Isolate* isolate,
+                                                  CacheHolderFlag* flag);
+  static inline Handle<Map> GetICCacheHolder(Handle<Map> receiver_map,
+                                             Isolate* isolate,
+                                             CacheHolderFlag* flag);
+
+  static bool ICUseVector(Code::Kind kind) {
+    return kind == Code::LOAD_IC || kind == Code::LOAD_GLOBAL_IC ||
+           kind == Code::KEYED_LOAD_IC || kind == Code::STORE_IC ||
+           kind == Code::KEYED_STORE_IC;
+  }
+  static bool ICUseVector(FeedbackSlotKind kind) {
+    return IsLoadICKind(kind) || IsLoadGlobalICKind(kind) ||
+           IsKeyedLoadICKind(kind) || IsStoreICKind(kind) ||
+           IsStoreOwnICKind(kind) || IsKeyedStoreICKind(kind);
   }
 
   // The ICs that don't pass slot and vector through the stack have to
@@ -91,13 +104,25 @@ class IC {
   inline void set_target(Code* code);
   bool is_vector_set() { return vector_set_; }
 
+  bool UseVector() const {
+    bool use = ICUseVector(kind());
+    // If we are supposed to use the nexus, verify the nexus is non-null.
+    DCHECK(!use || nexus_ != nullptr);
+    return use;
+  }
+
   // Configure for most states.
   void ConfigureVectorState(IC::State new_state, Handle<Object> key);
   // Configure the vector for MONOMORPHIC.
   void ConfigureVectorState(Handle<Name> name, Handle<Map> map,
                             Handle<Object> handler);
   // Configure the vector for POLYMORPHIC.
-  void ConfigureVectorState(Handle<Name> name, MapHandles const& maps,
+  void ConfigureVectorState(Handle<Name> name, MapHandleList* maps,
+                            List<Handle<Object>>* handlers);
+  // Configure the vector for POLYMORPHIC with transitions (only for element
+  // keyed stores).
+  void ConfigureVectorState(MapHandleList* maps,
+                            MapHandleList* transitioned_maps,
                             List<Handle<Object>>* handlers);
 
   char TransitionMarkFromState(IC::State state);
@@ -119,12 +144,17 @@ class IC {
   void TraceHandlerCacheHitStats(LookupIterator* lookup);
 
   // Compute the handler either by compiling or by retrieving a cached version.
-  Handle<Object> ComputeHandler(LookupIterator* lookup);
+  Handle<Object> ComputeHandler(LookupIterator* lookup,
+                                Handle<Object> value = Handle<Code>::null());
   virtual Handle<Object> GetMapIndependentHandler(LookupIterator* lookup) {
     UNREACHABLE();
+    return Handle<Code>::null();
   }
-  virtual Handle<Code> CompileHandler(LookupIterator* lookup) {
+  virtual Handle<Object> CompileHandler(LookupIterator* lookup,
+                                        Handle<Object> value,
+                                        CacheHolderFlag cache_holder) {
     UNREACHABLE();
+    return Handle<Object>::null();
   }
 
   void UpdateMonomorphicIC(Handle<Object> handler, Handle<Name> name);
@@ -140,7 +170,6 @@ class IC {
   bool IsLoadIC() const { return IsLoadICKind(kind_); }
   bool IsLoadGlobalIC() const { return IsLoadGlobalICKind(kind_); }
   bool IsKeyedLoadIC() const { return IsKeyedLoadICKind(kind_); }
-  bool IsStoreGlobalIC() const { return IsStoreGlobalICKind(kind_); }
   bool IsStoreIC() const { return IsStoreICKind(kind_); }
   bool IsStoreOwnIC() const { return IsStoreOwnICKind(kind_); }
   bool IsKeyedStoreIC() const { return IsKeyedStoreICKind(kind_); }
@@ -163,16 +192,16 @@ class IC {
     }
   }
 
-  void TargetMaps(MapHandles* list) {
+  void TargetMaps(MapHandleList* list) {
     FindTargetMaps();
-    for (Handle<Map> map : target_maps_) {
-      list->push_back(map);
+    for (int i = 0; i < target_maps_.length(); i++) {
+      list->Add(target_maps_.at(i));
     }
   }
 
   Map* FirstTargetMap() {
     FindTargetMaps();
-    return !target_maps_.empty() ? *target_maps_[0] : NULL;
+    return target_maps_.length() > 0 ? *target_maps_.at(0) : NULL;
   }
 
   Handle<FeedbackVector> vector() const { return nexus()->vector_handle(); }
@@ -196,6 +225,7 @@ class IC {
   void FindTargetMaps() {
     if (target_maps_set_) return;
     target_maps_set_ = true;
+    DCHECK(UseVector());
     nexus()->ExtractMaps(&target_maps_);
   }
 
@@ -222,7 +252,7 @@ class IC {
   MaybeHandle<Object> maybe_handler_;
 
   ExtraICState extra_ic_state_;
-  MapHandles target_maps_;
+  MapHandleList target_maps_;
   bool target_maps_set_;
 
   const char* slow_stub_reason_;
@@ -272,24 +302,22 @@ class LoadIC : public IC {
 
   Handle<Object> GetMapIndependentHandler(LookupIterator* lookup) override;
 
-  Handle<Code> CompileHandler(LookupIterator* lookup) override;
+  Handle<Object> CompileHandler(LookupIterator* lookup, Handle<Object> unused,
+                                CacheHolderFlag cache_holder) override;
 
  private:
   // Creates a data handler that represents a load of a field by given index.
-  static Handle<Smi> SimpleFieldLoad(Isolate* isolate, FieldIndex index);
+  static Handle<Object> SimpleFieldLoad(Isolate* isolate, FieldIndex index);
 
   // Creates a data handler that represents a prototype chain check followed
   // by given Smi-handler that encoded a load from the holder.
   // Can be used only if GetPrototypeCheckCount() returns non negative value.
   Handle<Object> LoadFromPrototype(Handle<Map> receiver_map,
                                    Handle<JSObject> holder, Handle<Name> name,
-                                   Handle<Smi> smi_handler);
+                                   Handle<Object> smi_handler);
 
   // Creates a data handler that represents a load of a non-existent property.
-  // {holder} is the object from which the property is loaded. If no holder is
-  // needed (e.g., for "nonexistent"), null_value() may be passed in.
-  Handle<Object> LoadFullChain(Handle<Map> receiver_map, Handle<Object> holder,
-                               Handle<Name> name, Handle<Smi> smi_handler);
+  Handle<Object> LoadNonExistent(Handle<Map> receiver_map, Handle<Name> name);
 
   friend class IC;
   friend class NamedLoadHandlerCompiler;
@@ -324,11 +352,6 @@ class KeyedLoadIC : public LoadIC {
 
  private:
   friend class IC;
-
-  Handle<Object> LoadElementHandler(Handle<Map> receiver_map);
-
-  void LoadElementPolymorphicHandlers(MapHandles* receiver_maps,
-                                      List<Handle<Object>>* handlers);
 };
 
 
@@ -354,7 +377,7 @@ class StoreIC : public IC {
  protected:
   // Stub accessors.
   Handle<Code> slow_stub() const {
-    // All StoreICs share the same slow stub.
+    // StoreIC and KeyedStoreIC share the same slow stub.
     return isolate()->builtins()->KeyedStoreIC_Slow();
   }
 
@@ -363,7 +386,8 @@ class StoreIC : public IC {
   void UpdateCaches(LookupIterator* lookup, Handle<Object> value,
                     JSReceiver::StoreFromKeyed store_mode);
   Handle<Object> GetMapIndependentHandler(LookupIterator* lookup) override;
-  Handle<Code> CompileHandler(LookupIterator* lookup) override;
+  Handle<Object> CompileHandler(LookupIterator* lookup, Handle<Object> value,
+                                CacheHolderFlag cache_holder) override;
 
  private:
   Handle<Object> StoreTransition(Handle<Map> receiver_map,
@@ -373,15 +397,6 @@ class StoreIC : public IC {
   friend class IC;
 };
 
-class StoreGlobalIC : public StoreIC {
- public:
-  StoreGlobalIC(Isolate* isolate, FeedbackNexus* nexus)
-      : StoreIC(isolate, nexus) {}
-
-  MUST_USE_RESULT MaybeHandle<Object> Store(Handle<Object> object,
-                                            Handle<Name> name,
-                                            Handle<Object> value);
-};
 
 enum KeyedStoreCheckMap { kDontCheckMap, kCheckMap };
 
@@ -413,7 +428,8 @@ class KeyedStoreIC : public StoreIC {
   Handle<Object> StoreElementHandler(Handle<Map> receiver_map,
                                      KeyedAccessStoreMode store_mode);
 
-  void StoreElementPolymorphicHandlers(MapHandles* receiver_maps,
+  void StoreElementPolymorphicHandlers(MapHandleList* receiver_maps,
+                                       MapHandleList* transitioned_maps,
                                        List<Handle<Object>>* handlers,
                                        KeyedAccessStoreMode store_mode);
 

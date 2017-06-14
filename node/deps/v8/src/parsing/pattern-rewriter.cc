@@ -26,7 +26,6 @@ void Parser::PatternRewriter::DeclareAndInitializeVariables(
   rewriter.context_ = BINDING;
   rewriter.pattern_ = declaration->pattern;
   rewriter.initializer_position_ = declaration->initializer_position;
-  rewriter.value_beg_position_ = declaration->value_beg_position;
   rewriter.block_ = block;
   rewriter.descriptor_ = declaration_descriptor;
   rewriter.names_ = names;
@@ -237,10 +236,7 @@ void Parser::PatternRewriter::VisitVariableProxy(VariableProxy* pattern) {
       DCHECK_NOT_NULL(proxy->var());
     }
     // Add break location for destructured sub-pattern.
-    int pos = value_beg_position_;
-    if (pos == kNoSourcePosition) {
-      pos = IsSubPattern() ? pattern->position() : value->position();
-    }
+    int pos = IsSubPattern() ? pattern->position() : value->position();
     Assignment* assignment =
         factory()->NewAssignment(Token::INIT, proxy, value, pos);
     block_->statements()->Add(
@@ -748,7 +744,6 @@ NOT_A_PATTERN(FunctionDeclaration)
 NOT_A_PATTERN(FunctionLiteral)
 NOT_A_PATTERN(GetIterator)
 NOT_A_PATTERN(IfStatement)
-NOT_A_PATTERN(ImportCallExpression)
 NOT_A_PATTERN(Literal)
 NOT_A_PATTERN(NativeFunctionLiteral)
 NOT_A_PATTERN(RegExpLiteral)
@@ -766,7 +761,7 @@ NOT_A_PATTERN(UnaryOperation)
 NOT_A_PATTERN(VariableDeclaration)
 NOT_A_PATTERN(WhileStatement)
 NOT_A_PATTERN(WithStatement)
-NOT_A_PATTERN(Suspend)
+NOT_A_PATTERN(Yield)
 
 #undef NOT_A_PATTERN
 }  // namespace internal

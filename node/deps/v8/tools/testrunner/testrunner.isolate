@@ -12,7 +12,7 @@
     ],
   },
   'conditions': [
-    ['coverage==1 and sanitizer_coverage=="bb,trace-pc-guard"', {
+    ['coverage==1 and sanitizer_coverage=="bb"', {
       'variables': {
         'files': [
           '../sanitizers/sancov_merger.py',

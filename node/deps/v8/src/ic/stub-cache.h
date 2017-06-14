@@ -45,6 +45,9 @@ class StubCache {
   Object* Get(Name* name, Map* map);
   // Clear the lookup table (@ mark compact collection).
   void Clear();
+  // Collect all maps that match the name.
+  void CollectMatchingMaps(SmallMapList* types, Handle<Name> name,
+                           Handle<Context> native_context, Zone* zone);
 
   enum Table { kPrimary, kSecondary };
 
@@ -71,6 +74,7 @@ class StubCache {
         return StubCache::secondary_;
     }
     UNREACHABLE();
+    return nullptr;
   }
 
   Isolate* isolate() { return isolate_; }

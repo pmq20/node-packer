@@ -513,9 +513,8 @@ class FullCodeGenerator final : public AstVisitor<FullCodeGenerator> {
               TypeFeedbackId id = TypeFeedbackId::None());
 
   void CallLoadIC(FeedbackSlot slot, Handle<Object> name);
-  enum StoreICKind { kStoreNamed, kStoreOwn, kStoreGlobal };
   void CallStoreIC(FeedbackSlot slot, Handle<Object> name,
-                   StoreICKind store_ic_kind = kStoreNamed);
+                   bool store_own_property = false);
   void CallKeyedStoreIC(FeedbackSlot slot);
 
   void SetFunctionPosition(FunctionLiteral* fun);

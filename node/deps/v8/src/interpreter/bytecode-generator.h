@@ -14,14 +14,12 @@
 namespace v8 {
 namespace internal {
 
-class AstStringConstants;
 class CompilationInfo;
 
 namespace interpreter {
 
 class GlobalDeclarationsBuilder;
 class LoopBuilder;
-class BytecodeJumpTable;
 
 class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
  public:
@@ -39,7 +37,6 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void VisitStatements(ZoneList<Statement*>* statments);
 
  private:
-  class AdditionResultScope;
   class ContextScope;
   class ControlScope;
   class ControlScopeForBreakable;
@@ -51,15 +48,11 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   class ExpressionResultScope;
   class EffectResultScope;
   class GlobalDeclarationsBuilder;
-  class BlockCoverageBuilder;
   class RegisterAllocationScope;
   class TestResultScope;
   class ValueResultScope;
 
-  using ToBooleanMode = BytecodeArrayBuilder::ToBooleanMode;
-
   enum class TestFallthrough { kThen, kElse, kNone };
-  enum class TypeHint { kAny, kString, kBoolean };
 
   void GenerateBytecodeBody();
   void AllocateDeferredConstants(Isolate* isolate);
@@ -77,9 +70,6 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void VisitTypeOf(UnaryOperation* expr);
   void VisitNot(UnaryOperation* expr);
   void VisitDelete(UnaryOperation* expr);
-
-  // Visits a typeof expression for the value on which to perform the typeof.
-  void VisitForTypeOfValue(Expression* expr);
 
   // Used by flow control routines to evaluate loop condition.
   void VisitCondition(Expression* expr);
@@ -115,14 +105,14 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void BuildVariableAssignment(Variable* variable, Token::Value op,
                                FeedbackSlot slot,
                                HoleCheckMode hole_check_mode);
-  void BuildLiteralCompareNil(Token::Value compare_op, NilValue nil);
+
   void BuildReturn();
   void BuildAsyncReturn();
-  void BuildAsyncGeneratorReturn();
   void BuildReThrow();
   void BuildAbort(BailoutReason bailout_reason);
+  void BuildThrowIfHole(const AstRawString* name);
+  void BuildThrowReferenceError(const AstRawString* name);
   void BuildHoleCheckForVariableAssignment(Variable* variable, Token::Value op);
-  void BuildThrowIfHole(Variable* variable);
 
   // Build jump to targets[value], where
   // start_index <= value < start_index + size.
@@ -132,12 +122,10 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void BuildNewLocalActivationContext();
   void BuildLocalActivationContextInitialization();
   void BuildNewLocalBlockContext(Scope* scope);
-  void BuildNewLocalCatchContext(Scope* scope);
+  void BuildNewLocalCatchContext(Variable* variable, Scope* scope);
   void BuildNewLocalWithContext(Scope* scope);
 
-  void BuildGeneratorPrologue();
-  void BuildGeneratorSuspend(Suspend* expr, RegisterList registers_to_save);
-  void BuildGeneratorResume(Suspend* expr, RegisterList registers_to_restore);
+  void VisitGeneratorPrologue();
 
   void VisitArgumentsObject(Variable* variable);
   void VisitRestArgumentsArray(Variable* rest);
@@ -145,10 +133,8 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void VisitClassLiteralProperties(ClassLiteral* expr, Register constructor,
                                    Register prototype);
   void BuildClassLiteralNameProperty(ClassLiteral* expr, Register constructor);
-  void BuildClassLiteral(ClassLiteral* expr);
   void VisitThisFunctionVariable(Variable* variable);
   void VisitNewTargetVariable(Variable* variable);
-  void BuildGeneratorObjectVariableInitialization();
   void VisitBlockDeclarationsAndStatements(Block* stmt);
   void VisitFunctionClosureForContext();
   void VisitSetHomeObject(Register value, Register home_object,
@@ -158,13 +144,6 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
                                   Register value_out);
   void VisitForInAssignment(Expression* expr, FeedbackSlot slot);
   void VisitModuleNamespaceImports();
-
-  // Builds an addition expression. If the result is a known string addition,
-  // then rather than emitting the add, the operands will converted to
-  // primitive, then to string and stored in registers in the
-  // |operand_registers| list for later concatenation.
-  void BuildAddExpression(BinaryOperation* expr,
-                          RegisterList* operand_registers);
 
   // Visit the header/body of a loop iteration.
   void VisitIterationHeader(IterationStatement* stmt,
@@ -176,15 +155,9 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
 
   void BuildPushUndefinedIntoRegisterList(RegisterList* reg_list);
 
-  void BuildLoadPropertyKey(LiteralProperty* property, Register out_reg);
-
-  int AllocateBlockCoverageSlotIfEnabled(SourceRange range);
-  void BuildIncrementBlockCoverageCounterIfEnabled(int coverage_array_slot);
-
   // Visitors for obtaining expression result in the accumulator, in a
-  // register, or just getting the effect. Some visitors return a TypeHint which
-  // specifies the type of the result of the visited expression.
-  TypeHint VisitForAccumulatorValue(Expression* expr);
+  // register, or just getting the effect.
+  void VisitForAccumulatorValue(Expression* expr);
   void VisitForAccumulatorValueOrTheHole(Expression* expr);
   MUST_USE_RESULT Register VisitForRegisterValue(Expression* expr);
   void VisitForRegisterValue(Expression* expr, Register destination);
@@ -192,26 +165,16 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   void VisitForEffect(Expression* expr);
   void VisitForTest(Expression* expr, BytecodeLabels* then_labels,
                     BytecodeLabels* else_labels, TestFallthrough fallthrough);
-  TypeHint VisitForAddOperand(Expression* expr, RegisterList* operand_registers,
-                              Register* out_register);
 
   // Returns the runtime function id for a store to super for the function's
   // language mode.
   inline Runtime::FunctionId StoreToSuperRuntimeId();
   inline Runtime::FunctionId StoreKeyedToSuperRuntimeId();
 
-  static constexpr ToBooleanMode ToBooleanModeFromTypeHint(TypeHint type_hint) {
-    return type_hint == TypeHint::kBoolean ? ToBooleanMode::kAlreadyBoolean
-                                           : ToBooleanMode::kConvertToBoolean;
-  }
-
   inline BytecodeArrayBuilder* builder() const { return builder_; }
   inline Zone* zone() const { return zone_; }
   inline DeclarationScope* closure_scope() const { return closure_scope_; }
   inline CompilationInfo* info() const { return info_; }
-  inline const AstStringConstants* ast_string_constants() const {
-    return ast_string_constants_;
-  }
 
   inline Scope* current_scope() const { return current_scope_; }
   inline void set_current_scope(Scope* scope) { current_scope_ = scope; }
@@ -239,15 +202,16 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   inline LanguageMode language_mode() const;
   int feedback_index(FeedbackSlot slot) const;
 
+  const AstRawString* prototype_string() const { return prototype_string_; }
+  const AstRawString* undefined_string() const { return undefined_string_; }
+
   Zone* zone_;
   BytecodeArrayBuilder* builder_;
   CompilationInfo* info_;
-  const AstStringConstants* ast_string_constants_;
   DeclarationScope* closure_scope_;
   Scope* current_scope_;
 
   GlobalDeclarationsBuilder* globals_builder_;
-  BlockCoverageBuilder* block_coverage_builder_;
   ZoneVector<GlobalDeclarationsBuilder*> global_declarations_;
   ZoneVector<std::pair<FunctionLiteral*, size_t>> function_literals_;
   ZoneVector<std::pair<NativeFunctionLiteral*, size_t>>
@@ -259,10 +223,12 @@ class BytecodeGenerator final : public AstVisitor<BytecodeGenerator> {
   ContextScope* execution_context_;
   ExpressionResultScope* execution_result_;
 
-  BytecodeJumpTable* generator_jump_table_;
-  Register generator_object_;
+  ZoneVector<BytecodeLabel> generator_resume_points_;
   Register generator_state_;
   int loop_depth_;
+
+  const AstRawString* prototype_string_;
+  const AstRawString* undefined_string_;
 };
 
 }  // namespace interpreter

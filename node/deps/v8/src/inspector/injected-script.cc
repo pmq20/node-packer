@@ -30,6 +30,7 @@
 
 #include "src/inspector/injected-script.h"
 
+#include "src/inspector/injected-script-native.h"
 #include "src/inspector/injected-script-source.h"
 #include "src/inspector/inspected-context.h"
 #include "src/inspector/protocol/Protocol.h"
@@ -47,10 +48,6 @@
 
 namespace v8_inspector {
 
-namespace {
-static const char privateKeyName[] = "v8-inspector#injectedScript";
-}
-
 using protocol::Array;
 using protocol::Runtime::PropertyDescriptor;
 using protocol::Runtime::InternalPropertyDescriptor;
@@ -58,11 +55,17 @@ using protocol::Runtime::RemoteObject;
 using protocol::Maybe;
 
 std::unique_ptr<InjectedScript> InjectedScript::create(
-    InspectedContext* inspectedContext, int sessionId) {
+    InspectedContext* inspectedContext) {
   v8::Isolate* isolate = inspectedContext->isolate();
   v8::HandleScope handles(isolate);
   v8::Local<v8::Context> context = inspectedContext->context();
   v8::Context::Scope scope(context);
+
+  std::unique_ptr<InjectedScriptNative> injectedScriptNative(
+      new InjectedScriptNative(isolate));
+  v8::Local<v8::Object> scriptHostWrapper =
+      V8InjectedScriptHost::create(context, inspectedContext->inspector());
+  injectedScriptNative->setOnInjectedScriptHost(scriptHostWrapper);
 
   // Inject javascript into the context. The compiled script is supposed to
   // evaluate into
@@ -84,8 +87,6 @@ std::unique_ptr<InjectedScript> InjectedScript::create(
            .ToLocal(&value))
     return nullptr;
   DCHECK(value->IsFunction());
-  v8::Local<v8::Object> scriptHostWrapper =
-      V8InjectedScriptHost::create(context, inspectedContext->inspector());
   v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(value);
   v8::Local<v8::Object> windowGlobal = context->Global();
   v8::Local<v8::Value> info[] = {
@@ -104,23 +105,17 @@ std::unique_ptr<InjectedScript> InjectedScript::create(
   if (inspector->getContext(contextGroupId, contextId) != inspectedContext)
     return nullptr;
   if (!injectedScriptValue->IsObject()) return nullptr;
-
-  std::unique_ptr<InjectedScript> injectedScript(new InjectedScript(
-      inspectedContext, injectedScriptValue.As<v8::Object>(), sessionId));
-  v8::Local<v8::Private> privateKey = v8::Private::ForApi(
-      isolate, v8::String::NewFromUtf8(isolate, privateKeyName,
-                                       v8::NewStringType::kInternalized)
-                   .ToLocalChecked());
-  scriptHostWrapper->SetPrivate(
-      context, privateKey, v8::External::New(isolate, injectedScript.get()));
-  return injectedScript;
+  return std::unique_ptr<InjectedScript>(
+      new InjectedScript(inspectedContext, injectedScriptValue.As<v8::Object>(),
+                         std::move(injectedScriptNative)));
 }
 
-InjectedScript::InjectedScript(InspectedContext* context,
-                               v8::Local<v8::Object> object, int sessionId)
+InjectedScript::InjectedScript(
+    InspectedContext* context, v8::Local<v8::Object> object,
+    std::unique_ptr<InjectedScriptNative> injectedScriptNative)
     : m_context(context),
       m_value(context->isolate(), object),
-      m_sessionId(sessionId) {}
+      m_native(std::move(injectedScriptNative)) {}
 
 InjectedScript::~InjectedScript() {}
 
@@ -170,7 +165,7 @@ void InjectedScript::releaseObject(const String16& objectId) {
   if (!object) return;
   int boundId = 0;
   if (!object->getInteger("id", &boundId)) return;
-  unbindObject(boundId);
+  m_native->unbind(boundId);
 }
 
 Response InjectedScript::wrapObject(
@@ -271,26 +266,19 @@ std::unique_ptr<protocol::Runtime::RemoteObject> InjectedScript::wrapTable(
 
 Response InjectedScript::findObject(const RemoteObjectId& objectId,
                                     v8::Local<v8::Value>* outObject) const {
-  auto it = m_idToWrappedObject.find(objectId.id());
-  if (it == m_idToWrappedObject.end())
+  *outObject = m_native->objectForId(objectId.id());
+  if (outObject->IsEmpty())
     return Response::Error("Could not find object with given id");
-  *outObject = it->second.Get(m_context->isolate());
   return Response::OK();
 }
 
 String16 InjectedScript::objectGroupName(const RemoteObjectId& objectId) const {
-  if (objectId.id() <= 0) return String16();
-  auto it = m_idToObjectGroupName.find(objectId.id());
-  return it != m_idToObjectGroupName.end() ? it->second : String16();
+  return m_native->groupName(objectId.id());
 }
 
 void InjectedScript::releaseObjectGroup(const String16& objectGroup) {
+  m_native->releaseObjectGroup(objectGroup);
   if (objectGroup == "console") m_lastEvaluationResult.Reset();
-  if (objectGroup.isEmpty()) return;
-  auto it = m_nameToObjectGroup.find(objectGroup);
-  if (it == m_nameToObjectGroup.end()) return;
-  for (int id : it->second) unbindObject(id);
-  m_nameToObjectGroup.erase(it);
 }
 
 void InjectedScript::setCustomObjectFormatterEnabled(bool enabled) {
@@ -418,30 +406,28 @@ Response InjectedScript::wrapEvaluateResult(
 }
 
 v8::Local<v8::Object> InjectedScript::commandLineAPI() {
-  if (m_commandLineAPI.IsEmpty()) {
-    m_commandLineAPI.Reset(
-        m_context->isolate(),
-        m_context->inspector()->console()->createCommandLineAPI(
-            m_context->context(), m_sessionId));
-  }
+  if (m_commandLineAPI.IsEmpty())
+    m_commandLineAPI.Reset(m_context->isolate(),
+                           V8Console::createCommandLineAPI(m_context));
   return m_commandLineAPI.Get(m_context->isolate());
 }
 
-InjectedScript::Scope::Scope(V8InspectorSessionImpl* session)
-    : m_inspector(session->inspector()),
+InjectedScript::Scope::Scope(V8InspectorImpl* inspector, int contextGroupId)
+    : m_inspector(inspector),
+      m_contextGroupId(contextGroupId),
       m_injectedScript(nullptr),
-      m_handleScope(m_inspector->isolate()),
-      m_tryCatch(m_inspector->isolate()),
+      m_handleScope(inspector->isolate()),
+      m_tryCatch(inspector->isolate()),
       m_ignoreExceptionsAndMuteConsole(false),
       m_previousPauseOnExceptionsState(v8::debug::NoBreakOnException),
-      m_userGesture(false),
-      m_contextGroupId(session->contextGroupId()),
-      m_sessionId(session->sessionId()) {}
+      m_userGesture(false) {}
 
 Response InjectedScript::Scope::initialize() {
   cleanup();
+  // TODO(dgozman): what if we reattach to the same context group during
+  // evaluate? Introduce a session id?
   V8InspectorSessionImpl* session =
-      m_inspector->sessionById(m_contextGroupId, m_sessionId);
+      m_inspector->sessionForContextGroup(m_contextGroupId);
   if (!session) return Response::InternalError();
   Response response = findInjectedScript(session);
   if (!response.isSuccess()) return response;
@@ -500,9 +486,10 @@ InjectedScript::Scope::~Scope() {
   cleanup();
 }
 
-InjectedScript::ContextScope::ContextScope(V8InspectorSessionImpl* session,
+InjectedScript::ContextScope::ContextScope(V8InspectorImpl* inspector,
+                                           int contextGroupId,
                                            int executionContextId)
-    : InjectedScript::Scope(session),
+    : InjectedScript::Scope(inspector, contextGroupId),
       m_executionContextId(executionContextId) {}
 
 InjectedScript::ContextScope::~ContextScope() {}
@@ -512,9 +499,11 @@ Response InjectedScript::ContextScope::findInjectedScript(
   return session->findInjectedScript(m_executionContextId, m_injectedScript);
 }
 
-InjectedScript::ObjectScope::ObjectScope(V8InspectorSessionImpl* session,
+InjectedScript::ObjectScope::ObjectScope(V8InspectorImpl* inspector,
+                                         int contextGroupId,
                                          const String16& remoteObjectId)
-    : InjectedScript::Scope(session), m_remoteObjectId(remoteObjectId) {}
+    : InjectedScript::Scope(inspector, contextGroupId),
+      m_remoteObjectId(remoteObjectId) {}
 
 InjectedScript::ObjectScope::~ObjectScope() {}
 
@@ -533,9 +522,11 @@ Response InjectedScript::ObjectScope::findInjectedScript(
   return Response::OK();
 }
 
-InjectedScript::CallFrameScope::CallFrameScope(V8InspectorSessionImpl* session,
+InjectedScript::CallFrameScope::CallFrameScope(V8InspectorImpl* inspector,
+                                               int contextGroupId,
                                                const String16& remoteObjectId)
-    : InjectedScript::Scope(session), m_remoteCallFrameId(remoteObjectId) {}
+    : InjectedScript::Scope(inspector, contextGroupId),
+      m_remoteCallFrameId(remoteObjectId) {}
 
 InjectedScript::CallFrameScope::~CallFrameScope() {}
 
@@ -546,39 +537,6 @@ Response InjectedScript::CallFrameScope::findInjectedScript(
   if (!response.isSuccess()) return response;
   m_frameOrdinal = static_cast<size_t>(remoteId->frameOrdinal());
   return session->findInjectedScript(remoteId.get(), m_injectedScript);
-}
-
-InjectedScript* InjectedScript::fromInjectedScriptHost(
-    v8::Isolate* isolate, v8::Local<v8::Object> injectedScriptObject) {
-  v8::HandleScope handleScope(isolate);
-  v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  v8::Local<v8::Private> privateKey = v8::Private::ForApi(
-      isolate, v8::String::NewFromUtf8(isolate, privateKeyName,
-                                       v8::NewStringType::kInternalized)
-                   .ToLocalChecked());
-  v8::Local<v8::Value> value =
-      injectedScriptObject->GetPrivate(context, privateKey).ToLocalChecked();
-  DCHECK(value->IsExternal());
-  v8::Local<v8::External> external = value.As<v8::External>();
-  return static_cast<InjectedScript*>(external->Value());
-}
-
-int InjectedScript::bindObject(v8::Local<v8::Value> value,
-                               const String16& groupName) {
-  if (m_lastBoundObjectId <= 0) m_lastBoundObjectId = 1;
-  int id = m_lastBoundObjectId++;
-  m_idToWrappedObject[id].Reset(m_context->isolate(), value);
-
-  if (!groupName.isEmpty() && id > 0) {
-    m_idToObjectGroupName[id] = groupName;
-    m_nameToObjectGroup[groupName].push_back(id);
-  }
-  return id;
-}
-
-void InjectedScript::unbindObject(int id) {
-  m_idToWrappedObject.erase(id);
-  m_idToObjectGroupName.erase(id);
 }
 
 }  // namespace v8_inspector

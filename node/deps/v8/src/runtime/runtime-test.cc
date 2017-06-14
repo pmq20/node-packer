@@ -45,7 +45,7 @@ bool IsWasmCompileAllowed(v8::Isolate* isolate, v8::Local<v8::Value> value,
 // Use the compile controls for instantiation, too
 bool IsWasmInstantiateAllowed(v8::Isolate* isolate,
                               v8::Local<v8::Value> module_or_bytes,
-                              bool is_async) {
+                              v8::MaybeLocal<v8::Value> ffi, bool is_async) {
   DCHECK_GT(g_PerIsolateWasmControls.Get().count(isolate), 0);
   const WasmCompileControls& ctrls = g_PerIsolateWasmControls.Get().at(isolate);
   if (is_async && ctrls.AllowAnySizeForAsync) return true;
@@ -57,32 +57,6 @@ bool IsWasmInstantiateAllowed(v8::Isolate* isolate,
   return static_cast<uint32_t>(module->GetWasmWireBytes()->Length()) <=
          ctrls.MaxWasmBufferSize;
 }
-
-v8::Local<v8::Value> NewRangeException(v8::Isolate* isolate,
-                                       const char* message) {
-  return v8::Exception::RangeError(
-      v8::String::NewFromOneByte(isolate,
-                                 reinterpret_cast<const uint8_t*>(message),
-                                 v8::NewStringType::kNormal)
-          .ToLocalChecked());
-}
-
-void ThrowRangeException(v8::Isolate* isolate, const char* message) {
-  isolate->ThrowException(NewRangeException(isolate, message));
-}
-
-bool WasmModuleOverride(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  if (IsWasmCompileAllowed(args.GetIsolate(), args[0], false)) return false;
-  ThrowRangeException(args.GetIsolate(), "Sync compile not allowed");
-  return true;
-}
-
-bool WasmInstanceOverride(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  if (IsWasmInstantiateAllowed(args.GetIsolate(), args[0], false)) return false;
-  ThrowRangeException(args.GetIsolate(), "Sync instantiate not allowed");
-  return true;
-}
-
 }  // namespace
 
 namespace v8 {
@@ -97,20 +71,6 @@ RUNTIME_FUNCTION(Runtime_ConstructDouble) {
   return *isolate->factory()->NewNumber(uint64_to_double(result));
 }
 
-RUNTIME_FUNCTION(Runtime_ConstructConsString) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(2, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(String, left, 0);
-  CONVERT_ARG_HANDLE_CHECKED(String, right, 1);
-
-  CHECK(left->IsOneByteRepresentation());
-  CHECK(right->IsOneByteRepresentation());
-
-  const bool kIsOneByte = true;
-  const int length = left->length() + right->length();
-  return *isolate->factory()->NewConsString(left, right, length, kIsOneByte);
-}
-
 RUNTIME_FUNCTION(Runtime_DeoptimizeFunction) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
@@ -122,7 +82,6 @@ RUNTIME_FUNCTION(Runtime_DeoptimizeFunction) {
     return isolate->heap()->undefined_value();
   }
   Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
-  function->shared()->set_marked_for_tier_up(false);
 
   // If the function is not optimized, just return.
   if (!function->IsOptimized()) return isolate->heap()->undefined_value();
@@ -183,25 +142,6 @@ RUNTIME_FUNCTION(Runtime_IsConcurrentRecompilationSupported) {
       isolate->concurrent_recompilation_enabled());
 }
 
-RUNTIME_FUNCTION(Runtime_TypeProfile) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-
-  if (!FLAG_type_profile) {
-    return isolate->heap()->undefined_value();
-  }
-
-  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
-  if (function->has_feedback_vector()) {
-    FeedbackVector* vector = function->feedback_vector();
-    if (vector->metadata()->HasTypeProfileSlot()) {
-      FeedbackSlot slot = vector->GetTypeProfileSlot();
-      CollectTypeProfileNexus nexus(vector, slot);
-      return nexus.GetTypeProfile();
-    }
-  }
-  return *isolate->factory()->NewJSObject(isolate->object_function());
-}
 
 RUNTIME_FUNCTION(Runtime_OptimizeFunctionOnNextCall) {
   HandleScope scope(isolate);
@@ -237,17 +177,60 @@ RUNTIME_FUNCTION(Runtime_OptimizeFunctionOnNextCall) {
   if (function->IsOptimized()) return isolate->heap()->undefined_value();
 
   function->MarkForOptimization();
-  if (FLAG_trace_opt) {
-    PrintF("[manually marking ");
-    function->ShortPrint();
-    PrintF(" for optimization]\n");
-  }
 
-  if (args.length() == 2) {
+  Code* unoptimized = function->shared()->code();
+  if (args.length() == 2 && unoptimized->kind() == Code::FUNCTION) {
     CONVERT_ARG_HANDLE_CHECKED(String, type, 1);
     if (type->IsOneByteEqualTo(STATIC_CHAR_VECTOR("concurrent")) &&
         isolate->concurrent_recompilation_enabled()) {
       function->AttemptConcurrentOptimization();
+    }
+  }
+
+  return isolate->heap()->undefined_value();
+}
+
+RUNTIME_FUNCTION(Runtime_InterpretFunctionOnNextCall) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(Object, function_object, 0);
+  if (!function_object->IsJSFunction()) {
+    return isolate->heap()->undefined_value();
+  }
+  Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
+
+  // Do not tier down if we are already on optimized code. Replacing optimized
+  // code without actual deoptimization can lead to funny bugs.
+  if (function->code()->kind() != Code::OPTIMIZED_FUNCTION &&
+      function->shared()->HasBytecodeArray()) {
+    function->ReplaceCode(*isolate->builtins()->InterpreterEntryTrampoline());
+  }
+  return isolate->heap()->undefined_value();
+}
+
+RUNTIME_FUNCTION(Runtime_BaselineFunctionOnNextCall) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(Object, function_object, 0);
+  if (!function_object->IsJSFunction()) {
+    return isolate->heap()->undefined_value();
+  }
+  Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
+
+  // If function isn't compiled, compile it now.
+  if (!function->shared()->is_compiled() &&
+      !Compiler::Compile(function, Compiler::CLEAR_EXCEPTION)) {
+    return isolate->heap()->undefined_value();
+  }
+
+  // Do not tier down if we are already on optimized code. Replacing optimized
+  // code without actual deoptimization can lead to funny bugs.
+  if (function->code()->kind() != Code::OPTIMIZED_FUNCTION &&
+      function->code()->kind() != Code::FUNCTION) {
+    if (function->shared()->HasBaselineCode()) {
+      function->ReplaceCode(function->shared()->code());
+    } else {
+      function->MarkForBaseline();
     }
   }
 
@@ -297,7 +280,7 @@ RUNTIME_FUNCTION(Runtime_GetOptimizationStatus) {
   HandleScope scope(isolate);
   DCHECK(args.length() == 1 || args.length() == 2);
   int status = 0;
-  if (!isolate->use_optimizer()) {
+  if (!isolate->use_crankshaft()) {
     status |= static_cast<int>(OptimizationStatus::kNeverOptimize);
   }
   if (FLAG_always_opt || FLAG_prepare_always_opt) {
@@ -361,13 +344,6 @@ RUNTIME_FUNCTION(Runtime_GetOptimizationCount) {
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
   return Smi::FromInt(function->shared()->opt_count());
-}
-
-RUNTIME_FUNCTION(Runtime_GetDeoptCount) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
-  return Smi::FromInt(function->shared()->deopt_count());
 }
 
 static void ReturnThis(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -439,9 +415,9 @@ RUNTIME_FUNCTION(Runtime_CheckWasmWrapperElision) {
   // It takes two parameters, the first one is the JSFunction,
   // The second one is the type
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
-  // If type is 0, it means that it is supposed to be a direct call into a wasm
-  // function.
-  // If type is 1, it means that it is supposed to have wrappers.
+  // If type is 0, it means that it is supposed to be a direct call into a WASM
+  // function
+  // If type is 1, it means that it is supposed to have wrappers
   CONVERT_ARG_HANDLE_CHECKED(Smi, type, 1);
   Handle<Code> export_code = handle(function->code());
   CHECK(export_code->kind() == Code::JS_TO_WASM_FUNCTION);
@@ -472,8 +448,8 @@ RUNTIME_FUNCTION(Runtime_CheckWasmWrapperElision) {
     }
   }
   CHECK(count == 1);
-  // Check the type of the imported exported function, it should be also a wasm
-  // function in our case.
+  // check the type of the imported exported function, it should be also a WASM
+  // function in our case
   Handle<Code> imported_fct;
   CHECK(type->value() == 0 || type->value() == 1);
 
@@ -502,15 +478,14 @@ RUNTIME_FUNCTION(Runtime_SetWasmCompileControls) {
   WasmCompileControls& ctrl = (*g_PerIsolateWasmControls.Pointer())[v8_isolate];
   ctrl.AllowAnySizeForAsync = allow_async;
   ctrl.MaxWasmBufferSize = static_cast<uint32_t>(block_size->value());
-  v8_isolate->SetWasmModuleCallback(WasmModuleOverride);
+  isolate->set_allow_wasm_compile_callback(IsWasmCompileAllowed);
   return isolate->heap()->undefined_value();
 }
 
 RUNTIME_FUNCTION(Runtime_SetWasmInstantiateControls) {
   HandleScope scope(isolate);
-  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
   CHECK(args.length() == 0);
-  v8_isolate->SetWasmInstanceCallback(WasmInstanceOverride);
+  isolate->set_allow_wasm_instantiate_callback(IsWasmInstantiateAllowed);
   return isolate->heap()->undefined_value();
 }
 
@@ -553,7 +528,6 @@ RUNTIME_FUNCTION(Runtime_DebugPrint) {
   if (args[0]->IsString() && isolate->context() != nullptr) {
     // If we have a string, assume it's a code "marker"
     // and print some interesting cpu debugging info.
-    args[0]->Print(os);
     JavaScriptFrameIterator it(isolate);
     JavaScriptFrame* frame = it.frame();
     os << "fp = " << static_cast<void*>(frame->fp())
@@ -561,8 +535,8 @@ RUNTIME_FUNCTION(Runtime_DebugPrint) {
        << ", caller_sp = " << static_cast<void*>(frame->caller_sp()) << ": ";
   } else {
     os << "DebugPrint: ";
-    args[0]->Print(os);
   }
+  args[0]->Print(os);
   if (args[0]->IsHeapObject()) {
     HeapObject::cast(args[0])->map()->Print(os);
   }
@@ -632,6 +606,7 @@ RUNTIME_FUNCTION(Runtime_Abort) {
   isolate->PrintStack(stderr);
   base::OS::Abort();
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -643,12 +618,23 @@ RUNTIME_FUNCTION(Runtime_AbortJS) {
   isolate->PrintStack(stderr);
   base::OS::Abort();
   UNREACHABLE();
+  return NULL;
 }
 
 
 RUNTIME_FUNCTION(Runtime_NativeScriptsCount) {
   DCHECK_EQ(0, args.length());
   return Smi::FromInt(Natives::GetBuiltinsCount());
+}
+
+// TODO(5510): remove this.
+RUNTIME_FUNCTION(Runtime_GetV8Version) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(0, args.length());
+
+  const char* version_string = v8::V8::GetVersion();
+
+  return *isolate->factory()->NewStringFromAsciiChecked(version_string);
 }
 
 
@@ -918,7 +904,7 @@ RUNTIME_FUNCTION(Runtime_ValidateWasmOrphanedInstance) {
   return isolate->heap()->ToBoolean(true);
 }
 
-RUNTIME_FUNCTION(Runtime_HeapObjectVerify) {
+RUNTIME_FUNCTION(Runtime_Verify) {
   HandleScope shs(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
@@ -933,33 +919,6 @@ RUNTIME_FUNCTION(Runtime_HeapObjectVerify) {
   }
 #endif
   return isolate->heap()->ToBoolean(true);
-}
-
-RUNTIME_FUNCTION(Runtime_WasmNumInterpretedCalls) {
-  DCHECK_EQ(1, args.length());
-  HandleScope scope(isolate);
-  CONVERT_ARG_HANDLE_CHECKED(JSObject, instance_obj, 0);
-  CHECK(WasmInstanceObject::IsWasmInstanceObject(*instance_obj));
-  Handle<WasmInstanceObject> instance =
-      Handle<WasmInstanceObject>::cast(instance_obj);
-  if (!instance->has_debug_info()) return 0;
-  uint64_t num = instance->debug_info()->NumInterpretedCalls();
-  return *isolate->factory()->NewNumberFromSize(static_cast<size_t>(num));
-}
-
-RUNTIME_FUNCTION(Runtime_RedirectToWasmInterpreter) {
-  DCHECK_EQ(2, args.length());
-  HandleScope scope(isolate);
-  CONVERT_ARG_HANDLE_CHECKED(JSObject, instance_obj, 0);
-  CONVERT_SMI_ARG_CHECKED(function_index, 1);
-  CHECK(WasmInstanceObject::IsWasmInstanceObject(*instance_obj));
-  Handle<WasmInstanceObject> instance =
-      Handle<WasmInstanceObject>::cast(instance_obj);
-  Handle<WasmDebugInfo> debug_info =
-      WasmInstanceObject::GetOrCreateDebugInfo(instance);
-  WasmDebugInfo::RedirectToInterpreter(debug_info,
-                                       Vector<int>(&function_index, 1));
-  return isolate->heap()->undefined_value();
 }
 
 }  // namespace internal

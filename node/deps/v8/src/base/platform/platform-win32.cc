@@ -24,8 +24,8 @@
 #include "src/base/macros.h"
 #include "src/base/platform/platform.h"
 #include "src/base/platform/time.h"
-#include "src/base/timezone-cache.h"
 #include "src/base/utils/random-number-generator.h"
+
 
 // Extra functions for MinGW. Most of these are the _s functions which are in
 // the Microsoft Visual Studio C++ CRT.
@@ -37,7 +37,7 @@
 #define _TRUNCATE 0
 #define STRUNCATE 80
 
-inline void MemoryFence() {
+inline void MemoryBarrier() {
   int barrier = 0;
   __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
 }
@@ -101,19 +101,13 @@ bool g_hard_abort = false;
 
 }  // namespace
 
-class WindowsTimezoneCache : public TimezoneCache {
+class TimezoneCache {
  public:
-  WindowsTimezoneCache() : initialized_(false) {}
+  TimezoneCache() : initialized_(false) { }
 
-  ~WindowsTimezoneCache() override {}
-
-  void Clear() override { initialized_ = false; }
-
-  const char* LocalTimezone(double time) override;
-
-  double LocalTimeOffset() override;
-
-  double DaylightSavingsOffset(double time) override;
+  void Clear() {
+    initialized_ = false;
+  }
 
   // Initialize timezone information. The timezone information is obtained from
   // windows. If we cannot get the timezone information we fall back to CET.
@@ -222,14 +216,14 @@ class Win32Time {
   // LocalOffset(CET) = 3600000 and LocalOffset(PST) = -28800000. This
   // routine also takes into account whether daylight saving is effect
   // at the time.
-  int64_t LocalOffset(WindowsTimezoneCache* cache);
+  int64_t LocalOffset(TimezoneCache* cache);
 
   // Returns the daylight savings time offset for the time in milliseconds.
-  int64_t DaylightSavingsOffset(WindowsTimezoneCache* cache);
+  int64_t DaylightSavingsOffset(TimezoneCache* cache);
 
   // Returns a string identifying the current timezone for the
   // timestamp taking into account daylight saving.
-  char* LocalTimezone(WindowsTimezoneCache* cache);
+  char* LocalTimezone(TimezoneCache* cache);
 
  private:
   // Constants for time conversion.
@@ -241,7 +235,7 @@ class Win32Time {
   static const bool kShortTzNames = false;
 
   // Return whether or not daylight savings time is in effect at this time.
-  bool InDST(WindowsTimezoneCache* cache);
+  bool InDST(TimezoneCache* cache);
 
   // Accessor for FILETIME representation.
   FILETIME& ft() { return time_.ft_; }
@@ -356,7 +350,7 @@ void Win32Time::SetToCurrentTime() {
 // Only times in the 32-bit Unix range may be passed to this function.
 // Also, adding the time-zone offset to the input must not overflow.
 // The function EquivalentTime() in date.js guarantees this.
-int64_t Win32Time::LocalOffset(WindowsTimezoneCache* cache) {
+int64_t Win32Time::LocalOffset(TimezoneCache* cache) {
   cache->InitializeIfNeeded();
 
   Win32Time rounded_to_second(*this);
@@ -390,7 +384,7 @@ int64_t Win32Time::LocalOffset(WindowsTimezoneCache* cache) {
 
 
 // Return whether or not daylight savings time is in effect at this time.
-bool Win32Time::InDST(WindowsTimezoneCache* cache) {
+bool Win32Time::InDST(TimezoneCache* cache) {
   cache->InitializeIfNeeded();
 
   // Determine if DST is in effect at the specified time.
@@ -415,14 +409,14 @@ bool Win32Time::InDST(WindowsTimezoneCache* cache) {
 
 
 // Return the daylight savings time offset for this time.
-int64_t Win32Time::DaylightSavingsOffset(WindowsTimezoneCache* cache) {
+int64_t Win32Time::DaylightSavingsOffset(TimezoneCache* cache) {
   return InDST(cache) ? 60 * kMsPerMinute : 0;
 }
 
 
 // Returns a string identifying the current timezone for the
 // timestamp taking into account daylight saving.
-char* Win32Time::LocalTimezone(WindowsTimezoneCache* cache) {
+char* Win32Time::LocalTimezone(TimezoneCache* cache) {
   // Return the standard or DST time zone name based on whether daylight
   // saving is in effect at the given time.
   return InDST(cache) ? cache->dst_tz_name_ : cache->std_tz_name_;
@@ -454,30 +448,47 @@ double OS::TimeCurrentMillis() {
   return Time::Now().ToJsTime();
 }
 
+
+TimezoneCache* OS::CreateTimezoneCache() {
+  return new TimezoneCache();
+}
+
+
+void OS::DisposeTimezoneCache(TimezoneCache* cache) {
+  delete cache;
+}
+
+
+void OS::ClearTimezoneCache(TimezoneCache* cache) {
+  cache->Clear();
+}
+
+
 // Returns a string identifying the current timezone taking into
 // account daylight saving.
-const char* WindowsTimezoneCache::LocalTimezone(double time) {
-  return Win32Time(time).LocalTimezone(this);
+const char* OS::LocalTimezone(double time, TimezoneCache* cache) {
+  return Win32Time(time).LocalTimezone(cache);
 }
+
 
 // Returns the local time offset in milliseconds east of UTC without
 // taking daylight savings time into account.
-double WindowsTimezoneCache::LocalTimeOffset() {
+double OS::LocalTimeOffset(TimezoneCache* cache) {
   // Use current time, rounded to the millisecond.
-  Win32Time t(OS::TimeCurrentMillis());
+  Win32Time t(TimeCurrentMillis());
   // Time::LocalOffset inlcudes any daylight savings offset, so subtract it.
-  return static_cast<double>(t.LocalOffset(this) -
-                             t.DaylightSavingsOffset(this));
+  return static_cast<double>(t.LocalOffset(cache) -
+                             t.DaylightSavingsOffset(cache));
 }
+
 
 // Returns the daylight savings offset in milliseconds for the given
 // time.
-double WindowsTimezoneCache::DaylightSavingsOffset(double time) {
-  int64_t offset = Win32Time(time).DaylightSavingsOffset(this);
+double OS::DaylightSavingsOffset(double time, TimezoneCache* cache) {
+  int64_t offset = Win32Time(time).DaylightSavingsOffset(cache);
   return static_cast<double>(offset);
 }
 
-TimezoneCache* OS::CreateTimezoneCache() { return new WindowsTimezoneCache(); }
 
 int OS::GetLastError() {
   return ::GetLastError();
@@ -764,34 +775,15 @@ static void* RandomizedVirtualAlloc(size_t size, int action, int protection) {
   return base;
 }
 
-void* OS::Allocate(const size_t requested, size_t* allocated,
-                   bool is_executable) {
-  return OS::Allocate(requested, allocated,
-                      is_executable ? OS::MemoryPermission::kReadWriteExecute
-                                    : OS::MemoryPermission::kReadWrite);
-}
 
-void* OS::Allocate(const size_t requested, size_t* allocated,
-                   OS::MemoryPermission access) {
+void* OS::Allocate(const size_t requested,
+                   size_t* allocated,
+                   bool is_executable) {
   // VirtualAlloc rounds allocated size to page size automatically.
   size_t msize = RoundUp(requested, static_cast<int>(GetPageSize()));
 
   // Windows XP SP2 allows Data Excution Prevention (DEP).
-  int prot = PAGE_NOACCESS;
-  switch (access) {
-    case OS::MemoryPermission::kNoAccess: {
-      prot = PAGE_NOACCESS;
-      break;
-    }
-    case OS::MemoryPermission::kReadWrite: {
-      prot = PAGE_READWRITE;
-      break;
-    }
-    case OS::MemoryPermission::kReadWriteExecute: {
-      prot = PAGE_EXECUTE_READWRITE;
-      break;
-    }
-  }
+  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
 
   LPVOID mbase = RandomizedVirtualAlloc(msize,
                                         MEM_COMMIT | MEM_RESERVE,
@@ -835,7 +827,6 @@ void OS::Guard(void* address, const size_t size) {
 void OS::Unprotect(void* address, const size_t size) {
   LPVOID result = VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);
   DCHECK_IMPLIES(result != nullptr, GetLastError() == 0);
-  USE(result);
 }
 
 void OS::Sleep(TimeDelta interval) {

@@ -32,9 +32,6 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   compiler::Node* BytecodeOperandFlag(int operand_index);
   // Returns the 32-bit zero-extended index immediate for bytecode operand
   // |operand_index| in the current bytecode.
-  compiler::Node* BytecodeOperandIdxInt32(int operand_index);
-  // Returns the word zero-extended index immediate for bytecode operand
-  // |operand_index| in the current bytecode.
   compiler::Node* BytecodeOperandIdx(int operand_index);
   // Returns the smi index immediate for bytecode operand |operand_index|
   // in the current bytecode.
@@ -81,11 +78,12 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   void GotoIfHasContextExtensionUpToDepth(compiler::Node* context,
                                           compiler::Node* depth, Label* target);
 
+  // Number of registers.
+  compiler::Node* RegisterCount();
+
   // Backup/restore register file to/from a fixed array of the correct length.
-  compiler::Node* ExportRegisterFile(compiler::Node* array,
-                                     compiler::Node* register_count);
-  compiler::Node* ImportRegisterFile(compiler::Node* array,
-                                     compiler::Node* register_count);
+  compiler::Node* ExportRegisterFile(compiler::Node* array);
+  compiler::Node* ImportRegisterFile(compiler::Node* array);
 
   // Loads from and stores to the interpreter register file.
   compiler::Node* LoadRegister(Register reg);
@@ -117,25 +115,23 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   compiler::Node* IncrementCallCount(compiler::Node* feedback_vector,
                                      compiler::Node* slot_id);
 
-  // Call JSFunction or Callable |function| with |arg_count| arguments (not
-  // including receiver) and the first argument located at |first_arg|. Type
-  // feedback is collected in the slot at index |slot_id|.
-  //
-  // If the |receiver_mode| is kNullOrUndefined, then the receiver is implicitly
-  // undefined and |first_arg| is the first parameter. Otherwise, |first_arg| is
-  // the receiver and it is converted according to |receiver_mode|.
-  compiler::Node* CallJSWithFeedback(
-      compiler::Node* function, compiler::Node* context,
-      compiler::Node* first_arg, compiler::Node* arg_count,
-      compiler::Node* slot_id, compiler::Node* feedback_vector,
-      ConvertReceiverMode receiver_mode, TailCallMode tail_call_mode);
+  // Call JSFunction or Callable |function| with |arg_count|
+  // arguments (not including receiver) and the first argument
+  // located at |first_arg|. Type feedback is collected in the
+  // slot at index |slot_id|.
+  compiler::Node* CallJSWithFeedback(compiler::Node* function,
+                                     compiler::Node* context,
+                                     compiler::Node* first_arg,
+                                     compiler::Node* arg_count,
+                                     compiler::Node* slot_id,
+                                     compiler::Node* feedback_vector,
+                                     TailCallMode tail_call_mode);
 
-  // Call JSFunction or Callable |function| with |arg_count| arguments (not
-  // including receiver) and the first argument located at |first_arg|, possibly
-  // including the receiver depending on |receiver_mode|.
+  // Call JSFunction or Callable |function| with |arg_count|
+  // arguments (not including receiver) and the first argument
+  // located at |first_arg|.
   compiler::Node* CallJS(compiler::Node* function, compiler::Node* context,
                          compiler::Node* first_arg, compiler::Node* arg_count,
-                         ConvertReceiverMode receiver_mode,
                          TailCallMode tail_call_mode);
 
   // Call JSFunction or Callable |function| with |arg_count|
@@ -220,15 +216,15 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   void Abort(BailoutReason bailout_reason);
   void AbortIfWordNotEqual(compiler::Node* lhs, compiler::Node* rhs,
                            BailoutReason bailout_reason);
-  // Abort if |register_count| is invalid for given register file array.
-  void AbortIfRegisterCountInvalid(compiler::Node* register_file,
-                                   compiler::Node* register_count);
 
   // Dispatch to frame dropper trampoline if necessary.
   void MaybeDropFrames(compiler::Node* context);
 
   // Returns the offset from the BytecodeArrayPointer of the current bytecode.
   compiler::Node* BytecodeOffset();
+
+  // Save the bytecode offset to the interpreter frame.
+  void SaveBytecodeOffset();
 
  protected:
   Bytecode bytecode() const { return bytecode_; }
@@ -305,9 +301,6 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   // JumpIfWordNotEqual.
   void JumpConditional(compiler::Node* condition, compiler::Node* jump_offset);
 
-  // Save the bytecode offset to the interpreter frame.
-  void SaveBytecodeOffset();
-
   // Updates and returns BytecodeOffset() advanced by the current bytecode's
   // size. Traces the exit of the current bytecode.
   compiler::Node* Advance();
@@ -340,8 +333,6 @@ class V8_EXPORT_PRIVATE InterpreterAssembler : public CodeStubAssembler {
   // Dispatch to the bytecode handler with code entry point |handler_entry|.
   compiler::Node* DispatchToBytecodeHandlerEntry(
       compiler::Node* handler_entry, compiler::Node* bytecode_offset);
-
-  int CurrentBytecodeSize() const;
 
   OperandScale operand_scale() const { return operand_scale_; }
 

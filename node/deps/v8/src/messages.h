@@ -25,7 +25,6 @@ class JSMessageObject;
 class LookupIterator;
 class SharedFunctionInfo;
 class SourceInfo;
-class WasmInstanceObject;
 
 class MessageLocation {
  public:
@@ -133,7 +132,7 @@ class WasmStackFrame : public StackFrameBase {
  public:
   virtual ~WasmStackFrame() {}
 
-  Handle<Object> GetReceiver() const override;
+  Handle<Object> GetReceiver() const override { return wasm_instance_; }
   Handle<Object> GetFunction() const override;
 
   Handle<Object> GetFileName() override { return Null(); }
@@ -150,7 +149,6 @@ class WasmStackFrame : public StackFrameBase {
   bool IsToplevel() override { return false; }
   bool IsConstructor() override { return false; }
   bool IsStrict() const override { return false; }
-  bool IsInterpreted() const { return code_.is_null(); }
 
   MaybeHandle<String> ToString() override;
 
@@ -160,9 +158,10 @@ class WasmStackFrame : public StackFrameBase {
   bool HasScript() const override;
   Handle<Script> GetScript() const override;
 
-  Handle<WasmInstanceObject> wasm_instance_;
+  // TODO(wasm): Use proper typing.
+  Handle<Object> wasm_instance_;
   uint32_t wasm_func_index_;
-  Handle<AbstractCode> code_;  // null handle for interpreted frames.
+  Handle<AbstractCode> code_;
   int offset_;
 
  private:
@@ -280,10 +279,8 @@ class ErrorUtils : public AllStatic {
   T(CallSiteMethod, "CallSite method % expects CallSite as receiver")          \
   T(CannotConvertToPrimitive, "Cannot convert object to primitive value")      \
   T(CannotPreventExt, "Cannot prevent extensions")                             \
-  T(CannotFreeze, "Cannot freeze")                                             \
   T(CannotFreezeArrayBufferView,                                               \
     "Cannot freeze array buffer views with elements")                          \
-  T(CannotSeal, "Cannot seal")                                                 \
   T(CircularStructure, "Converting circular structure to JSON")                \
   T(ConstructAbstractClass, "Abstract class % not directly constructable")     \
   T(ConstAssign, "Assignment to constant variable.")                           \
@@ -341,7 +338,8 @@ class ErrorUtils : public AllStatic {
   T(NotAPromise, "% is not a promise")                                         \
   T(NotConstructor, "% is not a constructor")                                  \
   T(NotDateObject, "this is not a Date object.")                               \
-  T(NotGeneric, "% requires that 'this' be a %")                               \
+  T(NotIntlObject, "% is not an i18n object.")                                 \
+  T(NotGeneric, "% is not generic")                                            \
   T(NotIterable, "% is not iterable")                                          \
   T(NotPropertyName, "% is not a valid property name")                         \
   T(NotTypedArray, "this is not a typed array.")                               \
@@ -451,25 +449,21 @@ class ErrorUtils : public AllStatic {
   T(ProxyTrapReturnedFalsish, "'%' on proxy: trap returned falsish")           \
   T(ProxyTrapReturnedFalsishFor,                                               \
     "'%' on proxy: trap returned falsish for property '%'")                    \
+  T(ReadGlobalReferenceThroughProxy, "Trying to access '%' through proxy")     \
   T(RedefineDisallowed, "Cannot redefine property: %")                         \
   T(RedefineExternalArray,                                                     \
     "Cannot redefine a property of an object with external array elements")    \
   T(ReduceNoInitial, "Reduce of empty array with no initial value")            \
   T(RegExpFlags,                                                               \
     "Cannot supply flags when constructing one RegExp from another")           \
-  T(RegExpInvalidReplaceString, "Invalid replacement string: '%'")             \
   T(RegExpNonObject, "% getter called on non-object %")                        \
   T(RegExpNonRegExp, "% getter called on non-RegExp object")                   \
+  T(ReinitializeIntl, "Trying to re-initialize % object.")                     \
   T(ResolverNotAFunction, "Promise resolver % is not a function")              \
   T(RestrictedFunctionProperties,                                              \
     "'caller' and 'arguments' are restricted function properties and cannot "  \
     "be accessed in this context.")                                            \
   T(ReturnMethodNotCallable, "The iterator's 'return' method is not callable") \
-  T(SharedArrayBufferTooShort,                                                 \
-    "Derived SharedArrayBuffer constructor created a buffer which was too "    \
-    "small")                                                                   \
-  T(SharedArrayBufferSpeciesThis,                                              \
-    "SharedArrayBuffer subclass returned this from species constructor")       \
   T(StaticPrototype, "Classes may not have static property named prototype")   \
   T(StrictCannotAssign, "Cannot assign to read only '%' in strict mode")       \
   T(StrictDeleteProperty, "Cannot delete property '%' of %")                   \
@@ -523,7 +517,7 @@ class ErrorUtils : public AllStatic {
   T(InvalidTimeValue, "Invalid time value")                                    \
   T(InvalidTypedArrayAlignment, "% of % should be a multiple of %")            \
   T(InvalidTypedArrayIndex, "Invalid typed array index")                       \
-  T(InvalidTypedArrayLength, "Invalid typed array length: %")                  \
+  T(InvalidTypedArrayLength, "Invalid typed array length")                     \
   T(LetInLexicalBinding, "let is disallowed as a lexically bound name")        \
   T(LocaleMatcher, "Illegal value for localeMatcher:%")                        \
   T(NormalizationForm, "The normalization form should be one of %.")           \
@@ -544,9 +538,7 @@ class ErrorUtils : public AllStatic {
   T(ConstructorIsAccessor, "Class constructor may not be an accessor")         \
   T(ConstructorIsGenerator, "Class constructor may not be a generator")        \
   T(ConstructorIsAsync, "Class constructor may not be an async method")        \
-  T(ClassConstructorReturnedNonObject,                                         \
-    "Class constructors may only return object or undefined")                  \
-  T(DerivedConstructorReturnedNonObject,                                       \
+  T(DerivedConstructorReturn,                                                  \
     "Derived constructors may only return object or undefined")                \
   T(DuplicateConstructor, "A class may only have one constructor")             \
   T(DuplicateExport, "Duplicate export of '%'")                                \
@@ -559,10 +551,7 @@ class ErrorUtils : public AllStatic {
   T(GeneratorInLegacyContext,                                                  \
     "Generator declarations are not allowed in legacy contexts.")              \
   T(IllegalBreak, "Illegal break statement")                                   \
-  T(NoIterationStatement,                                                      \
-    "Illegal continue statement: no surrounding iteration statement")          \
-  T(IllegalContinue,                                                           \
-    "Illegal continue statement: '%' does not denote an iteration statement")  \
+  T(IllegalContinue, "Illegal continue statement")                             \
   T(IllegalLanguageModeDirective,                                              \
     "Illegal '%' directive in function with non-simple parameter list")        \
   T(IllegalReturn, "Illegal return statement")                                 \
@@ -590,7 +579,6 @@ class ErrorUtils : public AllStatic {
   T(MalformedRegExp, "Invalid regular expression: /%/: %")                     \
   T(MalformedRegExpFlags, "Invalid regular expression flags")                  \
   T(ModuleExportUndefined, "Export '%' is not defined in module")              \
-  T(HtmlCommentInModule, "HTML comments are not allowed in modules")           \
   T(MultipleDefaultsInSwitch,                                                  \
     "More than one default clause in switch statement")                        \
   T(NewlineAfterThrow, "Illegal newline after throw")                          \
@@ -608,12 +596,7 @@ class ErrorUtils : public AllStatic {
   T(ArgStringTerminatesParametersEarly,                                        \
     "Arg string terminates parameters early")                                  \
   T(UnexpectedEndOfArgString, "Unexpected end of arg string")                  \
-  T(RestDefaultInitializer,                                                    \
-    "Rest parameter may not have a default initializer")                       \
   T(RuntimeWrongNumArgs, "Runtime function given wrong number of arguments")   \
-  T(SuperNotCalled,                                                            \
-    "Must call super constructor in derived class before accessing 'this' or " \
-    "returning from derived constructor")                                      \
   T(SingleFunctionLiteral, "Single function literal required")                 \
   T(SloppyFunction,                                                            \
     "In non-strict mode code, functions can only be declared at top level, "   \
@@ -694,7 +677,6 @@ class ErrorUtils : public AllStatic {
   T(AsmJsInvalid, "Invalid asm.js: %")                                         \
   T(AsmJsCompiled, "Converted asm.js to WebAssembly: %")                       \
   T(AsmJsInstantiated, "Instantiated asm.js: %")                               \
-  T(AsmJsLinkingFailed, "Linking failure in asm.js: %")                        \
   /* DataCloneError messages */                                                \
   T(DataCloneError, "% could not be cloned.")                                  \
   T(DataCloneErrorOutOfMemory, "Data cannot be cloned, out of memory.")        \
@@ -737,7 +719,7 @@ class MessageHandler {
   static Handle<JSMessageObject> MakeMessageObject(
       Isolate* isolate, MessageTemplate::Template type,
       const MessageLocation* location, Handle<Object> argument,
-      Handle<FixedArray> stack_frames);
+      Handle<JSArray> stack_frames);
 
   // Report a formatted message (needs JS allocation).
   static void ReportMessage(Isolate* isolate, const MessageLocation* loc,

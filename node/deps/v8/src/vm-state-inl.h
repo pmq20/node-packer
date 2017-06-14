@@ -32,6 +32,7 @@ inline const char* StateToString(StateTag state) {
       return "EXTERNAL";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 

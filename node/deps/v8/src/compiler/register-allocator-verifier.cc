@@ -18,6 +18,7 @@ size_t OperandCount(const Instruction* instr) {
   return instr->InputCount() + instr->OutputCount() + instr->TempCount();
 }
 
+
 void VerifyEmptyGaps(const Instruction* instr) {
   for (int i = Instruction::FIRST_GAP_POSITION;
        i <= Instruction::LAST_GAP_POSITION; i++) {
@@ -27,7 +28,8 @@ void VerifyEmptyGaps(const Instruction* instr) {
   }
 }
 
-void VerifyAllocatedGaps(const Instruction* instr, const char* caller_info) {
+
+void VerifyAllocatedGaps(const Instruction* instr) {
   for (int i = Instruction::FIRST_GAP_POSITION;
        i <= Instruction::LAST_GAP_POSITION; i++) {
     Instruction::GapPosition inner_pos =
@@ -36,10 +38,8 @@ void VerifyAllocatedGaps(const Instruction* instr, const char* caller_info) {
     if (moves == nullptr) continue;
     for (const MoveOperands* move : *moves) {
       if (move->IsRedundant()) continue;
-      CHECK_WITH_MSG(
-          move->source().IsAllocated() || move->source().IsConstant(),
-          caller_info);
-      CHECK_WITH_MSG(move->destination().IsAllocated(), caller_info);
+      CHECK(move->source().IsAllocated() || move->source().IsConstant());
+      CHECK(move->destination().IsAllocated());
     }
   }
 }
@@ -114,14 +114,13 @@ void RegisterAllocatorVerifier::VerifyOutput(
            constraint.virtual_register_);
 }
 
-void RegisterAllocatorVerifier::VerifyAssignment(const char* caller_info) {
-  caller_info_ = caller_info;
+void RegisterAllocatorVerifier::VerifyAssignment() {
   CHECK(sequence()->instructions().size() == constraints()->size());
   auto instr_it = sequence()->begin();
   for (const auto& instr_constraint : *constraints()) {
     const Instruction* instr = instr_constraint.instruction_;
     // All gaps should be totally allocated at this point.
-    VerifyAllocatedGaps(instr, caller_info_);
+    VerifyAllocatedGaps(instr);
     const size_t operand_count = instr_constraint.operand_constaints_size_;
     const OperandConstraint* op_constraints =
         instr_constraint.operand_constraints_;
@@ -212,12 +211,12 @@ void RegisterAllocatorVerifier::CheckConstraint(
     const InstructionOperand* op, const OperandConstraint* constraint) {
   switch (constraint->type_) {
     case kConstant:
-      CHECK_WITH_MSG(op->IsConstant(), caller_info_);
+      CHECK(op->IsConstant());
       CHECK_EQ(ConstantOperand::cast(op)->virtual_register(),
                constraint->value_);
       return;
     case kImmediate: {
-      CHECK_WITH_MSG(op->IsImmediate(), caller_info_);
+      CHECK(op->IsImmediate());
       const ImmediateOperand* imm = ImmediateOperand::cast(op);
       int value = imm->type() == ImmediateOperand::INLINE
                       ? imm->inline_value()
@@ -226,40 +225,40 @@ void RegisterAllocatorVerifier::CheckConstraint(
       return;
     }
     case kRegister:
-      CHECK_WITH_MSG(op->IsRegister(), caller_info_);
+      CHECK(op->IsRegister());
       return;
     case kFPRegister:
-      CHECK_WITH_MSG(op->IsFPRegister(), caller_info_);
+      CHECK(op->IsFPRegister());
       return;
     case kExplicit:
-      CHECK_WITH_MSG(op->IsExplicit(), caller_info_);
+      CHECK(op->IsExplicit());
       return;
     case kFixedRegister:
     case kRegisterAndSlot:
-      CHECK_WITH_MSG(op->IsRegister(), caller_info_);
+      CHECK(op->IsRegister());
       CHECK_EQ(LocationOperand::cast(op)->register_code(), constraint->value_);
       return;
     case kFixedFPRegister:
-      CHECK_WITH_MSG(op->IsFPRegister(), caller_info_);
+      CHECK(op->IsFPRegister());
       CHECK_EQ(LocationOperand::cast(op)->register_code(), constraint->value_);
       return;
     case kFixedSlot:
-      CHECK_WITH_MSG(op->IsStackSlot() || op->IsFPStackSlot(), caller_info_);
+      CHECK(op->IsStackSlot() || op->IsFPStackSlot());
       CHECK_EQ(LocationOperand::cast(op)->index(), constraint->value_);
       return;
     case kSlot:
-      CHECK_WITH_MSG(op->IsStackSlot() || op->IsFPStackSlot(), caller_info_);
+      CHECK(op->IsStackSlot() || op->IsFPStackSlot());
       CHECK_EQ(ElementSizeLog2Of(LocationOperand::cast(op)->representation()),
                constraint->value_);
       return;
     case kNone:
-      CHECK_WITH_MSG(op->IsRegister() || op->IsStackSlot(), caller_info_);
+      CHECK(op->IsRegister() || op->IsStackSlot());
       return;
     case kNoneFP:
-      CHECK_WITH_MSG(op->IsFPRegister() || op->IsFPStackSlot(), caller_info_);
+      CHECK(op->IsFPRegister() || op->IsFPStackSlot());
       return;
     case kSameAsFirst:
-      CHECK_WITH_MSG(false, caller_info_);
+      CHECK(false);
       return;
   }
 }

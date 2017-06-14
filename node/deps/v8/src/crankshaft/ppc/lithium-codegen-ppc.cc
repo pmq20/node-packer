@@ -187,7 +187,8 @@ void LCodeGen::DoPrologue(LPrologue* instr) {
       __ CallRuntime(Runtime::kNewScriptContext);
       deopt_mode = Safepoint::kLazyDeopt;
     } else {
-      if (slots <= ConstructorBuiltins::MaximumFunctionContextSlots()) {
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
         Callable callable = CodeFactory::FastNewFunctionContext(
             isolate(), info()->scope()->scope_type());
         __ mov(FastNewFunctionContextDescriptor::SlotsRegister(),
@@ -428,6 +429,7 @@ Register LCodeGen::EmitLoadRegister(LOperand* op, Register scratch) {
     return scratch;
   }
   UNREACHABLE();
+  return scratch;
 }
 
 
@@ -519,6 +521,7 @@ Operand LCodeGen::ToOperand(LOperand* op) {
   }
   // Stack slots not implemented, use ToMemOperand instead.
   UNREACHABLE();
+  return Operand::Zero();
 }
 
 
@@ -2437,6 +2440,7 @@ static Condition ComputeCompareCondition(Token::Value op) {
       return ge;
     default:
       UNREACHABLE();
+      return kNoCondition;
   }
 }
 
@@ -2469,6 +2473,7 @@ static Condition BranchCondition(HHasInstanceTypeAndBranch* instr) {
   if (to == LAST_TYPE) return ge;
   if (from == FIRST_TYPE) return le;
   UNREACHABLE();
+  return eq;
 }
 
 
@@ -2530,6 +2535,7 @@ void LCodeGen::EmitClassOfTest(Label* is_true, Label* is_false,
   // End with the answer in flags.
 }
 
+
 void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   Register input = ToRegister(instr->value());
   Register temp = scratch0();
@@ -2541,6 +2547,7 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
 
   EmitBranch(instr, eq);
 }
+
 
 void LCodeGen::DoCmpMapAndBranch(LCmpMapAndBranch* instr) {
   Register reg = ToRegister(instr->value());
@@ -3185,9 +3192,8 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
              FieldMemOperand(function, JSFunction::kSharedFunctionInfoOffset));
     __ lwz(scratch,
            FieldMemOperand(scratch, SharedFunctionInfo::kCompilerHintsOffset));
-    __ andi(r0, scratch,
-            Operand(SharedFunctionInfo::IsStrictBit::kMask |
-                    SharedFunctionInfo::IsNativeBit::kMask));
+    __ andi(r0, scratch, Operand((1 << SharedFunctionInfo::kStrictModeBit) |
+                                 (1 << SharedFunctionInfo::kNativeBit)));
     __ bne(&result_in_receiver, cr0);
   }
 
@@ -3733,7 +3739,7 @@ void LCodeGen::DoMathLog(LMathLog* instr) {
 void LCodeGen::DoMathClz32(LMathClz32* instr) {
   Register input = ToRegister(instr->value());
   Register result = ToRegister(instr->result());
-  __ cntlzw(result, input);
+  __ cntlzw_(result, input);
 }
 
 void LCodeGen::PrepareForTailCall(const ParameterCount& actual,
@@ -5352,7 +5358,7 @@ void LCodeGen::DoTypeof(LTypeof* instr) {
   __ mov(r3, Operand(isolate()->factory()->number_string()));
   __ b(&end);
   __ bind(&do_call);
-  Callable callable = Builtins::CallableFor(isolate(), Builtins::kTypeof);
+  Callable callable = CodeFactory::Typeof(isolate());
   CallCode(callable.code(), RelocInfo::CODE_TARGET, instr);
   __ bind(&end);
 }
@@ -5590,8 +5596,7 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
 
   __ bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
-  __ LoadP(result,
-           FieldMemOperand(result, DescriptorArray::kEnumCacheBridgeOffset));
+  __ LoadP(result, FieldMemOperand(result, DescriptorArray::kEnumCacheOffset));
   __ LoadP(result, FieldMemOperand(result, FixedArray::SizeFor(instr->idx())));
   __ cmpi(result, Operand::Zero());
   DeoptimizeIf(eq, instr, DeoptimizeReason::kNoCache);

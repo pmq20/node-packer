@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "src/assembler-inl.h"
 #include "src/bailout-reason.h"
 #include "src/code-factory.h"
 #include "src/code-stub-assembler.h"
@@ -230,7 +229,7 @@ Handle<Code> HydrogenCodeStub::GenerateLightweightMissCode(
 
   // Create the code object.
   CodeDesc desc;
-  masm.GetCode(isolate(), &desc);
+  masm.GetCode(&desc);
 
   // Copy the generated code into a heap object.
   Handle<Code> new_object = factory->NewCode(

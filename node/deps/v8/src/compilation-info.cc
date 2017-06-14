@@ -54,9 +54,9 @@ bool CompilationInfo::has_shared_info() const {
 }
 
 CompilationInfo::CompilationInfo(Zone* zone, ParseInfo* parse_info,
-                                 Isolate* isolate, Handle<JSFunction> closure)
+                                 Handle<JSFunction> closure)
     : CompilationInfo(parse_info, {}, Code::ComputeFlags(Code::FUNCTION), BASE,
-                      isolate, zone) {
+                      parse_info->isolate(), zone) {
   closure_ = closure;
 
   // Compiling for the snapshot typically results in different code than
@@ -75,11 +75,6 @@ CompilationInfo::CompilationInfo(Zone* zone, ParseInfo* parse_info,
   // more memory consumption.
   if (isolate_->NeedsSourcePositionsForProfiling()) {
     MarkAsSourcePositionsEnabled();
-  }
-
-  if (FLAG_block_coverage && isolate->is_block_count_code_coverage() &&
-      parse_info->script()->IsUserJavaScript()) {
-    MarkAsBlockCoverageEnabled();
   }
 }
 
@@ -129,7 +124,8 @@ bool CompilationInfo::is_this_defined() const { return !IsStub(); }
 // profiler, so they trigger their own optimization when they're called
 // for the SharedFunctionInfo::kCallsUntilPrimitiveOptimization-th time.
 bool CompilationInfo::ShouldSelfOptimize() {
-  return FLAG_opt && !(literal()->flags() & AstProperties::kDontSelfOptimize) &&
+  return FLAG_opt && FLAG_crankshaft &&
+         !(literal()->flags() & AstProperties::kDontSelfOptimize) &&
          !literal()->dont_optimize() &&
          literal()->scope()->AllowsLazyCompilation() &&
          !shared_info()->optimization_disabled();
@@ -244,7 +240,8 @@ void CompilationInfo::SetOptimizing() {
 int CompilationInfo::AddInlinedFunction(
     Handle<SharedFunctionInfo> inlined_function, SourcePosition pos) {
   int id = static_cast<int>(inlined_functions_.size());
-  inlined_functions_.push_back(InlinedFunctionHolder(inlined_function, pos));
+  inlined_functions_.push_back(InlinedFunctionHolder(
+      inlined_function, handle(inlined_function->code()), pos));
   return id;
 }
 

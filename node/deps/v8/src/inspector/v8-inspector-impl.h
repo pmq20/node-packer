@@ -31,7 +31,7 @@
 #ifndef V8_INSPECTOR_V8INSPECTORIMPL_H_
 #define V8_INSPECTOR_V8INSPECTORIMPL_H_
 
-#include <functional>
+#include <vector>
 
 #include "src/base/macros.h"
 #include "src/inspector/protocol/Protocol.h"
@@ -41,7 +41,6 @@
 namespace v8_inspector {
 
 class InspectedContext;
-class V8Console;
 class V8ConsoleMessageStorage;
 class V8Debugger;
 class V8DebuggerAgentImpl;
@@ -61,8 +60,19 @@ class V8InspectorImpl : public V8Inspector {
   int contextGroupId(v8::Local<v8::Context>);
   int contextGroupId(int contextId);
 
+  v8::MaybeLocal<v8::Value> runCompiledScript(v8::Local<v8::Context>,
+                                              v8::Local<v8::Script>);
+  v8::MaybeLocal<v8::Value> callFunction(v8::Local<v8::Function>,
+                                         v8::Local<v8::Context>,
+                                         v8::Local<v8::Value> receiver,
+                                         int argc, v8::Local<v8::Value> info[]);
   v8::MaybeLocal<v8::Value> compileAndRunInternalScript(v8::Local<v8::Context>,
                                                         v8::Local<v8::String>);
+  v8::MaybeLocal<v8::Value> callInternalFunction(v8::Local<v8::Function>,
+                                                 v8::Local<v8::Context>,
+                                                 v8::Local<v8::Value> receiver,
+                                                 int argc,
+                                                 v8::Local<v8::Value> info[]);
   v8::MaybeLocal<v8::Script> compileScript(v8::Local<v8::Context>,
                                            const String16& code,
                                            const String16& fileName);
@@ -102,17 +112,23 @@ class V8InspectorImpl : public V8Inspector {
   void unmuteExceptions(int contextGroupId);
   V8ConsoleMessageStorage* ensureConsoleMessageStorage(int contextGroupId);
   bool hasConsoleMessageStorage(int contextGroupId);
+  using ContextByIdMap =
+      protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
   void discardInspectedContext(int contextGroupId, int contextId);
+  const ContextByIdMap* contextGroup(int contextGroupId);
   void disconnect(V8InspectorSessionImpl*);
-  V8InspectorSessionImpl* sessionById(int contextGroupId, int sessionId);
+  V8InspectorSessionImpl* sessionForContextGroup(int contextGroupId);
   InspectedContext* getContext(int groupId, int contextId) const;
-  V8Console* console();
-  void forEachContext(int contextGroupId,
-                      std::function<void(InspectedContext*)> callback);
-  void forEachSession(int contextGroupId,
-                      std::function<void(V8InspectorSessionImpl*)> callback);
+  V8DebuggerAgentImpl* enabledDebuggerAgentForGroup(int contextGroupId);
+  V8RuntimeAgentImpl* enabledRuntimeAgentForGroup(int contextGroupId);
+  V8ProfilerAgentImpl* enabledProfilerAgentForGroup(int contextGroupId);
 
  private:
+  v8::MaybeLocal<v8::Value> callFunction(
+      v8::Local<v8::Function>, v8::Local<v8::Context>,
+      v8::Local<v8::Value> receiver, int argc, v8::Local<v8::Value> info[],
+      v8::MicrotasksScope::Type runMicrotasks);
+
   v8::Isolate* m_isolate;
   V8InspectorClient* m_client;
   std::unique_ptr<V8Debugger> m_debugger;
@@ -120,28 +136,22 @@ class V8InspectorImpl : public V8Inspector {
   int m_capturingStackTracesCount;
   unsigned m_lastExceptionId;
   int m_lastContextId;
-  int m_lastSessionId = 0;
 
   using MuteExceptionsMap = protocol::HashMap<int, int>;
   MuteExceptionsMap m_muteExceptionsMap;
 
-  using ContextByIdMap =
-      protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
   using ContextsByGroupMap =
       protocol::HashMap<int, std::unique_ptr<ContextByIdMap>>;
   ContextsByGroupMap m_contexts;
 
-  // contextGroupId -> sessionId -> session
-  protocol::HashMap<int, protocol::HashMap<int, V8InspectorSessionImpl*>>
-      m_sessions;
+  using SessionMap = protocol::HashMap<int, V8InspectorSessionImpl*>;
+  SessionMap m_sessions;
 
   using ConsoleStorageMap =
       protocol::HashMap<int, std::unique_ptr<V8ConsoleMessageStorage>>;
   ConsoleStorageMap m_consoleStorageMap;
 
   protocol::HashMap<int, int> m_contextIdToGroupIdMap;
-
-  std::unique_ptr<V8Console> m_console;
 
   DISALLOW_COPY_AND_ASSIGN(V8InspectorImpl);
 };

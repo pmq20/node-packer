@@ -19,22 +19,14 @@
 #undef MAP_TYPE
 
 #include "src/base/macros.h"
-#include "src/base/platform/platform-posix.h"
 #include "src/base/platform/platform.h"
 #include "src/base/win32-headers.h"
 
 namespace v8 {
 namespace base {
 
-class CygwinTimezoneCache : public PosixTimezoneCache {
-  const char* LocalTimezone(double time) override;
 
-  double LocalTimeOffset() override;
-
-  ~CygwinTimezoneCache() override {}
-};
-
-const char* CygwinTimezoneCache::LocalTimezone(double time) {
+const char* OS::LocalTimezone(double time, TimezoneCache* cache) {
   if (std::isnan(time)) return "";
   time_t tv = static_cast<time_t>(std::floor(time/msPerSecond));
   struct tm tm;
@@ -43,7 +35,8 @@ const char* CygwinTimezoneCache::LocalTimezone(double time) {
   return tzname[0];  // The location of the timezone string on Cygwin.
 }
 
-double CygwinTimezoneCache::LocalTimeOffset() {
+
+double OS::LocalTimeOffset(TimezoneCache* cache) {
   // On Cygwin, struct tm does not contain a tm_gmtoff field.
   time_t utc = time(NULL);
   DCHECK(utc != -1);
@@ -55,10 +48,12 @@ double CygwinTimezoneCache::LocalTimeOffset() {
                              (loc->tm_isdst > 0 ? 3600 * msPerSecond : 0));
 }
 
-void* OS::Allocate(const size_t requested, size_t* allocated,
-                   OS::MemoryPermission access) {
+
+void* OS::Allocate(const size_t requested,
+                   size_t* allocated,
+                   bool is_executable) {
   const size_t msize = RoundUp(requested, sysconf(_SC_PAGESIZE));
-  int prot = GetProtectionFromMemoryPermission(access);
+  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
   void* mbase = mmap(NULL, msize, prot, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (mbase == MAP_FAILED) return NULL;
   *allocated = msize;

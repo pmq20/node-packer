@@ -67,6 +67,7 @@ const char* Bytecodes::ToString(Bytecode bytecode) {
 #undef CASE
   }
   UNREACHABLE();
+  return "";
 }
 
 // static
@@ -100,6 +101,7 @@ Bytecode Bytecodes::GetDebugBreak(Bytecode bytecode) {
   DEBUG_BREAK_PLAIN_BYTECODE_LIST(RETURN_IF_DEBUG_BREAK_SIZE_MATCHES)
 #undef RETURN_IF_DEBUG_BREAK_SIZE_MATCHES
   UNREACHABLE();
+  return Bytecode::kIllegal;
 }
 
 // static
@@ -131,6 +133,7 @@ Bytecode Bytecodes::GetJumpWithoutToBoolean(Bytecode bytecode) {
       break;
   }
   UNREACHABLE();
+  return Bytecode::kIllegal;
 }
 
 // static
@@ -235,15 +238,8 @@ bool Bytecodes::IsStarLookahead(Bytecode bytecode, OperandScale operand_scale) {
       case Bytecode::kInc:
       case Bytecode::kDec:
       case Bytecode::kTypeOf:
-      case Bytecode::kCallAnyReceiver:
+      case Bytecode::kCall:
       case Bytecode::kCallProperty:
-      case Bytecode::kCallProperty0:
-      case Bytecode::kCallProperty1:
-      case Bytecode::kCallProperty2:
-      case Bytecode::kCallUndefinedReceiver:
-      case Bytecode::kCallUndefinedReceiver0:
-      case Bytecode::kCallUndefinedReceiver1:
-      case Bytecode::kCallUndefinedReceiver2:
       case Bytecode::kConstruct:
       case Bytecode::kConstructWithSpread:
         return true;
@@ -272,6 +268,7 @@ bool Bytecodes::IsUnsignedOperandType(OperandType operand_type) {
 #undef CASE
   }
   UNREACHABLE();
+  return false;
 }
 
 // static

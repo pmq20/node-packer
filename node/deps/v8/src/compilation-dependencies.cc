@@ -13,7 +13,7 @@
 namespace v8 {
 namespace internal {
 
-DependentCode* CompilationDependencies::Get(Handle<Object> object) const {
+DependentCode* CompilationDependencies::Get(Handle<Object> object) {
   if (object->IsMap()) {
     return Handle<Map>::cast(object)->dependent_code();
   } else if (object->IsPropertyCell()) {
@@ -22,6 +22,7 @@ DependentCode* CompilationDependencies::Get(Handle<Object> object) const {
     return Handle<AllocationSite>::cast(object)->dependent_code();
   }
   UNREACHABLE();
+  return nullptr;
 }
 
 

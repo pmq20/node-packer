@@ -48,7 +48,7 @@ namespace internal {
 
 bool CpuFeatures::SupportsCrankshaft() { return true; }
 
-bool CpuFeatures::SupportsWasmSimd128() { return IsSupported(SSE4_1); }
+bool CpuFeatures::SupportsSimd128() { return false; }
 
 static const byte kCallOpcode = 0xE8;
 static const int kNoCodeAgeSequenceLength = 5;
@@ -93,6 +93,7 @@ Address RelocInfo::target_address_address() {
 
 Address RelocInfo::constant_pool_entry_address() {
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -100,28 +101,33 @@ int RelocInfo::target_address_size() {
   return Assembler::kSpecialTargetSize;
 }
 
-HeapObject* RelocInfo::target_object() {
+
+Object* RelocInfo::target_object() {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return HeapObject::cast(Memory::Object_at(pc_));
+  return Memory::Object_at(pc_);
 }
 
-Handle<HeapObject> RelocInfo::target_object_handle(Assembler* origin) {
+
+Handle<Object> RelocInfo::target_object_handle(Assembler* origin) {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return Handle<HeapObject>::cast(Memory::Object_Handle_at(pc_));
+  return Memory::Object_Handle_at(pc_);
 }
 
-void RelocInfo::set_target_object(HeapObject* target,
+
+void RelocInfo::set_target_object(Object* target,
                                   WriteBarrierMode write_barrier_mode,
                                   ICacheFlushMode icache_flush_mode) {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
   Memory::Object_at(pc_) = target;
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
-    Assembler::FlushICache(target->GetIsolate(), pc_, sizeof(Address));
+    Assembler::FlushICache(isolate_, pc_, sizeof(Address));
   }
-  if (write_barrier_mode == UPDATE_WRITE_BARRIER && host() != NULL) {
+  if (write_barrier_mode == UPDATE_WRITE_BARRIER &&
+      host() != NULL &&
+      target->IsHeapObject()) {
     host()->GetHeap()->RecordWriteIntoCode(host(), this, target);
-    host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(host(), this,
-                                                                  target);
+    host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(
+        host(), this, HeapObject::cast(target));
   }
 }
 
@@ -149,12 +155,13 @@ Address RelocInfo::target_runtime_entry(Assembler* origin) {
   return reinterpret_cast<Address>(*reinterpret_cast<int32_t*>(pc_));
 }
 
-void RelocInfo::set_target_runtime_entry(Isolate* isolate, Address target,
+
+void RelocInfo::set_target_runtime_entry(Address target,
                                          WriteBarrierMode write_barrier_mode,
                                          ICacheFlushMode icache_flush_mode) {
   DCHECK(IsRuntimeEntry(rmode_));
   if (target_address() != target) {
-    set_target_address(isolate, target, write_barrier_mode, icache_flush_mode);
+    set_target_address(target, write_barrier_mode, icache_flush_mode);
   }
 }
 
@@ -180,7 +187,7 @@ void RelocInfo::set_target_cell(Cell* cell,
   Address address = cell->address() + Cell::kValueOffset;
   Memory::Address_at(pc_) = address;
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
-    Assembler::FlushICache(cell->GetIsolate(), pc_, sizeof(Address));
+    Assembler::FlushICache(isolate_, pc_, sizeof(Address));
   }
   if (write_barrier_mode == UPDATE_WRITE_BARRIER && host() != NULL) {
     host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(host(), this,
@@ -188,10 +195,11 @@ void RelocInfo::set_target_cell(Cell* cell,
   }
 }
 
-Handle<Code> RelocInfo::code_age_stub_handle(Assembler* origin) {
+
+Handle<Object> RelocInfo::code_age_stub_handle(Assembler* origin) {
   DCHECK(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
   DCHECK(*pc_ == kCallOpcode);
-  return Handle<Code>::cast(Memory::Object_Handle_at(pc_ + 1));
+  return Memory::Object_Handle_at(pc_ + 1);
 }
 
 
@@ -207,9 +215,8 @@ void RelocInfo::set_code_age_stub(Code* stub,
                                   ICacheFlushMode icache_flush_mode) {
   DCHECK(*pc_ == kCallOpcode);
   DCHECK(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
-  Assembler::set_target_address_at(stub->GetIsolate(), pc_ + 1, host_,
-                                   stub->instruction_start(),
-                                   icache_flush_mode);
+  Assembler::set_target_address_at(
+      isolate_, pc_ + 1, host_, stub->instruction_start(), icache_flush_mode);
 }
 
 
@@ -219,24 +226,26 @@ Address RelocInfo::debug_call_address() {
   return Assembler::target_address_at(location, host_);
 }
 
-void RelocInfo::set_debug_call_address(Isolate* isolate, Address target) {
+
+void RelocInfo::set_debug_call_address(Address target) {
   DCHECK(IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence());
   Address location = pc_ + Assembler::kPatchDebugBreakSlotAddressOffset;
-  Assembler::set_target_address_at(isolate, location, host_, target);
+  Assembler::set_target_address_at(isolate_, location, host_, target);
   if (host() != NULL) {
-    Code* target_code = Code::GetCodeFromTargetAddress(target);
-    host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(host(), this,
-                                                                  target_code);
+    Object* target_code = Code::GetCodeFromTargetAddress(target);
+    host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(
+        host(), this, HeapObject::cast(target_code));
   }
 }
 
-void RelocInfo::WipeOut(Isolate* isolate) {
+
+void RelocInfo::WipeOut() {
   if (IsEmbeddedObject(rmode_) || IsExternalReference(rmode_) ||
       IsInternalReference(rmode_)) {
     Memory::Address_at(pc_) = NULL;
   } else if (IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)) {
     // Effectively write zero into the relocation.
-    Assembler::set_target_address_at(isolate, pc_, host_,
+    Assembler::set_target_address_at(isolate_, pc_, host_,
                                      pc_ + sizeof(int32_t));
   } else {
     UNREACHABLE();
@@ -247,23 +256,23 @@ template <typename ObjectVisitor>
 void RelocInfo::Visit(Isolate* isolate, ObjectVisitor* visitor) {
   RelocInfo::Mode mode = rmode();
   if (mode == RelocInfo::EMBEDDED_OBJECT) {
-    visitor->VisitEmbeddedPointer(host(), this);
+    visitor->VisitEmbeddedPointer(this);
     Assembler::FlushICache(isolate, pc_, sizeof(Address));
   } else if (RelocInfo::IsCodeTarget(mode)) {
-    visitor->VisitCodeTarget(host(), this);
+    visitor->VisitCodeTarget(this);
   } else if (mode == RelocInfo::CELL) {
-    visitor->VisitCellPointer(host(), this);
+    visitor->VisitCell(this);
   } else if (mode == RelocInfo::EXTERNAL_REFERENCE) {
-    visitor->VisitExternalReference(host(), this);
+    visitor->VisitExternalReference(this);
   } else if (mode == RelocInfo::INTERNAL_REFERENCE) {
-    visitor->VisitInternalReference(host(), this);
+    visitor->VisitInternalReference(this);
   } else if (RelocInfo::IsCodeAgeSequence(mode)) {
-    visitor->VisitCodeAgeSequence(host(), this);
+    visitor->VisitCodeAgeSequence(this);
   } else if (RelocInfo::IsDebugBreakSlot(mode) &&
              IsPatchedDebugBreakSlotSequence()) {
-    visitor->VisitDebugTarget(host(), this);
+    visitor->VisitDebugTarget(this);
   } else if (IsRuntimeEntry(mode)) {
-    visitor->VisitRuntimeEntry(host(), this);
+    visitor->VisitRuntimeEntry(this);
   }
 }
 
@@ -295,23 +304,23 @@ void RelocInfo::Visit(Heap* heap) {
 
 
 Immediate::Immediate(int x)  {
-  value_.immediate = x;
+  x_ = x;
   rmode_ = RelocInfo::NONE32;
 }
 
 Immediate::Immediate(Address x, RelocInfo::Mode rmode) {
-  value_.immediate = reinterpret_cast<int32_t>(x);
+  x_ = reinterpret_cast<int32_t>(x);
   rmode_ = rmode;
 }
 
 Immediate::Immediate(const ExternalReference& ext) {
-  value_.immediate = reinterpret_cast<int32_t>(ext.address());
+  x_ = reinterpret_cast<int32_t>(ext.address());
   rmode_ = RelocInfo::EXTERNAL_REFERENCE;
 }
 
 
 Immediate::Immediate(Label* internal_offset) {
-  value_.immediate = reinterpret_cast<int32_t>(internal_offset);
+  x_ = reinterpret_cast<int32_t>(internal_offset);
   rmode_ = RelocInfo::INTERNAL_REFERENCE;
 }
 
@@ -321,24 +330,24 @@ Immediate::Immediate(Handle<Object> handle) {
   // Verify all Objects referred by code are NOT in new space.
   Object* obj = *handle;
   if (obj->IsHeapObject()) {
-    value_.immediate = reinterpret_cast<intptr_t>(handle.location());
+    x_ = reinterpret_cast<intptr_t>(handle.location());
     rmode_ = RelocInfo::EMBEDDED_OBJECT;
   } else {
     // no relocation needed
-    value_.immediate = reinterpret_cast<intptr_t>(obj);
+    x_ =  reinterpret_cast<intptr_t>(obj);
     rmode_ = RelocInfo::NONE32;
   }
 }
 
 
 Immediate::Immediate(Smi* value) {
-  value_.immediate = reinterpret_cast<intptr_t>(value);
+  x_ = reinterpret_cast<intptr_t>(value);
   rmode_ = RelocInfo::NONE32;
 }
 
 
 Immediate::Immediate(Address addr) {
-  value_.immediate = reinterpret_cast<int32_t>(addr);
+  x_ = reinterpret_cast<int32_t>(addr);
   rmode_ = RelocInfo::NONE32;
 }
 
@@ -390,17 +399,12 @@ void Assembler::emit(Handle<Code> code,
 
 void Assembler::emit(const Immediate& x) {
   if (x.rmode_ == RelocInfo::INTERNAL_REFERENCE) {
-    Label* label = reinterpret_cast<Label*>(x.immediate());
+    Label* label = reinterpret_cast<Label*>(x.x_);
     emit_code_relative_offset(label);
     return;
   }
   if (!RelocInfo::IsNone(x.rmode_)) RecordRelocInfo(x.rmode_);
-  if (x.is_heap_number()) {
-    RequestHeapNumber(x.heap_number());
-    emit(0);
-  } else {
-    emit(x.immediate());
-  }
+  emit(x.x_);
 }
 
 
@@ -416,13 +420,13 @@ void Assembler::emit_code_relative_offset(Label* label) {
 
 void Assembler::emit_b(Immediate x) {
   DCHECK(x.is_int8() || x.is_uint8());
-  uint8_t value = static_cast<uint8_t>(x.immediate());
+  uint8_t value = static_cast<uint8_t>(x.x_);
   *pc_++ = value;
 }
 
 void Assembler::emit_w(const Immediate& x) {
   DCHECK(RelocInfo::IsNone(x.rmode_));
-  uint16_t value = static_cast<uint16_t>(x.immediate());
+  uint16_t value = static_cast<uint16_t>(x.x_);
   reinterpret_cast<uint16_t*>(pc_)[0] = value;
   pc_ += sizeof(uint16_t);
 }
@@ -436,7 +440,6 @@ Address Assembler::target_address_at(Address pc, Address constant_pool) {
 void Assembler::set_target_address_at(Isolate* isolate, Address pc,
                                       Address constant_pool, Address target,
                                       ICacheFlushMode icache_flush_mode) {
-  DCHECK_IMPLIES(isolate == nullptr, icache_flush_mode == SKIP_ICACHE_FLUSH);
   int32_t* p = reinterpret_cast<int32_t*>(pc);
   *p = target - (pc + sizeof(int32_t));
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
@@ -549,7 +552,7 @@ Operand::Operand(int32_t disp, RelocInfo::Mode rmode) {
 Operand::Operand(Immediate imm) {
   // [disp/r]
   set_modrm(0, ebp);
-  set_dispr(imm.immediate(), imm.rmode_);
+  set_dispr(imm.x_, imm.rmode_);
 }
 }  // namespace internal
 }  // namespace v8

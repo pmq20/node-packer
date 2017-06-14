@@ -20,9 +20,8 @@ template <typename T>
 class Vector {
  public:
   Vector() : start_(NULL), length_(0) {}
-
-  Vector(T* data, size_t length) : start_(data), length_(length) {
-    DCHECK(length == 0 || data != NULL);
+  Vector(T* data, int length) : start_(data), length_(length) {
+    DCHECK(length == 0 || (length > 0 && data != NULL));
   }
 
   template <int N>
@@ -34,20 +33,15 @@ class Vector {
 
   // Returns a vector using the same backing storage as this one,
   // spanning from and including 'from', to but not including 'to'.
-  Vector<T> SubVector(size_t from, size_t to) const {
-    DCHECK_LE(from, to);
-    DCHECK_LE(to, length_);
+  Vector<T> SubVector(int from, int to) const {
+    DCHECK(0 <= from);
+    SLOW_DCHECK(from < to);
+    SLOW_DCHECK(static_cast<unsigned>(to) <= static_cast<unsigned>(length_));
     return Vector<T>(start() + from, to - from);
   }
 
   // Returns the length of the vector.
-  int length() const {
-    DCHECK(length_ <= static_cast<size_t>(std::numeric_limits<int>::max()));
-    return static_cast<int>(length_);
-  }
-
-  // Returns the length of the vector as a size_t.
-  size_t size() const { return length_; }
+  int length() const { return length_; }
 
   // Returns whether or not the vector is empty.
   bool is_empty() const { return length_ == 0; }
@@ -56,12 +50,13 @@ class Vector {
   T* start() const { return start_; }
 
   // Access individual vector elements - checks bounds in debug mode.
-  T& operator[](size_t index) const {
+  T& operator[](int index) const {
+    DCHECK_LE(0, index);
     DCHECK_LT(index, length_);
     return start_[index];
   }
 
-  const T& at(size_t index) const { return operator[](index); }
+  const T& at(int index) const { return operator[](index); }
 
   T& first() { return start_[0]; }
 
@@ -74,7 +69,7 @@ class Vector {
   // Returns a clone of this vector with a new backing store.
   Vector<T> Clone() const {
     T* result = NewArray<T>(length_);
-    for (size_t i = 0; i < length_; i++) result[i] = start_[i];
+    for (int i = 0; i < length_; i++) result[i] = start_[i];
     return Vector<T>(result, length_);
   }
 
@@ -106,7 +101,7 @@ class Vector {
 
   void StableSort() { std::stable_sort(start(), start() + length()); }
 
-  void Truncate(size_t length) {
+  void Truncate(int length) {
     DCHECK(length <= length_);
     length_ = length;
   }
@@ -119,8 +114,8 @@ class Vector {
     length_ = 0;
   }
 
-  inline Vector<T> operator+(size_t offset) {
-    DCHECK_LT(offset, length_);
+  inline Vector<T> operator+(int offset) {
+    DCHECK(offset < length_);
     return Vector<T>(start_ + offset, length_ - offset);
   }
 
@@ -139,7 +134,7 @@ class Vector {
   bool operator==(const Vector<T>& other) const {
     if (length_ != other.length_) return false;
     if (start_ == other.start_) return true;
-    for (size_t i = 0; i < length_; ++i) {
+    for (int i = 0; i < length_; ++i) {
       if (start_[i] != other.start_[i]) {
         return false;
       }
@@ -152,7 +147,7 @@ class Vector {
 
  private:
   T* start_;
-  size_t length_;
+  int length_;
 
   template <typename CookedComparer>
   class RawComparer {

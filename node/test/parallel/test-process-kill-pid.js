@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-const common = require('../common');
+require('../common');
 const assert = require('assert');
 
 // test variants of pid
@@ -38,35 +38,20 @@ const assert = require('assert');
 //
 // process.pid, String(process.pid): ourself
 
-const invalidPidArgument = common.expectsError({
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "pid" argument must be of type Number'
-});
-
 assert.throws(function() { process.kill('SIGTERM'); },
-              invalidPidArgument);
-assert.throws(function() { process.kill(null); },
-              invalidPidArgument);
+              /^TypeError: invalid pid$/);
+assert.throws(function() { process.kill(null); }, /^TypeError: invalid pid$/);
 assert.throws(function() { process.kill(undefined); },
-              invalidPidArgument);
+              /^TypeError: invalid pid$/);
 assert.throws(function() { process.kill(+'not a number'); },
-              invalidPidArgument);
-assert.throws(function() { process.kill(1 / 0); },
-              invalidPidArgument);
-assert.throws(function() { process.kill(-1 / 0); },
-              invalidPidArgument);
+              /^TypeError: invalid pid$/);
+assert.throws(function() { process.kill(1 / 0); }, /^TypeError: invalid pid$/);
+assert.throws(function() { process.kill(-1 / 0); }, /^TypeError: invalid pid$/);
 
 // Test that kill throws an error for invalid signal
-const unknownSignal = common.expectsError({
-  code: 'ERR_UNKNOWN_SIGNAL',
-  type: Error,
-  message: 'Unknown signal: test'
-});
-
 
 assert.throws(function() { process.kill(1, 'test'); },
-              unknownSignal);
+              /^Error: Unknown signal: test$/);
 
 // Test kill argument processing in valid cases.
 //

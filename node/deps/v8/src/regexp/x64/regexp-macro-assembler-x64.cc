@@ -85,10 +85,9 @@ namespace internal {
  *              Address start,
  *              Address end,
  *              int* capture_output_array,
- *              int num_capture_registers,
+ *              bool at_start,
  *              byte* stack_area_base,
- *              bool direct_call = false,
- *              Isolate* isolate);
+ *              bool direct_call)
  */
 
 #define __ ACCESS_MASM((&masm_))
@@ -338,11 +337,11 @@ void RegExpMacroAssemblerX64::CheckNotBackReferenceIgnoreCase(
     // Set byte_length.
     __ movp(arg_reg_3, rbx);
     // Isolate.
-#ifdef V8_INTL_SUPPORT
+#ifdef V8_I18N_SUPPORT
     if (unicode) {
       __ movp(arg_reg_4, Immediate(0));
     } else  // NOLINT
-#endif      // V8_INTL_SUPPORT
+#endif      // V8_I18N_SUPPORT
     {
       __ LoadAddress(arg_reg_4, ExternalReference::isolate_address(isolate()));
     }
@@ -1005,8 +1004,8 @@ Handle<HeapObject> RegExpMacroAssemblerX64::GetCode(Handle<String> source) {
   FixupCodeRelativePositions();
 
   CodeDesc code_desc;
+  masm_.GetCode(&code_desc);
   Isolate* isolate = this->isolate();
-  masm_.GetCode(isolate, &code_desc);
   Handle<Code> code = isolate->factory()->NewCode(
       code_desc, Code::ComputeFlags(Code::REGEXP),
       masm_.CodeObject());

@@ -10,8 +10,6 @@
 #include "src/heap/heap-inl.h"
 #include "src/isolate.h"
 #include "src/macro-assembler.h"
-#include "src/objects/code-cache-inl.h"
-#include "src/objects/compilation-cache-inl.h"
 #include "src/utils.h"
 
 namespace v8 {
@@ -271,12 +269,13 @@ void ObjectStatsCollector::CollectStatistics(HeapObject* obj) {
   if (obj->IsScript()) RecordScriptDetails(Script::cast(obj));
 }
 
-class ObjectStatsCollector::CompilationCacheTableVisitor : public RootVisitor {
+class ObjectStatsCollector::CompilationCacheTableVisitor
+    : public ObjectVisitor {
  public:
   explicit CompilationCacheTableVisitor(ObjectStatsCollector* parent)
       : parent_(parent) {}
 
-  void VisitRootPointers(Root root, Object** start, Object** end) override {
+  void VisitPointers(Object** start, Object** end) override {
     for (Object** current = start; current < end; current++) {
       HeapObject* obj = HeapObject::cast(*current);
       if (obj->IsUndefined(parent_->heap_->isolate())) continue;
@@ -344,8 +343,7 @@ static bool IsCowArray(Heap* heap, FixedArrayBase* array) {
 
 static bool SameLiveness(HeapObject* obj1, HeapObject* obj2) {
   return obj1 == nullptr || obj2 == nullptr ||
-         ObjectMarking::Color(obj1, MarkingState::Internal(obj1)) ==
-             ObjectMarking::Color(obj2, MarkingState::Internal(obj2));
+         ObjectMarking::Color(obj1) == ObjectMarking::Color(obj2);
 }
 
 bool ObjectStatsCollector::RecordFixedArrayHelper(HeapObject* parent,
@@ -546,6 +544,13 @@ void ObjectStatsCollector::RecordSharedFunctionInfoDetails(
   if (!feedback_metadata->is_empty()) {
     RecordFixedArrayHelper(sfi, feedback_metadata, FEEDBACK_METADATA_SUB_TYPE,
                            0);
+  }
+
+  if (!sfi->OptimizedCodeMapIsCleared()) {
+    FixedArray* optimized_code_map = sfi->optimized_code_map();
+    RecordFixedArrayHelper(sfi, optimized_code_map, OPTIMIZED_CODE_MAP_SUB_TYPE,
+                           0);
+    // Optimized code map should be small, so skip accounting.
   }
 }
 

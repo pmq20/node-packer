@@ -369,7 +369,7 @@ function fail(fn) {
 
   assert.throws(() => {
     fn.apply(null, args);
-  }, common.expectsError({code: 'ERR_INVALID_ARG_TYPE', type: TypeError}));
+  }, TypeError);
 }
 
 typeErrorTests.forEach((test) => {

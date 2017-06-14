@@ -524,22 +524,21 @@ class SamplingThread : public base::Thread {
  public:
   static const int kSamplingThreadStackSize = 64 * KB;
 
-  SamplingThread(sampler::Sampler* sampler, int interval_microseconds)
-      : base::Thread(
-            base::Thread::Options("SamplingThread", kSamplingThreadStackSize)),
+  SamplingThread(sampler::Sampler* sampler, int interval)
+      : base::Thread(base::Thread::Options("SamplingThread",
+                                           kSamplingThreadStackSize)),
         sampler_(sampler),
-        interval_microseconds_(interval_microseconds) {}
+        interval_(interval) {}
   void Run() override {
     while (sampler_->IsProfiling()) {
       sampler_->DoSample();
-      base::OS::Sleep(
-          base::TimeDelta::FromMicroseconds(interval_microseconds_));
+      base::OS::Sleep(base::TimeDelta::FromMilliseconds(interval_));
     }
   }
 
  private:
   sampler::Sampler* sampler_;
-  const int interval_microseconds_;
+  const int interval_;
 };
 
 
@@ -559,7 +558,7 @@ class Profiler: public base::Thread {
     if (paused_)
       return;
 
-    if (Succ(head_) == static_cast<int>(base::Relaxed_Load(&tail_))) {
+    if (Succ(head_) == static_cast<int>(base::NoBarrier_Load(&tail_))) {
       overflow_ = true;
     } else {
       buffer_[head_] = *sample;
@@ -578,10 +577,10 @@ class Profiler: public base::Thread {
   // Waits for a signal and removes profiling data.
   bool Remove(v8::TickSample* sample) {
     buffer_semaphore_.Wait();  // Wait for an element.
-    *sample = buffer_[base::Relaxed_Load(&tail_)];
+    *sample = buffer_[base::NoBarrier_Load(&tail_)];
     bool result = overflow_;
-    base::Relaxed_Store(
-        &tail_, static_cast<base::Atomic32>(Succ(base::Relaxed_Load(&tail_))));
+    base::NoBarrier_Store(&tail_, static_cast<base::Atomic32>(
+                                      Succ(base::NoBarrier_Load(&tail_))));
     overflow_ = false;
     return result;
   }
@@ -617,10 +616,10 @@ class Profiler: public base::Thread {
 //
 class Ticker: public sampler::Sampler {
  public:
-  Ticker(Isolate* isolate, int interval_microseconds)
+  Ticker(Isolate* isolate, int interval)
       : sampler::Sampler(reinterpret_cast<v8::Isolate*>(isolate)),
         profiler_(nullptr),
-        sampling_thread_(new SamplingThread(this, interval_microseconds)) {}
+        sampling_thread_(new SamplingThread(this, interval)) {}
 
   ~Ticker() {
     if (IsActive()) Stop();
@@ -667,8 +666,8 @@ Profiler::Profiler(Isolate* isolate)
       buffer_semaphore_(0),
       engaged_(false),
       paused_(false) {
-  base::Relaxed_Store(&tail_, 0);
-  base::Relaxed_Store(&running_, 0);
+  base::NoBarrier_Store(&tail_, 0);
+  base::NoBarrier_Store(&running_, 0);
 }
 
 
@@ -685,7 +684,7 @@ void Profiler::Engage() {
   }
 
   // Start thread processing the profiler buffer.
-  base::Relaxed_Store(&running_, 1);
+  base::NoBarrier_Store(&running_, 1);
   Start();
 
   // Register to get ticks.
@@ -705,7 +704,7 @@ void Profiler::Disengage() {
   // Terminate the worker thread by setting running_ to false,
   // inserting a fake element in the queue and then wait for
   // the thread to terminate.
-  base::Relaxed_Store(&running_, 0);
+  base::NoBarrier_Store(&running_, 0);
   v8::TickSample sample;
   // Reset 'paused_' flag, otherwise semaphore may not be signalled.
   resume();
@@ -719,7 +718,7 @@ void Profiler::Disengage() {
 void Profiler::Run() {
   v8::TickSample sample;
   bool overflow = Remove(&sample);
-  while (base::Relaxed_Load(&running_)) {
+  while (base::NoBarrier_Load(&running_)) {
     LOG(isolate_, TickEvent(&sample, overflow));
     overflow = Remove(&sample);
   }
@@ -761,7 +760,7 @@ void Logger::removeCodeEventListener(CodeEventListener* listener) {
 void Logger::ProfilerBeginEvent() {
   if (!log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  msg.Append("profiler,\"begin\",%d", FLAG_prof_sampling_interval);
+  msg.Append("profiler,\"begin\",%d", kSamplingIntervalMs);
   msg.WriteToLogFile();
 }
 
@@ -843,43 +842,12 @@ void Logger::SharedLibraryEvent(const std::string& library_path,
   msg.WriteToLogFile();
 }
 
-void Logger::CodeDeoptEvent(Code* code, DeoptKind kind, Address pc,
-                            int fp_to_sp_delta) {
-  if (!log_->IsEnabled()) return;
-  Deoptimizer::DeoptInfo info = Deoptimizer::GetDeoptInfo(code, pc);
-  Log::MessageBuilder msg(log_);
-  int since_epoch = timer_.IsStarted()
-                        ? static_cast<int>(timer_.Elapsed().InMicroseconds())
-                        : -1;
-  msg.Append("code-deopt,%d,%d,", since_epoch, code->CodeSize());
-  msg.AppendAddress(code->address());
 
-  // Deoptimization position.
-  std::ostringstream deopt_location;
-  int inlining_id = -1;
-  int script_offset = -1;
-  if (info.position.IsKnown()) {
-    info.position.Print(deopt_location, code);
-    inlining_id = info.position.InliningId();
-    script_offset = info.position.ScriptOffset();
-  } else {
-    deopt_location << "<unknown>";
-  }
-  msg.Append(",%d,%d,", inlining_id, script_offset);
-  switch (kind) {
-    case kLazy:
-      msg.Append("\"lazy\",");
-      break;
-    case kSoft:
-      msg.Append("\"soft\",");
-      break;
-    case kEager:
-      msg.Append("\"eager\",");
-      break;
-  }
-  msg.AppendDoubleQuotedString(deopt_location.str().c_str());
-  msg.Append(",");
-  msg.AppendDoubleQuotedString(DeoptimizeReasonToString(info.deopt_reason));
+void Logger::CodeDeoptEvent(Code* code, Address pc, int fp_to_sp_delta) {
+  if (!log_->IsEnabled() || !FLAG_log_internal_timer_events) return;
+  Log::MessageBuilder msg(log_);
+  int since_epoch = static_cast<int>(timer_.Elapsed().InMicroseconds());
+  msg.Append("code-deopt,%d,%d", since_epoch, code->CodeSize());
   msg.WriteToLogFile();
 }
 
@@ -1003,10 +971,6 @@ void Logger::CallbackEventInternal(const char* prefix, Name* name,
   msg.Append("%s,%s,-2,",
              kLogEventsNames[CodeEventListener::CODE_CREATION_EVENT],
              kLogEventsNames[CodeEventListener::CALLBACK_TAG]);
-  int timestamp = timer_.IsStarted()
-                      ? static_cast<int>(timer_.Elapsed().InMicroseconds())
-                      : -1;
-  msg.Append("%d,", timestamp);
   msg.AppendAddress(entry_point);
   if (name->IsString()) {
     std::unique_ptr<char[]> str =
@@ -1042,31 +1006,23 @@ void Logger::SetterCallbackEvent(Name* name, Address entry_point) {
   CallbackEventInternal("set ", name, entry_point);
 }
 
-namespace {
-
-void AppendCodeCreateHeader(Log::MessageBuilder* msg,
-                            CodeEventListener::LogEventsAndTags tag,
-                            AbstractCode* code, base::ElapsedTimer* timer) {
+static void AppendCodeCreateHeader(Log::MessageBuilder* msg,
+                                   CodeEventListener::LogEventsAndTags tag,
+                                   AbstractCode* code) {
   DCHECK(msg);
   msg->Append("%s,%s,%d,",
               kLogEventsNames[CodeEventListener::CODE_CREATION_EVENT],
               kLogEventsNames[tag], code->kind());
-  int timestamp = timer->IsStarted()
-                      ? static_cast<int>(timer->Elapsed().InMicroseconds())
-                      : -1;
-  msg->Append("%d,", timestamp);
   msg->AppendAddress(code->address());
   msg->Append(",%d,", code->ExecutableSize());
 }
-
-}  // namespace
 
 void Logger::CodeCreateEvent(CodeEventListener::LogEventsAndTags tag,
                              AbstractCode* code, const char* comment) {
   if (!is_logging_code_events()) return;
   if (!FLAG_log_code || !log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, tag, code, &timer_);
+  AppendCodeCreateHeader(&msg, tag, code);
   msg.AppendDoubleQuotedString(comment);
   msg.WriteToLogFile();
 }
@@ -1076,7 +1032,7 @@ void Logger::CodeCreateEvent(CodeEventListener::LogEventsAndTags tag,
   if (!is_logging_code_events()) return;
   if (!FLAG_log_code || !log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, tag, code, &timer_);
+  AppendCodeCreateHeader(&msg, tag, code);
   if (name->IsString()) {
     msg.Append('"');
     msg.AppendDetailed(String::cast(name), false);
@@ -1098,7 +1054,7 @@ void Logger::CodeCreateEvent(CodeEventListener::LogEventsAndTags tag,
   }
 
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, tag, code, &timer_);
+  AppendCodeCreateHeader(&msg, tag, code);
   if (name->IsString()) {
     std::unique_ptr<char[]> str =
         String::cast(name)->ToCString(DISALLOW_NULLS, ROBUST_STRING_TRAVERSAL);
@@ -1122,7 +1078,7 @@ void Logger::CodeCreateEvent(CodeEventListener::LogEventsAndTags tag,
   if (!is_logging_code_events()) return;
   if (!FLAG_log_code || !log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, tag, code, &timer_);
+  AppendCodeCreateHeader(&msg, tag, code);
   std::unique_ptr<char[]> name =
       shared->DebugName()->ToCString(DISALLOW_NULLS, ROBUST_STRING_TRAVERSAL);
   msg.Append("\"%s ", name.get());
@@ -1144,7 +1100,7 @@ void Logger::CodeCreateEvent(CodeEventListener::LogEventsAndTags tag,
   if (!is_logging_code_events()) return;
   if (!FLAG_log_code || !log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, tag, code, &timer_);
+  AppendCodeCreateHeader(&msg, tag, code);
   msg.Append("\"args_count: %d\"", args_count);
   msg.WriteToLogFile();
 }
@@ -1173,7 +1129,7 @@ void Logger::RegExpCodeCreateEvent(AbstractCode* code, String* source) {
   if (!is_logging_code_events()) return;
   if (!FLAG_log_code || !log_->IsEnabled()) return;
   Log::MessageBuilder msg(log_);
-  AppendCodeCreateHeader(&msg, CodeEventListener::REG_EXP_TAG, code, &timer_);
+  AppendCodeCreateHeader(&msg, CodeEventListener::REG_EXP_TAG, code);
   msg.Append('"');
   msg.AppendDetailed(source, false);
   msg.Append('"');
@@ -1295,7 +1251,9 @@ void Logger::HeapSampleItemEvent(const char* type, int number, int bytes) {
 
 void Logger::RuntimeCallTimerEvent() {
   RuntimeCallStats* stats = isolate_->counters()->runtime_call_stats();
-  RuntimeCallCounter* counter = stats->current_counter();
+  RuntimeCallTimer* timer = stats->current_timer();
+  if (timer == nullptr) return;
+  RuntimeCallCounter* counter = timer->counter();
   if (counter == nullptr) return;
   Log::MessageBuilder msg(log_);
   msg.Append("active-runtime-timer,");
@@ -1455,6 +1413,9 @@ class EnumerateOptimizedFunctionsVisitor: public OptimizedFunctionVisitor {
                                      int* count)
       : sfis_(sfis), code_objects_(code_objects), count_(count) {}
 
+  virtual void EnterContext(Context* context) {}
+  virtual void LeaveContext(Context* context) {}
+
   virtual void VisitFunction(JSFunction* function) {
     SharedFunctionInfo* sfi = SharedFunctionInfo::cast(function->shared());
     Object* maybe_script = sfi->script();
@@ -1565,10 +1526,6 @@ void Logger::LogCodeObject(Object* object) {
     case AbstractCode::STORE_IC:
       description = "A store IC from the snapshot";
       tag = CodeEventListener::STORE_IC_TAG;
-      break;
-    case AbstractCode::STORE_GLOBAL_IC:
-      description = "A store global IC from the snapshot";
-      tag = CodeEventListener::STORE_GLOBAL_IC_TAG;
       break;
     case AbstractCode::KEYED_STORE_IC:
       description = "A keyed store IC from the snapshot";
@@ -1800,7 +1757,7 @@ bool Logger::SetUp(Isolate* isolate) {
     addCodeEventListener(ll_logger_);
   }
 
-  ticker_ = new Ticker(isolate, FLAG_prof_sampling_interval);
+  ticker_ = new Ticker(isolate, kSamplingIntervalMs);
 
   if (Log::InitLogAtStart()) {
     is_logging_ = true;

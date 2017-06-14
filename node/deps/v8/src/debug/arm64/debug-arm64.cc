@@ -7,10 +7,8 @@
 #include "src/debug/debug.h"
 
 #include "src/arm64/frames-arm64.h"
-#include "src/arm64/macro-assembler-arm64-inl.h"
 #include "src/codegen.h"
 #include "src/debug/liveedit.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -39,7 +37,7 @@ void DebugCodegen::GenerateSlot(MacroAssembler* masm, RelocInfo::Mode mode) {
 
 
 void DebugCodegen::ClearDebugBreakSlot(Isolate* isolate, Address pc) {
-  PatchingAssembler patcher(isolate, pc,
+  PatchingAssembler patcher(isolate, reinterpret_cast<Instruction*>(pc),
                             Assembler::kDebugBreakSlotInstructions);
   EmitDebugBreakSlot(&patcher);
 }
@@ -48,7 +46,7 @@ void DebugCodegen::ClearDebugBreakSlot(Isolate* isolate, Address pc) {
 void DebugCodegen::PatchDebugBreakSlot(Isolate* isolate, Address pc,
                                        Handle<Code> code) {
   DCHECK(code->is_debug_stub());
-  PatchingAssembler patcher(isolate, pc,
+  PatchingAssembler patcher(isolate, reinterpret_cast<Instruction*>(pc),
                             Assembler::kDebugBreakSlotInstructions);
   // Patch the code emitted by DebugCodegen::GenerateSlots, changing the debug
   // break slot code from
@@ -86,6 +84,7 @@ bool DebugCodegen::DebugBreakSlotIsPatched(Address pc) {
 void DebugCodegen::GenerateDebugBreakStub(MacroAssembler* masm,
                                           DebugBreakCallHelperMode mode) {
   __ RecordComment("Debug break");
+  Register scratch = x10;
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
 

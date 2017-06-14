@@ -119,6 +119,26 @@ function GetHash(key) {
 // -------------------------------------------------------------------
 // Harmony Set
 
+function SetConstructor(iterable) {
+  if (IS_UNDEFINED(new.target)) {
+    throw %make_type_error(kConstructorNotFunction, "Set");
+  }
+
+  %_SetInitialize(this);
+
+  if (!IS_NULL_OR_UNDEFINED(iterable)) {
+    var adder = this.add;
+    if (!IS_CALLABLE(adder)) {
+      throw %make_type_error(kPropertyNotFunction, adder, 'add', this);
+    }
+
+    for (var value of iterable) {
+      %_Call(adder, this, value);
+    }
+  }
+}
+
+
 function SetAdd(key) {
   if (!IS_SET(this)) {
     throw %make_type_error(kIncompatibleMethodReceiver, 'Set.prototype.add', this);
@@ -156,6 +176,18 @@ function SetAdd(key) {
   FIXED_ARRAY_SET(table, index, key);
   FIXED_ARRAY_SET_SMI(table, index + 1, chainEntry);
   return this;
+}
+
+
+function SetHas(key) {
+  if (!IS_SET(this)) {
+    throw %make_type_error(kIncompatibleMethodReceiver, 'Set.prototype.has', this);
+  }
+  var table = %_JSCollectionGetTable(this);
+  var numBuckets = ORDERED_HASH_TABLE_BUCKET_COUNT(table);
+  var hash = GetExistingHash(key);
+  if (IS_UNDEFINED(hash)) return false;
+  return SetFindEntry(table, numBuckets, key, hash) !== NOT_FOUND;
 }
 
 
@@ -220,12 +252,20 @@ function SetForEach(f, receiver) {
 
 // -------------------------------------------------------------------
 
+%SetCode(GlobalSet, SetConstructor);
+%FunctionSetLength(GlobalSet, 0);
+%FunctionSetPrototype(GlobalSet, new GlobalObject());
+%AddNamedProperty(GlobalSet.prototype, "constructor", GlobalSet, DONT_ENUM);
+%AddNamedProperty(GlobalSet.prototype, toStringTagSymbol, "Set",
+                  DONT_ENUM | READ_ONLY);
+
 %FunctionSetLength(SetForEach, 1);
 
 // Set up the non-enumerable functions on the Set prototype object.
 utils.InstallGetter(GlobalSet.prototype, "size", SetGetSize);
 utils.InstallFunctions(GlobalSet.prototype, DONT_ENUM, [
   "add", SetAdd,
+  "has", SetHas,
   "delete", SetDelete,
   "clear", SetClearJS,
   "forEach", SetForEach
@@ -234,6 +274,43 @@ utils.InstallFunctions(GlobalSet.prototype, DONT_ENUM, [
 
 // -------------------------------------------------------------------
 // Harmony Map
+
+function MapConstructor(iterable) {
+  if (IS_UNDEFINED(new.target)) {
+    throw %make_type_error(kConstructorNotFunction, "Map");
+  }
+
+  %_MapInitialize(this);
+
+  if (!IS_NULL_OR_UNDEFINED(iterable)) {
+    var adder = this.set;
+    if (!IS_CALLABLE(adder)) {
+      throw %make_type_error(kPropertyNotFunction, adder, 'set', this);
+    }
+
+    for (var nextItem of iterable) {
+      if (!IS_RECEIVER(nextItem)) {
+        throw %make_type_error(kIteratorValueNotAnObject, nextItem);
+      }
+      %_Call(adder, this, nextItem[0], nextItem[1]);
+    }
+  }
+}
+
+
+function MapGet(key) {
+  if (!IS_MAP(this)) {
+    throw %make_type_error(kIncompatibleMethodReceiver,
+                        'Map.prototype.get', this);
+  }
+  var table = %_JSCollectionGetTable(this);
+  var numBuckets = ORDERED_HASH_TABLE_BUCKET_COUNT(table);
+  var hash = GetExistingHash(key);
+  if (IS_UNDEFINED(hash)) return UNDEFINED;
+  var entry = MapFindEntry(table, numBuckets, key, hash);
+  if (entry === NOT_FOUND) return UNDEFINED;
+  return ORDERED_HASH_MAP_VALUE_AT(table, entry, numBuckets);
+}
 
 
 function MapSet(key, value) {
@@ -281,6 +358,18 @@ function MapSet(key, value) {
   FIXED_ARRAY_SET(table, index + 1, value);
   FIXED_ARRAY_SET(table, index + 2, chainEntry);
   return this;
+}
+
+
+function MapHas(key) {
+  if (!IS_MAP(this)) {
+    throw %make_type_error(kIncompatibleMethodReceiver,
+                        'Map.prototype.has', this);
+  }
+  var table = %_JSCollectionGetTable(this);
+  var numBuckets = ORDERED_HASH_TABLE_BUCKET_COUNT(table);
+  var hash = GetHash(key);
+  return MapFindEntry(table, numBuckets, key, hash) !== NOT_FOUND;
 }
 
 
@@ -343,12 +432,21 @@ function MapForEach(f, receiver) {
 
 // -------------------------------------------------------------------
 
+%SetCode(GlobalMap, MapConstructor);
+%FunctionSetLength(GlobalMap, 0);
+%FunctionSetPrototype(GlobalMap, new GlobalObject());
+%AddNamedProperty(GlobalMap.prototype, "constructor", GlobalMap, DONT_ENUM);
+%AddNamedProperty(
+    GlobalMap.prototype, toStringTagSymbol, "Map", DONT_ENUM | READ_ONLY);
+
 %FunctionSetLength(MapForEach, 1);
 
 // Set up the non-enumerable functions on the Map prototype object.
 utils.InstallGetter(GlobalMap.prototype, "size", MapGetSize);
 utils.InstallFunctions(GlobalMap.prototype, DONT_ENUM, [
+  "get", MapGet,
   "set", MapSet,
+  "has", MapHas,
   "delete", MapDelete,
   "clear", MapClearJS,
   "forEach", MapForEach
@@ -358,9 +456,12 @@ utils.InstallFunctions(GlobalMap.prototype, DONT_ENUM, [
 // Exports
 
 %InstallToContext([
+  "map_get", MapGet,
   "map_set", MapSet,
+  "map_has", MapHas,
   "map_delete", MapDelete,
   "set_add", SetAdd,
+  "set_has", SetHas,
   "set_delete", SetDelete,
 ]);
 

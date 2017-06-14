@@ -80,6 +80,7 @@ double Type::Min() {
   if (this->IsOtherNumberConstant())
     return this->AsOtherNumberConstant()->Value();
   UNREACHABLE();
+  return 0;
 }
 
 double Type::Max() {
@@ -96,6 +97,7 @@ double Type::Max() {
   if (this->IsOtherNumberConstant())
     return this->AsOtherNumberConstant()->Value();
   UNREACHABLE();
+  return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -140,11 +142,14 @@ Type::bitset BitsetType::Lub(Type* type) {
   if (type->IsRange()) return type->AsRange()->Lub();
   if (type->IsTuple()) return kOtherInternal;
   UNREACHABLE();
+  return kNone;
 }
 
 Type::bitset BitsetType::Lub(i::Map* map) {
   DisallowHeapAllocation no_allocation;
   switch (map->instance_type()) {
+    case STRING_TYPE:
+    case ONE_BYTE_STRING_TYPE:
     case CONS_STRING_TYPE:
     case CONS_ONE_BYTE_STRING_TYPE:
     case THIN_STRING_TYPE:
@@ -157,20 +162,16 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case SHORT_EXTERNAL_STRING_TYPE:
     case SHORT_EXTERNAL_ONE_BYTE_STRING_TYPE:
     case SHORT_EXTERNAL_STRING_WITH_ONE_BYTE_DATA_TYPE:
-      return kOtherNonSeqString;
-    case STRING_TYPE:
-    case ONE_BYTE_STRING_TYPE:
-      return kOtherSeqString;
+      return kOtherString;
+    case INTERNALIZED_STRING_TYPE:
+    case ONE_BYTE_INTERNALIZED_STRING_TYPE:
     case EXTERNAL_INTERNALIZED_STRING_TYPE:
     case EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE:
     case EXTERNAL_INTERNALIZED_STRING_WITH_ONE_BYTE_DATA_TYPE:
     case SHORT_EXTERNAL_INTERNALIZED_STRING_TYPE:
     case SHORT_EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE:
     case SHORT_EXTERNAL_INTERNALIZED_STRING_WITH_ONE_BYTE_DATA_TYPE:
-      return kInternalizedNonSeqString;
-    case INTERNALIZED_STRING_TYPE:
-    case ONE_BYTE_INTERNALIZED_STRING_TYPE:
-      return kInternalizedSeqString;
+      return kInternalizedString;
     case SYMBOL_TYPE:
       return kSymbol;
     case ODDBALL_TYPE: {
@@ -180,6 +181,7 @@ Type::bitset BitsetType::Lub(i::Map* map) {
       if (map == heap->boolean_map()) return kBoolean;
       if (map == heap->the_hole_map()) return kHole;
       DCHECK(map == heap->uninitialized_map() ||
+             map == heap->no_interceptor_result_sentinel_map() ||
              map == heap->termination_exception_map() ||
              map == heap->arguments_marker_map() ||
              map == heap->optimized_out_map() ||
@@ -207,16 +209,14 @@ Type::bitset BitsetType::Lub(i::Map* map) {
         return kOtherCallable;
       }
       return kOtherObject;
-    case JS_ARRAY_TYPE:
-      return kArray;
     case JS_VALUE_TYPE:
     case JS_MESSAGE_OBJECT_TYPE:
     case JS_DATE_TYPE:
     case JS_CONTEXT_EXTENSION_OBJECT_TYPE:
     case JS_GENERATOR_OBJECT_TYPE:
-    case JS_ASYNC_GENERATOR_OBJECT_TYPE:
     case JS_MODULE_NAMESPACE_TYPE:
     case JS_ARRAY_BUFFER_TYPE:
+    case JS_ARRAY_TYPE:
     case JS_REGEXP_TYPE:  // TODO(rossberg): there should be a RegExp type.
     case JS_TYPED_ARRAY_TYPE:
     case JS_DATA_VIEW_TYPE:
@@ -297,7 +297,6 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case PROPERTY_CELL_TYPE:
     case MODULE_TYPE:
     case MODULE_INFO_ENTRY_TYPE:
-    case CELL_TYPE:
       return kOtherInternal;
 
     // Remaining instance types are unsupported for now. If any of them do
@@ -312,27 +311,27 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case FILLER_TYPE:
     case ACCESS_CHECK_INFO_TYPE:
     case INTERCEPTOR_INFO_TYPE:
+    case CALL_HANDLER_INFO_TYPE:
     case OBJECT_TEMPLATE_INFO_TYPE:
     case ALLOCATION_MEMENTO_TYPE:
+    case TYPE_FEEDBACK_INFO_TYPE:
     case ALIASED_ARGUMENTS_ENTRY_TYPE:
     case PROMISE_RESOLVE_THENABLE_JOB_INFO_TYPE:
     case PROMISE_REACTION_JOB_INFO_TYPE:
     case DEBUG_INFO_TYPE:
-    case STACK_FRAME_INFO_TYPE:
+    case BREAK_POINT_INFO_TYPE:
+    case CELL_TYPE:
     case WEAK_CELL_TYPE:
-    case SMALL_ORDERED_HASH_SET_TYPE:
     case PROTOTYPE_INFO_TYPE:
     case TUPLE2_TYPE:
     case TUPLE3_TYPE:
     case CONTEXT_EXTENSION_TYPE:
-    case ASYNC_GENERATOR_REQUEST_TYPE:
-    case PADDING_TYPE_1:
-    case PADDING_TYPE_2:
-    case PADDING_TYPE_3:
-    case PADDING_TYPE_4:
+    case CONSTANT_ELEMENTS_PAIR_TYPE:
       UNREACHABLE();
+      return kNone;
   }
   UNREACHABLE();
+  return kNone;
 }
 
 Type::bitset BitsetType::Lub(i::Object* value) {
@@ -464,8 +463,6 @@ HeapConstantType::HeapConstantType(BitsetType::bitset bitset,
     : TypeBase(kHeapConstant), bitset_(bitset), object_(object) {
   DCHECK(!object->IsHeapNumber());
   DCHECK_IMPLIES(object->IsString(), object->IsInternalizedString());
-  DCHECK_IMPLIES(object->IsString(),
-                 i::Handle<i::String>::cast(object)->length() != 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -499,6 +496,7 @@ bool Type::SimplyEquals(Type* that) {
     return true;
   }
   UNREACHABLE();
+  return false;
 }
 
 // Check if [this] <= [that].
@@ -840,13 +838,8 @@ Type* Type::NewConstant(i::Handle<i::Object> value, Zone* zone) {
     return Range(v, v, zone);
   } else if (value->IsHeapNumber()) {
     return NewConstant(value->Number(), zone);
-  } else if (value->IsString()) {
-    i::Isolate* isolate = i::Handle<i::HeapObject>::cast(value)->GetIsolate();
-    if (!value->IsInternalizedString()) {
-      return Type::OtherString();
-    } else if (*value == isolate->heap()->empty_string()) {
-      return Type::EmptyString();
-    }
+  } else if (value->IsString() && !value->IsInternalizedString()) {
+    return Type::OtherString();
   }
   return HeapConstant(i::Handle<i::HeapObject>::cast(value), zone);
 }

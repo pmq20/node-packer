@@ -7,7 +7,6 @@
 
 #include "src/frames.h"
 #include "src/objects.h"
-#include "src/objects/string-table.h"
 
 namespace v8 {
 namespace internal {

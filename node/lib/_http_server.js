@@ -35,7 +35,6 @@ const chunkExpression = common.chunkExpression;
 const httpSocketSetup = common.httpSocketSetup;
 const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
 const { outHeadersKey, ondrain } = require('internal/http');
-const errors = require('internal/errors');
 
 const STATUS_CODES = {
   100: 'Continue',
@@ -186,9 +185,7 @@ function writeHead(statusCode, reason, obj) {
 
   statusCode |= 0;
   if (statusCode < 100 || statusCode > 999)
-    throw new errors.RangeError('ERR_HTTP_INVALID_STATUS_CODE',
-                                 originalStatusCode);
-
+    throw new RangeError(`Invalid status code: ${originalStatusCode}`);
 
   if (typeof reason === 'string') {
     // writeHead(statusCode, reasonPhrase[, headers])
@@ -214,7 +211,8 @@ function writeHead(statusCode, reason, obj) {
     }
     if (k === undefined) {
       if (this._header) {
-        throw new errors.Error('ERR_HTTP_HEADERS_SENT');
+        throw new Error('Can\'t render headers after they are sent to the ' +
+                        'client');
       }
     }
     // only progressive api is used
@@ -225,8 +223,7 @@ function writeHead(statusCode, reason, obj) {
   }
 
   if (common._checkInvalidHeaderChar(this.statusMessage))
-    throw new errors.Error('ERR_HTTP_INVALID_CHAR',
-                           'Invalid character in statusMessage.');
+    throw new Error('Invalid character in statusMessage.');
 
   var statusLine = 'HTTP/1.1 ' + statusCode + ' ' + this.statusMessage + CRLF;
 

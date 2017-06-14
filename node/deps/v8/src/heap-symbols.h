@@ -8,7 +8,6 @@
 #define INTERNALIZED_STRING_LIST(V)                                \
   V(anonymous_function_string, "(anonymous function)")             \
   V(anonymous_string, "anonymous")                                 \
-  V(add_string, "add")                                             \
   V(apply_string, "apply")                                         \
   V(arguments_string, "arguments")                                 \
   V(Arguments_string, "Arguments")                                 \
@@ -55,7 +54,6 @@
   V(did_handle_string, "didHandle")                                \
   V(display_name_string, "displayName")                            \
   V(done_string, "done")                                           \
-  V(dotAll_string, "dotAll")                                       \
   V(dot_catch_string, ".catch")                                    \
   V(dot_for_string, ".for")                                        \
   V(dot_generator_object_string, ".generator_object")              \
@@ -82,7 +80,7 @@
   V(get_string, "get")                                             \
   V(get_space_string, "get ")                                      \
   V(global_string, "global")                                       \
-  V(groups_string, "groups")                                       \
+  V(group_string, "group")                                         \
   V(has_string, "has")                                             \
   V(hour_string, "hour")                                           \
   V(ignoreCase_string, "ignoreCase")                               \
@@ -114,10 +112,6 @@
   V(nan_string, "NaN")                                             \
   V(new_target_string, ".new.target")                              \
   V(next_string, "next")                                           \
-  V(NFC_string, "NFC")                                             \
-  V(NFD_string, "NFD")                                             \
-  V(NFKC_string, "NFKC")                                           \
-  V(NFKD_string, "NFKD")                                           \
   V(not_equal, "not-equal")                                        \
   V(null_string, "null")                                           \
   V(null_to_string, "[object Null]")                               \
@@ -126,7 +120,6 @@
   V(object_string, "object")                                       \
   V(Object_string, "Object")                                       \
   V(ok, "ok")                                                      \
-  V(one_string, "1")                                               \
   V(ownKeys_string, "ownKeys")                                     \
   V(position_string, "position")                                   \
   V(preventExtensions_string, "preventExtensions")                 \
@@ -192,8 +185,7 @@
   V(weekday_string, "weekday")                                     \
   V(will_handle_string, "willHandle")                              \
   V(writable_string, "writable")                                   \
-  V(year_string, "year")                                           \
-  V(zero_string, "0")
+  V(year_string, "year")
 
 #define PRIVATE_SYMBOL_LIST(V)              \
   V(array_iteration_kind_symbol)            \
@@ -201,8 +193,6 @@
   V(array_iterator_object_symbol)           \
   V(call_site_frame_array_symbol)           \
   V(call_site_frame_index_symbol)           \
-  V(console_context_id_symbol)              \
-  V(console_context_name_symbol)            \
   V(class_end_position_symbol)              \
   V(class_start_position_symbol)            \
   V(detailed_stack_trace_symbol)            \
@@ -218,7 +208,9 @@
   V(intl_resolved_symbol)                   \
   V(megamorphic_symbol)                     \
   V(native_context_index_symbol)            \
+  V(nonexistent_symbol)                     \
   V(nonextensible_symbol)                   \
+  V(normal_ic_symbol)                       \
   V(not_mapped_symbol)                      \
   V(premonomorphic_symbol)                  \
   V(promise_async_stack_id_symbol)          \

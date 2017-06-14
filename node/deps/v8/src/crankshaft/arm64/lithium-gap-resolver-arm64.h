@@ -16,9 +16,15 @@ class LGapResolver;
 
 class DelayedGapMasm : public DelayedMasm {
  public:
-  DelayedGapMasm(LCodeGen* owner, MacroAssembler* masm);
-  ~DelayedGapMasm();
-
+  DelayedGapMasm(LCodeGen* owner, MacroAssembler* masm)
+    : DelayedMasm(owner, masm, root) {
+    // We use the root register as an extra scratch register.
+    // The root register has two advantages:
+    //  - It is not in crankshaft allocatable registers list, so it can't
+    //    interfere with the allocatable registers.
+    //  - We don't need to push it on the stack, as we can reload it with its
+    //    value once we have finish.
+  }
   void EndDelayedUse();
 };
 
@@ -68,7 +74,7 @@ class LGapResolver BASE_EMBEDDED {
   // These two methods switch from one mode to the other.
   void AcquireSavedValueRegister() { masm_.AcquireScratchRegister(); }
   void ReleaseSavedValueRegister() { masm_.ReleaseScratchRegister(); }
-  const VRegister& SavedFPValueRegister() {
+  const FPRegister& SavedFPValueRegister() {
     // We use the Crankshaft floating-point scratch register to break a cycle
     // involving double values as the MacroAssembler will not need it for the
     // operations performed by the gap resolver.

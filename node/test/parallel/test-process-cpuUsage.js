@@ -1,6 +1,7 @@
 'use strict';
+require('../common');
 const assert = require('assert');
-const common = require('../common');
+
 const result = process.cpuUsage();
 
 // Validate the result of calling with no previous value argument.
@@ -31,18 +32,11 @@ for (let i = 0; i < 10; i++) {
   assert(diffUsage.user >= 0);
   assert(diffUsage.system >= 0);
 }
-const invalidUserArgument = common.expectsError({
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "preValue.user" argument must be of type Number'
-});
 
-const invalidSystemArgument = common.expectsError({
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "preValue.system" argument must be of type Number'
-});
-
+const invalidUserArgument =
+    /^TypeError: value of user property of argument is invalid$/;
+const invalidSystemArgument =
+    /^TypeError: value of system property of argument is invalid$/;
 
 // Ensure that an invalid shape for the previous value argument throws an error.
 assert.throws(() => {

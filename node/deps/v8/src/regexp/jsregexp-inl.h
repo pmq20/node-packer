@@ -7,6 +7,7 @@
 #define V8_REGEXP_JSREGEXP_INL_H_
 
 #include "src/allocation.h"
+#include "src/heap/heap.h"
 #include "src/objects.h"
 #include "src/regexp/jsregexp.h"
 

@@ -6,27 +6,25 @@
 
 #include "src/debug/debug.h"
 
-#include "src/assembler-inl.h"
 #include "src/codegen.h"
 #include "src/debug/liveedit.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
 
 #define __ ACCESS_MASM(masm)
 
-namespace {
-void EmitDebugBreakSlot(Assembler* assembler) {
+
+void EmitDebugBreakSlot(MacroAssembler* masm) {
   Label check_size;
-  assembler->bind(&check_size);
+  __ bind(&check_size);
   for (int i = 0; i < Assembler::kDebugBreakSlotInstructions; i++) {
-    assembler->nop(MacroAssembler::DEBUG_BREAK_NOP);
+    __ nop(MacroAssembler::DEBUG_BREAK_NOP);
   }
   DCHECK_EQ(Assembler::kDebugBreakSlotInstructions,
-            assembler->InstructionsGeneratedSince(&check_size));
+            masm->InstructionsGeneratedSince(&check_size));
 }
-}  // anonymous namespace
+
 
 void DebugCodegen::GenerateSlot(MacroAssembler* masm, RelocInfo::Mode mode) {
   // Generate enough nop's to make space for a call instruction. Avoid emitting
@@ -38,18 +36,15 @@ void DebugCodegen::GenerateSlot(MacroAssembler* masm, RelocInfo::Mode mode) {
 
 
 void DebugCodegen::ClearDebugBreakSlot(Isolate* isolate, Address pc) {
-  PatchingAssembler patcher(Assembler::IsolateData(isolate), pc,
-                            Assembler::kDebugBreakSlotInstructions);
-  EmitDebugBreakSlot(&patcher);
-  patcher.FlushICache(isolate);
+  CodePatcher patcher(isolate, pc, Assembler::kDebugBreakSlotInstructions);
+  EmitDebugBreakSlot(patcher.masm());
 }
 
 
 void DebugCodegen::PatchDebugBreakSlot(Isolate* isolate, Address pc,
                                        Handle<Code> code) {
   DCHECK(code->is_debug_stub());
-  PatchingAssembler patcher(Assembler::IsolateData(isolate), pc,
-                            Assembler::kDebugBreakSlotInstructions);
+  CodePatcher patcher(isolate, pc, Assembler::kDebugBreakSlotInstructions);
   // Patch the code changing the debug break slot code from
   //   mov r2, r2
   //   mov r2, r2
@@ -62,12 +57,11 @@ void DebugCodegen::PatchDebugBreakSlot(Isolate* isolate, Address pc,
   //   skip:
   //   blx ip
   Label skip_constant;
-  patcher.ldr(ip, MemOperand(v8::internal::pc, 0));
-  patcher.b(&skip_constant);
+  patcher.masm()->ldr(ip, MemOperand(v8::internal::pc, 0));
+  patcher.masm()->b(&skip_constant);
   patcher.Emit(code->entry());
-  patcher.bind(&skip_constant);
-  patcher.blx(ip);
-  patcher.FlushICache(isolate);
+  patcher.masm()->bind(&skip_constant);
+  patcher.masm()->blx(ip);
 }
 
 bool DebugCodegen::DebugBreakSlotIsPatched(Address pc) {

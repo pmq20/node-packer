@@ -112,15 +112,6 @@ module.exports = exports = {
 // Note: Please try to keep these in alphabetical order
 E('ERR_ARG_NOT_ITERABLE', '%s must be iterable');
 E('ERR_ASSERTION', (msg) => msg);
-E('ERR_CONSOLE_WRITABLE_STREAM',
-  (name) => `Console expects a writable stream instance for ${name}`);
-E('ERR_CPU_USAGE', (errMsg) => `Unable to obtain cpu usage ${errMsg}`);
-E('ERR_HTTP_HEADERS_SENT',
-  'Cannot render headers after they are sent to the client');
-E('ERR_HTTP_INVALID_CHAR', 'Invalid character in statusMessage.');
-E('ERR_HTTP_INVALID_STATUS_CODE',
-  (originalStatusCode) => `Invalid status code: ${originalStatusCode}`);
-E('ERR_INDEX_OUT_OF_RANGE', 'Index out of range');
 E('ERR_INVALID_ARG_TYPE', invalidArgType);
 E('ERR_INVALID_CALLBACK', 'callback must be a function');
 E('ERR_INVALID_FD', (fd) => `"fd" must be a positive integer: ${fd}`);
@@ -141,15 +132,11 @@ E('ERR_INVALID_TUPLE', '%s must be an iterable %s tuple');
 E('ERR_INVALID_URL', 'Invalid URL: %s');
 E('ERR_INVALID_URL_SCHEME',
   (expected) => `The URL must be ${oneOf(expected, 'scheme')}`);
-E('ERR_INVALID_REPL_HISTORY',
-  (repl_history) => `Expected array, got ${repl_history}`);
 E('ERR_IPC_CHANNEL_CLOSED', 'channel closed');
 E('ERR_IPC_DISCONNECTED', 'IPC channel is already disconnected');
 E('ERR_IPC_ONE_PIPE', 'Child process can have only one IPC pipe');
 E('ERR_IPC_SYNC_FORK', 'IPC cannot be used with synchronous forks');
 E('ERR_MISSING_ARGS', missingArgs);
-E('ERR_PARSE_HISTORY_DATA',
-  (oldHistoryPath) => `Could not parse history data in ${oldHistoryPath}`);
 E('ERR_STDERR_CLOSE', 'process.stderr cannot be closed');
 E('ERR_STDOUT_CLOSE', 'process.stdout cannot be closed');
 E('ERR_UNKNOWN_BUILTIN_MODULE', (id) => `No such built-in module: ${id}`);
@@ -162,9 +149,6 @@ E('ERR_SOCKET_BAD_TYPE',
 E('ERR_SOCKET_CANNOT_SEND', 'Unable to send data');
 E('ERR_SOCKET_BAD_PORT', 'Port should be > 0 and < 65536');
 E('ERR_SOCKET_DGRAM_NOT_RUNNING', 'Not running');
-E('ERR_V8BREAKITERATOR', 'full ICU data not installed. ' +
-  'See https://github.com/nodejs/node/wiki/Intl');
-E('FALSY_VALUE_REJECTION', 'Promise was rejected with falsy value');
 // Add new errors from here...
 
 function invalidArgType(name, expected, actual) {

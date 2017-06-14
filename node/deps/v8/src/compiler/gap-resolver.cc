@@ -148,8 +148,7 @@ void GapResolver::PerformMove(ParallelMove* moves, MoveOperands* move) {
   move->SetPending();
 
   // We may need to split moves between FP locations differently.
-  const bool is_fp_loc_move =
-      !kSimpleFPAliasing && destination.IsFPLocationOperand();
+  bool is_fp_loc_move = !kSimpleFPAliasing && destination.IsFPLocationOperand();
 
   // Perform a depth-first traversal of the move graph to resolve dependencies.
   // Any unperformed, unpending move with a source the same as this one's
@@ -159,7 +158,7 @@ void GapResolver::PerformMove(ParallelMove* moves, MoveOperands* move) {
     if (other->IsEliminated()) continue;
     if (other->IsPending()) continue;
     if (other->source().InterferesWith(destination)) {
-      if (is_fp_loc_move &&
+      if (!kSimpleFPAliasing && is_fp_loc_move &&
           LocationOperand::cast(other->source()).representation() >
               split_rep_) {
         // 'other' must also be an FP location move. Break it into fragments
@@ -214,7 +213,7 @@ void GapResolver::PerformMove(ParallelMove* moves, MoveOperands* move) {
   move->Eliminate();
 
   // Update outstanding moves whose source may now have been moved.
-  if (is_fp_loc_move) {
+  if (!kSimpleFPAliasing && is_fp_loc_move) {
     // We may have to split larger moves.
     for (size_t i = 0; i < moves->size(); ++i) {
       auto other = (*moves)[i];

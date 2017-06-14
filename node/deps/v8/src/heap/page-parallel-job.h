@@ -20,10 +20,16 @@ class Isolate;
 // The JobTraits class needs to define:
 // - PerPageData type - state associated with each page.
 // - PerTaskData type - state associated with each task.
-// - static void ProcessPageInParallel(Heap* heap,
+// - static bool ProcessPageInParallel(Heap* heap,
 //                                     PerTaskData task_data,
 //                                     MemoryChunk* page,
 //                                     PerPageData page_data)
+//   The function should return true iff processing succeeded.
+// - static const bool NeedSequentialFinalization
+// - static void FinalizePageSequentially(Heap* heap,
+//                                        bool processing_succeeded,
+//                                        MemoryChunk* page,
+//                                        PerPageData page_data)
 template <typename JobTraits>
 class PageParallelJob {
  public:
@@ -57,10 +63,10 @@ class PageParallelJob {
     ++num_items_;
   }
 
-  int NumberOfPages() const { return num_items_; }
+  int NumberOfPages() { return num_items_; }
 
   // Returns the number of tasks that were spawned when running the job.
-  int NumberOfTasks() const { return num_tasks_; }
+  int NumberOfTasks() { return num_tasks_; }
 
   // Runs the given number of tasks in parallel and processes the previously
   // added pages. This function blocks until all tasks finish.
@@ -102,12 +108,21 @@ class PageParallelJob {
         pending_tasks_->Wait();
       }
     }
+    if (JobTraits::NeedSequentialFinalization) {
+      Item* item = items_;
+      while (item != nullptr) {
+        bool success = (item->state.Value() == kFinished);
+        JobTraits::FinalizePageSequentially(heap_, item->chunk, success,
+                                            item->data);
+        item = item->next;
+      }
+    }
   }
 
  private:
-  static const int kMaxNumberOfTasks = 32;
+  static const int kMaxNumberOfTasks = 10;
 
-  enum ProcessingState { kAvailable, kProcessing, kFinished };
+  enum ProcessingState { kAvailable, kProcessing, kFinished, kFailed };
 
   struct Item : public Malloced {
     Item(MemoryChunk* chunk, typename JobTraits::PerPageData data, Item* next)
@@ -143,9 +158,9 @@ class PageParallelJob {
       }
       for (int i = 0; i < num_items_; i++) {
         if (current->state.TrySetValue(kAvailable, kProcessing)) {
-          JobTraits::ProcessPageInParallel(heap_, data_, current->chunk,
-                                           current->data);
-          current->state.SetValue(kFinished);
+          bool success = JobTraits::ProcessPageInParallel(
+              heap_, data_, current->chunk, current->data);
+          current->state.SetValue(success ? kFinished : kFailed);
         }
         current = current->next;
         // Wrap around if needed.

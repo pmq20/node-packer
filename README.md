@@ -90,7 +90,6 @@ Then,
 ## Usage
 
     nodec [OPTION]... ENTRANCE
-      -V, --node-version=8/6/4         Selects the Node.js version to compile with
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files

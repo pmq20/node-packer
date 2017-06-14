@@ -7,11 +7,9 @@
 
 #include "src/checks.h"
 #include "src/elements-kind.h"
+#include "src/heap/heap.h"
 #include "src/isolate.h"
 #include "src/objects.h"
-#include "src/objects/descriptor-array.h"
-#include "src/objects/map.h"
-#include "src/objects/name.h"
 
 namespace v8 {
 namespace internal {

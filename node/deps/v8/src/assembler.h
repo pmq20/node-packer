@@ -35,8 +35,6 @@
 #ifndef V8_ASSEMBLER_H_
 #define V8_ASSEMBLER_H_
 
-#include <forward_list>
-
 #include "src/allocation.h"
 #include "src/builtins/builtins.h"
 #include "src/deoptimize-reason.h"
@@ -66,27 +64,17 @@ enum class CodeObjectRequired { kNo, kYes };
 
 class AssemblerBase: public Malloced {
  public:
-  struct IsolateData {
-    explicit IsolateData(Isolate* isolate);
-    IsolateData(const IsolateData&) = default;
-
-    bool serializer_enabled_;
-    size_t max_old_generation_size_;
-#if V8_TARGET_ARCH_X64
-    Address code_range_start_;
-#endif
-  };
-
-  AssemblerBase(IsolateData isolate_data, void* buffer, int buffer_size);
+  AssemblerBase(Isolate* isolate, void* buffer, int buffer_size);
   virtual ~AssemblerBase();
 
-  IsolateData isolate_data() const { return isolate_data_; }
-
-  bool serializer_enabled() const { return isolate_data_.serializer_enabled_; }
-  void enable_serializer() { isolate_data_.serializer_enabled_ = true; }
+  Isolate* isolate() const { return isolate_; }
+  int jit_cookie() const { return jit_cookie_; }
 
   bool emit_debug_code() const { return emit_debug_code_; }
   void set_emit_debug_code(bool value) { emit_debug_code_ = value; }
+
+  bool serializer_enabled() const { return serializer_enabled_; }
+  void enable_serializer() { serializer_enabled_ = true; }
 
   bool predictable_code_size() const { return predictable_code_size_; }
   void set_predictable_code_size(bool value) { predictable_code_size_ = value; }
@@ -110,6 +98,7 @@ class AssemblerBase: public Malloced {
     } else {
       // Embedded constant pool not supported on this architecture.
       UNREACHABLE();
+      return false;
     }
   }
 
@@ -124,7 +113,7 @@ class AssemblerBase: public Malloced {
   virtual void AbortedCodeGeneration() { }
 
   // Debugging
-  void Print(Isolate* isolate);
+  void Print();
 
   static const int kMinimalBufferSize = 4*KB;
 
@@ -149,22 +138,13 @@ class AssemblerBase: public Malloced {
   // The program counter, which points into the buffer above and moves forward.
   byte* pc_;
 
-  // The following two functions help with avoiding allocations of heap numbers
-  // during the code assembly phase. {RequestHeapNumber} records the need for a
-  // future heap number allocation, together with the current pc offset. After
-  // code assembly, {AllocateRequestedHeapNumbers} will allocate these numbers
-  // and, with the help of {Assembler::set_heap_number}, place them where they
-  // are expected (determined by the recorded pc offset).
-  void RequestHeapNumber(double value) {
-    heap_numbers_.emplace_front(value, pc_offset());
-  }
-  void AllocateRequestedHeapNumbers(Isolate* isolate);
-
  private:
-  IsolateData isolate_data_;
+  Isolate* isolate_;
+  int jit_cookie_;
   uint64_t enabled_cpu_features_;
   bool emit_debug_code_;
   bool predictable_code_size_;
+  bool serializer_enabled_;
 
   // Indicates whether the constant pool can be accessed, which is only possible
   // if the pp register points to the current code object's constant pool.
@@ -173,16 +153,6 @@ class AssemblerBase: public Malloced {
   // Constant pool.
   friend class FrameAndConstantPoolScope;
   friend class ConstantPoolUnavailableScope;
-
-  // Delayed allocation of heap numbers.
-  struct RequestedHeapNumber {
-    RequestedHeapNumber(double value, int offset);
-    double value;  // The number for which we later need to create a HeapObject.
-    int offset;  // The {buffer_} offset where we emitted a dummy that needs to
-                 // get replaced by the actual HeapObject via
-                 // {Assembler::set_heap_number}.
-  };
-  std::forward_list<RequestedHeapNumber> heap_numbers_;
 };
 
 
@@ -271,7 +241,7 @@ class CpuFeatures : public AllStatic {
 
   static inline bool SupportsCrankshaft();
 
-  static inline bool SupportsWasmSimd128();
+  static inline bool SupportsSimd128();
 
   static inline unsigned icache_line_size() {
     DCHECK(icache_line_size_ != 0);
@@ -345,12 +315,10 @@ class RelocInfo {
 
   enum Mode {
     // Please note the order is important (see IsCodeTarget, IsGCRelocMode).
-    CODE_TARGET,
+    CODE_TARGET,  // Code target which is not any of the above.
     CODE_TARGET_WITH_ID,
     EMBEDDED_OBJECT,
-    // Wasm entries are to relocate pointers into the wasm memory embedded in
-    // wasm code. Everything after WASM_MEMORY_REFERENCE (inclusive) is not
-    // GC'ed.
+    // To relocate pointers into the wasm memory embedded in wasm code
     WASM_MEMORY_REFERENCE,
     WASM_GLOBAL_REFERENCE,
     WASM_MEMORY_SIZE_REFERENCE,
@@ -358,6 +326,7 @@ class RelocInfo {
     WASM_PROTECTED_INSTRUCTION_LANDING,
     CELL,
 
+    // Everything after runtime_entry (inclusive) is not GC'ed.
     RUNTIME_ENTRY,
     COMMENT,
 
@@ -397,16 +366,20 @@ class RelocInfo {
     FIRST_REAL_RELOC_MODE = CODE_TARGET,
     LAST_REAL_RELOC_MODE = VENEER_POOL,
     LAST_CODE_ENUM = CODE_TARGET_WITH_ID,
-    LAST_GCED_ENUM = EMBEDDED_OBJECT,
+    LAST_GCED_ENUM = WASM_FUNCTION_TABLE_SIZE_REFERENCE,
     FIRST_SHAREABLE_RELOC_MODE = CELL,
   };
 
   STATIC_ASSERT(NUMBER_OF_MODES <= kBitsPerInt);
 
-  RelocInfo() = default;
+  explicit RelocInfo(Isolate* isolate) : isolate_(isolate) {
+    DCHECK_NOT_NULL(isolate);
+  }
 
-  RelocInfo(byte* pc, Mode rmode, intptr_t data, Code* host)
-      : pc_(pc), rmode_(rmode), data_(data), host_(host) {}
+  RelocInfo(Isolate* isolate, byte* pc, Mode rmode, intptr_t data, Code* host)
+      : isolate_(isolate), pc_(pc), rmode_(rmode), data_(data), host_(host) {
+    DCHECK_NOT_NULL(isolate);
+  }
 
   static inline bool IsRealRelocMode(Mode mode) {
     return mode >= FIRST_REAL_RELOC_MODE && mode <= LAST_REAL_RELOC_MODE;
@@ -505,6 +478,7 @@ class RelocInfo {
   static inline int ModeMask(Mode mode) { return 1 << mode; }
 
   // Accessors
+  Isolate* isolate() const { return isolate_; }
   byte* pc() const { return pc_; }
   void set_pc(byte* pc) { pc_ = pc; }
   Mode rmode() const {  return rmode_; }
@@ -532,34 +506,34 @@ class RelocInfo {
   uint32_t wasm_function_table_size_reference();
   uint32_t wasm_memory_size_reference();
   void update_wasm_memory_reference(
-      Isolate* isolate, Address old_base, Address new_base,
+      Address old_base, Address new_base,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
   void update_wasm_memory_size(
-      Isolate* isolate, uint32_t old_size, uint32_t new_size,
+      uint32_t old_size, uint32_t new_size,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
   void update_wasm_global_reference(
-      Isolate* isolate, Address old_base, Address new_base,
+      Address old_base, Address new_base,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
   void update_wasm_function_table_size_reference(
-      Isolate* isolate, uint32_t old_base, uint32_t new_base,
+      uint32_t old_base, uint32_t new_base,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
   void set_target_address(
-      Isolate* isolate, Address target,
+      Address target,
       WriteBarrierMode write_barrier_mode = UPDATE_WRITE_BARRIER,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
 
   // this relocation applies to;
   // can only be called if IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)
   INLINE(Address target_address());
-  INLINE(HeapObject* target_object());
-  INLINE(Handle<HeapObject> target_object_handle(Assembler* origin));
+  INLINE(Object* target_object());
+  INLINE(Handle<Object> target_object_handle(Assembler* origin));
   INLINE(void set_target_object(
-      HeapObject* target,
+      Object* target,
       WriteBarrierMode write_barrier_mode = UPDATE_WRITE_BARRIER,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
   INLINE(Address target_runtime_entry(Assembler* origin));
   INLINE(void set_target_runtime_entry(
-      Isolate* isolate, Address target,
+      Address target,
       WriteBarrierMode write_barrier_mode = UPDATE_WRITE_BARRIER,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
   INLINE(Cell* target_cell());
@@ -567,7 +541,7 @@ class RelocInfo {
   INLINE(void set_target_cell(
       Cell* cell, WriteBarrierMode write_barrier_mode = UPDATE_WRITE_BARRIER,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
-  INLINE(Handle<Code> code_age_stub_handle(Assembler* origin));
+  INLINE(Handle<Object> code_age_stub_handle(Assembler* origin));
   INLINE(Code* code_age_stub());
   INLINE(void set_code_age_stub(
       Code* stub, ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED));
@@ -611,11 +585,11 @@ class RelocInfo {
   // the break points where straight-line code is patched with a call
   // instruction.
   INLINE(Address debug_call_address());
-  INLINE(void set_debug_call_address(Isolate*, Address target));
+  INLINE(void set_debug_call_address(Address target));
 
   // Wipe out a relocation to a fixed value, used for making snapshots
   // reproducible.
-  INLINE(void WipeOut(Isolate* isolate));
+  INLINE(void WipeOut());
 
   template<typename StaticVisitor> inline void Visit(Heap* heap);
 
@@ -629,7 +603,7 @@ class RelocInfo {
 #ifdef DEBUG
   // Check whether the given code contains relocation information that
   // either is position-relative or movable by the garbage collector.
-  static bool RequiresRelocation(Isolate* isolate, const CodeDesc& desc);
+  static bool RequiresRelocation(const CodeDesc& desc);
 #endif
 
 #ifdef ENABLE_DISASSEMBLER
@@ -649,11 +623,11 @@ class RelocInfo {
   static const int kApplyMask;  // Modes affected by apply.  Depends on arch.
 
  private:
-  void unchecked_update_wasm_memory_reference(Isolate* isolate, Address address,
+  void unchecked_update_wasm_memory_reference(Address address,
                                               ICacheFlushMode flush_mode);
-  void unchecked_update_wasm_size(Isolate* isolate, uint32_t size,
-                                  ICacheFlushMode flush_mode);
+  void unchecked_update_wasm_size(uint32_t size, ICacheFlushMode flush_mode);
 
+  Isolate* isolate_;
   // On ARM, note that pc_ is the address of the constant pool entry
   // to be relocated and not the address of the instruction
   // referencing the constant pool entry (except when rmode_ ==
@@ -841,7 +815,6 @@ class ExternalReference BASE_EMBEDDED {
 
   static void SetUp();
 
-  // These functions must use the isolate in a thread-safe way.
   typedef void* ExternalReferenceRedirector(Isolate* isolate, void* original,
                                             Type type);
 
@@ -945,9 +918,6 @@ class ExternalReference BASE_EMBEDDED {
   // Static variable RegExpStack::limit_address()
   static ExternalReference address_of_regexp_stack_limit(Isolate* isolate);
 
-  // Direct access to FLAG_harmony_regexp_dotall.
-  static ExternalReference address_of_regexp_dotall_flag(Isolate* isolate);
-
   // Static variables for RegExp.
   static ExternalReference address_of_static_offsets_vector(Isolate* isolate);
   static ExternalReference address_of_regexp_stack_memory_address(
@@ -1011,24 +981,6 @@ class ExternalReference BASE_EMBEDDED {
   static ExternalReference ieee754_tanh_function(Isolate* isolate);
 
   static ExternalReference libc_memchr_function(Isolate* isolate);
-  static ExternalReference libc_memcpy_function(Isolate* isolate);
-  static ExternalReference libc_memmove_function(Isolate* isolate);
-  static ExternalReference libc_memset_function(Isolate* isolate);
-
-  static ExternalReference try_internalize_string_function(Isolate* isolate);
-
-#ifdef V8_INTL_SUPPORT
-  static ExternalReference intl_convert_one_byte_to_lower(Isolate* isolate);
-  static ExternalReference intl_to_latin1_lower_table(Isolate* isolate);
-#endif  // V8_INTL_SUPPORT
-
-  template <typename SubjectChar, typename PatternChar>
-  static ExternalReference search_string_raw(Isolate* isolate);
-
-  static ExternalReference orderedhashmap_get_raw(Isolate* isolate);
-
-  template <typename CollectionType, int entrysize>
-  static ExternalReference orderedhashtable_has_raw(Isolate* isolate);
 
   static ExternalReference page_flags(Page* page);
 
@@ -1124,6 +1076,7 @@ V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&, ExternalReference);
 
 // -----------------------------------------------------------------------------
 // Utility functions
+void* libc_memchr(void* string, int character, size_t search_length);
 
 inline int NumberOfBitsSet(uint32_t x) {
   unsigned int num_bits_set;
@@ -1195,7 +1148,6 @@ class ConstantPoolEntry {
     return merged_index_;
   }
   void set_merged_index(int index) {
-    DCHECK(sharing_ok());
     merged_index_ = index;
     DCHECK(is_merged());
   }

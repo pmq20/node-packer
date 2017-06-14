@@ -31,7 +31,7 @@ void AstExpressionRewriter::VisitDeclarations(Declaration::List* declarations) {
 void AstExpressionRewriter::VisitStatements(ZoneList<Statement*>* statements) {
   for (int i = 0; i < statements->length(); i++) {
     AST_REWRITE_LIST_ELEMENT(Statement, statements, i);
-    if (statements->at(i)->IsJump()) break;
+    // Not stopping when a jump statement is found.
   }
 }
 
@@ -265,8 +265,10 @@ void AstExpressionRewriter::VisitAssignment(Assignment* node) {
   AST_REWRITE_PROPERTY(Expression, node, value);
 }
 
-void AstExpressionRewriter::VisitSuspend(Suspend* node) {
+
+void AstExpressionRewriter::VisitYield(Yield* node) {
   REWRITE_THIS(node);
+  AST_REWRITE_PROPERTY(Expression, node, generator_object);
   AST_REWRITE_PROPERTY(Expression, node, expression);
 }
 
@@ -373,12 +375,6 @@ void AstExpressionRewriter::VisitEmptyParentheses(EmptyParentheses* node) {
 
 void AstExpressionRewriter::VisitGetIterator(GetIterator* node) {
   AST_REWRITE_PROPERTY(Expression, node, iterable);
-}
-
-void AstExpressionRewriter::VisitImportCallExpression(
-    ImportCallExpression* node) {
-  REWRITE_THIS(node);
-  AST_REWRITE_PROPERTY(Expression, node, argument);
 }
 
 void AstExpressionRewriter::VisitDoExpression(DoExpression* node) {

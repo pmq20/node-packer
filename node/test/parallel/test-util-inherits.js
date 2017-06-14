@@ -1,13 +1,11 @@
 'use strict';
 
-const common = require('../common');
+require('../common');
 const assert = require('assert');
 const inherits = require('util').inherits;
-const errCheck = common.expectsError({
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "superCtor" argument must be of type function'
-});
+const errCheck =
+  /^TypeError: The super constructor to "inherits" must not be null or undefined$/;
+
 
 // super constructor
 function A() {
@@ -82,20 +80,10 @@ assert.strictEqual(e.constructor, E);
 // should throw with invalid arguments
 assert.throws(function() {
   inherits(A, {});
-}, common.expectsError({
-    code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError,
-    message: 'The "superCtor.prototype" argument must be of type function'
-})
-);
+}, /^TypeError: The super constructor to "inherits" must have a prototype$/);
 assert.throws(function() {
   inherits(A, null);
 }, errCheck);
 assert.throws(function() {
   inherits(null, A);
-}, common.expectsError({
-    code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError,
-    message: 'The "ctor" argument must be of type function'
-})
-);
+}, /^TypeError: The constructor to "inherits" must not be null or undefined$/);

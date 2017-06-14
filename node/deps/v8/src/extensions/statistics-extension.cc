@@ -144,17 +144,17 @@ void StatisticsExtension::GetCounters(
   HeapObject* obj;
   int reloc_info_total = 0;
   int source_position_table_total = 0;
-  while ((obj = iterator.next()) != nullptr) {
+  while ((obj = iterator.next())) {
     if (obj->IsCode()) {
       Code* code = Code::cast(obj);
       reloc_info_total += code->relocation_info()->Size();
-      ByteArray* source_position_table = code->SourcePositionTable();
+      ByteArray* source_position_table = code->source_position_table();
       if (source_position_table->length() > 0) {
-        source_position_table_total += code->SourcePositionTable()->Size();
+        source_position_table_total += code->source_position_table()->Size();
       }
     } else if (obj->IsBytecodeArray()) {
       source_position_table_total +=
-          BytecodeArray::cast(obj)->SourcePositionTable()->Size();
+          BytecodeArray::cast(obj)->source_position_table()->Size();
     }
   }
 

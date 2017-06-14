@@ -5,7 +5,6 @@
 #include "src/crankshaft/arm64/lithium-codegen-arm64.h"
 
 #include "src/arm64/frames-arm64.h"
-#include "src/arm64/macro-assembler-arm64-inl.h"
 #include "src/base/bits.h"
 #include "src/builtins/builtins-constructor.h"
 #include "src/code-factory.h"
@@ -14,7 +13,6 @@
 #include "src/crankshaft/hydrogen-osr.h"
 #include "src/ic/ic.h"
 #include "src/ic/stub-cache.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -179,9 +177,9 @@ class TestAndBranch : public BranchGenerator {
 // Test the input and branch if it is non-zero and not a NaN.
 class BranchIfNonZeroNumber : public BranchGenerator {
  public:
-  BranchIfNonZeroNumber(LCodeGen* codegen, const VRegister& value,
-                        const VRegister& scratch)
-      : BranchGenerator(codegen), value_(value), scratch_(scratch) {}
+  BranchIfNonZeroNumber(LCodeGen* codegen, const FPRegister& value,
+                        const FPRegister& scratch)
+    : BranchGenerator(codegen), value_(value), scratch_(scratch) { }
 
   virtual void Emit(Label* label) const {
     __ Fabs(scratch_, value_);
@@ -198,8 +196,8 @@ class BranchIfNonZeroNumber : public BranchGenerator {
   }
 
  private:
-  const VRegister& value_;
-  const VRegister& scratch_;
+  const FPRegister& value_;
+  const FPRegister& scratch_;
 };
 
 
@@ -547,7 +545,7 @@ void LCodeGen::SaveCallerDoubles() {
   while (!iterator.Done()) {
     // TODO(all): Is this supposed to save just the callee-saved doubles? It
     // looks like it's saving all of them.
-    VRegister value = VRegister::from_code(iterator.Current());
+    FPRegister value = FPRegister::from_code(iterator.Current());
     __ Poke(value, count * kDoubleSize);
     iterator.Advance();
     count++;
@@ -565,7 +563,7 @@ void LCodeGen::RestoreCallerDoubles() {
   while (!iterator.Done()) {
     // TODO(all): Is this supposed to restore just the callee-saved doubles? It
     // looks like it's restoring all of them.
-    VRegister value = VRegister::from_code(iterator.Current());
+    FPRegister value = FPRegister::from_code(iterator.Current());
     __ Peek(value, count * kDoubleSize);
     iterator.Advance();
     count++;
@@ -621,7 +619,8 @@ void LCodeGen::DoPrologue(LPrologue* instr) {
       __ CallRuntime(Runtime::kNewScriptContext);
       deopt_mode = Safepoint::kLazyDeopt;
     } else {
-      if (slots <= ConstructorBuiltins::MaximumFunctionContextSlots()) {
+      if (slots <=
+          ConstructorBuiltinsAssembler::MaximumFunctionContextSlots()) {
         Callable callable = CodeFactory::FastNewFunctionContext(
             isolate(), info()->scope()->scope_type());
         __ Mov(FastNewFunctionContextDescriptor::SlotsRegister(), slots);
@@ -1078,6 +1077,7 @@ Operand LCodeGen::ToOperand(LOperand* op) {
   }
   // Stack slots not implemented, use ToMemOperand instead.
   UNREACHABLE();
+  return Operand(0);
 }
 
 
@@ -1098,6 +1098,7 @@ Operand LCodeGen::ToOperand32(LOperand* op) {
   }
   // Other cases are not implemented.
   UNREACHABLE();
+  return Operand(0);
 }
 
 
@@ -1133,7 +1134,7 @@ MemOperand LCodeGen::ToMemOperand(LOperand* op, StackMode stack_mode) const {
           (pushed_arguments_ + GetTotalFrameSlotCount()) * kPointerSize -
           StandardFrameConstants::kFixedFrameSizeAboveFp;
       int jssp_offset = fp_offset + jssp_offset_to_fp;
-      if (masm()->IsImmLSScaled(jssp_offset, kPointerSizeLog2)) {
+      if (masm()->IsImmLSScaled(jssp_offset, LSDoubleWord)) {
         return MemOperand(masm()->StackPointer(), jssp_offset);
       }
     }
@@ -1272,10 +1273,11 @@ void LCodeGen::EmitTestAndBranch(InstrType instr,
   EmitBranchGeneric(instr, branch);
 }
 
-template <class InstrType>
+
+template<class InstrType>
 void LCodeGen::EmitBranchIfNonZeroNumber(InstrType instr,
-                                         const VRegister& value,
-                                         const VRegister& scratch) {
+                                         const FPRegister& value,
+                                         const FPRegister& scratch) {
   BranchIfNonZeroNumber branch(this, value, scratch);
   EmitBranchGeneric(instr, branch);
 }
@@ -2226,6 +2228,7 @@ void LCodeGen::DoClampTToUint8(LClampTToUint8* instr) {
   __ Bind(&done);
 }
 
+
 void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   Handle<String> class_name = instr->hydrogen()->class_name();
   Label* true_label = instr->TrueLabel(chunk_);
@@ -2262,8 +2265,9 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   // The constructor function is in scratch1. Get its instance class name.
   __ Ldr(scratch1,
          FieldMemOperand(scratch1, JSFunction::kSharedFunctionInfoOffset));
-  __ Ldr(scratch1, FieldMemOperand(
-                       scratch1, SharedFunctionInfo::kInstanceClassNameOffset));
+  __ Ldr(scratch1,
+         FieldMemOperand(scratch1,
+                         SharedFunctionInfo::kInstanceClassNameOffset));
 
   // The class name we are testing against is internalized since it's a literal.
   // The name in the constructor is internalized because of the way the context
@@ -2274,9 +2278,10 @@ void LCodeGen::DoClassOfTestAndBranch(LClassOfTestAndBranch* instr) {
   EmitCompareAndBranch(instr, eq, scratch1, Operand(class_name));
 }
 
+
 void LCodeGen::DoCmpHoleAndBranchD(LCmpHoleAndBranchD* instr) {
   DCHECK(instr->hydrogen()->representation().IsDouble());
-  VRegister object = ToDoubleRegister(instr->object());
+  FPRegister object = ToDoubleRegister(instr->object());
   Register temp = ToRegister(instr->temp());
 
   // If we don't have a NaN, we don't have the hole, so branch now to avoid the
@@ -2664,8 +2669,7 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
 
   __ Bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
-  __ Ldr(result,
-         FieldMemOperand(result, DescriptorArray::kEnumCacheBridgeOffset));
+  __ Ldr(result, FieldMemOperand(result, DescriptorArray::kEnumCacheOffset));
   __ Ldr(result, FieldMemOperand(result, FixedArray::SizeFor(instr->idx())));
   DeoptimizeIfZero(result, instr, DeoptimizeReason::kNoCache);
 
@@ -2733,6 +2737,7 @@ static Condition BranchCondition(HHasInstanceTypeAndBranch* instr) {
   if (to == LAST_TYPE) return hs;
   if (from == FIRST_TYPE) return ls;
   UNREACHABLE();
+  return eq;
 }
 
 
@@ -3273,7 +3278,7 @@ void LCodeGen::DoLoadNamedField(LLoadNamedField* instr) {
 
   if (instr->hydrogen()->representation().IsDouble()) {
     DCHECK(access.IsInobject());
-    VRegister result = ToDoubleRegister(instr->result());
+    FPRegister result = ToDoubleRegister(instr->result());
     __ Ldr(result, FieldMemOperand(object, offset));
     return;
   }
@@ -3433,7 +3438,7 @@ void LCodeGen::DoMathAbsTagged(LMathAbsTagged* instr) {
 
   // The result is the magnitude (abs) of the smallest value a smi can
   // represent, encoded as a double.
-  __ Mov(result_bits, bit_cast<uint64_t>(static_cast<double>(0x80000000)));
+  __ Mov(result_bits, double_to_rawbits(0x80000000));
   __ B(deferred->allocation_entry());
 
   __ Bind(deferred->exit());
@@ -4975,7 +4980,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
     DCHECK(access.IsInobject());
     DCHECK(!instr->hydrogen()->has_transition());
     DCHECK(!instr->hydrogen()->NeedsWriteBarrier());
-    VRegister value = ToDoubleRegister(instr->value());
+    FPRegister value = ToDoubleRegister(instr->value());
     __ Str(value, FieldMemOperand(object, offset));
     return;
   }
@@ -5013,7 +5018,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
 
   if (FLAG_unbox_double_fields && representation.IsDouble()) {
     DCHECK(access.IsInobject());
-    VRegister value = ToDoubleRegister(instr->value());
+    FPRegister value = ToDoubleRegister(instr->value());
     __ Str(value, FieldMemOperand(object, offset));
   } else if (representation.IsSmi() &&
              instr->hydrogen()->value()->representation().IsInteger32()) {
@@ -5351,7 +5356,7 @@ void LCodeGen::DoTypeof(LTypeof* instr) {
   __ Mov(x0, Immediate(isolate()->factory()->number_string()));
   __ B(&end);
   __ Bind(&do_call);
-  Callable callable = Builtins::CallableFor(isolate(), Builtins::kTypeof);
+  Callable callable = CodeFactory::Typeof(isolate());
   CallCode(callable.code(), RelocInfo::CODE_TARGET, instr);
   __ Bind(&end);
 }
@@ -5482,10 +5487,10 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
            FieldMemOperand(result, SharedFunctionInfo::kCompilerHintsOffset));
 
     // Do not transform the receiver to object for strict mode functions.
-    __ Tbnz(result, SharedFunctionInfo::IsStrictBit::kShift, &copy_receiver);
+    __ Tbnz(result, SharedFunctionInfo::kStrictModeFunction, &copy_receiver);
 
     // Do not transform the receiver to object for builtins.
-    __ Tbnz(result, SharedFunctionInfo::IsNativeBit::kShift, &copy_receiver);
+    __ Tbnz(result, SharedFunctionInfo::kNative, &copy_receiver);
   }
 
   // Normal function. Replace undefined or null with global receiver.

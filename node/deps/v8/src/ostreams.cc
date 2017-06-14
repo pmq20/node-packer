@@ -4,7 +4,6 @@
 
 #include "src/ostreams.h"
 #include "src/objects.h"
-#include "src/objects/string.h"
 
 #if V8_OS_WIN
 #if _MSC_VER < 1900

@@ -33,10 +33,21 @@ RUNTIME_FUNCTION(Runtime_CompileLazy) {
 #endif
 
   StackLimitCheck check(isolate);
-  if (check.JsHasOverflowed(kStackSpaceRequiredForCompilation * KB)) {
-    return isolate->StackOverflow();
-  }
+  if (check.JsHasOverflowed(1 * KB)) return isolate->StackOverflow();
   if (!Compiler::Compile(function, Compiler::KEEP_EXCEPTION)) {
+    return isolate->heap()->exception();
+  }
+  DCHECK(function->is_compiled());
+  return function->code();
+}
+
+RUNTIME_FUNCTION(Runtime_CompileBaseline) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+  StackLimitCheck check(isolate);
+  if (check.JsHasOverflowed(1 * KB)) return isolate->StackOverflow();
+  if (!Compiler::CompileBaseline(function)) {
     return isolate->heap()->exception();
   }
   DCHECK(function->is_compiled());
@@ -48,9 +59,7 @@ RUNTIME_FUNCTION(Runtime_CompileOptimized_Concurrent) {
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
   StackLimitCheck check(isolate);
-  if (check.JsHasOverflowed(kStackSpaceRequiredForCompilation * KB)) {
-    return isolate->StackOverflow();
-  }
+  if (check.JsHasOverflowed(1 * KB)) return isolate->StackOverflow();
   if (!Compiler::CompileOptimized(function, Compiler::CONCURRENT)) {
     return isolate->heap()->exception();
   }
@@ -64,24 +73,11 @@ RUNTIME_FUNCTION(Runtime_CompileOptimized_NotConcurrent) {
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
   StackLimitCheck check(isolate);
-  if (check.JsHasOverflowed(kStackSpaceRequiredForCompilation * KB)) {
-    return isolate->StackOverflow();
-  }
+  if (check.JsHasOverflowed(1 * KB)) return isolate->StackOverflow();
   if (!Compiler::CompileOptimized(function, Compiler::NOT_CONCURRENT)) {
     return isolate->heap()->exception();
   }
   DCHECK(function->is_compiled());
-  return function->code();
-}
-
-RUNTIME_FUNCTION(Runtime_EvictOptimizedCodeSlot) {
-  SealHandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
-
-  DCHECK(function->is_compiled());
-  function->feedback_vector()->EvictOptimizedCodeMarkedForDeoptimization(
-      function->shared(), "Runtime_EvictOptimizedCodeSlot");
   return function->code();
 }
 
@@ -94,19 +90,20 @@ RUNTIME_FUNCTION(Runtime_InstantiateAsmJs) {
   if (args[1]->IsJSReceiver()) {
     stdlib = args.at<JSReceiver>(1);
   }
-  Handle<JSReceiver> foreign;
-  if (args[2]->IsJSReceiver()) {
-    foreign = args.at<JSReceiver>(2);
+  Handle<JSObject> foreign;
+  if (args[2]->IsJSObject()) {
+    foreign = args.at<JSObject>(2);
   }
   Handle<JSArrayBuffer> memory;
   if (args[3]->IsJSArrayBuffer()) {
     memory = args.at<JSArrayBuffer>(3);
   }
-  if (function->shared()->HasAsmWasmData()) {
-    Handle<SharedFunctionInfo> shared(function->shared());
-    Handle<FixedArray> data(shared->asm_wasm_data());
-    MaybeHandle<Object> result = AsmJs::InstantiateAsmWasm(
-        isolate, shared, data, stdlib, foreign, memory);
+  if (function->shared()->HasAsmWasmData() &&
+      AsmJs::IsStdlibValid(isolate, handle(function->shared()->asm_wasm_data()),
+                           stdlib)) {
+    MaybeHandle<Object> result;
+    result = AsmJs::InstantiateAsmWasm(
+        isolate, handle(function->shared()->asm_wasm_data()), memory, foreign);
     if (!result.is_null()) {
       return *result.ToHandleChecked();
     }
@@ -216,20 +213,18 @@ RUNTIME_FUNCTION(Runtime_NotifyDeoptimized) {
   isolate->thread_manager()->IterateArchivedThreads(&activations_finder);
 
   if (!activations_finder.has_code_activations_) {
-    Deoptimizer::UnlinkOptimizedCode(*optimized_code,
-                                     function->context()->native_context());
-
+    if (function->code() == *optimized_code) {
+      if (FLAG_trace_deopt) {
+        PrintF("[removing optimized code for: ");
+        function->PrintName();
+        PrintF("]\n");
+      }
+      function->ReplaceCode(function->shared()->code());
+    }
     // Evict optimized code for this function from the cache so that it
     // doesn't get used for new closures.
-    if (function->feedback_vector()->optimized_code() == *optimized_code) {
-      function->ClearOptimizedCodeSlot("notify deoptimized");
-    }
-    // Remove the code from the osr optimized code cache.
-    DeoptimizationInputData* deopt_data =
-        DeoptimizationInputData::cast(optimized_code->deoptimization_data());
-    if (deopt_data->OsrAstId()->value() == BailoutId::None().ToInt()) {
-      isolate->EvictOSROptimizedCode(*optimized_code, "notify deoptimized");
-    }
+    function->shared()->EvictFromOptimizedCodeMap(*optimized_code,
+                                                  "notify deoptimized");
   } else {
     // TODO(titzer): we should probably do DeoptimizeCodeList(code)
     // unconditionally if the code is not already marked for deoptimization.
@@ -353,6 +348,9 @@ RUNTIME_FUNCTION(Runtime_CompileForOnStackReplacement) {
         PrintF("[OSR - Entry at AST id %d, offset %d in optimized code]\n",
                ast_id.ToInt(), data->OsrPcOffset()->value());
       }
+      // TODO(titzer): this is a massive hack to make the deopt counts
+      // match. Fix heuristics for reenabling optimizations!
+      function->shared()->increment_deopt_count();
 
       if (result->is_turbofanned()) {
         // When we're waiting for concurrent optimization, set to compile on

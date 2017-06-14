@@ -24,7 +24,6 @@ class WasmCompiledModule;
 class WasmDebugInfo;
 class WasmModuleObject;
 class WasmInstanceObject;
-class WasmTableObject;
 class WasmMemoryObject;
 
 namespace compiler {
@@ -70,34 +69,15 @@ struct WasmInitExpr {
   }
 };
 
-// Reference to a string in the wire bytes.
-class WireBytesRef {
- public:
-  WireBytesRef() : WireBytesRef(0, 0) {}
-  WireBytesRef(uint32_t offset, uint32_t length)
-      : offset_(offset), length_(length) {
-    DCHECK_IMPLIES(offset_ == 0, length_ == 0);
-    DCHECK_LE(offset_, offset_ + length_);  // no uint32_t overflow.
-  }
-
-  uint32_t offset() const { return offset_; }
-  uint32_t length() const { return length_; }
-  uint32_t end_offset() const { return offset_ + length_; }
-  bool is_empty() const { return length_ == 0; }
-  bool is_set() const { return offset_ != 0; }
-
- private:
-  uint32_t offset_;
-  uint32_t length_;
-};
-
-// Static representation of a wasm function.
+// Static representation of a WASM function.
 struct WasmFunction {
   FunctionSig* sig;      // signature of the function.
   uint32_t func_index;   // index into the function table.
   uint32_t sig_index;    // index into the signature table.
-  WireBytesRef name;     // function name, if any.
-  WireBytesRef code;     // code of this function.
+  uint32_t name_offset;  // offset in the module bytes of the name, if any.
+  uint32_t name_length;  // length in bytes of the name.
+  uint32_t code_start_offset;    // offset in the module bytes of code start.
+  uint32_t code_end_offset;      // offset in the module bytes of code end.
   bool imported;
   bool exported;
 };
@@ -115,7 +95,8 @@ struct WasmGlobal {
 // Static representation of a wasm data segment.
 struct WasmDataSegment {
   WasmInitExpr dest_addr;  // destination memory address of the data.
-  WireBytesRef source;     // start offset in the module bytes.
+  uint32_t source_offset;  // start offset in the module bytes.
+  uint32_t source_size;    // end offset in the module bytes.
 };
 
 // Static representation of a wasm indirect call table.
@@ -137,30 +118,25 @@ struct WasmTableInit {
   std::vector<uint32_t> entries;
 };
 
-// Static representation of a wasm import.
+// Static representation of a WASM import.
 struct WasmImport {
-  WireBytesRef module_name;  // module name.
-  WireBytesRef field_name;   // import name.
-  WasmExternalKind kind;     // kind of the import.
-  uint32_t index;            // index into the respective space.
+  uint32_t module_name_length;  // length in bytes of the module name.
+  uint32_t module_name_offset;  // offset in module bytes of the module name.
+  uint32_t field_name_length;   // length in bytes of the import name.
+  uint32_t field_name_offset;   // offset in module bytes of the import name.
+  WasmExternalKind kind;        // kind of the import.
+  uint32_t index;               // index into the respective space.
 };
 
-// Static representation of a wasm export.
+// Static representation of a WASM export.
 struct WasmExport {
-  WireBytesRef name;      // exported name.
+  uint32_t name_length;   // length in bytes of the exported name.
+  uint32_t name_offset;   // offset in module bytes of the name to export.
   WasmExternalKind kind;  // kind of the export.
   uint32_t index;         // index into the respective space.
 };
 
 enum ModuleOrigin : uint8_t { kWasmOrigin, kAsmJsOrigin };
-
-inline bool IsWasm(ModuleOrigin Origin) {
-  return Origin == ModuleOrigin::kWasmOrigin;
-}
-inline bool IsAsmJs(ModuleOrigin Origin) {
-  return Origin == ModuleOrigin::kAsmJsOrigin;
-}
-
 struct ModuleWireBytes;
 
 // Static representation of a module.
@@ -168,7 +144,7 @@ struct V8_EXPORT_PRIVATE WasmModule {
   static const uint32_t kPageSize = 0x10000;    // Page size, 64kb.
   static const uint32_t kMinMemPages = 1;       // Minimum memory size = 64kb
 
-  std::unique_ptr<Zone> signature_zone;
+  Zone* owned_zone;
   uint32_t min_mem_pages = 0;  // minimum size of the memory in 64k pages
   uint32_t max_mem_pages = 0;  // maximum size of the memory in 64k pages
   bool has_max_mem = false;    // try if a maximum memory size exists
@@ -178,14 +154,13 @@ struct V8_EXPORT_PRIVATE WasmModule {
   // the fact that we index on uint32_t, so we may technically not be
   // able to represent some start_function_index -es.
   int start_function_index = -1;      // start function, if any
+  ModuleOrigin origin = kWasmOrigin;  // origin of the module
 
   std::vector<WasmGlobal> globals;             // globals in this module.
   uint32_t globals_size = 0;                   // size of globals table.
   uint32_t num_imported_functions = 0;         // number of imported functions.
   uint32_t num_declared_functions = 0;         // number of declared functions.
   uint32_t num_exported_functions = 0;         // number of exported functions.
-  WireBytesRef name = {0, 0};                  // module name, if any.
-  // TODO(wasm): Add url here, for spec'ed location information.
   std::vector<FunctionSig*> signatures;        // signatures in this module.
   std::vector<WasmFunction> functions;         // functions in this module.
   std::vector<WasmDataSegment> data_segments;  // data segments in this module.
@@ -203,21 +178,15 @@ struct V8_EXPORT_PRIVATE WasmModule {
   std::unique_ptr<base::Semaphore> pending_tasks;
 
   WasmModule() : WasmModule(nullptr) {}
-  WasmModule(std::unique_ptr<Zone> owned);
-
-  ModuleOrigin get_origin() const { return origin_; }
-  void set_origin(ModuleOrigin new_value) { origin_ = new_value; }
-  bool is_wasm() const { return wasm::IsWasm(origin_); }
-  bool is_asm_js() const { return wasm::IsAsmJs(origin_); }
-
- private:
-  // TODO(kschimpf) - Encapsulate more fields.
-  ModuleOrigin origin_ = kWasmOrigin;  // origin of the module
+  WasmModule(Zone* owned_zone);
+  ~WasmModule() {
+    if (owned_zone) delete owned_zone;
+  }
 };
 
 typedef Managed<WasmModule> WasmModuleWrapper;
 
-// An instantiated wasm module, including memory, function table, etc.
+// An instantiated WASM module, including memory, function table, etc.
 struct WasmInstance {
   const WasmModule* module;  // static representation of the module.
   // -- Heap allocated --------------------------------------------------------
@@ -225,7 +194,6 @@ struct WasmInstance {
   std::vector<Handle<FixedArray>> function_tables;  // indirect function tables.
   std::vector<Handle<FixedArray>>
       signature_tables;                    // indirect signature tables.
-  // TODO(wasm): Remove this vector, since it is only used for testing.
   std::vector<Handle<Code>> function_code;  // code objects for each function.
   // -- raw memory ------------------------------------------------------------
   byte* mem_start = nullptr;  // start of linear memory.
@@ -238,22 +206,6 @@ struct WasmInstance {
         function_tables(m->function_tables.size()),
         signature_tables(m->function_tables.size()),
         function_code(m->functions.size()) {}
-
-  void ReopenHandles(Isolate* isolate) {
-    context = handle(*context, isolate);
-
-    for (auto& table : function_tables) {
-      table = handle(*table, isolate);
-    }
-
-    for (auto& table : signature_tables) {
-      table = handle(*table, isolate);
-    }
-
-    for (auto& code : function_code) {
-      code = handle(*code, isolate);
-    }
-  }
 };
 
 // Interface to the storage (wire bytes) of a wasm module.
@@ -269,29 +221,31 @@ struct V8_EXPORT_PRIVATE ModuleWireBytes {
   }
 
   // Get a string stored in the module bytes representing a name.
-  WasmName GetName(WireBytesRef ref) const {
-    if (ref.is_empty()) return {"<?>", 3};  // no name.
-    CHECK(BoundsCheck(ref.offset(), ref.length()));
+  WasmName GetName(uint32_t offset, uint32_t length) const {
+    if (length == 0) return {"<?>", 3};  // no name.
+    CHECK(BoundsCheck(offset, length));
+    DCHECK_GE(length, 0);
     return Vector<const char>::cast(
-        module_bytes_.SubVector(ref.offset(), ref.end_offset()));
+        module_bytes_.SubVector(offset, offset + length));
   }
 
   // Get a string stored in the module bytes representing a function name.
   WasmName GetName(const WasmFunction* function) const {
-    return GetName(function->name);
+    return GetName(function->name_offset, function->name_length);
   }
 
   // Get a string stored in the module bytes representing a name.
-  WasmName GetNameOrNull(WireBytesRef ref) const {
-    if (!ref.is_set()) return {NULL, 0};  // no name.
-    CHECK(BoundsCheck(ref.offset(), ref.length()));
+  WasmName GetNameOrNull(uint32_t offset, uint32_t length) const {
+    if (offset == 0 && length == 0) return {NULL, 0};  // no name.
+    CHECK(BoundsCheck(offset, length));
+    DCHECK_GE(length, 0);
     return Vector<const char>::cast(
-        module_bytes_.SubVector(ref.offset(), ref.end_offset()));
+        module_bytes_.SubVector(offset, offset + length));
   }
 
   // Get a string stored in the module bytes representing a function name.
   WasmName GetNameOrNull(const WasmFunction* function) const {
-    return GetNameOrNull(function->name);
+    return GetNameOrNull(function->name_offset, function->name_length);
   }
 
   // Checks the given offset range is contained within the module bytes.
@@ -301,13 +255,13 @@ struct V8_EXPORT_PRIVATE ModuleWireBytes {
   }
 
   Vector<const byte> GetFunctionBytes(const WasmFunction* function) const {
-    return module_bytes_.SubVector(function->code.offset(),
-                                   function->code.end_offset());
+    return module_bytes_.SubVector(function->code_start_offset,
+                                   function->code_end_offset);
   }
 
   const byte* start() const { return module_bytes_.start(); }
   const byte* end() const { return module_bytes_.end(); }
-  size_t length() const { return module_bytes_.length(); }
+  int length() const { return module_bytes_.length(); }
 
  private:
   const Vector<const byte> module_bytes_;
@@ -317,23 +271,10 @@ struct V8_EXPORT_PRIVATE ModuleWireBytes {
 // minimal information about the globals, functions, and function tables.
 struct V8_EXPORT_PRIVATE ModuleEnv {
   ModuleEnv(const WasmModule* module, WasmInstance* instance)
-      : module(module),
-        instance(instance),
-        function_tables(instance ? &instance->function_tables : nullptr),
-        signature_tables(instance ? &instance->signature_tables : nullptr) {}
-  ModuleEnv(const WasmModule* module,
-            std::vector<Handle<FixedArray>>* function_tables,
-            std::vector<Handle<FixedArray>>* signature_tables)
-      : module(module),
-        instance(nullptr),
-        function_tables(function_tables),
-        signature_tables(signature_tables) {}
+      : module(module), instance(instance) {}
 
   const WasmModule* module;
   WasmInstance* instance;
-
-  std::vector<Handle<FixedArray>>* function_tables;
-  std::vector<Handle<FixedArray>>* signature_tables;
 
   bool IsValidGlobal(uint32_t index) const {
     return module && index < module->globals.size();
@@ -364,10 +305,8 @@ struct V8_EXPORT_PRIVATE ModuleEnv {
     return &module->function_tables[index];
   }
 
-  bool is_asm_js() const { return module->is_asm_js(); }
-  bool is_wasm() const { return module->is_wasm(); }
+  bool asm_js() { return module->origin == kAsmJsOrigin; }
 
-  // Only used for testing.
   Handle<Code> GetFunctionCode(uint32_t index) {
     DCHECK_NOT_NULL(instance);
     return instance->function_code[index];
@@ -404,6 +343,8 @@ struct WasmFunctionName {
   WasmName name_;
 };
 
+std::ostream& operator<<(std::ostream& os, const WasmModule& module);
+std::ostream& operator<<(std::ostream& os, const WasmFunction& function);
 std::ostream& operator<<(std::ostream& os, const WasmFunctionName& name);
 
 // Get the debug info associated with the given wasm object.
@@ -411,9 +352,9 @@ std::ostream& operator<<(std::ostream& os, const WasmFunctionName& name);
 Handle<WasmDebugInfo> GetDebugInfo(Handle<JSObject> wasm);
 
 // Check whether the given object represents a WebAssembly.Instance instance.
-// This checks the number and type of embedder fields, so it's not 100 percent
+// This checks the number and type of internal fields, so it's not 100 percent
 // secure. If it turns out that we need more complete checks, we could add a
-// special marker as embedder field, which will definitely never occur anywhere
+// special marker as internal field, which will definitely never occur anywhere
 // else.
 bool IsWasmInstance(Object* instance);
 
@@ -438,42 +379,47 @@ V8_EXPORT_PRIVATE Handle<JSArray> GetCustomSections(
     Isolate* isolate, Handle<WasmModuleObject> module, Handle<String> name,
     ErrorThrower* thrower);
 
+// Get the offset of the code of a function within a module.
+int GetFunctionCodeOffset(Handle<WasmCompiledModule> compiled_module,
+                          int func_index);
+
 // Assumed to be called with a code object associated to a wasm module instance.
 // Intended to be called from runtime functions.
 // Returns nullptr on failing to get owning instance.
 WasmInstanceObject* GetOwningWasmInstance(Code* code);
 
-Handle<JSArrayBuffer> NewArrayBuffer(Isolate*, size_t size,
+MaybeHandle<JSArrayBuffer> GetInstanceMemory(
+    Isolate* isolate, Handle<WasmInstanceObject> instance);
+
+int32_t GetInstanceMemorySize(Isolate* isolate,
+                              Handle<WasmInstanceObject> instance);
+
+int32_t GrowInstanceMemory(Isolate* isolate,
+                           Handle<WasmInstanceObject> instance, uint32_t pages);
+
+Handle<JSArrayBuffer> NewArrayBuffer(Isolate* isolate, size_t size,
                                      bool enable_guard_regions);
 
-Handle<JSArrayBuffer> SetupArrayBuffer(Isolate*, void* allocation_base,
-                                       size_t allocation_length,
-                                       void* backing_store, size_t size,
-                                       bool is_external,
-                                       bool enable_guard_regions);
+int32_t GrowWebAssemblyMemory(Isolate* isolate,
+                              Handle<WasmMemoryObject> receiver,
+                              uint32_t pages);
+
+int32_t GrowMemory(Isolate* isolate, Handle<WasmInstanceObject> instance,
+                   uint32_t pages);
 
 void DetachWebAssemblyMemoryBuffer(Isolate* isolate,
-                                   Handle<JSArrayBuffer> buffer,
-                                   bool free_memory);
-
-// The returned pointer is owned by the wasm instance target belongs to. The
-// result is alive as long as the instance exists.
-WasmFunction* GetWasmFunctionForImportWrapper(Isolate* isolate,
-                                              Handle<Object> target);
-
-Handle<Code> UnwrapImportWrapper(Handle<Object> import_wrapper);
-
-void TableSet(ErrorThrower* thrower, Isolate* isolate,
-              Handle<WasmTableObject> table, int32_t index,
-              Handle<JSFunction> function);
+                                   Handle<JSArrayBuffer> buffer);
 
 void UpdateDispatchTables(Isolate* isolate, Handle<FixedArray> dispatch_tables,
-                          int index, WasmFunction* function, Handle<Code> code);
+                          int index, Handle<JSFunction> js_function);
+
+void GrowDispatchTables(Isolate* isolate, Handle<FixedArray> dispatch_tables,
+                        uint32_t old_size, uint32_t count);
 
 //============================================================================
 //== Compilation and instantiation ===========================================
 //============================================================================
-V8_EXPORT_PRIVATE bool SyncValidate(Isolate* isolate,
+V8_EXPORT_PRIVATE bool SyncValidate(Isolate* isolate, ErrorThrower* thrower,
                                     const ModuleWireBytes& bytes);
 
 V8_EXPORT_PRIVATE MaybeHandle<WasmModuleObject> SyncCompileTranslatedAsmJs(
@@ -488,10 +434,6 @@ V8_EXPORT_PRIVATE MaybeHandle<WasmInstanceObject> SyncInstantiate(
     Handle<WasmModuleObject> module_object, MaybeHandle<JSReceiver> imports,
     MaybeHandle<JSArrayBuffer> memory);
 
-V8_EXPORT_PRIVATE MaybeHandle<WasmInstanceObject> SyncCompileAndInstantiate(
-    Isolate* isolate, ErrorThrower* thrower, const ModuleWireBytes& bytes,
-    MaybeHandle<JSReceiver> imports, MaybeHandle<JSArrayBuffer> memory);
-
 V8_EXPORT_PRIVATE void AsyncCompile(Isolate* isolate, Handle<JSPromise> promise,
                                     const ModuleWireBytes& bytes);
 
@@ -500,46 +442,9 @@ V8_EXPORT_PRIVATE void AsyncInstantiate(Isolate* isolate,
                                         Handle<WasmModuleObject> module_object,
                                         MaybeHandle<JSReceiver> imports);
 
-#if V8_TARGET_ARCH_64_BIT
-const bool kGuardRegionsSupported = true;
-#else
-const bool kGuardRegionsSupported = false;
-#endif
-
-inline bool EnableGuardRegions() {
-  return FLAG_wasm_guard_pages && kGuardRegionsSupported;
-}
-
-void UnpackAndRegisterProtectedInstructions(Isolate* isolate,
-                                            Handle<FixedArray> code_table);
-
-// Triggered by the WasmCompileLazy builtin.
-// Walks the stack (top three frames) to determine the wasm instance involved
-// and which function to compile.
-// Then triggers WasmCompiledModule::CompileLazy, taking care of correctly
-// patching the call site or indirect function tables.
-// Returns either the Code object that has been lazily compiled, or Illegal if
-// an error occured. In the latter case, a pending exception has been set, which
-// will be triggered when returning from the runtime function, i.e. the Illegal
-// builtin will never be called.
-Handle<Code> CompileLazy(Isolate* isolate);
-
-// This class orchestrates the lazy compilation of wasm functions. It is
-// triggered by the WasmCompileLazy builtin.
-// It contains the logic for compiling and specializing wasm functions, and
-// patching the calling wasm code.
-// Once we support concurrent lazy compilation, this class will contain the
-// logic to actually orchestrate parallel execution of wasm compilation jobs.
-// TODO(clemensh): Implement concurrent lazy compilation.
-class LazyCompilationOrchestrator {
-  void CompileFunction(Isolate*, Handle<WasmInstanceObject>, int func_index,
-                       Counters* counters);
-
- public:
-  Handle<Code> CompileLazy(Isolate*, Handle<WasmInstanceObject>,
-                           Handle<Code> caller, int call_offset,
-                           int exported_func_index, bool patch_caller);
-};
+V8_EXPORT_PRIVATE void AsyncCompileAndInstantiate(
+    Isolate* isolate, Handle<JSPromise> promise, const ModuleWireBytes& bytes,
+    MaybeHandle<JSReceiver> imports);
 
 namespace testing {
 void ValidateInstancesChain(Isolate* isolate,

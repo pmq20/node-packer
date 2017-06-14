@@ -9,21 +9,13 @@
 #include "src/globals.h"
 #include "src/isolate.h"
 #include "src/messages.h"
-#include "src/objects/descriptor-array.h"
-#include "src/objects/dictionary.h"
 #include "src/objects/scope-info.h"
-#include "src/objects/string.h"
-#include "src/string-hasher.h"
 
 namespace v8 {
 namespace internal {
 
-class BreakPointInfo;
 class BoilerplateDescription;
 class ConstantElementsPair;
-class CoverageInfo;
-class DebugInfo;
-struct SourceRange;
 
 enum FunctionMode {
   // With prototype.
@@ -85,10 +77,6 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<OrderedHashSet> NewOrderedHashSet();
   Handle<OrderedHashMap> NewOrderedHashMap();
 
-  Handle<SmallOrderedHashSet> NewSmallOrderedHashSet(
-      int size = SmallOrderedHashSet::kMinCapacity,
-      PretenureFlag pretenure = NOT_TENURED);
-
   // Create a new PrototypeInfo struct.
   Handle<PrototypeInfo> NewPrototypeInfo();
 
@@ -135,7 +123,10 @@ class V8_EXPORT_PRIVATE Factory final {
     return StringTable::LookupString(isolate(), string);
   }
 
-  Handle<Name> InternalizeName(Handle<Name> name);
+  Handle<Name> InternalizeName(Handle<Name> name) {
+    if (name->IsUniqueName()) return name;
+    return StringTable::LookupString(isolate(), Handle<String>::cast(name));
+  }
 
   // String creation functions.  Most of the string creation functions take
   // a Heap::PretenureFlag argument to optionally request that they be
@@ -173,6 +164,29 @@ class V8_EXPORT_PRIVATE Factory final {
       PretenureFlag pretenure = NOT_TENURED) {
     return NewStringFromOneByte(
         OneByteVector(str), pretenure).ToHandleChecked();
+  }
+
+
+  // Allocates and fully initializes a String.  There are two String encodings:
+  // one-byte and two-byte. One should choose between the threestring
+  // allocation functions based on the encoding of the string buffer used to
+  // initialized the string.
+  //   - ...FromOneByte initializes the string from a buffer that is Latin1
+  //     encoded (it does not check that the buffer is Latin1 encoded) and the
+  //     result will be Latin1 encoded.
+  //   - ...FromUTF8 initializes the string from a buffer that is UTF-8
+  //     encoded.  If the characters are all ASCII characters, the result
+  //     will be Latin1 encoded, otherwise it will converted to two-byte.
+  //   - ...FromTwoByte initializes the string from a buffer that is two-byte
+  //     encoded.  If the characters are all Latin1 characters, the
+  //     result will be converted to Latin1, otherwise it will be left as
+  //     two-byte.
+
+  // TODO(dcarney): remove this function.
+  MUST_USE_RESULT inline MaybeHandle<String> NewStringFromAscii(
+      Vector<const char> str,
+      PretenureFlag pretenure = NOT_TENURED) {
+    return NewStringFromOneByte(Vector<const uint8_t>::cast(str), pretenure);
   }
 
   // UTF8 strings are pretenured when used for regexp literal patterns and
@@ -238,10 +252,6 @@ class V8_EXPORT_PRIVATE Factory final {
   MUST_USE_RESULT MaybeHandle<String> NewConsString(Handle<String> left,
                                                     Handle<String> right);
 
-  MUST_USE_RESULT Handle<String> NewConsString(Handle<String> left,
-                                               Handle<String> right, int length,
-                                               bool one_byte);
-
   // Create or lookup a single characters tring made up of a utf16 surrogate
   // pair.
   Handle<String> NewSurrogatePairString(uint16_t lead, uint16_t trail);
@@ -252,7 +262,10 @@ class V8_EXPORT_PRIVATE Factory final {
                                     int end);
 
   // Create a new string object which holds a substring of a string.
-  Handle<String> NewSubString(Handle<String> str, int begin, int end);
+  Handle<String> NewSubString(Handle<String> str, int begin, int end) {
+    if (begin == 0 && end == str->length()) return str;
+    return NewProperSubString(str, begin, end);
+  }
 
   // Creates a new external String object.  There are two String encodings
   // in the system: one-byte and two-byte.  Unlike other String types, it does
@@ -271,9 +284,6 @@ class V8_EXPORT_PRIVATE Factory final {
   // Create a symbol.
   Handle<Symbol> NewSymbol();
   Handle<Symbol> NewPrivateSymbol();
-
-  // Create a promise.
-  Handle<JSPromise> NewJSPromise();
 
   // Create a global (but otherwise uninitialized) context.
   Handle<Context> NewNativeContext();
@@ -330,11 +340,6 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<Script> NewScript(Handle<String> source);
 
   Handle<BreakPointInfo> NewBreakPointInfo(int source_position);
-  Handle<StackFrameInfo> NewStackFrameInfo();
-  Handle<SourcePositionTableWithFrameCache>
-  NewSourcePositionTableWithFrameCache(
-      Handle<ByteArray> source_position_table,
-      Handle<UnseededNumberDictionary> stack_frame_cache);
 
   // Foreign objects are pretenured when allocated by the bootstrapper.
   Handle<Foreign> NewForeign(Address addr,
@@ -482,10 +487,6 @@ class V8_EXPORT_PRIVATE Factory final {
       Handle<Map> map,
       PretenureFlag pretenure = NOT_TENURED,
       Handle<AllocationSite> allocation_site = Handle<AllocationSite>::null());
-  Handle<JSObject> NewSlowJSObjectFromMap(
-      Handle<Map> map,
-      int number_of_slow_properties = NameDictionary::kInitialCapacity,
-      PretenureFlag pretenure = NOT_TENURED);
 
   // JS arrays are pretenured when allocated by the parser.
 
@@ -534,9 +535,6 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<JSArrayBuffer> NewJSArrayBuffer(
       SharedFlag shared = SharedFlag::kNotShared,
       PretenureFlag pretenure = NOT_TENURED);
-
-  ExternalArrayType GetArrayTypeFromElementsKind(ElementsKind kind);
-  size_t GetExternalArrayElementSize(ExternalArrayType type);
 
   Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type,
                                        PretenureFlag pretenure = NOT_TENURED);
@@ -688,7 +686,9 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<String> NumberToString(Handle<Object> number,
                                 bool check_number_string_cache = true);
 
-  Handle<String> Uint32ToString(uint32_t value);
+  Handle<String> Uint32ToString(uint32_t value) {
+    return NumberToString(NewNumberFromUint(value));
+  }
 
   Handle<JSFunction> InstallMembers(Handle<JSFunction> function);
 
@@ -735,9 +735,9 @@ class V8_EXPORT_PRIVATE Factory final {
 
   // Allocates a new SharedFunctionInfo object.
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(
-      MaybeHandle<String> name, FunctionKind kind, Handle<Code> code,
+      Handle<String> name, FunctionKind kind, Handle<Code> code,
       Handle<ScopeInfo> scope_info);
-  Handle<SharedFunctionInfo> NewSharedFunctionInfo(MaybeHandle<String> name,
+  Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name,
                                                    MaybeHandle<Code> code,
                                                    bool is_constructor);
 
@@ -766,12 +766,11 @@ class V8_EXPORT_PRIVATE Factory final {
 
   Handle<DebugInfo> NewDebugInfo(Handle<SharedFunctionInfo> shared);
 
-  Handle<CoverageInfo> NewCoverageInfo(const ZoneVector<SourceRange>& slots);
-
   // Return a map for given number of properties using the map cache in the
   // native context.
-  Handle<Map> ObjectLiteralMapFromCache(Handle<Context> native_context,
-                                        int number_of_properties);
+  Handle<Map> ObjectLiteralMapFromCache(Handle<Context> context,
+                                        int number_of_properties,
+                                        bool* is_result_from_cache);
 
   Handle<RegExpMatchInfo> NewRegExpMatchInfo();
 

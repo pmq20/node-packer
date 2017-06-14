@@ -31,11 +31,6 @@
 #define REPEAT_1_TO_7(V, T) REPEAT_1_TO_6(V, T) V(T, T, T, T, T, T, T)
 #define REPEAT_1_TO_8(V, T) REPEAT_1_TO_7(V, T) V(T, T, T, T, T, T, T, T)
 #define REPEAT_1_TO_9(V, T) REPEAT_1_TO_8(V, T) V(T, T, T, T, T, T, T, T, T)
-#define REPEAT_1_TO_10(V, T) REPEAT_1_TO_9(V, T) V(T, T, T, T, T, T, T, T, T, T)
-#define REPEAT_1_TO_11(V, T) \
-  REPEAT_1_TO_10(V, T) V(T, T, T, T, T, T, T, T, T, T, T)
-#define REPEAT_1_TO_12(V, T) \
-  REPEAT_1_TO_11(V, T) V(T, T, T, T, T, T, T, T, T, T, T, T)
 
 namespace v8 {
 namespace internal {
@@ -83,21 +78,6 @@ int CodeAssemblerState::parameter_count() const {
 }
 
 CodeAssembler::~CodeAssembler() {}
-
-#if DEBUG
-void CodeAssemblerState::PrintCurrentBlock(std::ostream& os) {
-  raw_assembler_->PrintCurrentBlock(os);
-}
-#endif
-
-void CodeAssemblerState::SetInitialDebugInformation(const char* msg,
-                                                    const char* file,
-                                                    int line) {
-#if DEBUG
-  AssemblerDebugInfo debug_info = {msg, file, line};
-  raw_assembler_->SetInitialDebugInformation(debug_info);
-#endif  // DEBUG
-}
 
 class BreakOnNodeDecorator final : public GraphDecorator {
  public:
@@ -178,19 +158,6 @@ bool CodeAssembler::IsFloat64RoundTiesEvenSupported() const {
 
 bool CodeAssembler::IsFloat64RoundTruncateSupported() const {
   return raw_assembler()->machine()->Float64RoundTruncate().IsSupported();
-}
-
-bool CodeAssembler::IsInt32AbsWithOverflowSupported() const {
-  return raw_assembler()->machine()->Int32AbsWithOverflow().IsSupported();
-}
-
-bool CodeAssembler::IsInt64AbsWithOverflowSupported() const {
-  return raw_assembler()->machine()->Int64AbsWithOverflow().IsSupported();
-}
-
-bool CodeAssembler::IsIntPtrAbsWithOverflowSupported() const {
-  return Is64() ? IsInt64AbsWithOverflowSupported()
-                : IsInt32AbsWithOverflowSupported();
 }
 
 Node* CodeAssembler::Int32Constant(int32_t value) {
@@ -310,14 +277,6 @@ void CodeAssembler::PopAndReturn(Node* pop, Node* value) {
   return raw_assembler()->PopAndReturn(pop, value);
 }
 
-void CodeAssembler::ReturnIf(Node* condition, Node* value) {
-  Label if_return(this), if_continue(this);
-  Branch(condition, &if_return, &if_continue);
-  Bind(&if_return);
-  Return(value);
-  Bind(&if_continue);
-}
-
 void CodeAssembler::DebugBreak() { raw_assembler()->DebugBreak(); }
 
 void CodeAssembler::Unreachable() {
@@ -346,12 +305,6 @@ void CodeAssembler::Comment(const char* format, ...) {
 }
 
 void CodeAssembler::Bind(Label* label) { return label->Bind(); }
-
-#if DEBUG
-void CodeAssembler::Bind(Label* label, AssemblerDebugInfo debug_info) {
-  return label->Bind(debug_info);
-}
-#endif  // DEBUG
 
 Node* CodeAssembler::LoadFramePointer() {
   return raw_assembler()->LoadFramePointer();
@@ -438,13 +391,6 @@ Node* CodeAssembler::ChangeInt32ToIntPtr(Node* value) {
   return value;
 }
 
-Node* CodeAssembler::ChangeFloat64ToUintPtr(Node* value) {
-  if (raw_assembler()->machine()->Is64()) {
-    return raw_assembler()->ChangeFloat64ToUint64(value);
-  }
-  return raw_assembler()->ChangeFloat64ToUint32(value);
-}
-
 Node* CodeAssembler::RoundIntPtrToFloat64(Node* value) {
   if (raw_assembler()->machine()->Is64()) {
     return raw_assembler()->RoundInt64ToFloat64(value);
@@ -516,26 +462,6 @@ Node* CodeAssembler::AtomicStore(MachineRepresentation rep, Node* base,
   return raw_assembler()->AtomicStore(rep, base, offset, value);
 }
 
-#define ATOMIC_FUNCTION(name)                                        \
-  Node* CodeAssembler::Atomic##name(MachineType type, Node* base,    \
-                                    Node* offset, Node* value) {     \
-    return raw_assembler()->Atomic##name(type, base, offset, value); \
-  }
-ATOMIC_FUNCTION(Exchange);
-ATOMIC_FUNCTION(Add);
-ATOMIC_FUNCTION(Sub);
-ATOMIC_FUNCTION(And);
-ATOMIC_FUNCTION(Or);
-ATOMIC_FUNCTION(Xor);
-#undef ATOMIC_FUNCTION
-
-Node* CodeAssembler::AtomicCompareExchange(MachineType type, Node* base,
-                                           Node* offset, Node* old_value,
-                                           Node* new_value) {
-  return raw_assembler()->AtomicCompareExchange(type, base, offset, old_value,
-                                                new_value);
-}
-
 Node* CodeAssembler::StoreRoot(Heap::RootListIndex root_index, Node* value) {
   DCHECK(Heap::RootCanBeWrittenAfterInitialization(root_index));
   Node* roots_array_start =
@@ -594,7 +520,7 @@ Node* CodeAssembler::CallRuntime(Runtime::FunctionId function, Node* context,
   return return_value;
 }
 
-// Instantiate CallRuntime() for argument counts used by CSA-generated code
+// Instantiate CallRuntime() with up to 6 arguments.
 #define INSTANTIATE(...)                                       \
   template V8_EXPORT_PRIVATE Node* CodeAssembler::CallRuntime( \
       Runtime::FunctionId, __VA_ARGS__);
@@ -620,23 +546,7 @@ Node* CodeAssembler::TailCallRuntime(Runtime::FunctionId function,
   return raw_assembler()->TailCallN(desc, arraysize(nodes), nodes);
 }
 
-Node* CodeAssembler::TailCallRuntimeN(Runtime::FunctionId function,
-                                      Node* context, Node* argc) {
-  CallDescriptor* desc = Linkage::GetRuntimeCallDescriptor(
-      zone(), function, 0, Operator::kNoProperties,
-      CallDescriptor::kSupportsTailCalls);
-  int return_count = static_cast<int>(desc->ReturnCount());
-
-  Node* centry =
-      HeapConstant(CodeFactory::RuntimeCEntry(isolate(), return_count));
-  Node* ref = ExternalConstant(ExternalReference(function, isolate()));
-
-  Node* nodes[] = {centry, ref, argc, context};
-
-  return raw_assembler()->TailCallN(desc, arraysize(nodes), nodes);
-}
-
-// Instantiate TailCallRuntime() for argument counts used by CSA-generated code
+// Instantiate TailCallRuntime() with up to 6 arguments.
 #define INSTANTIATE(...)                                           \
   template V8_EXPORT_PRIVATE Node* CodeAssembler::TailCallRuntime( \
       Runtime::FunctionId, __VA_ARGS__);
@@ -651,11 +561,11 @@ Node* CodeAssembler::CallStubR(const CallInterfaceDescriptor& descriptor,
   return CallStubN(descriptor, result_size, arraysize(nodes), nodes);
 }
 
-// Instantiate CallStubR() for argument counts used by CSA-generated code.
+// Instantiate CallStubR() with up to 6 arguments.
 #define INSTANTIATE(...)                                     \
   template V8_EXPORT_PRIVATE Node* CodeAssembler::CallStubR( \
       const CallInterfaceDescriptor& descriptor, size_t, Node*, __VA_ARGS__);
-REPEAT_1_TO_11(INSTANTIATE, Node*)
+REPEAT_1_TO_7(INSTANTIATE, Node*)
 #undef INSTANTIATE
 
 Node* CodeAssembler::CallStubN(const CallInterfaceDescriptor& descriptor,
@@ -690,15 +600,15 @@ Node* CodeAssembler::TailCallStub(const CallInterfaceDescriptor& descriptor,
       MachineType::AnyTagged(), result_size);
 
   Node* nodes[] = {target, args..., context};
-  CHECK_EQ(descriptor.GetParameterCount() + 2, arraysize(nodes));
+
   return raw_assembler()->TailCallN(desc, arraysize(nodes), nodes);
 }
 
-// Instantiate TailCallStub() for argument counts used by CSA-generated code
+// Instantiate TailCallStub() with up to 6 arguments.
 #define INSTANTIATE(...)                                        \
   template V8_EXPORT_PRIVATE Node* CodeAssembler::TailCallStub( \
       const CallInterfaceDescriptor& descriptor, Node*, __VA_ARGS__);
-REPEAT_1_TO_12(INSTANTIATE, Node*)
+REPEAT_1_TO_7(INSTANTIATE, Node*)
 #undef INSTANTIATE
 
 template <class... TArgs>
@@ -709,12 +619,10 @@ Node* CodeAssembler::TailCallBytecodeDispatch(
       isolate(), zone(), descriptor, descriptor.GetStackParameterCount());
 
   Node* nodes[] = {target, args...};
-  CHECK_EQ(descriptor.GetParameterCount() + 1, arraysize(nodes));
   return raw_assembler()->TailCallN(desc, arraysize(nodes), nodes);
 }
 
-// Instantiate TailCallBytecodeDispatch() for argument counts used by
-// CSA-generated code
+// Instantiate TailCallBytecodeDispatch() with 4 arguments.
 template V8_EXPORT_PRIVATE Node* CodeAssembler::TailCallBytecodeDispatch(
     const CallInterfaceDescriptor& descriptor, Node* target, Node*, Node*,
     Node*, Node*);
@@ -723,13 +631,6 @@ Node* CodeAssembler::CallCFunctionN(Signature<MachineType>* signature,
                                     int input_count, Node* const* inputs) {
   CallDescriptor* desc = Linkage::GetSimplifiedCDescriptor(zone(), signature);
   return raw_assembler()->CallN(desc, input_count, inputs);
-}
-
-Node* CodeAssembler::CallCFunction1(MachineType return_type,
-                                    MachineType arg0_type, Node* function,
-                                    Node* arg0) {
-  return raw_assembler()->CallCFunction1(return_type, arg0_type, function,
-                                         arg0);
 }
 
 Node* CodeAssembler::CallCFunction2(MachineType return_type,
@@ -747,28 +648,6 @@ Node* CodeAssembler::CallCFunction3(MachineType return_type,
                                     Node* arg0, Node* arg1, Node* arg2) {
   return raw_assembler()->CallCFunction3(return_type, arg0_type, arg1_type,
                                          arg2_type, function, arg0, arg1, arg2);
-}
-
-Node* CodeAssembler::CallCFunction6(
-    MachineType return_type, MachineType arg0_type, MachineType arg1_type,
-    MachineType arg2_type, MachineType arg3_type, MachineType arg4_type,
-    MachineType arg5_type, Node* function, Node* arg0, Node* arg1, Node* arg2,
-    Node* arg3, Node* arg4, Node* arg5) {
-  return raw_assembler()->CallCFunction6(
-      return_type, arg0_type, arg1_type, arg2_type, arg3_type, arg4_type,
-      arg5_type, function, arg0, arg1, arg2, arg3, arg4, arg5);
-}
-
-Node* CodeAssembler::CallCFunction9(
-    MachineType return_type, MachineType arg0_type, MachineType arg1_type,
-    MachineType arg2_type, MachineType arg3_type, MachineType arg4_type,
-    MachineType arg5_type, MachineType arg6_type, MachineType arg7_type,
-    MachineType arg8_type, Node* function, Node* arg0, Node* arg1, Node* arg2,
-    Node* arg3, Node* arg4, Node* arg5, Node* arg6, Node* arg7, Node* arg8) {
-  return raw_assembler()->CallCFunction9(
-      return_type, arg0_type, arg1_type, arg2_type, arg3_type, arg4_type,
-      arg5_type, arg6_type, arg7_type, arg8_type, function, arg0, arg1, arg2,
-      arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
 void CodeAssembler::Goto(Label* label) {
@@ -811,17 +690,6 @@ void CodeAssembler::Switch(Node* index, Label* default_label,
                                  labels, case_count);
 }
 
-bool CodeAssembler::UnalignedLoadSupported(const MachineType& machineType,
-                                           uint8_t alignment) const {
-  return raw_assembler()->machine()->UnalignedLoadSupported(machineType,
-                                                            alignment);
-}
-bool CodeAssembler::UnalignedStoreSupported(const MachineType& machineType,
-                                            uint8_t alignment) const {
-  return raw_assembler()->machine()->UnalignedStoreSupported(machineType,
-                                                             alignment);
-}
-
 // RawMachineAssembler delegate helpers:
 Isolate* CodeAssembler::isolate() const { return raw_assembler()->isolate(); }
 
@@ -839,23 +707,7 @@ RawMachineAssembler* CodeAssembler::raw_assembler() const {
 // properly be verified.
 class CodeAssemblerVariable::Impl : public ZoneObject {
  public:
-  explicit Impl(MachineRepresentation rep)
-      :
-#if DEBUG
-        debug_info_(AssemblerDebugInfo(nullptr, nullptr, -1)),
-#endif
-        value_(nullptr),
-        rep_(rep) {
-  }
-
-#if DEBUG
-  AssemblerDebugInfo debug_info() const { return debug_info_; }
-  void set_debug_info(AssemblerDebugInfo debug_info) {
-    debug_info_ = debug_info;
-  }
-
-  AssemblerDebugInfo debug_info_;
-#endif  // DEBUG
+  explicit Impl(MachineRepresentation rep) : value_(nullptr), rep_(rep) {}
   Node* value_;
   MachineRepresentation rep_;
 };
@@ -873,25 +725,6 @@ CodeAssemblerVariable::CodeAssemblerVariable(CodeAssembler* assembler,
   Bind(initial_value);
 }
 
-#if DEBUG
-CodeAssemblerVariable::CodeAssemblerVariable(CodeAssembler* assembler,
-                                             AssemblerDebugInfo debug_info,
-                                             MachineRepresentation rep)
-    : impl_(new (assembler->zone()) Impl(rep)), state_(assembler->state()) {
-  impl_->set_debug_info(debug_info);
-  state_->variables_.insert(impl_);
-}
-
-CodeAssemblerVariable::CodeAssemblerVariable(CodeAssembler* assembler,
-                                             AssemblerDebugInfo debug_info,
-                                             MachineRepresentation rep,
-                                             Node* initial_value)
-    : CodeAssemblerVariable(assembler, debug_info, rep) {
-  impl_->set_debug_info(debug_info);
-  Bind(initial_value);
-}
-#endif  // DEBUG
-
 CodeAssemblerVariable::~CodeAssemblerVariable() {
   state_->variables_.erase(impl_);
 }
@@ -899,18 +732,7 @@ CodeAssemblerVariable::~CodeAssemblerVariable() {
 void CodeAssemblerVariable::Bind(Node* value) { impl_->value_ = value; }
 
 Node* CodeAssemblerVariable::value() const {
-#if DEBUG
-  if (!IsBound()) {
-    std::stringstream str;
-    str << "#Use of unbound variable:"
-        << "#\n    Variable:      " << *this;
-    if (state_) {
-      str << "#\n    Current Block: ";
-      state_->PrintCurrentBlock(str);
-    }
-    FATAL(str.str().c_str());
-  }
-#endif  // DEBUG
+  DCHECK_NOT_NULL(impl_->value_);
   return impl_->value_;
 }
 
@@ -918,24 +740,9 @@ MachineRepresentation CodeAssemblerVariable::rep() const { return impl_->rep_; }
 
 bool CodeAssemblerVariable::IsBound() const { return impl_->value_ != nullptr; }
 
-std::ostream& operator<<(std::ostream& os,
-                         const CodeAssemblerVariable::Impl& impl) {
-#if DEBUG
-  AssemblerDebugInfo info = impl.debug_info();
-  if (info.name) os << "V" << info;
-#endif  // DEBUG
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const CodeAssemblerVariable& variable) {
-  os << *variable.impl_;
-  return os;
-}
-
 CodeAssemblerLabel::CodeAssemblerLabel(CodeAssembler* assembler,
                                        size_t vars_count,
-                                       CodeAssemblerVariable* const* vars,
+                                       CodeAssemblerVariable** vars,
                                        CodeAssemblerLabel::Type type)
     : bound_(false),
       merge_count_(0),
@@ -954,7 +761,7 @@ CodeAssemblerLabel::~CodeAssemblerLabel() { label_->~RawMachineLabel(); }
 
 void CodeAssemblerLabel::MergeVariables() {
   ++merge_count_;
-  for (CodeAssemblerVariable::Impl* var : state_->variables_) {
+  for (auto var : state_->variables_) {
     size_t count = 0;
     Node* node = var->value_;
     if (node != nullptr) {
@@ -989,48 +796,19 @@ void CodeAssemblerLabel::MergeVariables() {
           // the variable after the label bind (it's not possible to add phis to
           // the bound label after the fact, just make sure to list the variable
           // in the label's constructor's list of merged variables).
-#if DEBUG
-          if (find_if(i->second.begin(), i->second.end(),
-                      [node](Node* e) -> bool { return node != e; }) !=
-              i->second.end()) {
-            std::stringstream str;
-            str << "Unmerged variable found when jumping to block. \n"
-                << "#    Variable:      " << *var;
-            if (bound_) {
-              str << "\n#    Target block:  " << *label_->block();
-            }
-            str << "\n#    Current Block: ";
-            state_->PrintCurrentBlock(str);
-            FATAL(str.str().c_str());
-          }
-#endif  // DEBUG
+          DCHECK(find_if(i->second.begin(), i->second.end(),
+                         [node](Node* e) -> bool { return node != e; }) ==
+                 i->second.end());
         }
       }
     }
   }
 }
 
-#if DEBUG
-void CodeAssemblerLabel::Bind(AssemblerDebugInfo debug_info) {
-  if (bound_) {
-    std::stringstream str;
-    str << "Cannot bind the same label twice:"
-        << "\n#    current:  " << debug_info
-        << "\n#    previous: " << *label_->block();
-    FATAL(str.str().c_str());
-  }
-  state_->raw_assembler_->Bind(label_, debug_info);
-  UpdateVariablesAfterBind();
-}
-#endif  // DEBUG
-
 void CodeAssemblerLabel::Bind() {
   DCHECK(!bound_);
   state_->raw_assembler_->Bind(label_);
-  UpdateVariablesAfterBind();
-}
 
-void CodeAssemblerLabel::UpdateVariablesAfterBind() {
   // Make sure that all variables that have changed along any path up to this
   // point are marked as merge variables.
   for (auto var : state_->variables_) {
@@ -1053,25 +831,13 @@ void CodeAssemblerLabel::UpdateVariablesAfterBind() {
   for (auto var : variable_phis_) {
     CodeAssemblerVariable::Impl* var_impl = var.first;
     auto i = variable_merges_.find(var_impl);
-#if DEBUG
-    bool not_found = i == variable_merges_.end();
-    if (not_found || i->second.size() != merge_count_) {
-      std::stringstream str;
-      str << "A variable that has been marked as beeing merged at the label"
-          << "\n# doesn't have a bound value along all of the paths that "
-          << "\n# have been merged into the label up to this point."
-          << "\n#"
-          << "\n# This can happen in the following cases:"
-          << "\n# - By explicitly marking it so in the label constructor"
-          << "\n# - By having seen different bound values at branches"
-          << "\n#"
-          << "\n# Merge count:     expected=" << merge_count_
-          << " vs. found=" << (not_found ? 0 : i->second.size())
-          << "\n# Variable:      " << *var_impl
-          << "\n# Current Block: " << *label_->block();
-      FATAL(str.str().c_str());
-    }
-#endif  // DEBUG
+    // If the following asserts fire, then a variable that has been marked as
+    // being merged at the label--either by explicitly marking it so in the
+    // label constructor or by having seen different bound values at branches
+    // into the label--doesn't have a bound value along all of the paths that
+    // have been merged into the label up to this point.
+    DCHECK(i != variable_merges_.end());
+    DCHECK_EQ(i->second.size(), merge_count_);
     Node* phi = state_->raw_assembler_->Phi(
         var.first->rep_, static_cast<int>(merge_count_), &(i->second[0]));
     variable_phis_[var_impl] = phi;

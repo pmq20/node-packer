@@ -41,8 +41,7 @@ class HCompilationJob final : public CompilationJob {
   explicit HCompilationJob(Handle<JSFunction> function)
       : CompilationJob(function->GetIsolate(), &info_, "Crankshaft"),
         parse_info_(handle(function->shared())),
-        info_(parse_info_.zone(), &parse_info_, function->GetIsolate(),
-              function),
+        info_(parse_info_.zone(), &parse_info_, function),
         graph_(nullptr),
         chunk_(nullptr) {}
 
@@ -1379,9 +1378,19 @@ class HGraphBuilder {
                                    ElementsKind kind,
                                    HValue* length);
 
+  void BuildTransitionElementsKind(HValue* object,
+                                   HValue* map,
+                                   ElementsKind from_kind,
+                                   ElementsKind to_kind,
+                                   bool is_jsarray);
+
   HValue* BuildNumberToString(HValue* object, AstType* type);
   HValue* BuildToNumber(HValue* input);
   HValue* BuildToObject(HValue* receiver);
+
+  HValue* BuildUncheckedDictionaryElementLoad(HValue* receiver,
+                                              HValue* elements, HValue* key,
+                                              HValue* hash);
 
   // ES6 section 7.4.7 CreateIterResultObject ( value, done )
   HValue* BuildCreateIterResultObject(HValue* value, HValue* done);
@@ -1464,6 +1473,8 @@ class HGraphBuilder {
   HLoadNamedField* AddLoadArrayLength(HValue *object,
                                       ElementsKind kind,
                                       HValue *dependency = NULL);
+
+  HValue* AddLoadJSBuiltin(int context_index);
 
   HValue* EnforceNumberType(HValue* number, AstType* expected);
   HValue* TruncateToNumber(HValue* value, AstType** expected);
@@ -1785,6 +1796,8 @@ class HGraphBuilder {
                          HValue* length,
                          HValue* capacity);
 
+  HValue* BuildElementIndexHash(HValue* index);
+
   void BuildCreateAllocationMemento(HValue* previous_object,
                                     HValue* previous_object_size,
                                     HValue* payload);
@@ -1795,8 +1808,14 @@ class HGraphBuilder {
                                         Handle<JSObject> holder,
                                         bool ensure_no_elements = false);
 
+  HInstruction* BuildGetNativeContext(HValue* closure);
   HInstruction* BuildGetNativeContext();
 
+  // Builds a loop version if |depth| is specified or unrolls the loop to
+  // |depth_value| iterations otherwise.
+  HValue* BuildGetParentContext(HValue* depth, int depth_value);
+
+  HInstruction* BuildGetArrayFunction();
   HValue* BuildArrayBufferViewFieldAccessor(HValue* object,
                                             HValue* checked_object,
                                             FieldIndex index);
@@ -2095,12 +2114,9 @@ class HOptimizedGraphBuilder : public HGraphBuilder,
   static const int kUnlimitedMaxInlinedNodesCumulative = 10000;
 
   // Maximum depth and total number of elements and properties for literal
-  // graphs to be considered for fast deep-copying. The limit is chosen to
-  // match the maximum number of inobject properties, to ensure that the
-  // performance of using object literals is not worse than using constructor
-  // functions, see crbug.com/v8/6211 for details.
+  // graphs to be considered for fast deep-copying.
   static const int kMaxFastLiteralDepth = 3;
-  static const int kMaxFastLiteralProperties = JSObject::kMaxInObjectProperties;
+  static const int kMaxFastLiteralProperties = 8;
 
   // Simple accessors.
   void set_function_state(FunctionState* state) { function_state_ = state; }
@@ -2154,11 +2170,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder,
   F(SubString)                         \
   F(DebugIsActive)                     \
   /* Typed Arrays */                   \
+  F(TypedArrayInitialize)              \
   F(MaxSmi)                            \
   F(TypedArrayMaxSizeInHeap)           \
   F(ArrayBufferViewGetByteLength)      \
   F(ArrayBufferViewGetByteOffset)      \
-  F(ArrayBufferViewWasNeutered)        \
   F(TypedArrayGetLength)               \
   /* ArrayBuffer */                    \
   F(ArrayBufferGetByteLength)          \

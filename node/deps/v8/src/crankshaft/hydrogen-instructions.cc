@@ -903,6 +903,7 @@ bool HInstruction::CanDeoptimize() {
       return true;
   }
   UNREACHABLE();
+  return true;
 }
 
 
@@ -1025,11 +1026,13 @@ std::ostream& HCallRuntime::PrintDataTo(std::ostream& os) const {  // NOLINT
   return os << "#" << argument_count();
 }
 
+
 std::ostream& HClassOfTestAndBranch::PrintDataTo(
     std::ostream& os) const {  // NOLINT
   return os << "class_of_test(" << NameOf(value()) << ", \""
             << class_name()->ToCString().get() << "\")";
 }
+
 
 std::ostream& HWrapReceiver::PrintDataTo(std::ostream& os) const {  // NOLINT
   return os << NameOf(receiver()) << " " << NameOf(function());
@@ -1150,6 +1153,7 @@ const char* HUnaryMathOperation::OpName() const {
       return "clz32";
     default:
       UNREACHABLE();
+      return NULL;
   }
 }
 
@@ -1648,6 +1652,7 @@ const char* HCheckInstanceType::GetCheckName() const {
     case IS_INTERNALIZED_STRING: return "internalized_string";
   }
   UNREACHABLE();
+  return "";
 }
 
 
@@ -3714,13 +3719,7 @@ void HPhi::SimplifyConstantInputs() {
       SetOperandAt(i, operand->BooleanValue() ? graph->GetConstant1()
                                               : graph->GetConstant0());
     } else if (operand->ImmortalImmovable()) {
-      if (operand->HasStringValue() &&
-          operand->EqualsUnique(
-              Unique<String>(isolate()->factory()->one_string()))) {
-        SetOperandAt(i, graph->GetConstant1());
-      } else {
-        SetOperandAt(i, graph->GetConstant0());
-      }
+      SetOperandAt(i, graph->GetConstant0());
     }
   }
   // Overwrite observed input representations because they are likely Tagged.

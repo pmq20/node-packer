@@ -15,7 +15,7 @@ namespace internal {
 namespace compiler {
 
 void ControlEquivalence::Run(Node* exit) {
-  if (!Participates(exit) || GetClass(exit) == kInvalidClass) {
+  if (GetClass(exit) == kInvalidClass) {
     DetermineParticipation(exit);
     RunUndirectedDFS(exit);
   }
@@ -28,6 +28,10 @@ STATIC_CONST_MEMBER_DEFINITION const size_t ControlEquivalence::kInvalidClass;
 
 void ControlEquivalence::VisitPre(Node* node) {
   TRACE("CEQ: Pre-visit of #%d:%s\n", node->id(), node->op()->mnemonic());
+
+  // Dispense a new pre-order number.
+  SetNumber(node, NewDFSNumber());
+  TRACE("  Assigned DFS number is %zu\n", GetNumber(node));
 }
 
 
@@ -101,7 +105,7 @@ void ControlEquivalence::RunUndirectedDFS(Node* exit) {
         ++(entry.input);
         if (NodeProperties::IsControlEdge(edge)) {
           // Visit next control input.
-          if (!Participates(input)) continue;
+          if (!GetData(input)->participates) continue;
           if (GetData(input)->visited) continue;
           if (GetData(input)->on_stack) {
             // Found backedge if input is on stack.
@@ -131,7 +135,7 @@ void ControlEquivalence::RunUndirectedDFS(Node* exit) {
         ++(entry.use);
         if (NodeProperties::IsControlEdge(edge)) {
           // Visit next control use.
-          if (!Participates(use)) continue;
+          if (!GetData(use)->participates) continue;
           if (GetData(use)->visited) continue;
           if (GetData(use)->on_stack) {
             // Found backedge if use is on stack.
@@ -164,8 +168,8 @@ void ControlEquivalence::RunUndirectedDFS(Node* exit) {
 
 void ControlEquivalence::DetermineParticipationEnqueue(ZoneQueue<Node*>& queue,
                                                        Node* node) {
-  if (!Participates(node)) {
-    AllocateData(node);
+  if (!GetData(node)->participates) {
+    GetData(node)->participates = true;
     queue.push(node);
   }
 }
@@ -187,7 +191,7 @@ void ControlEquivalence::DetermineParticipation(Node* exit) {
 
 void ControlEquivalence::DFSPush(DFSStack& stack, Node* node, Node* from,
                                  DFSDirection dir) {
-  DCHECK(Participates(node));
+  DCHECK(GetData(node)->participates);
   DCHECK(!GetData(node)->visited);
   GetData(node)->on_stack = true;
   Node::InputEdges::iterator input = node->input_edges().begin();

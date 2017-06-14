@@ -61,7 +61,6 @@
 //  V8_OS_CYGWIN        - Cygwin
 //  V8_OS_DRAGONFLYBSD  - DragonFlyBSD
 //  V8_OS_FREEBSD       - FreeBSD
-//  V8_OS_FUCHSIA       - Fuchsia
 //  V8_OS_LINUX         - Linux
 //  V8_OS_MACOSX        - Mac OS X
 //  V8_OS_NETBSD        - NetBSD
@@ -95,9 +94,6 @@
 #elif defined(__FreeBSD__)
 # define V8_OS_BSD 1
 # define V8_OS_FREEBSD 1
-# define V8_OS_POSIX 1
-#elif defined(__Fuchsia__)
-# define V8_OS_FUCHSIA 1
 # define V8_OS_POSIX 1
 #elif defined(__DragonFly__)
 # define V8_OS_BSD 1
@@ -320,7 +316,7 @@
 //   V8_NORETURN void MyAbort() { abort(); }
 #if V8_HAS_ATTRIBUTE_NORETURN
 # define V8_NORETURN __attribute__((noreturn))
-#elif V8_HAS_DECLSPEC_NORETURN
+#elif HAS_DECLSPEC_NORETURN
 # define V8_NORETURN __declspec(noreturn)
 #else
 # define V8_NORETURN /* NOT SUPPORTED */

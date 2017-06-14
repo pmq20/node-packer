@@ -66,8 +66,7 @@ void MemoryReducer::NotifyTimer(const Event& event) {
                                             state_.started_gcs);
     }
     heap()->StartIdleIncrementalMarking(
-        GarbageCollectionReason::kMemoryReducer,
-        kGCCallbackFlagCollectAllExternalMemory);
+        GarbageCollectionReason::kMemoryReducer);
   } else if (state_.action == kWait) {
     if (!heap()->incremental_marking()->IsStopped() &&
         heap()->ShouldOptimizeForMemoryUsage()) {
@@ -197,6 +196,7 @@ MemoryReducer::State MemoryReducer::Step(const State& state,
       }
   }
   UNREACHABLE();
+  return State(kDone, 0, 0, 0.0, 0);  // Make the compiler happy.
 }
 
 

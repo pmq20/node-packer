@@ -107,9 +107,9 @@ enum CategoryGroupEnabledFlags {
 
 // Defines atomic operations used internally by the tracing system.
 #define TRACE_EVENT_API_ATOMIC_WORD v8::base::AtomicWord
-#define TRACE_EVENT_API_ATOMIC_LOAD(var) v8::base::Relaxed_Load(&(var))
+#define TRACE_EVENT_API_ATOMIC_LOAD(var) v8::base::NoBarrier_Load(&(var))
 #define TRACE_EVENT_API_ATOMIC_STORE(var, value) \
-  v8::base::Relaxed_Store(&(var), (value))
+  v8::base::NoBarrier_Store(&(var), (value))
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -274,6 +274,8 @@ namespace tracing {
 const int kZeroNumArgs = 0;
 const decltype(nullptr) kGlobalScope = nullptr;
 const uint64_t kNoId = 0;
+
+extern base::Atomic32 kRuntimeCallStatsTracingEnabled;
 
 class TraceEventHelper {
  public:

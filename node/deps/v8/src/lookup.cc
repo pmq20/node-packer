@@ -108,7 +108,7 @@ template <bool is_element>
 void LookupIterator::RestartInternal(InterceptorState interceptor_state) {
   interceptor_state_ = interceptor_state;
   property_details_ = PropertyDetails::Empty();
-  number_ = static_cast<uint32_t>(DescriptorArray::kNotFound);
+  number_ = DescriptorArray::kNotFound;
   Start<is_element>();
 }
 
@@ -252,7 +252,7 @@ void LookupIterator::PrepareForDataProperty(Handle<Object> value) {
 
   if (old_map.is_identical_to(new_map)) {
     // Update the property details if the representation was None.
-    if (constness() != new_constness || representation().IsNone()) {
+    if (representation().IsNone()) {
       property_details_ =
           new_map->instance_descriptors()->GetDetails(descriptor_number());
     }
@@ -286,9 +286,7 @@ void LookupIterator::ReconfigureDataProperty(Handle<Object> value,
                                           kMutable, value);
     JSObject::MigrateToMap(holder, new_map);
     ReloadPropertyInformation<false>();
-  }
-
-  if (!IsElement() && !holder->HasFastProperties()) {
+  } else {
     PropertyDetails details(kData, attributes, 0, PropertyCellType::kMutable);
     if (holder->IsJSGlobalObject()) {
       Handle<GlobalDictionary> dictionary(holder->global_dictionary());
@@ -764,9 +762,7 @@ void LookupIterator::WriteDataValue(Handle<Object> value,
 template <bool is_element>
 bool LookupIterator::SkipInterceptor(JSObject* holder) {
   auto info = GetInterceptor<is_element>(holder);
-  if (!is_element && name_->IsSymbol() && !info->can_intercept_symbols()) {
-    return true;
-  }
+  // TODO(dcarney): check for symbol/can_intercept_symbols here as well.
   if (info->non_masking()) {
     switch (interceptor_state_) {
       case InterceptorState::kUninitialized:
@@ -857,6 +853,7 @@ LookupIterator::State LookupIterator::LookupInSpecialHolder(
       UNREACHABLE();
   }
   UNREACHABLE();
+  return NOT_FOUND;
 }
 
 template <bool is_element>
@@ -899,6 +896,7 @@ LookupIterator::State LookupIterator::LookupInRegularHolder(
   }
 
   UNREACHABLE();
+  return state_;
 }
 
 Handle<InterceptorInfo> LookupIterator::GetInterceptorForFailedAccessCheck()

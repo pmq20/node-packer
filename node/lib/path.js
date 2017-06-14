@@ -21,11 +21,11 @@
 
 'use strict';
 
-const errors = require('internal/errors');
+const inspect = require('util').inspect;
 
 function assertPath(path) {
   if (typeof path !== 'string') {
-    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'path', 'string');
+    throw new TypeError('Path must be a string. Received ' + inspect(path));
   }
 }
 
@@ -816,7 +816,7 @@ const win32 = {
 
   basename: function basename(path, ext) {
     if (ext !== undefined && typeof ext !== 'string')
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'ext', 'string');
+      throw new TypeError('"ext" argument must be a string');
     assertPath(path);
     var start = 0;
     var end = -1;
@@ -959,8 +959,9 @@ const win32 = {
 
   format: function format(pathObject) {
     if (pathObject === null || typeof pathObject !== 'object') {
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'pathObject', 'Object',
-                                typeof pathObject);
+      throw new TypeError(
+        `Parameter "pathObject" must be an object, not ${typeof pathObject}`
+      );
     }
     return _format('\\', pathObject);
   },
@@ -1371,7 +1372,7 @@ const posix = {
 
   basename: function basename(path, ext) {
     if (ext !== undefined && typeof ext !== 'string')
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'ext', 'string');
+      throw new TypeError('"ext" argument must be a string');
     assertPath(path);
 
     var start = 0;
@@ -1502,8 +1503,9 @@ const posix = {
 
   format: function format(pathObject) {
     if (pathObject === null || typeof pathObject !== 'object') {
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'pathObject', 'Object',
-                                typeof pathObject);
+      throw new TypeError(
+        `Parameter "pathObject" must be an object, not ${typeof pathObject}`
+      );
     }
     return _format('/', pathObject);
   },

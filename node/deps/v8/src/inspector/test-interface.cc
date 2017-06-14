@@ -15,10 +15,4 @@ void SetMaxAsyncTaskStacksForTest(V8Inspector* inspector, int limit) {
       ->setMaxAsyncTaskStacksForTest(limit);
 }
 
-void DumpAsyncTaskStacksStateForTest(V8Inspector* inspector) {
-  static_cast<V8InspectorImpl*>(inspector)
-      ->debugger()
-      ->dumpAsyncTaskStacksStateForTest();
-}
-
-}  // namespace v8_inspector
+}  //  v8_inspector

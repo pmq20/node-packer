@@ -12,7 +12,6 @@
 #include "src/disassembler.h"
 #include "src/interpreter/bytecodes.h"
 #include "src/objects-inl.h"
-#include "src/objects/debug-objects-inl.h"
 #include "src/ostreams.h"
 #include "src/regexp/jsregexp.h"
 
@@ -148,7 +147,6 @@ void HeapObject::HeapObjectPrint(std::ostream& os) {  // NOLINT
     case JS_SPECIAL_API_OBJECT_TYPE:
     case JS_CONTEXT_EXTENSION_OBJECT_TYPE:
     case JS_GENERATOR_OBJECT_TYPE:
-    case JS_ASYNC_GENERATOR_OBJECT_TYPE:
     case JS_ARGUMENTS_TYPE:
     case JS_ERROR_TYPE:
     case JS_PROMISE_CAPABILITY_TYPE:
@@ -276,7 +274,6 @@ void FixedTypedArray<Traits>::FixedTypedArrayPrint(
 bool JSObject::PrintProperties(std::ostream& os) {  // NOLINT
   if (HasFastProperties()) {
     DescriptorArray* descs = map()->instance_descriptors();
-    int nof_inobject_properties = map()->GetInObjectProperties();
     int i = 0;
     for (; i < map()->NumberOfOwnDescriptors(); i++) {
       os << "\n    ";
@@ -299,12 +296,6 @@ bool JSObject::PrintProperties(std::ostream& os) {  // NOLINT
       }
       os << " ";
       details.PrintAsFastTo(os, PropertyDetails::kForProperties);
-      if (details.location() != kField) continue;
-      int field_index = details.field_index();
-      if (nof_inobject_properties <= field_index) {
-        field_index -= nof_inobject_properties;
-        os << " properties[" << field_index << "]";
-      }
     }
     return i > 0;
   } else if (IsJSGlobalObject()) {
@@ -391,47 +382,12 @@ void PrintFixedArrayElements(std::ostream& os, FixedArray* array) {
   }
 }
 
-void PrintSloppyArgumentElements(std::ostream& os, ElementsKind kind,
-                                 SloppyArgumentsElements* elements) {
-  Isolate* isolate = elements->GetIsolate();
-  FixedArray* arguments_store = elements->arguments();
-  os << "\n    0: context= " << Brief(elements->context())
-     << "\n    1: arguments_store= " << Brief(arguments_store)
-     << "\n    parameter to context slot map:";
-  for (uint32_t i = 0; i < elements->parameter_map_length(); i++) {
-    uint32_t raw_index = i + SloppyArgumentsElements::kParameterMapStart;
-    Object* mapped_entry = elements->get_mapped_entry(i);
-    os << "\n    " << raw_index << ": param(" << i
-       << ")= " << Brief(mapped_entry);
-    if (mapped_entry->IsTheHole(isolate)) {
-      os << " in the arguements_store[" << i << "]";
-    } else {
-      os << " in the context";
-    }
-  }
-  if (arguments_store->length() == 0) return;
-  os << "\n }"
-     << "\n - arguments_store = " << Brief(arguments_store) << " "
-     << ElementsKindToString(arguments_store->map()->elements_kind()) << " {";
-  if (kind == FAST_SLOPPY_ARGUMENTS_ELEMENTS) {
-    PrintFixedArrayElements(os, arguments_store);
-  } else {
-    DCHECK_EQ(kind, SLOW_SLOPPY_ARGUMENTS_ELEMENTS);
-    SeededNumberDictionary::cast(arguments_store)->Print(os);
-  }
-  os << "\n }";
-}
-
 }  // namespace
 
-void JSObject::PrintElements(std::ostream& os) {  // NOLINT
+bool JSObject::PrintElements(std::ostream& os) {  // NOLINT
   // Don't call GetElementsKind, its validation code can cause the printer to
   // fail when debugging.
-  os << " - elements= " << Brief(elements()) << " {";
-  if (elements()->length() == 0) {
-    os << " }\n";
-    return;
-  }
+  if (elements()->length() == 0) return false;
   switch (map()->elements_kind()) {
     case FAST_HOLEY_SMI_ELEMENTS:
     case FAST_SMI_ELEMENTS:
@@ -460,14 +416,20 @@ void JSObject::PrintElements(std::ostream& os) {  // NOLINT
       SeededNumberDictionary::cast(elements())->Print(os);
       break;
     case FAST_SLOPPY_ARGUMENTS_ELEMENTS:
-    case SLOW_SLOPPY_ARGUMENTS_ELEMENTS:
-      PrintSloppyArgumentElements(os, map()->elements_kind(),
-                                  SloppyArgumentsElements::cast(elements()));
+    case SLOW_SLOPPY_ARGUMENTS_ELEMENTS: {
+      FixedArray* p = FixedArray::cast(elements());
+      os << "\n   parameter map:";
+      for (int i = 2; i < p->length(); i++) {
+        os << " " << (i - 2) << ":" << Brief(p->get(i));
+      }
+      os << "\n   context: " << Brief(p->get(0))
+         << "\n   arguments: " << Brief(p->get(1));
       break;
+    }
     case NO_ELEMENTS:
       break;
   }
-  os << "\n }\n";
+  return true;
 }
 
 
@@ -490,8 +452,8 @@ static void JSObjectPrintHeader(std::ostream& os, JSObject* obj,
     os << " (COW)";
   }
   os << "]";
-  if (obj->GetEmbedderFieldCount() > 0) {
-    os << "\n - embedder fields: " << obj->GetEmbedderFieldCount();
+  if (obj->GetInternalFieldCount() > 0) {
+    os << "\n - internal fields: " << obj->GetInternalFieldCount();
   }
 }
 
@@ -502,13 +464,15 @@ static void JSObjectPrintBody(std::ostream& os, JSObject* obj,  // NOLINT
   if (obj->PrintProperties(os)) os << "\n ";
   os << "}\n";
   if (print_elements && obj->elements()->length() > 0) {
-    obj->PrintElements(os);
+    os << " - elements = " << Brief(obj->elements()) << " {";
+    if (obj->PrintElements(os)) os << "\n ";
+    os << "}\n";
   }
-  int embedder_fields = obj->GetEmbedderFieldCount();
-  if (embedder_fields > 0) {
-    os << " - embedder fields = {";
-    for (int i = 0; i < embedder_fields; i++) {
-      os << "\n    " << obj->GetEmbedderField(i);
+  int internal_fields = obj->GetInternalFieldCount();
+  if (internal_fields > 0) {
+    os << " - internal fields = {";
+    for (int i = 0; i < internal_fields; i++) {
+      os << "\n    " << obj->GetInternalField(i);
     }
     os << "\n }\n";
   }
@@ -542,7 +506,6 @@ void JSPromise::JSPromisePrint(std::ostream& os) {  // NOLINT
 void JSRegExp::JSRegExpPrint(std::ostream& os) {  // NOLINT
   JSObjectPrintHeader(os, this, "JSRegExp");
   os << "\n - data = " << Brief(data());
-  os << "\n - source = " << Brief(source());
   JSObjectPrintBody(os, this);
 }
 
@@ -611,6 +574,14 @@ void Map::MapPrint(std::ostream& os) {  // NOLINT
   os << "\n - dependent code: " << Brief(dependent_code());
   os << "\n - construction counter: " << construction_counter();
   os << "\n";
+}
+
+
+void TypeFeedbackInfo::TypeFeedbackInfoPrint(std::ostream& os) {  // NOLINT
+  HeapObject::PrintHeader(os, "TypeFeedbackInfo");
+  os << "\n - ic_total_count: " << ic_total_count()
+     << ", ic_with_type_info_count: " << ic_with_type_info_count()
+     << ", ic_generic_count: " << ic_generic_count() << "\n";
 }
 
 
@@ -719,8 +690,6 @@ void FeedbackVector::FeedbackVectorPrint(std::ostream& os) {  // NOLINT
     return;
   }
 
-  os << "\n Optimized Code: " << Brief(optimized_code());
-
   FeedbackMetadataIterator iter(metadata());
   while (iter.HasNext()) {
     FeedbackSlot slot = iter.Next();
@@ -752,9 +721,7 @@ void FeedbackVector::FeedbackVectorPrint(std::ostream& os) {  // NOLINT
       }
       case FeedbackSlotKind::kStoreNamedSloppy:
       case FeedbackSlotKind::kStoreNamedStrict:
-      case FeedbackSlotKind::kStoreOwnNamed:
-      case FeedbackSlotKind::kStoreGlobalSloppy:
-      case FeedbackSlotKind::kStoreGlobalStrict: {
+      case FeedbackSlotKind::kStoreOwnNamed: {
         StoreICNexus nexus(this, slot);
         os << Code::ICState2String(nexus.StateFromFeedback());
         break;
@@ -783,7 +750,6 @@ void FeedbackVector::FeedbackVectorPrint(std::ostream& os) {  // NOLINT
       case FeedbackSlotKind::kCreateClosure:
       case FeedbackSlotKind::kLiteral:
       case FeedbackSlotKind::kGeneral:
-      case FeedbackSlotKind::kTypeProfile:
         break;
       case FeedbackSlotKind::kToBoolean:
       case FeedbackSlotKind::kInvalid:
@@ -822,9 +788,6 @@ void JSMessageObject::JSMessageObjectPrint(std::ostream& os) {  // NOLINT
 
 
 void String::StringPrint(std::ostream& os) {  // NOLINT
-  if (!HasOnlyOneByteChars()) {
-    os << "u";
-  }
   if (StringShape(this).IsInternalized()) {
     os << "#";
   } else if (StringShape(this).IsCons()) {
@@ -1072,12 +1035,7 @@ std::ostream& operator<<(std::ostream& os, FunctionKind kind) {
 
 void SharedFunctionInfo::SharedFunctionInfoPrint(std::ostream& os) {  // NOLINT
   HeapObject::PrintHeader(os, "SharedFunctionInfo");
-  os << "\n - name = ";
-  if (has_shared_name()) {
-    os << Brief(raw_name());
-  } else {
-    os << "<no-shared-name>";
-  }
+  os << "\n - name = " << Brief(name());
   os << "\n - kind = " << kind();
   os << "\n - formal_parameter_count = " << internal_formal_parameter_count();
   os << "\n - expected_nof_properties = " << expected_nof_properties();
@@ -1114,6 +1072,7 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(std::ostream& os) {  // NOLINT
     os << "\n - no debug info";
   }
   os << "\n - length = " << length();
+  os << "\n - optimized_code_map = " << Brief(optimized_code_map());
   os << "\n - feedback_metadata = ";
   feedback_metadata()->FeedbackMetadataPrint(os);
   if (HasBytecodeArray()) {
@@ -1222,7 +1181,7 @@ void Code::CodePrint(std::ostream& os) {  // NOLINT
 
 
 void Foreign::ForeignPrint(std::ostream& os) {  // NOLINT
-  os << "foreign address : " << reinterpret_cast<void*>(foreign_address());
+  os << "foreign address : " << foreign_address();
   os << "\n";
 }
 
@@ -1259,27 +1218,6 @@ void PromiseReactionJobInfo::PromiseReactionJobInfoPrint(
   os << "\n - deferred_on_resolve: " << Brief(deferred_on_resolve());
   os << "\n - deferred_on_reject: " << Brief(deferred_on_reject());
   os << "\n - reaction context: " << Brief(context());
-  os << "\n";
-}
-
-void AsyncGeneratorRequest::AsyncGeneratorRequestPrint(
-    std::ostream& os) {  // NOLINT
-  HeapObject::PrintHeader(os, "AsyncGeneratorRequest");
-  const char* mode = "Invalid!";
-  switch (resume_mode()) {
-    case JSGeneratorObject::kNext:
-      mode = ".next()";
-      break;
-    case JSGeneratorObject::kReturn:
-      mode = ".return()";
-      break;
-    case JSGeneratorObject::kThrow:
-      mode = ".throw()";
-      break;
-  }
-  os << "\n - resume mode: " << mode;
-  os << "\n - value: " << Brief(value());
-  os << "\n - next: " << Brief(next());
   os << "\n";
 }
 
@@ -1351,6 +1289,14 @@ void ContextExtension::ContextExtensionPrint(std::ostream& os) {  // NOLINT
   os << "\n";
 }
 
+void ConstantElementsPair::ConstantElementsPairPrint(
+    std::ostream& os) {  // NOLINT
+  HeapObject::PrintHeader(os, "ConstantElementsPair");
+  os << "\n - elements_kind: " << static_cast<ElementsKind>(elements_kind());
+  os << "\n - constant_values: " << Brief(constant_values());
+  os << "\n";
+}
+
 void AccessorPair::AccessorPairPrint(std::ostream& os) {  // NOLINT
   HeapObject::PrintHeader(os, "AccessorPair");
   os << "\n - getter: " << Brief(getter());
@@ -1376,6 +1322,14 @@ void InterceptorInfo::InterceptorInfoPrint(std::ostream& os) {  // NOLINT
   os << "\n - query: " << Brief(query());
   os << "\n - deleter: " << Brief(deleter());
   os << "\n - enumerator: " << Brief(enumerator());
+  os << "\n - data: " << Brief(data());
+  os << "\n";
+}
+
+
+void CallHandlerInfo::CallHandlerInfoPrint(std::ostream& os) {  // NOLINT
+  HeapObject::PrintHeader(os, "CallHandlerInfo");
+  os << "\n - callback: " << Brief(callback());
   os << "\n - data: " << Brief(data());
   os << "\n";
 }
@@ -1413,7 +1367,7 @@ void ObjectTemplateInfo::ObjectTemplateInfoPrint(std::ostream& os) {  // NOLINT
   os << "\n - property_list: " << Brief(property_list());
   os << "\n - property_accessors: " << Brief(property_accessors());
   os << "\n - constructor: " << Brief(constructor());
-  os << "\n - embedder_field_count: " << embedder_field_count();
+  os << "\n - internal_field_count: " << internal_field_count();
   os << "\n - immutable_proto: " << (immutable_proto() ? "true" : "false");
   os << "\n";
 }
@@ -1475,29 +1429,20 @@ void Script::ScriptPrint(std::ostream& os) {  // NOLINT
 
 void DebugInfo::DebugInfoPrint(std::ostream& os) {  // NOLINT
   HeapObject::PrintHeader(os, "DebugInfo");
-  os << "\n - flags: " << flags();
-  os << "\n - debugger_hints: " << debugger_hints();
   os << "\n - shared: " << Brief(shared());
   os << "\n - debug bytecode array: " << Brief(debug_bytecode_array());
   os << "\n - break_points: ";
   break_points()->Print(os);
-  os << "\n - coverage_info: " << Brief(coverage_info());
 }
 
 
-void StackFrameInfo::StackFrameInfoPrint(std::ostream& os) {  // NOLINT
-  HeapObject::PrintHeader(os, "StackFrame");
-  os << "\n - line_number: " << line_number();
-  os << "\n - column_number: " << column_number();
-  os << "\n - script_id: " << script_id();
-  os << "\n - script_name: " << Brief(script_name());
-  os << "\n - script_name_or_source_url: "
-     << Brief(script_name_or_source_url());
-  os << "\n - function_name: " << Brief(function_name());
-  os << "\n - is_eval: " << (is_eval() ? "true" : "false");
-  os << "\n - is_constructor: " << (is_constructor() ? "true" : "false");
+void BreakPointInfo::BreakPointInfoPrint(std::ostream& os) {  // NOLINT
+  HeapObject::PrintHeader(os, "BreakPointInfo");
+  os << "\n - source_position: " << source_position();
+  os << "\n - break_point_objects: " << Brief(break_point_objects());
   os << "\n";
 }
+
 
 static void PrintBitMask(std::ostream& os, uint32_t value) {  // NOLINT
   for (int i = 0; i < 32; i++) {
@@ -1534,10 +1479,10 @@ void LayoutDescriptor::Print(std::ostream& os) {  // NOLINT
     os << "<uninitialized>";
   } else {
     os << "slow";
-    int num_words = number_of_layout_words();
-    for (int i = 0; i < num_words; i++) {
+    int len = length();
+    for (int i = 0; i < len; i++) {
       if (i > 0) os << " |";
-      PrintBitMask(os, get_layout_word(i));
+      PrintBitMask(os, get_scalar(i));
     }
   }
   os << "\n";
@@ -1546,7 +1491,9 @@ void LayoutDescriptor::Print(std::ostream& os) {  // NOLINT
 
 #endif  // OBJECT_PRINT
 
-#if V8_TRACE_MAPS
+
+#if TRACE_MAPS
+
 
 void Name::NameShortPrint() {
   if (this->IsString()) {
@@ -1577,7 +1524,9 @@ int Name::NameShortPrint(Vector<char> str) {
   }
 }
 
-#endif  // V8_TRACE_MAPS
+
+#endif  // TRACE_MAPS
+
 
 #if defined(DEBUG) || defined(OBJECT_PRINT)
 // This method is only meant to be called from gdb for debugging purposes.

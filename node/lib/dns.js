@@ -268,7 +268,6 @@ function resolver(bindingName) {
 
 
 var resolveMap = Object.create(null);
-resolveMap.ANY = resolver('queryAny');
 resolveMap.A = resolver('queryA');
 resolveMap.AAAA = resolver('queryAaaa');
 resolveMap.CNAME = resolver('queryCname');
@@ -281,21 +280,22 @@ resolveMap.NAPTR = resolver('queryNaptr');
 resolveMap.SOA = resolver('querySoa');
 
 
-function resolve(hostname, rrtype, callback) {
-  var resolver;
-  if (typeof rrtype === 'string') {
-    resolver = resolveMap[rrtype];
-  } else if (typeof rrtype === 'function') {
+function resolve(hostname, type_, callback_) {
+  var resolver, callback;
+  if (typeof type_ === 'string') {
+    resolver = resolveMap[type_];
+    callback = callback_;
+  } else if (typeof type_ === 'function') {
     resolver = resolveMap.A;
-    callback = rrtype;
+    callback = type_;
   } else {
-    throw new TypeError('"rrtype" argument must be a string');
+    throw new Error('"type" argument must be a string');
   }
 
   if (typeof resolver === 'function') {
     return resolver(hostname, callback);
   } else {
-    throw new Error(`Unknown type "${rrtype}"`);
+    throw new Error(`Unknown type "${type_}"`);
   }
 }
 
@@ -352,7 +352,6 @@ module.exports = {
   getServers,
   setServers,
   resolve,
-  resolveAny: resolveMap.ANY,
   resolve4: resolveMap.A,
   resolve6: resolveMap.AAAA,
   resolveCname: resolveMap.CNAME,

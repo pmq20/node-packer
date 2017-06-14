@@ -78,19 +78,18 @@ enum BranchDelaySlot {
 enum LiFlags {
   // If the constant value can be represented in just 16 bits, then
   // optimize the li to use a single instruction, rather than lui/ori/dsll
-  // sequence. A number of other optimizations that emits less than
-  // maximum number of instructions exists.
+  // sequence.
   OPTIMIZE_SIZE = 0,
-  // Always use 6 instructions (lui/ori/dsll sequence) for release 2 or 4
-  // instructions for release 6 (lui/ori/dahi/dati), even if the constant
+  // Always use 6 instructions (lui/ori/dsll sequence), even if the constant
   // could be loaded with just one, so that this value is patchable later.
   CONSTANT_SIZE = 1,
   // For address loads only 4 instruction are required. Used to mark
   // constant load that will be used as address without relocation
   // information. It ensures predictable code size, so specific sites
   // in code are patchable.
-  ADDRESS_LOAD = 2
+  ADDRESS_LOAD  = 2
 };
+
 
 enum RememberedSetAction { EMIT_REMEMBERED_SET, OMIT_REMEMBERED_SET };
 enum SmiCheck { INLINE_SMI_CHECK, OMIT_SMI_CHECK };
@@ -170,8 +169,6 @@ class MacroAssembler: public Assembler {
  public:
   MacroAssembler(Isolate* isolate, void* buffer, int size,
                  CodeObjectRequired create_code_object);
-
-  Isolate* isolate() const { return isolate_; }
 
   // Arguments macros.
 #define COND_TYPED_ARGS Condition cond, Register r1, const Operand& r2
@@ -717,30 +714,9 @@ class MacroAssembler: public Assembler {
   void LoadWordPair(Register rd, const MemOperand& rs, Register scratch = at);
   void StoreWordPair(Register rd, const MemOperand& rs, Register scratch = at);
 
-  void Lb(Register rd, const MemOperand& rs);
-  void Lbu(Register rd, const MemOperand& rs);
-  void Sb(Register rd, const MemOperand& rs);
-
-  void Lh(Register rd, const MemOperand& rs);
-  void Lhu(Register rd, const MemOperand& rs);
-  void Sh(Register rd, const MemOperand& rs);
-
-  void Lw(Register rd, const MemOperand& rs);
-  void Lwu(Register rd, const MemOperand& rs);
-  void Sw(Register rd, const MemOperand& rs);
-
-  void Ld(Register rd, const MemOperand& rs);
-  void Sd(Register rd, const MemOperand& rs);
-
-  void Lwc1(FPURegister fd, const MemOperand& src);
-  void Swc1(FPURegister fs, const MemOperand& dst);
-
-  void Ldc1(FPURegister fd, const MemOperand& src);
-  void Sdc1(FPURegister fs, const MemOperand& dst);
-
   // Load int32 in the rd register.
   void li(Register rd, Operand j, LiFlags mode = OPTIMIZE_SIZE);
-  inline void LiLower32BitHelper(Register rd, Operand j);
+  inline bool LiLower32BitHelper(Register rd, Operand j);
   inline void li(Register rd, int64_t j, LiFlags mode = OPTIMIZE_SIZE) {
     li(rd, Operand(j), mode);
   }
@@ -757,7 +733,7 @@ class MacroAssembler: public Assembler {
 
   void push(Register src) {
     Daddu(sp, sp, Operand(-kPointerSize));
-    Sd(src, MemOperand(sp, 0));
+    sd(src, MemOperand(sp, 0));
   }
   void Push(Register src) { push(src); }
 
@@ -768,43 +744,43 @@ class MacroAssembler: public Assembler {
   // Push two registers. Pushes leftmost register first (to highest address).
   void Push(Register src1, Register src2) {
     Dsubu(sp, sp, Operand(2 * kPointerSize));
-    Sd(src1, MemOperand(sp, 1 * kPointerSize));
-    Sd(src2, MemOperand(sp, 0 * kPointerSize));
+    sd(src1, MemOperand(sp, 1 * kPointerSize));
+    sd(src2, MemOperand(sp, 0 * kPointerSize));
   }
 
   // Push three registers. Pushes leftmost register first (to highest address).
   void Push(Register src1, Register src2, Register src3) {
     Dsubu(sp, sp, Operand(3 * kPointerSize));
-    Sd(src1, MemOperand(sp, 2 * kPointerSize));
-    Sd(src2, MemOperand(sp, 1 * kPointerSize));
-    Sd(src3, MemOperand(sp, 0 * kPointerSize));
+    sd(src1, MemOperand(sp, 2 * kPointerSize));
+    sd(src2, MemOperand(sp, 1 * kPointerSize));
+    sd(src3, MemOperand(sp, 0 * kPointerSize));
   }
 
   // Push four registers. Pushes leftmost register first (to highest address).
   void Push(Register src1, Register src2, Register src3, Register src4) {
     Dsubu(sp, sp, Operand(4 * kPointerSize));
-    Sd(src1, MemOperand(sp, 3 * kPointerSize));
-    Sd(src2, MemOperand(sp, 2 * kPointerSize));
-    Sd(src3, MemOperand(sp, 1 * kPointerSize));
-    Sd(src4, MemOperand(sp, 0 * kPointerSize));
+    sd(src1, MemOperand(sp, 3 * kPointerSize));
+    sd(src2, MemOperand(sp, 2 * kPointerSize));
+    sd(src3, MemOperand(sp, 1 * kPointerSize));
+    sd(src4, MemOperand(sp, 0 * kPointerSize));
   }
 
   // Push five registers. Pushes leftmost register first (to highest address).
   void Push(Register src1, Register src2, Register src3, Register src4,
             Register src5) {
     Dsubu(sp, sp, Operand(5 * kPointerSize));
-    Sd(src1, MemOperand(sp, 4 * kPointerSize));
-    Sd(src2, MemOperand(sp, 3 * kPointerSize));
-    Sd(src3, MemOperand(sp, 2 * kPointerSize));
-    Sd(src4, MemOperand(sp, 1 * kPointerSize));
-    Sd(src5, MemOperand(sp, 0 * kPointerSize));
+    sd(src1, MemOperand(sp, 4 * kPointerSize));
+    sd(src2, MemOperand(sp, 3 * kPointerSize));
+    sd(src3, MemOperand(sp, 2 * kPointerSize));
+    sd(src4, MemOperand(sp, 1 * kPointerSize));
+    sd(src5, MemOperand(sp, 0 * kPointerSize));
   }
 
   void Push(Register src, Condition cond, Register tst1, Register tst2) {
     // Since we don't have conditional execution we use a Branch.
     Branch(3, cond, tst1, Operand(tst2));
     Dsubu(sp, sp, Operand(kPointerSize));
-    Sd(src, MemOperand(sp, 0));
+    sd(src, MemOperand(sp, 0));
   }
 
   void PushRegisterAsTwoSmis(Register src, Register scratch = at);
@@ -819,7 +795,7 @@ class MacroAssembler: public Assembler {
   void MultiPopReversedFPU(RegList regs);
 
   void pop(Register dst) {
-    Ld(dst, MemOperand(sp, 0));
+    ld(dst, MemOperand(sp, 0));
     Daddu(sp, sp, Operand(kPointerSize));
   }
   void Pop(Register dst) { pop(dst); }
@@ -827,16 +803,16 @@ class MacroAssembler: public Assembler {
   // Pop two registers. Pops rightmost register first (from lower address).
   void Pop(Register src1, Register src2) {
     DCHECK(!src1.is(src2));
-    Ld(src2, MemOperand(sp, 0 * kPointerSize));
-    Ld(src1, MemOperand(sp, 1 * kPointerSize));
+    ld(src2, MemOperand(sp, 0 * kPointerSize));
+    ld(src1, MemOperand(sp, 1 * kPointerSize));
     Daddu(sp, sp, 2 * kPointerSize);
   }
 
   // Pop three registers. Pops rightmost register first (from lower address).
   void Pop(Register src1, Register src2, Register src3) {
-    Ld(src3, MemOperand(sp, 0 * kPointerSize));
-    Ld(src2, MemOperand(sp, 1 * kPointerSize));
-    Ld(src1, MemOperand(sp, 2 * kPointerSize));
+    ld(src3, MemOperand(sp, 0 * kPointerSize));
+    ld(src2, MemOperand(sp, 1 * kPointerSize));
+    ld(src1, MemOperand(sp, 2 * kPointerSize));
     Daddu(sp, sp, 3 * kPointerSize);
   }
 
@@ -864,10 +840,15 @@ class MacroAssembler: public Assembler {
   void LoadFromSafepointRegisterSlot(Register dst, Register src);
 
   // MIPS64 R2 instruction macro.
-  void Ext(Register rt, Register rs, uint16_t pos, uint16_t size);
-  void Dext(Register rt, Register rs, uint16_t pos, uint16_t size);
   void Ins(Register rt, Register rs, uint16_t pos, uint16_t size);
   void Dins(Register rt, Register rs, uint16_t pos, uint16_t size);
+  void Ext(Register rt, Register rs, uint16_t pos, uint16_t size);
+
+  void ExtractBits(Register rt, Register rs, uint16_t pos, uint16_t size);
+
+  void Dext(Register rt, Register rs, uint16_t pos, uint16_t size);
+  void Dextm(Register rt, Register rs, uint16_t pos, uint16_t size);
+  void Dextu(Register rt, Register rs, uint16_t pos, uint16_t size);
   void Neg_s(FPURegister fd, FPURegister fs);
   void Neg_d(FPURegister fd, FPURegister fs);
 
@@ -976,12 +957,6 @@ class MacroAssembler: public Assembler {
                       Condition cc, FPURegister cmp1, FPURegister cmp2) {
     BranchF64(bd, target, nan, cc, cmp1, cmp2);
   }
-
-  void BranchMSA(Label* target, MSABranchDF df, MSABranchCondition cond,
-                 MSARegister wt, BranchDelaySlot bd = PROTECT);
-
-  void BranchShortMSA(MSABranchDF df, Label* target, MSABranchCondition cond,
-                      MSARegister wt, BranchDelaySlot bd = PROTECT);
 
   // Truncates a double using a specific rounding mode, and writes the value
   // to the result register.
@@ -1155,6 +1130,10 @@ class MacroAssembler: public Assembler {
                             Register scratch,
                             Label* fail);
 
+  void IsObjectNameType(Register object,
+                        Register scratch,
+                        Label* fail);
+
   // Frame restart support.
   void MaybeDropFrames();
 
@@ -1186,7 +1165,7 @@ class MacroAssembler: public Assembler {
                      Register type_reg);
 
   void GetInstanceType(Register object_map, Register object_instance_type) {
-    Lbu(object_instance_type,
+    lbu(object_instance_type,
         FieldMemOperand(object_map, Map::kInstanceTypeOffset));
   }
 
@@ -1226,6 +1205,13 @@ class MacroAssembler: public Assembler {
                 Label* fail,
                 SmiCheckType smi_check_type);
 
+  // Check if the map of an object is equal to a specified weak map and branch
+  // to a specified target if equal. Skip the smi check if not required
+  // (object is known to be a heap object)
+  void DispatchWeakMap(Register obj, Register scratch1, Register scratch2,
+                       Handle<WeakCell> cell, Handle<Code> success,
+                       SmiCheckType smi_check_type);
+
   // If the value is a NaN, canonicalize the value else, do nothing.
   void FPUCanonicalizeNaN(const DoubleRegister dst, const DoubleRegister src);
 
@@ -1243,8 +1229,8 @@ class MacroAssembler: public Assembler {
   Condition IsObjectStringType(Register obj,
                                Register type,
                                Register result) {
-    Ld(type, FieldMemOperand(obj, HeapObject::kMapOffset));
-    Lbu(type, FieldMemOperand(type, Map::kInstanceTypeOffset));
+    ld(type, FieldMemOperand(obj, HeapObject::kMapOffset));
+    lbu(type, FieldMemOperand(type, Map::kInstanceTypeOffset));
     And(type, type, Operand(kIsNotStringMask));
     DCHECK_EQ(0u, kStringTag);
     return eq;
@@ -1488,7 +1474,7 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
 
   // Arguments 1-4 are placed in registers a0 thru a3 respectively.
   // Arguments 5..n are stored to stack using following:
-  //  Sw(a4, CFunctionArgumentOperand(5));
+  //  sw(a4, CFunctionArgumentOperand(5));
 
   // Calls a C function and cleans up the space for arguments allocated
   // by PrepareCallCFunction. The called function is not allowed to trigger a
@@ -1551,6 +1537,7 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
   // Calls Abort(msg) if the condition cc is not satisfied.
   // Use --debug_code to enable.
   void Assert(Condition cc, BailoutReason reason, Register rs, Operand rt);
+  void AssertFastElements(Register elements);
 
   // Like Assert(), but always enabled.
   void Check(Condition cc, BailoutReason reason, Register rs, Operand rt);
@@ -1688,12 +1675,18 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
   // Jump if either of the registers contain a smi.
   void JumpIfEitherSmi(Register reg1, Register reg2, Label* on_either_smi);
 
+  // Abort execution if argument is a number, enabled via --debug-code.
+  void AssertNotNumber(Register object);
+
   // Abort execution if argument is a smi, enabled via --debug-code.
   void AssertNotSmi(Register object);
   void AssertSmi(Register object);
 
-  // Abort execution if argument is not a FixedArray, enabled via --debug-code.
-  void AssertFixedArray(Register object);
+  // Abort execution if argument is not a string, enabled via --debug-code.
+  void AssertString(Register object);
+
+  // Abort execution if argument is not a name, enabled via --debug-code.
+  void AssertName(Register object);
 
   // Abort execution if argument is not a JSFunction, enabled via --debug-code.
   void AssertFunction(Register object);
@@ -1704,7 +1697,10 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
 
   // Abort execution if argument is not a JSGeneratorObject,
   // enabled via --debug-code.
-  void AssertGeneratorObject(Register object, Register flags);
+  void AssertGeneratorObject(Register object);
+
+  // Abort execution if argument is not a JSReceiver, enabled via --debug-code.
+  void AssertReceiver(Register object);
 
   // Abort execution if argument is not undefined or an AllocationSite, enabled
   // via --debug-code.
@@ -1887,14 +1883,9 @@ const Operand& rt = Operand(zero_reg), BranchDelaySlot bd = PROTECT
   MemOperand SafepointRegisterSlot(Register reg);
   MemOperand SafepointRegistersAndDoublesSlot(Register reg);
 
-  // Helpers.
-  void LoadRegPlusOffsetToAt(const MemOperand& src);
-  int32_t LoadRegPlusUpperOffsetPartToAt(const MemOperand& src);
-
   bool generating_stub_;
   bool has_frame_;
   bool has_double_zero_reg_set_;
-  Isolate* isolate_;
   // This handle will be patched with the code object on installation.
   Handle<Object> code_object_;
 
@@ -1954,7 +1945,7 @@ void MacroAssembler::GenerateSwitchTable(Register index, size_t case_count,
     }
     addiupc(at, 5);
     Dlsa(at, at, index, kPointerSizeLog2);
-    Ld(at, MemOperand(at));
+    ld(at, MemOperand(at));
   } else {
     Label here;
     BlockTrampolinePoolFor(static_cast<int>(case_count) * 2 +
@@ -1966,7 +1957,7 @@ void MacroAssembler::GenerateSwitchTable(Register index, size_t case_count,
     bind(&here);
     daddu(at, at, ra);
     pop(ra);
-    Ld(at, MemOperand(at, 6 * v8::internal::Assembler::kInstrSize));
+    ld(at, MemOperand(at, 6 * v8::internal::Assembler::kInstrSize));
   }
   jr(at);
   nop();  // Branch delay slot nop.

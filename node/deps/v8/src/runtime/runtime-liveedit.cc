@@ -32,7 +32,7 @@ RUNTIME_FUNCTION(Runtime_LiveEditFindSharedFunctionInfosForScript) {
   {
     HeapIterator iterator(heap);
     HeapObject* heap_obj;
-    while ((heap_obj = iterator.next()) != nullptr) {
+    while ((heap_obj = iterator.next())) {
       if (!heap_obj->IsSharedFunctionInfo()) continue;
       SharedFunctionInfo* shared = SharedFunctionInfo::cast(heap_obj);
       if (shared->script() != *script) continue;
@@ -44,7 +44,7 @@ RUNTIME_FUNCTION(Runtime_LiveEditFindSharedFunctionInfosForScript) {
   for (int i = 0; i < found.length(); ++i) {
     Handle<SharedFunctionInfo> shared = found[i];
     SharedInfoWrapper info_wrapper = SharedInfoWrapper::Create(isolate);
-    Handle<String> name(shared->name(), isolate);
+    Handle<String> name(String::cast(shared->name()));
     info_wrapper.SetProperties(name, shared->start_position(),
                                shared->end_position(), shared);
     result->set(i, *info_wrapper.GetJSArray());

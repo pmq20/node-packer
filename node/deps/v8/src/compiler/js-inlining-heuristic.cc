@@ -65,15 +65,6 @@ bool CanInlineFunction(Handle<SharedFunctionInfo> shared) {
   return true;
 }
 
-bool IsSmallInlineFunction(Handle<SharedFunctionInfo> shared) {
-  // Don't forcibly inline functions that weren't compiled yet.
-  if (shared->ast_node_count() == 0) return false;
-
-  // Forcibly inline small functions.
-  if (shared->ast_node_count() <= FLAG_max_inlined_nodes_small) return true;
-  return false;
-}
-
 }  // namespace
 
 Reduction JSInliningHeuristic::Reduce(Node* node) {
@@ -100,7 +91,7 @@ Reduction JSInliningHeuristic::Reduce(Node* node) {
   }
 
   // Functions marked with %SetForceInlineFlag are immediately inlined.
-  bool can_inline = false, force_inline = true, small_inline = true;
+  bool can_inline = false, force_inline = true;
   for (int i = 0; i < candidate.num_functions; ++i) {
     Handle<SharedFunctionInfo> shared =
         candidate.functions[i].is_null()
@@ -109,15 +100,11 @@ Reduction JSInliningHeuristic::Reduce(Node* node) {
     if (!shared->force_inline()) {
       force_inline = false;
     }
-    candidate.can_inline_function[i] = CanInlineFunction(shared);
-    if (candidate.can_inline_function[i]) {
+    if (CanInlineFunction(shared)) {
       can_inline = true;
     }
-    if (!IsSmallInlineFunction(shared)) {
-      small_inline = false;
-    }
   }
-  if (force_inline) return InlineCandidate(candidate, true);
+  if (force_inline) return InlineCandidate(candidate);
   if (!can_inline) return NoChange();
 
   // Stop inlining once the maximum allowed level is reached.
@@ -154,25 +141,9 @@ Reduction JSInliningHeuristic::Reduce(Node* node) {
     case kRestrictedInlining:
       return NoChange();
     case kStressInlining:
-      return InlineCandidate(candidate, false);
+      return InlineCandidate(candidate);
     case kGeneralInlining:
       break;
-  }
-
-  // Don't consider a {candidate} whose frequency is below the
-  // threshold, i.e. a call site that is only hit once every N
-  // invocations of the caller.
-  if (candidate.frequency.IsKnown() &&
-      candidate.frequency.value() < FLAG_min_inlining_frequency) {
-    return NoChange();
-  }
-
-  // Forcibly inline small functions here. In the case of polymorphic inlining
-  // small_inline is set only when all functions are small.
-  if (small_inline && cumulative_count_ <= FLAG_max_inlined_nodes_absolute) {
-    TRACE("Inlining small function(s) at call site #%d:%s\n", node->id(),
-          node->op()->mnemonic());
-    return InlineCandidate(candidate, true);
   }
 
   // In the general case we remember the candidate for later.
@@ -195,14 +166,13 @@ void JSInliningHeuristic::Finalize() {
     candidates_.erase(i);
     // Make sure we don't try to inline dead candidate nodes.
     if (!candidate.node->IsDead()) {
-      Reduction const reduction = InlineCandidate(candidate, false);
+      Reduction const reduction = InlineCandidate(candidate);
       if (reduction.Changed()) return;
     }
   }
 }
 
-Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate,
-                                               bool force_inline) {
+Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate) {
   int const num_calls = candidate.num_functions;
   Node* const node = candidate.node;
   if (num_calls == 1) {
@@ -252,21 +222,26 @@ Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate,
     // to the known {target}); the last input is the control dependency.
     inputs[0] = target;
     inputs[input_count - 1] = if_successes[i];
-    calls[i] = if_successes[i] =
-        graph()->NewNode(node->op(), input_count, inputs);
+    calls[i] = graph()->NewNode(node->op(), input_count, inputs);
+    if_successes[i] = graph()->NewNode(common()->IfSuccess(), calls[i]);
   }
 
   // Check if we have an exception projection for the call {node}.
   Node* if_exception = nullptr;
-  if (NodeProperties::IsExceptionalCall(node, &if_exception)) {
+  for (Edge const edge : node->use_edges()) {
+    if (NodeProperties::IsControlEdge(edge) &&
+        edge.from()->opcode() == IrOpcode::kIfException) {
+      if_exception = edge.from();
+      break;
+    }
+  }
+  if (if_exception != nullptr) {
+    // Morph the {if_exception} projection into a join.
     Node* if_exceptions[kMaxCallPolymorphism + 1];
     for (int i = 0; i < num_calls; ++i) {
-      if_successes[i] = graph()->NewNode(common()->IfSuccess(), calls[i]);
       if_exceptions[i] =
           graph()->NewNode(common()->IfException(), calls[i], calls[i]);
     }
-
-    // Morph the {if_exception} projection into a join.
     Node* exception_control =
         graph()->NewNode(common()->Merge(num_calls), num_calls, if_exceptions);
     if_exceptions[num_calls] = exception_control;
@@ -279,7 +254,7 @@ Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate,
                      exception_control);
   }
 
-  // Morph the original call site into a join of the dispatched call sites.
+  // Morph the call site into the dispatched call sites.
   Node* control =
       graph()->NewNode(common()->Merge(num_calls), num_calls, if_successes);
   calls[num_calls] = control;
@@ -294,16 +269,9 @@ Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate,
   for (int i = 0; i < num_calls; ++i) {
     Handle<JSFunction> function = candidate.functions[i];
     Node* node = calls[i];
-    if (force_inline ||
-        (candidate.can_inline_function[i] &&
-         cumulative_count_ < FLAG_max_inlined_nodes_cumulative)) {
-      Reduction const reduction = inliner_.ReduceJSCall(node);
-      if (reduction.Changed()) {
-        // Killing the call node is not strictly necessary, but it is safer to
-        // make sure we do not resurrect the node.
-        node->Kill();
-        cumulative_count_ += function->shared()->ast_node_count();
-      }
+    Reduction const reduction = inliner_.ReduceJSCall(node);
+    if (reduction.Changed()) {
+      cumulative_count_ += function->shared()->ast_node_count();
     }
   }
 
@@ -312,19 +280,9 @@ Reduction JSInliningHeuristic::InlineCandidate(Candidate const& candidate,
 
 bool JSInliningHeuristic::CandidateCompare::operator()(
     const Candidate& left, const Candidate& right) const {
-  if (right.frequency.IsUnknown()) {
-    if (left.frequency.IsUnknown()) {
-      // If left and right are both unknown then the ordering is indeterminate,
-      // which breaks strict weak ordering requirements, so we fall back to the
-      // node id as a tie breaker.
-      return left.node->id() > right.node->id();
-    }
+  if (left.frequency > right.frequency) {
     return true;
-  } else if (left.frequency.IsUnknown()) {
-    return false;
-  } else if (left.frequency.value() > right.frequency.value()) {
-    return true;
-  } else if (left.frequency.value() < right.frequency.value()) {
+  } else if (left.frequency < right.frequency) {
     return false;
   } else {
     return left.node->id() > right.node->id();
@@ -332,12 +290,10 @@ bool JSInliningHeuristic::CandidateCompare::operator()(
 }
 
 void JSInliningHeuristic::PrintCandidates() {
-  OFStream os(stdout);
-  os << "Candidates for inlining (size=" << candidates_.size() << "):\n";
+  PrintF("Candidates for inlining (size=%zu):\n", candidates_.size());
   for (const Candidate& candidate : candidates_) {
-    os << "  #" << candidate.node->id() << ":"
-       << candidate.node->op()->mnemonic()
-       << ", frequency: " << candidate.frequency << std::endl;
+    PrintF("  #%d:%s, frequency:%g\n", candidate.node->id(),
+           candidate.node->op()->mnemonic(), candidate.frequency);
     for (int i = 0; i < candidate.num_functions; ++i) {
       Handle<SharedFunctionInfo> shared =
           candidate.functions[i].is_null()

@@ -10,7 +10,6 @@
 #include "src/ic/ic.h"
 #include "src/ic/stub-cache.h"
 #include "src/objects-inl.h"
-#include "src/objects/map.h"
 
 namespace v8 {
 namespace internal {
@@ -90,7 +89,7 @@ InlineCacheState TypeFeedbackOracle::LoadInlineCacheState(FeedbackSlot slot) {
 bool TypeFeedbackOracle::StoreIsUninitialized(FeedbackSlot slot) {
   if (!slot.IsInvalid()) {
     FeedbackSlotKind kind = feedback_vector_->GetKind(slot);
-    if (IsStoreICKind(kind) || IsStoreGlobalICKind(kind)) {
+    if (IsStoreICKind(kind)) {
       StoreICNexus nexus(feedback_vector_, slot);
       return nexus.StateFromFeedback() == UNINITIALIZED;
     } else if (IsKeyedStoreICKind(kind)) {
@@ -191,14 +190,13 @@ AstType* CompareOpHintToType(CompareOperationHint hint) {
       return AstType::InternalizedString();
     case CompareOperationHint::kString:
       return AstType::String();
-    case CompareOperationHint::kSymbol:
-      UNREACHABLE();
     case CompareOperationHint::kReceiver:
       return AstType::Receiver();
     case CompareOperationHint::kAny:
       return AstType::Any();
   }
   UNREACHABLE();
+  return AstType::None();
 }
 
 AstType* BinaryOpFeedbackToType(int hint) {
@@ -218,6 +216,7 @@ AstType* BinaryOpFeedbackToType(int hint) {
       return AstType::Any();
   }
   UNREACHABLE();
+  return AstType::None();
 }
 
 }  // end anonymous namespace
@@ -389,7 +388,8 @@ void TypeFeedbackOracle::PropertyReceiverTypes(FeedbackSlot slot,
   receiver_types->Clear();
   if (!slot.IsInvalid()) {
     LoadICNexus nexus(feedback_vector_, slot);
-    CollectReceiverTypes(&nexus, receiver_types);
+    CollectReceiverTypes(isolate()->load_stub_cache(), &nexus, name,
+                         receiver_types);
   }
 }
 
@@ -412,8 +412,8 @@ void TypeFeedbackOracle::AssignmentReceiverTypes(FeedbackSlot slot,
                                                  Handle<Name> name,
                                                  SmallMapList* receiver_types) {
   receiver_types->Clear();
-  StoreICNexus nexus(feedback_vector_, slot);
-  CollectReceiverTypes(&nexus, receiver_types);
+  CollectReceiverTypes(isolate()->store_stub_cache(), slot, name,
+                       receiver_types);
 }
 
 void TypeFeedbackOracle::KeyedAssignmentReceiverTypes(
@@ -430,11 +430,31 @@ void TypeFeedbackOracle::CountReceiverTypes(FeedbackSlot slot,
   if (!slot.IsInvalid()) CollectReceiverTypes(slot, receiver_types);
 }
 
+void TypeFeedbackOracle::CollectReceiverTypes(StubCache* stub_cache,
+                                              FeedbackSlot slot,
+                                              Handle<Name> name,
+                                              SmallMapList* types) {
+  StoreICNexus nexus(feedback_vector_, slot);
+  CollectReceiverTypes(stub_cache, &nexus, name, types);
+}
+
+void TypeFeedbackOracle::CollectReceiverTypes(StubCache* stub_cache,
+                                              FeedbackNexus* nexus,
+                                              Handle<Name> name,
+                                              SmallMapList* types) {
+  if (FLAG_collect_megamorphic_maps_from_stub_cache &&
+      nexus->ic_state() == MEGAMORPHIC) {
+    types->Reserve(4, zone());
+    stub_cache->CollectMatchingMaps(types, name, native_context_, zone());
+  } else {
+    CollectReceiverTypes(nexus, types);
+  }
+}
+
 void TypeFeedbackOracle::CollectReceiverTypes(FeedbackSlot slot,
                                               SmallMapList* types) {
   FeedbackSlotKind kind = feedback_vector_->GetKind(slot);
-  if (IsStoreICKind(kind) || IsStoreOwnICKind(kind) ||
-      IsStoreGlobalICKind(kind)) {
+  if (IsStoreICKind(kind) || IsStoreOwnICKind(kind)) {
     StoreICNexus nexus(feedback_vector_, slot);
     CollectReceiverTypes(&nexus, types);
   } else {
@@ -446,14 +466,21 @@ void TypeFeedbackOracle::CollectReceiverTypes(FeedbackSlot slot,
 
 void TypeFeedbackOracle::CollectReceiverTypes(FeedbackNexus* nexus,
                                               SmallMapList* types) {
-  MapHandles maps;
-  if (nexus->ExtractMaps(&maps) == 0) {
+  MapHandleList maps;
+  if (nexus->ic_state() == MONOMORPHIC) {
+    Map* map = nexus->FindFirstMap();
+    if (map != NULL) maps.Add(handle(map));
+  } else if (nexus->ic_state() == POLYMORPHIC) {
+    nexus->FindAllMaps(&maps);
+  } else {
     return;
   }
-
-  types->Reserve(static_cast<int>(maps.size()), zone());
-  for (Handle<Map> map : maps) {
-    types->AddMapIfMissing(map, zone());
+  types->Reserve(maps.length(), zone());
+  for (int i = 0; i < maps.length(); i++) {
+    Handle<Map> map(maps.at(i));
+    if (IsRelevantFeedback(*map, *native_context_)) {
+      types->AddMapIfMissing(maps.at(i), zone());
+    }
   }
 }
 

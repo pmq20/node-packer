@@ -20,6 +20,9 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
+
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 const common = require('../common');
 const assert = require('assert');
 const util = require('util');
@@ -1028,21 +1031,11 @@ if (typeof Symbol !== 'undefined') {
 
   assert.throws(() => {
     util.inspect.defaultOptions = null;
-  }, common.expectsError({
-      code: 'ERR_INVALID_ARG_TYPE',
-      type: TypeError,
-      message: 'The "options" argument must be of type object'
-  })
-  );
+  }, /"options" must be an object/);
 
   assert.throws(() => {
     util.inspect.defaultOptions = 'bad';
-  }, common.expectsError({
-      code: 'ERR_INVALID_ARG_TYPE',
-      type: TypeError,
-      message: 'The "options" argument must be of type object'
-  })
-  );
+  }, /"options" must be an object/);
 }
 
 assert.doesNotThrow(() => util.inspect(process));

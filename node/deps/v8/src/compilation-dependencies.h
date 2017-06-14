@@ -7,7 +7,6 @@
 
 #include "src/handles.h"
 #include "src/objects.h"
-#include "src/objects/map.h"
 
 namespace v8 {
 namespace internal {
@@ -64,7 +63,7 @@ class CompilationDependencies {
   bool aborted_;
   ZoneList<Handle<HeapObject> >* groups_[DependentCode::kGroupCount];
 
-  DependentCode* Get(Handle<Object> object) const;
+  DependentCode* Get(Handle<Object> object);
   void Set(Handle<Object> object, Handle<DependentCode> dep);
 };
 }  // namespace internal

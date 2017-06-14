@@ -6,12 +6,8 @@
 #define V8_CONTEXTS_INL_H_
 
 #include "src/contexts.h"
-#include "src/heap/heap.h"
 #include "src/objects-inl.h"
-#include "src/objects/dictionary.h"
-#include "src/objects/map-inl.h"
 #include "src/objects/regexp-match-info.h"
-#include "src/objects/shared-function-info-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -133,7 +129,7 @@ bool Context::IsScriptContext() {
   return map == map->GetHeap()->script_context_map();
 }
 
-bool Context::OSROptimizedCodeCacheIsCleared() {
+bool Context::OptimizedCodeMapIsCleared() {
   return osr_code_table() == GetHeap()->empty_fixed_array();
 }
 

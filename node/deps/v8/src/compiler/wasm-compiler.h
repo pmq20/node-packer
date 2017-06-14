@@ -12,7 +12,6 @@
 #include "src/compilation-info.h"
 #include "src/compiler.h"
 #include "src/trap-handler/trap-handler.h"
-#include "src/wasm/function-body-decoder.h"
 #include "src/wasm/wasm-module.h"
 #include "src/wasm/wasm-opcodes.h"
 #include "src/wasm/wasm-result.h"
@@ -31,7 +30,7 @@ class SourcePositionTable;
 }  // namespace compiler
 
 namespace wasm {
-// Forward declarations for some wasm data structures.
+// Forward declarations for some WASM data structures.
 struct ModuleBytesEnv;
 struct ModuleEnv;
 struct WasmFunction;
@@ -47,51 +46,53 @@ typedef compiler::JSGraph TFGraph;
 namespace compiler {
 class WasmCompilationUnit final {
  public:
-  WasmCompilationUnit(Isolate* isolate, wasm::ModuleBytesEnv* module_env,
-                      const wasm::WasmFunction* function, bool is_sync = true);
-  WasmCompilationUnit(Isolate* isolate, wasm::ModuleEnv* module_env,
-                      wasm::FunctionBody body, wasm::WasmName name, int index,
-                      bool is_sync = true);
+  WasmCompilationUnit(wasm::ErrorThrower* thrower, Isolate* isolate,
+                      wasm::ModuleBytesEnv* module_env,
+                      const wasm::WasmFunction* function, uint32_t index);
 
-  int func_index() const { return func_index_; }
+  Zone* graph_zone() { return graph_zone_.get(); }
+  int index() const { return index_; }
 
-  void InitializeHandles();
   void ExecuteCompilation();
-  Handle<Code> FinishCompilation(wasm::ErrorThrower* thrower);
+  Handle<Code> FinishCompilation();
 
   static Handle<Code> CompileWasmFunction(wasm::ErrorThrower* thrower,
                                           Isolate* isolate,
                                           wasm::ModuleBytesEnv* module_env,
-                                          const wasm::WasmFunction* function);
+                                          const wasm::WasmFunction* function) {
+    WasmCompilationUnit unit(thrower, isolate, module_env, function,
+                             function->func_index);
+    unit.ExecuteCompilation();
+    return unit.FinishCompilation();
+  }
 
  private:
   SourcePositionTable* BuildGraphForWasmFunction(double* decode_ms);
+  char* GetTaggedFunctionName(const wasm::WasmFunction* function);
 
+  wasm::ErrorThrower* thrower_;
   Isolate* isolate_;
-  wasm::ModuleEnv* module_env_;
-  wasm::FunctionBody func_body_;
-  wasm::WasmName func_name_;
-  bool is_sync_;
-  // The graph zone is deallocated at the end of ExecuteCompilation by virtue of
-  // it being zone allocated.
-  JSGraph* jsgraph_ = nullptr;
-  // the compilation_zone_, info_, and job_ fields need to survive past
-  // ExecuteCompilation, onto FinishCompilation (which happens on the main
-  // thread).
-  std::unique_ptr<Zone> compilation_zone_;
-  std::unique_ptr<CompilationInfo> info_;
+  wasm::ModuleBytesEnv* module_env_;
+  const wasm::WasmFunction* function_;
+  // Function name is tagged with uint32 func_index - wasm#<func_index>
+  char function_name_[16];
+  // The graph zone is deallocated at the end of ExecuteCompilation.
+  std::unique_ptr<Zone> graph_zone_;
+  JSGraph* jsgraph_;
+  Zone compilation_zone_;
+  CompilationInfo info_;
   std::unique_ptr<CompilationJob> job_;
-  Handle<Code> centry_stub_;
-  int func_index_;
+  uint32_t index_;
   wasm::Result<wasm::DecodeStruct*> graph_construction_result_;
-  bool ok_ = true;
-
-  void ExecuteCompilationInternal();
+  bool ok_;
+  ZoneVector<trap_handler::ProtectedInstructionData>
+      protected_instructions_;  // Instructions that are protected by the signal
+                                // handler.
 
   DISALLOW_COPY_AND_ASSIGN(WasmCompilationUnit);
 };
 
-// Wraps a JS function, producing a code object that can be called from wasm.
+// Wraps a JS function, producing a code object that can be called from WASM.
 Handle<Code> CompileWasmToJSWrapper(Isolate* isolate, Handle<JSReceiver> target,
                                     wasm::FunctionSig* sig, uint32_t index,
                                     Handle<String> module_name,
@@ -109,15 +110,14 @@ Handle<Code> CompileWasmInterpreterEntry(Isolate* isolate, uint32_t func_index,
                                          wasm::FunctionSig* sig,
                                          Handle<WasmInstanceObject> instance);
 
-// Abstracts details of building TurboFan graph nodes for wasm to separate
-// the wasm decoder from the internal details of TurboFan.
+// Abstracts details of building TurboFan graph nodes for WASM to separate
+// the WASM decoder from the internal details of TurboFan.
 class WasmTrapHelper;
 typedef ZoneVector<Node*> NodeVector;
 class WasmGraphBuilder {
  public:
   WasmGraphBuilder(
-      wasm::ModuleEnv* module_env, Zone* z, JSGraph* g,
-      Handle<Code> centry_stub_, wasm::FunctionSig* sig,
+      wasm::ModuleEnv* module_env, Zone* z, JSGraph* g, wasm::FunctionSig* sig,
       compiler::SourcePositionTable* source_position_table = nullptr);
 
   Node** Buffer(size_t count) {
@@ -170,19 +170,6 @@ class WasmGraphBuilder {
   Node* BranchNoHint(Node* cond, Node** true_node, Node** false_node);
   Node* BranchExpectTrue(Node* cond, Node** true_node, Node** false_node);
   Node* BranchExpectFalse(Node* cond, Node** true_node, Node** false_node);
-
-  Node* TrapIfTrue(wasm::TrapReason reason, Node* cond,
-                   wasm::WasmCodePosition position);
-  Node* TrapIfFalse(wasm::TrapReason reason, Node* cond,
-                    wasm::WasmCodePosition position);
-  Node* TrapIfEq32(wasm::TrapReason reason, Node* node, int32_t val,
-                   wasm::WasmCodePosition position);
-  Node* ZeroCheck32(wasm::TrapReason reason, Node* node,
-                    wasm::WasmCodePosition position);
-  Node* TrapIfEq64(wasm::TrapReason reason, Node* node, int64_t val,
-                   wasm::WasmCodePosition position);
-  Node* ZeroCheck64(wasm::TrapReason reason, Node* node,
-                    wasm::WasmCodePosition position);
 
   Node* Switch(unsigned count, Node* key);
   Node* IfValue(int32_t value, Node* sw);
@@ -241,10 +228,7 @@ class WasmGraphBuilder {
 
   void SetSourcePosition(Node* node, wasm::WasmCodePosition position);
 
-  Node* S128Zero();
-  Node* S1x4Zero();
-  Node* S1x8Zero();
-  Node* S1x16Zero();
+  Node* CreateS128Value(int32_t value);
 
   Node* SimdOp(wasm::WasmOpcode opcode, const NodeVector& inputs);
 
@@ -254,7 +238,7 @@ class WasmGraphBuilder {
   Node* SimdShiftOp(wasm::WasmOpcode opcode, uint8_t shift,
                     const NodeVector& inputs);
 
-  Node* SimdShuffleOp(uint8_t shuffle[16], unsigned lanes,
+  Node* SimdSwizzleOp(wasm::WasmOpcode opcode, uint32_t swizzle,
                       const NodeVector& inputs);
 
   bool has_simd() const { return has_simd_; }
@@ -267,7 +251,6 @@ class WasmGraphBuilder {
 
   Zone* zone_;
   JSGraph* jsgraph_;
-  Node* centry_stub_node_;
   wasm::ModuleEnv* module_ = nullptr;
   Node* mem_buffer_ = nullptr;
   Node* mem_size_ = nullptr;
@@ -281,6 +264,7 @@ class WasmGraphBuilder {
   Node* def_buffer_[kDefaultBufferSize];
   bool has_simd_ = false;
 
+  WasmTrapHelper* trap_;
   wasm::FunctionSig* sig_;
   SetOncePointer<const Operator> allocate_heap_number_operator_;
 
@@ -291,11 +275,11 @@ class WasmGraphBuilder {
   Graph* graph();
 
   Node* String(const char* string);
-  Node* MemSize();
+  Node* MemSize(uint32_t offset);
   Node* MemBuffer(uint32_t offset);
   void BoundsCheckMem(MachineType memtype, Node* index, uint32_t offset,
                       wasm::WasmCodePosition position);
-  const Operator* GetSafeStoreOperator(int offset, wasm::ValueType type);
+
   Node* BuildChangeEndianness(Node* node, MachineType type,
                               wasm::ValueType wasmtype = wasm::kWasmStmt);
 

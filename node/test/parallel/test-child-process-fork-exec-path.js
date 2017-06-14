@@ -46,6 +46,7 @@ if (process.env.FORK) {
   // slow but simple
   const envCopy = JSON.parse(JSON.stringify(process.env));
   envCopy.FORK = 'true';
+  envCopy.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
   const child = require('child_process').fork(__filename, {
     execPath: copyPath,
     env: envCopy

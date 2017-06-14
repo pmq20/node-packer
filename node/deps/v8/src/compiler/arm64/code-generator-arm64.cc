@@ -4,15 +4,13 @@
 
 #include "src/compiler/code-generator.h"
 
-#include "src/arm64/assembler-arm64-inl.h"
 #include "src/arm64/frames-arm64.h"
-#include "src/arm64/macro-assembler-arm64-inl.h"
+#include "src/arm64/macro-assembler-arm64.h"
 #include "src/compilation-info.h"
 #include "src/compiler/code-generator-impl.h"
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/osr.h"
-#include "src/heap/heap-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -83,6 +81,10 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
     return InputRegister64(index);
   }
 
+  Operand InputImmediate(size_t index) {
+    return ToImmediate(instr_->InputAt(index));
+  }
+
   Operand InputOperand(size_t index) {
     return ToOperand(instr_->InputAt(index));
   }
@@ -96,10 +98,6 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
   Register OutputRegister64() { return OutputRegister(); }
 
   Register OutputRegister32() { return ToRegister(instr_->Output()).W(); }
-
-  Register TempRegister32(size_t index) {
-    return ToRegister(instr_->TempAt(index)).W();
-  }
 
   Operand InputOperand2_32(size_t index) {
     switch (AddressingModeField::decode(instr_->opcode())) {
@@ -128,6 +126,7 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
         break;
     }
     UNREACHABLE();
+    return Operand(-1);
   }
 
   Operand InputOperand2_64(size_t index) {
@@ -157,6 +156,7 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
         break;
     }
     UNREACHABLE();
+    return Operand(-1);
   }
 
   MemOperand MemoryOperand(size_t* first_index) {
@@ -184,6 +184,7 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
         return MemOperand(InputRegister(index + 0), InputRegister(index + 1));
     }
     UNREACHABLE();
+    return MemOperand(no_reg);
   }
 
   MemOperand MemoryOperand(size_t first_index = 0) {
@@ -221,9 +222,11 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
           return Operand(constant.ToInt64());
         }
       case Constant::kFloat32:
-        return Operand(Operand::EmbeddedNumber(constant.ToFloat32()));
+        return Operand(
+            isolate()->factory()->NewNumber(constant.ToFloat32(), TENURED));
       case Constant::kFloat64:
-        return Operand(Operand::EmbeddedNumber(constant.ToFloat64()));
+        return Operand(
+            isolate()->factory()->NewNumber(constant.ToFloat64(), TENURED));
       case Constant::kExternalReference:
         return Operand(constant.ToExternalReference());
       case Constant::kHeapObject:
@@ -233,6 +236,7 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
         break;
     }
     UNREACHABLE();
+    return Operand(-1);
   }
 
   MemOperand ToMemOperand(InstructionOperand* op, MacroAssembler* masm) const {
@@ -247,7 +251,7 @@ class Arm64OperandConverter final : public InstructionOperandConverter {
       int from_sp = offset.offset() + frame_access_state()->GetSPToFPOffset();
       // Convert FP-offsets to SP-offsets if it results in better code.
       if (Assembler::IsImmLSUnscaled(from_sp) ||
-          Assembler::IsImmLSScaled(from_sp, 3)) {
+          Assembler::IsImmLSScaled(from_sp, LSDoubleWord)) {
         offset = FrameOffset::FromStackPointer(from_sp);
       }
     }
@@ -406,6 +410,7 @@ Condition FlagsConditionToCondition(FlagsCondition condition) {
       return mi;
   }
   UNREACHABLE();
+  return nv;
 }
 
 }  // namespace
@@ -507,55 +512,19 @@ Condition FlagsConditionToCondition(FlagsCondition condition) {
     }                                                                       \
   } while (0)
 
-#define ASSEMBLE_ATOMIC_LOAD_INTEGER(asm_instr)                        \
-  do {                                                                 \
-    __ Add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1)); \
-    __ asm_instr(i.OutputRegister32(), i.TempRegister(0));             \
+#define ASSEMBLE_ATOMIC_LOAD_INTEGER(asm_instr)                       \
+  do {                                                                \
+    __ asm_instr(i.OutputRegister(),                                  \
+                 MemOperand(i.InputRegister(0), i.InputRegister(1))); \
+    __ Dmb(InnerShareable, BarrierAll);                               \
   } while (0)
 
-#define ASSEMBLE_ATOMIC_STORE_INTEGER(asm_instr)                       \
-  do {                                                                 \
-    __ Add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1)); \
-    __ asm_instr(i.InputRegister32(2), i.TempRegister(0));             \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(load_instr, store_instr)      \
-  do {                                                                 \
-    Label exchange;                                                    \
-    __ bind(&exchange);                                                \
-    __ Add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1)); \
-    __ load_instr(i.OutputRegister32(), i.TempRegister(0));            \
-    __ store_instr(i.TempRegister32(0), i.InputRegister32(2),          \
-                   i.TempRegister(0));                                 \
-    __ cbnz(i.TempRegister32(0), &exchange);                           \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(load_instr, store_instr) \
-  do {                                                                    \
-    Label compareExchange;                                                \
-    Label exit;                                                           \
-    __ bind(&compareExchange);                                            \
-    __ Add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1));    \
-    __ load_instr(i.OutputRegister32(), i.TempRegister(0));               \
-    __ cmp(i.TempRegister32(1), i.OutputRegister32());                    \
-    __ B(ne, &exit);                                                      \
-    __ store_instr(i.TempRegister32(0), i.InputRegister32(3),             \
-                   i.TempRegister(0));                                    \
-    __ cbnz(i.TempRegister32(0), &compareExchange);                       \
-    __ bind(&exit);                                                       \
-  } while (0)
-
-#define ASSEMBLE_ATOMIC_BINOP(load_instr, store_instr, bin_instr)      \
-  do {                                                                 \
-    Label binop;                                                       \
-    __ Add(i.TempRegister(0), i.InputRegister(0), i.InputRegister(1)); \
-    __ bind(&binop);                                                   \
-    __ load_instr(i.OutputRegister32(), i.TempRegister(0));            \
-    __ bin_instr(i.TempRegister32(1), i.OutputRegister32(),            \
-                 Operand(i.InputRegister32(2)));                       \
-    __ store_instr(i.TempRegister32(1), i.TempRegister32(1),           \
-                   i.TempRegister(0));                                 \
-    __ cbnz(i.TempRegister32(1), &binop);                              \
+#define ASSEMBLE_ATOMIC_STORE_INTEGER(asm_instr)                      \
+  do {                                                                \
+    __ Dmb(InnerShareable, BarrierAll);                               \
+    __ asm_instr(i.InputRegister(2),                                  \
+                 MemOperand(i.InputRegister(0), i.InputRegister(1))); \
+    __ Dmb(InnerShareable, BarrierAll);                               \
   } while (0)
 
 #define ASSEMBLE_IEEE754_BINOP(name)                                          \
@@ -761,11 +730,8 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
     }
     case kArchPrepareCallCFunction:
       // We don't need kArchPrepareCallCFunction on arm64 as the instruction
-      // selector has already performed a Claim to reserve space on the stack.
-      // Frame alignment is always 16 bytes, and the stack pointer is already
-      // 16-byte aligned, therefore we do not need to align the stack pointer
-      // by an unknown value, and it is safe to continue accessing the frame
-      // via the stack pointer.
+      // selector already perform a Claim to reserve space on the stack and
+      // guarantee correct alignment of stack pointer.
       UNREACHABLE();
       break;
     case kArchPrepareTailCall:
@@ -780,8 +746,9 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
         Register func = i.InputRegister(0);
         __ CallCFunction(func, num_parameters, 0);
       }
-      frame_access_state()->SetFrameAccessToDefault();
-      frame_access_state()->ClearSPDelta();
+      // CallCFunction only supports register arguments so we never need to call
+      // frame()->ClearOutgoingParameterSlots() here.
+      DCHECK(frame_access_state()->sp_delta() == 0);
       break;
     }
     case kArchJmp:
@@ -1192,11 +1159,11 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       break;
     case kArm64Ubfx:
       __ Ubfx(i.OutputRegister(), i.InputRegister(0), i.InputInt6(1),
-              i.InputInt32(2));
+              i.InputInt6(2));
       break;
     case kArm64Ubfx32:
       __ Ubfx(i.OutputRegister32(), i.InputRegister32(0), i.InputInt5(1),
-              i.InputInt32(2));
+              i.InputInt5(2));
       break;
     case kArm64Ubfiz32:
       __ Ubfiz(i.OutputRegister32(), i.InputRegister32(0), i.InputInt5(1),
@@ -1219,22 +1186,14 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       Register prev = __ StackPointer();
       if (prev.Is(jssp)) {
         // TODO(titzer): make this a macro-assembler method.
-        // Align the CSP and store the previous JSSP on the stack. We do not
-        // need to modify the SP delta here, as we will continue to access the
-        // frame via JSSP.
+        // Align the CSP and store the previous JSSP on the stack.
         UseScratchRegisterScope scope(masm());
         Register tmp = scope.AcquireX();
 
-        // TODO(arm64): Storing JSSP on the stack is redundant when calling a C
-        // function, as JSSP is callee-saved (we still need to do this when
-        // calling a code object that uses the CSP as the stack pointer). See
-        // the code generation for kArchCallCodeObject vs. kArchCallCFunction
-        // (the latter does not restore CSP/JSSP).
-        // MacroAssembler::CallCFunction() (safely) drops this extra slot
-        // anyway.
         int sp_alignment = __ ActivationFrameAlignment();
         __ Sub(tmp, jssp, kPointerSize);
-        __ Bic(csp, tmp, sp_alignment - 1);
+        __ And(tmp, tmp, Operand(~static_cast<uint64_t>(sp_alignment - 1)));
+        __ Mov(csp, tmp);
         __ Str(jssp, MemOperand(csp));
         if (count > 0) {
           __ SetStackPointer(csp);
@@ -1258,9 +1217,7 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
         if (count > 0) {
           int even = RoundUp(count, 2);
           __ Sub(jssp, csp, count * kPointerSize);
-          // We must also update CSP to maintain stack consistency:
           __ Sub(csp, csp, even * kPointerSize);  // Must always be aligned.
-          __ AssertStackConsistency();
           frame_access_state()->IncreaseSPDelta(even);
         } else {
           __ Mov(jssp, csp);
@@ -1321,10 +1278,10 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       __ Cmn(i.InputOrZeroRegister32(0), i.InputOperand2_32(1));
       break;
     case kArm64Tst:
-      __ Tst(i.InputOrZeroRegister64(0), i.InputOperand2_64(1));
+      __ Tst(i.InputOrZeroRegister64(0), i.InputOperand(1));
       break;
     case kArm64Tst32:
-      __ Tst(i.InputOrZeroRegister32(0), i.InputOperand2_32(1));
+      __ Tst(i.InputOrZeroRegister32(0), i.InputOperand32(1));
       break;
     case kArm64Float32Cmp:
       if (instr->InputAt(1)->IsFPRegister()) {
@@ -1646,94 +1603,34 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(
       ASSEMBLE_CHECKED_STORE_FLOAT(64);
       break;
     case kAtomicLoadInt8:
-      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldarb);
-      __ Sxtb(i.OutputRegister(0), i.OutputRegister(0));
+      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldrsb);
       break;
     case kAtomicLoadUint8:
-      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldarb);
+      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldrb);
       break;
     case kAtomicLoadInt16:
-      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldarh);
-      __ Sxth(i.OutputRegister(0), i.OutputRegister(0));
+      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldrsh);
       break;
     case kAtomicLoadUint16:
-      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldarh);
+      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldrh);
       break;
     case kAtomicLoadWord32:
-      ASSEMBLE_ATOMIC_LOAD_INTEGER(Ldar);
+      __ Ldr(i.OutputRegister32(),
+             MemOperand(i.InputRegister(0), i.InputRegister(1)));
+      __ Dmb(InnerShareable, BarrierAll);
       break;
     case kAtomicStoreWord8:
-      ASSEMBLE_ATOMIC_STORE_INTEGER(Stlrb);
+      ASSEMBLE_ATOMIC_STORE_INTEGER(Strb);
       break;
     case kAtomicStoreWord16:
-      ASSEMBLE_ATOMIC_STORE_INTEGER(Stlrh);
+      ASSEMBLE_ATOMIC_STORE_INTEGER(Strh);
       break;
     case kAtomicStoreWord32:
-      ASSEMBLE_ATOMIC_STORE_INTEGER(Stlr);
+      __ Dmb(InnerShareable, BarrierAll);
+      __ Str(i.InputRegister32(2),
+             MemOperand(i.InputRegister(0), i.InputRegister(1)));
+      __ Dmb(InnerShareable, BarrierAll);
       break;
-    case kAtomicExchangeInt8:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldaxrb, stlxrb);
-      __ Sxtb(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicExchangeUint8:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldaxrb, stlxrb);
-      break;
-    case kAtomicExchangeInt16:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldaxrh, stlxrh);
-      __ Sxth(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicExchangeUint16:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldaxrh, stlxrh);
-      break;
-    case kAtomicExchangeWord32:
-      ASSEMBLE_ATOMIC_EXCHANGE_INTEGER(ldaxr, stlxr);
-      break;
-    case kAtomicCompareExchangeInt8:
-      __ Uxtb(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldaxrb, stlxrb);
-      __ Sxtb(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicCompareExchangeUint8:
-      __ Uxtb(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldaxrb, stlxrb);
-      break;
-    case kAtomicCompareExchangeInt16:
-      __ Uxth(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldaxrh, stlxrh);
-      __ Sxth(i.OutputRegister(0), i.OutputRegister(0));
-      break;
-    case kAtomicCompareExchangeUint16:
-      __ Uxth(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldaxrh, stlxrh);
-      break;
-    case kAtomicCompareExchangeWord32:
-      __ mov(i.TempRegister(1), i.InputRegister(2));
-      ASSEMBLE_ATOMIC_COMPARE_EXCHANGE_INTEGER(ldaxr, stlxr);
-      break;
-#define ATOMIC_BINOP_CASE(op, inst)                    \
-  case kAtomic##op##Int8:                              \
-    ASSEMBLE_ATOMIC_BINOP(ldaxrb, stlxrb, inst);       \
-    __ Sxtb(i.OutputRegister(0), i.OutputRegister(0)); \
-    break;                                             \
-  case kAtomic##op##Uint8:                             \
-    ASSEMBLE_ATOMIC_BINOP(ldaxrb, stlxrb, inst);       \
-    break;                                             \
-  case kAtomic##op##Int16:                             \
-    ASSEMBLE_ATOMIC_BINOP(ldaxrh, stlxrh, inst);       \
-    __ Sxth(i.OutputRegister(0), i.OutputRegister(0)); \
-    break;                                             \
-  case kAtomic##op##Uint16:                            \
-    ASSEMBLE_ATOMIC_BINOP(ldaxrh, stlxrh, inst);       \
-    break;                                             \
-  case kAtomic##op##Word32:                            \
-    ASSEMBLE_ATOMIC_BINOP(ldaxr, stlxr, inst);         \
-    break;
-      ATOMIC_BINOP_CASE(Add, Add)
-      ATOMIC_BINOP_CASE(Sub, Sub)
-      ATOMIC_BINOP_CASE(And, And)
-      ATOMIC_BINOP_CASE(Or, Orr)
-      ATOMIC_BINOP_CASE(Xor, Eor)
-#undef ATOMIC_BINOP_CASE
   }
   return kSuccess;
 }  // NOLINT(readability/fn_size)
@@ -1842,7 +1739,7 @@ void CodeGenerator::AssembleArchTrap(Instruction* instr,
         // Initialize the jssp because it is required for the runtime call.
         __ Mov(jssp, csp);
         gen_->AssembleSourcePosition(instr_);
-        __ Call(isolate()->builtins()->builtin_handle(trap_id),
+        __ Call(handle(isolate()->builtins()->builtin(trap_id), isolate()),
                 RelocInfo::CODE_TARGET);
         ReferenceMap* reference_map =
             new (gen_->zone()) ReferenceMap(gen_->zone());
@@ -1921,9 +1818,7 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleDeoptimizerCall(
   Address deopt_entry = Deoptimizer::GetDeoptimizationEntry(
       isolate(), deoptimization_id, bailout_type);
   if (deopt_entry == nullptr) return kTooManyDeoptimizationBailouts;
-  if (info()->is_source_positions_enabled()) {
-    __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
-  }
+  __ RecordDeoptReason(deoptimization_reason, pos, deoptimization_id);
   __ Call(deopt_entry, RelocInfo::RUNTIME_ENTRY);
   return kSuccess;
 }
@@ -1939,11 +1834,11 @@ void CodeGenerator::FinishFrame(Frame* frame) {
   }
 
   // Save FP registers.
-  CPURegList saves_fp = CPURegList(CPURegister::kVRegister, kDRegSizeInBits,
+  CPURegList saves_fp = CPURegList(CPURegister::kFPRegister, kDRegSizeInBits,
                                    descriptor->CalleeSavedFPRegisters());
   int saved_count = saves_fp.Count();
   if (saved_count != 0) {
-    DCHECK(saves_fp.list() == CPURegList::GetCalleeSavedV().list());
+    DCHECK(saves_fp.list() == CPURegList::GetCalleeSavedFP().list());
     frame->AllocateSavedCalleeRegisterSlots(saved_count *
                                             (kDoubleSize / kPointerSize));
   }
@@ -1995,53 +1890,6 @@ void CodeGenerator::AssembleConstructFrame() {
       osr_pc_offset_ = __ pc_offset();
       shrink_slots -= OsrHelper(info()).UnoptimizedFrameSlots();
     }
-
-    if (info()->IsWasm() && shrink_slots > 128) {
-      // For WebAssembly functions with big frames we have to do the stack
-      // overflow check before we construct the frame. Otherwise we may not
-      // have enough space on the stack to call the runtime for the stack
-      // overflow.
-      Label done;
-      // If the frame is bigger than the stack, we throw the stack overflow
-      // exception unconditionally. Thereby we can avoid the integer overflow
-      // check in the condition code.
-      if (shrink_slots * kPointerSize < FLAG_stack_size * 1024) {
-        UseScratchRegisterScope scope(masm());
-        Register scratch = scope.AcquireX();
-        __ Mov(
-            scratch,
-            Operand(ExternalReference::address_of_real_stack_limit(isolate())));
-        __ Ldr(scratch, MemOperand(scratch));
-        __ Add(scratch, scratch, Operand(shrink_slots * kPointerSize));
-        __ Cmp(__ StackPointer(), scratch);
-        __ B(cs, &done);
-      }
-
-      if (!frame_access_state()->has_frame()) {
-        __ set_has_frame(true);
-        // There is no need to leave the frame, we will not return from the
-        // runtime call.
-        __ EnterFrame(StackFrame::WASM_COMPILED);
-      }
-      DCHECK(__ StackPointer().Is(csp));
-      __ SetStackPointer(jssp);
-      __ AssertStackConsistency();
-      // Initialize the jssp because it is required for the runtime call.
-      __ Mov(jssp, csp);
-      __ Move(cp, Smi::kZero);
-      __ CallRuntime(Runtime::kThrowWasmStackOverflow);
-      // We come from WebAssembly, there are no references for the GC.
-      ReferenceMap* reference_map = new (zone()) ReferenceMap(zone());
-      RecordSafepoint(reference_map, Safepoint::kSimple, 0,
-                      Safepoint::kNoLazyDeopt);
-      if (FLAG_debug_code) {
-        __ Brk(0);
-      }
-      __ SetStackPointer(csp);
-      __ AssertStackConsistency();
-      __ bind(&done);
-    }
-
     // Build remainder of frame, including accounting for and filling-in
     // frame-specific header information, e.g. claiming the extra slot that
     // other platforms explicitly push for STUB frames and frames recording
@@ -2062,11 +1910,11 @@ void CodeGenerator::AssembleConstructFrame() {
   }
 
   // Save FP registers.
-  CPURegList saves_fp = CPURegList(CPURegister::kVRegister, kDRegSizeInBits,
+  CPURegList saves_fp = CPURegList(CPURegister::kFPRegister, kDRegSizeInBits,
                                    descriptor->CalleeSavedFPRegisters());
   int saved_count = saves_fp.Count();
   if (saved_count != 0) {
-    DCHECK(saves_fp.list() == CPURegList::GetCalleeSavedV().list());
+    DCHECK(saves_fp.list() == CPURegList::GetCalleeSavedFP().list());
     __ PushCPURegList(saves_fp);
   }
   // Save registers.
@@ -2092,7 +1940,7 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   }
 
   // Restore fp registers.
-  CPURegList saves_fp = CPURegList(CPURegister::kVRegister, kDRegSizeInBits,
+  CPURegList saves_fp = CPURegList(CPURegister::kFPRegister, kDRegSizeInBits,
                                    descriptor->CalleeSavedFPRegisters());
   if (saves_fp.Count() != 0) {
     __ PopCPURegList(saves_fp);
@@ -2144,7 +1992,6 @@ void CodeGenerator::AssembleReturn(InstructionOperand* pop) {
   __ Ret();
 }
 
-void CodeGenerator::FinishCode() { masm()->CheckConstPool(true, false); }
 
 void CodeGenerator::AssembleMove(InstructionOperand* source,
                                  InstructionOperand* destination) {
@@ -2192,7 +2039,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       }
     } else if (src.type() == Constant::kFloat32) {
       if (destination->IsFPRegister()) {
-        VRegister dst = g.ToDoubleRegister(destination).S();
+        FPRegister dst = g.ToDoubleRegister(destination).S();
         __ Fmov(dst, src.ToFloat32());
       } else {
         DCHECK(destination->IsFPStackSlot());
@@ -2200,7 +2047,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
           __ Str(wzr, g.ToMemOperand(destination, masm()));
         } else {
           UseScratchRegisterScope scope(masm());
-          VRegister temp = scope.AcquireS();
+          FPRegister temp = scope.AcquireS();
           __ Fmov(temp, src.ToFloat32());
           __ Str(temp, g.ToMemOperand(destination, masm()));
         }
@@ -2208,7 +2055,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
     } else {
       DCHECK_EQ(Constant::kFloat64, src.type());
       if (destination->IsFPRegister()) {
-        VRegister dst = g.ToDoubleRegister(destination);
+        FPRegister dst = g.ToDoubleRegister(destination);
         __ Fmov(dst, src.ToFloat64());
       } else {
         DCHECK(destination->IsFPStackSlot());
@@ -2216,16 +2063,16 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
           __ Str(xzr, g.ToMemOperand(destination, masm()));
         } else {
           UseScratchRegisterScope scope(masm());
-          VRegister temp = scope.AcquireD();
+          FPRegister temp = scope.AcquireD();
           __ Fmov(temp, src.ToFloat64());
           __ Str(temp, g.ToMemOperand(destination, masm()));
         }
       }
     }
   } else if (source->IsFPRegister()) {
-    VRegister src = g.ToDoubleRegister(source);
+    FPRegister src = g.ToDoubleRegister(source);
     if (destination->IsFPRegister()) {
-      VRegister dst = g.ToDoubleRegister(destination);
+      FPRegister dst = g.ToDoubleRegister(destination);
       __ Fmov(dst, src);
     } else {
       DCHECK(destination->IsFPStackSlot());
@@ -2238,7 +2085,7 @@ void CodeGenerator::AssembleMove(InstructionOperand* source,
       __ Ldr(g.ToDoubleRegister(destination), src);
     } else {
       UseScratchRegisterScope scope(masm());
-      VRegister temp = scope.AcquireD();
+      FPRegister temp = scope.AcquireD();
       __ Ldr(temp, src);
       __ Str(temp, g.ToMemOperand(destination, masm()));
     }
@@ -2282,10 +2129,10 @@ void CodeGenerator::AssembleSwap(InstructionOperand* source,
     __ Str(temp_1, src);
   } else if (source->IsFPRegister()) {
     UseScratchRegisterScope scope(masm());
-    VRegister temp = scope.AcquireD();
-    VRegister src = g.ToDoubleRegister(source);
+    FPRegister temp = scope.AcquireD();
+    FPRegister src = g.ToDoubleRegister(source);
     if (destination->IsFPRegister()) {
-      VRegister dst = g.ToDoubleRegister(destination);
+      FPRegister dst = g.ToDoubleRegister(destination);
       __ Fmov(temp, src);
       __ Fmov(src, dst);
       __ Fmov(dst, temp);

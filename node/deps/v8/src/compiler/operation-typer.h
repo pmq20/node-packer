@@ -23,7 +23,7 @@ class Operator;
 class Type;
 class TypeCache;
 
-class V8_EXPORT_PRIVATE OperationTyper {
+class OperationTyper {
  public:
   OperationTyper(Isolate* isolate, Zone* zone);
 
@@ -39,7 +39,6 @@ class V8_EXPORT_PRIVATE OperationTyper {
 // Number unary operators.
 #define DECLARE_METHOD(Name) Type* Name(Type* type);
   SIMPLIFIED_NUMBER_UNOP_LIST(DECLARE_METHOD)
-  SIMPLIFIED_SPECULATIVE_NUMBER_UNOP_LIST(DECLARE_METHOD)
 #undef DECLARE_METHOD
 
 // Number binary operators.
@@ -47,10 +46,6 @@ class V8_EXPORT_PRIVATE OperationTyper {
   SIMPLIFIED_NUMBER_BINOP_LIST(DECLARE_METHOD)
   SIMPLIFIED_SPECULATIVE_NUMBER_BINOP_LIST(DECLARE_METHOD)
 #undef DECLARE_METHOD
-
-  // Check operators.
-  Type* CheckFloat64Hole(Type* type);
-  Type* CheckNumber(Type* type);
 
   Type* TypeTypeGuard(const Operator* sigma_op, Type* input);
 

@@ -96,7 +96,7 @@ class Compiler
     @node_dir = "node#{@options[:node_version]}"
     unless Dir.exist?(File.join(PRJ_ROOT, @node_dir))
       msg = "Node.js #{@options[:node_version]} is not supported yet.\n"
-      msg += "Supported options are --node-version=8 or 7 or 6 or 4."
+      msg += "Supported options are --node-version=8 or 6 or 4."
       raise Error, msg
     end
     @options[:make_args] ||= '-j4'

@@ -5,8 +5,6 @@ environment:
   matrix:
     - NODEC_NODE_VERSION: 8
       NODEC_NODE: 8.1.1
-    - NODEC_NODE_VERSION: 7
-      NODEC_NODE: 7.10.0
     - NODEC_NODE_VERSION: 6
       NODEC_NODE: 6.11.0
     - NODEC_NODE_VERSION: 4

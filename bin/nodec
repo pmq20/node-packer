@@ -51,7 +51,7 @@ end
 OptionParser.new do |opts|
   opts.banner = USAGE
 
-  opts.on('-Vstring', "--node-version=8/7/6/4", "Selects the Node.js version to compile with") do |string|
+  opts.on('-Vstring', "--node-version=8/6/4", "Selects the Node.js version to compile with") do |string|
     options[:node_version] = string
   end
 

@@ -9,12 +9,6 @@ matrix:
     node_js: 8.1.1
     env: NODEC_NODE_VERSION=8
   - os: osx
-    node_js: 7.10.0
-    env: NODEC_NODE_VERSION=7
-  - os: linux
-    node_js: 7.10.0
-    env: NODEC_NODE_VERSION=7
-  - os: osx
     node_js: 6.11.0
     env: NODEC_NODE_VERSION=6
   - os: linux

@@ -6,13 +6,13 @@ Ahead-of-time (AOT) Compiler designed for Node.js.
 - Dynamic require and C++ modules Fully Supported
 - Open Source, MIT Licensed
 
-|   Operating System  |      Node.js      |          Master&#160;CI                                                                                                                                             |  Master&#160;CI&#160;Part&#160;2                                                                                                                                                     |   RAM&#160;CI                                                                                                                                                             |                      Black&#x2011;box&#160;CI                                                                                                 |
-|:-------------------:|:-----------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
-|       Windows       |         v8        | [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/imeqi80bqn2xdv8b/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ci2/branch/master)        |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  | [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  |
-|       Windows       |         v7        |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
-|       Windows       |         v6        |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
-|       Windows       |         v4        |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
-|    macOS / Linux    |   v8, v7, v6, v4  | [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                 | N/A                                                                                                                                                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              | [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 |
+|   Operating System  |                  Node.js                 |          Master&#160;CI                                                                                                                                             |  Master&#160;CI&#160;Part&#160;2                                                                                                                                                     |   RAM&#160;CI                                                                                                                                                             |                      Black&#x2011;box&#160;CI                                                                                                 |
+|:-------------------:|:----------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
+|    macOS / Linux    |  v8.1.1<br>v7.10.0<br>v6.11.0<br>v4.8.3  | [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                 | N/A                                                                                                                                                                                  |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              | [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 |
+|       Windows       |                  v8.1.1                  | [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/imeqi80bqn2xdv8b/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ci2/branch/master)        |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  | [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  |
+|                     |                  v7.10.0                 |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
+|                     |                  v6.11.0                 |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
+|                     |                  v4.8.3                  |                                                                                                                                                                     |                                                                                                                                                                                      |                                                                                                                                                                           |                                                                                                                                               |
 
 ![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
 
@@ -20,9 +20,9 @@ Ahead-of-time (AOT) Compiler designed for Node.js.
 
 |                       |   Arch.  |                              Latest&#160;Stable                                        |
 |:---------------------:|:--------:|----------------------------------------------------------------------------------------|
-|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download     |
 |       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download  |
 |       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download   |
+|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download     |
 
 ## How it works
 
@@ -41,20 +41,6 @@ Ahead-of-time (AOT) Compiler designed for Node.js.
 | [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
 
 ## Install
-
-### Windows
-
-First install the prerequisites:
-
-* [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
-* [Python 2.6 or 2.7](https://www.python.org/downloads/)
-* [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
-  including the Community edition (remember to select
-  "Common Tools for Visual C++ 2015" feature during installation).
-* [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
-  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
-
-Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ### macOS
 
@@ -89,6 +75,20 @@ Then,
     curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
+
+### Windows
+
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
+* [Python 2.6 or 2.7](https://www.python.org/downloads/)
+* [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
+  including the Community edition (remember to select
+  "Common Tools for Visual C++ 2015" feature during installation).
+* [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
+  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+
+Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ## Usage
 

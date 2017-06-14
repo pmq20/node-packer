@@ -10,7 +10,7 @@ build_script:
 
     Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
 
-    Start-FileDownload https://nodejs.org/dist/v8.0.0/node-v8.0.0-win-x64.zip -FileName C:\projects\node-compiler\node.zip
+    Start-FileDownload https://nodejs.org/dist/v8.1.1/node-v8.1.1-win-x64.zip -FileName C:\projects\node-compiler\node.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -22,7 +22,7 @@ build_script:
 
 test_script:
 - cmd: |
-    set PATH=C:\projects\node-compiler\usr\bin\node-v8.0.0-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
+    set PATH=C:\projects\node-compiler\usr\bin\node-v8.1.1-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
 
     python --version
 

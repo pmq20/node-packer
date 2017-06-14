@@ -1,16 +1,19 @@
 language: node_js
 
-node_js: 8.1.1
-
 os:
   - linux
   - osx
 
-env:
-  - NODEC_NODE_VERSION=8
-  - NODEC_NODE_VERSION=7
-  - NODEC_NODE_VERSION=6
-  - NODEC_NODE_VERSION=4
+matrix:
+  include:
+  - node_js: 8.1.1
+    env: NODEC_NODE_VERSION=8
+  - node_js: 7.10.0
+    env: NODEC_NODE_VERSION=7
+  - node_js: 6.11.0
+    env: NODEC_NODE_VERSION=6
+  - node_js: 4.8.3
+    env: NODEC_NODE_VERSION=4
 
 addons:
   apt:

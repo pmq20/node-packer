@@ -14,50 +14,49 @@ require 'open3'
 require 'uri'
 
 class Compiler
-  def self.node_version
-    @node_version ||= peek_node_version
-  end
-
-  def self.peek_node_version
-    version_info = File.read(File.join(PRJ_ROOT, 'node/src/node_version.h'))
-    versions = []
-    if version_info =~ /NODE_MAJOR_VERSION\s+(\d+)/
-      versions << $1.dup
-    else
-      raise 'Cannot peek NODE_MAJOR_VERSION'
-    end
-    if version_info =~ /NODE_MINOR_VERSION\s+(\d+)/
-      versions << $1.dup
-    else
-      raise 'Cannot peek NODE_MINOR_VERSION'
-    end
-    if version_info =~ /NODE_PATCH_VERSION\s+(\d+)/
-      versions << $1.dup
-    else
-      raise 'Cannot peek NODE_PATCH_VERSION'
-    end
-    versions.join('.')
-  end
-
   def initialize(entrance, options = {})
     @options = options
     @entrance = entrance
-
-    check_base_node_version!
 
     init_options
     init_entrance_and_root
     init_tmpdir
 
-    STDERR.puts "Entrance: #{@entrance}"
-    STDERR.puts "Options: #{@options}"
+    STDERR.puts "Node.js Compiler (nodec) v#{::Compiler::VERSION}"
+    STDERR.puts "- entrance: #{@entrance}"
+    STDERR.puts "- options: #{@options}"
     STDERR.puts
+
+    check_base_node_version!
 
     stuff_tmpdir
   end
 
+  def node_version
+    @node_version ||= (
+      version_info = File.read(File.join(PRJ_ROOT, "#{@node_dir}/src/node_version.h"))
+      versions = []
+      if version_info =~ /NODE_MAJOR_VERSION\s+(\d+)/
+        versions << $1.dup
+      else
+        raise 'Cannot peek NODE_MAJOR_VERSION'
+      end
+      if version_info =~ /NODE_MINOR_VERSION\s+(\d+)/
+        versions << $1.dup
+      else
+        raise 'Cannot peek NODE_MINOR_VERSION'
+      end
+      if version_info =~ /NODE_PATCH_VERSION\s+(\d+)/
+        versions << $1.dup
+      else
+        raise 'Cannot peek NODE_PATCH_VERSION'
+      end
+      versions.join('.')
+    )
+  end
+
   def check_base_node_version!
-    expectation = "v#{self.class.node_version}"
+    expectation = "v#{node_version}"
     got = `node -v`.to_s.strip
     unless got.include?(expectation)
       msg =  "=== WARNING ===\n"
@@ -93,6 +92,13 @@ class Compiler
 
   def init_options
     @options[:npm] ||= 'npm'
+    @options[:node_version] ||= '8'
+    @node_dir = "node#{@options[:node_version]}"
+    unless Dir.exist?(File.join(PRJ_ROOT, @node_dir))
+      msg = "Node.js #{@options[:node_version]} is not supported yet.\n"
+      msg += "Supported options are --node-version=8 or 7 or 6 or 4."
+      raise Error, msg
+    end
     @options[:make_args] ||= '-j4'
     @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     if Gem.win_platform?
@@ -130,9 +136,9 @@ class Compiler
   def stuff_tmpdir
     Utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmpdir]
     Utils.mkdir_p(@options[:tmpdir])
-    @tmpdir_node = File.join(@options[:tmpdir], 'node')
+    @tmpdir_node = File.join(@options[:tmpdir], @node_dir)
     unless Dir.exist?(@tmpdir_node)
-      Utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
+      Utils.cp_r(File.join(PRJ_ROOT, @node_dir), @tmpdir_node, preserve: true)
     end
     @npm_package.stuff_tmpdir if @npm_package
   end

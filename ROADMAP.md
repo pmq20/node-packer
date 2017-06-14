@@ -6,8 +6,6 @@
 - Add options to select compression-method
 - Add options to generate installers
 - Support writing options down to package.json
-- Support arbitrary node.js runtime versions
-  - https://github.com/pmq20/node-compiler/issues/40
 - Detect simultaneous runs of nodec
   - https://github.com/pmq20/node-compiler/issues/31
 - Warn the user that some symbolic link links to the outside of the project

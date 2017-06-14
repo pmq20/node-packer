@@ -1,0 +1,192 @@
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+const common = require('../common');
+const assert = require('assert');
+const os = require('os');
+const path = require('path');
+
+const is = {
+  string: (value) => { assert.strictEqual(typeof value, 'string'); },
+  number: (value) => { assert.strictEqual(typeof value, 'number'); },
+  array: (value) => { assert.ok(Array.isArray(value)); },
+  object: (value) => {
+    assert.strictEqual(typeof value, 'object');
+    assert.notStrictEqual(value, null);
+  }
+};
+
+process.env.TMPDIR = '/tmpdir';
+process.env.TMP = '/tmp';
+process.env.TEMP = '/temp';
+if (common.isWindows) {
+  assert.strictEqual(os.tmpdir(), '/temp');
+  process.env.TEMP = '';
+  assert.strictEqual(os.tmpdir(), '/tmp');
+  process.env.TMP = '';
+  const expected = `${process.env.SystemRoot || process.env.windir}\\temp`;
+  assert.strictEqual(os.tmpdir(), expected);
+  process.env.TEMP = '\\temp\\';
+  assert.strictEqual(os.tmpdir(), '\\temp');
+  process.env.TEMP = '\\tmpdir/';
+  assert.strictEqual(os.tmpdir(), '\\tmpdir/');
+  process.env.TEMP = '\\';
+  assert.strictEqual(os.tmpdir(), '\\');
+  process.env.TEMP = 'C:\\';
+  assert.strictEqual(os.tmpdir(), 'C:\\');
+} else {
+  assert.strictEqual(os.tmpdir(), '/tmpdir');
+  process.env.TMPDIR = '';
+  assert.strictEqual(os.tmpdir(), '/tmp');
+  process.env.TMP = '';
+  assert.strictEqual(os.tmpdir(), '/temp');
+  process.env.TEMP = '';
+  assert.strictEqual(os.tmpdir(), '/tmp');
+  process.env.TMPDIR = '/tmpdir/';
+  assert.strictEqual(os.tmpdir(), '/tmpdir');
+  process.env.TMPDIR = '/tmpdir\\';
+  assert.strictEqual(os.tmpdir(), '/tmpdir\\');
+  process.env.TMPDIR = '/';
+  assert.strictEqual(os.tmpdir(), '/');
+}
+
+const endianness = os.endianness();
+is.string(endianness);
+assert.ok(/[BL]E/.test(endianness));
+
+const hostname = os.hostname();
+is.string(hostname);
+assert.ok(hostname.length > 0);
+
+const uptime = os.uptime();
+is.number(uptime);
+assert.ok(uptime > 0);
+
+const cpus = os.cpus();
+is.array(cpus);
+assert.ok(cpus.length > 0);
+
+const type = os.type();
+is.string(type);
+assert.ok(type.length > 0);
+
+const release = os.release();
+is.string(release);
+assert.ok(release.length > 0);
+//TODO: Check format on more than just AIX
+if (common.isAix)
+  assert.ok(/^\d+\.\d+$/.test(release));
+
+const platform = os.platform();
+is.string(platform);
+assert.ok(platform.length > 0);
+
+const arch = os.arch();
+is.string(arch);
+assert.ok(arch.length > 0);
+
+if (!common.isSunOS) {
+  // not implemeneted yet
+  assert.ok(os.loadavg().length > 0);
+  assert.ok(os.freemem() > 0);
+  assert.ok(os.totalmem() > 0);
+}
+
+
+const interfaces = os.networkInterfaces();
+switch (platform) {
+  case 'linux':
+    {
+      const filter = (e) => e.address === '127.0.0.1';
+      const actual = interfaces.lo.filter(filter);
+      const expected = [{ address: '127.0.0.1', netmask: '255.0.0.0',
+                          mac: '00:00:00:00:00:00', family: 'IPv4',
+                          internal: true }];
+      assert.deepStrictEqual(actual, expected);
+      break;
+    }
+  case 'win32':
+    {
+      const filter = (e) => e.address === '127.0.0.1';
+      const actual = interfaces['Loopback Pseudo-Interface 1'].filter(filter);
+      const expected = [{ address: '127.0.0.1', netmask: '255.0.0.0',
+                          mac: '00:00:00:00:00:00', family: 'IPv4',
+                          internal: true }];
+      assert.deepStrictEqual(actual, expected);
+      break;
+    }
+}
+
+const EOL = os.EOL;
+assert.ok(EOL.length > 0);
+
+
+const home = os.homedir();
+
+is.string(home);
+assert.ok(home.includes(path.sep));
+
+if (common.isWindows && process.env.USERPROFILE) {
+  assert.strictEqual(home, process.env.USERPROFILE);
+  delete process.env.USERPROFILE;
+  assert.ok(os.homedir().includes(path.sep));
+  process.env.USERPROFILE = home;
+} else if (!common.isWindows && process.env.HOME) {
+  assert.strictEqual(home, process.env.HOME);
+  delete process.env.HOME;
+  assert.ok(os.homedir().includes(path.sep));
+  process.env.HOME = home;
+}
+
+const pwd = os.userInfo();
+is.object(pwd);
+const pwdBuf = os.userInfo({ encoding: 'buffer' });
+
+if (common.isWindows) {
+  assert.strictEqual(pwd.uid, -1);
+  assert.strictEqual(pwd.gid, -1);
+  assert.strictEqual(pwd.shell, null);
+  assert.strictEqual(pwdBuf.uid, -1);
+  assert.strictEqual(pwdBuf.gid, -1);
+  assert.strictEqual(pwdBuf.shell, null);
+} else {
+  is.number(pwd.uid);
+  is.number(pwd.gid);
+  assert.ok(pwd.shell.includes(path.sep));
+  assert.strictEqual(pwd.uid, pwdBuf.uid);
+  assert.strictEqual(pwd.gid, pwdBuf.gid);
+  assert.strictEqual(pwd.shell, pwdBuf.shell.toString('utf8'));
+}
+
+is.string(pwd.username);
+assert.ok(pwd.homedir.includes(path.sep));
+assert.strictEqual(pwd.username, pwdBuf.username.toString('utf8'));
+assert.strictEqual(pwd.homedir, pwdBuf.homedir.toString('utf8'));
+
+// Test that the Symbol.toPrimitive functions work correctly
+[
+  [`${os.hostname}`, os.hostname()],
+  [`${os.homedir}`, os.homedir()],
+  [`${os.release}`, os.release()],
+  [`${os.type}`, os.type()],
+  [`${os.endianness}`, os.endianness()]
+].forEach((set) => assert.strictEqual(set[0], set[1]));

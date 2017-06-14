@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>VM (Executing JavaScript) | Node.js v4.8.3 Manual &amp; Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/vm.html">
+</head>
+<body class="alt apidoc" id="api-section-vm">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm active" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="vm" class="interior">
+      <header>
+        <h1>Node.js v4.8.3 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="vm.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (Executing JavaScript)</a></span><ul>
+<li><span class="stability_undefined"><a href="#vm_class_script">Class: Script</a></span><ul>
+<li><span class="stability_undefined"><a href="#vm_new_vm_script_code_options">new vm.Script(code, options)</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox][, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_script_runinthiscontext_options">script.runInThisContext([options])</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#vm_vm_createcontext_sandbox">vm.createContext([sandbox])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_vm_iscontext_sandbox">vm.isContext(sandbox)</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_vm_runincontext_code_contextifiedsandbox_options">vm.runInContext(code, contextifiedSandbox[, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_vm_runindebugcontext_code">vm.runInDebugContext(code)</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_vm_runinnewcontext_code_sandbox_options">vm.runInNewContext(code[, sandbox][, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_vm_runinthiscontext_code_options">vm.runInThisContext(code[, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_example_run_a_server_within_a_vm">Example: Run a Server within a VM</a></span></li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>VM (Executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><!--name=vm-->
+<p>You can access this module with:</p>
+<pre><code class="lang-js">const vm = require(&#39;vm&#39;);
+</code></pre>
+<p>JavaScript code can be compiled and run immediately or compiled, saved, and run
+later.</p>
+<h2>Class: Script<span><a class="mark" href="#vm_class_script" id="vm_class_script">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>A class for holding precompiled scripts, and running them in specific sandboxes.</p>
+<h3>new vm.Script(code, options)<span><a class="mark" href="#vm_new_vm_script_code_options" id="vm_new_vm_script_code_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>Creating a new <code>Script</code> compiles <code>code</code> but does not run it. Instead, the
+created <code>vm.Script</code> object represents this compiled code. This script can be run
+later many times using methods below. The returned script is not bound to any
+global object. It is bound before each run, just for that run.</p>
+<p>The options when creating a script are:</p>
+<ul>
+<li><code>filename</code>: allows you to control the filename that shows up in any stack
+traces produced from this script.</li>
+<li><code>lineOffset</code>: allows you to add an offset to the line number that is
+displayed in stack traces</li>
+<li><code>columnOffset</code>: allows you to add an offset to the column number that is
+displayed in stack traces</li>
+<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the
+line of code that caused them highlighted, before throwing an exception.
+Applies only to syntax errors compiling the code; errors while running the
+code are controlled by the options to the script&#39;s methods.</li>
+<li><code>timeout</code>: a number of milliseconds to execute <code>code</code> before terminating
+execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown.</li>
+</ul>
+<h3>script.runInContext(contextifiedSandbox[, options])<span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>Similar to <a href="#vm_vm_runincontext_code_contextifiedsandbox_options"><code>vm.runInContext()</code></a> but a method of a precompiled <code>Script</code>
+object. <code>script.runInContext()</code> runs <code>script</code>&#39;s compiled code in
+<code>contextifiedSandbox</code> and returns the result. Running code does not have access
+to local scope.</p>
+<p><code>script.runInContext()</code> takes the same options as
+<a href="#vm_script_runinthiscontext_options"><code>script.runInThisContext()</code></a>.</p>
+<p>Example: compile code that increments a global variable and sets one, then
+execute the code multiple times. These globals are contained in the sandbox.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+var sandbox = {
+  animal: &#39;cat&#39;,
+  count: 2
+};
+
+var context = new vm.createContext(sandbox);
+var script = new vm.Script(&#39;count += 1; name = &quot;kitty&quot;&#39;);
+
+for (var i = 0; i &lt; 10; ++i) {
+  script.runInContext(context);
+}
+
+console.log(util.inspect(sandbox));
+
+// { animal: &#39;cat&#39;, count: 12, name: &#39;kitty&#39; }
+</code></pre>
+<p>Note that running untrusted code is a tricky business requiring great care.
+<code>script.runInContext()</code> is quite useful, but safely running untrusted code
+requires a separate process.</p>
+<h3>script.runInNewContext([sandbox][, options])<span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>Similar to <a href="#vm_vm_runinnewcontext_code_sandbox_options"><code>vm.runInNewContext()</code></a> but a method of a precompiled <code>Script</code>
+object. <code>script.runInNewContext()</code> contextifies <code>sandbox</code> if passed or creates a
+new contextified sandbox if it&#39;s omitted, and then runs <code>script</code>&#39;s compiled code
+with the sandbox as the global object and returns the result. Running code does
+not have access to local scope.</p>
+<p><code>script.runInNewContext()</code> takes the same options as
+<a href="#vm_script_runinthiscontext_options"><code>script.runInThisContext()</code></a>.</p>
+<p>Example: compile code that sets a global variable, then execute the code
+multiple times in different contexts. These globals are set on and contained in
+the sandboxes.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+const sandboxes = [{}, {}, {}];
+
+const script = new vm.Script(&#39;globalVar = &quot;set&quot;&#39;);
+
+sandboxes.forEach((sandbox) =&gt; {
+  script.runInNewContext(sandbox);
+});
+
+console.log(util.inspect(sandboxes));
+
+// [{ globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }]
+</code></pre>
+<p>Note that running untrusted code is a tricky business requiring great care.
+<code>script.runInNewContext()</code> is quite useful, but safely running untrusted code
+requires a separate process.</p>
+<h3>script.runInThisContext([options])<span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>Similar to <a href=""><code>vm.runInThisContext()</code></a> but a method of a precompiled <code>Script</code>
+object. <code>script.runInThisContext()</code> runs <code>script</code>&#39;s compiled code and returns
+the result. Running code does not have access to local scope, but does have
+access to the current <code>global</code> object.</p>
+<p>Example of using <code>script.runInThisContext()</code> to compile code once and run it
+multiple times:</p>
+<pre><code class="lang-js">const vm = require(&#39;vm&#39;);
+
+global.globalVar = 0;
+
+const script = new vm.Script(&#39;globalVar += 1&#39;, { filename: &#39;myfile.vm&#39; });
+
+for (var i = 0; i &lt; 1000; ++i) {
+  script.runInThisContext();
+}
+
+console.log(globalVar);
+
+// 1000
+</code></pre>
+<p>The options for running a script are:</p>
+<ul>
+<li><code>filename</code>: allows you to control the filename that shows up in any stack
+traces produced.</li>
+<li><code>lineOffset</code>: allows you to add an offset to the line number that is
+displayed in stack traces</li>
+<li><code>columnOffset</code>: allows you to add an offset to the column number that is
+displayed in stack traces</li>
+<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the
+line of code that caused them highlighted, before throwing an exception.
+Applies only to runtime errors executing the code; it is impossible to create
+a <code>Script</code> instance with syntax errors, as the constructor will throw.</li>
+<li><code>timeout</code>: a number of milliseconds to execute the script before terminating
+execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown.</li>
+</ul>
+<h2>vm.createContext([sandbox])<span><a class="mark" href="#vm_vm_createcontext_sandbox" id="vm_vm_createcontext_sandbox">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p>If given a <code>sandbox</code> object, will &quot;contextify&quot; that sandbox so that it can be
+used in calls to <a href="#vm_vm_runincontext_code_contextifiedsandbox_options"><code>vm.runInContext()</code></a> or <a href="#vm_script_runincontext_contextifiedsandbox_options"><code>script.runInContext()</code></a>. Inside
+scripts run as such, <code>sandbox</code> will be the global object, retaining all its
+existing properties but also having the built-in objects and functions any
+standard <a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module,
+<code>sandbox</code> will be unchanged.</p>
+<p>If not given a sandbox object, returns a new, empty contextified sandbox object
+you can use.</p>
+<p>This function is useful for creating a sandbox that can be used to run multiple
+scripts, e.g. if you were emulating a web browser it could be used to create a
+single sandbox representing a window&#39;s global object, then run all <code>&lt;script&gt;</code>
+tags together inside that sandbox.</p>
+<h2>vm.isContext(sandbox)<span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.7</span>
+</div><p>Returns whether or not a sandbox object has been contextified by calling
+<a href="#vm_vm_createcontext_sandbox"><code>vm.createContext()</code></a> on it.</p>
+<h2>vm.runInContext(code, contextifiedSandbox[, options])<span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<p><code>vm.runInContext()</code> compiles <code>code</code>, then runs it in <code>contextifiedSandbox</code> and
+returns the result. Running code does not have access to local scope. The
+<code>contextifiedSandbox</code> object must have been previously contextified via
+<a href="#vm_vm_createcontext_sandbox"><code>vm.createContext()</code></a>; it will be used as the global object for <code>code</code>.</p>
+<p><code>vm.runInContext()</code> takes the same options as <a href="#vm_vm_runinthiscontext_code_options"><code>vm.runInThisContext()</code></a>.</p>
+<p>Example: compile and execute different scripts in a single existing context.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+const sandbox = { globalVar: 1 };
+vm.createContext(sandbox);
+
+for (var i = 0; i &lt; 10; ++i) {
+    vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);
+}
+console.log(util.inspect(sandbox));
+
+// { globalVar: 1024 }
+</code></pre>
+<p>Note that running untrusted code is a tricky business requiring great care.
+<code>vm.runInContext()</code> is quite useful, but safely running untrusted code requires
+a separate process.</p>
+<h2>vm.runInDebugContext(code)<span><a class="mark" href="#vm_vm_runindebugcontext_code" id="vm_vm_runindebugcontext_code">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.11.14</span>
+</div><p><code>vm.runInDebugContext()</code> compiles and executes <code>code</code> inside the V8 debug
+context. The primary use case is to get access to the V8 debug object:</p>
+<pre><code class="lang-js">const vm = require(&#39;vm&#39;);
+const Debug = vm.runInDebugContext(&#39;Debug&#39;);
+console.log(Debug.findScript(process.emit).name);  // &#39;events.js&#39;
+console.log(Debug.findScript(process.exit).name);  // &#39;internal/process.js&#39;
+</code></pre>
+<p>Note that the debug context and object are intrinsically tied to V8&#39;s debugger
+implementation and may change (or even get removed) without prior warning.</p>
+<p>The debug object can also be exposed with the <code>--expose_debug_as=</code> switch.</p>
+<h2>vm.runInNewContext(code[, sandbox][, options])<span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p><code>vm.runInNewContext()</code> compiles <code>code</code>, contextifies <code>sandbox</code> if passed or
+creates a new contextified sandbox if it&#39;s omitted, and then runs the code with
+the sandbox as the global object and returns the result.</p>
+<p><code>vm.runInNewContext()</code> takes the same options as <a href="#vm_vm_runinthiscontext_code_options"><code>vm.runInThisContext()</code></a>.</p>
+<p>Example: compile and execute code that increments a global variable and sets a
+new one. These globals are contained in the sandbox.</p>
+<pre><code class="lang-js">const util = require(&#39;util&#39;);
+const vm = require(&#39;vm&#39;);
+
+const sandbox = {
+  animal: &#39;cat&#39;,
+  count: 2
+};
+
+vm.runInNewContext(&#39;count += 1; name = &quot;kitty&quot;&#39;, sandbox);
+console.log(util.inspect(sandbox));
+
+// { animal: &#39;cat&#39;, count: 3, name: &#39;kitty&#39; }
+</code></pre>
+<p>Note that running untrusted code is a tricky business requiring great care.
+<code>vm.runInNewContext()</code> is quite useful, but safely running untrusted code requires
+a separate process.</p>
+<h2>vm.runInThisContext(code[, options])<span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div><p><code>vm.runInThisContext()</code> compiles <code>code</code>, runs it and returns the result. Running
+code does not have access to local scope, but does have access to the current
+<code>global</code> object.</p>
+<p>Example of using <code>vm.runInThisContext()</code> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval"><code>eval()</code></a> to run the same code:</p>
+<pre><code class="lang-js">const vm = require(&#39;vm&#39;);
+var localVar = &#39;initial value&#39;;
+
+const vmResult = vm.runInThisContext(&#39;localVar = &quot;vm&quot;;&#39;);
+console.log(&#39;vmResult:&#39;, vmResult);
+console.log(&#39;localVar:&#39;, localVar);
+
+const evalResult = eval(&#39;localVar = &quot;eval&quot;;&#39;);
+console.log(&#39;evalResult:&#39;, evalResult);
+console.log(&#39;localVar:&#39;, localVar);
+
+// vmResult: &#39;vm&#39;, localVar: &#39;initial value&#39;
+// evalResult: &#39;eval&#39;, localVar: &#39;eval&#39;
+</code></pre>
+<p><code>vm.runInThisContext()</code> does not have access to the local scope, so <code>localVar</code>
+is unchanged. <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval"><code>eval()</code></a> does have access to the local scope, so <code>localVar</code> is
+changed.</p>
+<p>In this way <code>vm.runInThisContext()</code> is much like an <a href="https://es5.github.io/#x10.4.2">indirect <code>eval()</code> call</a>,
+e.g. <code>(0,eval)(&#39;code&#39;)</code>. However, it also has the following additional options:</p>
+<ul>
+<li><code>filename</code>: allows you to control the filename that shows up in any stack
+traces produced.</li>
+<li><code>lineOffset</code>: allows you to add an offset to the line number that is
+displayed in stack traces</li>
+<li><code>columnOffset</code>: allows you to add an offset to the column number that is
+displayed in stack traces</li>
+<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the
+line of code that caused them highlighted, before throwing an exception.
+Will capture both syntax errors from compiling <code>code</code> and runtime errors
+thrown by executing the compiled code. Defaults to <code>true</code>.</li>
+<li><code>timeout</code>: a number of milliseconds to execute <code>code</code> before terminating
+execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown.</li>
+</ul>
+<h2>Example: Run a Server within a VM<span><a class="mark" href="#vm_example_run_a_server_within_a_vm" id="vm_example_run_a_server_within_a_vm">#</a></span></h2>
+<p>The context of <code>.runInThisContext()</code> refers to the V8 context. The code passed
+to this VM context will have it&#39;s own isolated scope. To run a simple web server
+using the <code>http</code> module, for instance, the code passed to the context must either
+call <code>require(&#39;http&#39;)</code> on its own, or have a reference to the <code>http</code> module passed
+to it. For instance:</p>
+<pre><code class="lang-js">&#39;use strict&#39;;
+const vm = require(&#39;vm&#39;);
+
+let code =
+`(function(require) {
+
+   const http = require(&#39;http&#39;);
+
+   http.createServer( (request, response) =&gt; {
+     response.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
+     response.end(&#39;Hello World\\n&#39;);
+   }).listen(8124);
+
+   console.log(&#39;Server running at http://127.0.0.1:8124/&#39;);
+ })`;
+
+ vm.runInThisContext(code)(require);
+</code></pre>
+<p><em>Note: <code>require()</code> in the above case shares the state with context it is passed
+from. This might introduce risks when unknown code is executed, e.g. altering
+objects from the calling thread&#39;s context in unwanted ways. It is advisable to
+run <code>vm</code> code in a separate process.</em></p>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
+</body>
+</html>
+

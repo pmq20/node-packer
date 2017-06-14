@@ -1,0 +1,146 @@
+{
+  "source": "doc/api/tty.md",
+  "modules": [
+    {
+      "textRaw": "TTY",
+      "name": "tty",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>tty</code> module houses the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes. In\nmost cases, you will not need to use this module directly.</p>\n<p>When Node.js detects that it is being run inside a TTY context, then <code>process.stdin</code>\nwill be a <code>tty.ReadStream</code> instance and <code>process.stdout</code> will be\na <code>tty.WriteStream</code> instance. The preferred way to check if Node.js is being run\nin a TTY context is to check <code>process.stdout.isTTY</code>:</p>\n<pre><code>$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot;\ntrue\n$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot; | cat\nfalse\n</code></pre>",
+      "classes": [
+        {
+          "textRaw": "Class: ReadStream",
+          "type": "class",
+          "name": "ReadStream",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ]
+          },
+          "desc": "<p>A <code>net.Socket</code> subclass that represents the readable portion of a tty. In normal\ncircumstances, <code>process.stdin</code> will be the only <code>tty.ReadStream</code> instance in any\nNode.js program (only when <code>isatty(0)</code> is true).</p>\n",
+          "properties": [
+            {
+              "textRaw": "rs.isRaw",
+              "name": "isRaw",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p>A <code>Boolean</code> that is initialized to <code>false</code>. It represents the current &quot;raw&quot; state\nof the <code>tty.ReadStream</code> instance.</p>\n"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "rs.setRawMode(mode)",
+              "type": "method",
+              "name": "setRawMode",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p><code>mode</code> should be <code>true</code> or <code>false</code>. This sets the properties of the\n<code>tty.ReadStream</code> to act either as a raw device or default. <code>isRaw</code> will be set\nto the resulting mode.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "mode"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: WriteStream",
+          "type": "class",
+          "name": "WriteStream",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ]
+          },
+          "desc": "<p>A <code>net.Socket</code> subclass that represents the writable portion of a tty. In normal\ncircumstances, <code>process.stdout</code> will be the only <code>tty.WriteStream</code> instance\never created (and only when <code>isatty(1)</code> is true).</p>\n",
+          "events": [
+            {
+              "textRaw": "Event: 'resize'",
+              "type": "event",
+              "name": "resize",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p><code>function () {}</code></p>\n<p>Emitted by <code>refreshSize()</code> when either of the <code>columns</code> or <code>rows</code> properties\nhas changed.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n",
+              "params": []
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "ws.columns",
+              "name": "columns",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p>A <code>Number</code> that gives the number of columns the TTY currently has. This property\ngets updated on <code>&#39;resize&#39;</code> events.</p>\n"
+            },
+            {
+              "textRaw": "ws.rows",
+              "name": "rows",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ]
+              },
+              "desc": "<p>A <code>Number</code> that gives the number of rows the TTY currently has. This property\ngets updated on <code>&#39;resize&#39;</code> events.</p>\n"
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "tty.isatty(fd)",
+          "type": "method",
+          "name": "isatty",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ]
+          },
+          "desc": "<p>Returns <code>true</code> or <code>false</code> depending on if the <code>fd</code> is associated with a\nterminal.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "fd"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "tty.setRawMode(mode)",
+          "type": "method",
+          "name": "setRawMode",
+          "stability": 0,
+          "stabilityText": "Deprecated: Use [tty.ReadStream#setRawMode][] (i.e. process.stdin.setRawMode) instead.",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "mode"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "TTY"
+    }
+  ]
+}

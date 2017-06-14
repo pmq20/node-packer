@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>URL | Node.js v4.8.3 Manual &amp; Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/url.html">
+</head>
+<body class="alt apidoc" id="api-section-url">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C/C++ Addons</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url active" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="url" class="interior">
+      <header>
+        <h1>Node.js v4.8.3 Documentation</h1>
+        <div id="gtoc">
+          <p>
+            <a href="index.html" name="toc">Index</a> |
+            <a href="all.html">View on single page</a> |
+            <a href="url.json">View as JSON</a>
+          </p>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><span class="stability_2"><a href="#url_url">URL</a></span><ul>
+<li><span class="stability_undefined"><a href="#url_url_parsing">URL Parsing</a></span><ul>
+<li><span class="stability_undefined"><a href="#url_escaped_characters">Escaped Characters</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#url_url_format_urlobj">url.format(urlObj)</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_parse_urlstr_parsequerystring_slashesdenotehost">url.parse(urlStr[, parseQueryString][, slashesDenoteHost])</a></span></li>
+<li><span class="stability_undefined"><a href="#url_url_resolve_from_to">url.resolve(from, to)</a></span></li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>URL<span><a class="mark" href="#url_url" id="url_url">#</a></span></h1>
+<pre class="api_stability api_stability_2">Stability: 2 - Stable</pre><p>This module has utilities for URL resolution and parsing.
+Call <code>require(&#39;url&#39;)</code> to use it.</p>
+<h2>URL Parsing<span><a class="mark" href="#url_url_parsing" id="url_url_parsing">#</a></span></h2>
+<p>Parsed URL objects have some or all of the following fields, depending on
+whether or not they exist in the URL string. Any parts that are not in the URL
+string will not be in the parsed object. Examples are shown for the URL</p>
+<p><code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code></p>
+<ul>
+<li><p><code>href</code>: The full URL that was originally parsed. Both the protocol and host are lowercased.</p>
+<p>  Example: <code>&#39;http://user:pass@host.com:8080/p/a/t/h?query=string#hash&#39;</code></p>
+</li>
+<li><p><code>protocol</code>: The request protocol, lowercased.</p>
+<p>  Example: <code>&#39;http:&#39;</code></p>
+</li>
+<li><p><code>slashes</code>: The protocol requires slashes after the colon.</p>
+<p>  Example: true or false</p>
+</li>
+<li><p><code>host</code>: The full lowercased host portion of the URL, including port
+information.</p>
+<p>  Example: <code>&#39;host.com:8080&#39;</code></p>
+</li>
+<li><p><code>auth</code>: The authentication information portion of a URL.</p>
+<p>  Example: <code>&#39;user:pass&#39;</code></p>
+</li>
+<li><p><code>hostname</code>: Just the lowercased hostname portion of the host.</p>
+<p>  Example: <code>&#39;host.com&#39;</code></p>
+</li>
+<li><p><code>port</code>: The port number portion of the host.</p>
+<p>  Example: <code>&#39;8080&#39;</code></p>
+</li>
+<li><p><code>pathname</code>: The path section of the URL, that comes after the host and
+before the query, including the initial slash if present. No decoding is
+performed.</p>
+<p>  Example: <code>&#39;/p/a/t/h&#39;</code></p>
+</li>
+<li><p><code>search</code>: The &#39;query string&#39; portion of the URL, including the leading
+question mark.</p>
+<p>  Example: <code>&#39;?query=string&#39;</code></p>
+</li>
+<li><p><code>path</code>: Concatenation of <code>pathname</code> and <code>search</code>. No decoding is performed.</p>
+<p>  Example: <code>&#39;/p/a/t/h?query=string&#39;</code></p>
+</li>
+<li><p><code>query</code>: Either the &#39;params&#39; portion of the query string, or a
+querystring-parsed object.</p>
+<p>  Example: <code>&#39;query=string&#39;</code> or <code>{&#39;query&#39;:&#39;string&#39;}</code></p>
+</li>
+<li><p><code>hash</code>: The &#39;fragment&#39; portion of the URL including the pound-sign.</p>
+<p>  Example: <code>&#39;#hash&#39;</code></p>
+</li>
+</ul>
+<h3>Escaped Characters<span><a class="mark" href="#url_escaped_characters" id="url_escaped_characters">#</a></span></h3>
+<p>Spaces (<code>&#39; &#39;</code>) and the following characters will be automatically escaped in the
+properties of URL objects:</p>
+<pre><code>&lt; &gt; &quot; ` \r \n \t { } | \ ^ &#39;
+</code></pre><hr>
+<p>The following methods are provided by the URL module:</p>
+<h2>url.format(urlObj)<span><a class="mark" href="#url_url_format_urlobj" id="url_url_format_urlobj">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><p>Take a parsed URL object, and return a formatted URL string.</p>
+<p>Here&#39;s how the formatting process works:</p>
+<ul>
+<li><code>href</code> will be ignored.</li>
+<li><code>path</code> will be ignored.</li>
+<li><code>protocol</code> is treated the same with or without the trailing <code>:</code> (colon).<ul>
+<li>The protocols <code>http</code>, <code>https</code>, <code>ftp</code>, <code>gopher</code>, <code>file</code> will be
+postfixed with <code>://</code> (colon-slash-slash) as long as <code>host</code>/<code>hostname</code> are present.</li>
+<li>All other protocols <code>mailto</code>, <code>xmpp</code>, <code>aim</code>, <code>sftp</code>, <code>foo</code>, etc will
+be postfixed with <code>:</code> (colon).</li>
+</ul>
+</li>
+<li><code>slashes</code> set to <code>true</code> if the protocol requires <code>://</code> (colon-slash-slash)<ul>
+<li>Only needs to be set for protocols not previously listed as requiring
+slashes, such as <code>mongodb://localhost:8000/</code>, or if <code>host</code>/<code>hostname</code> are absent.</li>
+</ul>
+</li>
+<li><code>auth</code> will be used if present.</li>
+<li><code>hostname</code> will only be used if <code>host</code> is absent.</li>
+<li><code>port</code> will only be used if <code>host</code> is absent.</li>
+<li><code>host</code> will be used in place of <code>hostname</code> and <code>port</code>.</li>
+<li><code>pathname</code> is treated the same with or without the leading <code>/</code> (slash).</li>
+<li><code>query</code> (object; see <code>querystring</code>) will only be used if <code>search</code> is absent.</li>
+<li><code>search</code> will be used in place of <code>query</code>.<ul>
+<li>It is treated the same with or without the leading <code>?</code> (question mark).</li>
+</ul>
+</li>
+<li><code>hash</code> is treated the same with or without the leading <code>#</code> (pound sign, anchor).</li>
+</ul>
+<h2>url.parse(urlStr[, parseQueryString][, slashesDenoteHost])<span><a class="mark" href="#url_url_parse_urlstr_parsequerystring_slashesdenotehost" id="url_url_parse_urlstr_parsequerystring_slashesdenotehost">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><p>Take a URL string, and return an object.</p>
+<p>Pass <code>true</code> as the second argument to also parse the query string using the
+<code>querystring</code> module. If <code>true</code> then the <code>query</code> property will always be
+assigned an object, and the <code>search</code> property will always be a (possibly
+empty) string. If <code>false</code> then the <code>query</code> property will not be parsed or
+decoded. Defaults to <code>false</code>.</p>
+<p>Pass <code>true</code> as the third argument to treat <code>//foo/bar</code> as
+<code>{ host: &#39;foo&#39;, pathname: &#39;/bar&#39; }</code> rather than
+<code>{ pathname: &#39;//foo/bar&#39; }</code>. Defaults to <code>false</code>.</p>
+<h2>url.resolve(from, to)<span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.1.25</span>
+</div><p>Take a base URL, and a href URL, and resolve them as a browser would for
+an anchor tag.  Examples:</p>
+<pre><code class="lang-js">url.resolve(&#39;/one/two/three&#39;, &#39;four&#39;)         // &#39;/one/two/four&#39;
+url.resolve(&#39;http://example.com/&#39;, &#39;/one&#39;)    // &#39;http://example.com/one&#39;
+url.resolve(&#39;http://example.com/one&#39;, &#39;/two&#39;) // &#39;http://example.com/two&#39;
+</code></pre>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
+</body>
+</html>
+

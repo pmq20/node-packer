@@ -1,0 +1,44 @@
+{
+  "source": "doc/api/deprecations.md",
+  "modules": [
+    {
+      "textRaw": "Deprecated APIs",
+      "name": "deprecated_apis",
+      "desc": "<p>Node.js may deprecate APIs when either: (a) use of the API is considered to be\nunsafe, (b) an improved alternative API has been made available, or (c)\nbreaking changes to the API are expected in a future major release.</p>\n<p>Node.js utilizes three kinds of Deprecations:</p>\n<ul>\n<li>Documentation-only</li>\n<li>Runtime</li>\n<li>End-of-Life</li>\n</ul>\n<p>A Documentation-only deprecation is one that is expressed only within the\nNode.js API docs. These generate no side-effects while running Node.js.</p>\n<p>A Runtime deprecation will, by default, generate a process warning that will\nbe printed to <code>stderr</code> the first time the deprecated API is used. When the\n<code>--throw-deprecation</code> command-line flag is used, a Runtime deprecation will\ncause an error to be thrown.</p>\n<p>An End-of-Life deprecation is used to identify code that either has been\nremoved or will soon be removed from Node.js.</p>\n",
+      "modules": [
+        {
+          "textRaw": "Un-deprecation",
+          "name": "un-deprecation",
+          "desc": "<p>From time-to-time the deprecation of an API may be reversed. Such action may\nhappen in either a semver-minor or semver-major release. In such situations,\nthis document will be updated with information relevant to the decision.\n<em>However, the deprecation identifier will not be modified</em>.</p>\n",
+          "type": "module",
+          "displayName": "Un-deprecation"
+        },
+        {
+          "textRaw": "List of Deprecated APIs",
+          "name": "list_of_deprecated_apis",
+          "desc": "<p><a id=\"DEP0062\"></a></p>\n",
+          "modules": [
+            {
+              "textRaw": "DEP0062: node --debug",
+              "name": "dep0062:_node_--debug",
+              "desc": "<p>Type: Runtime</p>\n<p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as\nof V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>\ninstead.</p>\n<p><a id=\"DEP0063\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0062: node --debug"
+            },
+            {
+              "textRaw": "DEP0063: ServerResponse.prototype.writeHeader()",
+              "name": "dep0063:_serverresponse.prototype.writeheader()",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API has been\ndeprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>\n<p><em>Note</em>: The <code>ServerResponse.prototype.writeHeader()</code> method was never documented\nas an officially supported API.</p>\n",
+              "type": "module",
+              "displayName": "DEP0063: ServerResponse.prototype.writeHeader()"
+            }
+          ],
+          "type": "module",
+          "displayName": "List of Deprecated APIs"
+        }
+      ],
+      "type": "module",
+      "displayName": "Deprecated APIs"
+    }
+  ]
+}

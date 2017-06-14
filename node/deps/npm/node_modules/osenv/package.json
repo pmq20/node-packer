@@ -1,0 +1,74 @@
+{
+  "_from": "osenv@~0.1.4",
+  "_id": "osenv@0.1.4",
+  "_integrity": "sha1-Qv5tWVPfBsgGS+bxdsPQWqqjRkQ=",
+  "_location": "/osenv",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "osenv@~0.1.4",
+    "name": "osenv",
+    "escapedName": "osenv",
+    "rawSpec": "~0.1.4",
+    "saveSpec": null,
+    "fetchSpec": "~0.1.4"
+  },
+  "_requiredBy": [
+    "/",
+    "/node-gyp",
+    "/nopt",
+    "/npm-package-arg",
+    "/pacote"
+  ],
+  "_resolved": "https://registry.npmjs.org/osenv/-/osenv-0.1.4.tgz",
+  "_shasum": "42fe6d5953df06c8064be6f176c3d05aaaa34644",
+  "_shrinkwrap": null,
+  "_spec": "osenv@~0.1.4",
+  "_where": "/Users/zkat/Documents/code/npm",
+  "author": {
+    "name": "Isaac Z. Schlueter",
+    "email": "i@izs.me",
+    "url": "http://blog.izs.me/"
+  },
+  "bin": null,
+  "bugs": {
+    "url": "https://github.com/npm/osenv/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "os-homedir": "^1.0.0",
+    "os-tmpdir": "^1.0.0"
+  },
+  "deprecated": false,
+  "description": "Look up environment settings specific to different operating systems",
+  "devDependencies": {
+    "tap": "^8.0.1"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "homepage": "https://github.com/npm/osenv#readme",
+  "keywords": [
+    "environment",
+    "variable",
+    "home",
+    "tmpdir",
+    "path",
+    "prompt",
+    "ps1"
+  ],
+  "license": "ISC",
+  "main": "osenv.js",
+  "name": "osenv",
+  "optionalDependencies": {},
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/npm/osenv.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "version": "0.1.4"
+}

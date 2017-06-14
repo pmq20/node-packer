@@ -1,0 +1,259 @@
+{
+  "source": "doc/api/vm.md",
+  "modules": [
+    {
+      "textRaw": "VM (Executing JavaScript)",
+      "name": "vm",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>You can access this module with:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n</code></pre>\n<p>JavaScript code can be compiled and run immediately or compiled, saved, and run\nlater.</p>\n",
+      "classes": [
+        {
+          "textRaw": "Class: Script",
+          "type": "class",
+          "name": "Script",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "desc": "<p>A class for holding precompiled scripts, and running them in specific sandboxes.</p>\n",
+          "methods": [
+            {
+              "textRaw": "new vm.Script(code, options)",
+              "type": "method",
+              "name": "Script",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "desc": "<p>Creating a new <code>Script</code> compiles <code>code</code> but does not run it. Instead, the\ncreated <code>vm.Script</code> object represents this compiled code. This script can be run\nlater many times using methods below. The returned script is not bound to any\nglobal object. It is bound before each run, just for that run.</p>\n<p>The options when creating a script are:</p>\n<ul>\n<li><code>filename</code>: allows you to control the filename that shows up in any stack\ntraces produced from this script.</li>\n<li><code>lineOffset</code>: allows you to add an offset to the line number that is\ndisplayed in stack traces</li>\n<li><code>columnOffset</code>: allows you to add an offset to the column number that is\ndisplayed in stack traces</li>\n<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the\nline of code that caused them highlighted, before throwing an exception.\nApplies only to syntax errors compiling the code; errors while running the\ncode are controlled by the options to the script&#39;s methods.</li>\n<li><code>timeout</code>: a number of milliseconds to execute <code>code</code> before terminating\nexecution. If execution is terminated, an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> will be thrown.</li>\n</ul>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "code"
+                    },
+                    {
+                      "name": "options"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "script.runInContext(contextifiedSandbox[, options])",
+              "type": "method",
+              "name": "runInContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "desc": "<p>Similar to <a href=\"#vm_vm_runincontext_code_contextifiedsandbox_options\"><code>vm.runInContext()</code></a> but a method of a precompiled <code>Script</code>\nobject. <code>script.runInContext()</code> runs <code>script</code>&#39;s compiled code in\n<code>contextifiedSandbox</code> and returns the result. Running code does not have access\nto local scope.</p>\n<p><code>script.runInContext()</code> takes the same options as\n<a href=\"#vm_script_runinthiscontext_options\"><code>script.runInThisContext()</code></a>.</p>\n<p>Example: compile code that increments a global variable and sets one, then\nexecute the code multiple times. These globals are contained in the sandbox.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nvar sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nvar context = new vm.createContext(sandbox);\nvar script = new vm.Script(&#39;count += 1; name = &quot;kitty&quot;&#39;);\n\nfor (var i = 0; i &lt; 10; ++i) {\n  script.runInContext(context);\n}\n\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 12, name: &#39;kitty&#39; }\n</code></pre>\n<p>Note that running untrusted code is a tricky business requiring great care.\n<code>script.runInContext()</code> is quite useful, but safely running untrusted code\nrequires a separate process.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "contextifiedSandbox"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "script.runInNewContext([sandbox][, options])",
+              "type": "method",
+              "name": "runInNewContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "desc": "<p>Similar to <a href=\"#vm_vm_runinnewcontext_code_sandbox_options\"><code>vm.runInNewContext()</code></a> but a method of a precompiled <code>Script</code>\nobject. <code>script.runInNewContext()</code> contextifies <code>sandbox</code> if passed or creates a\nnew contextified sandbox if it&#39;s omitted, and then runs <code>script</code>&#39;s compiled code\nwith the sandbox as the global object and returns the result. Running code does\nnot have access to local scope.</p>\n<p><code>script.runInNewContext()</code> takes the same options as\n<a href=\"#vm_script_runinthiscontext_options\"><code>script.runInThisContext()</code></a>.</p>\n<p>Example: compile code that sets a global variable, then execute the code\nmultiple times in different contexts. These globals are set on and contained in\nthe sandboxes.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandboxes = [{}, {}, {}];\n\nconst script = new vm.Script(&#39;globalVar = &quot;set&quot;&#39;);\n\nsandboxes.forEach((sandbox) =&gt; {\n  script.runInNewContext(sandbox);\n});\n\nconsole.log(util.inspect(sandboxes));\n\n// [{ globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }, { globalVar: &#39;set&#39; }]\n</code></pre>\n<p>Note that running untrusted code is a tricky business requiring great care.\n<code>script.runInNewContext()</code> is quite useful, but safely running untrusted code\nrequires a separate process.</p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "sandbox",
+                      "optional": true
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "script.runInThisContext([options])",
+              "type": "method",
+              "name": "runInThisContext",
+              "meta": {
+                "added": [
+                  "v0.3.1"
+                ]
+              },
+              "desc": "<p>Similar to <a href=\"\"><code>vm.runInThisContext()</code></a> but a method of a precompiled <code>Script</code>\nobject. <code>script.runInThisContext()</code> runs <code>script</code>&#39;s compiled code and returns\nthe result. Running code does not have access to local scope, but does have\naccess to the current <code>global</code> object.</p>\n<p>Example of using <code>script.runInThisContext()</code> to compile code once and run it\nmultiple times:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n\nglobal.globalVar = 0;\n\nconst script = new vm.Script(&#39;globalVar += 1&#39;, { filename: &#39;myfile.vm&#39; });\n\nfor (var i = 0; i &lt; 1000; ++i) {\n  script.runInThisContext();\n}\n\nconsole.log(globalVar);\n\n// 1000\n</code></pre>\n<p>The options for running a script are:</p>\n<ul>\n<li><code>filename</code>: allows you to control the filename that shows up in any stack\ntraces produced.</li>\n<li><code>lineOffset</code>: allows you to add an offset to the line number that is\ndisplayed in stack traces</li>\n<li><code>columnOffset</code>: allows you to add an offset to the column number that is\ndisplayed in stack traces</li>\n<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the\nline of code that caused them highlighted, before throwing an exception.\nApplies only to runtime errors executing the code; it is impossible to create\na <code>Script</code> instance with syntax errors, as the constructor will throw.</li>\n<li><code>timeout</code>: a number of milliseconds to execute the script before terminating\nexecution. If execution is terminated, an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> will be thrown.</li>\n</ul>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "options",
+                      "optional": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "vm.createContext([sandbox])",
+          "type": "method",
+          "name": "createContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "desc": "<p>If given a <code>sandbox</code> object, will &quot;contextify&quot; that sandbox so that it can be\nused in calls to <a href=\"#vm_vm_runincontext_code_contextifiedsandbox_options\"><code>vm.runInContext()</code></a> or <a href=\"#vm_script_runincontext_contextifiedsandbox_options\"><code>script.runInContext()</code></a>. Inside\nscripts run as such, <code>sandbox</code> will be the global object, retaining all its\nexisting properties but also having the built-in objects and functions any\nstandard <a href=\"https://es5.github.io/#x15.1\">global object</a> has. Outside of scripts run by the vm module,\n<code>sandbox</code> will be unchanged.</p>\n<p>If not given a sandbox object, returns a new, empty contextified sandbox object\nyou can use.</p>\n<p>This function is useful for creating a sandbox that can be used to run multiple\nscripts, e.g. if you were emulating a web browser it could be used to create a\nsingle sandbox representing a window&#39;s global object, then run all <code>&lt;script&gt;</code>\ntags together inside that sandbox.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "sandbox",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "vm.isContext(sandbox)",
+          "type": "method",
+          "name": "isContext",
+          "meta": {
+            "added": [
+              "v0.11.7"
+            ]
+          },
+          "desc": "<p>Returns whether or not a sandbox object has been contextified by calling\n<a href=\"#vm_vm_createcontext_sandbox\"><code>vm.createContext()</code></a> on it.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "sandbox"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "vm.runInContext(code, contextifiedSandbox[, options])",
+          "type": "method",
+          "name": "runInContext",
+          "desc": "<p><code>vm.runInContext()</code> compiles <code>code</code>, then runs it in <code>contextifiedSandbox</code> and\nreturns the result. Running code does not have access to local scope. The\n<code>contextifiedSandbox</code> object must have been previously contextified via\n<a href=\"#vm_vm_createcontext_sandbox\"><code>vm.createContext()</code></a>; it will be used as the global object for <code>code</code>.</p>\n<p><code>vm.runInContext()</code> takes the same options as <a href=\"#vm_vm_runinthiscontext_code_options\"><code>vm.runInThisContext()</code></a>.</p>\n<p>Example: compile and execute different scripts in a single existing context.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = { globalVar: 1 };\nvm.createContext(sandbox);\n\nfor (var i = 0; i &lt; 10; ++i) {\n    vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);\n}\nconsole.log(util.inspect(sandbox));\n\n// { globalVar: 1024 }\n</code></pre>\n<p>Note that running untrusted code is a tricky business requiring great care.\n<code>vm.runInContext()</code> is quite useful, but safely running untrusted code requires\na separate process.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "contextifiedSandbox"
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "vm.runInDebugContext(code)",
+          "type": "method",
+          "name": "runInDebugContext",
+          "meta": {
+            "added": [
+              "v0.11.14"
+            ]
+          },
+          "desc": "<p><code>vm.runInDebugContext()</code> compiles and executes <code>code</code> inside the V8 debug\ncontext. The primary use case is to get access to the V8 debug object:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\nconst Debug = vm.runInDebugContext(&#39;Debug&#39;);\nconsole.log(Debug.findScript(process.emit).name);  // &#39;events.js&#39;\nconsole.log(Debug.findScript(process.exit).name);  // &#39;internal/process.js&#39;\n</code></pre>\n<p>Note that the debug context and object are intrinsically tied to V8&#39;s debugger\nimplementation and may change (or even get removed) without prior warning.</p>\n<p>The debug object can also be exposed with the <code>--expose_debug_as=</code> switch.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "code"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "vm.runInNewContext(code[, sandbox][, options])",
+          "type": "method",
+          "name": "runInNewContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "desc": "<p><code>vm.runInNewContext()</code> compiles <code>code</code>, contextifies <code>sandbox</code> if passed or\ncreates a new contextified sandbox if it&#39;s omitted, and then runs the code with\nthe sandbox as the global object and returns the result.</p>\n<p><code>vm.runInNewContext()</code> takes the same options as <a href=\"#vm_vm_runinthiscontext_code_options\"><code>vm.runInThisContext()</code></a>.</p>\n<p>Example: compile and execute code that increments a global variable and sets a\nnew one. These globals are contained in the sandbox.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nvm.runInNewContext(&#39;count += 1; name = &quot;kitty&quot;&#39;, sandbox);\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 3, name: &#39;kitty&#39; }\n</code></pre>\n<p>Note that running untrusted code is a tricky business requiring great care.\n<code>vm.runInNewContext()</code> is quite useful, but safely running untrusted code requires\na separate process.</p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "sandbox",
+                  "optional": true
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "vm.runInThisContext(code[, options])",
+          "type": "method",
+          "name": "runInThisContext",
+          "meta": {
+            "added": [
+              "v0.3.1"
+            ]
+          },
+          "desc": "<p><code>vm.runInThisContext()</code> compiles <code>code</code>, runs it and returns the result. Running\ncode does not have access to local scope, but does have access to the current\n<code>global</code> object.</p>\n<p>Example of using <code>vm.runInThisContext()</code> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval\"><code>eval()</code></a> to run the same code:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\nvar localVar = &#39;initial value&#39;;\n\nconst vmResult = vm.runInThisContext(&#39;localVar = &quot;vm&quot;;&#39;);\nconsole.log(&#39;vmResult:&#39;, vmResult);\nconsole.log(&#39;localVar:&#39;, localVar);\n\nconst evalResult = eval(&#39;localVar = &quot;eval&quot;;&#39;);\nconsole.log(&#39;evalResult:&#39;, evalResult);\nconsole.log(&#39;localVar:&#39;, localVar);\n\n// vmResult: &#39;vm&#39;, localVar: &#39;initial value&#39;\n// evalResult: &#39;eval&#39;, localVar: &#39;eval&#39;\n</code></pre>\n<p><code>vm.runInThisContext()</code> does not have access to the local scope, so <code>localVar</code>\nis unchanged. <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval\"><code>eval()</code></a> does have access to the local scope, so <code>localVar</code> is\nchanged.</p>\n<p>In this way <code>vm.runInThisContext()</code> is much like an <a href=\"https://es5.github.io/#x10.4.2\">indirect <code>eval()</code> call</a>,\ne.g. <code>(0,eval)(&#39;code&#39;)</code>. However, it also has the following additional options:</p>\n<ul>\n<li><code>filename</code>: allows you to control the filename that shows up in any stack\ntraces produced.</li>\n<li><code>lineOffset</code>: allows you to add an offset to the line number that is\ndisplayed in stack traces</li>\n<li><code>columnOffset</code>: allows you to add an offset to the column number that is\ndisplayed in stack traces</li>\n<li><code>displayErrors</code>: whether or not to print any errors to stderr, with the\nline of code that caused them highlighted, before throwing an exception.\nWill capture both syntax errors from compiling <code>code</code> and runtime errors\nthrown by executing the compiled code. Defaults to <code>true</code>.</li>\n<li><code>timeout</code>: a number of milliseconds to execute <code>code</code> before terminating\nexecution. If execution is terminated, an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> will be thrown.</li>\n</ul>\n<h2>Example: Run a Server within a VM</h2>\n<p>The context of <code>.runInThisContext()</code> refers to the V8 context. The code passed\nto this VM context will have it&#39;s own isolated scope. To run a simple web server\nusing the <code>http</code> module, for instance, the code passed to the context must either\ncall <code>require(&#39;http&#39;)</code> on its own, or have a reference to the <code>http</code> module passed\nto it. For instance:</p>\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\nconst vm = require(&#39;vm&#39;);\n\nlet code =\n`(function(require) {\n\n   const http = require(&#39;http&#39;);\n\n   http.createServer( (request, response) =&gt; {\n     response.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});\n     response.end(&#39;Hello World\\\\n&#39;);\n   }).listen(8124);\n\n   console.log(&#39;Server running at http://127.0.0.1:8124/&#39;);\n })`;\n\n vm.runInThisContext(code)(require);\n</code></pre>\n<p><em>Note: <code>require()</code> in the above case shares the state with context it is passed\nfrom. This might introduce risks when unknown code is executed, e.g. altering\nobjects from the calling thread&#39;s context in unwanted ways. It is advisable to\nrun <code>vm</code> code in a separate process.</em></p>\n",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "name": "code"
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "vm"
+    }
+  ]
+}

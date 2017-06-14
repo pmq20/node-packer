@@ -10,11 +10,6 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "compiler"
 require 'optparse'
 
-STDERR.puts %Q{
-Node.js Compiler (nodec) v#{::Compiler::VERSION} (runtime #{::Compiler.node_version})
-}.strip
-STDERR.puts
-
 # took directly from https://github.com/nodejs/node/blob/master/configure#L47,L50
 VALID_OS = ['win', 'mac', 'solaris', 'freebsd', 'openbsd', 'linux', 'android', 'aix']
 VALID_CPU = [
@@ -24,10 +19,9 @@ VALID_CPU = [
 
 USAGE = %Q{
 
-Compiling your Node.js application into a single executable.
+Node.js Compiler (nodec) v#{::Compiler::VERSION}
 
 Usage
-
   nodec [OPTION]... ENTRANCE
 
 }.strip
@@ -136,11 +130,6 @@ OptionParser.new do |opts|
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
     puts ::Compiler::VERSION
-    exit 0
-  end
-
-  opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
-    puts ::Compiler.node_version
     exit 0
   end
 

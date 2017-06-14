@@ -1581,26 +1581,26 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     rsa = EVP_PKEY_get1_RSA(pkey);
 
   if (rsa != nullptr) {
-      BN_print(bio, rsa->n);
-      BIO_get_mem_ptr(bio, &mem);
-      info->Set(env->modulus_string(),
-                String::NewFromUtf8(env->isolate(), mem->data,
-                                    String::kNormalString, mem->length));
-      (void) BIO_reset(bio);
+    BN_print(bio, rsa->n);
+    BIO_get_mem_ptr(bio, &mem);
+    info->Set(env->modulus_string(),
+              String::NewFromUtf8(env->isolate(), mem->data,
+                                  String::kNormalString, mem->length));
+    (void) BIO_reset(bio);
 
-      uint64_t exponent_word = static_cast<uint64_t>(BN_get_word(rsa->e));
-      uint32_t lo = static_cast<uint32_t>(exponent_word);
-      uint32_t hi = static_cast<uint32_t>(exponent_word >> 32);
-      if (hi == 0) {
-          BIO_printf(bio, "0x%x", lo);
-      } else {
-          BIO_printf(bio, "0x%x%08x", hi, lo);
-      }
-      BIO_get_mem_ptr(bio, &mem);
-      info->Set(env->exponent_string(),
-                String::NewFromUtf8(env->isolate(), mem->data,
-                                    String::kNormalString, mem->length));
-      (void) BIO_reset(bio);
+    uint64_t exponent_word = static_cast<uint64_t>(BN_get_word(rsa->e));
+    uint32_t lo = static_cast<uint32_t>(exponent_word);
+    uint32_t hi = static_cast<uint32_t>(exponent_word >> 32);
+    if (hi == 0) {
+      BIO_printf(bio, "0x%x", lo);
+    } else {
+      BIO_printf(bio, "0x%x%08x", hi, lo);
+    }
+    BIO_get_mem_ptr(bio, &mem);
+    info->Set(env->exponent_string(),
+              String::NewFromUtf8(env->isolate(), mem->data,
+                                  String::kNormalString, mem->length));
+    (void) BIO_reset(bio);
   }
 
   if (pkey != nullptr) {
@@ -3323,7 +3323,7 @@ void CipherBase::Initialize(Environment* env, Local<Object> target) {
 
 
 void CipherBase::New(const FunctionCallbackInfo<Value>& args) {
-  CHECK_EQ(args.IsConstructCall(), true);
+  CHECK(args.IsConstructCall());
   CipherKind kind = args[0]->IsTrue() ? kCipher : kDecipher;
   Environment* env = Environment::GetCurrent(args);
   new CipherBase(env, args.This(), kind);
@@ -5136,6 +5136,8 @@ void ECDH::ComputeSecret(const FunctionCallbackInfo<Value>& args) {
   ECDH* ecdh;
   ASSIGN_OR_RETURN_UNWRAP(&ecdh, args.Holder());
 
+  MarkPopErrorOnReturn mark_pop_error_on_return;
+
   if (!ecdh->IsKeyPairValid())
     return env->ThrowError("Invalid key pair");
 
@@ -5281,6 +5283,8 @@ void ECDH::SetPublicKey(const FunctionCallbackInfo<Value>& args) {
   ASSIGN_OR_RETURN_UNWRAP(&ecdh, args.Holder());
 
   THROW_AND_RETURN_IF_NOT_BUFFER(args[0], "Public key");
+
+  MarkPopErrorOnReturn mark_pop_error_on_return;
 
   EC_POINT* pub = ecdh->BufferToPoint(Buffer::Data(args[0].As<Object>()),
                                       Buffer::Length(args[0].As<Object>()));

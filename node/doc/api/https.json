@@ -281,15 +281,21 @@
             "added": [
               "v0.3.6"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10638",
+                "description": "The `options` parameter can be a WHATWG `URL` object."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`options` {Object | string} Accepts the same `options` as [`https.request()`][], with the `method` always set to `GET`. ",
+                  "textRaw": "`options` {Object | string | URL} Accepts the same `options` as [`https.request()`][], with the `method` always set to `GET`. ",
                   "name": "options",
-                  "type": "Object | string",
+                  "type": "Object | string | URL",
                   "desc": "Accepts the same `options` as [`https.request()`][], with the `method` always set to `GET`."
                 },
                 {
@@ -312,7 +318,7 @@
               ]
             }
           ],
-          "desc": "<p>Like <a href=\"http.html#http_http_get_options_callback\"><code>http.get()</code></a> but for HTTPS.</p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nhttps.get(&#39;https://encrypted.google.com/&#39;, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\n</code></pre>\n"
+          "desc": "<p>Like <a href=\"http.html#http_http_get_options_callback\"><code>http.get()</code></a> but for HTTPS.</p>\n<p><code>options</code> can be an object, a string, or a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> object. If <code>options</code> is a\nstring, it is automatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>. If it is a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a>\nobject, it will be automatically converted to an ordinary <code>options</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nhttps.get(&#39;https://encrypted.google.com/&#39;, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\n</code></pre>\n"
         },
         {
           "textRaw": "https.request(options[, callback])",
@@ -322,13 +328,19 @@
             "added": [
               "v0.3.6"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v7.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/10638",
+                "description": "The `options` parameter can be a WHATWG `URL` object."
+              }
+            ]
           },
           "signatures": [
             {
               "params": [
                 {
-                  "textRaw": "`options` {Object | string} Accepts all `options` from [`http.request()`][], with some differences in default values: ",
+                  "textRaw": "`options` {Object | string | URL} Accepts all `options` from [`http.request()`][], with some differences in default values: ",
                   "options": [
                     {
                       "textRaw": "`protocol` Defaults to `https:` ",
@@ -347,7 +359,7 @@
                     }
                   ],
                   "name": "options",
-                  "type": "Object | string",
+                  "type": "Object | string | URL",
                   "desc": "Accepts all `options` from [`http.request()`][], with some differences in default values:"
                 },
                 {
@@ -370,7 +382,7 @@
               ]
             }
           ],
-          "desc": "<p>Makes a request to a secure web server.</p>\n<p>The following additional <code>options</code> from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> are also accepted when using a\n  custom <a href=\"#https_class_https_agent\"><code>Agent</code></a>:\n  <code>pfx</code>, <code>key</code>, <code>passphrase</code>, <code>cert</code>, <code>ca</code>, <code>ciphers</code>, <code>rejectUnauthorized</code>, <code>secureProtocol</code>, <code>servername</code></p>\n<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is\nautomatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nconst options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;\n};\n\nconst req = https.request(options, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\nreq.end();\n</code></pre>\n<p>Example using options from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\noptions.agent = new https.Agent(options);\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n<p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;),\n  agent: false\n};\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n"
+          "desc": "<p>Makes a request to a secure web server.</p>\n<p>The following additional <code>options</code> from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> are also accepted when using a\n  custom <a href=\"#https_class_https_agent\"><code>Agent</code></a>:\n  <code>pfx</code>, <code>key</code>, <code>passphrase</code>, <code>cert</code>, <code>ca</code>, <code>ciphers</code>, <code>rejectUnauthorized</code>, <code>secureProtocol</code>, <code>servername</code></p>\n<p><code>options</code> can be an object, a string, or a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> object. If <code>options</code> is a\nstring, it is automatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>. If it is a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a>\nobject, it will be automatically converted to an ordinary <code>options</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\n\nconst options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;\n};\n\nconst req = https.request(options, (res) =&gt; {\n  console.log(&#39;statusCode:&#39;, res.statusCode);\n  console.log(&#39;headers:&#39;, res.headers);\n\n  res.on(&#39;data&#39;, (d) =&gt; {\n    process.stdout.write(d);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(e);\n});\nreq.end();\n</code></pre>\n<p>Example using options from <a href=\"tls.html#tls_tls_connect_options_callback\"><code>tls.connect()</code></a>:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\noptions.agent = new https.Agent(options);\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n<p>Alternatively, opt out of connection pooling by not using an <code>Agent</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const options = {\n  hostname: &#39;encrypted.google.com&#39;,\n  port: 443,\n  path: &#39;/&#39;,\n  method: &#39;GET&#39;,\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;),\n  agent: false\n};\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n<p>Example using a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> as <code>options</code>:</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\n\nconst options = new URL(&#39;https://abc:xyz@example.com&#39;);\n\nconst req = https.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n"
         }
       ],
       "properties": [

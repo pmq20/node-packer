@@ -94,6 +94,12 @@ Error: EISDIR: illegal operation on a directory, read
     <stack trace.>
 ```
 
+*Note:* On Windows Node.js follows the concept of per-drive working directory.
+This behavior can be observed when using a drive path without a backslash. For
+example `fs.readdirSync('c:\\')` can potentially return a different result than
+`fs.readdirSync('c:')`. For more information, see
+[this MSDN page][MSDN-Rel-Path].
+
 ## WHATWG URL object support
 <!-- YAML
 added: v7.6.0
@@ -228,7 +234,7 @@ support. If `filename` is provided, it will be provided as a `Buffer` if
 
 ```js
 // Example when handled through fs.watch listener
-fs.watch('./tmp', {encoding: 'buffer'}, (eventType, filename) => {
+fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
   if (filename)
     console.log(filename);
     // Prints: <Buffer ...>
@@ -295,10 +301,14 @@ argument to `fs.createReadStream()`. If `path` is passed as a string, then
 ## Class: fs.Stats
 <!-- YAML
 added: v0.1.21
+changes:
+  - version: v8.1.0
+    pr-url: https://github.com/nodejs/node/pull/13173
+    description: Added times as numbers.
 -->
 
-Objects returned from [`fs.stat()`][], [`fs.lstat()`][] and [`fs.fstat()`][] and their
-synchronous counterparts are of this type.
+Objects returned from [`fs.stat()`][], [`fs.lstat()`][] and [`fs.fstat()`][] and
+their synchronous counterparts are of this type.
 
  - `stats.isFile()`
  - `stats.isDirectory()`
@@ -323,20 +333,23 @@ Stats {
   size: 527,
   blksize: 4096,
   blocks: 8,
+  atimeMs: 1318289051000.1,
+  mtimeMs: 1318289051000.1,
+  ctimeMs: 1318289051000.1,
+  birthtimeMs: 1318289051000.1,
   atime: Mon, 10 Oct 2011 23:24:11 GMT,
   mtime: Mon, 10 Oct 2011 23:24:11 GMT,
   ctime: Mon, 10 Oct 2011 23:24:11 GMT,
   birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
 ```
 
-Please note that `atime`, `mtime`, `birthtime`, and `ctime` are
-instances of [`Date`][MDN-Date] object and appropriate methods should be used
-to compare the values of these objects. For most general uses
-[`getTime()`][MDN-Date-getTime] will return the number of milliseconds elapsed
-since _1 January 1970 00:00:00 UTC_ and this integer should be sufficient for
-any comparison, however there are additional methods which can be used for
-displaying fuzzy information. More details can be found in the
-[MDN JavaScript Reference][MDN-Date] page.
+*Note*: `atimeMs`, `mtimeMs`, `ctimeMs`, `birthtimeMs` are [numbers][MDN-Number]
+that hold the corresponding times in milliseconds. Their precision is platform
+specific. `atime`, `mtime`, `ctime`, and `birthtime` are [`Date`][MDN-Date]
+object alternate representations of the various times. The `Date` and number
+values are not connected. Assigning a new number value, or mutating the `Date`
+value, will not be reflected in the corresponding alternate representation.
+
 
 ### Stat Time Values
 
@@ -413,6 +426,13 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
                  protocol. Support is currently still *experimental*.
+  - version: v6.3.0
+    pr-url: https://github.com/nodejs/node/pull/6534
+    description: The constants like `fs.R_OK`, etc which were present directly
+                 on `fs` were moved into `fs.constants` as a soft deprecation.
+                 Thus for Node `< v6.3.0` use `fs` to access those constants, or
+                 do something like `(fs.constants || fs).R_OK` to work with all
+                 versions.
 -->
 
 * `path` {string|Buffer|URL}
@@ -787,7 +807,7 @@ file was created.
 An example to read the last 10 bytes of a file which is 100 bytes long:
 
 ```js
-fs.createReadStream('sample.txt', {start: 90, end: 99});
+fs.createReadStream('sample.txt', { start: 90, end: 99 });
 ```
 
 If `options` is a string, then it specifies the encoding.
@@ -1686,7 +1706,7 @@ changes:
                  parameter in case of success.
   - version: v5.0.0
     pr-url: https://github.com/nodejs/node/pull/3163
-    description: The `file` parameter can be a file descriptor now.
+    description: The `path` parameter can be a file descriptor now.
 -->
 
 * `path` {string|Buffer|URL|integer} filename or file descriptor
@@ -1746,7 +1766,7 @@ changes:
                  protocol. Support is currently still *experimental*.
   - version: v5.0.0
     pr-url: https://github.com/nodejs/node/pull/3163
-    description: The `file` parameter can be a file descriptor now.
+    description: The `path` parameter can be a file descriptor now.
 -->
 
 * `path` {string|Buffer|URL|integer} filename or file descriptor
@@ -1754,7 +1774,7 @@ changes:
   * `encoding` {string|null} default = `null`
   * `flag` {string} default = `'r'`
 
-Synchronous version of [`fs.readFile`][]. Returns the contents of the `file`.
+Synchronous version of [`fs.readFile()`][]. Returns the contents of the `path`.
 
 If the `encoding` option is specified then this function returns a
 string. Otherwise it returns a buffer.
@@ -2818,9 +2838,10 @@ The following constants are meant for use with the [`fs.Stats`][] object's
 [`fs.mkdtemp()`]: #fs_fs_mkdtemp_prefix_options_callback
 [`fs.open()`]: #fs_fs_open_path_flags_mode_callback
 [`fs.read()`]: #fs_fs_read_fd_buffer_offset_length_position_callback
-[`fs.readFile`]: #fs_fs_readfile_file_options_callback
+[`fs.readFile()`]: #fs_fs_readfile_path_options_callback
+[`fs.readFileSync()`]: #fs_fs_readfilesync_path_options
 [`fs.stat()`]: #fs_fs_stat_path_callback
-[`fs.utimes()`]: #fs_fs_futimes_fd_atime_mtime_callback
+[`fs.utimes()`]: #fs_fs_utimes_path_atime_mtime_callback
 [`fs.watch()`]: #fs_fs_watch_filename_options_listener
 [`fs.write()`]: #fs_fs_write_fd_buffer_offset_length_position_callback
 [`fs.writeFile()`]: #fs_fs_writefile_file_data_options_callback
@@ -2835,6 +2856,8 @@ The following constants are meant for use with the [`fs.Stats`][] object's
 [FS Constants]: #fs_fs_constants_1
 [MDN-Date-getTime]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime
 [MDN-Date]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date
+[MDN-Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
+[MSDN-Rel-Path]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [inode]: https://en.wikipedia.org/wiki/Inode

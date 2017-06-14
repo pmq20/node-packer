@@ -40,6 +40,10 @@
 #include "node_i18n.h"
 #endif
 
+#if HAVE_INSPECTOR
+#include "inspector_io.h"
+#endif
+
 #if defined HAVE_DTRACE || defined HAVE_ETW
 #include "node_dtrace.h"
 #endif
@@ -260,6 +264,9 @@ static struct {
 #if HAVE_INSPECTOR
   bool StartInspector(Environment *env, const char* script_path,
                       const node::DebugOptions& options) {
+    // Inspector agent can't fail to start, but if it was configured to listen
+    // right away on the websocket port and fails to bind/etc, this will return
+    // false.
     return env->inspector_agent()->Start(platform_, script_path, options);
   }
 
@@ -1938,7 +1945,8 @@ static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value
 		ret = squash_extract(enclose_io_fs, *path, NULL);
 	}
 	if (!ret) {
-		return env->ThrowTypeError("squash_extract failed in __enclose_io_memfs__extract.");
+		args.GetReturnValue().Set(false);
+		return;
 	}
 
 #ifdef _WIN32
@@ -3098,7 +3106,15 @@ static Local<Object> GetFeatures(Environment* env) {
 
 static void DebugPortGetter(Local<Name> property,
                             const PropertyCallbackInfo<Value>& info) {
-  info.GetReturnValue().Set(debug_options.port());
+  int port = debug_options.port();
+#if HAVE_INSPECTOR
+  if (port == 0) {
+    Environment* env = Environment::GetCurrent(info);
+    if (auto io = env->inspector_agent()->io())
+      port = io->port();
+  }
+#endif  // HAVE_INSPECTOR
+  info.GetReturnValue().Set(port);
 }
 
 
@@ -3438,13 +3454,7 @@ void SetupProcessObject(Environment* env,
     READONLY_PROPERTY(process, "traceDeprecation", True(env->isolate()));
   }
 
-  // TODO(refack): move the following 4 to `node_config`
-  // --inspect
-  if (debug_options.inspector_enabled()) {
-    READONLY_DONT_ENUM_PROPERTY(process,
-                                "_inspectorEnbale", True(env->isolate()));
-  }
-
+  // TODO(refack): move the following 3 to `node_config`
   // --inspect-brk
   if (debug_options.wait_for_connect()) {
     READONLY_DONT_ENUM_PROPERTY(process,
@@ -3674,7 +3684,7 @@ static void PrintHelp() {
          "  -r, --require              module to preload (option can be "
          "repeated)\n"
          "  -                          script read from stdin (default; "
-         "interactive mode if a tty)"
+         "interactive mode if a tty)\n"
 #if HAVE_INSPECTOR
          "  --inspect[=[host:]port]    activate inspector on host:port\n"
          "                             (default: 127.0.0.1:9229)\n"
@@ -4052,8 +4062,8 @@ static void ParseArgs(int* argc,
 }
 
 
-static void StartDebug(Environment* env, const char* path,
-                       DebugOptions debug_options) {
+static void StartInspector(Environment* env, const char* path,
+                           DebugOptions debug_options) {
 #if HAVE_INSPECTOR
   CHECK(!env->inspector_agent()->IsStarted());
   v8_platform.StartInspector(env, path, debug_options);
@@ -4545,7 +4555,7 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
   env.Start(argc, argv, exec_argc, exec_argv, v8_is_profiling);
 
   const char* path = argc > 1 ? argv[1] : nullptr;
-  StartDebug(&env, path, debug_options);
+  StartInspector(&env, path, debug_options);
 
   if (debug_options.inspector_enabled() && !v8_platform.InspectorStarted(&env))
     return 12;  // Signal internal error.

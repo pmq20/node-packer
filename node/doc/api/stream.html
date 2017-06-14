@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v8.0.0 Documentation</title>
+  <title>Stream | Node.js v8.1.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -696,15 +697,28 @@ possible states:</p>
 <li><code>readable._readableState.flowing = true</code></li>
 </ul>
 <p>When <code>readable._readableState.flowing</code> is <code>null</code>, no mechanism for consuming the
-streams data is provided so the stream will not generate its data.</p>
-<p>Attaching a listener for the <code>&#39;data&#39;</code> event, calling the <code>readable.pipe()</code>
+streams data is provided so the stream will not generate its data. While in this
+state, attaching a listener for the <code>&#39;data&#39;</code> event, calling the <code>readable.pipe()</code>
 method, or calling the <code>readable.resume()</code> method will switch
 <code>readable._readableState.flowing</code> to <code>true</code>, causing the Readable to begin
 actively emitting events as data is generated.</p>
 <p>Calling <code>readable.pause()</code>, <code>readable.unpipe()</code>, or receiving &quot;back pressure&quot;
 will cause the <code>readable._readableState.flowing</code> to be set as <code>false</code>,
 temporarily halting the flowing of events but <em>not</em> halting the generation of
-data.</p>
+data. While in this state, attaching a listener for the <code>&#39;data&#39;</code> event
+would not cause <code>readable._readableState.flowing</code> to switch to <code>true</code>.</p>
+<pre><code class="lang-js">const { PassThrough, Writable } = require(&#39;stream&#39;);
+const pass = new PassThrough();
+const writable = new Writable();
+
+pass.pipe(writable);
+pass.unpipe(writable);
+// flowing is now false
+
+pass.on(&#39;data&#39;, (chunk) =&gt; { console.log(chunk.toString()); });
+pass.write(&#39;ok&#39;); // will not emit &#39;data&#39;
+pass.resume(); // must be called to make &#39;data&#39; being emitted
+</code></pre>
 <p>While <code>readable._readableState.flowing</code> is <code>false</code>, data may be accumulating
 within the streams internal buffer.</p>
 <h4>Choose One<span><a class="mark" href="#stream_choose_one" id="stream_choose_one">#</a></span></h4>
@@ -815,7 +829,8 @@ readable: null
 end
 </code></pre>
 <p><em>Note</em>: In general, the <code>readable.pipe()</code> and <code>&#39;data&#39;</code> event mechanisms are
-preferred over the use of the <code>&#39;readable&#39;</code> event.</p>
+easier to understand than the <code>&#39;readable&#39;</code> event.
+However, handling <code>&#39;readable&#39;</code> might result in increased throughput.</p>
 <h5>readable.isPaused()<span><a class="mark" href="#stream_readable_ispaused" id="stream_readable_ispaused">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
@@ -1037,7 +1052,7 @@ section for more information.</p>
 <pre><code class="lang-js">// Pull off a header delimited by \n\n
 // use unshift() if we get too much
 // Call the callback with (error, header, stream)
-const StringDecoder = require(&#39;string_decoder&#39;).StringDecoder;
+const { StringDecoder } = require(&#39;string_decoder&#39;);
 function parseHeader(stream, callback) {
   stream.on(&#39;error&#39;, callback);
   stream.on(&#39;readable&#39;, onReadable);
@@ -1093,8 +1108,8 @@ the old stream as its data source.</p>
 provided as a convenience for interacting with older Node.js applications and
 libraries.</p>
 <p>For example:</p>
-<pre><code class="lang-js">const OldReader = require(&#39;./old-api-module.js&#39;).OldReader;
-const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { OldReader } = require(&#39;./old-api-module.js&#39;);
+const { Readable } = require(&#39;stream&#39;);
 const oreader = new OldReader();
 const myReader = new Readable().wrap(oreader);
 
@@ -1160,7 +1175,7 @@ implement streams using JavaScript&#39;s prototypal inheritance model.</p>
 of the four basic stream classes (<code>stream.Writable</code>, <code>stream.Readable</code>,
 <code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure they call the appropriate
 parent class constructor:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 class MyWritable extends Writable {
   constructor(options) {
@@ -1246,7 +1261,7 @@ inheritance. This can be accomplished by directly creating instances of the
 <code>stream.Writable</code>, <code>stream.Readable</code>, <code>stream.Duplex</code> or <code>stream.Transform</code>
 objects and passing appropriate methods as constructor options.</p>
 <p>For example:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 const myWritable = new Writable({
   write(chunk, encoding, callback) {
@@ -1285,7 +1300,7 @@ Defaults to <code>false</code></li>
 </li>
 </ul>
 </div><p>For example:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 class MyWritable extends Writable {
   constructor(options) {
@@ -1296,7 +1311,7 @@ class MyWritable extends Writable {
 }
 </code></pre>
 <p>Or, when using pre-ES6 style constructors:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 const util = require(&#39;util&#39;);
 
 function MyWritable(options) {
@@ -1307,7 +1322,7 @@ function MyWritable(options) {
 util.inherits(MyWritable, Writable);
 </code></pre>
 <p>Or, using the Simplified Constructor approach:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 const myWritable = new Writable({
   write(chunk, encoding, callback) {
@@ -1403,7 +1418,7 @@ the callback and passing the error as the first argument. This will cause an
 <code>writable._write()</code> can result in unexpected and inconsistent behavior depending
 on how the stream is being used.  Using the callback ensures consistent and
 predictable handling of errors.</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 const myWritable = new Writable({
   write(chunk, encoding, callback) {
@@ -1420,7 +1435,7 @@ const myWritable = new Writable({
 Writable stream implementation. While this specific Writable stream instance
 is not of any real particular usefulness, the example illustrates each of the
 required elements of a custom <a href="#stream_class_stream_writable">Writable</a> stream instance:</p>
-<pre><code class="lang-js">const Writable = require(&#39;stream&#39;).Writable;
+<pre><code class="lang-js">const { Writable } = require(&#39;stream&#39;);
 
 class MyWritable extends Writable {
   constructor(options) {
@@ -1460,7 +1475,7 @@ method.</li>
 </li>
 </ul>
 </div><p>For example:</p>
-<pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { Readable } = require(&#39;stream&#39;);
 
 class MyReadable extends Readable {
   constructor(options) {
@@ -1471,7 +1486,7 @@ class MyReadable extends Readable {
 }
 </code></pre>
 <p>Or, when using pre-ES6 style constructors:</p>
-<pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { Readable } = require(&#39;stream&#39;);
 const util = require(&#39;util&#39;);
 
 function MyReadable(options) {
@@ -1482,7 +1497,7 @@ function MyReadable(options) {
 util.inherits(MyReadable, Readable);
 </code></pre>
 <p>Or, using the Simplified Constructor approach:</p>
-<pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { Readable } = require(&#39;stream&#39;);
 
 const myReadable = new Readable({
   read(size) {
@@ -1588,7 +1603,7 @@ unexpected and inconsistent behavior depending on whether the stream is
 operating in flowing or paused mode. Using the <code>&#39;error&#39;</code> event ensures
 consistent and predictable handling of errors.</p>
 <!-- eslint-disable no-useless-return -->
-<pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { Readable } = require(&#39;stream&#39;);
 
 const myReadable = new Readable({
   read(size) {
@@ -1604,7 +1619,7 @@ const myReadable = new Readable({
 <!--type=example-->
 <p>The following is a basic example of a Readable stream that emits the numerals
 from 1 to 1,000,000 in ascending order, and then ends.</p>
-<pre><code class="lang-js">const Readable = require(&#39;stream&#39;).Readable;
+<pre><code class="lang-js">const { Readable } = require(&#39;stream&#39;);
 
 class Counter extends Readable {
   constructor(opt) {
@@ -1655,7 +1670,7 @@ is <code>true</code>.</li>
 </li>
 </ul>
 </div><p>For example:</p>
-<pre><code class="lang-js">const Duplex = require(&#39;stream&#39;).Duplex;
+<pre><code class="lang-js">const { Duplex } = require(&#39;stream&#39;);
 
 class MyDuplex extends Duplex {
   constructor(options) {
@@ -1665,7 +1680,7 @@ class MyDuplex extends Duplex {
 }
 </code></pre>
 <p>Or, when using pre-ES6 style constructors:</p>
-<pre><code class="lang-js">const Duplex = require(&#39;stream&#39;).Duplex;
+<pre><code class="lang-js">const { Duplex } = require(&#39;stream&#39;);
 const util = require(&#39;util&#39;);
 
 function MyDuplex(options) {
@@ -1676,7 +1691,7 @@ function MyDuplex(options) {
 util.inherits(MyDuplex, Duplex);
 </code></pre>
 <p>Or, using the Simplified Constructor approach:</p>
-<pre><code class="lang-js">const Duplex = require(&#39;stream&#39;).Duplex;
+<pre><code class="lang-js">const { Duplex } = require(&#39;stream&#39;);
 
 const myDuplex = new Duplex({
   read(size) {
@@ -1695,7 +1710,7 @@ Node.js streams.
 The following illustrates a simple example of a Duplex stream that buffers
 incoming written data via the <a href="#stream_class_stream_writable">Writable</a> interface that is read back out
 via the <a href="#stream_class_stream_readable">Readable</a> interface.</p>
-<pre><code class="lang-js">const Duplex = require(&#39;stream&#39;).Duplex;
+<pre><code class="lang-js">const { Duplex } = require(&#39;stream&#39;);
 const kSource = Symbol(&#39;source&#39;);
 
 class MyDuplex extends Duplex {
@@ -1730,7 +1745,7 @@ respectively.</p>
 type of <a href="#stream_class_stream_duplex">Duplex</a> stream) is created that has an object mode Writable side
 that accepts JavaScript numbers that are converted to hexadecimal strings on
 the Readable side.</p>
-<pre><code class="lang-js">const Transform = require(&#39;stream&#39;).Transform;
+<pre><code class="lang-js">const { Transform } = require(&#39;stream&#39;);
 
 // All Transform streams are also Duplex Streams
 const myTransform = new Transform({
@@ -1788,7 +1803,7 @@ method.</li>
 </li>
 </ul>
 </div><p>For example:</p>
-<pre><code class="lang-js">const Transform = require(&#39;stream&#39;).Transform;
+<pre><code class="lang-js">const { Transform } = require(&#39;stream&#39;);
 
 class MyTransform extends Transform {
   constructor(options) {
@@ -1798,7 +1813,7 @@ class MyTransform extends Transform {
 }
 </code></pre>
 <p>Or, when using pre-ES6 style constructors:</p>
-<pre><code class="lang-js">const Transform = require(&#39;stream&#39;).Transform;
+<pre><code class="lang-js">const { Transform } = require(&#39;stream&#39;);
 const util = require(&#39;util&#39;);
 
 function MyTransform(options) {
@@ -1809,7 +1824,7 @@ function MyTransform(options) {
 util.inherits(MyTransform, Transform);
 </code></pre>
 <p>Or, using the Simplified Constructor approach:</p>
-<pre><code class="lang-js">const Transform = require(&#39;stream&#39;).Transform;
+<pre><code class="lang-js">const { Transform } = require(&#39;stream&#39;);
 
 const myTransform = new Transform({
   transform(chunk, encoding, callback) {

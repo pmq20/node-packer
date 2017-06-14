@@ -57,16 +57,21 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 	const int squash_win32_buf_sz = 32767;
 	wchar_t squash_win32_buf[32767 + 1];
 	size_t curlen, size_ret;
-	int ret, try = 0;
+	int ret, try_cnt = 0;
 	srand(time(NULL) * getpid());
-	while (try < 3) {
-		if (ext_name) {
-			ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d.", tmpdir, rand());
-		} else {
-			ret = swprintf(squash_win32_buf, squash_win32_buf_sz, L"%s\\nodec-runtime-%d", tmpdir, rand());
-		}
-		if (-1 == ret) {
+	squash_win32_buf[squash_win32_buf_sz] = 0;
+	while (try_cnt < 3) {
+		squash_win32_buf[0] = 0;
+		assert(0 == wcslen(squash_win32_buf));
+		wcsncat(squash_win32_buf + wcslen(squash_win32_buf), tmpdir, squash_win32_buf_sz - wcslen(squash_win32_buf));
+		wcsncat(squash_win32_buf + wcslen(squash_win32_buf), L"\\nodec-runtime-", squash_win32_buf_sz - wcslen(squash_win32_buf));
+		// up to 33 characters for _itoa
+		if (squash_win32_buf_sz - wcslen(squash_win32_buf) <= 33) {
 			return NULL;
+		}
+		_itow(rand(), squash_win32_buf + wcslen(squash_win32_buf), 10);
+		if (ext_name) {
+			wcsncat(squash_win32_buf + wcslen(squash_win32_buf), L".", squash_win32_buf_sz - wcslen(squash_win32_buf));
 		}
 		if (ext_name) {
 			curlen = wcslen(squash_win32_buf);
@@ -79,7 +84,7 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 		if (!PathFileExistsW(squash_win32_buf)) {
 			return wcsdup(squash_win32_buf);
 		}
-		++try;
+		++try_cnt;
 	}
 	return NULL;
 }
@@ -91,38 +96,38 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 
 SQUASH_OS_PATH squash_tmpdir()
 {
-	char *try;
+	char *try_try;
 	size_t length;
-	try = getenv("TMPDIR");
-	if (try) {
+	try_try = getenv("TMPDIR");
+	if (try_try) {
 		goto out;
 	}
-	try = getenv("TMP");
-	if (try) {
+	try_try = getenv("TMP");
+	if (try_try) {
 		goto out;
 	}
-	try = getenv("TEMP");
-	if (try) {
+	try_try = getenv("TEMP");
+	if (try_try) {
 		goto out;
 	}
-	try = "/tmp";
+	try_try = "/tmp";
 out:
-	try = strdup(try);
-	length = strlen(try);
-	if (length >= 2 && '/' == try[length - 1]) {
-		try[length - 1] = 0;
+	try_try = strdup(try_try);
+	length = strlen(try_try);
+	if (length >= 2 && '/' == try_try[length - 1]) {
+		try_try[length - 1] = 0;
 	}
-	return try;
+	return try_try;
 }
 SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 {
 	const int squash_buf_sz = 32767;
 	char squash_buf[squash_buf_sz + 1];
-	int ret, try = 0;
-    struct stat statbuf;
+	int ret, try_cnt = 0;
+	struct stat statbuf;
 
 	srand(time(NULL) * getpid());
-	while (try < 3) {
+	while (try_cnt < 3) {
 		if (ext_name) {
 			ret = snprintf(squash_buf, squash_buf_sz, "%s/nodec-runtime-%d.%s", tmpdir, rand(), ext_name);
 		} else {
@@ -134,7 +139,7 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 		if (-1 == stat(squash_buf, &statbuf)) {
 			return strdup(squash_buf);
 		}
-		++try;
+		++try_cnt;
 	}
 	return NULL;
 }

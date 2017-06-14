@@ -38,6 +38,8 @@ const inspectDefaultOptions = Object.seal({
   breakLength: 60
 });
 
+const numbersOnlyRE = /^\d+$/;
+
 var CIRCULAR_ERROR_MESSAGE;
 var Debug;
 
@@ -68,63 +70,51 @@ exports.format = function(f) {
     return objects.join(' ');
   }
 
-  var argLen = arguments.length;
-
-  if (argLen === 1) return f;
+  if (arguments.length === 1) return f;
 
   var str = '';
   var a = 1;
   var lastPos = 0;
   for (var i = 0; i < f.length;) {
     if (f.charCodeAt(i) === 37/*'%'*/ && i + 1 < f.length) {
+      if (f.charCodeAt(i + 1) !== 37/*'%'*/ && a >= arguments.length) {
+        ++i;
+        continue;
+      }
       switch (f.charCodeAt(i + 1)) {
         case 100: // 'd'
-          if (a >= argLen)
-            break;
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += Number(arguments[a++]);
-          lastPos = i = i + 2;
-          continue;
+          break;
         case 105: // 'i'
-          if (a >= argLen)
-            break;
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += parseInt(arguments[a++]);
-          lastPos = i = i + 2;
-          continue;
+          break;
         case 102: // 'f'
-          if (a >= argLen)
-            break;
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += parseFloat(arguments[a++]);
-          lastPos = i = i + 2;
-          continue;
+          break;
         case 106: // 'j'
-          if (a >= argLen)
-            break;
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += tryStringify(arguments[a++]);
-          lastPos = i = i + 2;
-          continue;
+          break;
         case 115: // 's'
-          if (a >= argLen)
-            break;
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += String(arguments[a++]);
-          lastPos = i = i + 2;
-          continue;
+          break;
         case 37: // '%'
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += '%';
-          lastPos = i = i + 2;
-          continue;
+          break;
       }
+      lastPos = i = i + 2;
+      continue;
     }
     ++i;
   }
@@ -132,7 +122,7 @@ exports.format = function(f) {
     str = f;
   else if (lastPos < f.length)
     str += f.slice(lastPos);
-  while (a < argLen) {
+  while (a < arguments.length) {
     const x = arguments[a++];
     if (x === null || (typeof x !== 'object' && typeof x !== 'symbol')) {
       str += ' ' + x;
@@ -675,7 +665,7 @@ function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
   }
   for (var n = 0; n < keys.length; n++) {
     var key = keys[n];
-    if (typeof key === 'symbol' || !key.match(/^\d+$/)) {
+    if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
       output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
                                  key, true));
     }
@@ -694,7 +684,7 @@ function formatTypedArray(ctx, value, recurseTimes, visibleKeys, keys) {
     output.push(`... ${remaining} more item${remaining > 1 ? 's' : ''}`);
   }
   for (const key of keys) {
-    if (typeof key === 'symbol' || !key.match(/^\d+$/)) {
+    if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
       output.push(
           formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
     }
@@ -809,11 +799,11 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
     }
   }
   if (name === undefined) {
-    if (array && key.match(/^\d+$/)) {
+    if (array && numbersOnlyRE.test(key)) {
       return str;
     }
     name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+    if (/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/.test(name)) {
       name = name.substr(1, name.length - 2);
       name = ctx.stylize(name, 'name');
     } else {

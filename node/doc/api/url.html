@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>URL | Node.js v8.0.0 Documentation</title>
+  <title>URL | Node.js v8.1.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -210,7 +211,7 @@ properties of a WHATWG <code>URL</code> object.</p>
 (all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)
 </code></pre>
 <p>Parsing the URL string using the WHATWG API:</p>
-<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL =
   new URL(&#39;https://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash&#39;);
 </code></pre>
@@ -237,18 +238,21 @@ absolute.</li>
 </ul>
 </div><p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If
 <code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);
   // https://example.org/foo
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note
 that an effort will be made to coerce the given values into strings. For
 instance:</p>
-<pre><code class="lang-js">const myURL = new URL({toString: () =&gt; &#39;https://example.org/&#39;});
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL({ toString: () =&gt; &#39;https://example.org/&#39; });
   // https://example.org/
 </code></pre>
 <p>Unicode characters appearing within the hostname of <code>input</code> will be
 automatically converted to ASCII using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://你好你好&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://你好你好&#39;);
   // https://xn--6qqa088eba/
 </code></pre>
 <p>Additional <a href="https://url.spec.whatwg.org/#example-url-parsing">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>
@@ -257,7 +261,8 @@ automatically converted to ASCII using the <a href="https://tools.ietf.org/html/
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the fragment portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo#bar&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org/foo#bar&#39;);
 console.log(myURL.hash);
   // Prints #bar
 
@@ -274,7 +279,8 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the host portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:81/foo&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org:81/foo&#39;);
 console.log(myURL.host);
   // Prints example.org:81
 
@@ -290,7 +296,8 @@ console.log(myURL.href);
 </div><p>Gets and sets the hostname portion of the URL. The key difference between
 <code>url.host</code> and <code>url.hostname</code> is that <code>url.hostname</code> does <em>not</em> include the
 port.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:81/foo&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org:81/foo&#39;);
 console.log(myURL.hostname);
   // Prints example.org
 
@@ -304,11 +311,13 @@ console.log(myURL.href);
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the serialized URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org/foo&#39;);
 console.log(myURL.href);
   // Prints https://example.org/foo
 
 myURL.href = &#39;https://example.com/bar&#39;;
+console.log(myURL.href);
   // Prints https://example.com/bar
 </code></pre>
 <p>Getting the value of the <code>href</code> property is equivalent to calling
@@ -325,11 +334,13 @@ will be thrown.</p>
 </div><p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that
 may be contained within the hostname will be encoded as-is without <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
 encoding.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
 console.log(myURL.origin);
   // Prints https://example.org
 </code></pre>
-<pre><code class="lang-js">const idnURL = new URL(&#39;https://你好你好&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const idnURL = new URL(&#39;https://你好你好&#39;);
 console.log(idnURL.origin);
   // Prints https://你好你好
 
@@ -341,7 +352,8 @@ console.log(idnURL.hostname);
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the password portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
 console.log(myURL.password);
   // Prints xyz
 
@@ -358,7 +370,8 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the path portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/abc/xyz?123&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org/abc/xyz?123&#39;);
 console.log(myURL.pathname);
   // Prints /abc/xyz
 
@@ -375,7 +388,8 @@ to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstr
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the port portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org:8888&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org:8888&#39;);
 console.log(myURL.port);
   // Prints 8888
 
@@ -425,13 +439,14 @@ lies outside the range denoted above, it is ignored.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the protocol portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org&#39;);
 console.log(myURL.protocol);
   // Prints https:
 
 myURL.protocol = &#39;ftp&#39;;
 console.log(myURL.href);
-  // Prints ftp://example.org
+  // Prints ftp://example.org/
 </code></pre>
 <p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>
 <h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
@@ -439,7 +454,8 @@ console.log(myURL.href);
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the serialized query portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://example.org/abc?123&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://example.org/abc?123&#39;);
 console.log(myURL.search);
   // Prints ?123
 
@@ -464,13 +480,14 @@ documentation for details.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the username portion of the URL.</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
 console.log(myURL.username);
   // Prints abc
 
 myURL.username = &#39;123&#39;;
 console.log(myURL.href);
-  // Prints https://123:xyz@example.com
+  // Prints https://123:xyz@example.com/
 </code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>username</code>
 property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which
@@ -494,7 +511,8 @@ value returned is equivalent to that of <a href="#url_url_href"><code>url.href</
 <a href="#url_url_tostring"><code>url.toString()</code></a>.</p>
 <p>This method is automatically called when an <code>URL</code> object is serialized
 with <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a>.</p>
-<pre><code class="lang-js">const myURLs = [
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURLs = [
   new URL(&#39;https://www.example.com&#39;),
   new URL(&#39;https://test.example.org&#39;)
 ];
@@ -582,7 +600,7 @@ const params = new URLSearchParams({
   query: [&#39;first&#39;, &#39;second&#39;]
 });
 console.log(params.getAll(&#39;query&#39;));
-  // Prints [&#39;first,second&#39;]
+  // Prints [ &#39;first,second&#39; ]
 console.log(params.toString());
   // Prints &#39;user=abc&amp;query=first%2Csecond&#39;
 </code></pre>
@@ -633,7 +651,8 @@ console.log(params.toString());
 new URLSearchParams([
   [&#39;user&#39;, &#39;abc&#39;, &#39;error&#39;]
 ]);
-  // Throws TypeError: Each query pair must be a name/value tuple
+  // Throws TypeError [ERR_INVALID_TUPLE]:
+  //        Each query pair must be an iterable [name, value] tuple
 </code></pre>
 <h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
 <div class="signature"><ul>
@@ -660,7 +679,7 @@ is the <code>name</code>, the second item of the Array is the <code>value</code>
 <li><code>thisArg</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Object to be used as <code>this</code> value for when <code>fn</code> is called</li>
 </ul>
 </div><p>Iterates over each name-value pair in the query and invokes the given function.</p>
-<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/?a=b&amp;c=d&#39;);
 myURL.searchParams.forEach((value, name, searchParams) =&gt; {
   console.log(name, value, myURL.searchParams === searchParams);
@@ -734,7 +753,8 @@ console.log(params.toString());
 with a <a href="https://en.wikipedia.org/wiki/Sorting_algorithm#Stability">stable sorting algorithm</a>, so relative order between name-value pairs
 with the same name is preserved.</p>
 <p>This method can be used, in particular, to increase cache hits.</p>
-<pre><code class="lang-js">const params = new URLSearchParams(&#39;query[]=abc&amp;type=search&amp;query[]=123&#39;);
+<pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
+const params = new URLSearchParams(&#39;query[]=abc&amp;type=search&amp;query[]=123&#39;);
 params.sort();
 console.log(params.toString());
   // Prints query%5B%5D=abc&amp;query%5B%5D=123&amp;type=search
@@ -828,7 +848,8 @@ string serializations of the URL. These are not, however, customizable in
 any way. The <code>url.format(URL[, options])</code> method allows for basic customization
 of the output.</p>
 <p>For example:</p>
-<pre><code class="lang-js">const myURL = new URL(&#39;https://a:b@你好你好?abc#foo&#39;);
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+const myURL = new URL(&#39;https://a:b@你好你好?abc#foo&#39;);
 
 console.log(myURL.href);
   // Prints https://a:b@xn--6qqa088eba/?abc#foo
@@ -836,8 +857,8 @@ console.log(myURL.href);
 console.log(myURL.toString());
   // Prints https://a:b@xn--6qqa088eba/?abc#foo
 
-console.log(url.format(myURL, {fragment: false, unicode: true, auth: false}));
-  // Prints &#39;https://你好你好?abc&#39;
+console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
+  // Prints &#39;https://你好你好/?abc&#39;
 </code></pre>
 <h2>Legacy URL API<span><a class="mark" href="#url_legacy_url_api" id="url_legacy_url_api">#</a></span></h2>
 <h3>Legacy urlObject<span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
@@ -1022,7 +1043,8 @@ object.</p>
 <p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a
 manner similar to that of a Web browser resolving an anchor tag HREF.</p>
 <p>For example:</p>
-<pre><code class="lang-js">url.resolve(&#39;/one/two/three&#39;, &#39;four&#39;);         // &#39;/one/two/four&#39;
+<pre><code class="lang-js">const url = require(&#39;url&#39;);
+url.resolve(&#39;/one/two/three&#39;, &#39;four&#39;);         // &#39;/one/two/four&#39;
 url.resolve(&#39;http://example.com/&#39;, &#39;/one&#39;);    // &#39;http://example.com/one&#39;
 url.resolve(&#39;http://example.com/one&#39;, &#39;/two&#39;); // &#39;http://example.com/two&#39;
 </code></pre>
@@ -1065,7 +1087,7 @@ under certain specific conditions.</p>
 <p>When non-ASCII characters appear within a hostname, the hostname is encoded
 using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
 <em>both</em> Punycode encoded and percent-encoded characters. For example:</p>
-<pre><code class="lang-js">const URL = require(&#39;url&#39;).URL;
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://%CF%80.com/foo&#39;);
 console.log(myURL.href);
   // Prints https://xn--1xa.com/foo

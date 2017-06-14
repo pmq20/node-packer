@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTP | Node.js v8.0.0 Documentation</title>
+  <title>HTTP | Node.js v8.1.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -24,6 +24,7 @@
 
 <ul>
 <li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
 <li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
 <li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
 <li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
@@ -76,7 +77,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v8.0.0 Documentation</h1>
+        <h1>Node.js v8.1.1 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -94,6 +95,8 @@
 <li><span class="stability_undefined"><a href="#http_class_http_agent">Class: http.Agent</a></span><ul>
 <li><span class="stability_undefined"><a href="#http_new_agent_options">new Agent([options])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_agent_createconnection_options_callback">agent.createConnection(options[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_agent_keepsocketalive_socket">agent.keepSocketAlive(socket)</a></span></li>
+<li><span class="stability_undefined"><a href="#http_agent_reusesocket_socket_request">agent.reuseSocket(socket, request)</a></span></li>
 <li><span class="stability_undefined"><a href="#http_agent_destroy">agent.destroy()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_agent_freesockets">agent.freeSockets</a></span></li>
 <li><span class="stability_undefined"><a href="#http_agent_getname_options">agent.getName(options)</a></span></li>
@@ -317,6 +320,32 @@ custom agents may override this method in case greater flexibility is desired.</
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
+<h3>agent.keepSocketAlive(socket)<span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.1.0</span>
+</div><ul>
+<li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>Called when <code>socket</code> is detached from a request and could be persisted by the
+Agent. Default behavior is to:</p>
+<pre><code class="lang-js">socket.unref();
+socket.setKeepAlive(agent.keepAliveMsecs);
+</code></pre>
+<p>This method can be overridden by a particular <code>Agent</code> subclass. If this
+method returns a falsy value, the socket will be destroyed instead of persisting
+it for use with the next request.</p>
+<h3>agent.reuseSocket(socket, request)<span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.1.0</span>
+</div><ul>
+<li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+<li><code>request</code> <a href="http.html#http_class_http_clientrequest" class="type">&lt;http.ClientRequest&gt;</a></li>
+</ul>
+<p>Called when <code>socket</code> is attached to <code>request</code> after being persisted because of
+the keep-alive options. Default behavior is to:</p>
+<pre><code class="lang-js">socket.ref();
+</code></pre>
+<p>This method can be overridden by a particular <code>Agent</code> subclass.</p>
 <h3>agent.destroy()<span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
@@ -440,7 +469,7 @@ const url = require(&#39;url&#39;);
 
 // Create an HTTP tunneling proxy
 const proxy = http.createServer((req, res) =&gt; {
-  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39; });
   res.end(&#39;okay&#39;);
 });
 proxy.on(&#39;connect&#39;, (req, cltSocket, head) =&gt; {
@@ -524,7 +553,7 @@ their connections closed.</p>
 
 // Create an HTTP server
 const srv = http.createServer((req, res) =&gt; {
-  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39; });
   res.end(&#39;okay&#39;);
 });
 srv.on(&#39;upgrade&#39;, (req, socket, head) =&gt; {
@@ -920,7 +949,7 @@ emit trailers, with a list of the header fields in its value. E.g.,</p>
 <pre><code class="lang-js">response.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39;,
                           &#39;Trailer&#39;: &#39;Content-MD5&#39; });
 response.write(fileData);
-response.addTrailers({&#39;Content-MD5&#39;: &#39;7895bf4b8828b55ceaf47747b4bca667&#39;});
+response.addTrailers({ &#39;Content-MD5&#39;: &#39;7895bf4b8828b55ceaf47747b4bca667&#39; });
 response.end();
 </code></pre>
 <p>Attempting to set a header field name or value that contains invalid characters
@@ -1061,7 +1090,7 @@ any headers passed to <a href="#http_response_writehead_statuscode_statusmessage
 const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
-  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39; });
   res.end(&#39;ok&#39;);
 });
 </code></pre>
@@ -1183,7 +1212,7 @@ any headers passed to <a href="#http_response_writehead_statuscode_statusmessage
 const server = http.createServer((req, res) =&gt; {
   res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
   res.setHeader(&#39;X-Foo&#39;, &#39;bar&#39;);
-  res.writeHead(200, {&#39;Content-Type&#39;: &#39;text/plain&#39;});
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39; });
   res.end(&#39;ok&#39;);
 });
 </code></pre>
@@ -1426,9 +1455,19 @@ Found&#39;</code>.</p>
 added to the <a href="#http_event_request"><code>&#39;request&#39;</code></a> event.</p>
 <h2>http.get(options[, callback])<span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.3.6</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.5.0</td>
+<td><p>The <code>options</code> parameter can be a WHATWG <code>URL</code> object.</p>
+</td></tr>
+<tr><td>v0.3.6</td>
+<td><p><span>Added in: v0.3.6</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Accepts the same <code>options</code> as
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> Accepts the same <code>options</code> as
 <a href="#http_http_request_options_callback"><code>http.request()</code></a>, with the <code>method</code> always set to <code>GET</code>.
 Properties that are inherited from the prototype are ignored.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
@@ -1486,9 +1525,19 @@ for reasons stated in <a href="#http_class_http_clientrequest"><code>http.Client
 requests.</p>
 <h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.3.6</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.5.0</td>
+<td><p>The <code>options</code> parameter can be a WHATWG <code>URL</code> object.</p>
+</td></tr>
+<tr><td>v0.3.6</td>
+<td><p><span>Added in: v0.3.6</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a><ul>
 <li><code>protocol</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Protocol to use. Defaults to <code>http:</code>.</li>
 <li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A domain name or IP address of the server to issue the
 request to. Defaults to <code>localhost</code>.</li>
@@ -1530,8 +1579,9 @@ This will set the timeout before the socket is connected.</li>
 </ul>
 <p>Node.js maintains several connections per server to make HTTP requests.
 This function allows one to transparently issue requests.</p>
-<p><code>options</code> can be an object or a string. If <code>options</code> is a string, it is
-automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>.</p>
+<p><code>options</code> can be an object, a string, or a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> object. If <code>options</code> is a
+string, it is automatically parsed with <a href="url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>. If it is a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a>
+object, it will be automatically converted to an ordinary <code>options</code> object.</p>
 <p>The optional <code>callback</code> parameter will be added as a one time listener for
 the <a href="#http_event_response"><code>&#39;response&#39;</code></a> event.</p>
 <p><code>http.request()</code> returns an instance of the <a href="#http_class_http_clientrequest"><code>http.ClientRequest</code></a>
@@ -1596,6 +1646,15 @@ information.</p>
 to compute basic authentication.</p>
 </li>
 </ul>
+<p>Example using a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> as <code>options</code>:</p>
+<pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
+
+const options = new URL(&#39;http://abc:xyz@example.com&#39;);
+
+const req = http.request(options, (res) =&gt; {
+  // ...
+});
+</code></pre>
 
       </div>
     </div>

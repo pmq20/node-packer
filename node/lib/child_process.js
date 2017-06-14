@@ -22,9 +22,9 @@
 'use strict';
 
 const util = require('util');
-const {
-  deprecate, convertToValidSignal, customPromisifyArgs
-} = require('internal/util');
+const { deprecate, convertToValidSignal } = require('internal/util');
+const { createPromise,
+  promiseResolve, promiseReject } = process.binding('util');
 const debug = util.debuglog('child_process');
 
 const uv = process.binding('uv');
@@ -140,9 +140,27 @@ exports.exec = function(command /*, options, callback*/) {
                           opts.callback);
 };
 
-Object.defineProperty(exports.exec, customPromisifyArgs,
-                      { value: ['stdout', 'stderr'], enumerable: false });
+const customPromiseExecFunction = (orig) => {
+  return (...args) => {
+    const promise = createPromise();
 
+    orig(...args, (err, stdout, stderr) => {
+      if (err !== null) {
+        err.stdout = stdout;
+        err.stderr = stderr;
+        promiseReject(promise, err);
+      } else {
+        promiseResolve(promise, { stdout, stderr });
+      }
+    });
+    return promise;
+  };
+};
+
+Object.defineProperty(exports.exec, util.promisify.custom, {
+  enumerable: false,
+  value: customPromiseExecFunction(exports.exec)
+});
 
 exports.execFile = function(file /*, args, options, callback*/) {
   var args = [];
@@ -338,8 +356,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
   return child;
 };
 
-Object.defineProperty(exports.execFile, customPromisifyArgs,
-                      { value: ['stdout', 'stderr'], enumerable: false });
+Object.defineProperty(exports.execFile, util.promisify.custom, {
+  enumerable: false,
+  value: customPromiseExecFunction(exports.execFile)
+});
 
 const _deprecatedCustomFds = deprecate(
   function deprecateCustomFds(options) {
@@ -459,6 +479,25 @@ function normalizeSpawnArguments(file, args, options) {
   // --------- [Enclose.io Hack start] ---------
   // allow executing files within the enclosed package
   var will_extract = true;
+  var args_extract = function(obj) {
+    if (!will_extract) {
+      return obj;
+    }
+    if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
+      var file_extracted = process.__enclose_io_memfs__extract(obj);
+      if (false === file_extracted) {
+        debug('process.__enclose_io_memfs__extract failed with', obj, file_extracted);
+        will_extract = false;
+        return obj;
+      } else {
+        debug('process.__enclose_io_memfs__extract succeeded with', obj, file_extracted);
+        return file_extracted;
+      }
+    } else {
+      return obj;
+    }
+  };
+  
   if ('node' === file || process.execPath === file) {
     will_extract = false;
     file = process.execPath;
@@ -472,9 +511,14 @@ function normalizeSpawnArguments(file, args, options) {
       } else {
         file_extracted = process.__enclose_io_memfs__extract(file);
       }
-      debug('process.__enclose_io_memfs__extract', file, file_extracted);
-      file = file_extracted;
-      require('fs').chmodSync(file, '0755');
+      if (false === file_extracted) {
+        debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
+        will_extract = false;
+      } else {
+        debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
+        file = file_extracted;
+        require('fs').chmodSync(file_extracted, '0755');
+      }
     } else {
       debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
       args.unshift(file);
@@ -484,23 +528,33 @@ function normalizeSpawnArguments(file, args, options) {
       file = process.execPath;
       will_extract = false;
     }
+  } else if ('sh' === file && '-c' === args[0]) {
+    var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
+    if (null !== args1_matched) {
+      will_extract = false;
+      var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
+      if (false === shebang_args) {
+        var file_extracted;
+        if (/^win/.test(process.platform)) {
+          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
+        } else {
+          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
+        }
+        if (false === file_extracted) {
+          debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
+        } else {
+          debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
+          args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+          require('fs').chmodSync(file_extracted, '0755');
+        }
+      } else {
+        debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
+        args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+      }
+    }
   }
 
-  args = args.map(function(obj) {
-    if (!will_extract) {
-      return obj;
-    }
-    if ('node' === obj || process.execPath === obj) {
-      will_extract = false;
-      return process.execPath;
-    } else if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-      var file_extracted = process.__enclose_io_memfs__extract(obj);
-      debug('process.__enclose_io_memfs__extract', obj, file_extracted);
-      return file_extracted;
-    } else {
-      return obj;
-    }
-  });
+  args = args.map(args_extract);
 
   // allow reusing the package itself as an Node.js interpreter
   var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;

@@ -291,6 +291,11 @@ function connectionListener(socket) {
 
   httpSocketSetup(socket);
 
+  // Ensure that the server property of the socket is correctly set.
+  // See https://github.com/nodejs/node/issues/13435
+  if (socket.server === null)
+    socket.server = this;
+
   // If the user has added a listener to the server,
   // request, or response, then it's their responsibility.
   // otherwise, destroy on timeout by default
@@ -433,14 +438,6 @@ function socketOnData(server, socket, parser, state, d) {
   assert(!socket._paused);
   debug('SERVER socketOnData %d', d.length);
 
-  if (state.keepAliveTimeoutSet) {
-    socket.setTimeout(0);
-    if (server.timeout) {
-      socket.setTimeout(server.timeout);
-    }
-    state.keepAliveTimeoutSet = false;
-  }
-
   var ret = parser.execute(d);
   onParserExecuteCommon(server, socket, parser, state, ret, d);
 }
@@ -461,8 +458,10 @@ function socketOnError(e) {
 }
 
 function onParserExecuteCommon(server, socket, parser, state, ret, d) {
+  resetSocketTimeout(server, socket, state);
+
   if (ret instanceof Error) {
-    debug('parse error');
+    debug('parse error', ret);
     socketOnError.call(socket, ret);
   } else if (parser.incoming && parser.incoming.upgrade) {
     // Upgrade or CONNECT
@@ -542,6 +541,8 @@ function resOnFinish(req, res, socket, state, server) {
 // new message. In this callback we setup the response object and pass it
 // to the user.
 function parserOnIncoming(server, socket, state, req, keepAlive) {
+  resetSocketTimeout(server, socket, state);
+
   state.incoming.push(req);
 
   // If the writable end isn't consuming, then stop reading
@@ -601,6 +602,14 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
     server.emit('request', req, res);
   }
   return false; // Not a HEAD response. (Not even a response!)
+}
+
+function resetSocketTimeout(server, socket, state) {
+  if (!state.keepAliveTimeoutSet)
+    return;
+
+  socket.setTimeout(server.timeout || 0);
+  state.keepAliveTimeoutSet = false;
 }
 
 function onSocketResume() {

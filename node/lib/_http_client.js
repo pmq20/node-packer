@@ -247,7 +247,8 @@ function ClientRequest(options, cb) {
     this.shouldKeepAlive = false;
     var optionsPath = {
       path: this.socketPath,
-      timeout: this.timeout
+      timeout: this.timeout,
+      rejectUnauthorized: !!options.rejectUnauthorized
     };
     newSocket = this.agent.createConnection(optionsPath, oncreate);
     if (newSocket && !called) {
@@ -451,7 +452,7 @@ function socketOnData(d) {
 
   var ret = parser.execute(d);
   if (ret instanceof Error) {
-    debug('parse error');
+    debug('parse error', ret);
     freeParser(parser, req, socket);
     socket.destroy();
     req.emit('error', ret);

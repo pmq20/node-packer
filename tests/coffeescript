@@ -28,7 +28,7 @@ else
   raise "Please set ENV['NODEC_TESTS_TMPDIR']"
 end
 tmpdir = ENV['NODEC_TESTS_TMPDIR']
-tmpdir_node = File.join(tmpdir, 'node')
+tmpdir_node = File.join(tmpdir, "node#{ENV['NODEC_NODE_VERSION']}")
 
 unless Dir.exist?('coffeescript')
   puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`

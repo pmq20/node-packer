@@ -1,5 +1,15 @@
 version: '{build}'
 
+matrix:
+  - NODEC_NODE_VERSION: 8
+    NODEC_NODE: 8.1.1
+  - NODEC_NODE_VERSION: 7
+    NODEC_NODE: 7.10.0
+  - NODEC_NODE_VERSION: 6
+    NODEC_NODE: 6.11.0
+  - NODEC_NODE_VERSION: 4
+    NODEC_NODE: 4.8.3
+
 build_script:
 - ps: |
     $ErrorActionPreference="Stop"
@@ -10,7 +20,7 @@ build_script:
 
     Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
 
-    Start-FileDownload https://nodejs.org/dist/v8.1.1/node-v8.1.1-win-x64.zip -FileName C:\projects\node-compiler\node.zip
+    Start-FileDownload https://nodejs.org/dist/v$env:NODEC_NODE/node-v$env:NODEC_NODE-win-x64.zip -FileName C:\projects\node-compiler\node.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -22,7 +32,7 @@ build_script:
 
 test_script:
 - cmd: |
-    set PATH=C:\projects\node-compiler\usr\bin\node-v8.1.1-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
+    set PATH=C:\projects\node-compiler\usr\bin\node-v%NODEC_NODE%-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
 
     python --version
 

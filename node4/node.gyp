@@ -124,6 +124,7 @@
         'deps/cares/cares.gyp:cares',
         'deps/v8/tools/gyp/v8.gyp:v8',
         'deps/v8/tools/gyp/v8.gyp:v8_libplatform'
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
       ],
 
       'include_dirs': [
@@ -132,6 +133,8 @@
         'deps/uv/src/ares',
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
         'deps/v8' # include/v8_platform.h
+        'deps/libsquash/include',
+        'deps/libsquash/sample',
       ],
 
       'sources': [
@@ -796,7 +799,8 @@
       'dependencies': [
         'deps/gtest/gtest.gyp:gtest',
         'deps/v8/tools/gyp/v8.gyp:v8',
-        'deps/v8/tools/gyp/v8.gyp:v8_libplatform'
+        'deps/v8/tools/gyp/v8.gyp:v8_libplatform',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash'
       ],
       'include_dirs': [
         'src',

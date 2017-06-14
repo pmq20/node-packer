@@ -1718,6 +1718,57 @@ static void Abort(const FunctionCallbackInfo<Value>& args) {
   ABORT();
 }
 
+// --------- [Enclose.io Hack start] ---------
+#include <wchar.h>
+extern "C" {
+  #include "enclose_io_prelude.h"
+  #include "enclose_io_common.h"
+}
+static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	node::Environment* env = node::Environment::GetCurrent(args);
+	bool has_ext_name = false;
+
+	if (2 == args.Length() && args[0]->IsString() && args[1]->IsString()) {
+		has_ext_name = true;
+	} else if (1 == args.Length() && args[0]->IsString()) {
+		has_ext_name = false;
+	} else {
+		return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
+	}
+
+	node::Utf8Value path(args.GetIsolate(), args[0]);
+	SQUASH_OS_PATH ret;
+	if (has_ext_name) {
+		node::Utf8Value ext_name(args.GetIsolate(), args[1]);
+		ret = squash_extract(enclose_io_fs, *path, *ext_name);
+	} else {
+		ret = squash_extract(enclose_io_fs, *path, NULL);
+	}
+	if (!ret) {
+		args.GetReturnValue().Set(false);
+		return;
+	}
+
+#ifdef _WIN32
+	char mbs_buf[(32767+1)*2+1];
+	int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
+	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
+								 reinterpret_cast<const char*>(mbs_buf),
+								 v8::String::kNormalString,
+								 length);
+#else
+	int length = strlen(ret);
+	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
+								 reinterpret_cast<const char*>(ret),
+								 v8::String::kNormalString,
+								 length);
+#endif
+	if (str.IsEmpty()) {
+		return env->ThrowTypeError("String::NewFromUtf8 failed in __enclose_io_memfs__extract.");
+	}
+	args.GetReturnValue().Set(str.ToLocalChecked());
+}
+// --------- [Enclose.io Hack end] ---------
 
 static void Chdir(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
@@ -3205,6 +3256,10 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "_setupNextTick", SetupNextTick);
   env->SetMethod(process, "_setupPromises", SetupPromises);
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
+
+  // --------- [Enclose.io Hack start] ---------
+  env->SetMethod(process, "__enclose_io_memfs__extract", __enclose_io_memfs__extract);
+  // --------- [Enclose.io Hack end] ---------
 
   // pre-set _events object for faster emit checks
   process->Set(env->events_string(), Object::New(env->isolate()));

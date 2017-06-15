@@ -1,5 +1,10 @@
 # Node.js Compiler Changelog
 
+## v1.2.0
+
+- Support arbitrary node.js runtime versions
+  - https://github.com/pmq20/node-compiler/issues/40
+
 ## v1.1.0
 
 - upgrade Node.js runtime to v8.1.1
@@ -7,8 +12,6 @@
 - upgrade libsquash to v0.5.0
   - deprecate use of swprintf() to ease compiling on Windows
   - interpret system calls to access()
-- Support arbitrary node.js runtime versions
-  - https://github.com/pmq20/node-compiler/issues/40
 
 ## v1.0.0
 

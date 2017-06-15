@@ -30,6 +30,7 @@ extern "C" {
 #ifdef _WIN32
 #include <VersionHelpers.h>
 #include <WinError.h>
+#include <Windows.h>
 
 #if ENCLOSE_IO_AUTO_UPDATE
 void enclose_io_autoupdate(int argc, wchar_t *wargv[]);
@@ -38,7 +39,10 @@ void enclose_io_autoupdate(int argc, wchar_t *wargv[]);
 int wmain(int argc, wchar_t *wargv[]) {
   // --------- [Enclose.io Hack start] ---------
   #if ENCLOSE_IO_AUTO_UPDATE
-    enclose_io_autoupdate(argc, wargv);
+    TCHAR lpBuffer[32767 + 1];
+    if (0 == GetEnvironmentVariable("CI", lpBuffer, 32767)) {
+      enclose_io_autoupdate(argc, wargv);
+    }
   #endif
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();
@@ -780,7 +784,9 @@ int main(int argc, char *argv[]) {
 #endif
   // --------- [Enclose.io Hack start] ---------
   #if ENCLOSE_IO_AUTO_UPDATE
-    enclose_io_autoupdate(argc, argv);
+    if (NULL == getenv("CI")) {
+      enclose_io_autoupdate(argc, argv);
+    }
   #endif
   sqfs_err enclose_io_ret;
   enclose_io_ret = squash_start();

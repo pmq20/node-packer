@@ -94,13 +94,8 @@ class Compiler
 
   def init_options
     @options[:npm] ||= 'npm'
-    @options[:node_version] ||= '8'
-    @node_dir = "node#{@options[:node_version]}"
-    unless Dir.exist?(File.join(PRJ_ROOT, @node_dir))
-      msg = "Node.js #{@options[:node_version]} is not supported yet.\n"
-      msg += "Supported options are --node-version=8 or 6 or 4."
-      raise Error, msg
-    end
+    @node_dir = "node"
+    raise unless Dir.exist?(File.join(PRJ_ROOT, @node_dir))
     @options[:make_args] ||= '-j4'
     @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     if Gem.win_platform?

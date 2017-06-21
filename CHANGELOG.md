@@ -7,11 +7,26 @@
 
 ## v1.1.0
 
+- designed and published the project homepage via Ant Design
+  - http://enclose.io/
 - upgrade Node.js runtime to v8.1.1
-  - https://nodejs.org/en/blog/release/v8.1.0/
-- upgrade libsquash to v0.5.0
+  - https://nodejs.org/en/blog/release/v8.1.1/
+- upgrade Libsquash to v0.5.0
   - deprecate use of swprintf() to ease compiling on Windows
   - interpret system calls to access()
+- disable AutoUpdate when environment variable `CI` was set
+- support spawning child processes via `sh -c "..."`, using the enclosed variable itself as the Node.js interpreter
+
+中文注解：
+- 用 Ant Design 为 Node.js Compiler 设计、发布了项目主页
+  - http://enclose.io/
+- 升级 Node.js 运行时到 v8.1.1
+  - https://nodejs.org/en/blog/release/v8.1.1/
+- 升级 Libsquash 到 v0.5.0
+  - 为方便在 Windows 上编译而去掉了 swprintf()
+  - 劫持 access() 系统调用
+- 当环境变量 `CI` 被设定时，禁用自动更新
+- 支持以 `sh -c "..."` 的形式派生子程序，并把打包后的进程自身作为 Node.js 解释器使用
 
 ## v1.0.0
 

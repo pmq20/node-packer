@@ -30,9 +30,9 @@ You won't need to modify a single line of code in your application, no matter ho
 
 |                       |   Arch.  |                              Latest&#160;Stable                                        |
 |:---------------------:|:--------:|----------------------------------------------------------------------------------------|
-|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download     |
-|       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download  |
-|       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download   |
+|      **Windows**      |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-x64.exe/download     |
+|       **macOS**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-darwin-x64/download  |
+|       **Linux**       |  x86-64  | https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-linux-x64/download   |
 
 ### Install on Linux
 
@@ -46,7 +46,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-linux-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-linux-x64/download > nodec
     chmod +x nodec
     ./nodec
     
@@ -64,7 +64,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-darwin-x64/download > nodec
+    curl -L https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-darwin-x64/download > nodec
     chmod +x nodec
     ./nodec
 
@@ -80,7 +80,7 @@ First install the prerequisites:
 * [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.0.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
+Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/node-compiler/files/v1.1.0/nodec-x64.exe/download) and run it from the VC++ or VS Command Prompt.
 
 ## Usage
 

@@ -501,57 +501,69 @@ function normalizeSpawnArguments(file, args, options) {
   if ('node' === file || process.execPath === file) {
     will_extract = false;
     file = process.execPath;
-  } else if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-    // shebang: looking at the two bytes at the start of an executable file
-    var shebang_args = __enclose_io_memfs__node_shebang(file);
-    if (false === shebang_args) {
-      var file_extracted;
-      if (/^win/.test(process.platform)) {
-        file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
-      } else {
-        file_extracted = process.__enclose_io_memfs__extract(file);
+  } else {
+    if (process.platform === 'win32') {
+      if (file && file.indexOf && 1 === file.indexOf(':\\__enclose_io_memfs__')) {
+        file = file.substr(2).replace(/\\/g, '/');
+      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\__enclose_io_memfs__')) {
+        file = file.substr(3).replace(/\\/g, '/');
+      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\') && 1 === file.substr(4).indexOf(':\\__enclose_io_memfs__')) {
+        file = file.substr(6).replace(/\\/g, '/');
       }
-      if (false === file_extracted) {
-        debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
-        will_extract = false;
-      } else {
-        debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
-        file = file_extracted;
-        require('fs').chmodSync(file_extracted, '0755');
-      }
-    } else {
-      debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
-      args.unshift(file);
-      if ('' !== shebang_args.trim()) {
-        args.unshift(shebang_args.trim());
-      }
-      file = process.execPath;
-      will_extract = false;
     }
-  } else if ('sh' === file && '-c' === args[0]) {
-    var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
-    if (null !== args1_matched) {
-      will_extract = false;
-      var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
+    if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
+      // shebang: looking at the two bytes at the start of an executable file
+      var shebang_args = __enclose_io_memfs__node_shebang(file);
       if (false === shebang_args) {
         var file_extracted;
         if (/^win/.test(process.platform)) {
-          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
+          file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
         } else {
-          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
+          file_extracted = process.__enclose_io_memfs__extract(file);
         }
         if (false === file_extracted) {
-          debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
+          debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
+          will_extract = false;
         } else {
-          debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
-          args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+          debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
+          file = file_extracted;
           require('fs').chmodSync(file_extracted, '0755');
         }
       } else {
-        debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
-        args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+        debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
+        args.unshift(file);
+        if ('' !== shebang_args.trim()) {
+          args.unshift(shebang_args.trim());
+        }
+        file = process.execPath;
+        will_extract = false;
+      }
+    } else if ('sh' === file && '-c' === args[0]) {
+      var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
+      if (null !== args1_matched) {
+        will_extract = false;
+        var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
+        if (false === shebang_args) {
+          var file_extracted;
+          if (/^win/.test(process.platform)) {
+            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
+          } else {
+            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
+          }
+          if (false === file_extracted) {
+            debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
+          } else {
+            debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
+            args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+            require('fs').chmodSync(file_extracted, '0755');
+          }
+        } else {
+          debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
+          args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+        }
       }
     }
+
   }
 
   args = args.map(args_extract);

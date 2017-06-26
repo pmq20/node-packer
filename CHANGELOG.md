@@ -2,6 +2,7 @@
 
 ## v1.2.0
 
+- allow Windows to spawn binaries inside the compiled product
 - add environment variable `ENCLOSE_IO_USE_ITSELF`
   - which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 

@@ -2,16 +2,18 @@
 
 ## v1.x
 
+- Eliminate dependending on an outside Node.js and npm when compiling
+- Add options to generate installers
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
   - configure auto-update to enable/disable prompts when new versions were detected
+  - enable/disable auto-update
 - Add options to select items to deliver
   - opt out zlib/openssl for system libraries
   - Incl and ICU
   - debug facilities
 - Add options to select compression-method
   - optionally xz the final product
-- Add options to generate installers
 - Detect simultaneous runs of nodec
   - https://github.com/pmq20/node-compiler/issues/31
 - Warn the user that some symbolic link links to the outside of the project
@@ -21,7 +23,10 @@
   - https://github.com/pmq20/node-compiler/issues/40
 - Use a temporary directory name with nodec version when compiling
   - https://github.com/pmq20/node-compiler/issues/42
-
+- Cross-compile
+  - https://github.com/pmq20/node-compiler/pull/36
+- Make Docker images for compiler environments
+- Generate Windows-less Cmd-less Windows applications via /subsystem=windows
 
 ## v2.x
 

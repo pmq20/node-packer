@@ -547,11 +547,11 @@ EncloseIOFindFirstFileHelper(
         }
         *parent = '\0';
         dirp = squash_opendir(enclose_io_fs, incoming);
-        dirp->payload = dup_incoming;
         if (NULL == dirp) {
                 ENCLOSE_IO_SET_LAST_ERROR;
                 return INVALID_HANDLE_VALUE;
         }
+        dirp->payload = dup_incoming;
         current_path = (char *)malloc(strlen(dup_incoming) + SQUASHFS_PATH_LEN + 1);
         if (NULL == current_path) {
                 SetLastError(ERROR_NOT_ENOUGH_MEMORY);

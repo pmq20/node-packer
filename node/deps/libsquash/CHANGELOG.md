@@ -2,7 +2,9 @@
 
 ## v0.6.0
 
-work in progress
+- add `enclose_io_ifextract(const char* path, const char* ext_name)`
+- add `enclose_io_if(const char* path)`
+- fix a NULL-dereferencing in `EncloseIOFindFirstFileHelper`
 
 ## v0.5.0
 
@@ -37,7 +39,7 @@ work in progress
 - Fix a buffer overflow found in wcstombs functions
 - Dynamically change some absolute symbolic paths into relative ones via `root_alias`
 
-中文注解：
+Translations in Chinese:
 - 增加了如下新 API 的实现
   - squash_opendir(fs, filename)
   - squash_closedir(dirp)
@@ -70,7 +72,7 @@ Implemented the virutal file descriptors and the following new API's:
 - squash_read(vfd, buf, nbyte)
 - squash_lseek(vfd, offset, whence)
 
-中文注解：
+Translations in Chinese:
 实现了虚拟文件描述符表(vfd, virtual file descriptor)，
 虚拟文件描述符与正常磁盘文件的文件描述符 (fd) 可以和平共处，
 这使得上层运行时可以无缝接入对内存文件系统的访问，而不需要原有代码的调用风格。

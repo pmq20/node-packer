@@ -121,6 +121,8 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 #define ENCLOSE_IO_DOS_RETURN(statement) return (statement)
 #endif // _WIN32
 
+short enclose_io_if(const char* path);
+SQUASH_OS_PATH enclose_io_ifextract(const char* path, const char* ext_name);
 void enclose_io_chdir_helper(const char *path);
 int enclose_io_chdir(const char *path);
 char *enclose_io_getcwd(char *buf, size_t size);

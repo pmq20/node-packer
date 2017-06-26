@@ -18,7 +18,7 @@
 - disable AutoUpdate when environment variable `CI` was set
 - support spawning child processes via `sh -c "..."`, using the enclosed variable itself as the Node.js interpreter
 
-中文注解：
+Translations in Chinese:
 - 用 Ant Design 为 Node.js Compiler 设计、发布了项目主页
   - http://enclose.io/
 - 升级 Node.js 运行时到 v8.1.1
@@ -42,7 +42,7 @@
 - remove the `ENCLOSE_IO_ALWAYS_USE_ORIGINAL_NODE` hack
 - add auto-update feature via --auto-update-url and --auto-update-base
 
-中文注解：
+Translations in Chinese:
 - 升级 Node.js 运行时到 8.0.0
 - 升级 libsquash 到 v0.4.0
 - 支持使用 node-sass 等 C++ 扩展模块
@@ -73,7 +73,8 @@
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/4cc90f9dfe83f988b982d805cec84da533bc6d33
 - cf. https://github.com/pmq20/libsquash/compare/ea07909623b1e1f43e67acc3c7880dea6ba5854a...4cc90f9dfe83f988b982d805cec84da533bc6d33
 
-中文注解：除了上述变化，最重要的修改发生在 libsquash 中，相比于上个版本添加了对符号链接更好的支持、添加了对并发的加锁控制、添加了更多 API 如 pread 和 readv、添加了对 DOS errno 和 errno 的更完备的处理、添加了 IODeviceIoControl 和 CreateIoCompletionPort 等 Win32 API 等。
+Translations in Chinese:
+除了上述变化，最重要的修改发生在 libsquash 中，相比于上个版本添加了对符号链接更好的支持、添加了对并发的加锁控制、添加了更多 API 如 pread 和 readv、添加了对 DOS errno 和 errno 的更完备的处理、添加了 IODeviceIoControl 和 CreateIoCompletionPort 等 Win32 API 等。
 
 ## v0.9.3
 
@@ -82,7 +83,8 @@
 - upgrade libsquash to https://github.com/pmq20/libsquash/commit/ea07909623b1e1f43e67acc3c7880dea6ba5854a
 - add --npm-package
 
-中文注解：接入 SquashFS 和 libsquash 后已经可以正常编译 Windows 下的某些包，编译后轻测可用。
+Translations in Chinese:
+接入 SquashFS 和 libsquash 后已经可以正常编译 Windows 下的某些包，编译后轻测可用。
 其他平台和其他包还没来得及测试，可能还存在一些问题。
 
 ## v0.9.2
@@ -91,7 +93,8 @@
 - use SquashFS and unobtrusive hacking techniques: https://github.com/pmq20/node-compiler/pull/14
 - make libsquash + Node.js works under Windows: https://github.com/pmq20/node-compiler/pull/16
 
-中文注解：接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，
+Translations in Chinese:
+接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，
 而且是根据访问需求在内存中进行部分解压，用户完全无感知，试验发现把 nodec 自身编译好之后，
 可执行文件大小仅比 node 大 9 MB，这在分发产品时是非常优雅的；
 且支持多种数据结构，如符号链；且由于良好的数据结构设计，能解决之前目录遍历慢的问题；
@@ -105,7 +108,8 @@
 - change the usage of the `nodec` command
 - stop polluting the vendor directory of nodec itself
 
-中文注解：本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
+Translations in Chinese:
+本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
 亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，
 而不污染编译器自身的资源目录，这使得下一步实现编译器自举成为可能。
 最后将运行时引擎版本升级到了 7.3.0。

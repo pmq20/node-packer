@@ -4,16 +4,16 @@
 
 [![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-compiler.svg)](https://badge.fury.io/gh/pmq20%2Fnode-compiler)
 
-![nodec.gif](https://github.com/pmq20/node-compiler/raw/master/nodec.gif)
+![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
 
 ## Features
+
 - Works on Linux, Mac and Windows
 - Create a binary distribution of your application
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js')
 - Supports any module, including direct download and compilation from npm
 - Native C/C++ modules fully supported
 - Open Source, MIT Licensed
-
 
 ## Development Status
 

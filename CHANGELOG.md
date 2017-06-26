@@ -2,6 +2,8 @@
 
 ## v1.2.0
 
+- start using Libautoupdate as a dependency
+  - https://github.com/pmq20/libautoupdate
 - allow Windows to spawn binaries inside the compiled product
 - add environment variable `ENCLOSE_IO_USE_ITSELF`
   - which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
@@ -15,7 +17,7 @@
 - upgrade Libsquash to v0.5.0
   - deprecate use of swprintf() to ease compiling on Windows
   - interpret system calls to access()
-- disable AutoUpdate when environment variable `CI` was set
+- disable auto-update when environment variable `CI` was set
 - support spawning child processes via `sh -c "..."`, using the enclosed variable itself as the Node.js interpreter
 
 Translations in Chinese:

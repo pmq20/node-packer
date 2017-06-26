@@ -2,17 +2,26 @@
 
 ## v1.x
 
-- Add options to select statically-linked items to deliver
-- Add options to select compression-method
-- Add options to generate installers
 - Support writing options down to package.json
+  - select the correct Node.js version via `engines` of package.json
+  - configure auto-update to enable/disable prompts when new versions were detected
+- Add options to select items to deliver
+  - opt out zlib/openssl for system libraries
+  - Incl and ICU
+  - debug facilities
+- Add options to select compression-method
+  - optionally xz the final product
+- Add options to generate installers
 - Detect simultaneous runs of nodec
   - https://github.com/pmq20/node-compiler/issues/31
 - Warn the user that some symbolic link links to the outside of the project
   - Add a check procedure at compile time
   - https://github.com/pmq20/node-compiler/issues/37
-- Support arbitrary node.js runtime versions
+- Support arbitrary Node.js runtime versions
   - https://github.com/pmq20/node-compiler/issues/40
+- Use a temporary directory name with nodec version when compiling
+  - https://github.com/pmq20/node-compiler/issues/42
+
 
 ## v2.x
 

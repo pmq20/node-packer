@@ -11,6 +11,8 @@
 - Warn the user that some symbolic link links to the outside of the project
   - Add a check procedure at compile time
   - https://github.com/pmq20/node-compiler/issues/37
+- Support arbitrary node.js runtime versions
+  - https://github.com/pmq20/node-compiler/issues/40
 
 ## v2.x
 

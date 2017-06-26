@@ -611,7 +611,7 @@ function normalizeSpawnArguments(file, args, options) {
   _convertCustomFds(options);
 
   // --------- [Enclose.io Hack start] ---------
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
+  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
     envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
   }
   debug('normalizeSpawnArguments ends with', {

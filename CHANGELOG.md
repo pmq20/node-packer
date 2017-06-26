@@ -2,8 +2,8 @@
 
 ## v1.2.0
 
-- Support arbitrary node.js runtime versions
-  - https://github.com/pmq20/node-compiler/issues/40
+- add environment variable `ENCLOSE_IO_USE_ITSELF`
+  - which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 
 ## v1.1.0
 

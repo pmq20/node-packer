@@ -2,6 +2,8 @@
 
 ## v1.2.0
 
+- handle the case where `bin` of package.json is a string
+  - e.g. package.json of `npm`
 - start using Libautoupdate as a dependency
   - https://github.com/pmq20/libautoupdate
 - allow Windows to spawn binaries inside the compiled product

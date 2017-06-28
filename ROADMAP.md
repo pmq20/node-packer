@@ -27,6 +27,8 @@
   - https://github.com/pmq20/node-compiler/pull/36
 - Make Docker images for compiler environments
 - Generate Windows-less Cmd-less Windows applications via /subsystem=windows
+- a option to exclude directory's and files.
+  - https://github.com/pmq20/node-compiler/issues/51
 
 ## v2.x
 

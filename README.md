@@ -13,6 +13,7 @@
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js')
 - Supports any module, including direct download and compilation from npm
 - Native C/C++ modules fully supported
+- Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
 
 ## Development Status

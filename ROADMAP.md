@@ -12,6 +12,8 @@
   - enable/disable auto-update
   - a option to exclude directory's and files.
     - https://github.com/pmq20/node-compiler/issues/51
+- Be able to use a custom icon and file description for the executable output. maybe an icon file in the package root directory.
+  - https://github.com/pmq20/node-compiler/issues/54
 - Add options to select items to deliver
   - opt out zlib/openssl for system libraries
   - Incl and ICU

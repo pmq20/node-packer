@@ -6,6 +6,8 @@
 - Add options to generate installers
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
+    - Support arbitrary Node.js runtime versions
+    - https://github.com/pmq20/node-compiler/issues/40
   - configure auto-update to enable/disable prompts when new versions were detected
   - enable/disable auto-update
 - Add options to select items to deliver
@@ -19,8 +21,6 @@
 - Warn the user that some symbolic link links to the outside of the project
   - Add a check procedure at compile time
   - https://github.com/pmq20/node-compiler/issues/37
-- Support arbitrary Node.js runtime versions
-  - https://github.com/pmq20/node-compiler/issues/40
 - Use a temporary directory name with nodec version when compiling
   - https://github.com/pmq20/node-compiler/issues/42
 - Cross-compile

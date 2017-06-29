@@ -10,6 +10,9 @@
     - https://github.com/pmq20/node-compiler/issues/40
   - configure auto-update to enable/disable prompts when new versions were detected
   - enable/disable auto-update
+  - a option to exclude directory's and files.
+    - https://github.com/pmq20/node-compiler/issues/51
+
 - Add options to select items to deliver
   - opt out zlib/openssl for system libraries
   - Incl and ICU
@@ -27,8 +30,6 @@
   - https://github.com/pmq20/node-compiler/pull/36
 - Make Docker images for compiler environments
 - Generate Windows-less Cmd-less Windows applications via /subsystem=windows
-- a option to exclude directory's and files.
-  - https://github.com/pmq20/node-compiler/issues/51
 
 ## v2.x
 

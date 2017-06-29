@@ -35,7 +35,7 @@
 
 - Compile to bytecode via v8 Ignition
 - Support ARM architecture
-- Support cross compiling
 - Drop the external dependency of mksquashfs
+  - i.e. Give libsquash the ability to mksquashfs
 - Support library only projects
   - https://github.com/pmq20/node-compiler/issues/39

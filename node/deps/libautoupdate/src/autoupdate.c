@@ -90,7 +90,7 @@ int autoupdate(
 	}
 	if (5 != send(ConnectSocket, "HEAD ", 5, 0) ||
 		strlen(path) != send(ConnectSocket, path, strlen(path), 0) ||
-		13 != send(ConnectSocket, " HTTP/1.0\r\n", 11, 0) ||
+		11 != send(ConnectSocket, " HTTP/1.0\r\n", 11, 0) ||
 		6 != send(ConnectSocket, "Host: ", 6, 0) ||
 		strlen(host) != send(ConnectSocket, host, strlen(host), 0) ||
 		4 != send(ConnectSocket, "\r\n\r\n", 4, 0)) {
@@ -631,7 +631,7 @@ int autoupdate(
 	}
 	if (5 != write(sockfd, "HEAD ", 5) ||
 		strlen(path) != write(sockfd, path, strlen(path)) ||
-		13 != write(sockfd, " HTTP/1.0\r\n", 11) ||
+		11 != write(sockfd, " HTTP/1.0\r\n", 11) ||
 		6 != write(sockfd, "Host: ", 6) ||
 		strlen(host) != write(sockfd, host, strlen(host)) ||
 		4 != write(sockfd, "\r\n\r\n", 4)) {

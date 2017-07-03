@@ -19,7 +19,7 @@ It accepts the following arguments:
 
 - the 1st and 2nd arguments are the same as those passed to `main()`
 - `host` is the host name of the update server to communicate with
-- `port` is the port of the server, which is a string on Windows and a 16-bit integer on UNIX
+- `port` is the port of the server, which is a string on Windows and a 16-bit integer on macOS / Linux
 - `path` is the paramater passed to the HTTP/1.0 HEAD request of the Round 1
 - `current` is the current version string to be compared with what is returned from the server
   - a new version is considered detected if this string is not a substring of the server's reply
@@ -97,7 +97,7 @@ int wmain(int argc, wchar_t *wargv[])
 }
 ```
 
-### UNIX
+### macOS / Linux
 
 ```C
 #include <autoupdate.h>

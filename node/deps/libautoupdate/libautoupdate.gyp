@@ -10,9 +10,12 @@
       'type': 'static_library',
       'sources': [
         'include/autoupdate.h',
+        'src/autoupdate.c',
         'src/autoupdate_internal.h',
-        'src/windows.c',
-        'src/unix.c',
+        'src/exepath.c',
+        'src/inflate.c',
+        'src/tmpf.c',
+        'src/utils.c',
       ],
       'include_dirs': [
         'include',

@@ -410,9 +410,9 @@ function __enclose_io_memfs__node_shebang(file) {
 }
 
 function normalizeSpawnArguments(file, args, options) {
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   debug('normalizeSpawnArguments started with', file, args, options);
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   if (typeof file !== 'string' || file.length === 0)
     throw new TypeError('"file" argument must be a non-empty string');
@@ -476,7 +476,7 @@ function normalizeSpawnArguments(file, args, options) {
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
 
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   // allow executing files within the enclosed package
   var will_extract = true;
   var args_extract = function(obj) {
@@ -586,7 +586,7 @@ function normalizeSpawnArguments(file, args, options) {
       flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
     }
   });
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
@@ -622,7 +622,7 @@ function normalizeSpawnArguments(file, args, options) {
 
   _convertCustomFds(options);
 
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
     envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
   }
@@ -632,7 +632,7 @@ function normalizeSpawnArguments(file, args, options) {
     options: options,
     envPairs: envPairs
   });
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   return {
     file: file,

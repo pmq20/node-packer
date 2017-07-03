@@ -2,13 +2,15 @@
 
 ## v1.2.0
 
-- handle the case where `bin` of package.json is a string
-  - e.g. package.json of `npm`
-- start using Libautoupdate as a dependency
+- start using Libautoupdate to handle auto-update
   - https://github.com/pmq20/libautoupdate
+  - remove user prompts when a new version is detected
+  - keep the old version in the system temporary directory as a backup
+  - send header Host in Round 1
+- equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
+- handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
 - allow Windows to spawn binaries inside the compiled product
-- add environment variable `ENCLOSE_IO_USE_ITSELF`
-  - which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
+- add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 
 ## v1.1.0
 

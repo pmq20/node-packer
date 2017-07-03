@@ -1918,7 +1918,7 @@ static void Abort(const FunctionCallbackInfo<Value>& args) {
   Abort();
 }
 
-// --------- [Enclose.io Hack start] ---------
+// --------- [Enclose.IO Hack start] ---------
 #include <wchar.h>
 extern "C" {
   #include "enclose_io_prelude.h"
@@ -1968,7 +1968,7 @@ static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value
 	}
 	args.GetReturnValue().Set(str.ToLocalChecked());
 }
-// --------- [Enclose.io Hack end] ---------
+// --------- [Enclose.IO Hack end] ---------
 
 static void Chdir(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
@@ -3560,9 +3560,9 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "_setupPromises", SetupPromises);
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
 
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   env->SetMethod(process, "__enclose_io_memfs__extract", __enclose_io_memfs__extract);
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   // pre-set _events object for faster emit checks
   Local<Object> events_obj = Object::New(env->isolate());

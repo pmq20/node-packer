@@ -539,7 +539,7 @@ parse_location_header:
 		return 2;
 	}
 	fprintf(stderr, "Moving the old version from %S to %S\n", exec_path, selftmpf);
-	BOOL ret = MoveFileW(exec_path, selftmpf);
+	BOOL ret = MoveFileExW(exec_path, selftmpf, MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH);
 	if (!ret) {
 		fprintf(stderr, "Auto-update Failed: MoveFileW failed with GetLastError=%d\n", GetLastError());
 		DeleteFileW(tmpf);
@@ -555,7 +555,7 @@ parse_location_header:
 
 	// Move the new version into the original place
 	fprintf(stderr, "Moving the new version from %S to %S \n", tmpf, exec_path);
-	ret = MoveFileW(tmpf, exec_path);
+	ret = MoveFileExW(tmpf, exec_path, MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH);
 	if (!ret) {
 		fprintf(stderr, "Auto-update Failed: MoveFileW failed with GetLastError=%d\n", GetLastError());
 		DeleteFileW(tmpf);

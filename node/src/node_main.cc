@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
   #if ENCLOSE_IO_AUTO_UPDATE
     autoupdate_result = autoupdate(
       argc,
-      wargv,
+      argv,
       ENCLOSE_IO_AUTO_UPDATE_URL_Host,
       ENCLOSE_IO_AUTO_UPDATE_URL_Port,
       ENCLOSE_IO_AUTO_UPDATE_URL_Path,

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Child Process | Node.js v8.1.1 Documentation</title>
+  <title>Child Process | Node.js v8.1.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -77,7 +77,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.1.3 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -1180,8 +1180,9 @@ handle connections with &quot;normal&quot; or &quot;special&quot; priority:</p>
 <pre><code class="lang-js">const normal = require(&#39;child_process&#39;).fork(&#39;child.js&#39;, [&#39;normal&#39;]);
 const special = require(&#39;child_process&#39;).fork(&#39;child.js&#39;, [&#39;special&#39;]);
 
-// Open up the server and send sockets to child
-const server = require(&#39;net&#39;).createServer();
+// Open up the server and send sockets to child. Use pauseOnConnect to prevent
+// the sockets from being read before they are sent to the child process.
+const server = require(&#39;net&#39;).createServer({ pauseOnConnect: true });
 server.on(&#39;connection&#39;, (socket) =&gt; {
 
   // If this is special priority
@@ -1198,7 +1199,12 @@ server.listen(1337);
 to the event callback function:</p>
 <pre><code class="lang-js">process.on(&#39;message&#39;, (m, socket) =&gt; {
   if (m === &#39;socket&#39;) {
-    socket.end(`Request handled with ${process.argv[2]} priority`);
+    if (socket) {
+      // Check that the client socket exists.
+      // It is possible for the socket to be closed between the time it is
+      // sent and the time it is received in the child process.
+      socket.end(`Request handled with ${process.argv[2]} priority`);
+    }
   }
 });
 </code></pre>
@@ -1206,6 +1212,9 @@ to the event callback function:</p>
 tracking when the socket is destroyed. To indicate this, the <code>.connections</code>
 property becomes <code>null</code>. It is recommended not to use <code>.maxConnections</code> when
 this occurs.</p>
+<p>It is also recommended that any <code>&#39;message&#39;</code> handlers in the child process
+verify that <code>socket</code> exists, as the connection may have been closed during the
+time it takes to send the connection to the child.</p>
 <p><em>Note</em>: This function uses <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a> internally to serialize the
 <code>message</code>.</p>
 <h3>child.stderr<span><a class="mark" href="#child_process_child_stderr" id="child_process_child_stderr">#</a></span></h3>

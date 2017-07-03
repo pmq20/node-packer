@@ -2,15 +2,21 @@
 
 ## v1.2.0
 
-- start using Libautoupdate to handle auto-update
+- upgrade Node.js runtime to v8.1.3
+  - https://nodejs.org/en/blog/release/v8.1.3/
+- start using libautoupdate to handle auto-update
   - https://github.com/pmq20/libautoupdate
   - remove user prompts when a new version is detected
   - keep the old version in the system temporary directory as a backup
   - send header Host in Round 1
-- equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
+- upgrade libsquash to v0.6.0
+  - add `enclose_io_ifextract(const char* path, const char* ext_name)`
+  - add `enclose_io_if(const char* path)`
+  - fix a NULL-dereferencing in `EncloseIOFindFirstFileHelper`
 - handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
 - allow Windows to spawn binaries inside the compiled product
 - add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
+- equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
 
 ## v1.1.0
 

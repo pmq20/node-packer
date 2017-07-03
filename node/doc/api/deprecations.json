@@ -325,7 +325,7 @@
               "textRaw": "DEP0031: ecdh.setPublicKey()",
               "type": "method",
               "name": "setPublicKey",
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_public_key_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>\n",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_publickey_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>\n",
               "signatures": [
                 {
                   "params": []

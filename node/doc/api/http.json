@@ -444,7 +444,7 @@
               ]
             },
             {
-              "textRaw": "request.end([data][, encoding][, callback])",
+              "textRaw": "request.end([data[, encoding]][, callback])",
               "type": "method",
               "name": "end",
               "meta": {

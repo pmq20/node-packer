@@ -161,18 +161,16 @@ For more details, review the [Object Lifetime Management][].
 
 ### N-API Callback types
 #### *napi_callback_info*
-Opaque datatype that is passed to a callback function. It can be used for two
-purposes:
-- Get additional information about the context in which the callback was
-  invoked.
-- Set the return value of the callback.
+Opaque datatype that is passed to a callback function. It can be used for
+getting additional information about the context in which the callback was
+invoked.
 
 #### *napi_callback*
 Function pointer type for user-provided native functions which are to be
 exposed to JavaScript via N-API. Callback functions should satisfy the
 following signature:
 ```C
-typedef void (*napi_callback)(napi_env, napi_callback_info);
+typedef napi_value (*napi_callback)(napi_env, napi_callback_info);
 ```
 
 #### *napi_finalize*
@@ -408,11 +406,12 @@ added: v8.0.0
 -->
 ```C
 NODE_EXTERN napi_status napi_create_error(napi_env env,
-                                          const char* msg,
+                                          napi_value msg,
                                           napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
-- `[in] msg`: C string representing the text to be associated with.
+- `[in] msg`: napi_value that references a JavaScript String to be
+used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
 
 Returns `napi_ok` if the API succeeded.
@@ -425,11 +424,12 @@ added: v8.0.0
 -->
 ```C
 NODE_EXTERN napi_status napi_create_type_error(napi_env env,
-                                               const char* msg,
+                                               napi_value msg,
                                                napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
-- `[in] msg`: C string representing the text to be associated with.
+- `[in] msg`: napi_value that references a JavaScript String to be
+used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
 
 Returns `napi_ok` if the API succeeded.
@@ -447,7 +447,8 @@ NODE_EXTERN napi_status napi_create_range_error(napi_env env,
                                                 napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
-- `[in] msg`: C string representing the text to be associated with.
+- `[in] msg`: napi_value that references a JavaScript String to be
+used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
 
 Returns `napi_ok` if the API succeeded.
@@ -564,16 +565,17 @@ for (int i = 0; i < 1000000; i++) {
 ```
 
 When nesting scopes, there are cases where a handle from an
-inner scope needs  to live beyond the lifespan of that scope. N-API supports an
+inner scope needs to live beyond the lifespan of that scope. N-API supports an
 'escapable scope' in order to support this case. An escapable scope
-allows one or more handles to be 'promoted' so that they 'escape' the
-current scope and the lifespan of the handle(s) changes from the current
+allows one handle to be 'promoted' so that it 'escapes' the
+current scope and the lifespan of the handle changes from the current
 scope to that of the outer scope.
 
 The methods available to open/close escapable scopes are
 [`napi_open_escapable_handle_scope`][] and [`napi_close_escapable_handle_scope`][].
 
-The request to promote a handle is made through the [`napi_escape_handle`][].
+The request to promote a handle is made through [`napi_escape_handle`][] which
+can only be called once.
 
 #### napi_open_handle_scope
 <!-- YAML
@@ -620,7 +622,7 @@ NODE_EXTERN napi_status
 
 Returns `napi_ok` if the API succeeded.
 
-This API open a new scope from which objects can be promoted
+This API open a new scope from which one object can be promoted
 to the outer scope.
 
 #### napi_close_escapable_handle_scope
@@ -659,9 +661,9 @@ Object in the outer scope.
 
 Returns `napi_ok` if the API succeeded.
 
-This API promotes the handle to the JavaScript object so that it valid
-for the lifetime of the outer scope.
-
+This API promotes the handle to the JavaScript object so that it is valid
+for the lifetime of the outer scope. It can only be called once per scope.
+If it is called more than once an error will be returned.
 
 ### References to objects with a lifespan longer than that of the native method
 In some cases an addon will need to be able to create and reference objects
@@ -1214,13 +1216,13 @@ added: v8.0.0
 -->
 ```C
 napi_status napi_create_symbol(napi_env env,
-                               const char* description,
+                               napi_value description,
                                napi_value* result)
 ```
 
 - `[in] env`: The environment that the API is invoked under.
-- `[in] description`: Null-terminated character buffer representing a
-UTF8-encoded string to describe the symbol.
+- `[in] description`: Optional napi_value which refers to a JavaScript
+String to be set as the description for the symbol.
 - `[out] result`: A `napi_value` representing a JavaScript Symbol.
 
 Returns `napi_ok` if the API succeeded.
@@ -1301,13 +1303,38 @@ napi_status napi_create_string_utf16(napi_env env,
 
 - `[in] env`: The environment that the API is invoked under.
 - `[in] str`: Character buffer representing a UTF16-LE-encoded string.
-- `[in] length`: The length of the string in characters, or -1 if it is
-null-terminated.
+- `[in] length`: The length of the string in two-byte code units, or -1 if
+it is null-terminated.
 - `[out] result`: A `napi_value` representing a JavaScript String.
 
 Returns `napi_ok` if the API succeeded.
 
 This API creates a JavaScript String object from a UTF16-LE-encoded C string
+
+The JavaScript String type is described in
+[Section 6.1.4](https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type)
+of the ECMAScript Language Specification.
+
+#### *napi_create_string_latin1*
+<!-- YAML
+added: v8.0.0
+-->
+```C
+NAPI_EXTERN napi_status napi_create_string_latin1(napi_env env,
+                                                  const char* str,
+                                                  size_t length,
+                                                  napi_value* result);
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] str`: Character buffer representing a latin1-encoded string.
+- `[in] length`: The length of the string in bytes, or -1 if it is
+null-terminated.
+- `[out] result`: A `napi_value` representing a JavaScript String.
+
+Returns `napi_ok` if the API succeeded.
+
+This API creates a JavaScript String object from a latin1-encoded C string.
 
 The JavaScript String type is described in
 [Section 6.1.4](https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type)
@@ -1325,8 +1352,8 @@ napi_status napi_create_string_utf8(napi_env env,
 ```
 
 - `[in] env`: The environment that the API is invoked under.
-- `[in] s`: Character buffer representing a UTF8-encoded string.
-- `[in] length`: The length of the string in characters, or -1 if it is
+- `[in] str`: Character buffer representing a UTF8-encoded string.
+- `[in] length`: The length of the string in bytes, or -1 if it is
 null-terminated.
 - `[out] result`: A `napi_value` representing a JavaScript String.
 
@@ -2516,8 +2543,9 @@ In order to expose a function as part of the
 add-on's module exports, set the newly created function on the exports
 object. A sample module might look as follows:
 ```C
-void SayHello(napi_env env, napi_callback_info info) {
+napi_value SayHello(napi_env env, napi_callback_info info) {
   printf("Hello\n");
+  return nullptr;
 }
 
 void Init(napi_env env, napi_value exports, napi_value module, void* priv) {

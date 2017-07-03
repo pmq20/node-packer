@@ -112,6 +112,12 @@ exports.format = function(f) {
             str += f.slice(lastPos, i);
           str += '%';
           break;
+        default: // any other character is not a correct placeholder
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += '%';
+          lastPos = i = i + 1;
+          continue;
       }
       lastPos = i = i + 2;
       continue;
@@ -791,7 +797,7 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
         if (array) {
           str = str.replace(/\n/g, '\n  ');
         } else {
-          str = str.replace(/(^|\n)/g, '\n   ');
+          str = str.replace(/^|\n/g, '\n   ');
         }
       }
     } else {
@@ -803,13 +809,13 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
       return str;
     }
     name = JSON.stringify('' + key);
-    if (/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/.test(name)) {
+    if (/^"[a-zA-Z_][a-zA-Z_0-9]*"$/.test(name)) {
       name = name.substr(1, name.length - 2);
       name = ctx.stylize(name, 'name');
     } else {
       name = name.replace(/'/g, "\\'")
                  .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'")
+                 .replace(/^"|"$/g, "'")
                  .replace(/\\\\/g, '\\');
       name = ctx.stylize(name, 'string');
     }

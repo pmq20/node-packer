@@ -9,6 +9,7 @@
   - remove user prompts when a new version is detected
   - keep the old version in the system temporary directory as a backup
   - send header Host in Round 1
+  - handle possible new 302 responses after Round 1
 - upgrade libsquash to v0.6.0
   - add `enclose_io_ifextract(const char* path, const char* ext_name)`
   - add `enclose_io_if(const char* path)`

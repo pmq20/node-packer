@@ -138,6 +138,8 @@ int autoupdate(
 
 	assert(received < total);
 	size_t len = strlen(response);
+	short again_302 = 0;
+parse_location_header:
 	assert(len <= total);
 	char *new_line = NULL;
 	char *found = NULL;
@@ -160,13 +162,18 @@ int autoupdate(
 		fprintf(stderr, "Auto-update Failed: failed to find a Location header\n");
 		return 2;
 	}
-	if (strstr(found, current)) {
-		/* Latest version confirmed. No need to update */
-		return 0;
+	if (!again_302) {
+		if (strstr(found, current)) {
+			/* Latest version confirmed. No need to update */
+			return 0;
+		} else {
+			fprintf(stderr, "Hint: to disable auto-update, run with environment variable CI=true\n");
+			fflush(stderr);
+		}
 	}
 
 	char *url = found;
-	fprintf(stderr, "Downloading from %s\n", url);
+	fprintf(stderr, "Downloading update from %s\n", url);
 	fflush(stderr);
 
 	char *host2;
@@ -285,6 +292,16 @@ int autoupdate(
 		return 2;
 	}
 	assert(received <= total);
+
+	// Possible new 302
+	if (received > 13 && (
+		0 == strncmp(response, "HTTP/1.1 302 ", 13) ||
+		0 == strncmp(response, "HTTP/1.0 302 ", 13))) {
+			len = received;
+			again_302 = 1;
+			goto parse_location_header;
+	}
+
 	// Parse the header
 	len = received;
 	assert(len <= total);
@@ -663,6 +680,8 @@ int autoupdate(
 	close(sockfd);
 	assert(received < total);
 	size_t len = strlen(response);
+	short again_302 = 0;
+parse_location_header:
 	assert(len <= total);
 	char *new_line = NULL;
 	char *found = NULL;
@@ -685,13 +704,18 @@ int autoupdate(
 		fprintf(stderr, "Auto-update Failed: failed to find a Location header\n");
 		return 2;
 	}
-	if (strstr(found, current)) {
-		/* Latest version confirmed. No need to update */
-		return 0;
+	if (!again_302) {
+		if (strstr(found, current)) {
+			/* Latest version confirmed. No need to update */
+			return 0;
+		} else {
+			fprintf(stderr, "Hint: to disable auto-update, run with environment variable CI=true\n");
+			fflush(stderr);
+		}
 	}
 
 	char *url = found;
-	fprintf(stderr, "Downloading from %s\n", url);
+	fprintf(stderr, "Downloading update from %s\n", url);
 	fflush(stderr);
 
 	char *host2;
@@ -783,6 +807,16 @@ int autoupdate(
 		return 2;
 	}
 	assert(received <= total);
+
+	// Possible new 302
+	if (received > 13 && (
+		0 == strncmp(response, "HTTP/1.1 302 ", 13) ||
+		0 == strncmp(response, "HTTP/1.0 302 ", 13))) {
+			len = received;
+			again_302 = 1;
+			goto parse_location_header;
+	}
+
 	// Parse the header
 	len = received;
 	assert(len <= total);

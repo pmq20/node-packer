@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 struct squash_fdtable squash_global_fdtable;
-MUTEX squash_global_fdtable_mutex;
+MUTEX squash_global_mutex;
 
 int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 {
@@ -58,7 +58,7 @@ int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 	// make sure that our global fd table is large enough
 	nr = fd + 1;
 
-	MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_mutex);
 	if (squash_global_fdtable.nr < nr)
 	{
 		// we secretly extend the requested size
@@ -76,7 +76,7 @@ int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 		       (nr - squash_global_fdtable.nr) * sizeof(struct squash_file *));
 		squash_global_fdtable.nr = nr;
 	}
-	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_mutex);
 
 	// construct a handle (mainly) for win32
 	handle = (int *)malloc(sizeof(int));
@@ -89,12 +89,12 @@ int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 
 	// insert the fd into the global fd table
 	file->fd = fd;
-	MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_mutex);
 	squash_global_fdtable.fds[fd] = file;
         if (squash_global_fdtable.end < fd + 1) {
         	squash_global_fdtable.end = fd + 1;
         }
-	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_mutex);
 	return fd;
 
 failure:
@@ -121,7 +121,7 @@ int squash_close(int vfd)
 	if (-1 == ret) {
 		return -1;
 	}
-        MUTEX_LOCK(&squash_global_fdtable_mutex);
+        MUTEX_LOCK(&squash_global_mutex);
         if (S_ISDIR(squash_global_fdtable.fds[vfd]->st.st_mode)) {
                 SQUASH_DIR *dir = (SQUASH_DIR *) (squash_global_fdtable.fds[vfd]->payload);
                 free(dir);
@@ -139,7 +139,7 @@ int squash_close(int vfd)
         } else {
                 assert(squash_global_fdtable.end > vfd + 1);
         }
-        MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+        MUTEX_UNLOCK(&squash_global_mutex);
         return 0;
 }
 
@@ -199,7 +199,7 @@ static void squash_halt()
 	if (squash_global_fdtable.fds) {
 		free(squash_global_fdtable.fds);
 	}
-	MUTEX_DESTORY(&squash_global_fdtable_mutex);
+	MUTEX_DESTORY(&squash_global_mutex);
 	squash_extract_clear_cache();
 }
 
@@ -208,7 +208,7 @@ sqfs_err squash_start()
 	int ret;
 	squash_global_fdtable.nr = 0;
 	squash_global_fdtable.fds = NULL;
-	MUTEX_INIT(&squash_global_fdtable_mutex);
+	MUTEX_INIT(&squash_global_mutex);
 	ret = atexit(squash_halt);
 	if (0 == ret) {
 		return SQFS_OK;
@@ -221,13 +221,13 @@ struct squash_file * squash_find_entry(void *ptr)
 {
 	size_t i;
 	struct squash_file * ret = NULL;
-	MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_mutex);
 	for (i = 0; i < squash_global_fdtable.end; ++i) {
 		if (squash_global_fdtable.fds[i] && ptr == squash_global_fdtable.fds[i]->payload) {
 			ret = squash_global_fdtable.fds[i];
 			break;
 		}
 	}
-	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_mutex);
 	return ret;
 }

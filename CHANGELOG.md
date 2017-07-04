@@ -19,7 +19,15 @@
   - add `enclose_io_ifextract(const char* path, const char* ext_name)`
   - add `enclose_io_if(const char* path)`
   - fix a NULL-dereferencing in `EncloseIOFindFirstFileHelper`
-- handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
+  - convert macro `ENCLOSE_IO_DOS_RETURN` to a function
+  - rename `squash_global_fdtable_mutex` to `squash_global_mutex`
+  - intercept `mkdir()`
+    - redirect `mkdir()` inside the memfs to a temporary directory
+    - removes the temporary directory and files at exit
+  - intercept `open()` with `O_CREAT`
+    - redirect `open()` with `O_CREAT` inside the memfs to a temporary directory
+    - removes the temporary directory and files at exit
+  - handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
 - allow Windows to spawn binaries inside the compiled product
 - add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 - equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io

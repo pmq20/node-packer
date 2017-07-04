@@ -28,6 +28,7 @@
 #include <sys/param.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <ftw.h>
 #include <dirent.h>
 #include <dlfcn.h>
 #endif
@@ -61,9 +62,29 @@ short enclose_io_is_path(char *pathname);
 short enclose_io_is_path_w(wchar_t *pathname);
 short enclose_io_is_relative_w(wchar_t *pathname);
 
+#define ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(PATH, RETURN1, RETURN2) \
+	if (mkdir_workdir) { \
+		sqfs_path mkdir_workdir_expanded; \
+		size_t mkdir_workdir_len; \
+		size_t memcpy_len; \
+		struct stat mkdir_workdir_buf; \
+		mkdir_workdir_len = strlen(mkdir_workdir); \
+		memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len); \
+		memcpy_len = strlen(PATH); \
+		if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) { \
+			memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len; \
+		} \
+		memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], (PATH), memcpy_len); \
+		mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0'; \
+		if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) { \
+			return(RETURN2); \
+		} \
+	} \
+	return(RETURN1)
+
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	\
 			enclose_io_cwd_len = strlen(enclose_io_cwd); \
-                        memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
+			memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
 			memcpy_len = strlen(path); \
 			if (SQUASHFS_PATH_LEN - enclose_io_cwd_len < memcpy_len) { memcpy_len = SQUASHFS_PATH_LEN - enclose_io_cwd_len; } \
 			memcpy(&enclose_io_expanded[enclose_io_cwd_len], (path), memcpy_len); \
@@ -107,20 +128,7 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 			} \
 		} while (0)
 
-#ifdef _WIN32
-#define ENCLOSE_IO_DOS_RETURN(statement) do { \
-                        int ret = (statement); \
-                        if (-1 == ret) { \
-                                ENCLOSE_IO_SET_LAST_ERROR; \
-                                return ret; \
-                        } else { \
-                                return ret; \
-                        } \
-                } while (0)
-#else
-#define ENCLOSE_IO_DOS_RETURN(statement) return (statement)
-#endif // _WIN32
-
+int enclose_io_dos_return(int statement);
 short enclose_io_if(const char* path);
 SQUASH_OS_PATH enclose_io_ifextract(const char* path, const char* ext_name);
 void enclose_io_chdir_helper(const char *path);
@@ -299,6 +307,7 @@ ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset);
 ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt);
 void* enclose_io_dlopen(const char* path, int mode);
 int enclose_io_access(const char *path, int mode);
+int enclose_io_mkdir(const char *path, mode_t mode);
 
 #endif // !_WIN32
 

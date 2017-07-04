@@ -90,6 +90,7 @@ Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/no
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
+          --no-npm-install             Skip the npm install process (requires --root to be set)
           --clean-tmpdir               Cleans all temporary files that were generated last time
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make

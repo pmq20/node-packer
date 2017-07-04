@@ -73,6 +73,10 @@ OptionParser.new do |opts|
     options[:keep_tmpdir] = true
   end
 
+  opts.on("--no-npm-install", "Skip the npm install process") do
+    options[:skip_npm_install] = true
+  end
+
   opts.on("--make-args=ARGS", "Passes extra arguments to make") do |args|
     options[:make_args] = args
   end

@@ -80,6 +80,10 @@ class Compiler
     if @options[:root]
       @root = File.expand_path(@options[:root])
     else
+      if @options[:skip_npm_install] != nil
+        raise Error, "The option --no-npm-install requires you to set the project --root"
+      end
+
       @root = File.dirname(@entrance)
       # this while has to correspond with the expand_path above
       while !File.exist?(File.expand_path('./package.json', @root))
@@ -87,7 +91,9 @@ class Compiler
         @root = File.expand_path('..', @root)
       end
     end
-    unless File.exist?(File.expand_path('./package.json', @root))
+
+    # if we have to perform npm install we need a package.json in order to succeed
+    if File.exist?(File.expand_path('./package.json', @root)) == false and @options[:skip_npm_install] == nil
       raise Error, "Cannot find a package.json inside #{@root}"
     end
   end
@@ -141,7 +147,7 @@ class Compiler
   end
 
   def run!
-    npm_install unless @options[:keep_tmpdir]
+    npm_install unless @options[:keep_tmpdir] or @options[:skip_npm_install]
     npm_package_set_entrance if @npm_package
     make_enclose_io_memfs
     make_enclose_io_vars

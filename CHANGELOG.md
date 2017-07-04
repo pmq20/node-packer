@@ -18,6 +18,7 @@
 - allow Windows to spawn binaries inside the compiled product
 - add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 - equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
+- removes Master CI Part 2, which is now part of Master CI
 
 ## v1.1.0
 

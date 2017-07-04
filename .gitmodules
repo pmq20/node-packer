@@ -4,6 +4,3 @@
 [submodule "tests/node-compiler-ram"]
 	path = tests/node-compiler-ram
 	url = https://github.com/pmq20/node-compiler-ram.git
-[submodule "tests/node-compiler-ci2"]
-	path = tests/node-compiler-ci2
-	url = https://github.com/pmq20/node-compiler-ci2.git

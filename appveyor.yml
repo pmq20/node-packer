@@ -3,6 +3,10 @@ version: '{build}'
 environment:
   NODEC_TESTS_TMPDIR: C:\projects\node-compiler\nodec_tests_tmpdir
   NODEC_NODE: 8.1.1
+  matrix:
+  matrix:
+    - TEST_SCRIPT: coffeescript
+    - TEST_SCRIPT: microtime
 
 build_script:
 - ps: |
@@ -38,4 +42,4 @@ test_script:
 
     npm --version
 
-    ruby tests\coffeescript
+    ruby tests\%TEST_SCRIPT%

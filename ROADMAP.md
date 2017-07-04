@@ -2,7 +2,6 @@
 
 ## v1.x
 
-- Add options to generate installers
 - Eliminate dependending on an outside Node.js and npm when compiling
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json

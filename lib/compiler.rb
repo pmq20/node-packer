@@ -14,6 +14,7 @@ require 'tmpdir'
 require 'fileutils'
 require 'open3'
 require 'uri'
+require 'erb'
 
 class Compiler
   def initialize(entrance, options = {})
@@ -137,6 +138,7 @@ class Compiler
     unless Dir.exist?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, @node_dir), @tmpdir_node, preserve: true)
     end
+    require 'pry';binding.pry
     @npm_package.stuff_tmpdir if @npm_package
   end
 
@@ -276,7 +278,7 @@ class Compiler
 
   def compile_win
     Utils.chdir(@tmpdir_node) do
-      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
+      Utils.run("call vcbuild.bat #{@options[:msi] ? 'msi' : ''} #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
     src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
     Utils.cp(src, @options[:output])

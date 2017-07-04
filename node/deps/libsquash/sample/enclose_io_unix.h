@@ -36,8 +36,9 @@
 	#define scandir(...)	enclose_io_scandir(__VA_ARGS__)
 	#define pread(...)	enclose_io_pread(__VA_ARGS__)
 	#define readv(...)	enclose_io_readv(__VA_ARGS__)
-	#define dlopen(...)     enclose_io_dlopen(__VA_ARGS__)
-	#define access(...)     enclose_io_access(__VA_ARGS__)
+	#define dlopen(...)	enclose_io_dlopen(__VA_ARGS__)
+	#define access(...)	enclose_io_access(__VA_ARGS__)
+	#define mkdir(...)	enclose_io_mkdir(__VA_ARGS__)
 
 #endif // !_WIN32
 #endif //!__cplusplus

@@ -5,6 +5,14 @@
 - add `enclose_io_ifextract(const char* path, const char* ext_name)`
 - add `enclose_io_if(const char* path)`
 - fix a NULL-dereferencing in `EncloseIOFindFirstFileHelper`
+- convert macro `ENCLOSE_IO_DOS_RETURN` to a function
+- rename `squash_global_fdtable_mutex` to `squash_global_mutex`
+- intercept `mkdir()`
+  - redirect `mkdir()` inside the memfs to a temporary directory
+  - removes the temporary directory and files at exit
+- intercept `open()` with `O_CREAT`
+  - redirect `open()` with `O_CREAT` inside the memfs to a temporary directory
+  - removes the temporary directory and files at exit
 
 ## v0.5.0
 

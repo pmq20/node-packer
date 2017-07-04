@@ -22,7 +22,7 @@
    #define MUTEX pthread_mutex_t
 #endif
 
-extern MUTEX squash_global_fdtable_mutex;
+extern MUTEX squash_global_mutex;
 
 int MUTEX_INIT(MUTEX *mutex);
 int MUTEX_LOCK(MUTEX *mutex);

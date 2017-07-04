@@ -17,9 +17,9 @@ int enclose_io__open(const char *pathname, int flags)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
+		return enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_expanded));
 	} else if (enclose_io_is_path(pathname)) {
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, pathname));
+		return enclose_io_dos_return(squash_open(enclose_io_fs, pathname));
 	} else {
                 return _open(pathname, flags);
 	}
@@ -38,7 +38,7 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
+		return enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_expanded));
 	} else if (enclose_io_is_path_w(pathname)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
@@ -46,7 +46,7 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_converted));
+		return enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_converted));
 	} else {
 		return _wopen(pathname, flags, mode);
 	}
@@ -167,7 +167,7 @@ int enclose_io_fstati64(int fildes, struct _stati64 *buf)
 __int64 enclose_io_lseeki64(int fildes, __int64 offset, int whence)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		ENCLOSE_IO_DOS_RETURN(squash_lseek(fildes, offset, whence));
+		return enclose_io_dos_return(squash_lseek(fildes, offset, whence));
 	} else {
 		return _lseeki64(fildes, offset, whence);
 	}

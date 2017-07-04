@@ -172,3 +172,7 @@ The returned path is referenced by an internal cache and must not be freed.
 ## Acknowledgment
 
 Thank you [Dave Vasilevsky](https://github.com/vasi) for the excellent work of squashfuse!
+
+## See Also
+
+- [Enclose.IO](https://github.com/pmq20/enclose-io): cloud-based service that compiles your application into a single executable with auto-update.

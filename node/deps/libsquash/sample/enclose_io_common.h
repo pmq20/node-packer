@@ -11,6 +11,8 @@
 
 #include "squash.h"
 
+#define __USE_XOPEN_EXTENDED
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>

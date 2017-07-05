@@ -11,6 +11,6 @@ compiler:
 script:
   - cmake --version
   - mkdir build && cd build
-  - cmake -DBUILD_TESTS=ON .. || exit $?
+  - cmake -DBUILD_TESTS=ON -DBUILD_SAMPLE=ON .. || exit $?
   - cmake --build . || exit $?
   - ctest --verbose || exit $?

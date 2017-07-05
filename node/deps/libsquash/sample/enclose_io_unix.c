@@ -28,7 +28,7 @@ static int mkdir_workdir_halt_rm(const char *arg1, const struct stat *ptr, int f
 }
 static void mkdir_workdir_halt()
 {
-	nftw(mkdir_workdir, mkdir_workdir_halt_rm, OPEN_MAX, FTW_PHYS | FTW_MOUNT | FTW_DEPTH);
+	nftw(mkdir_workdir, mkdir_workdir_halt_rm, 20, FTW_PHYS | FTW_MOUNT | FTW_DEPTH);
 }
 static const char* enclose_io_mkdir_workdir()
 {

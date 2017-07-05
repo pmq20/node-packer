@@ -67,6 +67,7 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 #define ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(PATH, RETURN1, RETURN2) \
 	if (mkdir_workdir) { \
 		sqfs_path mkdir_workdir_expanded; \
+		char *mkdir_workdir_expanded_head; \
 		size_t mkdir_workdir_len; \
 		size_t memcpy_len; \
 		struct stat mkdir_workdir_buf; \
@@ -78,8 +79,12 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 		} \
 		memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], (PATH), memcpy_len); \
 		mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0'; \
-		if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) { \
-			return(RETURN2); \
+		mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope); \
+		if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) { \
+			memmove(mkdir_workdir_expanded_head, mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope), strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1); \
+			if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) { \
+				return(RETURN2); \
+			} \
 		} \
 	} \
 	return(RETURN1)

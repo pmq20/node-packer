@@ -21,6 +21,6 @@ build_script:
 
     cd build
 
-    cmake -G"$env:GENERATOR" -DZLIB_INCLUDE_DIR:PATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\include -DZLIB_LIBRARY_RELEASE:FILEPATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\$env:PlatformToolset\windesktop\msvcstl\dyn\rt-dyn\$env:Platform\RelWithDebInfo\zlib.lib ..
+    cmake -DBUILD_TESTS=ON -G"$env:GENERATOR" -DZLIB_INCLUDE_DIR:PATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\include -DZLIB_LIBRARY_RELEASE:FILEPATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\$env:PlatformToolset\windesktop\msvcstl\dyn\rt-dyn\$env:Platform\RelWithDebInfo\zlib.lib ..
 
     cmake --build . --config Release

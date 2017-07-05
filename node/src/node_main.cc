@@ -24,7 +24,7 @@
 // --------- [Enclose.IO Hack start] ---------
 extern "C" {
   #include "enclose_io.h"
-  #include <autoupdate.h>
+  #include "autoupdate.h"
 }
 // --------- [Enclose.IO Hack end] ---------
 

@@ -38,10 +38,10 @@ wchar_t* autoupdate_tmpf(wchar_t *tmpdir, const char *ext_name);
 
 char* autoupdate_tmpdir();
 char* autoupdate_tmpf(char *tmpdir, const char *ext_name);
-int autoupdate_exepath(char* buffer, size_t* size);
 
 #endif // _WIN32
 
 short autoupdate_should_proceed();
+int autoupdate_exepath(char* buffer, size_t* size);
 
 #endif /* end of include guard: AUTOUPDATE_INTERNAL_H_A40E122A */

@@ -9,7 +9,7 @@ Cross-platform C library that enables your application to auto-update itself in 
 
 ## API
 
-There is only one single API, i.e. `autoupdate()`.
+There is only one public API, i.e. `autoupdate()`.
 
 ```C
 int autoupdate(argc, argv, host, port, path, current)

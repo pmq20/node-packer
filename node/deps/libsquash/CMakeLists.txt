@@ -8,6 +8,7 @@ PROJECT(libsquash C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 OPTION(BUILD_TESTS "Build a test of libsquash" OFF)
+OPTION(BUILD_SAMPLE "Build the sample of libsquash" OFF)
 
 FIND_PACKAGE(ZLIB)
 
@@ -25,4 +26,9 @@ IF(BUILD_TESTS)
   if(WIN32)
     TARGET_LINK_LIBRARIES(squash_tests shlwapi.lib)
   endif()
+ENDIF()
+
+IF(BUILD_SAMPLE)
+  FILE(GLOB SRC_SAMPLE sample/*.c sample/*.h)
+  ADD_LIBRARY(squash_sample ${SRC_H} ${SRC_SQUASH} ${SRC_SAMPLE})
 ENDIF()

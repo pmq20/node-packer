@@ -548,11 +548,6 @@ parse_location_header:
 		free((void*)(selftmpf));
 		return 2;
 	}
-
-	fprintf(stderr, "\n=== Hint ===\n");
-	fprintf(stderr, "A backup of the old version has been kept at %S\n", selftmpf);
-	fprintf(stderr, "Should anything bad happened after this point, you could still put it back.\n\n");
-
 	// Move the new version into the original place
 	fprintf(stderr, "Moving the new version from %S to %S \n", tmpf, exec_path);
 	ret = MoveFileExW(tmpf, exec_path, MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH);
@@ -592,7 +587,17 @@ parse_location_header:
 		free((void*)(selftmpf));
 		return 3;
 	}
-	exit(0);
+	// Wait until child process exits.
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+	fprintf(stderr, "Deleting %S\n", selftmpf);
+	fflush(stderr);
+	_wexeclp(L"cmd", L"cmd", L"/c", L"ping", L"127.0.0.1", L"-n", L"3", L">nul", L"&", L"del", selftmpf, NULL);
+	// we should never reach here
+	assert(0);
+	return 3;
 }
 
 #else
@@ -1049,32 +1054,6 @@ parse_location_header:
 		unlink(tmpf);
 		return 2;
 	}
-	// Backup
-	char *selftmpf = autoupdate_tmpf(tmpdir, NULL);
-	if (NULL == selftmpf) {
-		fprintf(stderr, "Auto-update Failed:  no temporary file available\n");
-		free(exec_path);
-		free((void*)(tmpdir));
-		free((void*)(tmpf));
-		unlink(tmpf);
-		return 2;
-	}
-	fprintf(stderr, "Moving the old version from %s to %s\n", exec_path, selftmpf);
-	ret = rename(exec_path, selftmpf);
-	if (0 != ret) {
-		fprintf(stderr, "Auto-update Failed: failed calling rename %s to %s\n", tmpf, exec_path);
-		free(exec_path);
-		free((void*)(tmpdir));
-		free((void*)(tmpf));
-		free((void*)(selftmpf));
-		unlink(tmpf);
-		return 2;
-	}
-
-	fprintf(stderr, "\n=== Hint ===\n");
-	fprintf(stderr, "A backup of the old version has been kept at %s\n", selftmpf);
-	fprintf(stderr, "Should anything bad happened after this point, you could still put it back.\n\n");
-
 	// Move the new version into the original place
 	fprintf(stderr, "Moving the new version from %s to %s\n", tmpf, exec_path);
 	ret = rename(tmpf, exec_path);

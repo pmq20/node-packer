@@ -12,7 +12,6 @@
 - start using libautoupdate to handle auto-update
   - https://github.com/pmq20/libautoupdate
   - remove user prompts when a new version is detected
-  - keep the old version in the system temporary directory as a backup
   - send header Host in Round 1
   - handle possible new 302 responses after Round 1
 - upgrade libsquash to v0.6.0

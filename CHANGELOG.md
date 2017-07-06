@@ -26,6 +26,7 @@
 - add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
 - equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
 - removes Master CI Part 2, which is now part of Master CI
+- add option --skip-npm-install to skip the npm install process
 
 ## v1.1.0
 

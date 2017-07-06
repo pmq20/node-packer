@@ -90,12 +90,12 @@ Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/no
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
-          --no-npm-install             Skip the npm install process (requires --root to be set)
           --clean-tmpdir               Cleans all temporary files that were generated last time
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
       -n, --npm=FILE                   Specifies the path of npm
+          --skip-npm-install           Skips the npm install process
           --npm-package=NAME           Downloads and compiles the specified npm package
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
@@ -104,7 +104,6 @@ Then download the executable [nodec-x64.exe](https://sourceforge.net/projects/no
       -v, --version                    Prints the version of nodec and exit
       -h, --help                       Prints this help and exit
           --examples                   Prints usage examples
-
 
 It's all you need to do, you don't have to tweak your project in order to compile with `node-compiler`!
 

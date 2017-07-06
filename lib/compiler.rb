@@ -81,7 +81,7 @@ class Compiler
       @root = File.expand_path(@options[:root])
     else
       if @options[:skip_npm_install] != nil
-        raise Error, "The option --no-npm-install requires you to set the project --root"
+        raise Error, "The option --skip-npm-install requires you to set the project root via --root"
       end
 
       @root = File.dirname(@entrance)

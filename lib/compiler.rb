@@ -144,7 +144,6 @@ class Compiler
     unless Dir.exist?(@tmpdir_node)
       Utils.cp_r(File.join(PRJ_ROOT, @node_dir), @tmpdir_node, preserve: true)
     end
-    require 'pry';binding.pry
     @npm_package.stuff_tmpdir if @npm_package
   end
 

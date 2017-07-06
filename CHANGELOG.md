@@ -38,6 +38,33 @@
 - removes Master CI Part 2, which is now part of Master CI
 - add option --skip-npm-install to skip the npm install process
 
+Translations in Chinese:
+- 通过 http://enclose.io 提供的云服务，让 nodec 自身（从本版本起）也进行自动原地更新
+- 将编译器的 Node.js 运行时升级到了 v8.1.3
+  - https://nodejs.org/en/blog/release/v8.1.3/
+- 处理 package.json 的 `bin` 内容为字符串而不是哈希的情况（如 `npm` 这个包的 package.json）
+- 允许 Windows 执行编译后的自身包内的二进制文件
+- 添加环境变量 `ENCLOSE_IO_USE_ITSELF`，用来阻止派生子进程时把自己视为 node 解释器使用
+- 移除 Master CI Part 2，合并入主 Master CI
+- 添加 --skip-npm-install 选项来跳过 npm install 过程
+- 将自动升级的逻辑单独抽成了一个库 libautoupdate v0.1.0
+  - https://github.com/pmq20/libautoupdate
+  - 当监测到新版本时，停用用户提示，直接更新，仅给出提示“通过 CI=true 环境变量可禁用自动更新”
+  - 修复了第一步请求少发了 Host 头的问题
+  - 处理第一轮请求获取新版本时得到多个 302 响应的情况
+- 将 libsquash 升级到了 v0.6.0
+  - 添加新 API `enclose_io_ifextract(const char* path, const char* ext_name)`
+  - 添加新 API `enclose_io_if(const char* path)`
+  - 修复 `EncloseIOFindFirstFileHelper` 中的一个空指针解引用
+  - 将宏 `ENCLOSE_IO_DOS_RETURN` 改写为函数调用
+  - 将全局锁 `squash_global_fdtable_mutex` 重命名为 `squash_global_mutex`
+  - 劫持 `mkdir()` 系统调用
+    - 对于那些试图在只读的内存文件系统中进行 `mkdir()` 的系统调用转发到临时文件夹
+    - 让程序退出时删除此临时文件夹和其中的所有文件
+  - 劫持带有 `O_CREAT` flag 的 `open()` 系统调用
+    - 将那些试图在只读的内存文件系统中进行带有 `O_CREAT` flag 的 `open()` 系统调用转发到临时文件夹
+    - 让程序退出时删除此临时文件夹和其中的所有文件
+
 ## v1.1.0
 
 - designed and published the project homepage via Ant Design

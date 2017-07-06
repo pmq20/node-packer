@@ -114,7 +114,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
-    puts ::Compiler::VERSION
+    puts "v#{::Compiler::VERSION}"
     exit 0
   end
 

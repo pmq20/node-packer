@@ -2,10 +2,13 @@
 
 ## v1.3.0
 
+(work in progress)
+
 - use a temporary directory name with nodec version when compiling
   - https://github.com/pmq20/node-compiler/issues/42
 - add options to generate installers
   - add `--msi`: generates a msi installer for Windows
+- eliminate dependending on an outside Node.js and npm when compiling
 
 ## v1.2.0
 

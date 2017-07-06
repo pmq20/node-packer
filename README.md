@@ -10,9 +10,9 @@
 
 - Works on Linux, Mac and Windows
 - Creates a binary distribution of your application
-- Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js')
+- Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js'`)
 - Supports any module, including direct download and compilation from npm
-- Native C/C++ modules fully supported
+- Native C++ modules are fully supported
 - Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
 
@@ -36,6 +36,21 @@ You won't need to modify a single line of code in your application, no matter ho
 |       **Linux**       |    x86-64    | http://enclose.io/nodec/nodec-linux-x64.gz   |
 
 For previous releases, cf. http://enclose.io/nodec
+
+### Install on Windows
+
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
+* [Python 2.6 or 2.7](https://www.python.org/downloads/)
+* Either of,
+  - [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
+  including the Community edition (remember to select
+  "Common Tools for Visual C++ 2015" feature during installation).
+  - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
+  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+
+Then download the executable [nodec-x64.exe](http://enclose.io/nodec/nodec-x64.zip). Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
 ### Install on Linux
 
@@ -70,21 +85,6 @@ Then,
     curl -L http://enclose.io/nodec/nodec-darwin-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
-
-### Install on Windows
-
-First install the prerequisites:
-
-* [SquashFS Tools 4.3](https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip)
-* [Python 2.6 or 2.7](https://www.python.org/downloads/)
-* Either of,
-  - [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
-  including the Community edition (remember to select
-  "Common Tools for Visual C++ 2015" feature during installation).
-  - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
-  __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
-
-Then download the executable [nodec-x64.exe](http://enclose.io/nodec/nodec-x64.zip). Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
 ## Usage
 

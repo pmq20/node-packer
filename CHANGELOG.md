@@ -1,5 +1,12 @@
 # Node.js Compiler Changelog
 
+## v1.3.0
+
+- use a temporary directory name with nodec version when compiling
+  - https://github.com/pmq20/node-compiler/issues/42
+- add options to generate installers
+  - add `--msi`: generates a msi installer for Windows
+
 ## v1.2.0
 
 - upgrade Node.js runtime to v8.1.3

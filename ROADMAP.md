@@ -2,7 +2,6 @@
 
 ## v1.x
 
-- Add options to generate installers
 - Eliminate dependending on an outside Node.js and npm when compiling
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
@@ -25,8 +24,6 @@
 - Warn the user that some symbolic link links to the outside of the project
   - Add a check procedure at compile time
   - https://github.com/pmq20/node-compiler/issues/37
-- Use a temporary directory name with nodec version when compiling
-  - https://github.com/pmq20/node-compiler/issues/42
 - Cross-compile
   - https://github.com/pmq20/node-compiler/pull/36
   - Support ARM architecture

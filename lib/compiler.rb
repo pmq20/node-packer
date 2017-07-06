@@ -147,7 +147,7 @@ class Compiler
   end
 
   def run!
-    npm_install unless @options[:keep_tmpdir] or @options[:skip_npm_install]
+    npm_install unless @options[:keep_tmpdir]
     npm_package_set_entrance if @npm_package
     make_enclose_io_memfs
     make_enclose_io_vars
@@ -170,11 +170,13 @@ class Compiler
   def npm_install
     Utils.rm_rf(@work_dir)
     Utils.mkdir_p(@work_dir)
-
     Utils.cp_r(@root, @work_dir_inner)
-    Utils.chdir(@work_dir_inner) do
-      Utils.run("#{Utils.escape @options[:npm]} -v")
-      Utils.run("#{Utils.escape @options[:npm]} install --production")
+
+    unless @options[:skip_npm_install]
+      Utils.chdir(@work_dir_inner) do
+        Utils.run("#{Utils.escape @options[:npm]} -v")
+        Utils.run("#{Utils.escape @options[:npm]} install --production")
+      end
     end
 
     Utils.chdir(@work_dir_inner) do

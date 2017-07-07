@@ -1,5 +1,9 @@
 # Libsquash Changelog
 
+## v0.7.0
+
+work in progress
+
 ## v0.6.0
 
 - add `enclose_io_ifextract(const char* path, const char* ext_name)`
@@ -13,6 +17,19 @@
 - intercept `open()` with `O_CREAT`
   - redirect `open()` with `O_CREAT` inside the memfs to a temporary directory
   - removes the temporary directory and files at exit
+
+Translations in Chinese:
+- 添加新 API `enclose_io_ifextract(const char* path, const char* ext_name)`
+- 添加新 API `enclose_io_if(const char* path)`
+- 修复 `EncloseIOFindFirstFileHelper` 中的一个空指针解引用
+- 将宏 `ENCLOSE_IO_DOS_RETURN` 改写为函数调用
+- 将全局锁 `squash_global_fdtable_mutex` 重命名为 `squash_global_mutex`
+- 劫持 `mkdir()` 系统调用
+  - 对于那些试图在只读的内存文件系统中进行 `mkdir()` 的系统调用转发到临时文件夹
+  - 让程序退出时删除此临时文件夹和其中的所有文件
+- 劫持带有 `O_CREAT` flag 的 `open()` 系统调用
+  - 将那些试图在只读的内存文件系统中进行带有 `O_CREAT` flag 的 `open()` 系统调用转发到临时文件夹
+  - 让程序退出时删除此临时文件夹和其中的所有文件
 
 ## v0.5.0
 

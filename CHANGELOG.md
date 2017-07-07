@@ -12,8 +12,14 @@
 
 ## v1.2.0
 
+- equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
 - upgrade Node.js runtime to v8.1.3
   - https://nodejs.org/en/blog/release/v8.1.3/
+- handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
+- allow Windows to spawn binaries inside the compiled product
+- add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
+- removes Master CI Part 2, which is now part of Master CI
+- add option --skip-npm-install to skip the npm install process
 - start using libautoupdate to handle auto-update
   - https://github.com/pmq20/libautoupdate
   - remove user prompts when a new version is detected
@@ -31,12 +37,6 @@
   - intercept `open()` with `O_CREAT`
     - redirect `open()` with `O_CREAT` inside the memfs to a temporary directory
     - removes the temporary directory and files at exit
-  - handle the case where `bin` of package.json is a string, e.g. package.json of `npm`
-- allow Windows to spawn binaries inside the compiled product
-- add environment variable `ENCLOSE_IO_USE_ITSELF`, which avoids injecting `ENCLOSE_IO_USE_ORIGINAL_NODE` when spawning child processes
-- equip nodec itself with auto-update abilities via cloud services provided by http://enclose.io
-- removes Master CI Part 2, which is now part of Master CI
-- add option --skip-npm-install to skip the npm install process
 
 Translations in Chinese:
 - 通过 http://enclose.io 提供的云服务，让 nodec 自身（从本版本起）也进行自动原地更新

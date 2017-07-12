@@ -2,8 +2,10 @@
 
 ## v1.3.0
 
-(work in progress)
+- upgrade Node.js runtime to v8.1.4
+  - https://nodejs.org/en/blog/release/v8.1.4/
 
+Below are items that Minqi Pan is working on in this release:
 - use a temporary directory name with nodec version when compiling
   - https://github.com/pmq20/node-compiler/issues/42
 - add options to generate installers

@@ -15,6 +15,7 @@ require 'fileutils'
 require 'open3'
 require 'uri'
 require 'erb'
+require 'securerandom'
 
 class Compiler
   def initialize(entrance, options = {})
@@ -81,10 +82,6 @@ class Compiler
     if @options[:root]
       @root = File.expand_path(@options[:root])
     else
-      if @options[:skip_npm_install] != nil
-        raise Error, "The option --skip-npm-install requires you to set the project root via --root"
-      end
-
       @root = File.dirname(@entrance)
       # this while has to correspond with the expand_path above
       while !File.exist?(File.expand_path('./package.json', @root))
@@ -147,9 +144,23 @@ class Compiler
     @npm_package.stuff_tmpdir if @npm_package
   end
 
+  def set_package_json
+    @package_json = @npm_package&.package_json
+    unless @package_json
+      path = File.join @work_dir_inner, 'package.json'
+      if File.exist?(path)
+        @package_json = JSON.parse File.read path
+      else
+        @package_json = {}
+      end
+    end
+  end
+
   def run!
     npm_install unless @options[:keep_tmpdir]
     npm_package_set_entrance if @npm_package
+    set_package_json
+    msi_prepare if @options[:msi]
     make_enclose_io_memfs
     make_enclose_io_vars
     if Gem.win_platform?
@@ -158,6 +169,26 @@ class Compiler
       compile_mac
     else
       compile_linux
+    end
+    if @options[:msi]
+      if @options[:debug]
+        target = File.join @tmpdir_node, 'Debug', "#{@package_json['name']}.exe"
+      else
+        target = File.join @tmpdir_node, 'Release', "#{@package_json['name']}.exe"
+      end
+      Utils.cp(@options[:output], target)
+      Utils.chdir(@tmpdir_node) do
+        Utils.run("call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
+      end
+    end
+  end
+
+  def msi_prepare
+    erb_target = File.join(PRJ_ROOT, @node_dir, 'tools', 'msvs', 'msi', 'product.wxs')
+    erb_result = ERB.new(File.read(erb_target)).result(binding)
+    erb_result_target = File.join(@tmpdir_node, 'tools', 'msvs', 'msi', 'product.wxs')
+    File.open(erb_result_target, 'w') do |f|
+      f.puts erb_result
     end
   end
 
@@ -285,7 +316,7 @@ class Compiler
 
   def compile_win
     Utils.chdir(@tmpdir_node) do
-      Utils.run("call vcbuild.bat #{@options[:msi] ? 'msi' : ''} #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
+      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
     src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
     Utils.cp(src, @options[:output])

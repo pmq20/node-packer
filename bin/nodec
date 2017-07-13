@@ -37,7 +37,7 @@ Compile a web application:
   git clone --depth 1 https://github.com/eggjs/examples.git
   cd examples/helloworld
   npm install
-  nodec node_modules/.bin/egg-bin
+  nodec --skip-npm-install node_modules/.bin/egg-bin
   ./a.out dev (or a.exe dev on Windows)
 
 }.strip

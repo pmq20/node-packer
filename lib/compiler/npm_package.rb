@@ -13,6 +13,7 @@ require 'json'
 class Compiler
   class NpmPackage
     attr_reader :work_dir
+    attr_reader :package_json
 
     def initialize(options)
       @module_name = options[:npm_package]

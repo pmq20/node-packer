@@ -4,12 +4,12 @@
 
 - upgrade Node.js runtime to v8.1.4
   - https://nodejs.org/en/blog/release/v8.1.4/
-
-Below are items that Minqi Pan is working on in this release:
-- use a temporary directory name with nodec version when compiling
-  - https://github.com/pmq20/node-compiler/issues/42
 - add options to generate installers
   - add `--msi`: generates a msi installer for Windows
+
+Below are items that Minqi Pan is working on in progress of this release:
+- use a temporary directory name with nodec version when compiling
+  - https://github.com/pmq20/node-compiler/issues/42
 - eliminate dependending on an outside Node.js and npm when compiling
 
 ## v1.2.0

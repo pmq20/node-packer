@@ -177,12 +177,17 @@ class Compiler
         target = File.join @tmpdir_node, 'Release', "#{@package_json['name']}.exe"
       end
       Utils.cp(@options[:output], target)
+      Utils.rm_f(@options[:output])
       Utils.chdir(@tmpdir_node) do
         Utils.run(
           {'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1'},
           "call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}"
         )
+        Dir['*.msi'].each do |x|
+          Utils.cp(x, @options[:output])
+        end
       end
+      raise "Cannot output the MSI Installer to #{@options[:output]}" unless File.exist?(@options[:output])
     end
   end
 

@@ -178,7 +178,10 @@ class Compiler
       end
       Utils.cp(@options[:output], target)
       Utils.chdir(@tmpdir_node) do
-        Utils.run("call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
+        Utils.run(
+          {'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1'},
+          "call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}"
+        )
       end
     end
   end

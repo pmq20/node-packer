@@ -18,18 +18,24 @@ require 'erb'
 require 'securerandom'
 
 class Compiler
-  def initialize(entrance, options = {})
+  def initialize(entrance = nil, options = {})
     @options = options
     @entrance = entrance
+    @utils = Utils.new(options)
 
     init_options
-    init_entrance_and_root
+    init_entrance_and_root if @entrance
     init_tmpdir
 
-    STDERR.puts "Node.js Compiler (nodec) v#{::Compiler::VERSION}"
-    STDERR.puts "- entrance: #{@entrance}"
-    STDERR.puts "- options: #{@options}"
-    STDERR.puts
+    STDERR.puts "Node.js Compiler (nodec) v#{::Compiler::VERSION}" unless @options[:quiet]
+    if @entrance
+      STDERR.puts "- entrance: #{@entrance}" unless @options[:quiet]
+    else
+      STDERR.puts "- entrance: not provided, a single Node.js interpreter executable will be produced." unless @options[:quiet]
+      STDERR.puts "- HINT: call nodec with --help to see more options and use case examples" unless @options[:quiet]
+    end
+    STDERR.puts "- options: #{@options}" unless @options[:quiet]
+    STDERR.puts unless @options[:quiet]
 
     check_base_node_version!
 
@@ -38,7 +44,7 @@ class Compiler
 
   def node_version
     @node_version ||= (
-      version_info = File.read(File.join(PRJ_ROOT, "#{@node_dir}/src/node_version.h"))
+      version_info = File.read(File.join(PRJ_ROOT, "node/src/node_version.h"))
       versions = []
       if version_info =~ /NODE_MAJOR_VERSION\s+(\d+)/
         versions << $1.dup
@@ -67,7 +73,7 @@ class Compiler
       msg += "Please make sure to have installed the correct version of node in your environment.\n"
       msg += "It should match the enclosed Node.js runtime version of the compiler.\n"
       msg += "Expecting #{expectation}; yet got #{got}.\n\n"
-      STDERR.puts msg
+      STDERR.puts msg unless @options[:quiet]
     end
   end
 
@@ -98,8 +104,7 @@ class Compiler
 
   def init_options
     @options[:npm] ||= 'npm'
-    @node_dir = "node"
-    raise unless Dir.exist?(File.join(PRJ_ROOT, @node_dir))
+    @node_dir = "node-v#{node_version}"
     @options[:make_args] ||= '-j4'
     @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     if Gem.win_platform?
@@ -126,8 +131,8 @@ class Compiler
 
   def init_tmpdir
     @options[:tmpdir] = File.expand_path(@options[:tmpdir])
-    @root = File.expand_path(@root)
-    if !@npm_package && (@options[:tmpdir].include? @root)
+    @root = File.expand_path(@root) if @root
+    if @root && !@npm_package && (@options[:tmpdir].include? @root)
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
     @work_dir = File.join(@options[:tmpdir], '__work_dir__')
@@ -135,11 +140,11 @@ class Compiler
   end
 
   def stuff_tmpdir
-    Utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmpdir]
-    Utils.mkdir_p(@options[:tmpdir])
+    @utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmpdir]
+    @utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], @node_dir)
     unless Dir.exist?(@tmpdir_node)
-      Utils.cp_r(File.join(PRJ_ROOT, @node_dir), @tmpdir_node, preserve: true)
+      @utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true)
     end
     @npm_package.stuff_tmpdir if @npm_package
   end
@@ -157,11 +162,11 @@ class Compiler
   end
 
   def run!
-    npm_install unless @options[:keep_tmpdir]
+    npm_install unless !@entrance || @options[:keep_tmpdir]
     npm_package_set_entrance if @npm_package
     set_package_json
     msi_prepare if @options[:msi]
-    make_enclose_io_memfs
+    make_enclose_io_memfs if @entrance
     make_enclose_io_vars
     if Gem.win_platform?
       compile_win
@@ -176,15 +181,15 @@ class Compiler
       else
         target = File.join @tmpdir_node, 'Release', "#{@package_json['name']}.exe"
       end
-      Utils.cp(@options[:output], target)
-      Utils.rm_f(@options[:output])
-      Utils.chdir(@tmpdir_node) do
-        Utils.run(
+      @utils.cp(@options[:output], target)
+      @utils.rm_f(@options[:output])
+      @utils.chdir(@tmpdir_node) do
+        @utils.run(
           {'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1'},
           "call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}"
         )
         Dir['*.msi'].each do |x|
-          Utils.cp(x, @options[:output])
+          @utils.cp(x, @options[:output])
         end
       end
       raise "Cannot output the MSI Installer to #{@options[:output]}" unless File.exist?(@options[:output])
@@ -192,7 +197,7 @@ class Compiler
   end
 
   def msi_prepare
-    erb_target = File.join(PRJ_ROOT, @node_dir, 'tools', 'msvs', 'msi', 'product.wxs')
+    erb_target = File.join(PRJ_ROOT, 'node', 'tools', 'msvs', 'msi', 'product.wxs')
     erb_result = ERB.new(File.read(erb_target)).result(binding)
     erb_result_target = File.join(@tmpdir_node, 'tools', 'msvs', 'msi', 'product.wxs')
     File.open(erb_result_target, 'w') do |f|
@@ -201,48 +206,48 @@ class Compiler
   end
 
   def npm_package_set_entrance
-    Utils.chdir(@work_dir_inner) do
+    @utils.chdir(@work_dir_inner) do
       @entrance = @npm_package.get_entrance(@entrance)
-      STDERR.puts "-> Setting entrance to #{@entrance}"
+      STDERR.puts "-> Setting entrance to #{@entrance}" unless @options[:quiet]
     end
   end
 
   def npm_install
-    Utils.rm_rf(@work_dir)
-    Utils.mkdir_p(@work_dir)
-    Utils.cp_r(@root, @work_dir_inner)
+    @utils.rm_rf(@work_dir)
+    @utils.mkdir_p(@work_dir)
+    @utils.cp_r(@root, @work_dir_inner)
 
     unless @options[:skip_npm_install]
-      Utils.chdir(@work_dir_inner) do
-        Utils.run("#{Utils.escape @options[:npm]} -v")
-        Utils.run("#{Utils.escape @options[:npm]} install --production")
+      @utils.chdir(@work_dir_inner) do
+        @utils.run("#{@utils.escape @options[:npm]} -v")
+        @utils.run("#{@utils.escape @options[:npm]} install --production")
       end
     end
 
-    Utils.chdir(@work_dir_inner) do
+    @utils.chdir(@work_dir_inner) do
       if Dir.exist?('.git')
-        STDERR.puts `git status`
-        Utils.rm_rf('.git')
+        STDERR.puts `git status` unless @options[:quiet]
+        @utils.rm_rf('.git')
       end
     end
   end
 
   def make_enclose_io_memfs
-    Utils.chdir(@tmpdir_node) do
-      Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
-      Utils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
+    @utils.chdir(@tmpdir_node) do
+      @utils.rm_f('deps/libsquash/sample/enclose_io_memfs.squashfs')
+      @utils.rm_f('deps/libsquash/sample/enclose_io_memfs.c')
       begin
-        Utils.run("mksquashfs -version")
+        @utils.run("mksquashfs -version")
       rescue => e
         msg =  "=== HINT ===\n"
         msg += "Failed exectuing mksquashfs. Have you installed SquashFS Tools?\n"
         msg += "- On Windows, you could download it from https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip\n"
         msg += "- On macOS, you could install by using brew: brew install squashfs\n"
         msg += "- On Linux, you could install via apt or yum, or build from source after downloading source from http://squashfs.sourceforge.net/\n\n"
-        STDERR.puts msg
+        STDERR.puts msg unless @options[:quiet]
         raise e
       end
-      Utils.run("mksquashfs #{Utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
+      @utils.run("mksquashfs #{@utils.escape @work_dir} deps/libsquash/sample/enclose_io_memfs.squashfs")
       bytes = IO.binread('deps/libsquash/sample/enclose_io_memfs.squashfs').bytes
       # remember to change libsquash's sample/enclose_io_memfs.c as well
       File.open("deps/libsquash/sample/enclose_io_memfs.c", "w") do |f|
@@ -264,7 +269,7 @@ class Compiler
   end
 
   def make_enclose_io_vars
-    Utils.chdir(@tmpdir_node) do
+    @utils.chdir(@tmpdir_node) do
       File.open("deps/libsquash/sample/enclose_io.h", "w") do |f|
         # remember to change libsquash's sample/enclose_io.h as well
         f.puts '#ifndef ENCLOSE_IO_H_999BC1DA'
@@ -274,20 +279,22 @@ class Compiler
         f.puts '#include "enclose_io_common.h"'
         f.puts '#include "enclose_io_win32.h"'
         f.puts '#include "enclose_io_unix.h"'
-        if Gem.win_platform?
-          f.puts "#define ENCLOSE_IO_ENTRANCE L#{mempath(@entrance).inspect}"
-          # TODO remove this dirty hack some day
-          squash_root_alias = @work_dir
-          squash_root_alias += '/' unless '/' == squash_root_alias[-1]
-          raise 'logic error' unless ':/' == squash_root_alias[1..2]
-          squash_root_alias = "/cygdrive/#{squash_root_alias[0].downcase}/#{squash_root_alias[3..-1]}"
-          f.puts "#define ENCLOSE_IO_ROOT_ALIAS #{squash_root_alias.inspect}"
-          squash_root_alias2 = squash_root_alias[11..-1]
-          if squash_root_alias2 && squash_root_alias2.length > 1
-            f.puts "#define ENCLOSE_IO_ROOT_ALIAS2 #{squash_root_alias2.inspect}"
+        if @entrance
+          if Gem.win_platform?
+            f.puts "#define ENCLOSE_IO_ENTRANCE L#{mempath(@entrance).inspect}"
+            # TODO remove this dirty hack some day
+            squash_root_alias = @work_dir
+            squash_root_alias += '/' unless '/' == squash_root_alias[-1]
+            raise 'logic error' unless ':/' == squash_root_alias[1..2]
+            squash_root_alias = "/cygdrive/#{squash_root_alias[0].downcase}/#{squash_root_alias[3..-1]}"
+            f.puts "#define ENCLOSE_IO_ROOT_ALIAS #{squash_root_alias.inspect}"
+            squash_root_alias2 = squash_root_alias[11..-1]
+            if squash_root_alias2 && squash_root_alias2.length > 1
+              f.puts "#define ENCLOSE_IO_ROOT_ALIAS2 #{squash_root_alias2.inspect}"
+            end
+          else
+            f.puts "#define ENCLOSE_IO_ENTRANCE #{mempath(@entrance).inspect}"
           end
-        else
-          f.puts "#define ENCLOSE_IO_ENTRANCE #{mempath(@entrance).inspect}"
         end
         if @options[:auto_update_url] && @options[:auto_update_base]
           f.puts "#define ENCLOSE_IO_AUTO_UPDATE 1"
@@ -323,29 +330,29 @@ class Compiler
   end
 
   def compile_win
-    Utils.chdir(@tmpdir_node) do
-      Utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
+    @utils.chdir(@tmpdir_node) do
+      @utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
     src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
-    Utils.cp(src, @options[:output])
+    @utils.cp(src, @options[:output])
   end
 
   def compile_mac
-    Utils.chdir(@tmpdir_node) do
-      Utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
-      Utils.run("make #{@options[:make_args]}")
+    @utils.chdir(@tmpdir_node) do
+      @utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
+      @utils.run("make #{@options[:make_args]}")
     end
     src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
-    Utils.cp(src, @options[:output])
+    @utils.cp(src, @options[:output])
   end
 
   def compile_linux
-    Utils.chdir(@tmpdir_node) do
-      Utils.run("./configure #{@options[:debug] ? '--debug' : ''}")
-      Utils.run("make #{@options[:make_args]}")
+    @utils.chdir(@tmpdir_node) do
+      @utils.run("./configure #{@options[:debug] ? '--debug' : ''}")
+      @utils.run("make #{@options[:make_args]}")
     end
     src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
-    Utils.cp(src, @options[:output])
+    @utils.cp(src, @options[:output])
   end
 
   def mempath(path)

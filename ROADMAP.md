@@ -2,6 +2,7 @@
 
 ## v1.x
 
+- eliminate dependending on an outside Node.js and npm when compiling
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
     - Support arbitrary Node.js runtime versions

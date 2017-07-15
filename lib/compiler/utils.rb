@@ -11,8 +11,12 @@ require 'fileutils'
 require 'open3'
 
 class Compiler
-  module Utils
-    def self.escape(arg)
+  class Utils
+    def initialize(options = {})
+      @options = options
+    end
+
+    def escape(arg)
       if Gem.win_platform?
         if arg.include?('"')
           raise NotImplementedError
@@ -23,45 +27,45 @@ class Compiler
       end
     end
     
-    def self.run(*args)
-      STDERR.puts "-> Running #{args}"
+    def run(*args)
+      STDERR.puts "-> Running #{args}" unless @options[:quiet]
       pid = spawn(*args)
       pid, status = Process.wait2(pid)
       raise Error, "Failed running #{args}" unless status.success?
     end
 
-    def self.chdir(path)
-      STDERR.puts "-> cd #{path}"
+    def chdir(path)
+      STDERR.puts "-> cd #{path}" unless @options[:quiet]
       Dir.chdir(path) { yield }
-      STDERR.puts "-> cd #{Dir.pwd}"
+      STDERR.puts "-> cd #{Dir.pwd}" unless @options[:quiet]
     end
     
-    def self.cp(x, y)
-      STDERR.puts "-> cp #{x.inspect} #{y.inspect}"
+    def cp(x, y)
+      STDERR.puts "-> cp #{x.inspect} #{y.inspect}" unless @options[:quiet]
       FileUtils.cp(x, y)
     end
     
-    def self.cp_r(x, y, options = {})
-      STDERR.puts "-> cp -r #{x.inspect} #{y.inspect}"
+    def cp_r(x, y, options = {})
+      STDERR.puts "-> cp -r #{x.inspect} #{y.inspect}" unless @options[:quiet]
       FileUtils.cp_r(x, y, options)
     end
 
-    def self.rm_f(x)
-      STDERR.puts "-> rm -f #{x}"
+    def rm_f(x)
+      STDERR.puts "-> rm -f #{x}" unless @options[:quiet]
       FileUtils.rm_f(x)
     end
 
-    def self.rm_rf(x)
-      STDERR.puts "-> rm -rf #{x}"
+    def rm_rf(x)
+      STDERR.puts "-> rm -rf #{x}" unless @options[:quiet]
       FileUtils.rm_rf(x)
     end
     
-    def self.mkdir_p(x)
-      STDERR.puts "-> mkdir -p #{x}"
+    def mkdir_p(x)
+      STDERR.puts "-> mkdir -p #{x}" unless @options[:quiet]
       FileUtils.mkdir_p(x)
     end
     
-    def self.remove_dynamic_libs(path)
+    def remove_dynamic_libs(path)
       ['dll', 'dylib', 'so'].each do |extname|
         Dir["#{path}/**/*.#{extname}"].each do |x|
           Utils.rm_f(x)
@@ -69,7 +73,7 @@ class Compiler
       end
     end
 
-    def self.copy_static_libs(path, target)
+    def copy_static_libs(path, target)
       ['lib', 'a'].each do |extname|
         Dir["#{path}/*.#{extname}"].each do |x|
           Utils.cp(x, target)

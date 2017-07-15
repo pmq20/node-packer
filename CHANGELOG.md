@@ -6,11 +6,10 @@
   - https://nodejs.org/en/blog/release/v8.1.4/
 - add options to generate installers
   - add `--msi`: generates a msi installer for Windows
-
-Below are items that Minqi Pan is working on in progress of this release:
 - use a temporary directory name with nodec version when compiling
   - https://github.com/pmq20/node-compiler/issues/42
-- eliminate dependending on an outside Node.js and npm when compiling
+- add option --quiet to enable quiet mode
+- if `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
 
 ## v1.2.0
 

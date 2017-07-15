@@ -17,7 +17,8 @@ USAGE = %Q{
 Node.js Compiler (nodec) v#{::Compiler::VERSION}
 
 Usage
-  nodec [OPTION]... ENTRANCE
+  nodec [OPTION]... [ENTRANCE]
+  If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
 
 }.strip
 
@@ -25,20 +26,20 @@ EXAMPLES = %Q{
 
 Examples
 
-Compile a CLI tool:
-
-  git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-  cd coffeescript
-  nodec bin/coffee
-  ./a.out (or a.exe on Windows)
-
-Compile a web application:
-
-  git clone --depth 1 https://github.com/eggjs/examples.git
-  cd examples/helloworld
-  npm install
-  nodec --skip-npm-install node_modules/.bin/egg-bin
-  ./a.out dev (or a.exe dev on Windows)
+  Compile a CLI tool:
+  
+    git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+    cd coffeescript
+    nodec bin/coffee
+    ./a.out (or a.exe on Windows)
+  
+  Compile a web application:
+  
+    git clone --depth 1 https://github.com/eggjs/examples.git
+    cd examples/helloworld
+    npm install
+    nodec --skip-npm-install node_modules/.bin/egg-bin
+    ./a.out dev (or a.exe dev on Windows)
 
 }.strip
 
@@ -113,17 +114,23 @@ OptionParser.new do |opts|
     options[:debug] = true
   end
 
+  opts.on("--quiet", "Enable quiet mode") do
+    options[:quiet] = true
+  end
+
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
     puts "v#{::Compiler::VERSION}"
     exit 0
   end
 
-  opts.on("-h", "--help", "Prints this help and exit") do
-    usage.call(STDOUT)
+  opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
+    puts ::Compiler.new(nil, quiet: true).node_version
     exit 0
   end
 
-  opts.on("--examples", "Prints usage examples") do
+  opts.on("-h", "--help", "Prints this help and exit") do
+    usage.call(STDOUT)
+    STDOUT.puts
     STDOUT.puts EXAMPLES
     exit 0
   end
@@ -132,10 +139,6 @@ OptionParser.new do |opts|
 end.parse!
 
 entrance = ARGV[-1]
-unless entrance.kind_of?(String) && entrance.length > 0
-  usage.call(STDERR)
-  exit 1
-end
 
 begin
   instance = ::Compiler.new entrance, options

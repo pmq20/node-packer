@@ -30,7 +30,6 @@ else
   raise "Please set ENV['NODEC_TESTS_TMPDIR']"
 end
 tmpdir = ENV['NODEC_TESTS_TMPDIR']
-tmpdir_node = File.join(tmpdir, "node#{ENV['NODEC_NODE_VERSION']}")
 
 unless Dir.exist?('coffeescript')
   puts `git clone --depth 1 https://github.com/jashkenas/coffeescript.git`
@@ -40,6 +39,8 @@ Dir.chdir('coffeescript')
 
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
+
+tmpdir_node = File.join(tmpdir, "node-v#{`ruby ../bin/nodec --node-version`.strip}")
 
 pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} bin/coffee")
 pid, status = Process.wait2(pid)

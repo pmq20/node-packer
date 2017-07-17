@@ -10,6 +10,18 @@
   - https://github.com/pmq20/node-compiler/issues/42
 - add option --quiet to enable quiet mode
 - if `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
+  - use this feature to warm up your tmpdir in one command: nodec --tmpdir=/your/dir
+
+Translations in Chinese:
+- 将编译器的 Node.js 运行时升级到了 v8.1.4
+  - https://nodejs.org/en/blog/release/v8.1.4/
+- 添加生成安装器的选项
+  - 添加 --msi 来为您的工程生成 Windows MSI 安装器
+- 使用取决于 Node.js 运行时版本的临时文件夹，再也不同担心升级 nodec 而导致临时文件夹过期了
+  - https://github.com/pmq20/node-compiler/issues/42
+- 添加选项 --quiet 来进行静默编译
+- 当不提供入口 ENTRANCE 参数时，生成一个独立的 Node.js 解释器
+  - 可以利用此功能一键跑热临时文件夹： nodec --tmpdir=/your/dir
 
 ## v1.2.0
 

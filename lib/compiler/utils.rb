@@ -68,7 +68,7 @@ class Compiler
     def remove_dynamic_libs(path)
       ['dll', 'dylib', 'so'].each do |extname|
         Dir["#{path}/**/*.#{extname}"].each do |x|
-          Utils.rm_f(x)
+          self.rm_f(x)
         end
       end
     end
@@ -76,7 +76,7 @@ class Compiler
     def copy_static_libs(path, target)
       ['lib', 'a'].each do |extname|
         Dir["#{path}/*.#{extname}"].each do |x|
-          Utils.cp(x, target)
+          self.cp(x, target)
         end
       end
     end

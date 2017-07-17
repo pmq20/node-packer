@@ -119,7 +119,7 @@ class Compiler
     
     if @options[:npm_package]
       @options[:npm_package_version] ||= 'latest'
-      @npm_package = NpmPackage.new(@options)
+      @npm_package = NpmPackage.new(@options, @utils)
     end
     
     if @options[:auto_update_url] || @options[:auto_update_base]

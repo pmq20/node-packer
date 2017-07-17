@@ -15,16 +15,17 @@ class Compiler
     attr_reader :work_dir
     attr_reader :package_json
 
-    def initialize(options)
+    def initialize(options, utils)
       @module_name = options[:npm_package]
       @module_version = options[:npm_package_version]
       @work_dir = File.expand_path("#{@module_name}-#{@module_version}", options[:tmpdir])
+      @utils = utils
     end
 
     def stuff_tmpdir
-      Utils.rm_rf(@work_dir)
-      Utils.mkdir_p(@work_dir)
-      Utils.chdir(@work_dir) do
+      @utils.rm_rf(@work_dir)
+      @utils.mkdir_p(@work_dir)
+      @utils.chdir(@work_dir) do
         File.open("package.json", "w") do |f|
           package = %Q({"dependencies": {"#{@module_name}": "#{@module_version}"}})
           f.puts package

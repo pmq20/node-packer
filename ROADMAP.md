@@ -1,7 +1,7 @@
 # Node.js Compiler Road Map
 
-## v1.x
-
+- Compile to bytecode via v8 Ignition
+  - https://github.com/nodejs/node/issues/11842
 - eliminate dependending on an outside Node.js and npm when compiling
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
@@ -30,11 +30,6 @@
   - https://github.com/pmq20/node-compiler/issues/26
 - Make Docker images for compiler environments
 - Generate Windows-less Cmd-less Windows applications via /subsystem=windows
-
-## v2.x
-
-- Compile to bytecode via v8 Ignition
-  - https://github.com/nodejs/node/issues/11842
 - Drop the external dependency of mksquashfs
   - i.e. Give libsquash the ability to mksquashfs
 - Support library only projects

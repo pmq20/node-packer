@@ -151,13 +151,18 @@ class Compiler
 
   def set_package_json
     @package_json = @npm_package&.package_json
-    unless @package_json
+    if @package_json
+      # dirty hack for MSI generation
+      @package_json['name'] = File.basename(@entrance).gsub('-', '_')
+    else
       path = File.join @work_dir_inner, 'package.json'
       if File.exist?(path)
         @package_json = JSON.parse File.read path
       else
         @package_json = {}
       end
+      # dirty hack for MSI generation
+      @package_json['name'] = File.basename(@package_json['name']).gsub('-', '_') if @package_json['name']
     end
   end
 

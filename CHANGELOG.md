@@ -2,7 +2,7 @@
 
 ## v1.4.0
 
-
+- fix bad package names for product.wxs when generating MSI installers
 
 ## v1.3.0
 

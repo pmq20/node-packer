@@ -190,7 +190,7 @@ class Compiler
       @utils.rm_f(@options[:output])
       @utils.chdir(@tmpdir_node) do
         @utils.run(
-          {'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1'},
+          {'ENCLOSE_IO_USE_ORIGINAL_NODE' => '1', 'CI' => 'true'},
           "call vcbuild.bat msi nobuild #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}"
         )
         Dir['*.msi'].each do |x|

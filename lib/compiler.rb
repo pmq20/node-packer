@@ -104,7 +104,7 @@ class Compiler
 
   def init_options
     @options[:npm] ||= 'npm'
-    @node_dir = "node-v#{node_version}"
+    @node_dir = "node-#{node_version}-#{VERSION}"
     @options[:make_args] ||= '-j4'
     @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     if Gem.win_platform?

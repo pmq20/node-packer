@@ -10,6 +10,8 @@
   - fix failures to replace itself when TMPDIR and current file is not on the same volume
     - https://github.com/pmq20/libautoupdate/issues/1
 - remove `node_main.obj` before compiling to avoid a MS toolchain bug
+- make nodec version part of the tmpdir namings
+  - https://github.com/pmq20/node-compiler/issues/42
 
 ## v1.3.0
 

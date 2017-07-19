@@ -153,7 +153,7 @@ class Compiler
     @package_json = @npm_package&.package_json
     if @package_json
       # dirty hack for MSI generation
-      @package_json['name'] = File.basename(@entrance).gsub('-', '_')
+      @package_json['name'] = File.basename(@original_entrance).gsub('-', '_')
     else
       path = File.join @work_dir_inner, 'package.json'
       if File.exist?(path)
@@ -212,6 +212,7 @@ class Compiler
 
   def npm_package_set_entrance
     @utils.chdir(@work_dir_inner) do
+      @original_entrance = @entrance
       @entrance = @npm_package.get_entrance(@entrance)
       STDERR.puts "-> Setting entrance to #{@entrance}" unless @options[:quiet]
     end

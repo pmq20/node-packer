@@ -269,7 +269,7 @@
         'NODE_PLATFORM="win32"',
         '_UNICODE=1',
       ],
-      'libraries': [ '-lpsapi.lib' ]
+      'libraries': [ '-lpsapi.lib', '-lOle32.lib' ]
     }, { # POSIX
       'defines': [ '__POSIX__' ],
       'sources': [ 'src/backtrace_posix.cc' ],

@@ -3,6 +3,8 @@
 ## v1.4.0
 
 - fix bad package names for product.wxs when generating MSI installers
+- upgrade to libsquash v0.7.0
+  - test ifndef `__USE_XOPEN_EXTENDED`
 - upgrade to libautoupdate v0.2.0
   - Auto-update shall only run once in every 24 hours with help of the file `~/.libautoupdate`
   - add argument `force` to `autoupdate()` in order to force an auto-update check

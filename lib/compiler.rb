@@ -275,6 +275,11 @@ class Compiler
 
   def make_enclose_io_vars
     @utils.chdir(@tmpdir_node) do
+      if Gem.win_platform?
+        # remove `node_main.obj` before compiling to avoid a MS toolchain bug
+        @utils.rm_f('Release/obj/node/node_main.obj')
+        @utils.rm_f('Debug/obj/node/node_main.obj')
+      end
       File.open("deps/libsquash/sample/enclose_io.h", "w") do |f|
         # remember to change libsquash's sample/enclose_io.h as well
         f.puts '#ifndef ENCLOSE_IO_H_999BC1DA'

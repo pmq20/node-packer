@@ -9,6 +9,7 @@
   - add CI to test `autoupdate()`
   - fix failures to replace itself when TMPDIR and current file is not on the same volume
     - https://github.com/pmq20/libautoupdate/issues/1
+- remove `node_main.obj` before compiling to avoid a MS toolchain bug
 
 ## v1.3.0
 

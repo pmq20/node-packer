@@ -40,7 +40,7 @@ Dir.chdir('coffeescript')
 outpath = File.expand_path((Gem.win_platform? ? 'a.exe' : 'a.out'), Dir.pwd)
 FileUtils.rm_f(outpath)
 
-tmpdir_node = File.join(tmpdir, "node-v#{`ruby ../bin/nodec --node-version`.strip}")
+tmpdir_node = File.join(tmpdir, "node-#{`ruby ../bin/nodec --node-version`.strip}-#{`ruby ../bin/nodec --version`.strip}")
 
 pid = spawn("ruby ../bin/nodec --tmpdir=#{escape tmpdir} bin/coffee")
 pid, status = Process.wait2(pid)

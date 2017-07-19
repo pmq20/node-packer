@@ -33,12 +33,14 @@ PACK(
 
 wchar_t* autoupdate_tmpdir();
 wchar_t* autoupdate_tmpf(wchar_t *tmpdir, const char *ext_name);
+short autoupdate_should_proceed_24_hours(int argc, wchar_t *wargv[], short will_write);
 
 #else
 
 char* autoupdate_tmpdir();
 char* autoupdate_tmpf(char *tmpdir, const char *ext_name);
-
+short autoupdate_should_proceed_24_hours(int argc, char *argv[], short will_write);
+	
 #endif // _WIN32
 
 short autoupdate_should_proceed();

@@ -17,7 +17,8 @@ int autoupdate(
 	const char *host,
 	const char *port,
 	const char *path,
-	const char *current
+	const char *current,
+	short force
 );
 
 #else
@@ -29,7 +30,8 @@ int autoupdate(
 	const char *host,
 	uint16_t port,
 	const char *path,
-	const char *current
+	const char *current,
+	short force
 );
 
 #endif // _WIN32

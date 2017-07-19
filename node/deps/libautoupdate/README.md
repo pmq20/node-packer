@@ -30,9 +30,10 @@ Otherwise, it returns one of the following integers to indicate the situation:
 |  Return Value  | Indication                                                                                  |
 |:--------------:|---------------------------------------------------------------------------------------------|
 |        0       | Latest version confirmed. No need to update                                                 |
-|        1       | Auto-update shall not proceed due to environment variable `CI` being set    |
+|        1       | Auto-update shall not proceed due to environment variable `CI` being set                    |
 |        2       | Auto-update process failed prematually and detailed errors are printed to stderr            |
 |        3       | Failed to restart after replacing itself with the new version                               |
+|        4       | Auto-update shall not proceed due to being already checked in the last 24 hours             |
 
 ## Communication
 
@@ -121,6 +122,11 @@ int main(int argc, char *argv[])
 	*/
 }
 ```
+
+## Hints
+
+- Set environment variable `CI=true` will prevent auto-updating
+- Remove the file `~/.libautoupdate` will remove the once-per-24-hours check limit
 
 ## See Also
 

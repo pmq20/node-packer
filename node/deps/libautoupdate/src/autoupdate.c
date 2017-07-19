@@ -19,6 +19,7 @@
 #include <conio.h>
 #include <stdint.h>
 #include <stdlib.h> /* exit */
+#include <wchar.h>
 
 int autoupdate(
 	int argc,
@@ -26,13 +27,18 @@ int autoupdate(
 	const char *host,
 	const char *port,
 	const char *path,
-	const char *current
+	const char *current,
+	short force
 )
 {
 	WSADATA wsaData;
 
-	if (!autoupdate_should_proceed()) {
+	if (!force && !autoupdate_should_proceed()) {
 		return 1;
+	}
+
+	if (!force && !autoupdate_should_proceed_24_hours(argc, wargv, 0)) {
+		return 4;
 	}
 
 	// Initialize Winsock
@@ -165,6 +171,7 @@ parse_location_header:
 	if (!again_302) {
 		if (strstr(found, current)) {
 			/* Latest version confirmed. No need to update */
+			autoupdate_should_proceed_24_hours(argc, wargv, 1);
 			return 0;
 		} else {
 			fprintf(stderr, "Hint: to disable auto-update, run with environment variable CI=true\n");
@@ -486,6 +493,30 @@ parse_location_header:
 		free(body_buffer);
 		return 2;
 	}
+	/* Windows paths can never be longer than this. */
+	const size_t exec_path_len = 32768;
+	wchar_t exec_path[32768];
+	DWORD utf16_len = GetModuleFileNameW(NULL, exec_path, exec_path_len);
+	if (0 == utf16_len) {
+		fprintf(stderr, "Auto-update Failed: GetModuleFileNameW failed with GetLastError=%d\n", GetLastError());
+		free((void*)(tmpdir));
+		free(uncomp);
+		free(body_buffer);
+		return 2;
+	}
+	if (tmpdir[0] != exec_path[0]) {
+		free((void*)(tmpdir));
+		tmpdir = wcsdup(exec_path);
+		wchar_t *backslash = wcsrchr(tmpdir, L'\\');
+		if (NULL == backslash) {
+			fprintf(stderr, "Auto-update Failed: Cannot find an approriate tmpdir with %S\n", tmpdir);
+			free((void*)(tmpdir));
+			free(uncomp);
+			free(body_buffer);
+			return 2;
+		}
+		*backslash = 0;
+	}
 	wchar_t *tmpf = autoupdate_tmpf(tmpdir, "exe");
 	if (NULL == tmpf) {
 		fprintf(stderr, "Auto-update Failed: no temporary file available\n");
@@ -518,17 +549,6 @@ parse_location_header:
 	fclose(fp);
 	free(uncomp);
 	free(body_buffer);
-	/* Windows paths can never be longer than this. */
-	const size_t exec_path_len = 32768;
-	wchar_t exec_path[32768];
-	DWORD utf16_len = GetModuleFileNameW(NULL, exec_path, exec_path_len);
-	if (0 == utf16_len) {
-		fprintf(stderr, "Auto-update Failed: GetModuleFileNameW failed with GetLastError=%d\n", GetLastError());
-		DeleteFileW(tmpf);
-		free((void*)(tmpdir));
-		free((void*)(tmpf));
-		return 2;
-	}
 	// Backup
 	wchar_t *selftmpf = autoupdate_tmpf(tmpdir, "exe");
 	if (NULL == selftmpf) {
@@ -622,7 +642,8 @@ int autoupdate(
 	const char *host,
 	uint16_t port,
 	const char *path,
-	const char *current
+	const char *current,
+	short force
 )
 {
 	struct hostent *server;
@@ -630,8 +651,12 @@ int autoupdate(
 	int sockfd, bytes, total;
 	char response[1024 * 10 + 1]; // 10KB
 
-	if (!autoupdate_should_proceed()) {
+	if (!force && !autoupdate_should_proceed()) {
 		return 1;
+	}
+
+	if (!force && !autoupdate_should_proceed_24_hours(argc, argv, 0)) {
+		return 4;
 	}
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -715,6 +740,7 @@ parse_location_header:
 	if (!again_302) {
 		if (strstr(found, current)) {
 			/* Latest version confirmed. No need to update */
+			autoupdate_should_proceed_24_hours(argc, argv, 1);
 			return 0;
 		} else {
 			fprintf(stderr, "Hint: to disable auto-update, run with environment variable CI=true\n");

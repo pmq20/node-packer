@@ -46,7 +46,8 @@ int wmain(int argc, wchar_t *wargv[]) {
       ENCLOSE_IO_AUTO_UPDATE_URL_Host,
       ENCLOSE_IO_AUTO_UPDATE_URL_Port,
       ENCLOSE_IO_AUTO_UPDATE_URL_Path,
-      ENCLOSE_IO_AUTO_UPDATE_BASE
+      ENCLOSE_IO_AUTO_UPDATE_BASE,
+      0
     );
   #endif
 
@@ -166,7 +167,8 @@ int main(int argc, char *argv[]) {
       ENCLOSE_IO_AUTO_UPDATE_URL_Host,
       ENCLOSE_IO_AUTO_UPDATE_URL_Port,
       ENCLOSE_IO_AUTO_UPDATE_URL_Path,
-      ENCLOSE_IO_AUTO_UPDATE_BASE
+      ENCLOSE_IO_AUTO_UPDATE_BASE,
+      0
     );
   #endif
   

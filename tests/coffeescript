@@ -68,13 +68,13 @@ STDERR.puts "Testing coffeescript with node's official test cases"
 Dir.chdir(tmpdir_node)
 ENV['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1'
 if Gem.win_platform?
-  pid = spawn("call vcbuild.bat release nosign noprojgen nobuild test-ci-js ignore-flaky ")
+  pid = spawn("call vcbuild.bat release nosign noprojgen nobuild test-simple ignore-flaky ")
   pid, status = Process.wait2(pid)
-  raise "Failed running call vcbuild.bat release nosign noprojgen nobuild test-ci-js ignore-flaky" unless status.success?
+  raise "Failed running call vcbuild.bat release nosign noprojgen nobuild test-simple ignore-flaky" unless status.success?
 else
   ENV['FLAKY_TESTS'] = 'dontcare'
-  pid = spawn("make test-ci-js")
+  pid = spawn("make test-simple")
   pid, status = Process.wait2(pid)
-  raise "Failed running make test-ci-js" unless status.success?
+  raise "Failed running make test-simple" unless status.success?
 end
 STDERR.puts "coffeescript with node's official test cases Passed"

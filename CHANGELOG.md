@@ -17,7 +17,7 @@
 - make nodec version part of the tmpdir namings
   - https://github.com/pmq20/node-compiler/issues/42
 - use only the master CI
-- remove `node/doc` and `node/deps/npm`
+- remove `node/deps/npm`
 
 ## v1.3.0
 

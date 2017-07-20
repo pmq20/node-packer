@@ -1,17 +1,16 @@
 'use strict';
 
 const common = require('../common');
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-
 // The doctool currently uses js-yaml from the tool/eslint/ tree.
 try {
   require('../../tools/eslint/node_modules/js-yaml');
 } catch (e) {
-  return common.skip('missing js-yaml (eslint not present)');
+  common.skip('missing js-yaml (eslint not present)');
 }
 
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const processIncludes = require('../../tools/doc/preprocess.js');
 const html = require('../../tools/doc/html.js');
 
@@ -117,15 +116,15 @@ testData.forEach((item) => {
           const actual = output.replace(spaces, '');
           // Assert that the input stripped of all whitespace contains the
           // expected list
-          assert.notStrictEqual(actual.indexOf(expected), -1);
+          assert(actual.includes(expected));
 
           // Testing the insertion of Google Analytics script when
           // an analytics id is provided. Should not be present by default
           if (includeAnalytics) {
-            assert.notStrictEqual(actual.indexOf('google-analytics.com'), -1,
-                                  'Google Analytics script was not present');
+            assert(actual.includes('google-analytics.com'),
+                   'Google Analytics script was not present');
           } else {
-            assert.strictEqual(actual.indexOf('google-analytics.com'), -1,
+            assert.strictEqual(actual.includes('google-analytics.com'), false,
                                'Google Analytics script was present');
           }
         }));

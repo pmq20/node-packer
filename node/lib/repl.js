@@ -137,7 +137,7 @@ function REPLServer(prompt,
 
   if (breakEvalOnSigint && eval_) {
     // Allowing this would not reflect user expectations.
-    // breakEvalOnSigint affects only the behaviour of the default eval().
+    // breakEvalOnSigint affects only the behavior of the default eval().
     throw new Error('Cannot specify both breakEvalOnSigint and eval for REPL');
   }
 
@@ -688,8 +688,33 @@ function intFilter(item) {
   return /^[A-Za-z_$]/.test(item);
 }
 
+const ARRAY_LENGTH_THRESHOLD = 1e6;
+
+function mayBeLargeObject(obj) {
+  if (Array.isArray(obj)) {
+    return obj.length > ARRAY_LENGTH_THRESHOLD ? ['length'] : null;
+  } else if (utilBinding.isTypedArray(obj)) {
+    return obj.length > ARRAY_LENGTH_THRESHOLD ? [] : null;
+  }
+
+  return null;
+}
+
 function filteredOwnPropertyNames(obj) {
   if (!obj) return [];
+  const fakeProperties = mayBeLargeObject(obj);
+  if (fakeProperties !== null) {
+    this.outputStream.write('\r\n');
+    process.emitWarning(
+      'The current array, Buffer or TypedArray has too many entries. ' +
+      'Certain properties may be missing from completion output.',
+      'REPLWarning',
+      undefined,
+      undefined,
+      true);
+
+    return fakeProperties;
+  }
   return Object.getOwnPropertyNames(obj).filter(intFilter);
 }
 
@@ -710,7 +735,7 @@ REPLServer.prototype.complete = function() {
 function complete(line, callback) {
   // There may be local variables to evaluate, try a nested REPL
   if (this.bufferedCommand !== undefined && this.bufferedCommand.length) {
-    // Get a new array of inputed lines
+    // Get a new array of inputted lines
     var tmp = this.lines.slice();
     // Kill off all function declarations to push all local variables into
     // global scope
@@ -739,6 +764,7 @@ function complete(line, callback) {
   var completeOn, i, group, c;
 
   // REPL commands (e.g. ".break").
+  var filter;
   var match = null;
   match = line.match(/^\s*\.(\w*)$/);
   if (match) {
@@ -758,7 +784,7 @@ function complete(line, callback) {
 
     completeOn = match[1];
     var subdir = match[2] || '';
-    var filter = match[1];
+    filter = match[1];
     var dir, files, f, name, base, ext, abs, subfiles, s;
     group = [];
     var paths = module.paths.concat(require('module').globalPaths);
@@ -842,9 +868,11 @@ function complete(line, callback) {
         if (this.useGlobal || vm.isContext(this.context)) {
           var contextProto = this.context;
           while (contextProto = Object.getPrototypeOf(contextProto)) {
-            completionGroups.push(filteredOwnPropertyNames(contextProto));
+            completionGroups.push(
+              filteredOwnPropertyNames.call(this, contextProto));
           }
-          completionGroups.push(filteredOwnPropertyNames(this.context));
+          completionGroups.push(
+            filteredOwnPropertyNames.call(this, this.context));
           addStandardGlobals(completionGroups, filter);
           completionGroupsLoaded();
         } else {
@@ -864,13 +892,13 @@ function complete(line, callback) {
         }
       } else {
         const evalExpr = `try { ${expr} } catch (e) {}`;
-        this.eval(evalExpr, this.context, 'repl', function doEval(e, obj) {
+        this.eval(evalExpr, this.context, 'repl', (e, obj) => {
           // if (e) console.log(e);
 
           if (obj != null) {
             if (typeof obj === 'object' || typeof obj === 'function') {
               try {
-                memberGroups.push(filteredOwnPropertyNames(obj));
+                memberGroups.push(filteredOwnPropertyNames.call(this, obj));
               } catch (ex) {
                 // Probably a Proxy object without `getOwnPropertyNames` trap.
                 // We simply ignore it here, as we don't want to break the
@@ -888,7 +916,7 @@ function complete(line, callback) {
                 p = obj.constructor ? obj.constructor.prototype : null;
               }
               while (p !== null) {
-                memberGroups.push(filteredOwnPropertyNames(p));
+                memberGroups.push(filteredOwnPropertyNames.call(this, p));
                 p = Object.getPrototypeOf(p);
                 // Circular refs possible? Let's guard against that.
                 sentinel--;

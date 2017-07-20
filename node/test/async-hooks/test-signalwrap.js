@@ -1,6 +1,8 @@
 'use strict';
-
 const common = require('../common');
+
+if (common.isWindows) return common.skip('no signals in Windows');
+
 const assert = require('assert');
 const initHooks = require('./init-hooks');
 const { checkInvocations } = require('./hook-checks');
@@ -16,7 +18,7 @@ assert.strictEqual(as.length, 1);
 const signal1 = as[0];
 assert.strictEqual(signal1.type, 'SIGNALWRAP');
 assert.strictEqual(typeof signal1.uid, 'number');
-assert.strictEqual(typeof signal1.triggerId, 'number');
+assert.strictEqual(typeof signal1.triggerAsyncId, 'number');
 checkInvocations(signal1, { init: 1 }, 'when SIGUSR2 handler is set up');
 
 let count = 0;
@@ -50,7 +52,7 @@ function onsigusr2() {
     signal2 = as[1];
     assert.strictEqual(signal2.type, 'SIGNALWRAP');
     assert.strictEqual(typeof signal2.uid, 'number');
-    assert.strictEqual(typeof signal2.triggerId, 'number');
+    assert.strictEqual(typeof signal2.triggerAsyncId, 'number');
 
     checkInvocations(
       signal1, { init: 1, before: 2, after: 1 },

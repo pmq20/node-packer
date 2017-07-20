@@ -41,7 +41,30 @@ Buffer.prototype = FastBuffer.prototype;
 exports.Buffer = Buffer;
 exports.SlowBuffer = SlowBuffer;
 exports.INSPECT_MAX_BYTES = 50;
+
+// Legacy.
 exports.kMaxLength = binding.kMaxLength;
+
+const constants = Object.defineProperties({}, {
+  MAX_LENGTH: {
+    value: binding.kStringMaxLength,
+    writable: false,
+    enumerable: true
+  },
+  MAX_STRING_LENGTH: {
+    value: binding.kStringMaxLength,
+    writable: false,
+    enumerable: true
+  }
+});
+
+Object.defineProperty(exports, 'constants', {
+  configurable: false,
+  enumerable: true,
+  value: constants
+});
+
+exports.kStringMaxLength = binding.kStringMaxLength;
 
 const kFromErrorMsg = 'First argument must be a string, Buffer, ' +
                       'ArrayBuffer, Array, or array-like object.';
@@ -96,7 +119,7 @@ function showFlaggedDeprecation() {
   if (bufferWarn) {
     // This is a *pending* deprecation warning. It is not emitted by
     // default unless the --pending-deprecation command-line flag is
-    // used or the NODE_PENDING_DEPRECATION=1 envvar is set.
+    // used or the NODE_PENDING_DEPRECATION=1 env var is set.
     process.emitWarning(bufferWarning, 'DeprecationWarning', 'DEP0005');
     bufferWarn = false;
   }
@@ -108,7 +131,7 @@ const doFlaggedDeprecation =
     function() {};
 
 /**
- * The Buffer() construtor is deprecated in documentation and should not be
+ * The Buffer() constructor is deprecated in documentation and should not be
  * used moving forward. Rather, developers should use one of the three new
  * factory APIs: Buffer.from(), Buffer.allocUnsafe() or Buffer.alloc() based on
  * their specific needs. There is no runtime deprecation because of the extent
@@ -152,12 +175,26 @@ Buffer.from = function(value, encodingOrOffset, length) {
   if (isAnyArrayBuffer(value))
     return fromArrayBuffer(value, encodingOrOffset, length);
 
+  if (value == null)
+    throw new TypeError(kFromErrorMsg);
+
+  if (typeof value === 'number')
+    throw new TypeError('"value" argument must not be a number');
+
+  const valueOf = value.valueOf && value.valueOf();
+  if (valueOf != null && valueOf !== value)
+    return Buffer.from(valueOf, encodingOrOffset, length);
+
   var b = fromObject(value);
   if (b)
     return b;
 
-  if (typeof value === 'number')
-    throw new TypeError('"value" argument must not be a number');
+  if (typeof value[Symbol.toPrimitive] === 'function') {
+    return Buffer.from(value[Symbol.toPrimitive]('string'),
+                       encodingOrOffset,
+                       length);
+  }
+
   throw new TypeError(kFromErrorMsg);
 };
 
@@ -169,13 +206,14 @@ Object.setPrototypeOf(Buffer, Uint8Array);
 function assertSize(size) {
   let err = null;
 
-  if (typeof size !== 'number')
+  if (typeof size !== 'number') {
     err = new TypeError('"size" argument must be a number');
-  else if (size < 0)
+  } else if (size < 0) {
     err = new RangeError('"size" argument must not be negative');
-  else if (size > binding.kMaxLength)
+  } else if (size > binding.kMaxLength) {
     err = new RangeError('"size" argument must not be larger ' +
                          'than ' + binding.kMaxLength);
+  }
 
   if (err) {
     Error.captureStackTrace(err, assertSize);
@@ -193,7 +231,7 @@ Buffer.alloc = function(size, fill, encoding) {
     // Since we are filling anyway, don't zero fill initially.
     // Only pay attention to encoding if it's a string. This
     // prevents accidentally sending in a number that would
-    // be interpretted as a start offset.
+    // be interpreted as a start offset.
     if (typeof encoding !== 'string')
       encoding = undefined;
     return createUnsafeBuffer(size).fill(fill, encoding);
@@ -315,8 +353,6 @@ function fromArrayBuffer(obj, byteOffset, length) {
     if (length !== length) {
       length = 0;
     } else if (length > 0) {
-      length = (length < Number.MAX_SAFE_INTEGER ?
-                length : Number.MAX_SAFE_INTEGER);
       if (length > maxLength)
         throw new RangeError("'length' is out of bounds");
     } else {
@@ -724,7 +760,7 @@ function slowIndexOf(buffer, val, byteOffset, encoding, dir) {
       case 'ascii':
       case 'hex':
         return binding.indexOfBuffer(
-            buffer, Buffer.from(val, encoding), byteOffset, encoding, dir);
+          buffer, Buffer.from(val, encoding), byteOffset, encoding, dir);
 
       default:
         if (loweredCase) {

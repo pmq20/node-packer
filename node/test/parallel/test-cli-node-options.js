@@ -1,7 +1,7 @@
 'use strict';
 const common = require('../common');
 if (process.config.variables.node_without_node_options)
-  return common.skip('missing NODE_OPTIONS support');
+  common.skip('missing NODE_OPTIONS support');
 
 // Test options specified by env variable.
 
@@ -26,6 +26,7 @@ disallow('--interactive');
 disallow('-i');
 disallow('--v8-options');
 disallow('--');
+disallow('--no_warnings'); // Node options don't allow '_' instead of '-'.
 
 function disallow(opt) {
   const options = {env: {NODE_OPTIONS: opt}};
@@ -58,8 +59,13 @@ if (common.hasCrypto) {
   expect('--openssl-config=_ossl_cfg', 'B\n');
 }
 
-    // V8 options
+// V8 options
+expect('--abort-on-uncaught-exception', 'B\n');
+expect('--abort_on_uncaught_exception', 'B\n');
+expect('--abort_on-uncaught_exception', 'B\n');
 expect('--max_old_space_size=0', 'B\n');
+expect('--max-old_space-size=0', 'B\n');
+expect('--max-old-space-size=0', 'B\n');
 
 function expect(opt, want) {
   const printB = require.resolve('../fixtures/printB.js');

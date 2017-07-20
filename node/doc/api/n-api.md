@@ -41,7 +41,7 @@ The documentation for N-API is structured as follows:
 * [Working with JavaScript Properties][]
 * [Working with JavaScript Functions][]
 * [Object Wrap][]
-* [Aynchronous Operations][]
+* [Asynchronous Operations][]
 
 The N-API is a C API that ensures ABI stability across Node.js versions
 and different compiler levels. However, we also understand that a C++
@@ -239,7 +239,7 @@ typedef struct napi_extended_error_info {
   napi_status error_code;
 };
 ```
-- `error_message`: Textual representation of the error that occured.
+- `error_message`: Textual representation of the error that occurred.
 - `engine_reserved`: Opaque handle reserved for engine use only.
 - `engine_error_code`: VM specific error code.
 - `error_code`: n-api status code for the last error.
@@ -267,7 +267,10 @@ information about the error.
 Returns `napi_ok` if the API succeeded.
 
 This API retrieves a `napi_extended_error_info` structure with information
-about the last error that occured.
+about the last error that occurred.
+
+*Note*: The content of the `napi_extended_error_info` returned is only
+valid up until an n-api function is called on the same `env`.
 
 *Note*: Do not rely on the content or format of any of the extended
 information as it is not subject to SemVer and may change at any time.
@@ -487,6 +490,23 @@ Returns `napi_ok` if the API succeeded.
 
 This API returns true if an exception is pending.
 
+### Fatal Errors
+
+In the event of an unrecoverable error in a native module, a fatal error can be
+thrown to immediately terminate the process.
+
+#### napi_fatal_error
+<!-- YAML
+added: v8.2.0
+-->
+```C
+NAPI_EXTERN NAPI_NO_RETURN void napi_fatal_error(const char* location, const char* message);
+```
+
+- `[in] location`: Optional location at which the error occurred.
+- `[in] message`: The message associated with the error.
+
+The function call does not return, the process will be terminated.
 
 ## Object Lifetime management
 
@@ -2187,7 +2207,7 @@ won't be used).
 - `data`: The callback data passed into `method`, `getter` and `setter` if
 this function is invoked.
 - `attributes`: The attributes associated with the particular property.
-See [`napi_property_attributes`](#napi_property_attributes).
+See [`napi_property_attributes`](#n_api_napi_property_attributes).
 
 ### Functions
 #### *napi_get_property_names*
@@ -2271,6 +2291,51 @@ napi_status napi_has_property(napi_env env,
 Returns `napi_ok` if the API succeeded.
 
 This API checks if the Object passed in has the named property.
+
+
+#### *napi_delete_property*
+<!-- YAML
+added: v8.2.0
+-->
+```C
+napi_status napi_delete_property(napi_env env,
+                                 napi_value object,
+                                 napi_value key,
+                                 bool* result);
+```
+
+- `[in] env`: The environment that the N-API call is invoked under.
+- `[in] object`: The object to query.
+- `[in] key`: The name of the property to delete.
+- `[out] result`: Whether the property deletion succeeded or not. `result` can
+optionally be ignored by passing `NULL`.
+
+Returns `napi_ok` if the API succeeded.
+
+This API attempts to delete the `key` own property from `object`.
+
+
+#### *napi_has_own_property*
+<!-- YAML
+added: v8.2.0
+-->
+```C
+napi_status napi_has_own_property(napi_env env,
+                                  napi_value object,
+                                  napi_value key,
+                                  bool* result);
+```
+
+- `[in] env`: The environment that the N-API call is invoked under.
+- `[in] object`: The object to query.
+- `[in] key`: The name of the own property whose existence to check.
+- `[out] result`: Whether the own property exists on the object or not.
+
+Returns `napi_ok` if the API succeeded.
+
+This API checks if the Object passed in has the named own property. `key` must
+be a string or a Symbol, or an error will be thrown. N-API will not perform any
+conversion between data types.
 
 
 #### *napi_set_named_property*
@@ -2396,6 +2461,27 @@ Returns `napi_ok` if the API succeeded.
 
 This API returns if the Object passed in has an element at the
 requested index.
+
+#### *napi_delete_element*
+<!-- YAML
+added: v8.2.0
+-->
+```C
+napi_status napi_delete_element(napi_env env,
+                                napi_value object,
+                                uint32_t index,
+                                bool* result);
+```
+
+- `[in] env`: The environment that the N-API call is invoked under.
+- `[in] object`: The object to query.
+- `[in] index`: The index of the property to delete.
+- `[out] result`: Whether the element deletion succeeded or not. `result` can
+optionally be ignored by passing `NULL`.
+
+Returns `napi_ok` if the API succeeded.
+
+This API attempts to delete the specified `index` from `object`.
 
 #### *napi_define_properties*
 <!-- YAML
@@ -2807,8 +2893,8 @@ napi_status napi_wrap(napi_env env,
 
 Returns `napi_ok` if the API succeeded.
 
-Wraps a native instance in JavaScript object of the corresponding type.
-The native instance can be retrieved later using `napi_unwrap()`.
+Wraps a native instance in a JavaScript object. The native instance can be
+retrieved later using `napi_unwrap()`.
 
 When JavaScript code invokes a constructor for a class that was defined using
 `napi_define_class()`, the `napi_callback` for the constructor is invoked.
@@ -2835,6 +2921,10 @@ required in order to enable correct proper of the reference.
 *Note*: This API may modify the prototype chain of the wrapper object.
 Afterward, additional manipulation of the wrapper's prototype chain may cause
 `napi_unwrap()` to fail.
+
+*Note*: Calling `napi_wrap()` a second time on an object that already has a
+native instance associated with it by virtue of a previous call to
+`napi_wrap()` will cause an error to be returned.
 
 ### *napi_unwrap*
 <!-- YAML
@@ -3048,12 +3138,15 @@ support it:
 [`napi_create_type_error`]: #n_api_napi_create_type_error
 [`napi_delete_async_work`]: #n_api_napi_delete_async_work
 [`napi_define_class`]: #n_api_napi_define_class
+[`napi_delete_element`]: #n_api_napi_delete_element
+[`napi_delete_property`]: #n_api_napi_delete_property
 [`napi_delete_reference`]: #n_api_napi_delete_reference
 [`napi_escape_handle`]: #n_api_napi_escape_handle
 [`napi_get_array_length`]: #n_api_napi_get_array_length
 [`napi_get_element`]: #n_api_napi_get_element
 [`napi_get_property`]: #n_api_napi_get_property
 [`napi_has_property`]: #n_api_napi_has_property
+[`napi_has_own_property`]: #n_api_napi_has_own_property
 [`napi_set_property`]: #n_api_napi_set_property
 [`napi_get_reference_value`]: #n_api_napi_get_reference_value
 [`napi_is_error`]: #n_api_napi_is_error

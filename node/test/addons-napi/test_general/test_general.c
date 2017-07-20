@@ -29,7 +29,7 @@ napi_value testGetVersion(napi_env env, napi_callback_info info) {
   uint32_t version;
   napi_value result;
   NAPI_CALL(env, napi_get_version(env, &version));
-  NAPI_CALL(env ,napi_create_number(env, version, &result));
+  NAPI_CALL(env, napi_create_number(env, version, &result));
   return result;
 }
 
@@ -90,6 +90,53 @@ napi_value testNapiErrorCleanup(napi_env env, napi_callback_info info) {
   return result;
 }
 
+napi_value testNapiTypeof(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1];
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+
+  napi_valuetype argument_type;
+  NAPI_CALL(env, napi_typeof(env, args[0], &argument_type));
+
+  napi_value result = NULL;
+  if (argument_type == napi_number) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "number", -1, &result));
+  } else if (argument_type == napi_string) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "string", -1, &result));
+  } else if (argument_type == napi_function) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "function", -1, &result));
+  } else if (argument_type == napi_object) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "object", -1, &result));
+  } else if (argument_type == napi_boolean) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "boolean", -1, &result));
+  } else if (argument_type == napi_undefined) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "undefined", -1, &result));
+  } else if (argument_type == napi_symbol) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "symbol", -1, &result));
+  } else if (argument_type == napi_null) {
+    NAPI_CALL(env, napi_create_string_utf8(env, "null", -1, &result));
+  }
+  return result;
+}
+
+static void deref_item(napi_env env, void* data, void* hint) {
+  (void) hint;
+
+  NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, (napi_ref)data));
+}
+
+napi_value wrap(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_ref payload;
+
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, NULL, NULL));
+  NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &payload));
+  NAPI_CALL(env, napi_wrap(env, argv[0], payload, deref_item, NULL, NULL));
+
+  return NULL;
+}
+
 void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
   napi_property_descriptor descriptors[] = {
     DECLARE_NAPI_PROPERTY("testStrictEquals", testStrictEquals),
@@ -100,6 +147,8 @@ void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
     DECLARE_NAPI_PROPERTY("getNull", getNull),
     DECLARE_NAPI_PROPERTY("createNapiError", createNapiError),
     DECLARE_NAPI_PROPERTY("testNapiErrorCleanup", testNapiErrorCleanup),
+    DECLARE_NAPI_PROPERTY("testNapiTypeof", testNapiTypeof),
+    DECLARE_NAPI_PROPERTY("wrap", wrap),
   };
 
   NAPI_CALL_RETURN_VOID(env, napi_define_properties(

@@ -25,6 +25,7 @@ const uv = process.binding('uv');
 const Buffer = require('buffer').Buffer;
 const internalUtil = require('internal/util');
 const binding = process.binding('util');
+const errors = require('internal/errors');
 
 const isError = internalUtil.isError;
 
@@ -397,7 +398,7 @@ function formatValue(ctx, value, recurseTimes) {
     if (typeof value === 'function') {
       const ctorName = constructor ? constructor.name : 'Function';
       return ctx.stylize(
-          `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
+        `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
     }
     if (isRegExp(value)) {
       return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
@@ -692,7 +693,7 @@ function formatTypedArray(ctx, value, recurseTimes, visibleKeys, keys) {
   for (const key of keys) {
     if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
       output.push(
-          formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+        formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
     }
   }
   return output;
@@ -961,9 +962,10 @@ exports.inherits = function(ctor, superCtor) {
     throw new TypeError('The super constructor to "inherits" must not ' +
                         'be null or undefined');
 
-  if (superCtor.prototype === undefined)
+  if (superCtor.prototype === undefined) {
     throw new TypeError('The super constructor to "inherits" must ' +
                         'have a prototype');
+  }
 
   ctor.super_ = superCtor;
   Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
@@ -1052,6 +1054,56 @@ exports._exceptionWithHostPort = function(err,
 
 // process.versions needs a custom function as some values are lazy-evaluated.
 process.versions[exports.inspect.custom] =
-  (depth) => exports.format(JSON.parse(JSON.stringify(process.versions)));
+  () => exports.format(JSON.parse(JSON.stringify(process.versions)));
 
 exports.promisify = internalUtil.promisify;
+
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    const newReason = new errors.Error('ERR_FALSY_VALUE_REJECTION');
+    newReason.reason = reason;
+    reason = newReason;
+    Error.captureStackTrace(reason, callbackifyOnRejected);
+  }
+  return cb(reason);
+}
+
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new errors.TypeError(
+      'ERR_INVALID_ARG_TYPE',
+      'original',
+      'function');
+  }
+
+  // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+  function callbackified(...args) {
+    const maybeCb = args.pop();
+    if (typeof maybeCb !== 'function') {
+      throw new errors.TypeError(
+        'ERR_INVALID_ARG_TYPE',
+        'last argument',
+        'function');
+    }
+    const cb = (...args) => { Reflect.apply(maybeCb, this, args); };
+    // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+    Reflect.apply(original, this, args)
+      .then((ret) => process.nextTick(cb, null, ret),
+            (rej) => process.nextTick(callbackifyOnRejected, rej, cb));
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified,
+                          Object.getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+
+exports.callbackify = callbackify;

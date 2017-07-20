@@ -172,20 +172,21 @@ function isFd(path) {
 
 // Constructor for file stats.
 function Stats(
-    dev,
-    mode,
-    nlink,
-    uid,
-    gid,
-    rdev,
-    blksize,
-    ino,
-    size,
-    blocks,
-    atim_msec,
-    mtim_msec,
-    ctim_msec,
-    birthtim_msec) {
+  dev,
+  mode,
+  nlink,
+  uid,
+  gid,
+  rdev,
+  blksize,
+  ino,
+  size,
+  blocks,
+  atim_msec,
+  mtim_msec,
+  ctim_msec,
+  birthtim_msec
+) {
   this.dev = dev;
   this.mode = mode;
   this.nlink = nlink;
@@ -520,7 +521,6 @@ function tryStatSync(fd, isUserFd) {
   } finally {
     if (threw && !isUserFd) fs.closeSync(fd);
   }
-  return !threw;
 }
 
 function tryCreateBuffer(size, fd, isUserFd) {
@@ -552,10 +552,11 @@ fs.readFileSync = function(path, options) {
   var isUserFd = isFd(path); // file descriptor ownership
   var fd = isUserFd ? path : fs.openSync(path, options.flag || 'r', 0o666);
 
+  tryStatSync(fd, isUserFd);
   // Use stats array directly to avoid creating an fs.Stats instance just for
   // our internal use.
   var size;
-  if (tryStatSync(fd, isUserFd) && (statValues[1/*mode*/] & S_IFMT) === S_IFREG)
+  if ((statValues[1/*mode*/] & S_IFMT) === S_IFREG)
     size = statValues[8/*size*/];
   else
     size = 0;
@@ -1084,7 +1085,7 @@ if (constants.O_SYMLINK !== undefined) {
         callback(err);
         return;
       }
-      // prefer to return the chmod error, if one occurs,
+      // Prefer to return the chmod error, if one occurs,
       // but still try to close, and report closing errors if they occur.
       fs.fchmod(fd, mode, function(err) {
         fs.close(fd, function(err2) {
@@ -1097,20 +1098,18 @@ if (constants.O_SYMLINK !== undefined) {
   fs.lchmodSync = function(path, mode) {
     var fd = fs.openSync(path, constants.O_WRONLY | constants.O_SYMLINK);
 
-    // prefer to return the chmod error, if one occurs,
+    // Prefer to return the chmod error, if one occurs,
     // but still try to close, and report closing errors if they occur.
-    var err, err2, ret;
+    var ret;
     try {
       ret = fs.fchmodSync(fd, mode);
-    } catch (er) {
-      err = er;
+    } catch (err) {
+      try {
+        fs.closeSync(fd);
+      } catch (ignore) {}
+      throw err;
     }
-    try {
-      fs.closeSync(fd);
-    } catch (er) {
-      err2 = er;
-    }
-    if (err || err2) throw (err || err2);
+    fs.closeSync(fd);
     return ret;
   };
 }
@@ -1285,7 +1284,7 @@ fs.writeFile = function(path, data, options, callback) {
 
   function writeFd(fd, isUserFd) {
     var buffer = isUint8Array(data) ?
-        data : Buffer.from('' + data, options.encoding || 'utf8');
+      data : Buffer.from('' + data, options.encoding || 'utf8');
     var position = /a/.test(flag) ? null : 0;
 
     writeAll(fd, isUserFd, buffer, 0, buffer.length, position, callback);
@@ -1357,9 +1356,8 @@ function FSWatcher() {
     if (status < 0) {
       self._handle.close();
       const error = !filename ?
-          errnoException(status, 'Error watching file for changes:') :
-          errnoException(status,
-                         `Error watching file ${filename} for changes:`);
+        errnoException(status, 'Error watching file for changes:') :
+        errnoException(status, `Error watching file ${filename} for changes:`);
       error.filename = filename;
       self.emit('error', error);
     } else {
@@ -1620,7 +1618,7 @@ fs.realpathSync = function realpathSync(p, options) {
     knownHard[base] = true;
   }
 
-  // walk down the path, swapping out linked pathparts for their real
+  // walk down the path, swapping out linked path parts for their real
   // values
   // NB: p.length changes.
   while (pos < p.length) {
@@ -1747,7 +1745,7 @@ fs.realpath = function realpath(p, options, callback) {
     process.nextTick(LOOP);
   }
 
-  // walk down the path, swapping out linked pathparts for their real
+  // walk down the path, swapping out linked path parts for their real
   // values
   function LOOP() {
     // stop if scanned past end of path
@@ -1951,10 +1949,11 @@ ReadStream.prototype.open = function() {
 };
 
 ReadStream.prototype._read = function(n) {
-  if (typeof this.fd !== 'number')
+  if (typeof this.fd !== 'number') {
     return this.once('open', function() {
       this._read(n);
     });
+  }
 
   if (this.destroyed)
     return;
@@ -2116,10 +2115,11 @@ WriteStream.prototype._write = function(data, encoding, cb) {
   if (!(data instanceof Buffer))
     return this.emit('error', new Error('Invalid data'));
 
-  if (typeof this.fd !== 'number')
+  if (typeof this.fd !== 'number') {
     return this.once('open', function() {
       this._write(data, encoding, cb);
     });
+  }
 
   var self = this;
   fs.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
@@ -2151,10 +2151,11 @@ function writev(fd, chunks, position, callback) {
 
 
 WriteStream.prototype._writev = function(data, cb) {
-  if (typeof this.fd !== 'number')
+  if (typeof this.fd !== 'number') {
     return this.once('open', function() {
       this._writev(data, cb);
     });
+  }
 
   const self = this;
   const len = data.length;

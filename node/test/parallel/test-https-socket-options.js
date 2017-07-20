@@ -22,14 +22,11 @@
 'use strict';
 const common = require('../common');
 
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
+
 const https = require('https');
-
 const fs = require('fs');
-
 const http = require('http');
 
 const options = {
@@ -58,7 +55,7 @@ server_http.listen(0, function() {
   });
   // These methods should exist on the request and get passed down to the socket
   req.setNoDelay(true);
-  req.setTimeout(1000, common.noop);
+  req.setTimeout(1000, () => {});
   req.setSocketKeepAlive(true, 1000);
   req.end();
 });
@@ -82,7 +79,7 @@ server_https.listen(0, function() {
   });
   // These methods should exist on the request and get passed down to the socket
   req.setNoDelay(true);
-  req.setTimeout(1000, common.noop);
+  req.setTimeout(1000, () => {});
   req.setSocketKeepAlive(true, 1000);
   req.end();
 });

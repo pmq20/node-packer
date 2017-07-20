@@ -1,13 +1,11 @@
 'use strict';
 
-const initHooks = require('./init-hooks');
 const common = require('../common');
-const verifyGraph = require('./verify-graph');
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
+
+const initHooks = require('./init-hooks');
+const verifyGraph = require('./verify-graph');
 
 const tls = require('tls');
 const Connection = process.binding('crypto').Connection;
@@ -38,7 +36,7 @@ sc1.start();
 
 function onfirstHandShake() {
   // Create second connection inside handshake of first to show
-  // that the triggerId of the second will be set to id of the first
+  // that the triggerAsyncId of the second will be set to id of the first
   const sc2 = createServerConnection(common.mustCall(onsecondHandShake));
   sc2.start();
 }
@@ -50,7 +48,8 @@ function onexit() {
   hooks.disable();
   verifyGraph(
     hooks,
-    [ { type: 'CONNECTION', id: 'connection:1', triggerId: null },
-      { type: 'CONNECTION', id: 'connection:2', triggerId: 'connection:1' } ]
+    [ { type: 'CONNECTION', id: 'connection:1', triggerAsyncId: null },
+      { type: 'CONNECTION', id: 'connection:2',
+        triggerAsyncId: 'connection:1' } ]
   );
 }

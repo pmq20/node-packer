@@ -263,6 +263,16 @@
     },
     {
       "type": "text",
+      "text": "[Internationalization](intl.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[Modules](modules.html)"
     },
     {

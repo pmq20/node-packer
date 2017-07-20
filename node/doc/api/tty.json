@@ -78,7 +78,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n",
+              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n<p><em>Note</em>: On Windows resize events will be emitted only if stdin is unpaused\n(by a call to <code>resume()</code> or by adding a data listener) and in raw mode. It can\nalso be triggered if a terminal control sequence that moves the cursor is\nwritten to the screen. Also, the resize event will only be signaled if the\nconsole screen buffer height was also changed. For example shrinking the\nconsole window height will not cause the resize event to be emitted. Increasing\nthe console window height will only be registered when the new console window\nheight is greater than the current console buffer size.</p>\n",
               "params": []
             }
           ],

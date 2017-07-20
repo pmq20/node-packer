@@ -105,6 +105,16 @@ namespace node {
   V(dest_string, "dest")                                                      \
   V(detached_string, "detached")                                              \
   V(disposed_string, "_disposed")                                             \
+  V(dns_a_string, "A")                                                        \
+  V(dns_aaaa_string, "AAAA")                                                  \
+  V(dns_cname_string, "CNAME")                                                \
+  V(dns_mx_string, "MX")                                                      \
+  V(dns_naptr_string, "NAPTR")                                                \
+  V(dns_ns_string, "NS")                                                      \
+  V(dns_ptr_string, "PTR")                                                    \
+  V(dns_soa_string, "SOA")                                                    \
+  V(dns_srv_string, "SRV")                                                    \
+  V(dns_txt_string, "TXT")                                                    \
   V(domain_string, "domain")                                                  \
   V(emitting_top_level_domain_error_string, "_emittingTopLevelDomainError")   \
   V(exchange_string, "exchange")                                              \
@@ -113,6 +123,7 @@ namespace node {
   V(irq_string, "irq")                                                        \
   V(encoding_string, "encoding")                                              \
   V(enter_string, "enter")                                                    \
+  V(entries_string, "entries")                                                \
   V(env_pairs_string, "envPairs")                                             \
   V(errno_string, "errno")                                                    \
   V(error_string, "error")                                                    \
@@ -151,6 +162,7 @@ namespace node {
   V(issuer_string, "issuer")                                                  \
   V(issuercert_string, "issuerCertificate")                                   \
   V(kill_signal_string, "killSignal")                                         \
+  V(length_string, "length")                                                  \
   V(mac_string, "mac")                                                        \
   V(max_buffer_string, "maxBuffer")                                           \
   V(message_string, "message")                                                \
@@ -231,6 +243,7 @@ namespace node {
   V(timeout_string, "timeout")                                                \
   V(times_string, "times")                                                    \
   V(tls_ticket_string, "tlsTicket")                                           \
+  V(ttl_string, "ttl")                                                        \
   V(type_string, "type")                                                      \
   V(uid_string, "uid")                                                        \
   V(unknown_string, "<unknown>")                                              \
@@ -268,6 +281,7 @@ namespace node {
   V(pipe_constructor_template, v8::FunctionTemplate)                          \
   V(process_object, v8::Object)                                               \
   V(promise_reject_function, v8::Function)                                    \
+  V(promise_wrap_template, v8::ObjectTemplate)                                \
   V(push_values_to_array_function, v8::Function)                              \
   V(randombytes_constructor_template, v8::ObjectTemplate)                     \
   V(script_context_constructor_template, v8::FunctionTemplate)                \
@@ -343,6 +357,7 @@ class Environment {
       kBefore,
       kAfter,
       kDestroy,
+      kTotals,
       kFieldsCount,
     };
 
@@ -653,6 +668,7 @@ class Environment {
   static const int kContextEmbedderDataIndex = NODE_CONTEXT_EMBEDDER_DATA_INDEX;
 
   void AddPromiseHook(promise_hook_func fn, void* arg);
+  bool RemovePromiseHook(promise_hook_func fn, void* arg);
 
  private:
   inline void ThrowError(v8::Local<v8::Value> (*fun)(v8::Local<v8::String>),
@@ -706,6 +722,7 @@ class Environment {
   struct PromiseHookCallback {
     promise_hook_func cb_;
     void* arg_;
+    size_t enable_count_;
   };
   std::vector<PromiseHookCallback> promise_hooks_;
 

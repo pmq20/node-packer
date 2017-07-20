@@ -59,8 +59,21 @@ the [Implementation considerations section][] for more information.
 added: v0.11.3
 -->
 
-Returns an array of IP address strings that are being used for name
-resolution.
+Returns an array of IP address strings, formatted according to [rfc5952][],
+that are currently configured for DNS resolution. A string will include a port
+section if a custom port is used.
+
+For example:
+
+<!-- eslint-disable semi-->
+```js
+[
+  '4.4.4.4',
+  '2001:4860:4860::8888',
+  '4.4.4.4:1053',
+  '[2001:4860:4860::8888]:1053'
+]
+```
 
 ## dns.lookup(hostname[, options], callback)
 <!-- YAML
@@ -197,6 +210,7 @@ records. The type and structure of individual results varies based on `rrtype`:
 | `'SOA'`   | start of authority records     | {Object}    | [`dns.resolveSoa()`][]   |
 | `'SRV'`   | service records                | {Object}    | [`dns.resolveSrv()`][]   |
 | `'TXT'`   | text records                   | {string}    | [`dns.resolveTxt()`][]   |
+| `'ANY'`   | any records                    | {Object}    | [`dns.resolveAny()`][]   |
 
 On error, `err` is an [`Error`][] object, where `err.code` is one of the
 [DNS error codes](#dns_error_codes).
@@ -300,7 +314,7 @@ function will contain an array of objects with the following properties:
 
 For example:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   flags: 's',
@@ -360,7 +374,7 @@ be an object with the following properties:
 * `expire`
 * `minttl`
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   nsname: 'ns.example.com',
@@ -391,7 +405,7 @@ be an array of objects with the following properties:
 * `port`
 * `name`
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   priority: 10,
@@ -417,6 +431,51 @@ is a two-dimensional array of the text records available for `hostname` (e.g.,
 one record. Depending on the use case, these could be either joined together or
 treated separately.
 
+## dns.resolveAny(hostname, callback)
+
+- `hostname` {string}
+- `callback` {Function}
+  - `err` {Error}
+  - `ret` {Object[][]}
+
+Uses the DNS protocol to resolve all records (also known as `ANY` or `*` query).
+The `ret` argument passed to the `callback` function will be an array containing
+various types of records. Each object has a property `type` that indicates the
+type of the current record. And depending on the `type`, additional properties
+will be present on the object:
+
+| Type | Properties |
+|------|------------|
+| `"A"` | `address` / `ttl` |
+| `"AAAA"` | `address` / `ttl` |
+| `"CNAME"` | `value` |
+| `"MX"` | Refer to [`dns.resolveMx()`][] |
+| `"NAPTR"` | Refer to [`dns.resolveNaptr()`][] |
+| `"NS"` | `value` |
+| `"PTR"` | `value` |
+| `"SOA"` | Refer to [`dns.resolveSoa()`][] |
+| `"SRV"` | Refer to [`dns.resolveSrv()`][] |
+| `"TXT"` | This type of record contains an array property called `entries` which refers to [`dns.resolveTxt()`][], eg. `{ entries: ['...'], type: 'TXT' }` |
+
+Here is a example of the `ret` object passed to the callback:
+
+<!-- eslint-disable semi -->
+```js
+[ { type: 'A', address: '127.0.0.1', ttl: 299 },
+  { type: 'CNAME', value: 'example.com' },
+  { type: 'MX', exchange: 'alt4.aspmx.l.example.com', priority: 50 },
+  { type: 'NS', value: 'ns1.example.com' },
+  { type: 'TXT', entries: [ 'v=spf1 include:_spf.example.com ~all' ] },
+  { type: 'SOA',
+    nsname: 'ns1.example.com',
+    hostmaster: 'admin.example.com',
+    serial: 156696742,
+    refresh: 900,
+    retry: 900,
+    expire: 1800,
+    minttl: 60 } ]
+```
+
 ## dns.reverse(ip, callback)
 <!-- YAML
 added: v0.1.16
@@ -436,12 +495,22 @@ one of the [DNS error codes][].
 <!-- YAML
 added: v0.11.3
 -->
-- `servers` {string[]}
+- `servers` {string[]} array of [rfc5952][] formatted addresses
 
-Sets the IP addresses of the servers to be used when resolving. The `servers`
-argument is an array of IPv4 or IPv6 addresses.
+Sets the IP address and port of servers to be used when performing DNS
+resolution. The `servers` argument is an array of [rfc5952][] formatted
+addresses. If the port is the IANA default DNS port (53) it can be omitted.
 
-If a port is specified on the address, it will be removed.
+For example:
+
+```js
+dns.setServers([
+  '4.4.4.4',
+  '[2001:4860:4860::8888]',
+  '4.4.4.4:1053',
+  '[2001:4860:4860::8888]:1053'
+]);
+```
 
 An error will be thrown if an invalid address is provided.
 
@@ -531,8 +600,10 @@ uses. For instance, _they do not use the configuration from `/etc/hosts`_.
 [`dns.resolveSoa()`]: #dns_dns_resolvesoa_hostname_callback
 [`dns.resolveSrv()`]: #dns_dns_resolvesrv_hostname_callback
 [`dns.resolveTxt()`]: #dns_dns_resolvetxt_hostname_callback
+[`dns.resolveAny()`]: #dns_dns_resolveany_hostname_callback
 [DNS error codes]: #dns_error_codes
 [Implementation considerations section]: #dns_implementation_considerations
 [supported `getaddrinfo` flags]: #dns_supported_getaddrinfo_flags
 [the official libuv documentation]: http://docs.libuv.org/en/latest/threadpool.html
 [`util.promisify()`]: util.html#util_util_promisify_original
+[rfc5952]: https://tools.ietf.org/html/rfc5952#section-6

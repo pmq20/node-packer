@@ -50,7 +50,6 @@
 const common = require('../common');
 const assert = require('assert');
 
-const buffer = require('buffer');
 const child_process = require('child_process');
 const fs = require('fs');
 const net = require('net');
@@ -94,7 +93,7 @@ pipeReadStream.on('data', function(data) {
     var rd = JSON.parse(d);
 
     assert.strictEqual(rd.pid, cpp);
-    assert.strictEqual(seenOrdinals.indexOf(rd.ord), -1);
+    assert.strictEqual(seenOrdinals.includes(rd.ord), false)
 
     seenOrdinals.unshift(rd.ord);
   });
@@ -112,7 +111,7 @@ var srv = net.createServer(function(s) {
   var str = JSON.stringify(DATA) + '\n';
 
   DATA.ord = DATA.ord + 1;
-  var buf = buffer.Buffer.allocUnsafe(str.length);
+  var buf = Buffer.allocUnsafe(str.length);
   buf.write(JSON.stringify(DATA) + '\n', 'utf8');
 
   s.write(str, 'utf8', pipeFDs[1]);

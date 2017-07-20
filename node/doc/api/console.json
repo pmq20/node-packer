@@ -254,7 +254,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the\nfirst used as the primary message and all additional used as substitution\nvalues similar to printf(3) (the arguments are all passed to\n<a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a>).</p>\n<pre><code class=\"lang-js\">const count = 5;\nconsole.log(&#39;count: %d&#39;, count);\n// Prints: count: 5, to stdout\nconsole.log(&#39;count:&#39;, count);\n// Prints: count: 5, to stdout\n</code></pre>\n<p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then\n<a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> is called on each argument and the resulting string\nvalues are concatenated. See <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> for more information.</p>\n"
+              "desc": "<p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the\nfirst used as the primary message and all additional used as substitution\nvalues similar to printf(3) (the arguments are all passed to\n<a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a>).</p>\n<pre><code class=\"lang-js\">const count = 5;\nconsole.log(&#39;count: %d&#39;, count);\n// Prints: count: 5, to stdout\nconsole.log(&#39;count:&#39;, count);\n// Prints: count: 5, to stdout\n</code></pre>\n<p>See <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> for more information.</p>\n"
             },
             {
               "textRaw": "console.time(label)",

@@ -528,7 +528,7 @@ running the `./configure` script.
 
 An example of the possible output looks like:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   target_defaults:
@@ -792,7 +792,7 @@ See environ(7).
 
 An example of this object looks like:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   TERM: 'xterm-256color',
@@ -1224,7 +1224,7 @@ console.log(process.memoryUsage());
 
 Will generate:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   rss: 4935680,
@@ -1396,7 +1396,7 @@ tarball.
 
 For example:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   name: 'node',
@@ -1697,9 +1697,9 @@ added: v0.1.19
 * `mask` {number}
 
 The `process.umask()` method sets or returns the Node.js process's file mode
-creation mask. Child processes inherit the mask from the parent process. The old
-mask is return if the `mask` argument is given, otherwise returns the current
-mask.
+creation mask. Child processes inherit the mask from the parent process. Invoked
+without an argument, the current mask is returned, otherwise the umask is set to
+the argument value and the previous mask is returned.
 
 ```js
 const newmask = 0o022;
@@ -1758,7 +1758,7 @@ console.log(process.versions);
 
 Will generate an object similar to:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 {
   http_parser: '2.3.0',
@@ -1856,5 +1856,5 @@ cases:
 [TTY]: tty.html#tty_tty
 [Writable]: stream.html#stream_writable_streams
 [note on process I/O]: process.html#process_a_note_on_process_i_o
-[process_emit_warning]: #process_process_emitwarning_warning_name_ctor
+[process_emit_warning]: #process_process_emitwarning_warning_type_code_ctor
 [process_warning]: #process_event_warning

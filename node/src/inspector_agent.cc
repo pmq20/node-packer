@@ -604,7 +604,7 @@ bool Agent::StartIoThread(bool wait_for_connect) {
     message
   };
   MakeCallback(parent_env_->isolate(), process_object, emit_fn.As<Function>(),
-               arraysize(argv), argv, 0, 0);
+               arraysize(argv), argv, {0, 0});
 
   return true;
 }
@@ -702,13 +702,7 @@ void Url(const FunctionCallbackInfo<Value>& args) {
 
   if (ids.empty()) return;
 
-  std::string url = "ws://";
-  url += io->host();
-  url += ":";
-  url += std::to_string(io->port());
-  url += "/";
-  url += ids[0];
-
+  std::string url = FormatWsAddress(io->host(), io->port(), ids[0], true);
   args.GetReturnValue().Set(OneByteString(env->isolate(), url.c_str()));
 }
 

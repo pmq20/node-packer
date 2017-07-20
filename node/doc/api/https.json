@@ -108,7 +108,7 @@
       ],
       "methods": [
         {
-          "textRaw": "https.createServer(options[, requestListener])",
+          "textRaw": "https.createServer([options][, requestListener])",
           "type": "method",
           "name": "createServer",
           "meta": {
@@ -124,7 +124,8 @@
                   "textRaw": "`options` {Object} Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][]. ",
                   "name": "options",
                   "type": "Object",
-                  "desc": "Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][]."
+                  "desc": "Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][].",
+                  "optional": true
                 },
                 {
                   "textRaw": "`requestListener` {Function} A listener to be added to the `request` event. ",
@@ -138,7 +139,8 @@
             {
               "params": [
                 {
-                  "name": "options"
+                  "name": "options",
+                  "optional": true
                 },
                 {
                   "name": "requestListener",

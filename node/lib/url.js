@@ -393,10 +393,9 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
     this.query = Object.create(null);
   }
 
-  var firstIdx = (questionIdx !== -1 &&
-                  (hashIdx === -1 || questionIdx < hashIdx) ?
-                  questionIdx :
-                  hashIdx);
+  const useQuestionIdx =
+    questionIdx !== -1 && (hashIdx === -1 || questionIdx < hashIdx);
+  const firstIdx = useQuestionIdx ? questionIdx : hashIdx;
   if (firstIdx === -1) {
     if (rest.length > 0)
       this.pathname = rest;
@@ -449,7 +448,7 @@ function autoEscapeStr(rest) {
   var lastEscapedPos = 0;
   for (var i = 0; i < rest.length; ++i) {
     // Manual switching is faster than using a Map/Object.
-    // `escaped` contains substring up to the last escaped cahracter.
+    // `escaped` contains substring up to the last escaped character.
     switch (rest.charCodeAt(i)) {
       case 9:   // '\t'
         // Concat if there are ordinary characters in the middle.
@@ -583,9 +582,11 @@ Url.prototype.format = function format() {
   if (this.host) {
     host = auth + this.host;
   } else if (this.hostname) {
-    host = auth + (this.hostname.indexOf(':') === -1 ?
+    host = auth + (
+      this.hostname.indexOf(':') === -1 ?
         this.hostname :
-        '[' + this.hostname + ']');
+        '[' + this.hostname + ']'
+    );
     if (this.port) {
       host += ':' + this.port;
     }
@@ -757,8 +758,7 @@ Url.prototype.resolveObject = function resolveObject(relative) {
 
   var isSourceAbs = (result.pathname && result.pathname.charAt(0) === '/');
   var isRelAbs = (
-      relative.host ||
-      relative.pathname && relative.pathname.charAt(0) === '/'
+    relative.host || relative.pathname && relative.pathname.charAt(0) === '/'
   );
   var mustEndAbs = (isRelAbs || isSourceAbs ||
                     (result.host && relative.pathname));
@@ -825,8 +825,8 @@ Url.prototype.resolveObject = function resolveObject(relative) {
       //occasionally the auth can get stuck only in host
       //this especially happens in cases like
       //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
-      const authInHost = result.host && result.host.indexOf('@') > 0 ?
-                       result.host.split('@') : false;
+      const authInHost =
+        result.host && result.host.indexOf('@') > 0 && result.host.split('@');
       if (authInHost) {
         result.auth = authInHost.shift();
         result.host = result.hostname = authInHost.shift();
@@ -862,8 +862,8 @@ Url.prototype.resolveObject = function resolveObject(relative) {
   // then it must NOT get a trailing slash.
   var last = srcPath.slice(-1)[0];
   var hasTrailingSlash = (
-      (result.host || relative.host || srcPath.length > 1) &&
-      (last === '.' || last === '..') || last === '');
+    (result.host || relative.host || srcPath.length > 1) &&
+    (last === '.' || last === '..') || last === '');
 
   // strip single dots, resolve double dots to parent dir
   // if the path tries to go above the root, `up` ends up > 0
@@ -902,13 +902,13 @@ Url.prototype.resolveObject = function resolveObject(relative) {
 
   // put the host back
   if (noLeadingSlashes) {
-    result.hostname = result.host = isAbsolute ? '' :
-                                    srcPath.length ? srcPath.shift() : '';
+    result.hostname =
+      result.host = isAbsolute ? '' : srcPath.length ? srcPath.shift() : '';
     //occasionally the auth can get stuck only in host
     //this especially happens in cases like
     //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
     const authInHost = result.host && result.host.indexOf('@') > 0 ?
-                     result.host.split('@') : false;
+      result.host.split('@') : false;
     if (authInHost) {
       result.auth = authInHost.shift();
       result.host = result.hostname = authInHost.shift();

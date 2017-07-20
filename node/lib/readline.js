@@ -283,8 +283,9 @@ Interface.prototype._writeToOutput = function _writeToOutput(stringToWrite) {
   if (typeof stringToWrite !== 'string')
     throw new TypeError('"stringToWrite" argument must be a string');
 
-  if (this.output !== null && this.output !== undefined)
+  if (this.output !== null && this.output !== undefined) {
     this.output.write(stringToWrite);
+  }
 };
 
 Interface.prototype._addHistory = function() {
@@ -510,8 +511,7 @@ function handleGroup(self, group, width, maxColumns) {
       var item = group[idx];
       self._writeToOutput(item);
       if (col < maxColumns - 1) {
-        for (var s = 0, itemLen = item.length; s < width - itemLen;
-             s++) {
+        for (var s = 0, itemLen = item.length; s < width - itemLen; s++) {
           self._writeToOutput(' ');
         }
       }
@@ -670,13 +670,14 @@ Interface.prototype._getDisplayPos = function(str) {
       row += 1;
       continue;
     }
-    if (isFullWidthCodePoint(code)) {
+    const width = getStringWidth(code);
+    if (width === 0 || width === 1) {
+      offset += width;
+    } else { // width === 2
       if ((offset + 1) % col === 0) {
         offset++;
       }
       offset += 2;
-    } else {
-      offset++;
     }
   }
   var cols = offset % col;
@@ -723,12 +724,12 @@ Interface.prototype._moveCursor = function(dx) {
     var diffWidth;
     if (diffCursor < 0) {
       diffWidth = -getStringWidth(
-          this.line.substring(this.cursor, oldcursor)
-          );
+        this.line.substring(this.cursor, oldcursor)
+      );
     } else if (diffCursor > 0) {
       diffWidth = getStringWidth(
-          this.line.substring(this.cursor, oldcursor)
-          );
+        this.line.substring(this.cursor, oldcursor)
+      );
     }
     moveCursor(this.output, diffWidth, 0);
     this.prevRows = newPos.rows;

@@ -64,7 +64,7 @@ function createHandle(fd) {
 
 function getNewAsyncId(handle) {
   return (!handle || typeof handle.getAsyncId !== 'function') ?
-      newUid() : handle.getAsyncId();
+    newUid() : handle.getAsyncId();
 }
 
 
@@ -110,9 +110,9 @@ function connect() {
 
 
 // Returns an array [options, cb], where options is an object,
-// cb is either a funciton or null.
+// cb is either a function or null.
 // Used to normalize arguments of Socket.prototype.connect() and
-// Server.prototype.listen(). Possible combinations of paramters:
+// Server.prototype.listen(). Possible combinations of parameters:
 //   (options[...][, cb])
 //   (path[...][, cb])
 //   ([port][, host][...][, cb])
@@ -1005,19 +1005,23 @@ function lookupAndConnect(self, options) {
   var localAddress = options.localAddress;
   var localPort = options.localPort;
 
-  if (localAddress && !cares.isIP(localAddress))
+  if (localAddress && !cares.isIP(localAddress)) {
     throw new TypeError('"localAddress" option must be a valid IP: ' +
                         localAddress);
+  }
 
-  if (localPort && typeof localPort !== 'number')
+  if (localPort && typeof localPort !== 'number') {
     throw new TypeError('"localPort" option should be a number: ' + localPort);
+  }
 
   if (typeof port !== 'undefined') {
-    if (typeof port !== 'number' && typeof port !== 'string')
+    if (typeof port !== 'number' && typeof port !== 'string') {
       throw new TypeError('"port" option should be a number or string: ' +
                           port);
-    if (!isLegalPort(port))
+    }
+    if (!isLegalPort(port)) {
       throw new RangeError('"port" option should be >= 0 and < 65536: ' + port);
+    }
   }
   port |= 0;
 
@@ -1554,11 +1558,13 @@ Server.prototype.getConnections = function(cb) {
   const self = this;
 
   function end(err, connections) {
-    nextTick(self[async_id_symbol], cb, err, connections);
+    const asyncId = self._handle ? self[async_id_symbol] : null;
+    nextTick(asyncId, cb, err, connections);
   }
 
   if (!this._usingSlaves) {
-    return end(null, this._connections);
+    end(null, this._connections);
+    return this;
   }
 
   // Poll slaves
@@ -1578,6 +1584,8 @@ Server.prototype.getConnections = function(cb) {
   for (var n = 0; n < this._slaves.length; n++) {
     this._slaves[n].getConnections(oncount);
   }
+
+  return this;
 };
 
 

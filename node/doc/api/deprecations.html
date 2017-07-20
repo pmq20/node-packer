@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Deprecated APIs | Node.js v8.1.4 Documentation</title>
+  <title>Deprecated APIs | Node.js v8.2.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -44,6 +44,7 @@
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +78,7 @@
 
     <div id="column1" data-id="deprecations" class="interior">
       <header>
-        <h1>Node.js v8.1.4 Documentation</h1>
+        <h1>Node.js v8.2.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -163,6 +164,9 @@
 <li><span class="stability_undefined"><a href="#deprecations_dep0067_outgoingmessage_prototype_renderheaders">DEP0067: OutgoingMessage.prototype._renderHeaders</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0068_node_debug">DEP0068: node debug</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0069_vm_runindebugcontext_string">DEP0069: vm.runInDebugContext(string)</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0070_async_hooks_currentid">DEP0070: async_hooks.currentId()</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0071_async_hooks_triggerid">DEP0071: async_hooks.triggerId()</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0072_async_hooks_asyncresource_triggerid">DEP0072: async_hooks.AsyncResource.triggerId()</a></span></li>
 </ul>
 </li>
 </ul>
@@ -554,6 +558,24 @@ a V8-inspector based CLI debugger available through <code>node inspect</code>.</
 <p>The DebugContext will be removed in V8 soon and will not be available in Node
 10+.</p>
 <p><em>Note</em>: DebugContext was an experimental API.</p>
+<p><a id="DEP0070"></a></p>
+<h3>DEP0070: async_hooks.currentId()<span><a class="mark" href="#deprecations_dep0070_async_hooks_currentid" id="deprecations_dep0070_async_hooks_currentid">#</a></span></h3>
+<p>Type: Runtime</p>
+<p><code>async_hooks.currentId()</code> was renamed to <code>async_hooks.executionAsyncId()</code> for
+clarity.</p>
+<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>
+<p><a id="DEP0071"></a></p>
+<h3>DEP0071: async_hooks.triggerId()<span><a class="mark" href="#deprecations_dep0071_async_hooks_triggerid" id="deprecations_dep0071_async_hooks_triggerid">#</a></span></h3>
+<p>Type: Runtime</p>
+<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for
+clarity.</p>
+<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>
+<p><a id="DEP0072"></a></p>
+<h3>DEP0072: async_hooks.AsyncResource.triggerId()<span><a class="mark" href="#deprecations_dep0072_async_hooks_asyncresource_triggerid" id="deprecations_dep0072_async_hooks_asyncresource_triggerid">#</a></span></h3>
+<p>Type: Runtime</p>
+<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to
+<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>
+<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>
 
       </div>
     </div>

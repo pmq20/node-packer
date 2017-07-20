@@ -89,7 +89,7 @@ exports.fork = function(modulePath /*, args, options*/) {
     // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
     // and stderr from the parent if silent isn't set.
     options.stdio = options.silent ? stdioStringToArray('pipe') :
-        stdioStringToArray('inherit');
+      stdioStringToArray('inherit');
   } else if (options.stdio.indexOf('ipc') === -1) {
     throw new TypeError('Forked processes must have an IPC channel');
   }
@@ -592,9 +592,11 @@ function normalizeSpawnArguments(file, args, options) {
     const command = [file].concat(args).join(' ');
 
     if (process.platform === 'win32') {
-      file = typeof options.shell === 'string' ? options.shell :
-              process.env.comspec || 'cmd.exe';
-      args = ['/d', '/s', '/c', '"' + command + '"'];
+      if (typeof options.shell === 'string')
+        file = options.shell;
+      else
+        file = process.env.comspec || 'cmd.exe';
+      args = ['/d', '/s', '/c', `"${command}"`];
       options.windowsVerbatimArguments = true;
     } else {
       if (typeof options.shell === 'string')
@@ -699,15 +701,16 @@ function spawnSync(/*file, args, options*/) {
     var input = options.stdio[i] && options.stdio[i].input;
     if (input != null) {
       var pipe = options.stdio[i] = util._extend({}, options.stdio[i]);
-      if (isUint8Array(input))
+      if (isUint8Array(input)) {
         pipe.input = input;
-      else if (typeof input === 'string')
+      } else if (typeof input === 'string') {
         pipe.input = Buffer.from(input, options.encoding);
-      else
+      } else {
         throw new TypeError(util.format(
-            'stdio[%d] should be Buffer, Uint8Array or string not %s',
-            i,
-            typeof input));
+          'stdio[%d] should be Buffer, Uint8Array or string not %s',
+          i,
+          typeof input));
+      }
     }
   }
 

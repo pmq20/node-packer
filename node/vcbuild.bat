@@ -15,7 +15,7 @@ if /i "%1"=="/?" goto help
 set config=Release
 set target=Build
 set target_arch=x64
-set target_env=vs2015
+set target_env=
 set noprojgen=
 set nobuild=
 set sign=
@@ -44,7 +44,7 @@ set enable_static=
 set build_addons_napi=
 set test_node_inspect=
 set test_check_deopts=
-set js_test_suites=inspector known_issues message parallel sequential
+set js_test_suites=async-hooks inspector known_issues message parallel sequential
 set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_addons=1&set build_addons_napi=1"
 
 :next-arg
@@ -55,7 +55,7 @@ if /i "%1"=="clean"         set target=Clean&goto arg-ok
 if /i "%1"=="ia32"          set target_arch=x86&goto arg-ok
 if /i "%1"=="x86"           set target_arch=x86&goto arg-ok
 if /i "%1"=="x64"           set target_arch=x64&goto arg-ok
-@rem args should be vs2017 and vs2015. keeping vc2015 for backward combatibility (undocumented)
+@rem args should be vs2017 and vs2015. keeping vc2015 for backward compatibility (undocumented)
 if /i "%1"=="vc2015"        set target_env=vs2015&goto arg-ok
 if /i "%1"=="vs2015"        set target_env=vs2015&goto arg-ok
 if /i "%1"=="vs2017"        set target_env=vs2017&goto arg-ok
@@ -79,6 +79,7 @@ if /i "%1"=="test-tick-processor" set test_args=%test_args% tick-processor&goto 
 if /i "%1"=="test-internet" set test_args=%test_args% internet&goto arg-ok
 if /i "%1"=="test-pummel"   set test_args=%test_args% pummel&goto arg-ok
 if /i "%1"=="test-known-issues" set test_args=%test_args% known_issues&goto arg-ok
+if /i "%1"=="test-async-hooks"  set test_args=%test_args% async-hooks&goto arg-ok
 if /i "%1"=="test-all"      set test_args=%test_args% gc internet pummel %common_test_suites%&set build_testgc_addon=1&set cpplint=1&set jslint=1&goto arg-ok
 if /i "%1"=="test-node-inspect" set test_node_inspect=1&goto arg-ok
 if /i "%1"=="test-check-deopts" set test_check_deopts=1&goto arg-ok
@@ -122,6 +123,9 @@ if defined build_release (
 
 :: assign path to node_exe
 set "node_exe=%config%\node.exe"
+set "node_gyp_exe="%node_exe%" deps\npm\node_modules\node-gyp\bin\node-gyp"
+if "%target_env%"=="vs2015" set "node_gyp_exe=%node_gyp_exe% --msvs_version=2015"
+if "%target_env%"=="vs2017" set "node_gyp_exe=%node_gyp_exe% --msvs_version=2017"
 
 if "%config%"=="Debug" set configure_flags=%configure_flags% --debug
 if defined nosnapshot set configure_flags=%configure_flags% --without-snapshot
@@ -157,25 +161,27 @@ if defined noprojgen if defined nobuild if not defined sign if not defined msi g
 set msvs_host_arch=x86
 if _%PROCESSOR_ARCHITECTURE%_==_AMD64_ set msvs_host_arch=amd64
 if _%PROCESSOR_ARCHITEW6432%_==_AMD64_ set msvs_host_arch=amd64
-@rem usualy vcvarsall takes an argument: host + '_' + target
+@rem usually vcvarsall takes an argument: host + '_' + target
 set vcvarsall_arg=%msvs_host_arch%_%target_arch%
 @rem unless both host and target are x64
 if %target_arch%==x64 if %msvs_host_arch%==amd64 set vcvarsall_arg=amd64
 
 @rem Look for Visual Studio 2017
 :vs-set-2017
-if "%target_env%" NEQ "vs2017" goto vs-set-2015
+if defined target_env if "%target_env%" NEQ "vs2017" goto vs-set-2015
 echo Looking for Visual Studio 2017
 @rem check if VS2017 is already setup, and for the requested arch
 if "_%VisualStudioVersion%_" == "_15.0_" if "_%VSCMD_ARG_TGT_ARCH%_"=="_%target_arch%_" goto found_vs2017
+@rem need to clear VSINSTALLDIR for vcvarsall to work as expected
 set "VSINSTALLDIR="
 call tools\msvs\vswhere_usability_wrapper.cmd
 if "_%VCINSTALLDIR%_" == "__" goto vs-set-2015
-@rem need to clear VSINSTALLDIR for vcvarsall to work as expected
+@rem prevent VsDevCmd.bat from changing the current working directory
+set "VSCMD_START_DIR=%CD%"
 set vcvars_call="%VCINSTALLDIR%\Auxiliary\Build\vcvarsall.bat" %vcvarsall_arg%
 echo calling: %vcvars_call%
 call %vcvars_call%
-
+if errorlevel 1 goto vs-set-2015
 :found_vs2017
 echo Found MSVS version %VisualStudioVersion%
 set GYP_MSVS_VERSION=2017
@@ -184,11 +190,10 @@ goto msbuild-found
 
 @rem Look for Visual Studio 2015
 :vs-set-2015
-if "%target_env%" NEQ "vs2015" goto msbuild-not-found
+if defined target_env if "%target_env%" NEQ "vs2015" goto msbuild-not-found
 echo Looking for Visual Studio 2015
 if not defined VS140COMNTOOLS goto msbuild-not-found
 if not exist "%VS140COMNTOOLS%\..\..\vc\vcvarsall.bat" goto msbuild-not-found
-echo Found Visual Studio 2015
 if defined msi (
   echo Looking for WiX installation for Visual Studio 2015...
   if not exist "%WIX%\SDK\VS2015" (
@@ -197,10 +202,15 @@ if defined msi (
     goto wix-not-found
   )
 )
-@rem VS2015 vsvarsall is quick, so run anyway
+
+@rem check if VS2015 is already setup
+if "_%VisualStudioVersion%_" == "_14.0_" if "_%VCVARS_VER%_" == "_140_" goto found_vs2015
 call "%VS140COMNTOOLS%\..\..\vc\vcvarsall.bat"
 SET VCVARS_VER=140
+:found_vs2015
 if not defined VCINSTALLDIR goto msbuild-not-found
+@rem Visual C++ Build Tools 2015 does not define VisualStudioVersion
+echo Found MSVS version 14.0
 set GYP_MSVS_VERSION=2015
 set PLATFORM_TOOLSET=v140
 goto msbuild-found
@@ -222,8 +232,7 @@ goto run
 if defined noprojgen goto msbuild
 
 @rem Generate the VS project.
-echo configure %configure_flags% --dest-cpu=%target_arch% --tag=%TAG%
-python configure %configure_flags% --dest-cpu=%target_arch% --tag=%TAG%
+call :run-python configure %configure_flags% --dest-cpu=%target_arch% --tag=%TAG%
 if errorlevel 1 goto create-msvs-files-failed
 if not exist node.sln goto create-msvs-files-failed
 echo Project files generated.
@@ -351,7 +360,7 @@ ssh -F %SSHCONFIG% %STAGINGSERVER% "touch nodejs/%DISTTYPEDIR%/v%FULLVERSION%/no
 
 @rem Build test/gc add-on if required.
 if "%build_testgc_addon%"=="" goto build-addons
-"%config%\node" deps\npm\node_modules\node-gyp\bin\node-gyp rebuild --directory="%~dp0test\gc" --nodedir="%~dp0."
+%node_gyp_exe% rebuild --directory="%~dp0test\gc" --nodedir="%~dp0."
 if errorlevel 1 goto build-testgc-addon-failed
 goto build-addons
 
@@ -376,7 +385,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 :: building addons
 setlocal EnableDelayedExpansion
 for /d %%F in (test\addons\*) do (
-  "%node_exe%" deps\npm\node_modules\node-gyp\bin\node-gyp rebuild ^
+  %node_gyp_exe% rebuild ^
     --directory="%%F" ^
     --nodedir="%cd%"
   if !errorlevel! neq 0 exit /b !errorlevel!
@@ -395,7 +404,7 @@ for /d %%F in (test\addons-napi\??_*) do (
 )
 :: building addons-napi
 for /d %%F in (test\addons-napi\*) do (
-  "%node_exe%" deps\npm\node_modules\node-gyp\bin\node-gyp rebuild ^
+  %node_gyp_exe% rebuild ^
     --directory="%%F" ^
     --nodedir="%cd%"
 )
@@ -408,7 +417,7 @@ if defined test_node_inspect goto node-test-inspect
 goto node-tests
 
 :node-check-deopts
-python tools\test.py --mode=release --check-deopts parallel sequential -J
+call :run-python tools\test.py --mode=release --check-deopts parallel sequential -J
 if defined test_node_inspect goto node-test-inspect
 goto node-tests
 
@@ -423,18 +432,21 @@ if "%config%"=="Debug" set test_args=--mode=debug %test_args%
 if "%config%"=="Release" set test_args=--mode=release %test_args%
 echo running 'cctest %cctest_args%'
 "%config%\cctest" %cctest_args%
-echo running 'python tools\test.py %test_args%'
-python tools\test.py %test_args%
+call :run-python tools\test.py %test_args%
 goto cpplint
 
 :cpplint
 if not defined cpplint goto jslint
-echo running cpplint
+call :run-cpplint src\*.c src\*.cc src\*.h test\addons\*.cc test\addons\*.h test\cctest\*.cc test\cctest\*.h test\gc\binding.cc tools\icu\*.cc tools\icu\*.h
+call :run-python tools/check-imports.py
+goto jslint
+
+:run-cpplint
+if "%*"=="" goto exit
+echo running cpplint '%*'
 set cppfilelist=
 setlocal enabledelayedexpansion
-for /f "tokens=*" %%G in ('dir /b /s /a src\*.c src\*.cc src\*.h ^
-test\addons\*.cc test\addons\*.h test\cctest\*.cc test\cctest\*.h ^
-test\gc\binding.cc tools\icu\*.cc tools\icu\*.h') do (
+for /f "tokens=*" %%G in ('dir /b /s /a %*') do (
   set relpath=%%G
   set relpath=!relpath:*%~dp0=!
   call :add-to-list !relpath!
@@ -442,9 +454,8 @@ test\gc\binding.cc tools\icu\*.cc tools\icu\*.h') do (
 ( endlocal
   set cppfilelist=%localcppfilelist%
 )
-python tools/cpplint.py %cppfilelist%
-python tools/check-imports.py
-goto jslint
+call :run-python tools/cpplint.py %cppfilelist%
+goto exit
 
 :add-to-list
 echo %1 | findstr /c:"src\node_root_certs.h"
@@ -492,7 +503,7 @@ echo Failed to create vc project files.
 goto exit
 
 :help
-echo vcbuild.bat [debug/release] [msi] [test/test-ci/test-all/test-uv/test-inspector/test-internet/test-pummel/test-simple/test-message] [clean] [noprojgen] [small-icu/full-icu/without-intl] [nobuild] [sign] [x86/x64] [vs2015/vs2017] [download-all] [enable-vtune] [lint/lint-ci] [no-NODE-OPTIONS]
+echo vcbuild.bat [debug/release] [msi] [test/test-ci/test-all/test-uv/test-inspector/test-internet/test-pummel/test-simple/test-message/test-async-hooks] [clean] [noprojgen] [small-icu/full-icu/without-intl] [nobuild] [sign] [x86/x64] [vs2015/vs2017] [download-all] [enable-vtune] [lint/lint-ci] [no-NODE-OPTIONS]
 echo Examples:
 echo   vcbuild.bat                : builds release build
 echo   vcbuild.bat debug          : builds debug build
@@ -501,6 +512,14 @@ echo   vcbuild.bat test           : builds debug build and runs tests
 echo   vcbuild.bat build-release  : builds the release distribution as used by nodejs.org
 echo   vcbuild.bat enable-vtune   : builds nodejs with Intel VTune profiling support to profile JavaScript
 goto exit
+
+:run-python
+call tools\msvs\find_python.cmd
+if errorlevel 1 echo Could not find python2 & goto :exit
+set cmd1=%VCBUILD_PYTHON_LOCATION% %*
+echo %cmd1%
+%cmd1%
+exit /b %ERRORLEVEL%
 
 :exit
 goto :EOF
@@ -513,8 +532,9 @@ rem ***************
 set NODE_VERSION=
 set TAG=
 set FULLVERSION=
-
-for /F "usebackq tokens=*" %%i in (`python "%~dp0tools\getnodeversion.py"`) do set NODE_VERSION=%%i
+:: Call as subroutine for validation of python
+call :run-python tools\getnodeversion.py > nul
+for /F "tokens=*" %%i in ('%VCBUILD_PYTHON_LOCATION% tools\getnodeversion.py') do set NODE_VERSION=%%i
 if not defined NODE_VERSION (
   echo Cannot determine current version of Node.js
   exit /b 1
@@ -523,7 +543,7 @@ if not defined NODE_VERSION (
 if not defined DISTTYPE set DISTTYPE=release
 if "%DISTTYPE%"=="release" (
   set FULLVERSION=%NODE_VERSION%
-  goto exit
+  goto distexit
 )
 if "%DISTTYPE%"=="custom" (
   if not defined CUSTOMTAG (
@@ -551,6 +571,6 @@ if not "%DISTTYPE%"=="custom" (
 )
 set FULLVERSION=%NODE_VERSION%-%TAG%
 
-:exit
+:distexit
 if not defined DISTTYPEDIR set DISTTYPEDIR=%DISTTYPE%
 goto :EOF

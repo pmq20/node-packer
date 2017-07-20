@@ -1,22 +1,19 @@
 'use strict';
 const common = require('../common');
 
-if (!common.opensslCli) {
-  common.skip('node compiled without OpenSSL CLI.');
-  return;
-}
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
 
-const tls = require('tls');
-const net = require('net');
+if (!common.opensslCli)
+  common.skip('node compiled without OpenSSL CLI.');
+
 const fs = require('fs');
+const net = require('net');
+const path = require('path');
+const tls = require('tls');
 
 function filenamePEM(n) {
-  return require('path').join(common.fixturesDir, 'keys', `${n}.pem`);
+  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
 }
 
 function loadPEM(n) {

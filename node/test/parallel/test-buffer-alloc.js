@@ -3,9 +3,7 @@ const common = require('../common');
 const assert = require('assert');
 const vm = require('vm');
 
-const buffer = require('buffer');
-const Buffer = buffer.Buffer;
-const SlowBuffer = buffer.SlowBuffer;
+const SlowBuffer = require('buffer').SlowBuffer;
 
 
 const b = Buffer.allocUnsafe(1024);
@@ -919,7 +917,7 @@ if (common.hasCrypto) {
     crypto.createHash('sha1').update(b2).digest('hex')
   );
 } else {
-  common.skip('missing crypto');
+  common.printSkipMessage('missing crypto');
 }
 
 const ps = Buffer.poolSize;

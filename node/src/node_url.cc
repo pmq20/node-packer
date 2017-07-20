@@ -1244,6 +1244,7 @@ void URL::Parse(const char* input,
           }
 
           url->scheme = buffer;
+          url->port = NormalizePort(url->scheme, url->port);
           if (new_is_special) {
             url->flags |= URL_FLAGS_SPECIAL;
             special = true;
@@ -2084,7 +2085,6 @@ static void DomainToUnicode(const FunctionCallbackInfo<Value>& args) {
 const Local<Value> URL::ToObject(Environment* env) const {
   Isolate* isolate = env->isolate();
   Local<Context> context = env->context();
-  HandleScope handle_scope(isolate);
   Context::Scope context_scope(context);
 
   const Local<Value> undef = Undefined(isolate);

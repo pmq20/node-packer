@@ -16,7 +16,7 @@
             {
               "textRaw": "Identifying paths for IPC connections",
               "name": "identifying_paths_for_ipc_connections",
-              "desc": "<p><a href=\"#net_net_connect\"><code>net.connect()</code></a>, <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>, <a href=\"#net_server_listen\"><code>server.listen()</code></a> and\n<a href=\"#net_socket_connect\"><code>socket.connect()</code></a> take a <code>path</code> parameter to identify IPC endpoints.</p>\n<p>On UNIX, the local domain is also known as the UNIX domain. The path is a\nfilesystem path name. It gets truncated to <code>sizeof(sockaddr_un.sun_path) - 1</code>,\nwhich varies on different operating system between 91 and 107 bytes.\nThe typical values are 107 on Linux and 103 on macOS. The path is\nsubject to the same naming conventions and permissions checks as would be done\non file creation. It will be visible in the filesystem, and will <em>persist until\nunlinked</em>.</p>\n<p>On Windows, the local domain is implemented using a named pipe. The path <em>must</em>\nrefer to an entry in <code>\\\\?\\pipe\\</code> or <code>\\\\.\\pipe\\</code>. Any characters are permitted,\nbut the latter may do some processing of pipe names, such as resolving <code>..</code>\nsequences. Despite appearances, the pipe name space is flat. Pipes will <em>not\npersist</em>, they are removed when the last reference to them is closed. Do not\nforget JavaScript string escaping requires paths to be specified with\ndouble-backslashes, such as:</p>\n<pre><code class=\"lang-js\">net.createServer().listen(\n    path.join(&#39;\\\\\\\\?\\\\pipe&#39;, process.cwd(), &#39;myctl&#39;));\n</code></pre>\n",
+              "desc": "<p><a href=\"#net_net_connect\"><code>net.connect()</code></a>, <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>, <a href=\"#net_server_listen\"><code>server.listen()</code></a> and\n<a href=\"#net_socket_connect\"><code>socket.connect()</code></a> take a <code>path</code> parameter to identify IPC endpoints.</p>\n<p>On UNIX, the local domain is also known as the UNIX domain. The path is a\nfilesystem path name. It gets truncated to <code>sizeof(sockaddr_un.sun_path) - 1</code>,\nwhich varies on different operating system between 91 and 107 bytes.\nThe typical values are 107 on Linux and 103 on macOS. The path is\nsubject to the same naming conventions and permissions checks as would be done\non file creation. It will be visible in the filesystem, and will <em>persist until\nunlinked</em>.</p>\n<p>On Windows, the local domain is implemented using a named pipe. The path <em>must</em>\nrefer to an entry in <code>\\\\?\\pipe\\</code> or <code>\\\\.\\pipe\\</code>. Any characters are permitted,\nbut the latter may do some processing of pipe names, such as resolving <code>..</code>\nsequences. Despite appearances, the pipe name space is flat. Pipes will <em>not\npersist</em>, they are removed when the last reference to them is closed. Do not\nforget JavaScript string escaping requires paths to be specified with\ndouble-backslashes, such as:</p>\n<pre><code class=\"lang-js\">net.createServer().listen(\n  path.join(&#39;\\\\\\\\?\\\\pipe&#39;, process.cwd(), &#39;myctl&#39;));\n</code></pre>\n",
               "type": "module",
               "displayName": "Identifying paths for IPC connections"
             }
@@ -271,8 +271,20 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Ensures that no more I/O activity happens on this socket. Only necessary in\ncase of errors (parse error or so).</p>\n<p>If <code>exception</code> is specified, an <a href=\"#net_event_error_1\"><code>&#39;error&#39;</code></a> event will be emitted and any\nlisteners for that event will receive <code>exception</code> as an argument.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Socket} ",
+                    "name": "return",
+                    "type": "net.Socket"
+                  },
+                  "params": [
+                    {
+                      "name": "exception",
+                      "optional": true
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -281,7 +293,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Ensures that no more I/O activity happens on this socket. Only necessary in\ncase of errors (parse error or so).</p>\n<p>If <code>exception</code> is specified, an <a href=\"#net_event_error_1\"><code>&#39;error&#39;</code></a> event will be emitted and any\nlisteners for that event will receive <code>exception</code> as an argument.</p>\n"
             },
             {
               "textRaw": "socket.end([data][, encoding])",
@@ -981,8 +994,19 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Asynchronously get the number of concurrent connections on the server. Works\nwhen sockets were sent to forks.</p>\n<p>Callback should take two arguments <code>err</code> and <code>count</code>.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": [
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -990,7 +1014,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Asynchronously get the number of concurrent connections on the server. Works\nwhen sockets were sent to forks.</p>\n<p>Callback should take two arguments <code>err</code> and <code>count</code>.</p>\n"
             },
             {
               "textRaw": "server.listen()",

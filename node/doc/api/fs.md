@@ -235,9 +235,10 @@ support. If `filename` is provided, it will be provided as a `Buffer` if
 ```js
 // Example when handled through fs.watch listener
 fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
-  if (filename)
+  if (filename) {
     console.log(filename);
     // Prints: <Buffer ...>
+  }
 });
 ```
 
@@ -436,7 +437,7 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer}
+* `mode` {integer} **Default:** `fs.constants.F_OK`
 * `callback` {Function}
 
 Tests a user's permissions for the file or directory specified by `path`.
@@ -562,7 +563,7 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer}
+* `mode` {integer} **Default:** `fs.constants.F_OK`
 
 Synchronous version of [`fs.access()`][]. This throws if any accessibility
 checks fail, and does nothing otherwise.
@@ -586,9 +587,9 @@ changes:
 * `file` {string|Buffer|number} filename or file descriptor
 * `data` {string|Buffer}
 * `options` {Object|string}
-  * `encoding` {string|null} default = `'utf8'`
-  * `mode` {integer} default = `0o666`
-  * `flag` {string} default = `'a'`
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} **Default:** `'a'`
 * `callback` {Function}
 
 Asynchronously append data to a file, creating the file if it does not yet exist.
@@ -629,9 +630,9 @@ changes:
 * `file` {string|Buffer|number} filename or file descriptor
 * `data` {string|Buffer}
 * `options` {Object|string}
-  * `encoding` {string|null} default = `'utf8'`
-  * `mode` {integer} default = `0o666`
-  * `flag` {string} default = `'a'`
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} **Default:** `'a'`
 
 The synchronous version of [`fs.appendFile()`][]. Returns `undefined`.
 
@@ -1135,7 +1136,7 @@ added: v0.1.96
 
 Synchronous fsync(2). Returns `undefined`.
 
-## fs.ftruncate(fd, len, callback)
+## fs.ftruncate(fd[, len], callback)
 <!-- YAML
 added: v0.8.6
 changes:
@@ -1146,7 +1147,7 @@ changes:
 -->
 
 * `fd` {integer}
-* `len` {integer} default = `0`
+* `len` {integer} **Default:** `0`
 * `callback` {Function}
 
 Asynchronous ftruncate(2). No arguments other than a possible exception are
@@ -1193,13 +1194,13 @@ fs.ftruncate(fd, 10, (err) => {
 
 The last three bytes are null bytes ('\0'), to compensate the over-truncation.
 
-## fs.ftruncateSync(fd, len)
+## fs.ftruncateSync(fd[, len])
 <!-- YAML
 added: v0.8.6
 -->
 
 * `fd` {integer}
-* `len` {integer} default = `0`
+* `len` {integer} **Default:** `0`
 
 Synchronous ftruncate(2). Returns `undefined`.
 
@@ -1224,6 +1225,9 @@ changes:
 
 Change the file timestamps of a file referenced by the supplied file
 descriptor.
+
+*Note*: This function does not work on AIX versions before 7.1, it will return
+the error `UV_ENOSYS`.
 
 ## fs.futimesSync(fd, atime, mtime)
 <!-- YAML
@@ -1388,7 +1392,7 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer}
+* `mode` {integer} **Default:** `0o777`
 * `callback` {Function}
 
 Asynchronous mkdir(2). No arguments other than a possible exception are given
@@ -1405,7 +1409,7 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer}
+* `mode` {integer} **Default:** `0o777`
 
 Synchronous mkdir(2). Returns `undefined`.
 
@@ -1424,7 +1428,7 @@ changes:
 
 * `prefix` {string}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
 
 Creates a unique temporary directory.
@@ -1486,7 +1490,7 @@ added: v5.10.0
 
 * `prefix` {string}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 
 The synchronous version of [`fs.mkdtemp()`][]. Returns the created
 folder path.
@@ -1506,7 +1510,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `flags` {string|number}
-* `mode` {integer}
+* `mode` {integer} **Default:** `0o666`
 * `callback` {Function}
 
 Asynchronous file open. See open(2). `flags` can be:
@@ -1548,7 +1552,7 @@ The file is created if it does not exist.
 * `'ax+'` - Like `'a+'` but fails if `path` exists.
 
 `mode` sets the file mode (permission and sticky bits), but only if the file was
-created. It defaults to `0666`, readable and writable.
+created. It defaults to `0o666`, readable and writable.
 
 The callback gets two arguments `(err, fd)`.
 
@@ -1583,6 +1587,14 @@ fs.open('<directory>', 'a+', (err, fd) => {
 });
 ```
 
+Some characters (`< > : " / \ | ? *`) are reserved under Windows as documented
+by [Naming Files, Paths, and Namespaces][]. Under NTFS, if the filename contains
+a colon, Node.js will open a file system stream, as described by
+[this MSDN page][MSDN-Using-Streams].
+
+Functions based on `fs.open()` exhibit this behavior as well. eg.
+`fs.writeFile()`, `fs.readFile()`, etc.
+
 ## fs.openSync(path, flags[, mode])
 <!-- YAML
 added: v0.1.21
@@ -1595,7 +1607,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `flags` {string|number}
-* `mode` {integer}
+* `mode` {integer} **Default:** `0o666`
 
 Synchronous version of [`fs.open()`][]. Returns an integer representing the file
 descriptor.
@@ -1654,7 +1666,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
 
 Asynchronous readdir(3).  Reads the contents of a directory.
@@ -1678,7 +1690,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 
 Synchronous readdir(3). Returns an array of filenames excluding `'.'` and
 `'..'`.
@@ -1711,8 +1723,8 @@ changes:
 
 * `path` {string|Buffer|URL|integer} filename or file descriptor
 * `options` {Object|string}
-  * `encoding` {string|null} default = `null`
-  * `flag` {string} default = `'r'`
+  * `encoding` {string|null} **Default:** `null`
+  * `flag` {string} **Default:** `'r'`
 * `callback` {Function}
 
 Asynchronously reads the entire contents of a file. Example:
@@ -1771,8 +1783,8 @@ changes:
 
 * `path` {string|Buffer|URL|integer} filename or file descriptor
 * `options` {Object|string}
-  * `encoding` {string|null} default = `null`
-  * `flag` {string} default = `'r'`
+  * `encoding` {string|null} **Default:** `null`
+  * `flag` {string} **Default:** `'r'`
 
 Synchronous version of [`fs.readFile()`][]. Returns the contents of the `path`.
 
@@ -1807,7 +1819,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
 
 Asynchronous readlink(2). The callback gets two arguments `(err,
@@ -1830,7 +1842,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 
 Synchronous readlink(2). Returns the symbolic link's string value.
 
@@ -1882,7 +1894,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
 
 Asynchronous realpath(3). The `callback` gets two arguments `(err,
@@ -1920,7 +1932,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `encoding` {string} default = `'utf8'`
+  * `encoding` {string} **Default:** `'utf8'`
 
 Synchronous realpath(3). Returns the resolved path.
 
@@ -2063,7 +2075,7 @@ changes:
 
 * `target` {string|Buffer|URL}
 * `path` {string|Buffer|URL}
-* `type` {string}
+* `type` {string} **Default:** `'file'`
 * `callback` {Function}
 
 Asynchronous symlink(2). No arguments other than a possible exception are given
@@ -2094,11 +2106,11 @@ changes:
 
 * `target` {string|Buffer|URL}
 * `path` {string|Buffer|URL}
-* `type` {string}
+* `type` {string} **Default:** `'file'`
 
 Synchronous symlink(2). Returns `undefined`.
 
-## fs.truncate(path, len, callback)
+## fs.truncate(path[, len], callback)
 <!-- YAML
 added: v0.8.6
 changes:
@@ -2109,20 +2121,20 @@ changes:
 -->
 
 * `path` {string|Buffer}
-* `len` {integer} default = `0`
+* `len` {integer} **Default:** `0`
 * `callback` {Function}
 
 Asynchronous truncate(2). No arguments other than a possible exception are
 given to the completion callback. A file descriptor can also be passed as the
 first argument. In this case, `fs.ftruncate()` is called.
 
-## fs.truncateSync(path, len)
+## fs.truncateSync(path[, len])
 <!-- YAML
 added: v0.8.6
 -->
 
 * `path` {string|Buffer}
-* `len` {integer} default = `0`
+* `len` {integer} **Default:** `0`
 
 Synchronous truncate(2). Returns `undefined`. A file descriptor can also be
 passed as the first argument. In this case, `fs.ftruncateSync()` is called.
@@ -2167,7 +2179,7 @@ added: v0.1.31
 -->
 
 * `filename` {string|Buffer}
-* `listener` {Function}
+* `listener` {Function|undefined} **Default:** `undefined`
 
 Stop watching for changes on `filename`. If `listener` is specified, only that
 particular listener is removed. Otherwise, *all* listeners are removed,
@@ -2250,14 +2262,14 @@ changes:
 * `filename` {string|Buffer|URL}
 * `options` {string|Object}
   * `persistent` {boolean} Indicates whether the process should continue to run
-    as long as files are being watched. default = `true`
+    as long as files are being watched. **Default:** `true`
   * `recursive` {boolean} Indicates whether all subdirectories should be
     watched, or only the current directory. This applies when a directory is
-    specified, and only on supported platforms (See [Caveats][]). default =
+    specified, and only on supported platforms (See [Caveats][]). **Default:**
     `false`
   * `encoding` {string} Specifies the character encoding to be used for the
-     filename passed to the listener. default = `'utf8'`
-* `listener` {Function}
+     filename passed to the listener. **Default:** `'utf8'`
+* `listener` {Function|undefined} **Default:** `undefined`
 
 Watch for changes on `filename`, where `filename` is either a file or a
 directory.  The returned object is a [`fs.FSWatcher`][].
@@ -2357,8 +2369,8 @@ changes:
 
 * `filename` {string|Buffer|URL}
 * `options` {Object}
-  * `persistent` {boolean}
-  * `interval` {integer}
+  * `persistent` {boolean} **Default:** `true`
+  * `interval` {integer} **Default:** `5007`
 * `listener` {Function}
 
 Watch for changes on `filename`. The callback `listener` will be called each
@@ -2506,9 +2518,9 @@ changes:
 * `file` {string|Buffer|integer} filename or file descriptor
 * `data` {string|Buffer|Uint8Array}
 * `options` {Object|string}
-  * `encoding` {string|null} default = `'utf8'`
-  * `mode` {integer} default = `0o666`
-  * `flag` {string} default = `'w'`
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} **Default:** `'w'`
 * `callback` {Function}
 
 Asynchronously writes data to a file, replacing the file if it already exists.
@@ -2556,9 +2568,9 @@ changes:
 * `file` {string|Buffer|integer} filename or file descriptor
 * `data` {string|Buffer|Uint8Array}
 * `options` {Object|string}
-  * `encoding` {string|null} default = `'utf8'`
-  * `mode` {integer} default = `0o666`
-  * `flag` {string} default = `'w'`
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} **Default:** `'w'`
 
 The synchronous version of [`fs.writeFile()`][]. Returns `undefined`.
 
@@ -2854,10 +2866,11 @@ The following constants are meant for use with the [`fs.Stats`][] object's
 [Caveats]: #fs_caveats
 [Common System Errors]: errors.html#errors_common_system_errors
 [FS Constants]: #fs_fs_constants_1
-[MDN-Date-getTime]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime
 [MDN-Date]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date
 [MDN-Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 [MSDN-Rel-Path]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [inode]: https://en.wikipedia.org/wiki/Inode
+[Naming Files, Paths, and Namespaces]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+[MSDN-Using-Streams]: https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx

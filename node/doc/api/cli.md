@@ -178,6 +178,14 @@ added: v8.0.0
 Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
 (experimental).
 
+## `--abort-on-uncaught-exception`
+<!-- YAML
+added: v0.10
+-->
+
+Aborting instead of exiting causes a core file to be generated for post-mortem
+analysis using a debugger (such as `lldb`, `gdb`, and `mdb`).
+
 ### `--trace-warnings`
 <!-- YAML
 added: v6.0.0
@@ -426,7 +434,7 @@ added: v8.0.0
 -->
 
 `options...` are interpreted as if they had been specified on the command line
-before the actual command line (so they can be overriden).  Node will exit with
+before the actual command line (so they can be overridden).  Node will exit with
 an error if an option that is not allowed in the environment is used, such as
 `-p` or a script file.
 
@@ -457,7 +465,8 @@ Node options that are allowed are:
 - `--zero-fill-buffers`
 
 V8 options that are allowed are:
-- `--max_old_space_size`
+- `--abort-on-uncaught-exception`
+- `--max-old-space-size`
 
 ### `NODE_PENDING_DEPRECATION=1`
 <!-- YAML
@@ -512,7 +521,7 @@ added: v7.7.0
 
 Load an OpenSSL configuration file on startup. Among other uses, this can be
 used to enable FIPS-compliant crypto if Node.js is built with `./configure
-\-\-openssl\-fips`.
+--openssl-fips`.
 
 If the [`--openssl-config`][] command line option is used, the environment
 variable is ignored.
@@ -558,4 +567,4 @@ equivalent to using the `--redirect-warnings=file` command-line flag.
 [REPL]: repl.html
 [SlowBuffer]: buffer.html#buffer_class_slowbuffer
 [debugger]: debugger.html
-[emit_warning]: process.html#process_process_emitwarning_warning_name_ctor
+[emit_warning]: process.html#process_process_emitwarning_warning_type_code_ctor

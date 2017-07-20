@@ -218,12 +218,13 @@ OutgoingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
 // any messages, before ever calling this.  In that case, just skip
 // it, since something else is destroying this connection anyway.
 OutgoingMessage.prototype.destroy = function destroy(error) {
-  if (this.socket)
+  if (this.socket) {
     this.socket.destroy(error);
-  else
+  } else {
     this.once('socket', function(socket) {
       socket.destroy(error);
     });
+  }
 };
 
 
@@ -496,8 +497,7 @@ function matchHeader(self, state, field, value) {
 
 function validateHeader(msg, name, value) {
   if (typeof name !== 'string' || !name || !checkIsHttpToken(name))
-    throw new TypeError(
-      'Header name must be a valid HTTP Token ["' + name + '"]');
+    throw new TypeError(`Header name must be a valid HTTP Token ["${name}"]`);
   if (value === undefined)
     throw new Error('"value" required in setHeader("' + name + '", value)');
   if (msg._header)
@@ -660,17 +660,17 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   // signal the user to keep writing.
   if (chunk.length === 0) return true;
 
+  if (!fromEnd && msg.connection && !msg.connection.corked) {
+    msg.connection.cork();
+    process.nextTick(connectionCorkNT, msg.connection);
+  }
+
   var len, ret;
   if (msg.chunkedEncoding) {
     if (typeof chunk === 'string')
       len = Buffer.byteLength(chunk, encoding);
     else
       len = chunk.length;
-
-    if (msg.connection && !msg.connection.corked) {
-      msg.connection.cork();
-      process.nextTick(connectionCorkNT, msg.connection);
-    }
 
     msg._send(len.toString(16), 'latin1', null);
     msg._send(crlf_buf, null, null);
@@ -784,6 +784,7 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
     this.connection.uncork();
 
   this.finished = true;
+  this.writable = false;
 
   // There is the first message on the outgoing queue, and we've sent
   // everything to the socket.

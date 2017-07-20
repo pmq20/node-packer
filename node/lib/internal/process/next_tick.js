@@ -2,13 +2,49 @@
 
 // This value is used to prevent the nextTickQueue from becoming too
 // large and cause the process to run out of memory. When this value
-// is reached the nextTimeQueue array will be shortend (see tickDone
+// is reached the nextTimeQueue array will be shortened (see tickDone
 // for details).
 const kMaxCallbacksPerLoop = 1e4;
 
 exports.setup = setupNextTick;
 // Will be overwritten when setupNextTick() is called.
 exports.nextTick = null;
+
+class NextTickQueue {
+  constructor() {
+    this.head = null;
+    this.tail = null;
+    this.length = 0;
+  }
+
+  push(v) {
+    const entry = { data: v, next: null };
+    if (this.length > 0)
+      this.tail.next = entry;
+    else
+      this.head = entry;
+    this.tail = entry;
+    ++this.length;
+  }
+
+  shift() {
+    if (this.length === 0)
+      return;
+    const ret = this.head.data;
+    if (this.length === 1)
+      this.head = this.tail = null;
+    else
+      this.head = this.head.next;
+    --this.length;
+    return ret;
+  }
+
+  clear() {
+    this.head = null;
+    this.tail = null;
+    this.length = 0;
+  }
+}
 
 function setupNextTick() {
   const async_wrap = process.binding('async_wrap');
@@ -20,14 +56,11 @@ function setupNextTick() {
   // Two arrays that share state between C++ and JS.
   const { async_hook_fields, async_uid_fields } = async_wrap;
   // Used to change the state of the async id stack.
-  const { pushAsyncIds, popAsyncIds } = async_wrap;
-  // The needed emit*() functions.
   const { emitInit, emitBefore, emitAfter, emitDestroy } = async_hooks;
   // Grab the constants necessary for working with internal arrays.
-  const { kInit, kBefore, kAfter, kDestroy, kAsyncUidCntr, kInitTriggerId } =
-      async_wrap.constants;
+  const { kInit, kDestroy, kAsyncUidCntr } = async_wrap.constants;
   const { async_id_symbol, trigger_id_symbol } = async_wrap;
-  var nextTickQueue = [];
+  var nextTickQueue = new NextTickQueue();
   var microtasksScheduled = false;
 
   // Used to run V8's micro task queue.
@@ -55,27 +88,29 @@ function setupNextTick() {
   function tickDone() {
     if (tickInfo[kLength] !== 0) {
       if (tickInfo[kLength] <= tickInfo[kIndex]) {
-        nextTickQueue = [];
+        nextTickQueue.clear();
         tickInfo[kLength] = 0;
       } else {
-        nextTickQueue.splice(0, tickInfo[kIndex]);
         tickInfo[kLength] = nextTickQueue.length;
       }
     }
     tickInfo[kIndex] = 0;
   }
 
+  const microTasksTickObject = {
+    callback: runMicrotasksCallback,
+    args: undefined,
+    domain: null,
+    [async_id_symbol]: 0,
+    [trigger_id_symbol]: 0
+  };
   function scheduleMicrotasks() {
     if (microtasksScheduled)
       return;
 
-    const tickObject =
-        new TickObject(runMicrotasksCallback, undefined, null);
     // For the moment all microtasks come from the void until the PromiseHook
     // API is implemented.
-    tickObject[async_id_symbol] = 0;
-    tickObject[trigger_id_symbol] = 0;
-    nextTickQueue.push(tickObject);
+    nextTickQueue.push(microTasksTickObject);
 
     tickInfo[kLength]++;
     microtasksScheduled = true;
@@ -86,8 +121,9 @@ function setupNextTick() {
     _runMicrotasks();
 
     if (tickInfo[kIndex] < tickInfo[kLength] ||
-        emitPendingUnhandledRejections())
+        emitPendingUnhandledRejections()) {
       scheduleMicrotasks();
+    }
   }
 
   function _combinedTickCallback(args, callback) {
@@ -110,30 +146,13 @@ function setupNextTick() {
     }
   }
 
-  // TODO(trevnorris): Using std::stack of Environment::AsyncHooks::ids_stack_
-  // is much slower here than was the Float64Array stack used in a previous
-  // implementation. Problem is the Float64Array stack was a bit brittle.
-  // Investigate how to harden that implementation and possibly reintroduce it.
-  function nextTickEmitBefore(asyncId, triggerId) {
-    if (async_hook_fields[kBefore] > 0)
-      emitBefore(asyncId, triggerId);
-    else
-      pushAsyncIds(asyncId, triggerId);
-  }
-
-  function nextTickEmitAfter(asyncId) {
-    if (async_hook_fields[kAfter] > 0)
-      emitAfter(asyncId);
-    else
-      popAsyncIds(asyncId);
-  }
-
   // Run callbacks that have no domain.
   // Using domains will cause this to be overridden.
   function _tickCallback() {
     do {
       while (tickInfo[kIndex] < tickInfo[kLength]) {
-        const tock = nextTickQueue[tickInfo[kIndex]++];
+        ++tickInfo[kIndex];
+        const tock = nextTickQueue.shift();
         const callback = tock.callback;
         const args = tock.args;
 
@@ -142,7 +161,7 @@ function setupNextTick() {
         // CHECK(Number.isSafeInteger(tock[trigger_id_symbol]))
         // CHECK(tock[trigger_id_symbol] > 0)
 
-        nextTickEmitBefore(tock[async_id_symbol], tock[trigger_id_symbol]);
+        emitBefore(tock[async_id_symbol], tock[trigger_id_symbol]);
         // emitDestroy() places the async_id_symbol into an asynchronous queue
         // that calls the destroy callback in the future. It's called before
         // calling tock.callback so destroy will be called even if the callback
@@ -160,7 +179,7 @@ function setupNextTick() {
         // performance hit associated with using `fn.apply()`
         _combinedTickCallback(args, callback);
 
-        nextTickEmitAfter(tock[async_id_symbol]);
+        emitAfter(tock[async_id_symbol]);
 
         if (kMaxCallbacksPerLoop < tickInfo[kIndex])
           tickDone();
@@ -174,7 +193,8 @@ function setupNextTick() {
   function _tickDomainCallback() {
     do {
       while (tickInfo[kIndex] < tickInfo[kLength]) {
-        const tock = nextTickQueue[tickInfo[kIndex]++];
+        ++tickInfo[kIndex];
+        const tock = nextTickQueue.shift();
         const callback = tock.callback;
         const domain = tock.domain;
         const args = tock.args;
@@ -186,7 +206,7 @@ function setupNextTick() {
         // CHECK(Number.isSafeInteger(tock[trigger_id_symbol]))
         // CHECK(tock[trigger_id_symbol] > 0)
 
-        nextTickEmitBefore(tock[async_id_symbol], tock[trigger_id_symbol]);
+        emitBefore(tock[async_id_symbol], tock[trigger_id_symbol]);
         // TODO(trevnorris): See comment in _tickCallback() as to why this
         // isn't a good solution.
         if (async_hook_fields[kDestroy] > 0)
@@ -197,7 +217,7 @@ function setupNextTick() {
         // performance hit associated with using `fn.apply()`
         _combinedTickCallback(args, callback);
 
-        nextTickEmitAfter(tock[async_id_symbol]);
+        emitAfter(tock[async_id_symbol]);
 
         if (kMaxCallbacksPerLoop < tickInfo[kIndex])
           tickDone();
@@ -210,66 +230,78 @@ function setupNextTick() {
     } while (tickInfo[kLength] !== 0);
   }
 
-  function TickObject(callback, args, domain) {
-    this.callback = callback;
-    this.domain = domain;
-    this.args = args;
-    this[async_id_symbol] = -1;
-    this[trigger_id_symbol] = -1;
-  }
-
-  function setupInit(tickObject, triggerId) {
-    tickObject[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-    tickObject[trigger_id_symbol] = triggerId || initTriggerId();
-    if (async_hook_fields[kInit] > 0) {
-      emitInit(tickObject[async_id_symbol],
-               'TickObject',
-               tickObject[trigger_id_symbol],
-               tickObject);
+  class TickObject {
+    constructor(callback, args, asyncId, triggerAsyncId) {
+      this.callback = callback;
+      this.args = args;
+      this.domain = process.domain || null;
+      this[async_id_symbol] = asyncId;
+      this[trigger_id_symbol] = triggerAsyncId;
     }
   }
 
+  // `nextTick()` will not enqueue any callback when the process is about to
+  // exit since the callback would not have a chance to be executed.
   function nextTick(callback) {
     if (typeof callback !== 'function')
       throw new errors.TypeError('ERR_INVALID_CALLBACK');
-    // on the way out, don't bother. it won't get fired anyway.
+
     if (process._exiting)
       return;
 
     var args;
-    if (arguments.length > 1) {
-      args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++)
-        args[i - 1] = arguments[i];
+    switch (arguments.length) {
+      case 1: break;
+      case 2: args = [arguments[1]]; break;
+      case 3: args = [arguments[1], arguments[2]]; break;
+      case 4: args = [arguments[1], arguments[2], arguments[3]]; break;
+      default:
+        args = new Array(arguments.length - 1);
+        for (var i = 1; i < arguments.length; i++)
+          args[i - 1] = arguments[i];
     }
 
-    var obj = new TickObject(callback, args, process.domain || null);
-    setupInit(obj, null);
+    const asyncId = ++async_uid_fields[kAsyncUidCntr];
+    const triggerAsyncId = initTriggerId();
+    const obj = new TickObject(callback, args, asyncId, triggerAsyncId);
     nextTickQueue.push(obj);
-    tickInfo[kLength]++;
+    ++tickInfo[kLength];
+    if (async_hook_fields[kInit] > 0)
+      emitInit(asyncId, 'TickObject', triggerAsyncId, obj);
   }
 
-  function internalNextTick(triggerId, callback) {
+  // `internalNextTick()` will not enqueue any callback when the process is
+  // about to exit since the callback would not have a chance to be executed.
+  function internalNextTick(triggerAsyncId, callback) {
     if (typeof callback !== 'function')
       throw new TypeError('callback is not a function');
-    // CHECK(Number.isSafeInteger(triggerId) || triggerId === null)
-    // CHECK(triggerId > 0 || triggerId === null)
+    // CHECK(Number.isSafeInteger(triggerAsyncId) || triggerAsyncId === null)
+    // CHECK(triggerAsyncId > 0 || triggerAsyncId === null)
 
     if (process._exiting)
       return;
 
-    var args;
-    if (arguments.length > 2) {
-      args = new Array(arguments.length - 2);
-      for (var i = 2; i < arguments.length; i++)
-        args[i - 2] = arguments[i];
+    if (triggerAsyncId === null) {
+      triggerAsyncId = async_hooks.initTriggerId();
     }
 
-    var obj = new TickObject(callback, args, process.domain || null);
-    setupInit(obj, triggerId);
-    // The call to initTriggerId() was skipped, so clear kInitTriggerId.
-    async_uid_fields[kInitTriggerId] = 0;
+    var args;
+    switch (arguments.length) {
+      case 2: break;
+      case 3: args = [arguments[2]]; break;
+      case 4: args = [arguments[2], arguments[3]]; break;
+      case 5: args = [arguments[2], arguments[3], arguments[4]]; break;
+      default:
+        args = new Array(arguments.length - 2);
+        for (var i = 2; i < arguments.length; i++)
+          args[i - 2] = arguments[i];
+    }
+
+    const asyncId = ++async_uid_fields[kAsyncUidCntr];
+    const obj = new TickObject(callback, args, asyncId, triggerAsyncId);
     nextTickQueue.push(obj);
-    tickInfo[kLength]++;
+    ++tickInfo[kLength];
+    if (async_hook_fields[kInit] > 0)
+      emitInit(asyncId, 'TickObject', triggerAsyncId, obj);
   }
 }

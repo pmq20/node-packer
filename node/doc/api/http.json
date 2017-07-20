@@ -6,7 +6,7 @@
       "name": "http",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>To use the HTTP server and client one must <code>require(&#39;http&#39;)</code>.</p>\n<p>The HTTP interfaces in Node.js are designed to support many features\nof the protocol which have been traditionally difficult to use.\nIn particular, large, possibly chunk-encoded, messages. The interface is\ncareful to never buffer entire requests or responses--the\nuser is able to stream data.</p>\n<p>HTTP message headers are represented by an object like this:</p>\n<!-- eslint-disable -->\n<pre><code class=\"lang-js\">{ &#39;content-length&#39;: &#39;123&#39;,\n  &#39;content-type&#39;: &#39;text/plain&#39;,\n  &#39;connection&#39;: &#39;keep-alive&#39;,\n  &#39;host&#39;: &#39;mysite.com&#39;,\n  &#39;accept&#39;: &#39;*/*&#39; }\n</code></pre>\n<p>Keys are lowercased. Values are not modified.</p>\n<p>In order to support the full spectrum of possible HTTP applications, Node.js&#39;s\nHTTP API is very low-level. It deals with stream handling and message\nparsing only. It parses a message into headers and body but it does not\nparse the actual headers or the body.</p>\n<p>See <a href=\"#http_message_headers\"><code>message.headers</code></a> for details on how duplicate headers are handled.</p>\n<p>The raw headers as they were received are retained in the <code>rawHeaders</code>\nproperty, which is an array of <code>[key, value, key2, value2, ...]</code>.  For\nexample, the previous message header object might have a <code>rawHeaders</code>\nlist like the following:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">[ &#39;ConTent-Length&#39;, &#39;123456&#39;,\n  &#39;content-LENGTH&#39;, &#39;123&#39;,\n  &#39;content-type&#39;, &#39;text/plain&#39;,\n  &#39;CONNECTION&#39;, &#39;keep-alive&#39;,\n  &#39;Host&#39;, &#39;mysite.com&#39;,\n  &#39;accepT&#39;, &#39;*/*&#39; ]\n</code></pre>\n",
+      "desc": "<p>To use the HTTP server and client one must <code>require(&#39;http&#39;)</code>.</p>\n<p>The HTTP interfaces in Node.js are designed to support many features\nof the protocol which have been traditionally difficult to use.\nIn particular, large, possibly chunk-encoded, messages. The interface is\ncareful to never buffer entire requests or responses--the\nuser is able to stream data.</p>\n<p>HTTP message headers are represented by an object like this:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{ &#39;content-length&#39;: &#39;123&#39;,\n  &#39;content-type&#39;: &#39;text/plain&#39;,\n  &#39;connection&#39;: &#39;keep-alive&#39;,\n  &#39;host&#39;: &#39;mysite.com&#39;,\n  &#39;accept&#39;: &#39;*/*&#39; }\n</code></pre>\n<p>Keys are lowercased. Values are not modified.</p>\n<p>In order to support the full spectrum of possible HTTP applications, Node.js&#39;s\nHTTP API is very low-level. It deals with stream handling and message\nparsing only. It parses a message into headers and body but it does not\nparse the actual headers or the body.</p>\n<p>See <a href=\"#http_message_headers\"><code>message.headers</code></a> for details on how duplicate headers are handled.</p>\n<p>The raw headers as they were received are retained in the <code>rawHeaders</code>\nproperty, which is an array of <code>[key, value, key2, value2, ...]</code>.  For\nexample, the previous message header object might have a <code>rawHeaders</code>\nlist like the following:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">[ &#39;ConTent-Length&#39;, &#39;123456&#39;,\n  &#39;content-LENGTH&#39;, &#39;123&#39;,\n  &#39;content-type&#39;, &#39;text/plain&#39;,\n  &#39;CONNECTION&#39;, &#39;keep-alive&#39;,\n  &#39;Host&#39;, &#39;mysite.com&#39;,\n  &#39;accepT&#39;, &#39;*/*&#39; ]\n</code></pre>\n",
       "classes": [
         {
           "textRaw": "Class: http.Agent",
@@ -493,7 +493,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Finishes sending the request. If any parts of the body are\nunsent, it will flush them to the stream. If the request is\nchunked, this will send the terminating <code>&#39;0\\r\\n\\r\\n&#39;</code>.</p>\n<p>If <code>data</code> is specified, it is equivalent to calling\n<a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write(data, encoding)</code></a> followed by <code>request.end(callback)</code>.</p>\n<p>If <code>callback</code> is specified, it will be called when the request stream\nis finished.</p>\n"
+              "desc": "<p>Finishes sending the request. If any parts of the body are\nunsent, it will flush them to the stream. If the request is\nchunked, this will send the terminating <code>&#39;0\\r\\n\\r\\n&#39;</code>.</p>\n<p>If <code>data</code> is specified, it is equivalent to calling\n<a href=\"#http_request_write_chunk_encoding_callback\"><code>request.write(data, encoding)</code></a> followed by <code>request.end(callback)</code>.</p>\n<p>If <code>callback</code> is specified, it will be called when the request stream\nis finished.</p>\n"
             },
             {
               "textRaw": "request.flushHeaders()",
@@ -690,6 +690,30 @@
                 "changes": []
               },
               "desc": "<p>If a request has been aborted, this value is the time when the request was\naborted, in milliseconds since 1 January 1970 00:00:00 UTC.</p>\n"
+            },
+            {
+              "textRaw": "`connection` {net.Socket} ",
+              "type": "net.Socket",
+              "name": "connection",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>See <a href=\"#http_request_socket\"><code>request.socket</code></a></p>\n"
+            },
+            {
+              "textRaw": "`socket` {net.Socket} ",
+              "type": "net.Socket",
+              "name": "socket",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>request.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst server = http.createServer((req, res) =&gt; {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>\n"
             }
           ]
         },
@@ -989,7 +1013,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the\n<code>hostname</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: In most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system\nassign a random port, which can be retrieved by using <code>server.address().port</code>\nafter the <code>&#39;listening&#39;</code> event has been emitted.</p>\n<p>To listen to a unix socket, supply a filename instead of port and hostname.</p>\n<p><code>backlog</code> is the maximum length of the queue of pending connections.\nThe actual length will be determined by the OS through sysctl settings such as\n<code>tcp_max_syn_backlog</code> and <code>somaxconn</code> on linux. The default value of this\nparameter is 511 (not 512).</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event.  See also <a href=\"net.html#net_server_listen_port_hostname_backlog_callback\"><code>net.Server.listen(port)</code></a>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
+              "desc": "<p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the\n<code>hostname</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: In most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system\nassign a random port, which can be retrieved by using <code>server.address().port</code>\nafter the <code>&#39;listening&#39;</code> event has been emitted.</p>\n<p>To listen to a unix socket, supply a filename instead of port and hostname.</p>\n<p><code>backlog</code> is the maximum length of the queue of pending connections.\nThe actual length will be determined by the OS through sysctl settings such as\n<code>tcp_max_syn_backlog</code> and <code>somaxconn</code> on linux. The default value of this\nparameter is 511 (not 512).</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event.  See also <a href=\"net.html#net_server_listen_port_host_backlog_callback\"><code>net.Server.listen(port)</code></a>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
             },
             {
               "textRaw": "server.setTimeout([msecs][, callback])",
@@ -1570,6 +1594,18 @@
           ],
           "properties": [
             {
+              "textRaw": "`connection` {net.Socket} ",
+              "type": "net.Socket",
+              "name": "connection",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>See <a href=\"#http_response_socket\"><code>response.socket</code></a>.</p>\n"
+            },
+            {
               "textRaw": "`finished` {boolean} ",
               "type": "boolean",
               "name": "finished",
@@ -1604,6 +1640,18 @@
                 "changes": []
               },
               "desc": "<p>When true, the Date header will be automatically generated and sent in\nthe response if it is not already present in the headers. Defaults to true.</p>\n<p>This should only be disabled for testing; HTTP requires the Date header\nin responses.</p>\n"
+            },
+            {
+              "textRaw": "`socket` {net.Socket} ",
+              "type": "net.Socket",
+              "name": "socket",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>response.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst server = http.createServer((req, res) =&gt; {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>\n"
             },
             {
               "textRaw": "`statusCode` {number} ",

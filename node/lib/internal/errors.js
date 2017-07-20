@@ -28,7 +28,6 @@ function makeNodeError(Base) {
     constructor(key, ...args) {
       super(message(key, args));
       this[kCode] = key;
-      Error.captureStackTrace(this, NodeError);
     }
 
     get name() {
@@ -112,6 +111,7 @@ module.exports = exports = {
 // Note: Please try to keep these in alphabetical order
 E('ERR_ARG_NOT_ITERABLE', '%s must be iterable');
 E('ERR_ASSERTION', (msg) => msg);
+E('ERR_FALSY_VALUE_REJECTION', 'Promise was rejected with falsy value');
 E('ERR_INVALID_ARG_TYPE', invalidArgType);
 E('ERR_INVALID_CALLBACK', 'callback must be a function');
 E('ERR_INVALID_FD', (fd) => `"fd" must be a positive integer: ${fd}`);

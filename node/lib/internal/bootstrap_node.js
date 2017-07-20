@@ -279,9 +279,9 @@
       enumerable: true,
       get: function() {
         if (!console) {
-          console = originalConsole === undefined ?
-              NativeModule.require('console') :
-              installInspectorConsole(originalConsole);
+          console = (originalConsole === undefined) ?
+            NativeModule.require('console') :
+            installInspectorConsole(originalConsole);
         }
         return console;
       }
@@ -352,7 +352,7 @@
         if (async_hook_fields[kAfter] > 0) {
           do {
             NativeModule.require('async_hooks').emitAfter(
-                async_uid_fields[kCurrentAsyncId]);
+              async_uid_fields[kCurrentAsyncId]);
           // popAsyncIds() returns true if there are more ids on the stack.
           } while (popAsyncIds(async_uid_fields[kCurrentAsyncId]));
         // Or completely empty the id stack.

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v8.1.4 Documentation</title>
+  <title>DNS | Node.js v8.2.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -44,6 +44,7 @@
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +78,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v8.1.4 Documentation</h1>
+        <h1>Node.js v8.2.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -109,6 +110,7 @@
 <li><span class="stability_undefined"><a href="#dns_dns_resolvesoa_hostname_callback">dns.resolveSoa(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvesrv_hostname_callback">dns.resolveSrv(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_resolvetxt_hostname_callback">dns.resolveTxt(hostname, callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#dns_dns_resolveany_hostname_callback">dns.resolveAny(hostname, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_reverse_ip_callback">dns.reverse(ip, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_setservers_servers">dns.setServers(servers)</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_error_codes">Error codes</a></span></li>
@@ -170,8 +172,18 @@ the <a href="#dns_implementation_considerations">Implementation considerations s
 <h2>dns.getServers()<span><a class="mark" href="#dns_dns_getservers" id="dns_dns_getservers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
-</div><p>Returns an array of IP address strings that are being used for name
-resolution.</p>
+</div><p>Returns an array of IP address strings, formatted according to <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a>,
+that are currently configured for DNS resolution. A string will include a port
+section if a custom port is used.</p>
+<p>For example:</p>
+<!-- eslint-disable semi-->
+<pre><code class="lang-js">[
+  &#39;4.4.4.4&#39;,
+  &#39;2001:4860:4860::8888&#39;,
+  &#39;4.4.4.4:1053&#39;,
+  &#39;[2001:4860:4860::8888]:1053&#39;
+]
+</code></pre>
 <h2>dns.lookup(hostname[, options], callback)<span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -363,6 +375,12 @@ records. The type and structure of individual results varies based on <code>rrty
 <td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></td>
 <td><a href="#dns_dns_resolvetxt_hostname_callback"><code>dns.resolveTxt()</code></a></td>
 </tr>
+<tr>
+<td><code>&#39;ANY&#39;</code></td>
+<td>any records</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></td>
+<td><a href="#dns_dns_resolveany_hostname_callback"><code>dns.resolveAny()</code></a></td>
+</tr>
 </tbody>
 </table>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is one of the
@@ -483,7 +501,7 @@ function will contain an array of objects with the following properties:</p>
 <li><code>preference</code></li>
 </ul>
 <p>For example:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   flags: &#39;s&#39;,
   service: &#39;SIP+D2U&#39;,
@@ -545,7 +563,7 @@ be an object with the following properties:</p>
 <li><code>expire</code></li>
 <li><code>minttl</code></li>
 </ul>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   nsname: &#39;ns.example.com&#39;,
   hostmaster: &#39;root.example.com&#39;,
@@ -576,7 +594,7 @@ be an array of objects with the following properties:</p>
 <li><code>port</code></li>
 <li><code>name</code></li>
 </ul>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   priority: 10,
   weight: 5,
@@ -601,6 +619,86 @@ is a two-dimensional array of the text records available for <code>hostname</cod
 <code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of
 one record. Depending on the use case, these could be either joined together or
 treated separately.</p>
+<h2>dns.resolveAny(hostname, callback)<span><a class="mark" href="#dns_dns_resolveany_hostname_callback" id="dns_dns_resolveany_hostname_callback">#</a></span></h2>
+<div class="signature"><ul>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>ret</code> <span class="type">&lt;Object[][]&gt;</span></li>
+</ul>
+</li>
+</ul>
+</div><p>Uses the DNS protocol to resolve all records (also known as <code>ANY</code> or <code>*</code> query).
+The <code>ret</code> argument passed to the <code>callback</code> function will be an array containing
+various types of records. Each object has a property <code>type</code> that indicates the
+type of the current record. And depending on the <code>type</code>, additional properties
+will be present on the object:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Properties</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;A&quot;</code></td>
+<td><code>address</code> / <code>ttl</code></td>
+</tr>
+<tr>
+<td><code>&quot;AAAA&quot;</code></td>
+<td><code>address</code> / <code>ttl</code></td>
+</tr>
+<tr>
+<td><code>&quot;CNAME&quot;</code></td>
+<td><code>value</code></td>
+</tr>
+<tr>
+<td><code>&quot;MX&quot;</code></td>
+<td>Refer to <a href="#dns_dns_resolvemx_hostname_callback"><code>dns.resolveMx()</code></a></td>
+</tr>
+<tr>
+<td><code>&quot;NAPTR&quot;</code></td>
+<td>Refer to <a href="#dns_dns_resolvenaptr_hostname_callback"><code>dns.resolveNaptr()</code></a></td>
+</tr>
+<tr>
+<td><code>&quot;NS&quot;</code></td>
+<td><code>value</code></td>
+</tr>
+<tr>
+<td><code>&quot;PTR&quot;</code></td>
+<td><code>value</code></td>
+</tr>
+<tr>
+<td><code>&quot;SOA&quot;</code></td>
+<td>Refer to <a href="#dns_dns_resolvesoa_hostname_callback"><code>dns.resolveSoa()</code></a></td>
+</tr>
+<tr>
+<td><code>&quot;SRV&quot;</code></td>
+<td>Refer to <a href="#dns_dns_resolvesrv_hostname_callback"><code>dns.resolveSrv()</code></a></td>
+</tr>
+<tr>
+<td><code>&quot;TXT&quot;</code></td>
+<td>This type of record contains an array property called <code>entries</code> which refers to <a href="#dns_dns_resolvetxt_hostname_callback"><code>dns.resolveTxt()</code></a>, eg. <code>{ entries: [&#39;...&#39;], type: &#39;TXT&#39; }</code></td>
+</tr>
+</tbody>
+</table>
+<p>Here is a example of the <code>ret</code> object passed to the callback:</p>
+<!-- eslint-disable semi -->
+<pre><code class="lang-js">[ { type: &#39;A&#39;, address: &#39;127.0.0.1&#39;, ttl: 299 },
+  { type: &#39;CNAME&#39;, value: &#39;example.com&#39; },
+  { type: &#39;MX&#39;, exchange: &#39;alt4.aspmx.l.example.com&#39;, priority: 50 },
+  { type: &#39;NS&#39;, value: &#39;ns1.example.com&#39; },
+  { type: &#39;TXT&#39;, entries: [ &#39;v=spf1 include:_spf.example.com ~all&#39; ] },
+  { type: &#39;SOA&#39;,
+    nsname: &#39;ns1.example.com&#39;,
+    hostmaster: &#39;admin.example.com&#39;,
+    serial: 156696742,
+    refresh: 900,
+    retry: 900,
+    expire: 1800,
+    minttl: 60 } ]
+</code></pre>
 <h2>dns.reverse(ip, callback)<span><a class="mark" href="#dns_dns_reverse_ip_callback" id="dns_dns_reverse_ip_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
@@ -620,11 +718,19 @@ one of the <a href="#dns_error_codes">DNS error codes</a>.</p>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div><ul>
-<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted addresses</li>
 </ul>
-<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>
-argument is an array of IPv4 or IPv6 addresses.</p>
-<p>If a port is specified on the address, it will be removed.</p>
+<p>Sets the IP address and port of servers to be used when performing DNS
+resolution. The <code>servers</code> argument is an array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted
+addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
+<p>For example:</p>
+<pre><code class="lang-js">dns.setServers([
+  &#39;4.4.4.4&#39;,
+  &#39;[2001:4860:4860::8888]&#39;,
+  &#39;4.4.4.4:1053&#39;,
+  &#39;[2001:4860:4860::8888]:1053&#39;
+]);
+</code></pre>
 <p>An error will be thrown if an invalid address is provided.</p>
 <p>The <code>dns.setServers()</code> method must not be called while a DNS query is in
 progress.</p>

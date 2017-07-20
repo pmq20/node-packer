@@ -22,15 +22,11 @@
 'use strict';
 const common = require('../common');
 
-if (!common.opensslCli) {
+if (!common.opensslCli)
   common.skip('node compiled without OpenSSL CLI.');
-  return;
-}
 
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
 
 doTest({ tickets: false }, function() {
   doTest({ tickets: true }, function() {
@@ -46,7 +42,6 @@ function doTest(testOptions, callback) {
   const fs = require('fs');
   const join = require('path').join;
   const spawn = require('child_process').spawn;
-  const Buffer = require('buffer').Buffer;
 
   const keyFile = join(common.fixturesDir, 'agent.key');
   const certFile = join(common.fixturesDir, 'agent.crt');

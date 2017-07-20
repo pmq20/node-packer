@@ -515,8 +515,10 @@ A Writable stream in object mode will always ignore the `encoding` argument.
 added: v8.0.0
 -->
 
+* Returns: `this`
+
 Destroy the stream, and emit the passed error. After this call, the
-writible stream has ended. Implementors should not override this method,
+writable stream has ended. Implementors should not override this method,
 but instead implement [`writable._destroy`][writable-_destroy].
 
 ### Readable Streams
@@ -1742,8 +1744,8 @@ constructor and implement *both* the `readable._read()` and
 * `options` {Object} Passed to both Writable and Readable
   constructors. Also has the following fields:
   * `allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then
-    the stream will automatically end the readable side when the
-    writable side ends and vice versa.
+    the stream will automatically end the writable side when the
+    readable side ends.
   * `readableObjectMode` {boolean} Defaults to `false`. Sets `objectMode`
     for readable side of the stream. Has no effect if `objectMode`
     is `true`.
@@ -2175,6 +2177,7 @@ readable buffer so there is nothing for a user to consume.
 [fs read streams]: fs.html#fs_class_fs_readstream
 [fs write streams]: fs.html#fs_class_fs_writestream
 [http-incoming-message]: http.html#http_class_http_incomingmessage
+[zlib]: zlib.html
 [stream-_flush]: #stream_transform_flush_callback
 [stream-_read]: #stream_readable_read_size_1
 [stream-_transform]: #stream_transform_transform_chunk_encoding_callback

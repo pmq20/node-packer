@@ -2,6 +2,8 @@
 
 ## v1.4.0
 
+- upgrade Node.js runtime to v8.2.0
+  - https://nodejs.org/en/blog/release/v8.2.0/
 - fix bad package names for product.wxs when generating MSI installers
 - upgrade to libsquash v0.7.0
   - test ifndef `__USE_XOPEN_EXTENDED`

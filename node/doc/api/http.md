@@ -12,7 +12,7 @@ user is able to stream data.
 
 HTTP message headers are represented by an object like this:
 
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 ```js
 { 'content-length': '123',
   'content-type': 'text/plain',
@@ -496,6 +496,15 @@ added: v0.11.14
 If a request has been aborted, this value is the time when the request was
 aborted, in milliseconds since 1 January 1970 00:00:00 UTC.
 
+### request.connection
+<!-- YAML
+added: v0.3.0
+-->
+
+* {net.Socket}
+
+See [`request.socket`][]
+
 ### request.end([data[, encoding]][, callback])
 <!-- YAML
 added: v0.1.90
@@ -510,7 +519,7 @@ unsent, it will flush them to the stream. If the request is
 chunked, this will send the terminating `'0\r\n\r\n'`.
 
 If `data` is specified, it is equivalent to calling
-[`response.write(data, encoding)`][] followed by `request.end(callback)`.
+[`request.write(data, encoding)`][] followed by `request.end(callback)`.
 
 If `callback` is specified, it will be called when the request stream
 is finished.
@@ -563,6 +572,30 @@ Once a socket is assigned to this request and is connected
 [`socket.setTimeout()`][] will be called.
 
 Returns `request`.
+
+### request.socket
+<!-- YAML
+added: v0.3.0
+-->
+
+* {net.Socket}
+
+Reference to the underlying socket. Usually users will not want to access
+this property. In particular, the socket will not emit `'readable'` events
+because of how the protocol parser attaches to the socket. After
+`response.end()`, the property is nulled. The `socket` may also be accessed
+via `request.connection`.
+
+Example:
+
+```js
+const http = require('http');
+const server = http.createServer((req, res) => {
+  const ip = req.socket.remoteAddress;
+  const port = req.socket.remotePort;
+  res.end(`Your IP address is ${ip} and your source port is ${port}.`);
+}).listen(3000);
+```
 
 ### request.write(chunk[, encoding][, callback])
 <!-- YAML
@@ -955,6 +988,16 @@ response.end();
 Attempting to set a header field name or value that contains invalid characters
 will result in a [`TypeError`][] being thrown.
 
+
+### response.connection
+<!-- YAML
+added: v0.3.0
+-->
+
+* {net.Socket}
+
+See [`response.socket`][].
+
 ### response.end([data][, encoding][, callback])
 <!-- YAML
 added: v0.1.90
@@ -1162,6 +1205,30 @@ assigned to the request, the response, or the server's `'timeout'` events,
 timed out sockets must be handled explicitly.
 
 Returns `response`.
+
+### response.socket
+<!-- YAML
+added: v0.3.0
+-->
+
+* {net.Socket}
+
+Reference to the underlying socket. Usually users will not want to access
+this property. In particular, the socket will not emit `'readable'` events
+because of how the protocol parser attaches to the socket. After
+`response.end()`, the property is nulled. The `socket` may also be accessed
+via `response.connection`.
+
+Example:
+
+```js
+const http = require('http');
+const server = http.createServer((req, res) => {
+  const ip = req.socket.remoteAddress;
+  const port = req.socket.remotePort;
+  res.end(`Your IP address is ${ip} and your source port is ${port}.`);
+}).listen(3000);
+```
 
 ### response.statusCode
 <!-- YAML
@@ -1827,13 +1894,16 @@ const req = http.request(options, (res) => {
 [`net.Server.close()`]: net.html#net_server_close_callback
 [`net.Server.listen()`]: net.html#net_server_listen_handle_backlog_callback
 [`net.Server.listen(path)`]: net.html#net_server_listen_path_backlog_callback
-[`net.Server.listen(port)`]: net.html#net_server_listen_port_hostname_backlog_callback
+[`net.Server.listen(port)`]: net.html#net_server_listen_port_host_backlog_callback
 [`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
 [`net.createConnection()`]: net.html#net_net_createconnection_options_connectlistener
+[`request.socket`]: #http_request_socket
 [`request.socket.getPeerCertificate()`]: tls.html#tls_tlssocket_getpeercertificate_detailed
+[`request.write(data, encoding)`]: #http_request_write_chunk_encoding_callback
 [`response.end()`]: #http_response_end_data_encoding_callback
 [`response.setHeader()`]: #http_response_setheader_name_value
+[`response.socket`]: #http_response_socket
 [`response.write()`]: #http_response_write_chunk_encoding_callback
 [`response.write(data, encoding)`]: #http_response_write_chunk_encoding_callback
 [`response.writeContinue()`]: #http_response_writecontinue

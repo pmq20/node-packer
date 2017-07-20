@@ -586,7 +586,7 @@ const aliceSecret = alice.computeSecret(bobKey);
 const bobSecret = bob.computeSecret(aliceKey);
 
 assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
-  // OK
+// OK
 ```
 
 ### ecdh.computeSecret(otherPublicKey[, inputEncoding][, outputEncoding])
@@ -746,10 +746,11 @@ const hash = crypto.createHash('sha256');
 
 hash.on('readable', () => {
   const data = hash.read();
-  if (data)
+  if (data) {
     console.log(data.toString('hex'));
     // Prints:
     //   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50
+  }
 });
 
 hash.write('some data to hash');
@@ -836,10 +837,11 @@ const hmac = crypto.createHmac('sha256', 'a secret');
 
 hmac.on('readable', () => {
   const data = hmac.read();
-  if (data)
+  if (data) {
     console.log(data.toString('hex'));
     // Prints:
     //   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e
+  }
 });
 
 hmac.write('some data to hash');
@@ -1641,8 +1643,8 @@ added: v1.1.0
   - `key` {string} A PEM encoded private key.
   - `passphrase` {string} An optional passphrase for the private key.
   - `padding` {crypto.constants} An optional padding value defined in
-    `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`,
-    `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`.
+    `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or
+    `RSA_PKCS1_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
 
 Decrypts `buffer` with `publicKey`.

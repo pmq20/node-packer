@@ -21,26 +21,22 @@
 
 'use strict';
 const common = require('../common');
-const assert = require('assert');
-
-if (!common.opensslCli) {
-  common.skip('node compiled without OpenSSL CLI.');
-  return;
-}
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
-const tls = require('tls');
 
+if (!common.opensslCli)
+  common.skip('node compiled without OpenSSL CLI.');
+
+const assert = require('assert');
+const { spawn } = require('child_process');
 const fs = require('fs');
-const spawn = require('child_process').spawn;
+const path = require('path');
+const tls = require('tls');
 
 let success = false;
 
 function filenamePEM(n) {
-  return require('path').join(common.fixturesDir, 'keys', `${n}.pem`);
+  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
 }
 
 function loadPEM(n) {

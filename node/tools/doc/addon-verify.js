@@ -66,7 +66,10 @@ function verifyFiles(files, blockName, onprogress, ondone) {
     if (name === 'test.js') {
       files[name] = `'use strict';
 const common = require('../../common');
-${files[name].replace('Release', "' + common.buildType + '")}
+${files[name].replace(
+    "'./build/Release/addon'",
+    // eslint-disable-next-line no-template-curly-in-string
+    '`./build/${common.buildType}/addon`')}
 `;
     }
     return {
@@ -94,7 +97,7 @@ ${files[name].replace('Release', "' + common.buildType + '")}
   fs.mkdir(dir, function() {
     // Ignore errors
 
-    var done = once(ondone);
+    const done = once(ondone);
     var waiting = files.length;
     files.forEach(function(file) {
       fs.writeFile(file.path, file.content, function(err) {

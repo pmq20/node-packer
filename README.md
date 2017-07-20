@@ -57,8 +57,8 @@ Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this z
 First install the prerequisites:
 
 * [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
-* `gcc` and `g++` 4.8.2 or newer, or
-* `clang` and `clang++` 3.4 or newer
+* `gcc` and `g++` 4.9.4 or newer, or
+* `clang` and `clang++` 3.4.2 or newer
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 

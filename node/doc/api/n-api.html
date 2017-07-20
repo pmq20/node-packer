@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.1.4 Documentation</title>
+  <title>N-API | Node.js v8.2.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -44,6 +44,7 @@
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +78,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.1.4 Documentation</h1>
+        <h1>Node.js v8.2.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -129,6 +130,10 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_create_range_error">napi_create_range_error</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_and_clear_last_exception">napi_get_and_clear_last_exception</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_is_exception_pending">napi_is_exception_pending</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#n_api_fatal_errors">Fatal Errors</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_fatal_error">napi_fatal_error</a></span></li>
 </ul>
 </li>
 </ul>
@@ -232,12 +237,15 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_set_property"><em>napi_set_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_property"><em>napi_get_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_property"><em>napi_has_property</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_delete_property"><em>napi_delete_property</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_has_own_property"><em>napi_has_own_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_set_named_property"><em>napi_set_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_named_property"><em>napi_get_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_named_property"><em>napi_has_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_set_element"><em>napi_set_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_element"><em>napi_get_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_element"><em>napi_has_element</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_delete_element"><em>napi_delete_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_define_properties"><em>napi_define_properties</em></a></span></li>
 </ul>
 </li>
@@ -315,7 +323,7 @@ handling section <a href="#n_api_error_handling">Error Handling</a>.</li>
 <li><a href="#n_api_working_with_javascript_properties">Working with JavaScript Properties</a></li>
 <li><a href="#n_api_working_with_javascript_functions">Working with JavaScript Functions</a></li>
 <li><a href="#n_api_object_wrap">Object Wrap</a></li>
-<li>[Aynchronous Operations][]</li>
+<li><a href="#n_api_asynchronous_operations">Asynchronous Operations</a></li>
 </ul>
 <p>The N-API is a C API that ensures ABI stability across Node.js versions
 and different compiler levels. However, we also understand that a C++
@@ -475,7 +483,7 @@ The format of the <code>napi_extended_error_info</code> structure is as follows:
 };
 </code></pre>
 <ul>
-<li><code>error_message</code>: Textual representation of the error that occured.</li>
+<li><code>error_message</code>: Textual representation of the error that occurred.</li>
 <li><code>engine_reserved</code>: Opaque handle reserved for engine use only.</li>
 <li><code>engine_error_code</code>: VM specific error code.</li>
 <li><code>error_code</code>: n-api status code for the last error.</li>
@@ -499,7 +507,9 @@ information about the error.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API retrieves a <code>napi_extended_error_info</code> structure with information
-about the last error that occured.</p>
+about the last error that occurred.</p>
+<p><em>Note</em>: The content of the <code>napi_extended_error_info</code> returned is only
+valid up until an n-api function is called on the same <code>env</code>.</p>
 <p><em>Note</em>: Do not rely on the content or format of any of the extended
 information as it is not subject to SemVer and may change at any time.
 It is intended only for logging purposes.</p>
@@ -672,6 +682,19 @@ used as the message for the Error.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API returns true if an exception is pending.</p>
+<h3>Fatal Errors<span><a class="mark" href="#n_api_fatal_errors" id="n_api_fatal_errors">#</a></span></h3>
+<p>In the event of an unrecoverable error in a native module, a fatal error can be
+thrown to immediately terminate the process.</p>
+<h4>napi_fatal_error<span><a class="mark" href="#n_api_napi_fatal_error" id="n_api_napi_fatal_error">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN NAPI_NO_RETURN void napi_fatal_error(const char* location, const char* message);
+</code></pre>
+<ul>
+<li><code>[in] location</code>: Optional location at which the error occurred.</li>
+<li><code>[in] message</code>: The message associated with the error.</li>
+</ul>
+<p>The function call does not return, the process will be terminated.</p>
 <h2>Object Lifetime management<span><a class="mark" href="#n_api_object_lifetime_management" id="n_api_object_lifetime_management">#</a></span></h2>
 <p>As N-API calls are made, handles to objects in the heap for the underlying
 VM may be returned as <code>napi_values</code>. These handles must hold the
@@ -2072,7 +2095,7 @@ won&#39;t be used).</li>
 <li><code>data</code>: The callback data passed into <code>method</code>, <code>getter</code> and <code>setter</code> if
 this function is invoked.</li>
 <li><code>attributes</code>: The attributes associated with the particular property.
-See <a href="#napi_property_attributes"><code>napi_property_attributes</code></a>.</li>
+See <a href="#n_api_napi_property_attributes"><code>napi_property_attributes</code></a>.</li>
 </ul>
 <h3>Functions<span><a class="mark" href="#n_api_functions" id="n_api_functions">#</a></span></h3>
 <h4><em>napi_get_property_names</em><span><a class="mark" href="#n_api_napi_get_property_names" id="n_api_napi_get_property_names">#</a></span></h4>
@@ -2140,6 +2163,41 @@ and <a href="#n_api_napi_get_element"><code>napi_get_element</code></a>.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API checks if the Object passed in has the named property.</p>
+<h4><em>napi_delete_property</em><span><a class="mark" href="#n_api_napi_delete_property" id="n_api_napi_delete_property">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_delete_property(napi_env env,
+                                 napi_value object,
+                                 napi_value key,
+                                 bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] key</code>: The name of the property to delete.</li>
+<li><code>[out] result</code>: Whether the property deletion succeeded or not. <code>result</code> can
+optionally be ignored by passing <code>NULL</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API attempts to delete the <code>key</code> own property from <code>object</code>.</p>
+<h4><em>napi_has_own_property</em><span><a class="mark" href="#n_api_napi_has_own_property" id="n_api_napi_has_own_property">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_has_own_property(napi_env env,
+                                  napi_value object,
+                                  napi_value key,
+                                  bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] key</code>: The name of the own property whose existence to check.</li>
+<li><code>[out] result</code>: Whether the own property exists on the object or not.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API checks if the Object passed in has the named own property. <code>key</code> must
+be a string or a Symbol, or an error will be thrown. N-API will not perform any
+conversion between data types.</p>
 <h4><em>napi_set_named_property</em><span><a class="mark" href="#n_api_napi_set_named_property" id="n_api_napi_set_named_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2240,6 +2298,23 @@ created from the string passed in as <code>utf8Name</code></p>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API returns if the Object passed in has an element at the
 requested index.</p>
+<h4><em>napi_delete_element</em><span><a class="mark" href="#n_api_napi_delete_element" id="n_api_napi_delete_element">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_delete_element(napi_env env,
+                                napi_value object,
+                                uint32_t index,
+                                bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] index</code>: The index of the property to delete.</li>
+<li><code>[out] result</code>: Whether the element deletion succeeded or not. <code>result</code> can
+optionally be ignored by passing <code>NULL</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API attempts to delete the specified <code>index</code> from <code>object</code>.</p>
 <h4><em>napi_define_properties</em><span><a class="mark" href="#n_api_napi_define_properties" id="n_api_napi_define_properties">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2598,8 +2673,8 @@ finalize callback.</li>
 <li><code>[out] result</code>: Optional reference to the wrapped object.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>Wraps a native instance in JavaScript object of the corresponding type.
-The native instance can be retrieved later using <code>napi_unwrap()</code>.</p>
+<p>Wraps a native instance in a JavaScript object. The native instance can be
+retrieved later using <code>napi_unwrap()</code>.</p>
 <p>When JavaScript code invokes a constructor for a class that was defined using
 <code>napi_define_class()</code>, the <code>napi_callback</code> for the constructor is invoked.
 After constructing an instance of the native class, the callback must then call
@@ -2621,6 +2696,9 @@ required in order to enable correct proper of the reference.</p>
 <p><em>Note</em>: This API may modify the prototype chain of the wrapper object.
 Afterward, additional manipulation of the wrapper&#39;s prototype chain may cause
 <code>napi_unwrap()</code> to fail.</p>
+<p><em>Note</em>: Calling <code>napi_wrap()</code> a second time on an object that already has a
+native instance associated with it by virtue of a previous call to
+<code>napi_wrap()</code> will cause an error to be returned.</p>
 <h3><em>napi_unwrap</em><span><a class="mark" href="#n_api_napi_unwrap" id="n_api_napi_unwrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>

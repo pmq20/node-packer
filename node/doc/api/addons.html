@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>C++ Addons | Node.js v8.1.4 Documentation</title>
+  <title>C++ Addons | Node.js v8.2.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -44,6 +44,7 @@
 <li><a class="nav-http" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +78,7 @@
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v8.1.4 Documentation</h1>
+        <h1>Node.js v8.2.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -123,7 +124,7 @@
       <div id="apicontent">
         <h1>C++ Addons<span><a class="mark" href="#addons_c_addons" id="addons_c_addons">#</a></span></h1>
 <p>Node.js Addons are dynamically-linked shared objects, written in C++, that
-can be loaded into Node.js using the <a href="globals.html#globals_require"><code>require()</code></a> function, and used
+can be loaded into Node.js using the <a href="modules.html#modules_require"><code>require()</code></a> function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
 provide an interface between JavaScript running in Node.js and C/C++ libraries.</p>
 <p>At the moment, the method for implementing Addons is rather complicated,
@@ -234,7 +235,7 @@ file. This will be put into the <code>build/Release/</code> directory.</p>
 version of <code>node-gyp</code> to perform this same set of actions, generating a
 compiled version of the Addon for the user&#39;s platform on demand.</p>
 <p>Once built, the binary Addon can be used from within Node.js by pointing
-<a href="globals.html#globals_require"><code>require()</code></a> to the built <code>addon.node</code> module:</p>
+<a href="modules.html#modules_require"><code>require()</code></a> to the built <code>addon.node</code> module:</p>
 <pre><code class="lang-js">// hello.js
 const addon = require(&#39;./build/Release/addon&#39;);
 
@@ -276,15 +277,15 @@ dependencies.</p>
 </ul>
 <h3>Loading Addons using require()<span><a class="mark" href="#addons_loading_addons_using_require" id="addons_loading_addons_using_require">#</a></span></h3>
 <p>The filename extension of the compiled Addon binary is <code>.node</code> (as opposed
-to <code>.dll</code> or <code>.so</code>). The <a href="globals.html#globals_require"><code>require()</code></a> function is written to look for
+to <code>.dll</code> or <code>.so</code>). The <a href="modules.html#modules_require"><code>require()</code></a> function is written to look for
 files with the <code>.node</code> file extension and initialize those as dynamically-linked
 libraries.</p>
-<p>When calling <a href="globals.html#globals_require"><code>require()</code></a>, the <code>.node</code> extension can usually be
+<p>When calling <a href="modules.html#modules_require"><code>require()</code></a>, the <code>.node</code> extension can usually be
 omitted and Node.js will still find and initialize the Addon. One caveat,
 however, is that Node.js will first attempt to locate and load modules or
 JavaScript files that happen to share the same base name. For instance, if
 there is a file <code>addon.js</code> in the same directory as the binary <code>addon.node</code>,
-then <a href="globals.html#globals_require"><code>require(&#39;addon&#39;)</code></a> will give precedence to the <code>addon.js</code> file
+then <a href="modules.html#modules_require"><code>require(&#39;addon&#39;)</code></a> will give precedence to the <code>addon.js</code> file
 and load it instead.</p>
 <h2>Native Abstractions for Node.js<span><a class="mark" href="#addons_native_abstractions_for_node_js" id="addons_native_abstractions_for_node_js">#</a></span></h2>
 <p>Each of the examples illustrated in this document make direct use of the

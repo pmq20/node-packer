@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HTTP | Node.js v8.1.4 Documentation</title>
+  <title>HTTP | Node.js v8.2.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -44,6 +44,7 @@
 <li><a class="nav-http active" href="http.html">HTTP</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +78,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v8.1.4 Documentation</h1>
+        <h1>Node.js v8.2.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -116,11 +117,13 @@
 <li><span class="stability_undefined"><a href="#http_event_upgrade">Event: &#39;upgrade&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_abort">request.abort()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_aborted">request.aborted</a></span></li>
+<li><span class="stability_undefined"><a href="#http_request_connection">request.connection</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_end_data_encoding_callback">request.end([data[, encoding]][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_flushheaders">request.flushHeaders()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_setnodelay_nodelay">request.setNoDelay([noDelay])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_setsocketkeepalive_enable_initialdelay">request.setSocketKeepAlive([enable][, initialDelay])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_settimeout_timeout_callback">request.setTimeout(timeout[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_request_socket">request.socket</a></span></li>
 <li><span class="stability_undefined"><a href="#http_request_write_chunk_encoding_callback">request.write(chunk[, encoding][, callback])</a></span></li>
 </ul>
 </li>
@@ -148,6 +151,7 @@
 <li><span class="stability_undefined"><a href="#http_event_close_1">Event: &#39;close&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_finish">Event: &#39;finish&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_addtrailers_headers">response.addTrailers(headers)</a></span></li>
+<li><span class="stability_undefined"><a href="#http_response_connection">response.connection</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_end_data_encoding_callback">response.end([data][, encoding][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_finished">response.finished</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_getheader_name">response.getHeader(name)</a></span></li>
@@ -159,6 +163,7 @@
 <li><span class="stability_undefined"><a href="#http_response_senddate">response.sendDate</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_setheader_name_value">response.setHeader(name, value)</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_settimeout_msecs_callback">response.setTimeout(msecs[, callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_response_socket">response.socket</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_statuscode">response.statusCode</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_statusmessage">response.statusMessage</a></span></li>
 <li><span class="stability_undefined"><a href="#http_response_write_chunk_encoding_callback">response.write(chunk[, encoding][, callback])</a></span></li>
@@ -204,7 +209,7 @@ In particular, large, possibly chunk-encoded, messages. The interface is
 careful to never buffer entire requests or responses--the
 user is able to stream data.</p>
 <p>HTTP message headers are represented by an object like this:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{ &#39;content-length&#39;: &#39;123&#39;,
   &#39;content-type&#39;: &#39;text/plain&#39;,
   &#39;connection&#39;: &#39;keep-alive&#39;,
@@ -598,6 +603,13 @@ in the response to be dropped and the socket to be destroyed.</p>
 <span>Added in: v0.11.14</span>
 </div><p>If a request has been aborted, this value is the time when the request was
 aborted, in milliseconds since 1 January 1970 00:00:00 UTC.</p>
+<h3>request.connection<span><a class="mark" href="#http_request_connection" id="http_request_connection">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>See <a href="#http_request_socket"><code>request.socket</code></a></p>
 <h3>request.end([data[, encoding]][, callback])<span><a class="mark" href="#http_request_end_data_encoding_callback" id="http_request_end_data_encoding_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
@@ -610,7 +622,7 @@ aborted, in milliseconds since 1 January 1970 00:00:00 UTC.</p>
 unsent, it will flush them to the stream. If the request is
 chunked, this will send the terminating <code>&#39;0\r\n\r\n&#39;</code>.</p>
 <p>If <code>data</code> is specified, it is equivalent to calling
-<a href="#http_response_write_chunk_encoding_callback"><code>response.write(data, encoding)</code></a> followed by <code>request.end(callback)</code>.</p>
+<a href="#http_request_write_chunk_encoding_callback"><code>request.write(data, encoding)</code></a> followed by <code>request.end(callback)</code>.</p>
 <p>If <code>callback</code> is specified, it will be called when the request stream
 is finished.</p>
 <h3>request.flushHeaders()<span><a class="mark" href="#http_request_flushheaders" id="http_request_flushheaders">#</a></span></h3>
@@ -650,6 +662,25 @@ the optimization and kickstarts the request.</p>
 <p>Once a socket is assigned to this request and is connected
 <a href="net.html#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> will be called.</p>
 <p>Returns <code>request</code>.</p>
+<h3>request.socket<span><a class="mark" href="#http_request_socket" id="http_request_socket">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>Reference to the underlying socket. Usually users will not want to access
+this property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events
+because of how the protocol parser attaches to the socket. After
+<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed
+via <code>request.connection</code>.</p>
+<p>Example:</p>
+<pre><code class="lang-js">const http = require(&#39;http&#39;);
+const server = http.createServer((req, res) =&gt; {
+  const ip = req.socket.remoteAddress;
+  const port = req.socket.remotePort;
+  res.end(`Your IP address is ${ip} and your source port is ${port}.`);
+}).listen(3000);
+</code></pre>
 <h3>request.write(chunk[, encoding][, callback])<span><a class="mark" href="#http_request_write_chunk_encoding_callback" id="http_request_write_chunk_encoding_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.29</span>
@@ -853,7 +884,7 @@ The actual length will be determined by the OS through sysctl settings such as
 <code>tcp_max_syn_backlog</code> and <code>somaxconn</code> on linux. The default value of this
 parameter is 511 (not 512).</p>
 <p>This function is asynchronous. <code>callback</code> will be added as a listener for the
-<a href="net.html#net_event_listening"><code>&#39;listening&#39;</code></a> event.  See also <a href="net.html#net_server_listen_port_hostname_backlog_callback"><code>net.Server.listen(port)</code></a>.</p>
+<a href="net.html#net_event_listening"><code>&#39;listening&#39;</code></a> event.  See also <a href="net.html#net_server_listen_port_host_backlog_callback"><code>net.Server.listen(port)</code></a>.</p>
 <p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each
 subsequent call will <em>re-open</em> the server using the provided options.</p>
 <h3>server.listening<span><a class="mark" href="#http_server_listening" id="http_server_listening">#</a></span></h3>
@@ -954,6 +985,13 @@ response.end();
 </code></pre>
 <p>Attempting to set a header field name or value that contains invalid characters
 will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> being thrown.</p>
+<h3>response.connection<span><a class="mark" href="#http_response_connection" id="http_response_connection">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>See <a href="#http_response_socket"><code>response.socket</code></a>.</p>
 <h3>response.end([data][, encoding][, callback])<span><a class="mark" href="#http_response_end_data_encoding_callback" id="http_response_end_data_encoding_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
@@ -1109,6 +1147,25 @@ the server, then sockets are destroyed when they time out.  If a handler is
 assigned to the request, the response, or the server&#39;s <code>&#39;timeout&#39;</code> events,
 timed out sockets must be handled explicitly.</p>
 <p>Returns <code>response</code>.</p>
+<h3>response.socket<span><a class="mark" href="#http_response_socket" id="http_response_socket">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>Reference to the underlying socket. Usually users will not want to access
+this property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events
+because of how the protocol parser attaches to the socket. After
+<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed
+via <code>response.connection</code>.</p>
+<p>Example:</p>
+<pre><code class="lang-js">const http = require(&#39;http&#39;);
+const server = http.createServer((req, res) =&gt; {
+  const ip = req.socket.remoteAddress;
+  const port = req.socket.remotePort;
+  res.end(`Your IP address is ${ip} and your source port is ${port}.`);
+}).listen(3000);
+</code></pre>
 <h3>response.statusCode<span><a class="mark" href="#http_response_statuscode" id="http_response_statuscode">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.4.0</span>

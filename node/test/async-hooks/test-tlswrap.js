@@ -1,18 +1,16 @@
 'use strict';
 
 const common = require('../common');
+if (!common.hasCrypto)
+  common.skip('missing crypto');
+
 const assert = require('assert');
 const tick = require('./tick');
 const initHooks = require('./init-hooks');
 const fs = require('fs');
 const { checkInvocations } = require('./hook-checks');
-
-if (!common.hasCrypto) {
-  common.skip('missing crypto');
-  return;
-}
-
 const tls = require('tls');
+
 const hooks = initHooks();
 hooks.enable();
 
@@ -43,7 +41,7 @@ function onlistening() {
 
   assert.strictEqual(svr.type, 'TLSWRAP');
   assert.strictEqual(typeof svr.uid, 'number');
-  assert.strictEqual(typeof svr.triggerId, 'number');
+  assert.strictEqual(typeof svr.triggerAsyncId, 'number');
   checkInvocations(svr, { init: 1 }, 'server: when client connecting');
 }
 
@@ -56,7 +54,7 @@ function onsecureConnection() {
   client = as[1];
   assert.strictEqual(client.type, 'TLSWRAP');
   assert.strictEqual(typeof client.uid, 'number');
-  assert.strictEqual(typeof client.triggerId, 'number');
+  assert.strictEqual(typeof client.triggerAsyncId, 'number');
 
   // TODO(thlorenz) which callback did the server wrap execute that already
   // finished as well?

@@ -22,10 +22,11 @@
 'use strict';
 const common = require('../common');
 
-if (!common.opensslCli) {
+if (!common.hasCrypto)
+  common.skip('missing crypto');
+
+if (!common.opensslCli)
   common.skip('node compiled without OpenSSL CLI.');
-  return;
-}
 
 // This is a rather complex test which sets up various TLS servers with node
 // and connects to them using the 'openssl s_client' command line utility
@@ -34,6 +35,14 @@ if (!common.opensslCli) {
 // - rejected,
 // - accepted and "unauthorized", or
 // - accepted and "authorized".
+
+const assert = require('assert');
+const { spawn } = require('child_process');
+const { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } =
+  require('crypto').constants;
+const fs = require('fs');
+const path = require('path');
+const tls = require('tls');
 
 const testCases =
   [{ title: 'Do not request certs. Everyone is unauthorized.',
@@ -119,22 +128,9 @@ const testCases =
   }
   ];
 
-if (!common.hasCrypto) {
-  common.skip('missing crypto');
-  return;
-}
-const tls = require('tls');
-
-const SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION =
-  require('crypto').constants.SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION;
-
-const assert = require('assert');
-const fs = require('fs');
-const spawn = require('child_process').spawn;
-
 
 function filenamePEM(n) {
-  return require('path').join(common.fixturesDir, 'keys', `${n}.pem`);
+  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
 }
 
 
@@ -217,7 +213,7 @@ function runClient(prefix, port, options, cb) {
   client.stdout.on('data', function(d) {
     out += d;
 
-    if (!goodbye && /_unauthed/g.test(out)) {
+    if (!goodbye && /_unauthed/.test(out)) {
       console.error(`${prefix}  * unauthed`);
       goodbye = true;
       client.kill();
@@ -225,7 +221,7 @@ function runClient(prefix, port, options, cb) {
       rejected = false;
     }
 
-    if (!goodbye && /_authed/g.test(out)) {
+    if (!goodbye && /_authed/.test(out)) {
       console.error(`${prefix}  * authed`);
       goodbye = true;
       client.kill();

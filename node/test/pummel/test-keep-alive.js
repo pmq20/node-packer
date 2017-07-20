@@ -23,15 +23,13 @@
 
 // This test requires the program 'wrk'
 const common = require('../common');
+if (common.isWindows)
+  common.skip('no `wrk` on windows');
+
 const assert = require('assert');
 const spawn = require('child_process').spawn;
 const http = require('http');
 const url = require('url');
-
-if (common.isWindows) {
-  common.skip('no `wrk` on windows');
-  return;
-}
 
 const body = 'hello world\n';
 const server = http.createServer(function(req, res) {
@@ -79,10 +77,10 @@ function runAb(opts, callback) {
       return;
     }
 
-    let matches = /Requests\/sec:\s*(\d+)\./mi.exec(stdout);
+    let matches = /Requests\/sec:\s*(\d+)\./i.exec(stdout);
     const reqSec = parseInt(matches[1]);
 
-    matches = /Keep-Alive requests:\s*(\d+)/mi.exec(stdout);
+    matches = /Keep-Alive requests:\s*(\d+)/i.exec(stdout);
     let keepAliveRequests;
     if (matches) {
       keepAliveRequests = parseInt(matches[1]);

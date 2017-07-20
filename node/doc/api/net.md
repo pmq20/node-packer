@@ -40,7 +40,7 @@ double-backslashes, such as:
 
 ```js
 net.createServer().listen(
-    path.join('\\\\?\\pipe', process.cwd(), 'myctl'));
+  path.join('\\\\?\\pipe', process.cwd(), 'myctl'));
 ```
 
 ## Class: net.Server
@@ -161,6 +161,8 @@ connections use asynchronous `server.getConnections` instead.
 <!-- YAML
 added: v0.9.7
 -->
+
+* Returns {net.Server}
 
 Asynchronously get the number of concurrent connections on the server. Works
 when sockets were sent to forks.
@@ -642,6 +644,8 @@ callback.
 <!-- YAML
 added: v0.1.90
 -->
+
+* Returns: {net.Socket}
 
 Ensures that no more I/O activity happens on this socket. Only necessary in
 case of errors (parse error or so).

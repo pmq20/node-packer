@@ -420,7 +420,7 @@ TLSSocket.prototype._init = function(socket, wrap) {
 
   // lib/net.js expect this value to be non-zero if write hasn't been flushed
   // immediately
-  // TODO(indutny): rewise this solution, it might be 1 before handshake and
+  // TODO(indutny): revise this solution, it might be 1 before handshake and
   // represent real writeQueueSize during regular writes.
   ssl.writeQueueSize = 1;
 
@@ -659,7 +659,7 @@ TLSSocket.prototype.setSession = function(session) {
 TLSSocket.prototype.getPeerCertificate = function(detailed) {
   if (this._handle) {
     return common.translatePeerCertificate(
-        this._handle.getPeerCertificate(detailed));
+      this._handle.getPeerCertificate(detailed));
   }
 
   return null;
@@ -723,7 +723,7 @@ TLSSocket.prototype.getProtocol = function() {
 // outcomes:
 //
 //   A) verifyError returns null meaning the client's certificate is signed
-//   by one of the server's CAs. The server know's the client idenity now
+//   by one of the server's CAs. The server now knows the client's identity
 //   and the client is authorized.
 //
 //   B) For some reason the client's certificate is not acceptable -
@@ -993,7 +993,7 @@ function normalizeConnectArgs(listArgs) {
   var cb = args[1];
 
   // If args[0] was options, then normalize dealt with it.
-  // If args[0] is port, or args[0], args[1]  is host,port, we need to
+  // If args[0] is port, or args[0], args[1] is host, port, we need to
   // find the options and merge them in, normalize's options has only
   // the host/port/path args that it knows about, not the tls options.
   // This means that options.host overrides a host arg.
@@ -1129,6 +1129,10 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
       socket._hadError = true;
       var error = new Error('socket hang up');
       error.code = 'ECONNRESET';
+      error.path = options.path;
+      error.host = options.host;
+      error.port = options.port;
+      error.localAddress = options.localAddress;
       socket.destroy(error);
     }
   }

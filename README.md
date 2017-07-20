@@ -2,6 +2,8 @@
 
 *Ahead-of-time (AOT) Compiler designed for Node.js, that just works.*
 
+[![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
+[![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
 [![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-compiler.svg)](https://badge.fury.io/gh/pmq20%2Fnode-compiler)
 
 ![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
@@ -15,13 +17,6 @@
 - Native C++ modules are fully supported
 - Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
-
-## Development Status
-
-|                     |          Master&#160;CI                                                                                                                                             |   RAM&#160;CI                                                                                                                                                             |                      Black&#x2011;box&#160;CI                                                                                                 |
-|:-------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
-|     **Windows**     | [![status](https://ci.appveyor.com/api/projects/status/gap9xne0rayjtynp/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master) |  [![status](https://ci.appveyor.com/api/projects/status/thpogkfsvij3r278/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-ram/branch/master)  | [![status](https://ci.appveyor.com/api/projects/status/83a2wt22mfejiehe?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler-blbt)  |
-|  **macOS / Linux**  | [![status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)                                                 |  [![Status](https://travis-ci.org/pmq20/node-compiler-ram.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-ram)                                              | [![Status](https://travis-ci.org/pmq20/node-compiler-blbt.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler-blbt)                 |
 
 ## Get Started
 

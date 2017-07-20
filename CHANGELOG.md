@@ -16,6 +16,7 @@
 - remove `node_main.obj` before compiling to avoid a MS toolchain bug
 - make nodec version part of the tmpdir namings
   - https://github.com/pmq20/node-compiler/issues/42
+- use only the master CI
 
 ## v1.3.0
 

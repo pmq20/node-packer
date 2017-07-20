@@ -3,8 +3,6 @@
 - Compile to bytecode via v8 Ignition
   - https://github.com/nodejs/node/issues/11842
 - eliminate dependending on an outside Node.js and npm when compiling
-- remove `node/doc`
-- remove `node/deps/npm`
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json
     - Support arbitrary Node.js runtime versions

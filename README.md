@@ -52,6 +52,8 @@ Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this z
 First install the prerequisites:
 
 * [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
+  - `sudo yum install squashfs-tools`
+  - `sudo apt-get install squashfs-tools`
 * `gcc` and `g++` 4.9.4 or newer, or
 * `clang` and `clang++` 3.4.2 or newer
 * Python 2.6 or 2.7

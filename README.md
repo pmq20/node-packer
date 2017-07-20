@@ -26,9 +26,9 @@ You won't need to modify a single line of code in your application, no matter ho
 
 |    Operating System   | Architecture |           Latest&#160;Stable                 |
 |:---------------------:|:------------:|----------------------------------------------|
-|      **Windows**      |    x86-64    | http://enclose.io/nodec/nodec-x64.zip        |
-|       **macOS**       |    x86-64    | http://enclose.io/nodec/nodec-darwin-x64.gz  |
-|       **Linux**       |    x86-64    | http://enclose.io/nodec/nodec-linux-x64.gz   |
+|        Windows        |    x86-64    | http://enclose.io/nodec/nodec-x64.zip        |
+|         macOS         |    x86-64    | http://enclose.io/nodec/nodec-darwin-x64.gz  |
+|         Linux         |    x86-64    | http://enclose.io/nodec/nodec-linux-x64.gz   |
 
 For previous releases, cf. http://enclose.io/nodec
 

@@ -24,7 +24,7 @@ It takes less than 5 minutes to compile any project with `node-compiler`.
 
 You won't need to modify a single line of code in your application, no matter how you developed it as long as it works in plain node.js!
 
-|                       | Architecture |           Latest&#160;Stable                 |
+|    Operating System   | Architecture |           Latest&#160;Stable                 |
 |:---------------------:|:------------:|----------------------------------------------|
 |      **Windows**      |    x86-64    | http://enclose.io/nodec/nodec-x64.zip        |
 |       **macOS**       |    x86-64    | http://enclose.io/nodec/nodec-darwin-x64.gz  |

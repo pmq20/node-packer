@@ -1,0 +1,228 @@
+{
+  "source": "doc/api/inspector.md",
+  "modules": [
+    {
+      "textRaw": "Inspector",
+      "name": "inspector",
+      "stability": 1,
+      "stabilityText": "Experimental",
+      "desc": "<p>The <code>inspector</code> module provides an API for interacting with the V8 inspector.</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const inspector = require(&#39;inspector&#39;);\n</code></pre>\n",
+      "methods": [
+        {
+          "textRaw": "inspector.open([port[, host[, wait]]])",
+          "type": "method",
+          "name": "open",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "port {number} Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "name": "port",
+                  "type": "number",
+                  "desc": "Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "host {string} Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "name": "host",
+                  "type": "string",
+                  "desc": "Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "wait {boolean} Block until a client has connected. Optional, defaults to false. ",
+                  "name": "wait",
+                  "type": "boolean",
+                  "desc": "Block until a client has connected. Optional, defaults to false.",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "port",
+                  "optional": true
+                },
+                {
+                  "name": "host",
+                  "optional": true
+                },
+                {
+                  "name": "wait",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Activate inspector on host and port. Equivalent to <code>node\n--inspect=[[host:]port]</code>, but can be done programatically after node has\nstarted.</p>\n<p>If wait is <code>true</code>, will block until a client has connected to the inspect port\nand flow control has been passed to the debugger client.</p>\n",
+          "methods": [
+            {
+              "textRaw": "inspector.close()",
+              "type": "method",
+              "name": "close",
+              "desc": "<p>Deactivate the inspector. Blocks until there are no active connections.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "inspector.url()",
+              "type": "method",
+              "name": "url",
+              "desc": "<p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "textRaw": "Class: inspector.Session",
+          "type": "class",
+          "name": "inspector.Session",
+          "desc": "<p>The <code>inspector.Session</code> is used for dispatching messages to the V8 inspector\nback-end and receiving message responses and notifications.</p>\n",
+          "methods": [
+            {
+              "textRaw": "Constructor: new inspector.Session()",
+              "type": "method",
+              "name": "Session",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Create a new instance of the <code>inspector.Session</code> class. The inspector session\nneeds to be connected through <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> before the messages\ncan be dispatched to the inspector backend.</p>\n<p><code>inspector.Session</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "session.connect()",
+              "type": "method",
+              "name": "connect",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Connects a session to the inspector back-end. An exception will be thrown\nif there is already a connected session established either through the API or by\na front-end connected to the Inspector WebSocket port.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "session.post(method[, params][, callback])",
+              "type": "method",
+              "name": "post",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "method {string} ",
+                      "name": "method",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "params {Object} ",
+                      "name": "params",
+                      "type": "Object",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "callback {Function} ",
+                      "name": "callback",
+                      "type": "Function",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "method"
+                    },
+                    {
+                      "name": "params",
+                      "optional": true
+                    },
+                    {
+                      "name": "callback",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"lang-js\">session.post(&#39;Runtime.evaluate&#39;, { expression: &#39;2 + 2&#39; },\n             (error, { result }) =&gt; console.log(result));\n// Output: { type: &#39;number&#39;, value: 4, description: &#39;4&#39; }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n"
+            },
+            {
+              "textRaw": "session.disconnect()",
+              "type": "method",
+              "name": "disconnect",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "textRaw": "Event: 'inspectorNotification'",
+              "type": "event",
+              "name": "inspectorNotification",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when any notification from the V8 Inspector is received.</p>\n<pre><code class=\"lang-js\">session.on(&#39;inspectorNotification&#39;, (message) =&gt; console.log(message.method));\n// Debugger.paused\n// Debugger.resumed\n</code></pre>\n<p>It is also possible to subscribe only to notifications with specific method:</p>\n"
+            },
+            {
+              "textRaw": "Event: &lt;inspector-protocol-method&gt;",
+              "type": "event",
+              "name": "&lt;inspector-protocol-method&gt;",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({ params }) =&gt; {\n  console.log(params.hitBreakpoints);\n});\n// [ &#39;/node/test/inspector/test-bindings.js:11:0&#39; ]\n</code></pre>\n"
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "Inspector"
+    }
+  ]
+}

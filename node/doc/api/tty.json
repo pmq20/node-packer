@@ -1,0 +1,148 @@
+{
+  "source": "doc/api/tty.md",
+  "modules": [
+    {
+      "textRaw": "TTY",
+      "name": "tty",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"lang-js\">const tty = require(&#39;tty&#39;);\n</code></pre>\n<p>When Node.js detects that it is being run inside a text terminal (&quot;TTY&quot;)\ncontext, the <code>process.stdin</code> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <code>process.stdout</code> and <code>process.stderr</code> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"lang-sh\">$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot;\ntrue\n$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot; | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\ncreate instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.</p>\n",
+      "classes": [
+        {
+          "textRaw": "Class: tty.ReadStream",
+          "type": "class",
+          "name": "tty.ReadStream",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>tty.ReadStream</code> class is a subclass of <code>net.Socket</code> that represents the\nreadable side of a TTY. In normal circumstances <code>process.stdin</code> will be the\nonly <code>tty.ReadStream</code> instance in a Node.js process and there should be no\nreason to create additional instances.</p>\n",
+          "properties": [
+            {
+              "textRaw": "readStream.isRaw",
+              "name": "isRaw",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a\nraw device. Defaults to <code>false</code>.</p>\n"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "readStream.setRawMode(mode)",
+              "type": "method",
+              "name": "setRawMode",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>\n<p>When in raw mode, input is always available character-by-character, not\nincluding modifiers. Additionally, all special processing of characters by the\nterminal is disabled, including echoing input characters.\nNote that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>\n<ul>\n<li><code>mode</code> {boolean} If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a\nraw device. If <code>false</code>, configures the <code>tty.ReadStream</code> to operate in its\ndefault mode. The <code>readStream.isRaw</code> property will be set to the resulting\nmode.</li>\n</ul>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "mode"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: tty.WriteStream",
+          "type": "class",
+          "name": "tty.WriteStream",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>tty.WriteStream</code> class is a subclass of <code>net.Socket</code> that represents the\nwritable side of a TTY. In normal circumstances, <code>process.stdout</code> and\n<code>process.stderr</code> will be the only <code>tty.WriteStream</code> instances created for a\nNode.js process and there should be no reason to create additional instances.</p>\n",
+          "events": [
+            {
+              "textRaw": "Event: 'resize'",
+              "type": "event",
+              "name": "resize",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n<p><em>Note</em>: On Windows resize events will be emitted only if stdin is unpaused\n(by a call to <code>resume()</code> or by adding a data listener) and in raw mode. It can\nalso be triggered if a terminal control sequence that moves the cursor is\nwritten to the screen. Also, the resize event will only be signaled if the\nconsole screen buffer height was also changed. For example shrinking the\nconsole window height will not cause the resize event to be emitted. Increasing\nthe console window height will only be registered when the new console window\nheight is greater than the current console buffer size.</p>\n",
+              "params": []
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "writeStream.columns",
+              "name": "columns",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A <code>number</code> specifying the number of columns the TTY currently has. This property\nis updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>\n"
+            },
+            {
+              "textRaw": "writeStream.rows",
+              "name": "rows",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A <code>number</code> specifying the number of rows the TTY currently has. This property\nis updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>\n"
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "tty.isatty(fd)",
+          "type": "method",
+          "name": "isatty",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`fd` {number} A numeric file descriptor ",
+                  "name": "fd",
+                  "type": "number",
+                  "desc": "A numeric file descriptor"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "fd"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with\na TTY and <code>false</code> if is not.</p>\n"
+        }
+      ],
+      "type": "module",
+      "displayName": "TTY"
+    }
+  ]
+}

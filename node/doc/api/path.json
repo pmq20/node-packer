@@ -1,0 +1,501 @@
+{
+  "source": "doc/api/path.md",
+  "modules": [
+    {
+      "textRaw": "Path",
+      "name": "path",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>path</code> module provides utilities for working with file and directory paths.\nIt can be accessed using:</p>\n<pre><code class=\"lang-js\">const path = require(&#39;path&#39;);\n</code></pre>\n",
+      "modules": [
+        {
+          "textRaw": "Windows vs. POSIX",
+          "name": "windows_vs._posix",
+          "desc": "<p>The default operation of the <code>path</code> module varies based on the operating system\non which a Node.js application is running. Specifically, when running on a\nWindows operating system, the <code>path</code> module will assume that Windows-style\npaths are being used.</p>\n<p>For example, using the <code>path.basename()</code> function with the Windows file path\n<code>C:\\temp\\myfile.html</code>, will yield different results when running on POSIX than\nwhen run on Windows:</p>\n<p>On POSIX:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;C:\\\\temp\\\\myfile.html&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with Windows file paths on any\noperating system, use <a href=\"#path_path_win32\"><code>path.win32</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.win32.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with POSIX file paths on any\noperating system, use <a href=\"#path_path_posix\"><code>path.posix</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.posix.basename(&#39;/tmp/myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.\nThis behavior can be observed when using a drive path without a backslash. For\nexample <code>path.resolve(&#39;c:\\\\&#39;)</code> can potentially return a different result than\n<code>path.resolve(&#39;c:&#39;)</code>. For more information, see\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths\">this MSDN page</a>.</p>\n",
+          "type": "module",
+          "displayName": "Windows vs. POSIX"
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "path.basename(path[, ext])",
+          "type": "method",
+          "name": "basename",
+          "meta": {
+            "added": [
+              "v0.1.25"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`ext` {string} An optional file extension ",
+                  "name": "ext",
+                  "type": "string",
+                  "desc": "An optional file extension",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                },
+                {
+                  "name": "ext",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.basename()</code> methods returns the last portion of a <code>path</code>, similar to\nthe Unix <code>basename</code> command. Trailing directory separators are ignored, see\n<a href=\"#path_path_sep\"><code>path.sep</code></a>.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;);\n// Returns: &#39;quux.html&#39;\n\npath.basename(&#39;/foo/bar/baz/asdf/quux.html&#39;, &#39;.html&#39;);\n// Returns: &#39;quux&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string or if <code>ext</code> is given\nand is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.dirname(path)",
+          "type": "method",
+          "name": "dirname",
+          "meta": {
+            "added": [
+              "v0.1.16"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.dirname()</code> method returns the directory name of a <code>path</code>, similar to\nthe Unix <code>dirname</code> command. Trailing directory separators are ignored, see\n<a href=\"#path_path_sep\"><code>path.sep</code></a>.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">path.dirname(&#39;/foo/bar/baz/asdf/quux&#39;);\n// Returns: &#39;/foo/bar/baz/asdf&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.extname(path)",
+          "type": "method",
+          "name": "extname",
+          "meta": {
+            "added": [
+              "v0.1.25"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5348",
+                "description": "Passing a non-string as the `path` argument will throw now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.extname()</code> method returns the extension of the <code>path</code>, from the last\noccurrence of the <code>.</code> (period) character to end of string in the last portion of\nthe <code>path</code>.  If there is no <code>.</code> in the last portion of the <code>path</code>, or if the\nfirst character of the basename of <code>path</code> (see <code>path.basename()</code>) is <code>.</code>, then\nan empty string is returned.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">path.extname(&#39;index.html&#39;);\n// Returns: &#39;.html&#39;\n\npath.extname(&#39;index.coffee.md&#39;);\n// Returns: &#39;.md&#39;\n\npath.extname(&#39;index.&#39;);\n// Returns: &#39;.&#39;\n\npath.extname(&#39;index&#39;);\n// Returns: &#39;&#39;\n\npath.extname(&#39;.index&#39;);\n// Returns: &#39;&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.format(pathObject)",
+          "type": "method",
+          "name": "format",
+          "meta": {
+            "added": [
+              "v0.11.15"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`pathObject` {Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`dir` {string} ",
+                      "name": "dir",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`root` {string} ",
+                      "name": "root",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`base` {string} ",
+                      "name": "base",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`name` {string} ",
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`ext` {string} ",
+                      "name": "ext",
+                      "type": "string"
+                    }
+                  ],
+                  "name": "pathObject",
+                  "type": "Object"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "pathObject"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.format()</code> method returns a path string from an object. This is the\nopposite of <a href=\"#path_path_parse_path\"><code>path.parse()</code></a>.</p>\n<p>When providing properties to the <code>pathObject</code> remember that there are\ncombinations where one property has priority over another:</p>\n<ul>\n<li><code>pathObject.root</code> is ignored if <code>pathObject.dir</code> is provided</li>\n<li><code>pathObject.ext</code> and <code>pathObject.name</code> are ignored if <code>pathObject.base</code> exists</li>\n</ul>\n<p>For example, on POSIX:</p>\n<pre><code class=\"lang-js\">// If `dir`, `root` and `base` are provided,\n// `${dir}${path.sep}${base}`\n// will be returned. `root` is ignored.\npath.format({\n  root: &#39;/ignored&#39;,\n  dir: &#39;/home/user/dir&#39;,\n  base: &#39;file.txt&#39;\n});\n// Returns: &#39;/home/user/dir/file.txt&#39;\n\n// `root` will be used if `dir` is not specified.\n// If only `root` is provided or `dir` is equal to `root` then the\n// platform separator will not be included. `ext` will be ignored.\npath.format({\n  root: &#39;/&#39;,\n  base: &#39;file.txt&#39;,\n  ext: &#39;ignored&#39;\n});\n// Returns: &#39;/file.txt&#39;\n\n// `name` + `ext` will be used if `base` is not specified.\npath.format({\n  root: &#39;/&#39;,\n  name: &#39;file&#39;,\n  ext: &#39;.txt&#39;\n});\n// Returns: &#39;/file.txt&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.format({\n  dir: &#39;C:\\\\path\\\\dir&#39;,\n  base: &#39;file.txt&#39;\n});\n// Returns: &#39;C:\\\\path\\\\dir\\\\file.txt&#39;\n</code></pre>\n"
+        },
+        {
+          "textRaw": "path.isAbsolute(path)",
+          "type": "method",
+          "name": "isAbsolute",
+          "meta": {
+            "added": [
+              "v0.11.2"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {boolean} ",
+                "name": "return",
+                "type": "boolean"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.isAbsolute()</code> method determines if <code>path</code> is an absolute path.</p>\n<p>If the given <code>path</code> is a zero-length string, <code>false</code> will be returned.</p>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.isAbsolute(&#39;/foo/bar&#39;); // true\npath.isAbsolute(&#39;/baz/..&#39;);  // true\npath.isAbsolute(&#39;qux/&#39;);     // false\npath.isAbsolute(&#39;.&#39;);        // false\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.isAbsolute(&#39;//server&#39;);    // true\npath.isAbsolute(&#39;\\\\\\\\server&#39;);  // true\npath.isAbsolute(&#39;C:/foo/..&#39;);   // true\npath.isAbsolute(&#39;C:\\\\foo\\\\..&#39;); // true\npath.isAbsolute(&#39;bar\\\\baz&#39;);    // false\npath.isAbsolute(&#39;bar/baz&#39;);     // false\npath.isAbsolute(&#39;.&#39;);           // false\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.join([...paths])",
+          "type": "method",
+          "name": "join",
+          "meta": {
+            "added": [
+              "v0.1.16"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`...paths` {string} A sequence of path segments ",
+                  "name": "...paths",
+                  "type": "string",
+                  "desc": "A sequence of path segments",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "...paths",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.join()</code> method joins all given <code>path</code> segments together using the\nplatform specific separator as a delimiter, then normalizes the resulting path.</p>\n<p>Zero-length <code>path</code> segments are ignored. If the joined path string is a\nzero-length string then <code>&#39;.&#39;</code> will be returned, representing the current\nworking directory.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">path.join(&#39;/foo&#39;, &#39;bar&#39;, &#39;baz/asdf&#39;, &#39;quux&#39;, &#39;..&#39;);\n// Returns: &#39;/foo/bar/baz/asdf&#39;\n\npath.join(&#39;foo&#39;, {}, &#39;bar&#39;);\n// throws &#39;TypeError: Path must be a string. Received {}&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.normalize(path)",
+          "type": "method",
+          "name": "normalize",
+          "meta": {
+            "added": [
+              "v0.1.23"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.normalize()</code> method normalizes the given <code>path</code>, resolving <code>&#39;..&#39;</code> and\n<code>&#39;.&#39;</code> segments.</p>\n<p>When multiple, sequential path segment separation characters are found (e.g.\n<code>/</code> on POSIX and either <code>\\</code> or <code>/</code> on Windows), they are replaced by a single\ninstance of the platform specific path segment separator (<code>/</code> on POSIX and\n<code>\\</code> on Windows). Trailing separators are preserved.</p>\n<p>If the <code>path</code> is a zero-length string, <code>&#39;.&#39;</code> is returned, representing the\ncurrent working directory.</p>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.normalize(&#39;/foo/bar//baz/asdf/quux/..&#39;);\n// Returns: &#39;/foo/bar/baz/asdf&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.normalize(&#39;C:\\\\temp\\\\\\\\foo\\\\bar\\\\..\\\\&#39;);\n// Returns: &#39;C:\\\\temp\\\\foo\\\\&#39;\n</code></pre>\n<p>Since Windows recognizes multiple path separators, both separators will be\nreplaced by instances of the Windows preferred separator (<code>\\</code>):</p>\n<pre><code class=\"lang-js\">path.win32.normalize(&#39;C:////temp\\\\\\\\/\\\\/\\\\/foo/bar&#39;);\n// Returns: &#39;C:\\\\temp\\\\foo\\\\bar&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.parse(path)",
+          "type": "method",
+          "name": "parse",
+          "meta": {
+            "added": [
+              "v0.11.15"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Object} ",
+                "name": "return",
+                "type": "Object"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string} ",
+                  "name": "path",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "path"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.parse()</code> method returns an object whose properties represent\nsignificant elements of the <code>path</code>. Trailing directory separators are ignored,\nsee <a href=\"#path_path_sep\"><code>path.sep</code></a>.</p>\n<p>The returned object will have the following properties:</p>\n<ul>\n<li><code>dir</code> {string}</li>\n<li><code>root</code> {string}</li>\n<li><code>base</code> {string}</li>\n<li><code>name</code> {string}</li>\n<li><code>ext</code> {string}</li>\n</ul>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;/home/user/dir/file.txt&#39;);\n// Returns:\n// { root: &#39;/&#39;,\n//   dir: &#39;/home/user/dir&#39;,\n//   base: &#39;file.txt&#39;,\n//   ext: &#39;.txt&#39;,\n//   name: &#39;file&#39; }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot;  /    home/user/dir / file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.parse(&#39;C:\\\\path\\\\dir\\\\file.txt&#39;);\n// Returns:\n// { root: &#39;C:\\\\&#39;,\n//   dir: &#39;C:\\\\path\\\\dir&#39;,\n//   base: &#39;file.txt&#39;,\n//   ext: &#39;.txt&#39;,\n//   name: &#39;file&#39; }\n</code></pre>\n<pre><code class=\"lang-text\">┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n&quot; C:\\      path\\dir   \\ file  .txt &quot;\n└──────┴──────────────┴──────┴─────┘\n(all spaces in the &quot;&quot; line should be ignored -- they are purely for formatting)\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.relative(from, to)",
+          "type": "method",
+          "name": "relative",
+          "meta": {
+            "added": [
+              "v0.5.0"
+            ],
+            "changes": [
+              {
+                "version": "v6.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/8523",
+                "description": "On Windows, the leading slashes for UNC paths are now included in the return value."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`from` {string} ",
+                  "name": "from",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`to` {string} ",
+                  "name": "to",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "from"
+                },
+                {
+                  "name": "to"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.relative()</code> method returns the relative path from <code>from</code> to <code>to</code> based\non the current working directory. If <code>from</code> and <code>to</code> each resolve to the same\npath (after calling <code>path.resolve()</code> on each), a zero-length string is returned.</p>\n<p>If a zero-length string is passed as <code>from</code> or <code>to</code>, the current working\ndirectory will be used instead of the zero-length strings.</p>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">path.relative(&#39;/data/orandea/test/aaa&#39;, &#39;/data/orandea/impl/bbb&#39;);\n// Returns: &#39;../../impl/bbb&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.relative(&#39;C:\\\\orandea\\\\test\\\\aaa&#39;, &#39;C:\\\\orandea\\\\impl\\\\bbb&#39;);\n// Returns: &#39;..\\\\..\\\\impl\\\\bbb&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if either <code>from</code> or <code>to</code> is not a string.</p>\n"
+        },
+        {
+          "textRaw": "path.resolve([...paths])",
+          "type": "method",
+          "name": "resolve",
+          "meta": {
+            "added": [
+              "v0.3.4"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`...paths` {string} A sequence of paths or path segments ",
+                  "name": "...paths",
+                  "type": "string",
+                  "desc": "A sequence of paths or path segments",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "...paths",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>path.resolve()</code> method resolves a sequence of paths or path segments into\nan absolute path.</p>\n<p>The given sequence of paths is processed from right to left, with each\nsubsequent <code>path</code> prepended until an absolute path is constructed.\nFor instance, given the sequence of path segments: <code>/foo</code>, <code>/bar</code>, <code>baz</code>,\ncalling <code>path.resolve(&#39;/foo&#39;, &#39;/bar&#39;, &#39;baz&#39;)</code> would return <code>/bar/baz</code>.</p>\n<p>If after processing all given <code>path</code> segments an absolute path has not yet\nbeen generated, the current working directory is used.</p>\n<p>The resulting path is normalized and trailing slashes are removed unless the\npath is resolved to the root directory.</p>\n<p>Zero-length <code>path</code> segments are ignored.</p>\n<p>If no <code>path</code> segments are passed, <code>path.resolve()</code> will return the absolute path\nof the current working directory.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">path.resolve(&#39;/foo/bar&#39;, &#39;./baz&#39;);\n// Returns: &#39;/foo/bar/baz&#39;\n\npath.resolve(&#39;/foo/bar&#39;, &#39;/tmp/file/&#39;);\n// Returns: &#39;/tmp/file&#39;\n\npath.resolve(&#39;wwwroot&#39;, &#39;static_files/png/&#39;, &#39;../gif/image.gif&#39;);\n// if the current working directory is /home/myself/node,\n// this returns &#39;/home/myself/node/wwwroot/static_files/gif/image.gif&#39;\n</code></pre>\n<p>A <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> is thrown if any of the arguments is not a string.</p>\n"
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "`delimiter` {string} ",
+          "type": "string",
+          "name": "delimiter",
+          "meta": {
+            "added": [
+              "v0.9.3"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Provides the platform-specific path delimiter:</p>\n<ul>\n<li><code>;</code> for Windows</li>\n<li><code>:</code> for POSIX</li>\n</ul>\n<p>For example, on POSIX:</p>\n<pre><code class=\"lang-js\">console.log(process.env.PATH);\n// Prints: &#39;/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;\n\nprocess.env.PATH.split(path.delimiter);\n// Returns: [&#39;/usr/bin&#39;, &#39;/bin&#39;, &#39;/usr/sbin&#39;, &#39;/sbin&#39;, &#39;/usr/local/bin&#39;]\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">console.log(process.env.PATH);\n// Prints: &#39;C:\\Windows\\system32;C:\\Windows;C:\\Program Files\\node\\&#39;\n\nprocess.env.PATH.split(path.delimiter);\n// Returns [&#39;C:\\\\Windows\\\\system32&#39;, &#39;C:\\\\Windows&#39;, &#39;C:\\\\Program Files\\\\node\\\\&#39;]\n</code></pre>\n"
+        },
+        {
+          "textRaw": "`posix` {Object} ",
+          "type": "Object",
+          "name": "posix",
+          "meta": {
+            "added": [
+              "v0.11.15"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>path.posix</code> property provides access to POSIX specific implementations\nof the <code>path</code> methods.</p>\n"
+        },
+        {
+          "textRaw": "`sep` {string} ",
+          "type": "string",
+          "name": "sep",
+          "meta": {
+            "added": [
+              "v0.7.9"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Provides the platform-specific path segment separator:</p>\n<ul>\n<li><code>\\</code> on Windows</li>\n<li><code>/</code> on POSIX</li>\n</ul>\n<p>For example on POSIX:</p>\n<pre><code class=\"lang-js\">&#39;foo/bar/baz&#39;.split(path.sep);\n// Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">&#39;foo\\\\bar\\\\baz&#39;.split(path.sep);\n// Returns: [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]\n</code></pre>\n<p><em>Note</em>: On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\\</code>) are\naccepted as path segment separators; however, the <code>path</code> methods only add\nbackward slashes (<code>\\</code>).</p>\n"
+        },
+        {
+          "textRaw": "`win32` {Object} ",
+          "type": "Object",
+          "name": "win32",
+          "meta": {
+            "added": [
+              "v0.11.15"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>path.win32</code> property provides access to Windows-specific implementations\nof the <code>path</code> methods.</p>\n"
+        }
+      ],
+      "type": "module",
+      "displayName": "Path"
+    }
+  ]
+}

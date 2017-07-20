@@ -1,0 +1,311 @@
+{
+  "source": "doc/api/globals.md",
+  "globals": [
+    {
+      "textRaw": "Class: Buffer",
+      "type": "global",
+      "name": "Buffer",
+      "meta": {
+        "added": [
+          "v0.1.103"
+        ],
+        "changes": []
+      },
+      "desc": "<ul>\n<li>{Function}</li>\n</ul>\n<p>Used to handle binary data. See the <a href=\"buffer.html\">buffer section</a>.</p>\n"
+    },
+    {
+      "textRaw": "clearImmediate(immediateObject)",
+      "type": "global",
+      "name": "clearImmediate",
+      "meta": {
+        "added": [
+          "v0.9.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_clearimmediate_immediate\"><code>clearImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "clearInterval(intervalObject)",
+      "type": "global",
+      "name": "clearInterval",
+      "meta": {
+        "added": [
+          "v0.0.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_clearinterval_timeout\"><code>clearInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "clearTimeout(timeoutObject)",
+      "type": "global",
+      "name": "clearTimeout",
+      "meta": {
+        "added": [
+          "v0.0.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_cleartimeout_timeout\"><code>clearTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "console",
+      "name": "console",
+      "meta": {
+        "added": [
+          "v0.1.100"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>Used to print to stdout and stderr. See the <a href=\"console.html\"><code>console</code></a> section.</p>\n"
+    },
+    {
+      "textRaw": "global",
+      "name": "global",
+      "meta": {
+        "added": [
+          "v0.1.27"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>\n"
+    },
+    {
+      "textRaw": "process",
+      "name": "process",
+      "meta": {
+        "added": [
+          "v0.1.7"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>\n"
+    },
+    {
+      "textRaw": "setImmediate(callback[, ...args])",
+      "type": "global",
+      "name": "setImmediate",
+      "meta": {
+        "added": [
+          "v0.9.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_setimmediate_callback_args\"><code>setImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "setInterval(callback, delay[, ...args])",
+      "type": "global",
+      "name": "setInterval",
+      "meta": {
+        "added": [
+          "v0.0.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_setinterval_callback_delay_args\"><code>setInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "setTimeout(callback, delay[, ...args])",
+      "type": "global",
+      "name": "setTimeout",
+      "meta": {
+        "added": [
+          "v0.0.1"
+        ],
+        "changes": []
+      },
+      "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    }
+  ],
+  "methods": [
+    {
+      "textRaw": "require()",
+      "type": "method",
+      "name": "require",
+      "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require\"><code>require()</code></a>.</p>\n",
+      "signatures": [
+        {
+          "params": []
+        }
+      ]
+    }
+  ],
+  "miscs": [
+    {
+      "textRaw": "Global Objects",
+      "name": "Global Objects",
+      "type": "misc",
+      "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are a number of\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a> that are part of the JavaScript language itself, which are\nalso globally accessible.</p>\n",
+      "globals": [
+        {
+          "textRaw": "Class: Buffer",
+          "type": "global",
+          "name": "Buffer",
+          "meta": {
+            "added": [
+              "v0.1.103"
+            ],
+            "changes": []
+          },
+          "desc": "<ul>\n<li>{Function}</li>\n</ul>\n<p>Used to handle binary data. See the <a href=\"buffer.html\">buffer section</a>.</p>\n"
+        },
+        {
+          "textRaw": "clearImmediate(immediateObject)",
+          "type": "global",
+          "name": "clearImmediate",
+          "meta": {
+            "added": [
+              "v0.9.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_clearimmediate_immediate\"><code>clearImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "clearInterval(intervalObject)",
+          "type": "global",
+          "name": "clearInterval",
+          "meta": {
+            "added": [
+              "v0.0.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_clearinterval_timeout\"><code>clearInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "clearTimeout(timeoutObject)",
+          "type": "global",
+          "name": "clearTimeout",
+          "meta": {
+            "added": [
+              "v0.0.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_cleartimeout_timeout\"><code>clearTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "console",
+          "name": "console",
+          "meta": {
+            "added": [
+              "v0.1.100"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>Used to print to stdout and stderr. See the <a href=\"console.html\"><code>console</code></a> section.</p>\n"
+        },
+        {
+          "textRaw": "global",
+          "name": "global",
+          "meta": {
+            "added": [
+              "v0.1.27"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<ul>\n<li>{Object} The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>\n"
+        },
+        {
+          "textRaw": "process",
+          "name": "process",
+          "meta": {
+            "added": [
+              "v0.1.7"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>\n"
+        },
+        {
+          "textRaw": "setImmediate(callback[, ...args])",
+          "type": "global",
+          "name": "setImmediate",
+          "meta": {
+            "added": [
+              "v0.9.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_setimmediate_callback_args\"><code>setImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "setInterval(callback, delay[, ...args])",
+          "type": "global",
+          "name": "setInterval",
+          "meta": {
+            "added": [
+              "v0.0.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_setinterval_callback_delay_args\"><code>setInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "setTimeout(callback, delay[, ...args])",
+          "type": "global",
+          "name": "setTimeout",
+          "meta": {
+            "added": [
+              "v0.0.1"
+            ],
+            "changes": []
+          },
+          "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        }
+      ],
+      "miscs": [
+        {
+          "textRaw": "\\_\\_dirname",
+          "name": "\\_\\_dirname",
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_dirname\"><code>__dirname</code></a>.</p>\n",
+          "type": "misc",
+          "displayName": "\\_\\_dirname"
+        },
+        {
+          "textRaw": "\\_\\_filename",
+          "name": "\\_\\_filename",
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_filename\"><code>__filename</code></a>.</p>\n",
+          "type": "misc",
+          "displayName": "\\_\\_filename"
+        },
+        {
+          "textRaw": "exports",
+          "name": "exports",
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_exports\"><code>exports</code></a>.</p>\n",
+          "type": "misc",
+          "displayName": "exports"
+        },
+        {
+          "textRaw": "module",
+          "name": "module",
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_module\"><code>module</code></a>.</p>\n",
+          "type": "misc",
+          "displayName": "module"
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "require()",
+          "type": "method",
+          "name": "require",
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require\"><code>require()</code></a>.</p>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

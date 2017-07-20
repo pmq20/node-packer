@@ -1,0 +1,699 @@
+{
+  "source": "doc/api/deprecations.md",
+  "modules": [
+    {
+      "textRaw": "Deprecated APIs",
+      "name": "deprecated_apis",
+      "desc": "<p>Node.js may deprecate APIs when either: (a) use of the API is considered to be\nunsafe, (b) an improved alternative API has been made available, or (c)\nbreaking changes to the API are expected in a future major release.</p>\n<p>Node.js utilizes three kinds of Deprecations:</p>\n<ul>\n<li>Documentation-only</li>\n<li>Runtime</li>\n<li>End-of-Life</li>\n</ul>\n<p>A Documentation-only deprecation is one that is expressed only within the\nNode.js API docs. These generate no side-effects while running Node.js.</p>\n<p>A Runtime deprecation will, by default, generate a process warning that will\nbe printed to <code>stderr</code> the first time the deprecated API is used. When the\n<code>--throw-deprecation</code> command-line flag is used, a Runtime deprecation will\ncause an error to be thrown.</p>\n<p>An End-of-Life deprecation is used to identify code that either has been\nremoved or will soon be removed from Node.js.</p>\n",
+      "modules": [
+        {
+          "textRaw": "Un-deprecation",
+          "name": "un-deprecation",
+          "desc": "<p>From time-to-time the deprecation of an API may be reversed. Such action may\nhappen in either a semver-minor or semver-major release. In such situations,\nthis document will be updated with information relevant to the decision.\n<em>However, the deprecation identifier will not be modified</em>.</p>\n",
+          "type": "module",
+          "displayName": "Un-deprecation"
+        },
+        {
+          "textRaw": "List of Deprecated APIs",
+          "name": "list_of_deprecated_apis",
+          "desc": "<p><a id=\"DEP0001\"></a></p>\n",
+          "modules": [
+            {
+              "textRaw": "DEP0001: http.OutgoingMessage.prototype.flush",
+              "name": "dep0001:_http.outgoingmessage.prototype.flush",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>OutgoingMessage.prototype.flush()</code> method is deprecated. Use\n<code>OutgoingMessage.prototype.flushHeaders()</code> instead.</p>\n<p><a id=\"DEP0002\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0001: http.OutgoingMessage.prototype.flush"
+            },
+            {
+              "textRaw": "DEP0002: require('\\_linklist')",
+              "name": "dep0002:_require('\\_linklist')",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>_linklist</code> module is deprecated. Please use a userland alternative.</p>\n<p><a id=\"DEP0003\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0002: require('\\_linklist')"
+            },
+            {
+              "textRaw": "DEP0004: CryptoStream.prototype.readyState",
+              "name": "dep0004:_cryptostream.prototype.readystate",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>CryptoStream.prototype.readyState</code> property is deprecated and should not\nbe used.</p>\n<p><a id=\"DEP0005\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0004: CryptoStream.prototype.readyState"
+            },
+            {
+              "textRaw": "DEP0005: Buffer() constructor",
+              "name": "dep0005:_buffer()_constructor",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>Buffer()</code> function and <code>new Buffer()</code> constructor are deprecated due to\nAPI usability issues that can potentially lead to accidental security issues.</p>\n<p>As an alternative, use of the following methods of constructing <code>Buffer</code> objects\nis strongly recommended:</p>\n<ul>\n<li><a href=\"buffer.html#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> - Create a <code>Buffer</code> with\n<em>initialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>\nmemory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>\n memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> - Create a <code>Buffer</code> with a copy of <code>array</code></li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> - Create a <code>Buffer</code>\nthat wraps the given <code>arrayBuffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> - Create a <code>Buffer</code> that copies <code>buffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> - Create a <code>Buffer</code> that copies\n<code>string</code>.</li>\n</ul>\n<p><a id=\"DEP0006\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0005: Buffer() constructor"
+            },
+            {
+              "textRaw": "DEP0008: require('constants')",
+              "name": "dep0008:_require('constants')",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>constants</code> module has been deprecated. When requiring access to constants\nrelevant to specific Node.js builtin modules, developers should instead refer\nto the <code>constants</code> property exposed by the relevant module. For instance,\n<code>require(&#39;fs&#39;).constants</code> and <code>require(&#39;os&#39;).constants</code>.</p>\n<p><a id=\"DEP0009\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0008: require('constants')"
+            },
+            {
+              "textRaw": "DEP0009: crypto.pbkdf2 without digest",
+              "name": "dep0009:_crypto.pbkdf2_without_digest",
+              "desc": "<p>Type: End-of-life</p>\n<p>Use of the <a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated\nin Node.js 6.0 because the method defaulted to using the non-recommendend\n<code>&#39;SHA1&#39;</code> digest. Previously, a deprecation warning was printed. Starting in\nNode.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with an\nundefined <code>digest</code> will throw a <code>TypeError</code>.</p>\n<p><a id=\"DEP0010\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0009: crypto.pbkdf2 without digest"
+            },
+            {
+              "textRaw": "DEP0013: fs async function without callback",
+              "name": "dep0013:_fs_async_function_without_callback",
+              "desc": "<p>Type: Runtime</p>\n<p>Calling an asynchronous function without a callback is deprecated.</p>\n<p><a id=\"DEP0014\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0013: fs async function without callback"
+            },
+            {
+              "textRaw": "DEP0014: fs.read legacy String interface",
+              "name": "dep0014:_fs.read_legacy_string_interface",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The <a href=\"fs.html#fs_fs_read_fd_buffer_offset_length_position_callback\"><code>fs.read()</code></a> legacy String interface is deprecated. Use the Buffer API as\nmentioned in the documentation instead.</p>\n<p><a id=\"DEP0015\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0014: fs.read legacy String interface"
+            },
+            {
+              "textRaw": "DEP0015: fs.readSync legacy String interface",
+              "name": "dep0015:_fs.readsync_legacy_string_interface",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The <a href=\"fs.html#fs_fs_readsync_fd_buffer_offset_length_position\"><code>fs.readSync()</code></a> legacy String interface is deprecated. Use the Buffer\nAPI as mentioned in the documentation instead.</p>\n<p><a id=\"DEP0016\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0015: fs.readSync legacy String interface"
+            },
+            {
+              "textRaw": "DEP0016: GLOBAL/root",
+              "name": "dep0016:_global/root",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>GLOBAL</code> and <code>root</code> aliases for the <code>global</code> property have been deprecated\nand should no longer be used.</p>\n<p><a id=\"DEP0017\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0016: GLOBAL/root"
+            },
+            {
+              "textRaw": "DEP0018: Unhandled promise rejections",
+              "name": "dep0018:_unhandled_promise_rejections",
+              "desc": "<p>Type: Runtime</p>\n<p>Unhandled promise rejections are deprecated. In the future, promise rejections\nthat are not handled will terminate the Node.js process with a non-zero exit\ncode.</p>\n<p><a id=\"DEP0019\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0018: Unhandled promise rejections"
+            },
+            {
+              "textRaw": "DEP0019: require('.') resolved outside directory",
+              "name": "dep0019:_require('.')_resolved_outside_directory",
+              "desc": "<p>Type: Runtime</p>\n<p>In certain cases, <code>require(&#39;.&#39;)</code> may resolve outside the package directory.\nThis behavior is deprecated and will be removed in a future major Node.js\nrelease.</p>\n<p><a id=\"DEP0020\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0019: require('.') resolved outside directory"
+            },
+            {
+              "textRaw": "DEP0024: REPLServer.prototype.convertToContext()",
+              "name": "dep0024:_replserver.prototype.converttocontext()",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>REPLServer.prototype.convertToContext()</code> API is deprecated and should\nnot be used.</p>\n<p><a id=\"DEP0025\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0024: REPLServer.prototype.convertToContext()"
+            },
+            {
+              "textRaw": "DEP0025: require('sys')",
+              "name": "dep0025:_require('sys')",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>sys</code> module is deprecated. Please use the <a href=\"util.html\"><code>util</code></a> module instead.</p>\n<p><a id=\"DEP0026\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0025: require('sys')"
+            },
+            {
+              "textRaw": "DEP0030: SlowBuffer",
+              "name": "dep0030:_slowbuffer",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"buffer.html#buffer_class_slowbuffer\"><code>SlowBuffer</code></a> class has been deprecated. Please use\n<a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> instead.</p>\n<p><a id=\"DEP0031\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0030: SlowBuffer"
+            },
+            {
+              "textRaw": "DEP0032: domain module",
+              "name": "dep0032:_domain_module",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"domain.html\"><code>domain</code></a> module is deprecated and should not be used.</p>\n<p><a id=\"DEP0033\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0032: domain module"
+            },
+            {
+              "textRaw": "DEP0040: punycode module",
+              "name": "dep0040:_punycode_module",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"punycode.html\"><code>punycode</code></a> module has been deprecated. Please use a userland alternative\ninstead.</p>\n<p><a id=\"DEP0041\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0040: punycode module"
+            },
+            {
+              "textRaw": "DEP0041: NODE\\_REPL\\_HISTORY\\_FILE environment variable",
+              "name": "dep0041:_node\\_repl\\_history\\_file_environment_variable",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>NODE_REPL_HISTORY_FILE</code> environment variable has been deprecated.</p>\n<p><a id=\"DEP0042\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0041: NODE\\_REPL\\_HISTORY\\_FILE environment variable"
+            },
+            {
+              "textRaw": "DEP0062: node --debug",
+              "name": "dep0062:_node_--debug",
+              "desc": "<p>Type: Runtime</p>\n<p><code>--debug</code> activates the legacy V8 debugger interface, which has been removed as\nof V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>\ninstead.</p>\n<p><a id=\"DEP0063\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0062: node --debug"
+            },
+            {
+              "textRaw": "DEP0063: ServerResponse.prototype.writeHeader()",
+              "name": "dep0063:_serverresponse.prototype.writeheader()",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API has been\ndeprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>\n<p><em>Note</em>: The <code>ServerResponse.prototype.writeHeader()</code> method was never\ndocumented as an officially supported API.</p>\n<p><a id=\"DEP0064\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0063: ServerResponse.prototype.writeHeader()"
+            },
+            {
+              "textRaw": "DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic",
+              "name": "dep0065:_repl.repl_mode_magic_and_node_repl_mode=magic",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>repl</code> module&#39;s <code>REPL_MODE_MAGIC</code> constant, used for <code>replMode</code> option, has\nbeen deprecated. Its behavior has been functionally identical to that of\n<code>REPL_MODE_SLOPPY</code> since Node.js v6.0.0, when V8 5.0 was imported. Please use\n<code>REPL_MODE_SLOPPY</code> instead.</p>\n<p>The <code>NODE_REPL_MODE</code> environment variable is used to set the underlying\n<code>replMode</code> of an interactive <code>node</code> session. Its default value, <code>magic</code>, is\nsimilarly deprecated in favor of <code>sloppy</code>.</p>\n<p><a id=\"DEP0066\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic"
+            },
+            {
+              "textRaw": "DEP0066: outgoingMessage.\\_headers, outgoingMessage.\\_headerNames",
+              "name": "dep0066:_outgoingmessage.\\_headers,_outgoingmessage.\\_headernames",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>outgoingMessage._headers</code> and <code>outgoingMessage._headerNames</code>\nproperties have been deprecated. Please instead use one of the public methods\n(e.g. <code>outgoingMessage.getHeader()</code>, <code>outgoingMessage.getHeaders()</code>,\n<code>outgoingMessage.getHeaderNames()</code>, <code>outgoingMessage.hasHeader()</code>,\n<code>outgoingMessage.removeHeader()</code>, <code>outgoingMessage.setHeader()</code>) for working\nwith outgoing headers.</p>\n<p><em>Note</em>: <code>outgoingMessage._headers</code> and <code>outgoingMessage._headerNames</code> were\nnever documented as officially supported properties.</p>\n<p><a id=\"DEP0067\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0066: outgoingMessage.\\_headers, outgoingMessage.\\_headerNames"
+            },
+            {
+              "textRaw": "DEP0067: OutgoingMessage.prototype.\\_renderHeaders",
+              "name": "dep0067:_outgoingmessage.prototype.\\_renderheaders",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>OutgoingMessage.prototype._renderHeaders()</code> API has been\ndeprecated.</p>\n<p><em>Note</em>: <code>OutgoingMessage.prototype._renderHeaders</code> was never documented as\nan officially supported API.</p>\n<p><a id=\"DEP0068\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0067: OutgoingMessage.prototype.\\_renderHeaders"
+            },
+            {
+              "textRaw": "DEP0068: node debug",
+              "name": "dep0068:_node_debug",
+              "desc": "<p>Type: Runtime</p>\n<p><code>node debug</code> corresponds to the legacy CLI debugger which has been replaced with\na V8-inspector based CLI debugger available through <code>node inspect</code>.</p>\n<p><a id=\"DEP0069\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0068: node debug"
+            },
+            {
+              "textRaw": "DEP0072: async_hooks.AsyncResource.triggerId()",
+              "name": "dep0072:_async_hooks.asyncresource.triggerid()",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n",
+              "type": "module",
+              "displayName": "DEP0072: async_hooks.AsyncResource.triggerId()"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "DEP0003: \\_writableState.buffer",
+              "name": "buffer",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>_writableState.buffer</code> property is deprecated. Use the\n<code>_writableState.getBuffer()</code> method instead.</p>\n<p><a id=\"DEP0004\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0006: child\\_process options.customFds",
+              "name": "customFds",
+              "desc": "<p>Type: Runtime</p>\n<p>Within the <a href=\"child_process.html\"><code>child_process</code></a> module&#39;s <code>spawn()</code>, <code>fork()</code>, and <code>exec()</code>\nmethods, the <code>options.customFds</code> option is deprecated. The <code>options.stdio</code>\noption should be used instead.</p>\n<p><a id=\"DEP0007\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0007: cluster worker.suicide",
+              "name": "suicide",
+              "desc": "<p>Type: Runtime</p>\n<p>Within the <code>cluster</code> module, the <a href=\"cluster.html#cluster_worker_suicide\"><code>worker.suicide</code></a> property has been\ndeprecated. Please use <a href=\"cluster.html#cluster_worker_exitedafterdisconnect\"><code>worker.exitedAfterDisconnect</code></a> instead.</p>\n<p><a id=\"DEP0008\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0010: crypto.createCredentials",
+              "name": "createCredentials",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"crypto.html#crypto_crypto_createcredentials_details\"><code>crypto.createCredentials()</code></a> API is deprecated. Please use\n<a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a> instead.</p>\n<p><a id=\"DEP0011\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0011: crypto.Credentials",
+              "name": "Credentials",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>crypto.Credentials</code> class is deprecated. Please use <a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.SecureContext</code></a>\ninstead.</p>\n<p><a id=\"DEP0012\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0012: Domain.dispose",
+              "name": "dispose",
+              "desc": "<p>Type: Runtime</p>\n<p><a href=\"domain.html#domain_domain_dispose\"><code>Domain.dispose()</code></a> is deprecated. Recover from failed I/O actions\nexplicitly via error event handlers set on the domain instead.</p>\n<p><a id=\"DEP0013\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0017: Intl.v8BreakIterator",
+              "name": "v8BreakIterator",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>Intl.v8BreakIterator</code> is deprecated and will be removed or replaced soon.</p>\n<p><a id=\"DEP0018\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0020: Server.connections",
+              "name": "connections",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"net.html#net_server_connections\"><code>Server.connections</code></a> property is deprecated. Please use the\n<a href=\"net.html#net_server_getconnections_callback\"><code>Server.getConnections()</code></a> method instead.</p>\n<p><a id=\"DEP0021\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0021: Server.listenFD",
+              "name": "listenFD",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>Server.listenFD()</code> method is deprecated. Please use\n<a href=\"net.html#net_server_listen_handle_backlog_callback\"><code>Server.listen({fd: &lt;number&gt;})</code></a> instead.</p>\n<p><a id=\"DEP0022\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0039: require.extensions",
+              "name": "extensions",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"globals.html#globals_require_extensions\"><code>require.extensions</code></a> property has been deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0042: tls.CryptoStream",
+              "name": "CryptoStream",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"tls.html#tls_class_cryptostream\"><code>tls.CryptoStream</code></a> class has been deprecated. Please use\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instead.</p>\n<p><a id=\"DEP0043\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0043: tls.SecurePair",
+              "name": "SecurePair",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"tls.html#tls_class_securepair\"><code>tls.SecurePair</code></a> class has been deprecated. Please use\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instead.</p>\n<p><a id=\"DEP0044\"></a></p>\n"
+            },
+            {
+              "textRaw": "DEP0061: fs.SyncWriteStream",
+              "name": "SyncWriteStream",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>fs.SyncWriteStream</code> class was never intended to be a publicly accessible\nAPI. No alternative API is available. Please use a userland alternative.</p>\n<p><a id=\"DEP0062\"></a></p>\n"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "DEP0022: os.tmpDir()",
+              "type": "method",
+              "name": "tmpDir",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>os.tmpDir()</code> API is deprecated. Please use <a href=\"os.html#os_os_tmpdir\"><code>os.tmpdir()</code></a> instead.</p>\n<p><a id=\"DEP0023\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0023: os.getNetworkInterfaces()",
+              "type": "method",
+              "name": "getNetworkInterfaces",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>os.getNetworkInterfaces()</code> method is deprecated. Please use the\n<a href=\"os.html#os_os_networkinterfaces\"><code>os.networkInterfaces</code></a> property instead.</p>\n<p><a id=\"DEP0024\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0026: util.print()",
+              "type": "method",
+              "name": "print",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"util.html#util_util_print_strings\"><code>util.print()</code></a> API is deprecated. Please use <a href=\"console.html#console_console_log_data_args\"><code>console.log()</code></a>\ninstead.</p>\n<p><a id=\"DEP0027\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0027: util.puts()",
+              "type": "method",
+              "name": "puts",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"util.html#util_util_puts_strings\"><code>util.puts()</code></a> API is deprecated. Please use <a href=\"console.html#console_console_log_data_args\"><code>console.log()</code></a> instead.</p>\n<p><a id=\"DEP0028\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0028: util.debug()",
+              "type": "method",
+              "name": "debug",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"util.html#util_util_debug_string\"><code>util.debug()</code></a> API is deprecated. Please use <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a>\ninstead.</p>\n<p><a id=\"DEP0029\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0029: util.error()",
+              "type": "method",
+              "name": "error",
+              "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"util.html#util_util_error_strings\"><code>util.error()</code></a> API is deprecated. Please use <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a>\ninstead.</p>\n<p><a id=\"DEP0030\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0031: ecdh.setPublicKey()",
+              "type": "method",
+              "name": "setPublicKey",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_publickey_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0033: EventEmitter.listenerCount()",
+              "type": "method",
+              "name": "listenerCount",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"events.html#events_eventemitter_listenercount_emitter_eventname\"><code>EventEmitter.listenerCount(emitter, eventName)</code></a> API has been\ndeprecated. Please use <a href=\"events.html#events_emitter_listenercount_eventname\"><code>emitter.listenerCount(eventName)</code></a> instead.</p>\n<p><a id=\"DEP0034\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0034: fs.exists(path, callback)",
+              "type": "method",
+              "name": "exists",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_exists_path_callback\"><code>fs.exists(path, callback)</code></a> API has been deprecated. Please use\n<a href=\"fs.html#fs_fs_stat_path_callback\"><code>fs.stat()</code></a> or <a href=\"fs.html#fs_fs_access_path_mode_callback\"><code>fs.access()</code></a> instead.</p>\n<p><a id=\"DEP0035\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "path"
+                    },
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0035: fs.lchmod(path, mode, callback)",
+              "type": "method",
+              "name": "lchmod",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchmod_path_mode_callback\"><code>fs.lchmod(path, mode, callback)</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0036\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "path"
+                    },
+                    {
+                      "name": "mode"
+                    },
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0036: fs.lchmodSync(path, mode)",
+              "type": "method",
+              "name": "lchmodSync",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchmodsync_path_mode\"><code>fs.lchmodSync(path, mode)</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0037\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "path"
+                    },
+                    {
+                      "name": "mode"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0037: fs.lchown(path, uid, gid, callback)",
+              "type": "method",
+              "name": "lchown",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchown_path_uid_gid_callback\"><code>fs.lchown(path, uid, gid, callback)</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0038\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "path"
+                    },
+                    {
+                      "name": "uid"
+                    },
+                    {
+                      "name": "gid"
+                    },
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0038: fs.lchownSync(path, uid, gid)",
+              "type": "method",
+              "name": "lchownSync",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchownsync_path_uid_gid\"><code>fs.lchownSync(path, uid, gid)</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0039\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "path"
+                    },
+                    {
+                      "name": "uid"
+                    },
+                    {
+                      "name": "gid"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0044: util.isArray()",
+              "type": "method",
+              "name": "isArray",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isarray_object\"><code>util.isArray()</code></a> API has been deprecated. Please use <code>Array.isArray()</code>\ninstead.</p>\n<p><a id=\"DEP0045\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0045: util.isBoolean()",
+              "type": "method",
+              "name": "isBoolean",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isboolean_object\"><code>util.isBoolean()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0046\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0046: util.isBuffer()",
+              "type": "method",
+              "name": "isBuffer",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isbuffer_object\"><code>util.isBuffer()</code></a> API has been deprecated. Please use\n<a href=\"buffer.html#buffer_class_method_buffer_isbuffer_obj\"><code>Buffer.isBuffer()</code></a> instead.</p>\n<p><a id=\"DEP0047\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0047: util.isDate()",
+              "type": "method",
+              "name": "isDate",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isdate_object\"><code>util.isDate()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0048\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0048: util.isError()",
+              "type": "method",
+              "name": "isError",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_iserror_object\"><code>util.isError()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0049\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0049: util.isFunction()",
+              "type": "method",
+              "name": "isFunction",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isfunction_object\"><code>util.isFunction()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0050\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0050: util.isNull()",
+              "type": "method",
+              "name": "isNull",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnull_object\"><code>util.isNull()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0051\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0051: util.isNullOrUndefined()",
+              "type": "method",
+              "name": "isNullOrUndefined",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnullorundefined_object\"><code>util.isNullOrUndefined()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0052\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0052: util.isNumber()",
+              "type": "method",
+              "name": "isNumber",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnumber_object\"><code>util.isNumber()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0053\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0053 util.isObject()",
+              "type": "method",
+              "name": "isObject",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isobject_object\"><code>util.isObject()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0054\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0054: util.isPrimitive()",
+              "type": "method",
+              "name": "isPrimitive",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isprimitive_object\"><code>util.isPrimitive()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0055\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0055: util.isRegExp()",
+              "type": "method",
+              "name": "isRegExp",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isregexp_object\"><code>util.isRegExp()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0056\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0056: util.isString()",
+              "type": "method",
+              "name": "isString",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isstring_object\"><code>util.isString()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0057\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0057: util.isSymbol()",
+              "type": "method",
+              "name": "isSymbol",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_issymbol_object\"><code>util.isSymbol()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0058\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0058: util.isUndefined()",
+              "type": "method",
+              "name": "isUndefined",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isundefined_object\"><code>util.isUndefined()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0059\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0059: util.log()",
+              "type": "method",
+              "name": "log",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_log_string\"><code>util.log()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0060\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0060: util.\\_extend()",
+              "type": "method",
+              "name": "\\_extend",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_extend_target_source\"><code>util._extend()</code></a> API has been deprecated.</p>\n<p><a id=\"DEP0061\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0064: tls.createSecurePair()",
+              "type": "method",
+              "name": "createSecurePair",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>tls.createSecurePair()</code> API was deprecated in documentation in Node.js\n0.11.3. Users should use <code>tls.Socket</code> instead.</p>\n<p><a id=\"DEP0065\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0069: vm.runInDebugContext(string)",
+              "type": "method",
+              "name": "runInDebugContext",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The DebugContext will be removed in V8 soon and will not be available in Node\n10+.</p>\n<p><em>Note</em>: DebugContext was an experimental API.</p>\n<p><a id=\"DEP0070\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "name": "string"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0070: async_hooks.currentId()",
+              "type": "method",
+              "name": "currentId",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.currentId()</code> was renamed to <code>async_hooks.executionAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0071\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0071: async_hooks.triggerId()",
+              "type": "method",
+              "name": "triggerId",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0072\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            }
+          ],
+          "type": "module",
+          "displayName": "List of Deprecated APIs"
+        }
+      ],
+      "type": "module",
+      "displayName": "Deprecated APIs"
+    }
+  ]
+}

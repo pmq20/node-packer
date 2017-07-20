@@ -1,0 +1,395 @@
+{
+  "source": "doc/api/repl.md",
+  "modules": [
+    {
+      "textRaw": "REPL",
+      "name": "repl",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>repl</code> module provides a Read-Eval-Print-Loop (REPL) implementation that\nis available both as a standalone program or includible in other applications.\nIt can be accessed using:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n</code></pre>\n",
+      "modules": [
+        {
+          "textRaw": "Design and Features",
+          "name": "design_and_features",
+          "desc": "<p>The <code>repl</code> module exports the <code>repl.REPLServer</code> class. While running, instances\nof <code>repl.REPLServer</code> will accept individual lines of user input, evaluate those\naccording to a user-defined evaluation function, then output the result. Input\nand output may be from <code>stdin</code> and <code>stdout</code>, respectively, or may be connected\nto any Node.js <a href=\"stream.html\">stream</a>.</p>\n<p>Instances of <code>repl.REPLServer</code> support automatic completion of inputs,\nsimplistic Emacs-style line editing, multi-line inputs, ANSI-styled output,\nsaving and restoring current REPL session state, error recovery, and\ncustomizable evaluation functions.</p>\n",
+          "modules": [
+            {
+              "textRaw": "Commands and Special Keys",
+              "name": "commands_and_special_keys",
+              "desc": "<p>The following special commands are supported by all REPL instances:</p>\n<ul>\n<li><code>.break</code> - When in the process of inputting a multi-line expression, entering\nthe <code>.break</code> command (or pressing the <code>&lt;ctrl&gt;-C</code> key combination) will abort\nfurther input or processing of that expression.</li>\n<li><code>.clear</code> - Resets the REPL <code>context</code> to an empty object and clears any\nmulti-line expression currently being input.</li>\n<li><code>.exit</code> - Close the I/O stream, causing the REPL to exit.</li>\n<li><code>.help</code> - Show this list of special commands.</li>\n<li><code>.save</code> - Save the current REPL session to a file:\n<code>&gt; .save ./file/to/save.js</code></li>\n<li><code>.load</code> - Load a file into the current REPL session.\n<code>&gt; .load ./file/to/load.js</code></li>\n<li><code>.editor</code> - Enter editor mode (<code>&lt;ctrl&gt;-D</code> to finish, <code>&lt;ctrl&gt;-C</code> to cancel)</li>\n</ul>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; .editor\n// Entering editor mode (^D to finish, ^C to cancel)\nfunction welcome(name) {\n  return `Hello ${name}!`;\n}\n\nwelcome(&#39;Node.js User&#39;);\n\n// ^D\n&#39;Hello Node.js User!&#39;\n&gt;\n</code></pre>\n<p>The following key combinations in the REPL have these special effects:</p>\n<ul>\n<li><code>&lt;ctrl&gt;-C</code> - When pressed once, has the same effect as the <code>.break</code> command.\nWhen pressed twice on a blank line, has the same effect as the <code>.exit</code>\ncommand.</li>\n<li><code>&lt;ctrl&gt;-D</code> - Has the same effect as the <code>.exit</code> command.</li>\n<li><code>&lt;tab&gt;</code> - When pressed on a blank line, displays global and local(scope)\nvariables. When pressed while entering other input, displays relevant\nautocompletion options.</li>\n</ul>\n",
+              "type": "module",
+              "displayName": "Commands and Special Keys"
+            },
+            {
+              "textRaw": "Default Evaluation",
+              "name": "default_evaluation",
+              "desc": "<p>By default, all instances of <code>repl.REPLServer</code> use an evaluation function that\nevaluates JavaScript expressions and provides access to Node.js&#39; built-in\nmodules. This default behavior can be overridden by passing in an alternative\nevaluation function when the <code>repl.REPLServer</code> instance is created.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "JavaScript Expressions",
+                  "name": "javascript_expressions",
+                  "desc": "<p>The default evaluator supports direct evaluation of JavaScript expressions:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; 1 + 1\n2\n&gt; const m = 2\nundefined\n&gt; m + 1\n3\n</code></pre>\n<p>Unless otherwise scoped within blocks or functions, variables declared\neither implicitly or using the <code>const</code>, <code>let</code>, or <code>var</code> keywords\nare declared at the global scope.</p>\n",
+                  "type": "module",
+                  "displayName": "JavaScript Expressions"
+                },
+                {
+                  "textRaw": "Global and Local Scope",
+                  "name": "global_and_local_scope",
+                  "desc": "<p>The default evaluator provides access to any variables that exist in the global\nscope. It is possible to expose a variable to the REPL explicitly by assigning\nit to the <code>context</code> object associated with each <code>REPLServer</code>.  For example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nconst msg = &#39;message&#39;;\n\nrepl.start(&#39;&gt; &#39;).context.m = msg;\n</code></pre>\n<p>Properties in the <code>context</code> object appear as local within the REPL:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">$ node repl_test.js\n&gt; m\n&#39;message&#39;\n</code></pre>\n<p>It is important to note that context properties are <em>not</em> read-only by default.\nTo specify read-only globals, context properties must be defined using\n<code>Object.defineProperty()</code>:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nconst msg = &#39;message&#39;;\n\nconst r = repl.start(&#39;&gt; &#39;);\nObject.defineProperty(r.context, &#39;m&#39;, {\n  configurable: false,\n  enumerable: true,\n  value: msg\n});\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "Global and Local Scope"
+                },
+                {
+                  "textRaw": "Accessing Core Node.js Modules",
+                  "name": "accessing_core_node.js_modules",
+                  "desc": "<p>The default evaluator will automatically load Node.js core modules into the\nREPL environment when used. For instance, unless otherwise declared as a\nglobal or scoped variable, the input <code>fs</code> will be evaluated on-demand as\n<code>global.fs = require(&#39;fs&#39;)</code>.</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; fs.createReadStream(&#39;./some/file&#39;);\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "Accessing Core Node.js Modules"
+                },
+                {
+                  "textRaw": "Assignment of the `_` (underscore) variable",
+                  "name": "assignment_of_the_`_`_(underscore)_variable",
+                  "desc": "<p>The default evaluator will, by default, assign the result of the most recently\nevaluated expression to the special variable <code>_</code> (underscore).\nExplicitly setting <code>_</code> to a value will disable this behavior.</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; [ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n[ &#39;a&#39;, &#39;b&#39;, &#39;c&#39; ]\n&gt; _.length\n3\n&gt; _ += 1\nExpression assignment to _ now disabled.\n4\n&gt; 1 + 1\n2\n&gt; _\n4\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "Assignment of the `_` (underscore) variable"
+                }
+              ],
+              "type": "module",
+              "displayName": "Default Evaluation"
+            },
+            {
+              "textRaw": "Custom Evaluation Functions",
+              "name": "custom_evaluation_functions",
+              "desc": "<p>When a new <code>repl.REPLServer</code> is created, a custom evaluation function may be\nprovided. This can be used, for instance, to implement fully customized REPL\napplications.</p>\n<p>The following illustrates a hypothetical example of a REPL that performs\ntranslation of text from one language to another:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\nconst { Translator } = require(&#39;translator&#39;);\n\nconst myTranslator = new Translator(&#39;en&#39;, &#39;fr&#39;);\n\nfunction myEval(cmd, context, filename, callback) {\n  callback(null, myTranslator.translate(cmd));\n}\n\nrepl.start({ prompt: &#39;&gt; &#39;, eval: myEval });\n</code></pre>\n",
+              "modules": [
+                {
+                  "textRaw": "Recoverable Errors",
+                  "name": "recoverable_errors",
+                  "desc": "<p>As a user is typing input into the REPL prompt, pressing the <code>&lt;enter&gt;</code> key will\nsend the current line of input to the <code>eval</code> function. In order to support\nmulti-line input, the eval function can return an instance of <code>repl.Recoverable</code>\nto the provided callback function:</p>\n<pre><code class=\"lang-js\">function myEval(cmd, context, filename, callback) {\n  let result;\n  try {\n    result = vm.runInThisContext(cmd);\n  } catch (e) {\n    if (isRecoverableError(e)) {\n      return callback(new repl.Recoverable(e));\n    }\n  }\n  callback(null, result);\n}\n\nfunction isRecoverableError(error) {\n  if (error.name === &#39;SyntaxError&#39;) {\n    return /^(Unexpected end of input|Unexpected token)/.test(error.message);\n  }\n  return false;\n}\n</code></pre>\n",
+                  "type": "module",
+                  "displayName": "Recoverable Errors"
+                }
+              ],
+              "type": "module",
+              "displayName": "Custom Evaluation Functions"
+            },
+            {
+              "textRaw": "Customizing REPL Output",
+              "name": "customizing_repl_output",
+              "desc": "<p>By default, <code>repl.REPLServer</code> instances format output using the\n<a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> method before writing the output to the provided Writable\nstream (<code>process.stdout</code> by default). The <code>useColors</code> boolean option can be\nspecified at construction to instruct the default writer to use ANSI style\ncodes to colorize the output from the <code>util.inspect()</code> method.</p>\n<p>It is possible to fully customize the output of a <code>repl.REPLServer</code> instance\nby passing a new function in using the <code>writer</code> option on construction. The\nfollowing example, for instance, simply converts any input text to upper case:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nconst r = repl.start({ prompt: &#39;&gt; &#39;, eval: myEval, writer: myWriter });\n\nfunction myEval(cmd, context, filename, callback) {\n  callback(null, cmd);\n}\n\nfunction myWriter(output) {\n  return output.toUpperCase();\n}\n</code></pre>\n",
+              "type": "module",
+              "displayName": "Customizing REPL Output"
+            }
+          ],
+          "type": "module",
+          "displayName": "Design and Features"
+        },
+        {
+          "textRaw": "The Node.js REPL",
+          "name": "the_node.js_repl",
+          "desc": "<p>Node.js itself uses the <code>repl</code> module to provide its own interactive interface\nfor executing JavaScript. This can be used by executing the Node.js binary\nwithout passing any arguments (or by passing the <code>-i</code> argument):</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">$ node\n&gt; const a = [1, 2, 3];\nundefined\n&gt; a\n[ 1, 2, 3 ]\n&gt; a.forEach((v) =&gt; {\n...   console.log(v);\n...   });\n1\n2\n3\n</code></pre>\n",
+          "modules": [
+            {
+              "textRaw": "Environment Variable Options",
+              "name": "environment_variable_options",
+              "desc": "<p>Various behaviors of the Node.js REPL can be customized using the following\nenvironment variables:</p>\n<ul>\n<li><code>NODE_REPL_HISTORY</code> - When a valid path is given, persistent REPL history\nwill be saved to the specified file rather than <code>.node_repl_history</code> in the\nuser&#39;s home directory. Setting this value to <code>&quot;&quot;</code> will disable persistent\nREPL history. Whitespace will be trimmed from the value.</li>\n<li><code>NODE_REPL_HISTORY_SIZE</code> - Defaults to <code>1000</code>. Controls how many lines of\nhistory will be persisted if history is available. Must be a positive number.</li>\n<li><code>NODE_REPL_MODE</code> - May be any of <code>sloppy</code>, <code>strict</code>, or <code>magic</code>. Defaults\nto <code>sloppy</code>, which will allow non-strict mode code to be run. <code>magic</code> is\n<strong>deprecated</strong> and treated as an alias of <code>sloppy</code>.</li>\n</ul>\n",
+              "type": "module",
+              "displayName": "Environment Variable Options"
+            },
+            {
+              "textRaw": "Persistent History",
+              "name": "persistent_history",
+              "desc": "<p>By default, the Node.js REPL will persist history between <code>node</code> REPL sessions\nby saving inputs to a <code>.node_repl_history</code> file located in the user&#39;s home\ndirectory. This can be disabled by setting the environment variable\n<code>NODE_REPL_HISTORY=&quot;&quot;</code>.</p>\n",
+              "modules": [
+                {
+                  "textRaw": "NODE_REPL_HISTORY_FILE",
+                  "name": "node_repl_history_file",
+                  "meta": {
+                    "added": [
+                      "v2.0.0"
+                    ],
+                    "deprecated": [
+                      "v3.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 0,
+                  "stabilityText": "Deprecated: Use `NODE_REPL_HISTORY` instead.",
+                  "desc": "<p>Previously in Node.js/io.js v2.x, REPL history was controlled by using a\n<code>NODE_REPL_HISTORY_FILE</code> environment variable, and the history was saved in JSON\nformat. This variable has now been deprecated, and the old JSON REPL history\nfile will be automatically converted to a simplified plain text format. This new\nfile will be saved to either the user&#39;s home directory, or a directory defined\nby the <code>NODE_REPL_HISTORY</code> variable, as documented in the\n<a href=\"#repl_environment_variable_options\">Environment Variable Options</a>.</p>\n",
+                  "type": "module",
+                  "displayName": "NODE_REPL_HISTORY_FILE"
+                }
+              ],
+              "type": "module",
+              "displayName": "Persistent History"
+            },
+            {
+              "textRaw": "Using the Node.js REPL with advanced line-editors",
+              "name": "using_the_node.js_repl_with_advanced_line-editors",
+              "desc": "<p>For advanced line-editors, start Node.js with the environmental variable\n<code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical\nterminal settings, which will allow use with <code>rlwrap</code>.</p>\n<p>For example, the following can be added to a <code>.bashrc</code> file:</p>\n<pre><code class=\"lang-text\">alias node=&quot;env NODE_NO_READLINE=1 rlwrap node&quot;\n</code></pre>\n",
+              "type": "module",
+              "displayName": "Using the Node.js REPL with advanced line-editors"
+            },
+            {
+              "textRaw": "Starting multiple REPL instances against a single running instance",
+              "name": "starting_multiple_repl_instances_against_a_single_running_instance",
+              "desc": "<p>It is possible to create and run multiple REPL instances against a single\nrunning instance of Node.js that share a single <code>global</code> object but have\nseparate I/O interfaces.</p>\n<p>The following example, for instance, provides separate REPLs on <code>stdin</code>, a Unix\nsocket, and a TCP socket:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst repl = require(&#39;repl&#39;);\nlet connections = 0;\n\nrepl.start({\n  prompt: &#39;Node.js via stdin&gt; &#39;,\n  input: process.stdin,\n  output: process.stdout\n});\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via Unix socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(&#39;/tmp/node-repl-sock&#39;);\n\nnet.createServer((socket) =&gt; {\n  connections += 1;\n  repl.start({\n    prompt: &#39;Node.js via TCP socket&gt; &#39;,\n    input: socket,\n    output: socket\n  }).on(&#39;exit&#39;, () =&gt; {\n    socket.end();\n  });\n}).listen(5001);\n</code></pre>\n<p>Running this application from the command line will start a REPL on stdin.\nOther REPL clients may connect through the Unix socket or TCP socket. <code>telnet</code>,\nfor instance, is useful for connecting to TCP sockets, while <code>socat</code> can be used\nto connect to both Unix and TCP sockets.</p>\n<p>By starting a REPL from a Unix socket-based server instead of stdin, it is\npossible to connect to a long-running Node.js process without restarting it.</p>\n<p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over\na <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href=\"https://gist.github.com/2209310\">https://gist.github.com/2209310</a></p>\n<p>For an example of running a REPL instance over <a href=\"https://curl.haxx.se/docs/manpage.html\">curl(1)</a>,\nsee: <a href=\"https://gist.github.com/2053342\">https://gist.github.com/2053342</a></p>\n",
+              "type": "module",
+              "displayName": "Starting multiple REPL instances against a single running instance"
+            }
+          ],
+          "type": "module",
+          "displayName": "The Node.js REPL"
+        }
+      ],
+      "classes": [
+        {
+          "textRaw": "Class: REPLServer",
+          "type": "class",
+          "name": "REPLServer",
+          "meta": {
+            "added": [
+              "v0.1.91"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>repl.REPLServer</code> class inherits from the <a href=\"readline.html#readline_class_interface\"><code>readline.Interface</code></a> class.\nInstances of <code>repl.REPLServer</code> are created using the <code>repl.start()</code> method and\n<em>should not</em> be created directly using the JavaScript <code>new</code> keyword.</p>\n",
+          "events": [
+            {
+              "textRaw": "Event: 'exit'",
+              "type": "event",
+              "name": "exit",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>&#39;exit&#39;</code> event is emitted when the REPL is exited either by receiving the\n<code>.exit</code> command as input, the user pressing <code>&lt;ctrl&gt;-C</code> twice to signal <code>SIGINT</code>,\nor by pressing <code>&lt;ctrl&gt;-D</code> to signal <code>&#39;end&#39;</code> on the input stream. The listener\ncallback is invoked without any arguments.</p>\n<pre><code class=\"lang-js\">replServer.on(&#39;exit&#39;, () =&gt; {\n  console.log(&#39;Received &quot;exit&quot; event from repl!&#39;);\n  process.exit();\n});\n</code></pre>\n",
+              "params": []
+            },
+            {
+              "textRaw": "Event: 'reset'",
+              "type": "event",
+              "name": "reset",
+              "meta": {
+                "added": [
+                  "v0.11.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>&#39;reset&#39;</code> event is emitted when the REPL&#39;s context is reset. This occurs\nwhenever the <code>.clear</code> command is received as input <em>unless</em> the REPL is using\nthe default evaluator and the <code>repl.REPLServer</code> instance was created with the\n<code>useGlobal</code> option set to <code>true</code>. The listener callback will be called with a\nreference to the <code>context</code> object as the only argument.</p>\n<p>This can be used primarily to re-initialize REPL context to some pre-defined\nstate as illustrated in the following simple example:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nfunction initializeContext(context) {\n  context.m = &#39;test&#39;;\n}\n\nconst r = repl.start({ prompt: &#39;&gt; &#39; });\ninitializeContext(r.context);\n\nr.on(&#39;reset&#39;, initializeContext);\n</code></pre>\n<p>When this code is executed, the global <code>&#39;m&#39;</code> variable can be modified but then\nreset to its initial value using the <code>.clear</code> command:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">$ ./node example.js\n&gt; m\n&#39;test&#39;\n&gt; m = 1\n1\n&gt; m\n1\n&gt; .clear\nClearing context...\n&gt; m\n&#39;test&#39;\n&gt;\n</code></pre>\n",
+              "params": []
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "replServer.defineCommand(keyword, cmd)",
+              "type": "method",
+              "name": "defineCommand",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`keyword` {string} The command keyword (*without* a leading `.` character). ",
+                      "name": "keyword",
+                      "type": "string",
+                      "desc": "The command keyword (*without* a leading `.` character)."
+                    },
+                    {
+                      "textRaw": "`cmd` {Object|Function} The function to invoke when the command is processed. ",
+                      "name": "cmd",
+                      "type": "Object|Function",
+                      "desc": "The function to invoke when the command is processed."
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "keyword"
+                    },
+                    {
+                      "name": "cmd"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>The <code>replServer.defineCommand()</code> method is used to add new <code>.</code>-prefixed commands\nto the REPL instance. Such commands are invoked by typing a <code>.</code> followed by the\n<code>keyword</code>. The <code>cmd</code> is either a Function or an object with the following\nproperties:</p>\n<ul>\n<li><code>help</code> {string} Help text to be displayed when <code>.help</code> is entered (Optional).</li>\n<li><code>action</code> {Function} The function to execute, optionally accepting a single\nstring argument.</li>\n</ul>\n<p>The following example shows two new commands added to the REPL instance:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\nconst replServer = repl.start({ prompt: &#39;&gt; &#39; });\nreplServer.defineCommand(&#39;sayhello&#39;, {\n  help: &#39;Say hello&#39;,\n  action(name) {\n    this.bufferedCommand = &#39;&#39;;\n    console.log(`Hello, ${name}!`);\n    this.displayPrompt();\n  }\n});\nreplServer.defineCommand(&#39;saybye&#39;, function saybye() {\n  console.log(&#39;Goodbye!&#39;);\n  this.close();\n});\n</code></pre>\n<p>The new commands can then be used from within the REPL instance:</p>\n<pre><code class=\"lang-txt\">&gt; .sayhello Node.js User\nHello, Node.js User!\n&gt; .saybye\nGoodbye!\n</code></pre>\n"
+            },
+            {
+              "textRaw": "replServer.displayPrompt([preserveCursor])",
+              "type": "method",
+              "name": "displayPrompt",
+              "meta": {
+                "added": [
+                  "v0.1.91"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`preserveCursor` {boolean} ",
+                      "name": "preserveCursor",
+                      "type": "boolean",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "preserveCursor",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>The <code>replServer.displayPrompt()</code> method readies the REPL instance for input\nfrom the user, printing the configured <code>prompt</code> to a new line in the <code>output</code>\nand resuming the <code>input</code> to accept new input.</p>\n<p>When multi-line input is being entered, an ellipsis is printed rather than the\n&#39;prompt&#39;.</p>\n<p>When <code>preserveCursor</code> is <code>true</code>, the cursor placement will not be reset to <code>0</code>.</p>\n<p>The <code>replServer.displayPrompt</code> method is primarily intended to be called from\nwithin the action function for commands registered using the\n<code>replServer.defineCommand()</code> method.</p>\n"
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "repl.start([options])",
+          "type": "method",
+          "name": "start",
+          "meta": {
+            "added": [
+              "v0.1.91"
+            ],
+            "changes": [
+              {
+                "version": "v5.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5388",
+                "description": "The `options` parameter is optional now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {Object|string} ",
+                  "options": [
+                    {
+                      "textRaw": "`prompt` {string} The input prompt to display. Defaults to `> ` (with a trailing space). ",
+                      "name": "prompt",
+                      "type": "string",
+                      "desc": "The input prompt to display. Defaults to `> ` (with a trailing space)."
+                    },
+                    {
+                      "textRaw": "`input` {Readable} The Readable stream from which REPL input will be read. Defaults to `process.stdin`. ",
+                      "name": "input",
+                      "type": "Readable",
+                      "desc": "The Readable stream from which REPL input will be read. Defaults to `process.stdin`."
+                    },
+                    {
+                      "textRaw": "`output` {Writable} The Writable stream to which REPL output will be written. Defaults to `process.stdout`. ",
+                      "name": "output",
+                      "type": "Writable",
+                      "desc": "The Writable stream to which REPL output will be written. Defaults to `process.stdout`."
+                    },
+                    {
+                      "textRaw": "`terminal` {boolean} If `true`, specifies that the `output` should be treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation. ",
+                      "name": "terminal",
+                      "type": "boolean",
+                      "desc": "If `true`, specifies that the `output` should be treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation."
+                    },
+                    {
+                      "textRaw": "`eval` {Function} The function to be used when evaluating each given line of input. Defaults to an async wrapper for the JavaScript `eval()` function.  An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines. ",
+                      "name": "eval",
+                      "type": "Function",
+                      "desc": "The function to be used when evaluating each given line of input. Defaults to an async wrapper for the JavaScript `eval()` function.  An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines."
+                    },
+                    {
+                      "textRaw": "`useColors` {boolean} If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect. Defaults to the  REPL instances `terminal` value. ",
+                      "name": "useColors",
+                      "type": "boolean",
+                      "desc": "If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect. Defaults to the  REPL instances `terminal` value."
+                    },
+                    {
+                      "textRaw": "`useGlobal` {boolean} If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`. Defaults to `false`. ",
+                      "name": "useGlobal",
+                      "type": "boolean",
+                      "desc": "If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`. Defaults to `false`."
+                    },
+                    {
+                      "textRaw": "`ignoreUndefined` {boolean} If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`. Defaults to `false`. ",
+                      "name": "ignoreUndefined",
+                      "type": "boolean",
+                      "desc": "If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`. Defaults to `false`."
+                    },
+                    {
+                      "textRaw": "`writer` {Function} The function to invoke to format the output of each  command before writing to `output`. Defaults to [`util.inspect()`][]. ",
+                      "name": "writer",
+                      "type": "Function",
+                      "desc": "The function to invoke to format the output of each  command before writing to `output`. Defaults to [`util.inspect()`][]."
+                    },
+                    {
+                      "textRaw": "`completer` {Function} An optional function used for custom Tab auto  completion. See [`readline.InterfaceCompleter`][] for an example. ",
+                      "name": "completer",
+                      "type": "Function",
+                      "desc": "An optional function used for custom Tab auto  completion. See [`readline.InterfaceCompleter`][] for an example."
+                    },
+                    {
+                      "textRaw": "`replMode` {symbol} A flag that specifies whether the default evaluator executes all JavaScript commands in strict mode or default (sloppy) mode. Acceptable values are: ",
+                      "options": [
+                        {
+                          "textRaw": "`repl.REPL_MODE_SLOPPY` - evaluates expressions in sloppy mode. ",
+                          "name": "repl.REPL_MODE_SLOPPY",
+                          "desc": "evaluates expressions in sloppy mode."
+                        },
+                        {
+                          "textRaw": "`repl.REPL_MODE_STRICT` - evaluates expressions in strict mode. This is equivalent to prefacing every repl statement with `'use strict'`. ",
+                          "name": "repl.REPL_MODE_STRICT",
+                          "desc": "evaluates expressions in strict mode. This is equivalent to prefacing every repl statement with `'use strict'`."
+                        },
+                        {
+                          "textRaw": "`repl.REPL_MODE_MAGIC` - This value is **deprecated**, since enhanced spec compliance in V8 has rendered magic mode unnecessary. It is now equivalent to `repl.REPL_MODE_SLOPPY` (documented above). ",
+                          "name": "repl.REPL_MODE_MAGIC",
+                          "desc": "This value is **deprecated**, since enhanced spec compliance in V8 has rendered magic mode unnecessary. It is now equivalent to `repl.REPL_MODE_SLOPPY` (documented above)."
+                        }
+                      ],
+                      "name": "replMode",
+                      "type": "symbol",
+                      "desc": "A flag that specifies whether the default evaluator executes all JavaScript commands in strict mode or default (sloppy) mode. Acceptable values are:"
+                    },
+                    {
+                      "textRaw": "`breakEvalOnSigint` - Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function. Defaults to `false`. ",
+                      "name": "breakEvalOnSigint",
+                      "desc": "Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function. Defaults to `false`."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "Object|string",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>repl.start()</code> method creates and starts a <code>repl.REPLServer</code> instance.</p>\n<p>If <code>options</code> is a string, then it specifies the input prompt:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n\n// a Unix style prompt\nrepl.start(&#39;$ &#39;);\n</code></pre>\n"
+        }
+      ],
+      "type": "module",
+      "displayName": "REPL"
+    }
+  ]
+}

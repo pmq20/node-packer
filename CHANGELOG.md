@@ -1,5 +1,9 @@
 # Node.js Compiler Changelog
 
+## v1.5.0
+
+
+
 ## v1.4.0
 
 - upgrade Node.js runtime to v8.2.0
@@ -18,6 +22,25 @@
   - https://github.com/pmq20/node-compiler/issues/42
 - use only the master CI
 - remove `node/deps/npm`
+
+Translations in Chinese:
+- 将编译器的 Node.js 运行时升级到了 v8.2.0
+  - https://nodejs.org/en/blog/release/v8.2.0/
+- 修复 MSI 生成时包的名字出错；名字是动态替换进去的，有些包的名字里包含@和减号等特殊字符
+- 将 libsquash 升级到 v0.7.0
+  - 提前测试是否定义了 `__USE_XOPEN_EXTENDED` 宏
+- 将 libautoupdate 升级到 v0.2.0
+  - 每次启动都检查更新会导致启动速度变慢，现改成了在用户主目录下记录 .libautoupdate 文件来限制 24 小时内只检查一次
+  - 向 `autoupdate()` 添加 `force` 参数来强制自动更新
+  - 在 CI 中添加对 `autoupdate()` 的测试
+  - Windows 下自动更新夸卷无法替换自身，现采取直接拿当前目录做临时目录的办法解决了这个问题
+    - 例如在 D:\1\2.exe 下的文件直接拿 D:\1 来做临时目录，而不再取用 C 盘
+    - https://github.com/pmq20/node-compiler/issues/42
+- 每次编译之前都清理 `node_main.obj` 文件来避免遇到微软工具链的 bug 导致此文件过期
+- 让 nodec 的版本号也成为临时目录命名的一部分，实现了更安全的 nodec 自我自动更新
+  - https://github.com/pmq20/node-compiler/issues/42
+- 简化 CI，今后只使用 master CI
+- 丢弃 `node/deps/npm`，降低了 nodec 的分发大小
 
 ## v1.3.0
 

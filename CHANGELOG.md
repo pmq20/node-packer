@@ -2,7 +2,8 @@
 
 ## v1.5.0
 
-
+- add options to generate installers
+  - add `--pkg`: generates a pkg installer for macOS
 
 ## v1.4.0
 

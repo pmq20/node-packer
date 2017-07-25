@@ -106,8 +106,12 @@ OptionParser.new do |opts|
     options[:auto_update_base] = string
   end
   
-  opts.on("--msi", "Generates a .MSI installer for Windows") do
+  opts.on("--msi", "Generates a .msi installer for Windows") do
     options[:msi] = true
+  end
+  
+  opts.on("--pkg", "Generates a .pkg installer for macOS") do
+    options[:pkg] = true
   end
 
   opts.on("--debug", "Enable debug mode") do

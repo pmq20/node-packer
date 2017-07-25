@@ -354,8 +354,21 @@ class Compiler
       @utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
       @utils.run("make #{@options[:make_args]}")
     end
-    src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
-    @utils.cp(src, @options[:output])
+    if @options[:pkg]
+      @utils.chdir(@tmpdir_node) do
+        @utils.rm_rf('out/dist-osx/usr/local/bin')
+        @utils.mkdir_p('out/dist-osx/usr/local/bin')
+        src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+        @utils.cp(src, "out/dist-osx/usr/local/bin/#{@package_json['name']}")
+        @utils.run("/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --id \"org.nodejs.pkg\" --doc tools/osx-pkg.pmdoc --out nodec.pkg")
+        Dir['*.pkg'].each do |x|
+          @utils.cp(x, @options[:output])
+        end
+      end
+    else
+      src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
+      @utils.cp(src, @options[:output])
+    end
   end
 
   def compile_linux

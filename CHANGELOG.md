@@ -2,6 +2,8 @@
 
 ## v1.5.0
 
+### Items that Minqi Pan is working on
+
 - add options to generate installers
   - add `--pkg`: generates a pkg installer for macOS
 - fix bad package versions for product.wxs when generating MSI installers

@@ -172,6 +172,7 @@ class Compiler
     npm_package_set_entrance if @npm_package
     set_package_json
     msi_prepare if @options[:msi]
+    pkg_prepare if @options[:pkg]
     make_enclose_io_memfs if @entrance
     make_enclose_io_vars
     if Gem.win_platform?
@@ -208,6 +209,18 @@ class Compiler
     erb_result_target = File.join(@tmpdir_node, 'tools', 'msvs', 'msi', 'product.wxs')
     File.open(erb_result_target, 'w') do |f|
       f.puts erb_result
+    end
+  end
+
+  def pkg_prepare
+    @osx_pkg_id = "enclose.#{SecureRandom.uuid.gsub('-', '.')}.pkg"
+    ['index.xml', '01local.xml'].each do |x|
+      erb_target = File.join(PRJ_ROOT, 'node', 'tools', 'osx-pkg.pmdoc', x)
+      erb_result = ERB.new(File.read(erb_target)).result(binding)
+      erb_result_target = File.join(@tmpdir_node, 'tools', 'osx-pkg.pmdoc', x)
+      File.open(erb_result_target, 'w') do |f|
+        f.puts erb_result
+      end
     end
   end
 
@@ -360,7 +373,7 @@ class Compiler
         @utils.mkdir_p('out/dist-osx/usr/local/bin')
         src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")
         @utils.cp(src, "out/dist-osx/usr/local/bin/#{@package_json['name']}")
-        @utils.run("/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --id \"org.nodejs.pkg\" --doc tools/osx-pkg.pmdoc --out nodec.pkg")
+        @utils.run("/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --id \"#{@osx_pkg_id}\" --doc tools/osx-pkg.pmdoc --out nodec.pkg")
         Dir['*.pkg'].each do |x|
           @utils.cp(x, @options[:output])
         end

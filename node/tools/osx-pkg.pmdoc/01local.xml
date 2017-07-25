@@ -1,7 +1,7 @@
-<pkgref spec="1.12" uuid="053587FE-BDF3-4EF5-815D-281427431048">
+<pkgref spec="1.12" uuid="<%= SecureRandom.uuid.upcase %>">
   <config>
-    <identifier>org.nodejs.node.pkg</identifier>
-    <version>1.0</version>
+    <identifier><%= @osx_pkg_id %></identifier>
+    <version><%= @package_json['version'] %></version>
     <description></description>
     <post-install type="none"/>
     <requireAuthorization/>

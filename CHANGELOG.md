@@ -8,6 +8,9 @@
   - add `--pkg`: generates a pkg installer for macOS
 - fix bad package versions for product.wxs when generating MSI installers
   - Fix bad versions in MSI like `1.0.0-rc.9`
+- fix the example code on compiling a web application
+  - fixes https://github.com/pmq20/node-compiler/issues/50
+  - fixes https://github.com/pmq20/node-compiler/issues/59
 
 ## v1.4.0
 

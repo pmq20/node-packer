@@ -136,6 +136,7 @@ It's all you need to do, you don't have to tweak your project in order to compil
 
     git clone --depth 1 https://github.com/eggjs/examples.git
     cd examples/helloworld
+    npm install
     nodec node_modules/egg-bin/bin/egg-bin.js
     ./a.out dev (or a.exe dev on Windows)
 

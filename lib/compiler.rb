@@ -164,7 +164,17 @@ class Compiler
       # dirty hack for MSI generation
       @package_json['name'] = File.basename(@package_json['name']).gsub('-', '_') if @package_json['name']
     end
-    @package_json['version'] = @package_json['version'].gsub('-', '.') if @package_json['version']
+    if @package_json['version']
+      @package_json['version'] = @package_json['version'].gsub('-', '.').split('.').map { |x|
+        if x =~ /\d+/
+          x
+        else
+          x.chars.each.map { |y|
+            "#{y.ord}"
+          }.join('.')
+        end
+      }.join('.')
+    end
   end
 
   def run!

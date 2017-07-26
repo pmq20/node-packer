@@ -7,6 +7,7 @@
 - add options to generate installers
   - add `--pkg`: generates a pkg installer for macOS
 - fix bad package versions for product.wxs when generating MSI installers
+  - Fix bad versions in MSI like `1.0.0-rc.9`
 
 ## v1.4.0
 

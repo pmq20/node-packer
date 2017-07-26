@@ -40,6 +40,11 @@ Examples
     npm install
     nodec node_modules/egg-bin/bin/egg-bin.js
     ./a.out dev (or a.exe dev on Windows)
+  
+  Compile a npm package:
+
+    nodec --npm-package=coffee-script coffee
+    ./a.out (or a.exe on Windows)
 
 }.strip
 

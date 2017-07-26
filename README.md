@@ -140,6 +140,11 @@ It's all you need to do, you don't have to tweak your project in order to compil
     nodec node_modules/egg-bin/bin/egg-bin.js
     ./a.out dev (or a.exe dev on Windows)
 
+### Compile a npm package
+
+    nodec --npm-package=coffee-script coffee
+    ./a.out (or a.exe on Windows)
+
 ## See Also
 
 - [Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS that can be easily linked and embedded within your application.

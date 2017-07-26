@@ -165,15 +165,17 @@ class Compiler
       @package_json['name'] = File.basename(@package_json['name']).gsub('-', '_') if @package_json['name']
     end
     if @package_json['version']
-      @package_json['version'] = @package_json['version'].gsub('-', '.').split('.').map { |x|
+      suffix = '.'
+      @package_json['version'] = (@package_json['version'].gsub('-', '.').split('.').map { |x|
         if x =~ /\d+/
           x
         else
-          x.chars.each.map { |y|
+          suffix += x.chars.each.map { |y|
             "#{y.ord}"
           }.join('.')
+          nil
         end
-      }.join('.')
+      }.compact.join('.') + suffix).split('.')[0..3].join('.')
     end
   end
 

@@ -11,6 +11,13 @@
 - fix the example code on compiling a web application
   - fixes https://github.com/pmq20/node-compiler/issues/50
   - fixes https://github.com/pmq20/node-compiler/issues/59
+- removes the following files automatically before compiling
+  - `.git`, `a.exe`, `a.out`
+  - `node_modules/node/bin/node.exe`
+  - `node_modules/.bin/node.exe`
+  - `node_modules/node/bin/node`
+  - `node_modules/.bin/node`
+  - fixes https://github.com/pmq20/node-compiler/issues/57
 
 ## v1.4.0
 

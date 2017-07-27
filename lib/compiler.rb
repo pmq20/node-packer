@@ -261,6 +261,30 @@ class Compiler
         STDERR.puts `git status` unless @options[:quiet]
         @utils.rm_rf('.git')
       end
+      if File.exist?('a.exe')
+        STDERR.puts `dir a.exe`
+        @utils.rm_rf('a.exe')
+      end
+      if File.exist?('a.out')
+        STDERR.puts `ls -l a.out`
+        @utils.rm_rf('a.out')
+      end
+      if File.exist?('node_modules/node/bin/node.exe')
+        STDERR.puts `dir node_modules\\node\\bin\\node.exe`
+        @utils.rm_rf('node_modules\node\bin\node.exe')
+      end
+      if File.exist?('node_modules/.bin/node.exe')
+        STDERR.puts `dir node_modules\\.bin\\node.exe`
+        @utils.rm_rf('node_modules\.bin\node.exe')
+      end
+      if File.exist?('node_modules/node/bin/node')
+        STDERR.puts `ls -l node_modules/node/bin/node`
+        @utils.rm_rf('node_modules/node/bin/node')
+      end
+      if File.exist?('node_modules/.bin/node')
+        STDERR.puts `ls -l node_modules/.bin/node`
+        @utils.rm_rf('node_modules/.bin/node')
+      end
     end
   end
 

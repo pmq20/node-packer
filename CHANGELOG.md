@@ -25,6 +25,8 @@
   - `node_modules/node/bin/node`
   - `node_modules/.bin/node`
   - fixes https://github.com/pmq20/node-compiler/issues/57
+- set `ENCLOSE_IO_CHDIR` env var if `options.cwd` is set in `child_process.spawn`
+  - call `process.chdir` at start-up when `ENCLOSE_IO_CHDIR` is set
 
 ## v1.4.0
 

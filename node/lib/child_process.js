@@ -628,6 +628,9 @@ function normalizeSpawnArguments(file, args, options) {
   if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
     envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
   }
+  if (options.cwd) { // TODO no need to do this for ordinary paths
+    envPairs.push(`ENCLOSE_IO_CHDIR=${options.cwd}`);
+  }
   debug('normalizeSpawnArguments ends with', {
     file: file,
     args: args,

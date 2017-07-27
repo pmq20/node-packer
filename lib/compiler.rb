@@ -132,7 +132,7 @@ class Compiler
   def init_tmpdir
     @options[:tmpdir] = File.expand_path(@options[:tmpdir])
     @root = File.expand_path(@root) if @root
-    if @root && !@npm_package && (@options[:tmpdir].include? @root)
+    if @root && (@options[:tmpdir].include? @root)
       raise Error, "tmpdir #{@options[:tmpdir]} cannot reside inside #{@root}."
     end
     @work_dir = File.join(@options[:tmpdir], '__work_dir__')

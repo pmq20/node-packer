@@ -4,6 +4,13 @@
 
 ### Items that Minqi Pan is working on
 
+- upgrade libsquash to v0.8.0
+  - allow creating files inside an existing folder of memfs
+    - removes the temporary directory and files at exit
+  - produce an executable `squash_sample` when `BUILD_SAMPLE` in cmake
+    - let CI discover linking errors earlier about the sample
+  - intercept CreateProcessW
+    - unsets lpCurrentDirectory when it was set to `__enclose_io_memfs__` paths
 - add options to generate installers
   - add `--pkg`: generates a pkg installer for macOS
 - fix bad package versions for product.wxs when generating MSI installers

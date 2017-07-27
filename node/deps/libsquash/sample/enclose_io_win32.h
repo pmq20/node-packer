@@ -62,6 +62,7 @@
 #define CreateIoCompletionPort(...) EncloseIOCreateIoCompletionPort(__VA_ARGS__)
 #define ReadDirectoryChangesW(...) EncloseIOReadDirectoryChangesW(__VA_ARGS__)
 #define LoadLibraryExW(...) EncloseIOLoadLibraryExW(__VA_ARGS__)
+#define CreateProcessW(...) EncloseIOCreateProcessW(__VA_ARGS__)
 
 #endif //_WIN32
 #endif //!__cplusplus

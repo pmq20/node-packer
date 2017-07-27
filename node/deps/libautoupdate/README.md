@@ -4,6 +4,7 @@ Cross-platform C library that enables your application to auto-update itself in 
 
 [![Build Status](https://travis-ci.org/pmq20/libautoupdate.svg?branch=master)](https://travis-ci.org/pmq20/libautoupdate)
 [![Build status](https://ci.appveyor.com/api/projects/status/sjdyfwd768lh187f/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/libautoupdate/branch/master)
+[![GitHub version](https://badge.fury.io/gh/pmq20%2Flibautoupdate.svg)](https://badge.fury.io/gh/pmq20%2Flibautoupdate)
 
 ![Terminal simulation of a simple auto-update](https://github.com/pmq20/libautoupdate/raw/master/doc/libautoupdate.gif)
 

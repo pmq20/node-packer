@@ -28,3 +28,5 @@ build_script:
     copy C:\projects\libsquash\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\$env:PlatformToolset\windesktop\msvcstl\dyn\rt-dyn\$env:Platform\RelWithDebInfo\zlib.dll Release
 
     ctest --verbose
+
+    C:\projects\libsquash\build\Release\squash_sample.exe

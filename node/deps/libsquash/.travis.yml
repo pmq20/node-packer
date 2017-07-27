@@ -14,3 +14,4 @@ script:
   - cmake -DBUILD_TESTS=ON -DBUILD_SAMPLE=ON .. || exit $?
   - cmake --build . || exit $?
   - ctest --verbose || exit $?
+  - ./squash_sample || exit $?

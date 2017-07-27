@@ -345,56 +345,56 @@ int enclose_io_mkdir(const char *path, mode_t mode)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		int ret;
+		int ret_inner;
+		const char* workdir;
+		const char* workdir_path;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
 		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
+		workdir = enclose_io_mkdir_workdir();
+		if (NULL == workdir) {
+			errno = ENOENT;
+			return -1;
+		}
+		workdir_path = malloc(strlen(workdir) + strlen(enclose_io_expanded) + 1);
+		if (NULL == workdir_path) {
+			errno = ENOMEM;
+			return -1;
+		}
+		strcpy(workdir_path, workdir);
+		strcat(workdir_path, enclose_io_expanded);
+		ret_inner = enclose_io_mkdir_consult(workdir_path, mode);
+		free(workdir_path);
 		if (0 == ret) {
 			errno = EEXIST;
 			return -1;
 		} else {
-			int ret_inner;
-			const char* workdir;
-			const char* workdir_path;
-			workdir = enclose_io_mkdir_workdir();
-			if (NULL == workdir) {
-				errno = ENOENT;
-				return -1;
-			}
-			workdir_path = malloc(strlen(workdir) + strlen(enclose_io_expanded) + 1);
-			if (NULL == workdir_path) {
-				errno = ENOMEM;
-				return -1;
-			}
-			strcpy(workdir_path, workdir);
-			strcat(workdir_path, enclose_io_expanded);
-			ret_inner = enclose_io_mkdir_consult(workdir_path, mode);
-			free(workdir_path);
 			return ret_inner;
 		}
 	} else if (enclose_io_is_path(path)) {
 		struct stat buf;
 		int ret;
+		int ret_inner;
+		const char* workdir;
+		const char* workdir_path;
 		ret = squash_stat(enclose_io_fs, path, &buf);
+		workdir = enclose_io_mkdir_workdir();
+		if (NULL == workdir) {
+			errno = ENOENT;
+			return -1;
+		}
+		workdir_path = malloc(strlen(workdir) + strlen(path) + 1);
+		if (NULL == workdir_path) {
+			errno = ENOMEM;
+			return -1;
+		}
+		strcpy(workdir_path, workdir);
+		strcat(workdir_path, path);
+		ret_inner = enclose_io_mkdir_consult(workdir_path, mode);
+		free(workdir_path);
 		if (0 == ret) {
 			errno = EEXIST;
 			return -1;
 		} else {
-			int ret_inner;
-			const char* workdir;
-			const char* workdir_path;
-			workdir = enclose_io_mkdir_workdir();
-			if (NULL == workdir) {
-				errno = ENOENT;
-				return -1;
-			}
-			workdir_path = malloc(strlen(workdir) + strlen(path) + 1);
-			if (NULL == workdir_path) {
-				errno = ENOMEM;
-				return -1;
-			}
-			strcpy(workdir_path, workdir);
-			strcat(workdir_path, path);
-			ret_inner = enclose_io_mkdir_consult(workdir_path, mode);
-			free(workdir_path);
 			return ret_inner;
 		}
 	} else {
@@ -609,6 +609,14 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 			va_start(args, flags);
 			mode = va_arg(args, mode_t);
 			va_end(args);
+#ifndef _WIN32
+			char *dir_thereof_ptr = strrchr(enclose_io_expanded, '/');
+			if (dir_thereof_ptr) {
+				*dir_thereof_ptr = 0;
+				enclose_io_mkdir(enclose_io_expanded, 0777);
+				*dir_thereof_ptr = '/';
+			}
+#endif // TODO remove this ifndef and implemnt enclose_io_mkdir for Windows
 			if (mkdir_workdir) {
 				sqfs_path mkdir_workdir_expanded;
 				char *mkdir_workdir_expanded_head;
@@ -654,6 +662,14 @@ int enclose_io_open(int nargs, const char *pathname, int flags, ...)
 			va_start(args, flags);
 			mode = va_arg(args, mode_t);
 			va_end(args);
+#ifndef _WIN32
+			char *dir_thereof_ptr = strrchr(pathname, '/');
+			if (dir_thereof_ptr) {
+				*dir_thereof_ptr = 0;
+				enclose_io_mkdir(pathname, 0777);
+				*dir_thereof_ptr = '/';
+			}
+#endif // TODO remove this ifndef and implemnt enclose_io_mkdir for Windows
 			if (mkdir_workdir) {
 				sqfs_path mkdir_workdir_expanded;
 				char *mkdir_workdir_expanded_head;

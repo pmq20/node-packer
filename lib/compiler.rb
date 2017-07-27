@@ -277,13 +277,13 @@ class Compiler
         STDERR.puts `dir node_modules\\.bin\\node.exe`
         @utils.rm_rf('node_modules\.bin\node.exe')
       end
-      if File.exist?('node_modules/node/bin/node')
-        STDERR.puts `ls -l node_modules/node/bin/node`
-        @utils.rm_rf('node_modules/node/bin/node')
-      end
       if File.exist?('node_modules/.bin/node')
-        STDERR.puts `ls -l node_modules/.bin/node`
+        STDERR.puts `ls -lh node_modules/.bin/node`
         @utils.rm_rf('node_modules/.bin/node')
+      end
+      if File.exist?('node_modules/node/bin/node')
+        STDERR.puts `ls -lh node_modules/node/bin/node`
+        @utils.rm_rf('node_modules/node/bin/node')
       end
     end
   end

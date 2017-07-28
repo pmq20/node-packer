@@ -103,8 +103,8 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 #define W_ENCLOSE_IO_PATH_CONVERT(path) \
 			enclose_io_converted = (char *)enclose_io_converted_storage; \
 			enclose_io_converted_length = wcstombs(enclose_io_converted_storage, (path), SQUASHFS_PATH_LEN); \
-                        if ((size_t)-1 == enclose_io_converted_length) { enclose_io_converted_length = 0; } \
-                        enclose_io_converted[enclose_io_converted_length] = '\0'; \
+			if ((size_t)-1 == enclose_io_converted_length) { enclose_io_converted_length = 0; } \
+			enclose_io_converted[enclose_io_converted_length] = '\0'; \
 			if (strnlen(enclose_io_converted_storage, 4) >= 4 && (0 == strncmp(enclose_io_converted_storage, "\\\\?\\", 4) || 0 == strncmp(enclose_io_converted_storage, "//?/", 4))) { \
 				if (strnlen(enclose_io_converted_storage, 6) >= 6 && ':' == enclose_io_converted_storage[5]) { \
 					enclose_io_converted += 6; \
@@ -311,6 +311,18 @@ EncloseIOCreateProcessW(
 	LPCWSTR lpCurrentDirectory,
 	LPSTARTUPINFOW lpStartupInfo,
 	LPPROCESS_INFORMATION lpProcessInformation
+);
+	
+BOOL
+EncloseIOSetCurrentDirectoryW(
+	LPCWSTR lpPathName
+);
+
+
+DWORD
+EncloseIOGetCurrentDirectoryW(
+	DWORD nBufferLength,
+	LPWSTR lpBuffer
 );
 
 #else

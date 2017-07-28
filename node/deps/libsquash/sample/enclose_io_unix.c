@@ -525,6 +525,55 @@ int enclose_io_chdir(const char *path)
 	}
 }
 
+#ifdef _WIN32
+BOOL
+EncloseIOSetCurrentDirectoryW(
+	LPCWSTR lpPathName
+)
+{
+	if (enclose_io_is_path_w(lpPathName)) {
+		int ret;
+		W_ENCLOSE_IO_PATH_CONVERT(lpPathName);
+		ret = enclose_io_chdir(enclose_io_converted);
+		if (0 == ret) {
+			return 1;
+		} else {
+			return 0;
+		}
+	} else {
+		BOOL ret = SetCurrentDirectoryW(lpPathName);
+		// If the function succeeds, the return value is nonzero.
+		if (ret) {
+			enclose_io_cwd[0] = '\0';
+		}
+		return ret;
+	}
+}
+
+DWORD
+EncloseIOGetCurrentDirectoryW(
+	DWORD nBufferLength,
+	LPWSTR lpBuffer
+)
+{
+	if (enclose_io_cwd[0]) {
+		size_t x;
+		char *ret = enclose_io_getcwd(NULL, 0);
+		if (NULL == ret) {
+			return 0;
+		}
+		x = mbstowcs(lpBuffer, ret, nBufferLength);
+		free(ret);
+		return x;
+	} else {
+		return GetCurrentDirectoryW(
+			DWORD nBufferLength,
+			LPWSTR lpBuffer
+		);
+	}
+}
+#endif
+
 char *enclose_io_getcwd(char *buf, size_t size)
 {
 	if (enclose_io_cwd[0]) {

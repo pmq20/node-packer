@@ -6,8 +6,9 @@
   - removes the temporary directory and files at exit
 - produce an executable `squash_sample` when `BUILD_SAMPLE` in cmake
   - let CI discover linking errors earlier about the sample
-- intercept CreateProcessW
-  - unsets lpCurrentDirectory when it was set to `__enclose_io_memfs__` paths
+- intercept `CreateProcessW`
+  - unsets `lpCurrentDirectory` when it was set to `__enclose_io_memfs__` paths
+- intercept `SetCurrentDirectoryW`, `GetCurrentDirectoryW`
 
 ## v0.7.0
 

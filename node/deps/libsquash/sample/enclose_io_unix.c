@@ -532,7 +532,12 @@ EncloseIOSetCurrentDirectoryW(
 )
 {
 	if (enclose_io_is_path_w(lpPathName)) {
+		sqfs_path enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
 		int ret;
+
 		W_ENCLOSE_IO_PATH_CONVERT(lpPathName);
 		ret = enclose_io_chdir(enclose_io_converted);
 		if (0 == ret) {
@@ -567,8 +572,8 @@ EncloseIOGetCurrentDirectoryW(
 		return x;
 	} else {
 		return GetCurrentDirectoryW(
-			DWORD nBufferLength,
-			LPWSTR lpBuffer
+			nBufferLength,
+			lpBuffer
 		);
 	}
 }

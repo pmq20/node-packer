@@ -567,9 +567,13 @@ EncloseIOGetCurrentDirectoryW(
 		if (NULL == ret) {
 			return 0;
 		}
-		x = mbstowcs(lpBuffer, ret, nBufferLength);
+		x = mbstowcs(lpBuffer, ret, nBufferLength - 1);
 		free(ret);
-		return x;
+                if (NULL == lpBuffer) {
+        		return x + 1;
+                } else {
+                        return x;
+                }
 	} else {
 		return GetCurrentDirectoryW(
 			nBufferLength,

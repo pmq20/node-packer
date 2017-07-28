@@ -53,6 +53,7 @@
 
     if (process.env.ENCLOSE_IO_CHDIR) {
       process.chdir(process.env.ENCLOSE_IO_CHDIR);
+      delete process.env.ENCLOSE_IO_CHDIR;
     }
 
     // Do not initialize channel in debugger agent, it deletes env variable

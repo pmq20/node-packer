@@ -38,6 +38,12 @@
 #include <windows.h>
 #include <userenv.h>
 
+// --------- [Enclose.IO Hack start] ---------
+#ifndef __cplusplus
+#define ENCLOSE_IO_WINAPI_H_VD6Y96RT
+#include "enclose_io.h"
+#endif
+// --------- [Enclose.IO Hack end] ---------
 
 /*
  * Max title length; the only thing MSDN tells us about the maximum length

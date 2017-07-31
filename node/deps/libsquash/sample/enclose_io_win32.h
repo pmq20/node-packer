@@ -41,6 +41,7 @@
 #define _fstati64(...)	enclose_io_fstati64(__VA_ARGS__)
 #define _open(...)	enclose_io__open(__VA_ARGS__)
 #define _wopen(...)	enclose_io__wopen(__VA_ARGS__)
+#define _wmkdir(...) enclose_io__wmkdir(__VA_ARGS__)
 #define _close(...)	enclose_io_close(__VA_ARGS__)
 #define _open_osfhandle(...) enclose_io_open_osfhandle(__VA_ARGS__)
 #define _get_osfhandle(...) enclose_io_get_osfhandle(__VA_ARGS__)

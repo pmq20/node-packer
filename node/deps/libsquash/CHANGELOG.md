@@ -9,6 +9,8 @@
 - intercept `CreateProcessW`
   - unsets `lpCurrentDirectory` when it was set to `__enclose_io_memfs__` paths
 - intercept `SetCurrentDirectoryW`, `GetCurrentDirectoryW`
+- implement `enclose_io_mkdir` for Windows
+  - intercept `_wmkdir`
 
 ## v0.7.0
 

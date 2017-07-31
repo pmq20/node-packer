@@ -157,6 +157,7 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 int enclose_io__open(const char *pathname, int flags);
 int enclose_io__wopen(const wchar_t *pathname, int flags, int mode);
+int enclose_io__wmkdir(wchar_t* pathname);
 int enclose_io_open_osfhandle(intptr_t osfhandle, int flags);
 intptr_t enclose_io_get_osfhandle(int fd);
 int enclose_io_wchdir(const wchar_t *path);

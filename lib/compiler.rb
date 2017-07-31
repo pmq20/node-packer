@@ -36,10 +36,6 @@ class Compiler
     end
     STDERR.puts "- options: #{@options}" unless @options[:quiet]
     STDERR.puts unless @options[:quiet]
-
-    check_base_node_version!
-
-    stuff_tmpdir
   end
 
   def node_version
@@ -180,6 +176,8 @@ class Compiler
   end
 
   def run!
+    check_base_node_version!
+    stuff_tmpdir
     npm_install if @entrance && !@options[:keep_tmpdir]
     npm_package_set_entrance if @npm_package
     set_package_json

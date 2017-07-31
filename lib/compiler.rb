@@ -180,12 +180,12 @@ class Compiler
   end
 
   def run!
-    npm_install unless !@entrance || @options[:keep_tmpdir]
+    npm_install if @entrance && !@options[:keep_tmpdir]
     npm_package_set_entrance if @npm_package
     set_package_json
     msi_prepare if @options[:msi]
     pkg_prepare if @options[:pkg]
-    make_enclose_io_memfs if @entrance
+    make_enclose_io_memfs if @entrance && !@options[:keep_tmpdir]
     make_enclose_io_vars
     if Gem.win_platform?
       compile_win

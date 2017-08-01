@@ -11,6 +11,9 @@
 - intercept `SetCurrentDirectoryW`, `GetCurrentDirectoryW`
 - implement `enclose_io_mkdir` for Windows
   - intercept `_wmkdir`
+- intercept `CreateFileW()` with writing
+  - redirect `CreateFileW()` with writing inside the memfs to a temporary directory
+  - removes the temporary directory and files at exit
 
 ## v0.7.0
 

@@ -64,7 +64,7 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 		squash_win32_buf[0] = 0;
 		assert(0 == wcslen(squash_win32_buf));
 		wcsncat(squash_win32_buf + wcslen(squash_win32_buf), tmpdir, squash_win32_buf_sz - wcslen(squash_win32_buf));
-		wcsncat(squash_win32_buf + wcslen(squash_win32_buf), L"\\libsquash-runtime-", squash_win32_buf_sz - wcslen(squash_win32_buf));
+		wcsncat(squash_win32_buf + wcslen(squash_win32_buf), L"\\libsquash-", squash_win32_buf_sz - wcslen(squash_win32_buf));
 		// up to 33 characters for _itoa
 		if (squash_win32_buf_sz - wcslen(squash_win32_buf) <= 33) {
 			return NULL;
@@ -129,9 +129,9 @@ SQUASH_OS_PATH squash_tmpf(SQUASH_OS_PATH tmpdir, const char *ext_name)
 	srand(time(NULL) * getpid());
 	while (try_cnt < 3) {
 		if (ext_name) {
-			ret = snprintf(squash_buf, squash_buf_sz, "%s/libsquash-runtime-%d.%s", tmpdir, rand(), ext_name);
+			ret = snprintf(squash_buf, squash_buf_sz, "%s/libsquash-%d.%s", tmpdir, rand(), ext_name);
 		} else {
-			ret = snprintf(squash_buf, squash_buf_sz, "%s/libsquash-runtime-%d", tmpdir, rand());
+			ret = snprintf(squash_buf, squash_buf_sz, "%s/libsquash-%d", tmpdir, rand());
 		}
 		if (-1 == ret) {
 			return NULL;

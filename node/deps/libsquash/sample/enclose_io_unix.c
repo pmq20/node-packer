@@ -667,64 +667,6 @@ int enclose_io_chdir(const char *path)
 	}
 }
 
-#ifdef _WIN32
-BOOL
-EncloseIOSetCurrentDirectoryW(
-	LPCWSTR lpPathName
-)
-{
-	if (enclose_io_is_path_w(lpPathName)) {
-		sqfs_path enclose_io_converted_storage;
-		char *enclose_io_converted;
-		char *enclose_io_i;
-		size_t enclose_io_converted_length;
-		int ret;
-
-		W_ENCLOSE_IO_PATH_CONVERT(lpPathName);
-		ret = enclose_io_chdir(enclose_io_converted);
-		if (0 == ret) {
-			return 1;
-		} else {
-			return 0;
-		}
-	} else {
-		BOOL ret = SetCurrentDirectoryW(lpPathName);
-		// If the function succeeds, the return value is nonzero.
-		if (ret) {
-			enclose_io_cwd[0] = '\0';
-		}
-		return ret;
-	}
-}
-
-DWORD
-EncloseIOGetCurrentDirectoryW(
-	DWORD nBufferLength,
-	LPWSTR lpBuffer
-)
-{
-	if (enclose_io_cwd[0]) {
-		size_t x;
-		char *ret = enclose_io_getcwd(NULL, 0);
-		if (NULL == ret) {
-			return 0;
-		}
-		x = mbstowcs(lpBuffer, ret, nBufferLength - 1);
-		free(ret);
-                if (NULL == lpBuffer) {
-        		return x + 1;
-                } else {
-                        return x;
-                }
-	} else {
-		return GetCurrentDirectoryW(
-			nBufferLength,
-			lpBuffer
-		);
-	}
-}
-#endif
-
 char *enclose_io_getcwd(char *buf, size_t size)
 {
 	if (enclose_io_cwd[0]) {
@@ -756,6 +698,96 @@ char *enclose_io_getwd(char *buf)
 {
 	return enclose_io_getcwd(buf, MAXPATHLEN);
 }
+
+#ifdef _WIN32
+BOOL
+EncloseIOSetCurrentDirectoryW(
+	LPCWSTR lpPathName
+)
+{
+	if (enclose_io_is_path_w(lpPathName)) {
+		sqfs_path enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+		int ret;
+
+		W_ENCLOSE_IO_PATH_CONVERT(lpPathName);
+
+		if (mkdir_workdir) {
+			sqfs_path mkdir_workdir_expanded;
+			char *mkdir_workdir_expanded_head;
+			size_t mkdir_workdir_len;
+			size_t memcpy_len;
+			struct stat mkdir_workdir_buf;
+			mkdir_workdir_len = strlen(mkdir_workdir);
+			memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len);
+			memcpy_len = strlen(enclose_io_converted);
+			if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) {
+				memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len;
+			}
+			memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], (enclose_io_converted), memcpy_len);
+			mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0';
+			mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope);
+			if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) {
+				memmove(
+					mkdir_workdir_expanded_head,
+					mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope),
+					strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1
+				);
+				if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) {
+					BOOL ret = SetCurrentDirectoryW(mkdir_workdir_expanded);
+					if (ret) {
+						enclose_io_chdir_helper(enclose_io_converted);
+					}
+					return ret;
+				}
+			}
+		}
+
+		ret = enclose_io_chdir(enclose_io_converted);
+		if (0 == ret) {
+			return 1;
+		} else {
+			return 0;
+		}
+	} else {
+		BOOL ret = SetCurrentDirectoryW(lpPathName);
+		// If the function succeeds, the return value is nonzero.
+		if (ret) {
+			enclose_io_cwd[0] = '\0';
+		}
+		return ret;
+	}
+}
+
+DWORD
+EncloseIOGetCurrentDirectoryW(
+	DWORD nBufferLength,
+	LPWSTR lpBuffer
+)
+{
+	if (enclose_io_cwd[0]) {
+		size_t x;
+		char *ret = enclose_io_getcwd(NULL, 0);
+		if (NULL == ret) {
+			return 0;
+		}
+		x = mbstowcs(lpBuffer, ret, nBufferLength - 1);
+		free(ret);
+		if (NULL == lpBuffer) {
+			return x + 1;
+		} else {
+			return x;
+		}
+	} else {
+		return GetCurrentDirectoryW(
+			nBufferLength,
+			lpBuffer
+		);
+	}
+}
+#endif // _WIN32
 
 int enclose_io_stat(const char *path, struct stat *buf)
 {

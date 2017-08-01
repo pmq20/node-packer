@@ -14,6 +14,9 @@
   - intercept `SetCurrentDirectoryW`, `GetCurrentDirectoryW`
   - implement `enclose_io_mkdir` for Windows
     - intercept `_wmkdir`
+  - intercept `CreateFileW()` with writing
+    - redirect `CreateFileW()` with writing inside the memfs to a temporary directory
+    - removes the temporary directory and files at exit
 - add options to generate installers
   - add `--pkg`: generates a pkg installer for macOS
 - fix bad package versions for product.wxs when generating MSI installers

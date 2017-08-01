@@ -21,59 +21,30 @@ char *enclose_io_mkdir_scope = "/__enclose_io_memfs__"; /* must NOT end with a s
 
 
 #ifdef _WIN32
-static BOOL mkdir_workdir_halt_rm(const wchar_t *sPath)
+#include <shellapi.h>
+static void mkdir_workdir_halt_rm(const wchar_t *sPath)
 {
-	HANDLE hFind;
-	WIN32_FIND_DATAW FindFileData;
-	wchar_t DirPath[MAX_PATH];
-	wchar_t FileName[MAX_PATH];
-	short bSearch = 1;
+	SHFILEOPSTRUCTW fileop;
+	size_t len = wcslen(sPath);
+	wchar_t pFrom[MAX_PATH * 2];
 
-	wcscpy(DirPath, sPath);
-	wcscat(DirPath, L"\\*");
-	wcscpy(FileName, sPath);
-	wcscat(FileName, L"\\");
-
-	hFind = FindFirstFileW(DirPath, &FindFileData);
-	if (INVALID_HANDLE_VALUE == hFind) {
-		return FALSE;
+	if (len > MAX_PATH) {
+		return;
 	}
+	wcscpy(pFrom, sPath);
+	pFrom[len] = 0;
+	pFrom[len + 1] = 0;
+	
+	fileop.hwnd = NULL;
+	fileop.wFunc = FO_DELETE;
+	fileop.pFrom = pFrom;
+	fileop.pTo = NULL;
+	fileop.fFlags = FOF_NOCONFIRMATION | FOF_SILENT;
+	fileop.fAnyOperationsAborted = FALSE;
+	fileop.lpszProgressTitle = NULL;
+	fileop.hNameMappings = NULL;
 
-	wcscpy(DirPath, FileName);
-	while (bSearch) {
-		if (FindNextFileW(hFind, &FindFileData)) {
-			if (wcslen(FindFileData.cFileName) >= 2 && L'.' == FindFileData.cFileName[0] && L'.' == FindFileData.cFileName[1]) {
-				continue;
-			}
-			wcscat(FileName, FindFileData.cFileName);
-			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-				if (!mkdir_workdir_halt_rm(FileName)) {
-					FindClose(hFind);
-					return FALSE;
-				}
-				RemoveDirectoryW(FileName);
-			} else {
-				if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
-					_wchmod(FileName, 0777);
-				}
-				if (!DeleteFile(FileName)) {
-					FindClose(hFind);
-					return FALSE;
-				}
-			}
-			wcscpy(FileName, DirPath);
-		} else {
-			if (ERROR_NO_MORE_FILES == GetLastError()) {
-				bSearch = 0;
-			} else {
-				FindClose(hFind);
-				return FALSE;
-			}
-		}
-	}
-
-	FindClose(hFind);
-	return RemoveDirectoryW(sPath);
+	SHFileOperationW(&fileop);
 }
 #else
 static int mkdir_workdir_halt_rm(const char *arg1, const struct stat *ptr, int flag, struct FTW *ftwarg)

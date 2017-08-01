@@ -736,7 +736,7 @@ EncloseIOSetCurrentDirectoryW(
 					strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1
 				);
 				if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) {
-					BOOL ret = SetCurrentDirectoryW(mkdir_workdir_expanded);
+					BOOL ret = SetCurrentDirectory(mkdir_workdir_expanded);
 					if (ret) {
 						enclose_io_chdir_helper(enclose_io_converted);
 					}

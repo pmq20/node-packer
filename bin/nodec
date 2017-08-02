@@ -132,7 +132,7 @@ OptionParser.new do |opts|
     exit 0
   end
 
-  opts.on("--node-version", "Prints the version of the Node.js runtime and exit") do
+  opts.on('-V', "--node-version", "Prints the version of the Node.js runtime and exit") do
     puts ::Compiler.new(nil, quiet: true).node_version
     exit 0
   end

@@ -34,6 +34,13 @@ class Compiler
       raise Error, "Failed running #{args}" unless status.success?
     end
 
+    def run_allow_failures(*args)
+      STDERR.puts "-> Running (allowing failures) #{args}" unless @options[:quiet]
+      pid = spawn(*args)
+      pid, status = Process.wait2(pid)
+      return status
+    end
+
     def chdir(path)
       STDERR.puts "-> cd #{path}" unless @options[:quiet]
       Dir.chdir(path) { yield }
@@ -50,6 +57,11 @@ class Compiler
       FileUtils.cp_r(x, y, options)
     end
 
+    def rm(x)
+      STDERR.puts "-> rm #{x}" unless @options[:quiet]
+      FileUtils.rm(x)
+    end
+
     def rm_f(x)
       STDERR.puts "-> rm -f #{x}" unless @options[:quiet]
       FileUtils.rm_f(x)
@@ -58,6 +70,11 @@ class Compiler
     def rm_rf(x)
       STDERR.puts "-> rm -rf #{x}" unless @options[:quiet]
       FileUtils.rm_rf(x)
+    end
+
+    def mkdir(x)
+      STDERR.puts "-> mkdir #{x}" unless @options[:quiet]
+      FileUtils.mkdir(x)
     end
     
     def mkdir_p(x)

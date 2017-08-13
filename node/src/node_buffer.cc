@@ -953,9 +953,9 @@ int64_t IndexOfOffset(size_t length,
 }
 
 void IndexOfString(const FunctionCallbackInfo<Value>& args) {
-  ASSERT(args[1]->IsString());
-  ASSERT(args[2]->IsNumber());
-  ASSERT(args[4]->IsBoolean());
+  CHECK(args[1]->IsString());
+  CHECK(args[2]->IsNumber());
+  CHECK(args[4]->IsBoolean());
 
   enum encoding enc = ParseEncoding(args.GetIsolate(),
                                     args[3],
@@ -1069,9 +1069,9 @@ void IndexOfString(const FunctionCallbackInfo<Value>& args) {
 }
 
 void IndexOfBuffer(const FunctionCallbackInfo<Value>& args) {
-  ASSERT(args[1]->IsObject());
-  ASSERT(args[2]->IsNumber());
-  ASSERT(args[4]->IsBoolean());
+  CHECK(args[1]->IsObject());
+  CHECK(args[2]->IsNumber());
+  CHECK(args[4]->IsBoolean());
 
   enum encoding enc = ParseEncoding(args.GetIsolate(),
                                     args[3],
@@ -1143,9 +1143,9 @@ void IndexOfBuffer(const FunctionCallbackInfo<Value>& args) {
 }
 
 void IndexOfNumber(const FunctionCallbackInfo<Value>& args) {
-  ASSERT(args[1]->IsNumber());
-  ASSERT(args[2]->IsNumber());
-  ASSERT(args[3]->IsBoolean());
+  CHECK(args[1]->IsNumber());
+  CHECK(args[2]->IsNumber());
+  CHECK(args[3]->IsBoolean());
 
   THROW_AND_RETURN_UNLESS_BUFFER(Environment::GetCurrent(args), args[0]);
   SPREAD_BUFFER_ARG(args[0], ts_obj);
@@ -1197,6 +1197,27 @@ void Swap64(const FunctionCallbackInfo<Value>& args) {
   SPREAD_BUFFER_ARG(args[0], ts_obj);
   SwapBytes64(ts_obj_data, ts_obj_length);
   args.GetReturnValue().Set(args[0]);
+}
+
+
+// Encode a single string to a UTF-8 Uint8Array (not Buffer).
+// Used in TextEncoder.prototype.encode.
+static void EncodeUtf8String(const FunctionCallbackInfo<Value>& args) {
+  Environment* env = Environment::GetCurrent(args);
+  CHECK_GE(args.Length(), 1);
+  CHECK(args[0]->IsString());
+
+  Local<String> str = args[0].As<String>();
+  size_t length = str->Utf8Length();
+  char* data = node::UncheckedMalloc(length);
+  str->WriteUtf8(data,
+                 -1,   // We are certain that `data` is sufficiently large
+                 NULL,
+                 String::NO_NULL_TERMINATION | String::REPLACE_INVALID_UTF8);
+  auto array_buf = ArrayBuffer::New(env->isolate(), data, length,
+                                    ArrayBufferCreationMode::kInternalized);
+  auto array = Uint8Array::New(array_buf, 0, length);
+  args.GetReturnValue().Set(array);
 }
 
 
@@ -1265,6 +1286,8 @@ void Initialize(Local<Object> target,
   env->SetMethod(target, "swap16", Swap16);
   env->SetMethod(target, "swap32", Swap32);
   env->SetMethod(target, "swap64", Swap64);
+
+  env->SetMethod(target, "encodeUtf8String", EncodeUtf8String);
 
   target->Set(env->context(),
               FIXED_ONE_BYTE_STRING(env->isolate(), "kMaxLength"),

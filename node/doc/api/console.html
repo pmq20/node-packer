@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Console | Node.js v8.2.1 Documentation</title>
+  <title>Console | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -96,6 +96,9 @@
 <li><span class="stability_undefined"><a href="#console_class_console">Class: Console</a></span><ul>
 <li><span class="stability_undefined"><a href="#console_new_console_stdout_stderr">new Console(stdout[, stderr])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_assert_value_message_args">console.assert(value[, message][, ...args])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_clear">console.clear()</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_count_label">console.count([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_countreset_label_default">console.countReset([label = &#39;default&#39;])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_dir_obj_options">console.dir(obj[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_error_data_args">console.error([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_info_data_args">console.info([data][, ...args])</a></span></li>
@@ -248,6 +251,63 @@ module.exports = myConsole;
 <pre><code class="lang-js">const console = require(&#39;./myConsole&#39;);
 console.assert(false, &#39;this message will print, but no error thrown&#39;);
 console.log(&#39;this will also print&#39;);
+</code></pre>
+<h3>console.clear()<span><a class="mark" href="#console_console_clear" id="console_console_clear">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>When <code>stdout</code> is a TTY, calling <code>console.clear()</code> will attempt to clear the
+TTY. When <code>stdout</code> is not a TTY, this method does nothing.</p>
+<p><em>Note</em>: The specific operation of <code>console.clear()</code> can vary across operating
+systems and terminal types. For most Linux operating systems, <code>console.clear()</code>
+operates similarly to the <code>clear</code> shell command. On Windows, <code>console.clear()</code>
+will clear only the output in the current terminal viewport for the Node.js
+binary.</p>
+<h3>console.count([label])<span><a class="mark" href="#console_console_count_label" id="console_console_count_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>Maintains an internal counter specific to <code>label</code> and outputs to <code>stdout</code> the
+number of times <code>console.count()</code> has been called with the given <code>label</code>.</p>
+<!-- eslint-skip -->
+<pre><code class="lang-js">&gt; console.count()
+default: 1
+undefined
+&gt; console.count(&#39;default&#39;)
+default: 2
+undefined
+&gt; console.count(&#39;abc&#39;)
+abc: 1
+undefined
+&gt; console.count(&#39;xyz&#39;)
+xyz: 1
+undefined
+&gt; console.count(&#39;abc&#39;)
+abc: 2
+undefined
+&gt; console.count()
+default: 3
+undefined
+&gt;
+</code></pre>
+<h3>console.countReset([label = &#39;default&#39;])<span><a class="mark" href="#console_console_countreset_label_default" id="console_console_countreset_label_default">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>Resets the internal counter specific to <code>label</code>.</p>
+<!-- eslint-skip -->
+<pre><code class="lang-js">&gt; console.count(&#39;abc&#39;);
+abc: 1
+undefined
+&gt; console.countReset(&#39;abc&#39;);
+undefined
+&gt; console.count(&#39;abc&#39;);
+abc: 1
+undefined
+&gt;
 </code></pre>
 <h3>console.dir(obj[, options])<span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
 <div class="api_metadata">

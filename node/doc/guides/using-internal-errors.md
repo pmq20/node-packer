@@ -15,9 +15,7 @@ to be breaking changes. By providing a permanent identifier for a specific
 error, we reduce the need for userland code to inspect error messages.
 
 *Note*: Switching an existing error to use the `internal/errors` module must be
-considered a `semver-major` change. However, once using `internal/errors`,
-changes to `internal/errors` error messages will be handled as `semver-minor`
-or `semver-patch`.
+considered a `semver-major` change.
 
 ## Using internal/errors.js
 
@@ -72,7 +70,7 @@ codes.
 ## Testing new errors
 
 When adding a new error, corresponding test(s) for the error message
-formatting may also be required. If the messasge for the error is a
+formatting may also be required. If the message for the error is a
 constant string then no test is required for the error message formatting
 as we can trust the error helper implementation. An example of this kind of
 error would be:

@@ -303,6 +303,18 @@
               },
               "desc": "<p>The module that first required this one.</p>\n",
               "shortDesc": "Module object"
+            },
+            {
+              "textRaw": "`paths` {string[]} ",
+              "type": "string[]",
+              "name": "paths",
+              "meta": {
+                "added": [
+                  "v0.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The search paths for the module.</p>\n"
             }
           ],
           "methods": [

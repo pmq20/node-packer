@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>URL | Node.js v8.2.1 Documentation</title>
+  <title>URL | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -227,10 +227,15 @@ const myURL =
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.0.0</span>
-</div><p><em>Note</em>: Using the <code>delete</code> keyword on <code>URL</code> objects (e.g.
-<code>delete myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will
-still return <code>true</code>.</p>
-<h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+</div><h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+<p>Browser-compatible <code>URL</code> class, implemented by following the WHATWG URL
+Standard. <a href="https://url.spec.whatwg.org/#example-url-parsing">Examples of parsed URLs</a> may be found in the Standard itself.</p>
+<p><em>Note</em>: In accordance with browser conventions, all properties of <code>URL</code> objects
+are implemented as getters and setters on the class prototype, rather than as
+data properties on the object itself. Thus, unlike <a href="#url_legacy_urlobject">legacy urlObject</a>s, using
+the <code>delete</code> keyword on any properties of <code>URL</code> objects (e.g. <code>delete
+myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will still
+return <code>true</code>.</p>
 <h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input URL to parse</li>
@@ -256,7 +261,8 @@ automatically converted to ASCII using the <a href="https://tools.ietf.org/html/
 const myURL = new URL(&#39;https://你好你好&#39;);
 // https://xn--6qqa088eba/
 </code></pre>
-<p>Additional <a href="https://url.spec.whatwg.org/#example-url-parsing">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>
+<p><em>Note</em>: This feature is only available if the <code>node</code> executable was compiled
+with <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -332,9 +338,7 @@ will be thrown.</p>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that
-may be contained within the hostname will be encoded as-is without <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
-encoding.</p>
+</div><p>Gets the read-only serialization of the URL&#39;s origin.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
 console.log(myURL.origin);
@@ -343,7 +347,7 @@ console.log(myURL.origin);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const idnURL = new URL(&#39;https://你好你好&#39;);
 console.log(idnURL.origin);
-// Prints https://你好你好
+// Prints https://xn--6qqa088eba
 
 console.log(idnURL.hostname);
 // Prints xn--6qqa088eba
@@ -925,7 +929,17 @@ forward-slash characters (<code>/</code>) are required following the colon in th
 <code>protocol</code>.</p>
 <h3>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.25</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A false-y <code>slashes</code> option with no protocol is now also respected at all times.</p>
+</td></tr>
+<tr><td>v0.1.25</td>
+<td><p><span>Added in: v0.1.25</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>urlObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A URL object (as returned by <code>url.parse()</code> or
 constructed otherwise). If a string, it is converted to an object by passing

@@ -74,6 +74,91 @@
               "desc": "<p>A simple assertion test that verifies whether <code>value</code> is truthy. If it is not,\nan <code>AssertionError</code> is thrown. If provided, the error <code>message</code> is formatted\nusing <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> and used as the error message.</p>\n<pre><code class=\"lang-js\">console.assert(true, &#39;does nothing&#39;);\n// OK\nconsole.assert(false, &#39;Whoops %s&#39;, &#39;didn\\&#39;t work&#39;);\n// AssertionError: Whoops didn&#39;t work\n</code></pre>\n<p><em>Note</em>: The <code>console.assert()</code> method is implemented differently in Node.js\nthan the <code>console.assert()</code> method <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/console/assert\">available in browsers</a>.</p>\n<p>Specifically, in browsers, calling <code>console.assert()</code> with a falsy\nassertion will cause the <code>message</code> to be printed to the console without\ninterrupting execution of subsequent code. In Node.js, however, a falsy\nassertion will cause an <code>AssertionError</code> to be thrown.</p>\n<p>Functionality approximating that implemented by browsers can be implemented\nby extending Node.js&#39; <code>console</code> and overriding the <code>console.assert()</code> method.</p>\n<p>In the following example, a simple module is created that extends and overrides\nthe default behavior of <code>console</code> in Node.js.</p>\n<!-- eslint-disable func-name-matching -->\n<pre><code class=\"lang-js\">&#39;use strict&#39;;\n\n// Creates a simple extension of console with a\n// new impl for assert without monkey-patching.\nconst myConsole = Object.create(console, {\n  assert: {\n    value: function assert(assertion, message, ...args) {\n      try {\n        console.assert(assertion, message, ...args);\n      } catch (err) {\n        console.error(err.stack);\n      }\n    },\n    configurable: true,\n    enumerable: true,\n    writable: true,\n  },\n});\n\nmodule.exports = myConsole;\n</code></pre>\n<p>This can then be used as a direct replacement for the built in console:</p>\n<pre><code class=\"lang-js\">const console = require(&#39;./myConsole&#39;);\nconsole.assert(false, &#39;this message will print, but no error thrown&#39;);\nconsole.log(&#39;this will also print&#39;);\n</code></pre>\n"
             },
             {
+              "textRaw": "console.clear()",
+              "type": "method",
+              "name": "clear",
+              "meta": {
+                "added": [
+                  "v8.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When <code>stdout</code> is a TTY, calling <code>console.clear()</code> will attempt to clear the\nTTY. When <code>stdout</code> is not a TTY, this method does nothing.</p>\n<p><em>Note</em>: The specific operation of <code>console.clear()</code> can vary across operating\nsystems and terminal types. For most Linux operating systems, <code>console.clear()</code>\noperates similarly to the <code>clear</code> shell command. On Windows, <code>console.clear()</code>\nwill clear only the output in the current terminal viewport for the Node.js\nbinary.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "console.count([label])",
+              "type": "method",
+              "name": "count",
+              "meta": {
+                "added": [
+                  "v8.3.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} The display label for the counter. Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "The display label for the counter. Defaults to `'default'`.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Maintains an internal counter specific to <code>label</code> and outputs to <code>stdout</code> the\nnumber of times <code>console.count()</code> has been called with the given <code>label</code>.</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; console.count()\ndefault: 1\nundefined\n&gt; console.count(&#39;default&#39;)\ndefault: 2\nundefined\n&gt; console.count(&#39;abc&#39;)\nabc: 1\nundefined\n&gt; console.count(&#39;xyz&#39;)\nxyz: 1\nundefined\n&gt; console.count(&#39;abc&#39;)\nabc: 2\nundefined\n&gt; console.count()\ndefault: 3\nundefined\n&gt;\n</code></pre>\n"
+            },
+            {
+              "textRaw": "console.countReset([label = 'default'])",
+              "type": "method",
+              "name": "countReset",
+              "meta": {
+                "added": [
+                  "v8.3.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} The display label for the counter. Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "The display label for the counter. Defaults to `'default'`.",
+                      "optional": true,
+                      "default": " 'default'"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label ",
+                      "optional": true,
+                      "default": " 'default'"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Resets the internal counter specific to <code>label</code>.</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">&gt; console.count(&#39;abc&#39;);\nabc: 1\nundefined\n&gt; console.countReset(&#39;abc&#39;);\nundefined\n&gt; console.count(&#39;abc&#39;);\nabc: 1\nundefined\n&gt;\n</code></pre>\n"
+            },
+            {
               "textRaw": "console.dir(obj[, options])",
               "type": "method",
               "name": "dir",

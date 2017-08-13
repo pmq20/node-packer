@@ -22,7 +22,7 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
-const a = require('assert');
+const a = assert;
 
 function makeBlock(f) {
   const args = Array.prototype.slice.call(arguments, 1);
@@ -35,6 +35,16 @@ assert.ok(a.AssertionError.prototype instanceof Error,
           'a.AssertionError instanceof Error');
 
 assert.throws(makeBlock(a, false), a.AssertionError, 'ok(false)');
+
+// Using a object as second arg results in a failure
+assert.throws(
+  () => { assert.throws(() => { throw new Error(); }, { foo: 'bar' }); },
+  common.expectsError({
+    type: TypeError,
+    message: 'expected.test is not a function'
+  })
+);
+
 
 assert.doesNotThrow(makeBlock(a, true), a.AssertionError, 'ok(true)');
 
@@ -143,11 +153,7 @@ assert.throws(makeBlock(a.deepEqual, /a/igm, /a/im),
 {
   const re1 = /a/g;
   re1.lastIndex = 3;
-  assert.doesNotThrow(makeBlock(a.deepEqual, re1, /a/g),
-                      common.expectsError({
-                        code: 'ERR_ASSERTION',
-                        message: /^\/a\/g deepEqual \/a\/g$/
-                      }));
+  assert.doesNotThrow(makeBlock(a.deepEqual, re1, /a/g));
 }
 
 assert.doesNotThrow(makeBlock(a.deepEqual, 4, '4'), 'deepEqual(4, \'4\')');
@@ -406,11 +412,11 @@ function thrower(errorConstructor) {
 assert.throws(makeBlock(thrower, a.AssertionError),
               a.AssertionError, 'message');
 assert.throws(makeBlock(thrower, a.AssertionError), a.AssertionError);
-// eslint-disable-next-line assert-throws-arguments
+// eslint-disable-next-line no-restricted-syntax
 assert.throws(makeBlock(thrower, a.AssertionError));
 
 // if not passing an error, catch all.
-// eslint-disable-next-line assert-throws-arguments
+// eslint-disable-next-line no-restricted-syntax
 assert.throws(makeBlock(thrower, TypeError));
 
 // when passing a type, only catch errors of the appropriate type
@@ -423,8 +429,7 @@ assert.throws(makeBlock(thrower, TypeError));
     assert.ok(e instanceof TypeError, 'type');
   }
   assert.strictEqual(true, threw,
-                     'a.throws with an explicit error is eating extra errors',
-                     a.AssertionError);
+                     'a.throws with an explicit error is eating extra errors');
 }
 
 // doesNotThrow should pass through all errors
@@ -468,10 +473,10 @@ assert.throws(() => {
   let threw = false;
   try {
     assert.throws(
-        function() {
-          throw ({}); // eslint-disable-line no-throw-literal
-        },
-        Array
+      function() {
+        throw ({}); // eslint-disable-line no-throw-literal
+      },
+      Array
     );
   } catch (e) {
     threw = true;
@@ -641,7 +646,7 @@ testAssertionMessage({a: NaN, b: Infinity, c: -Infinity},
 {
   let threw = false;
   try {
-    // eslint-disable-next-line assert-throws-arguments
+    // eslint-disable-next-line no-restricted-syntax
     assert.throws(function() {
       assert.ifError(null);
     });
@@ -670,10 +675,9 @@ try {
 
 {
   // Verify that throws() and doesNotThrow() throw on non-function block
-  const validationFunction = common.expectsError({
-    code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError
-  });
+  function typeName(value) {
+    return value === null ? 'null' : typeof value;
+  }
 
   const testBlockTypeError = (method, block) => {
     let threw = true;
@@ -682,7 +686,12 @@ try {
       method(block);
       threw = false;
     } catch (e) {
-      validationFunction(e);
+      common.expectsError({
+        code: 'ERR_INVALID_ARG_TYPE',
+        type: TypeError,
+        message: 'The "block" argument must be of type function. Received ' +
+                 'type ' + typeName(block)
+      })(e);
     }
 
     assert.ok(threw);

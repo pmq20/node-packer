@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v8.2.1 Documentation</title>
+  <title>About this Documentation | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -109,7 +109,7 @@
 <li><span class="stability_undefined"><a href="#assert_assert_doesnotthrow_block_error_message">assert.doesNotThrow(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_equal_actual_expected_message">assert.equal(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_fail_message">assert.fail(message)</a></span></li>
-<li><span class="stability_undefined"><a href="#assert_assert_fail_actual_expected_message_operator">assert.fail(actual, expected, message, operator)</a></span></li>
+<li><span class="stability_undefined"><a href="#assert_assert_fail_actual_expected_message_operator_stackstartfunction">assert.fail(actual, expected[, message[, operator[, stackStartFunction]]])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_iferror_value">assert.ifError(value)</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_notdeepequal_actual_expected_message">assert.notDeepEqual(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_notdeepstrictequal_actual_expected_message">assert.notDeepStrictEqual(actual, expected[, message])</a></span></li>
@@ -377,6 +377,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_create_object"><em>napi_create_object</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_symbol"><em>napi_create_symbol</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_typedarray"><em>napi_create_typedarray</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_dataview"><em>napi_create_dataview</em></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_functions_to_convert_from_c_types_to_n_api">Functions to convert from C types to N-API</a></span><ul>
@@ -392,6 +393,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_get_buffer_info"><em>napi_get_buffer_info</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_prototype"><em>napi_get_prototype</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_typedarray_info"><em>napi_get_typedarray_info</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_dataview_info"><em>napi_get_dataview_info</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_bool"><em>napi_get_value_bool</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_double"><em>napi_get_value_double</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_external"><em>napi_get_value_external</em></a></span></li>
@@ -423,6 +425,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_is_buffer"><em>napi_is_buffer</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_is_error_1"><em>napi_is_error</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_is_typedarray"><em>napi_is_typedarray</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_is_dataview"><em>napi_is_dataview</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_strict_equals"><em>napi_strict_equals</em></a></span></li>
 </ul>
 </li>
@@ -504,23 +507,26 @@
 <li><span class="stability_undefined"><a href="#child_process_event_error">Event: &#39;error&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#child_process_event_exit">Event: &#39;exit&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#child_process_event_message">Event: &#39;message&#39;</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_channel">child.channel</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_connected">child.connected</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_disconnect">child.disconnect()</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_kill_signal">child.kill([signal])</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_pid">child.pid</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_send_message_sendhandle_options_callback">child.send(message[, sendHandle[, options]][, callback])</a></span><ul>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_channel">subprocess.channel</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_connected">subprocess.connected</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_disconnect">subprocess.disconnect()</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_kill_signal">subprocess.kill([signal])</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_killed">subprocess.killed</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_pid">subprocess.pid</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_send_message_sendhandle_options_callback">subprocess.send(message[, sendHandle[, options]][, callback])</a></span><ul>
 <li><span class="stability_undefined"><a href="#child_process_example_sending_a_server_object">Example: sending a server object</a></span></li>
 <li><span class="stability_undefined"><a href="#child_process_example_sending_a_socket_object">Example: sending a socket object</a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#child_process_child_stderr">child.stderr</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_stdin">child.stdin</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_stdio">child.stdio</a></span></li>
-<li><span class="stability_undefined"><a href="#child_process_child_stdout">child.stdout</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_stderr">subprocess.stderr</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_stdin">subprocess.stdin</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_stdio">subprocess.stdio</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_subprocess_stdout">subprocess.stdout</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_shell_requirements">Shell Requirements</a></span></li>
+<li><span class="stability_undefined"><a href="#child_process_default_windows_shell">Default Windows Shell</a></span></li>
 </ul>
 </li>
 <li><span class="stability_2"><a href="#cluster_cluster">Cluster</a></span><ul>
@@ -626,6 +632,9 @@
 <li><span class="stability_undefined"><a href="#console_class_console">Class: Console</a></span><ul>
 <li><span class="stability_undefined"><a href="#console_new_console_stdout_stderr">new Console(stdout[, stderr])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_assert_value_message_args">console.assert(value[, message][, ...args])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_clear">console.clear()</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_count_label">console.count([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_countreset_label_default">console.countReset([label = &#39;default&#39;])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_dir_obj_options">console.dir(obj[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_error_data_args">console.error([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_info_data_args">console.info([data][, ...args])</a></span></li>
@@ -700,8 +709,8 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#crypto_class_verify">Class: Verify</a></span><ul>
-<li><span class="stability_undefined"><a href="#crypto_verifier_update_data_inputencoding">verifier.update(data[, inputEncoding])</a></span></li>
-<li><span class="stability_undefined"><a href="#crypto_verifier_verify_object_signature_signatureformat">verifier.verify(object, signature[, signatureFormat])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_verify_update_data_inputencoding">verify.update(data[, inputEncoding])</a></span></li>
+<li><span class="stability_undefined"><a href="#crypto_verify_verify_object_signature_signatureformat">verify.verify(object, signature[, signatureFormat])</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#crypto_crypto_module_methods_and_properties"><code>crypto</code> module methods and properties</a></span><ul>
@@ -848,6 +857,10 @@
 </ul>
 </li>
 <li><span class="stability_2"><a href="#dns_dns">DNS</a></span><ul>
+<li><span class="stability_undefined"><a href="#dns_class_dns_resolver">Class dns.Resolver</a></span><ul>
+<li><span class="stability_undefined"><a href="#dns_resolver_cancel">resolver.cancel()</a></span></li>
+</ul>
+</li>
 <li><span class="stability_undefined"><a href="#dns_dns_getservers">dns.getServers()</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_lookup_hostname_options_callback">dns.lookup(hostname[, options], callback)</a></span><ul>
 <li><span class="stability_undefined"><a href="#dns_supported_getaddrinfo_flags">Supported getaddrinfo flags</a></span></li>
@@ -1329,6 +1342,7 @@
 <li><span class="stability_undefined"><a href="#modules_module_id">module.id</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_loaded">module.loaded</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_parent">module.parent</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_module_paths">module.paths</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_require_id">module.require(id)</a></span></li>
 </ul>
 </li>
@@ -1965,6 +1979,23 @@
 <li><span class="stability_undefined"><a href="#util_util_promisify_original">util.promisify(original)</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_custom_promisified_functions">Custom promisified functions</a></span></li>
 <li><span class="stability_undefined"><a href="#util_util_promisify_custom">util.promisify.custom</a></span></li>
+<li><span class="stability_1"><a href="#util_class_util_textdecoder">Class: util.TextDecoder</a></span><ul>
+<li><span class="stability_undefined"><a href="#util_whatwg_supported_encodings">WHATWG Supported Encodings</a></span><ul>
+<li><span class="stability_undefined"><a href="#util_encodings_supported_by_default">Encodings Supported By Default</a></span></li>
+<li><span class="stability_undefined"><a href="#util_encodings_requiring_full_icu">Encodings Requiring Full-ICU</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#util_new_textdecoder_encoding_options">new TextDecoder([encoding[, options]])</a></span></li>
+<li><span class="stability_undefined"><a href="#util_textdecoder_decode_input_options">textDecoder.decode([input[, options]])</a></span></li>
+<li><span class="stability_undefined"><a href="#util_textdecoder_encoding">textDecoder.encoding</a></span></li>
+<li><span class="stability_undefined"><a href="#util_textdecoder_fatal">textDecoder.fatal</a></span></li>
+<li><span class="stability_undefined"><a href="#util_textdecoder_ignorebom">textDecoder.ignoreBOM</a></span></li>
+</ul>
+</li>
+<li><span class="stability_1"><a href="#util_class_util_textencoder">Class: util.TextEncoder</a></span><ul>
+<li><span class="stability_undefined"><a href="#util_textencoder_encode_input">textEncoder.encode([input])</a></span></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#util_deprecated_apis">Deprecated APIs</a></span><ul>
@@ -2110,17 +2141,17 @@
 <h1>About this Documentation<span><a class="mark" href="#documentation_about_this_documentation" id="documentation_about_this_documentation">#</a></span></h1>
 <!-- type=misc -->
 <p>The goal of this documentation is to comprehensively explain the Node.js
-API, both from a reference as well as a conceptual point of view.  Each
+API, both from a reference as well as a conceptual point of view. Each
 section describes a built-in module or high-level concept.</p>
 <p>Where appropriate, property types, method arguments, and the arguments
 provided to event handlers are detailed in a list underneath the topic
 heading.</p>
 <p>Every <code>.html</code> document has a corresponding <code>.json</code> document presenting
-the same information in a structured manner.  This feature is
+the same information in a structured manner. This feature is
 experimental, and added for the benefit of IDEs and other utilities that
 wish to do programmatic things with the documentation.</p>
 <p>Every <code>.html</code> and <code>.json</code> file is generated based on the corresponding
-<code>.md</code> file in the <code>doc/api/</code> folder in Node.js&#39;s source tree.  The
+<code>.md</code> file in the <code>doc/api/</code> folder in Node.js&#39;s source tree. The
 documentation is generated using the <code>tools/doc/generate.js</code> program.
 The HTML template is located at <code>doc/template.html</code>.</p>
 <p>If errors are found in this documentation, please <a href="https://github.com/nodejs/node/issues/new">submit an issue</a>
@@ -2134,16 +2165,25 @@ proven, and so relied upon, that they are unlikely to ever change at
 all. Others are brand new and experimental, or known to be hazardous
 and in the process of being redesigned.</p>
 <p>The stability indices are as follows:</p>
-<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated This feature is known to be problematic, and changes are planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards compatibility should not be expected.</pre><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental This feature is subject to change, and is gated by a command line flag. It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
+<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated This feature is known to be problematic, and changes may be planned. Do not rely on it. Use of the feature may cause warnings to be emitted. Backwards compatibility across major versions should not be expected.</pre><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental This feature is still under active development and subject to non-backwards compatible changes, or even removal, in any future version. Use of the feature is not recommended in production environments. Experimental features are not subject to the Node.js Semantic Versioning model.</pre><p><em>Note</em>: Caution must be used when making use of <code>Experimental</code> features,
+particularly within modules that may be used as dependencies (or dependencies
+of dependencies) within a Node.js application. End users may not be aware that
+experimental features are being used, and therefore may experience unexpected
+failures or behavioral changes when changes occur. To help avoid such surprises,
+<code>Experimental</code> features may require a command-line flag to explicitly enable
+them, or may cause a process warning to be emitted. By default, such warnings
+are printed to <code>stderr</code> and may be handled by attaching a listener to the
+<code>process.on(&#39;warning&#39;)</code> event.</p>
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
 <pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>Every HTML file in the markdown has a corresponding JSON file with the
 same data.</p>
-<p>This feature was added in Node.js v0.6.12.  It is experimental.</p>
+<p>This feature was added in Node.js v0.6.12. It is experimental.</p>
 <h2>Syscalls and man pages<span><a class="mark" href="#documentation_syscalls_and_man_pages" id="documentation_syscalls_and_man_pages">#</a></span></h2>
 <p>System calls like <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a> and <a href="http://man7.org/linux/man-pages/man2/read.2.html">read(2)</a> define the interface between user programs
 and the underlying operating system. Node functions which simply wrap a syscall,
 like <code>fs.open()</code>, will document that. The docs link to the corresponding man
 pages (short for manual pages) which describe how the syscalls work.</p>
-<p><strong>Caveat:</strong> some syscalls, like <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>, are BSD-specific. That means, for
+<p><strong>Note:</strong> some syscalls, like <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>, are BSD-specific. That means, for
 example, that <code>fs.lchown()</code> only works on macOS and other BSD-derived systems,
 and is not available on Linux.</p>
 <p>Most Unix syscalls have Windows equivalents, but behavior may differ on Windows
@@ -2427,7 +2467,7 @@ assert.equal({ a: { b: 1 } }, { a: { b: 1 } });
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
 parameter is undefined, a default error message is assigned.</p>
 <h2>assert.fail(message)<span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
-<h2>assert.fail(actual, expected, message, operator)<span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator" id="assert_assert_fail_actual_expected_message_operator">#</a></span></h2>
+<h2>assert.fail(actual, expected[, message[, operator[, stackStartFunction]]])<span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator_stackstartfunction" id="assert_assert_fail_actual_expected_message_operator_stackstartfunction">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div><ul>
@@ -2435,23 +2475,46 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>operator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> (default: &#39;!=&#39;)</li>
+<li><code>stackStartFunction</code> <span class="type">&lt;function&gt;</span> (default: <code>assert.fail</code>)</li>
 </ul>
 <p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as
 the values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.
-Otherwise, the error message is the value of <code>message</code>.</p>
+If just the two <code>actual</code> and <code>expected</code> arguments are provided, <code>operator</code> will
+default to <code>&#39;!=&#39;</code>. If <code>message</code> is provided only it will be used as the error
+message, the other arguments will be stored as properties on the thrown object.
+If <code>stackStartFunction</code> is provided, all stack frames above that function will
+be removed from stacktrace (see <a href="errors.html#errors_error_capturestacktrace_targetobject_constructoropt"><code>Error.captureStackTrace</code></a>).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 assert.fail(1, 2, undefined, &#39;&gt;&#39;);
-// AssertionError: 1 &gt; 2
+// AssertionError [ERR_ASSERTION]: 1 &gt; 2
+
+assert.fail(1, 2, &#39;fail&#39;);
+// AssertionError [ERR_ASSERTION]: fail
 
 assert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);
-// AssertionError: whoops
+// AssertionError [ERR_ASSERTION]: whoops
+</code></pre>
+<p><em>Note</em>: Is the last two cases <code>actual</code>, <code>expected</code>, and <code>operator</code> have no
+influence on the error message.</p>
+<pre><code class="lang-js">assert.fail();
+// AssertionError [ERR_ASSERTION]: Failed
 
 assert.fail(&#39;boom&#39;);
-// AssertionError: boom
+// AssertionError [ERR_ASSERTION]: boom
 
 assert.fail(&#39;a&#39;, &#39;b&#39;);
-// AssertionError: &#39;a&#39; != &#39;b&#39;
+// AssertionError [ERR_ASSERTION]: &#39;a&#39; != &#39;b&#39;
+</code></pre>
+<p>Example use of <code>stackStartFunction</code> for truncating the exception&#39;s stacktrace:</p>
+<pre><code class="lang-js">function suppressFrame() {
+  assert.fail(&#39;a&#39;, &#39;b&#39;, undefined, &#39;!==&#39;, suppressFrame);
+}
+suppressFrame();
+// AssertionError [ERR_ASSERTION]: &#39;a&#39; !== &#39;b&#39;
+//     at repl:1:1
+//     at ContextifyScript.Script.runInThisContext (vm.js:44:33)
+//     ...
 </code></pre>
 <h2>assert.ifError(value)<span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
 <div class="api_metadata">
@@ -2687,7 +2750,7 @@ the block fails to throw.</p>
 <p>Note that <code>error</code> can not be a string. If a string is provided as the second
 argument, then <code>error</code> is assumed to be omitted and the string will be used for
 <code>message</code> instead. This can lead to easy-to-miss mistakes:</p>
-<!-- eslint-disable assert-throws-arguments -->
+<!-- eslint-disable no-restricted-syntax -->
 <pre><code class="lang-js">// THIS IS A MISTAKE! DO NOT DO THIS!
 assert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);
 
@@ -3349,11 +3412,12 @@ page 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>
 <li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>
 </li>
 </ul>
-<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG spec</a> which aliases both &#39;latin1&#39;
-and ISO-8859-1 to win-1252. This means that while doing something like
-<code>http.get()</code>, if the returned charset is one of those listed in the WHATWG spec
-it&#39;s possible that the server actually returned win-1252-encoded data, and
-using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the characters.</p>
+<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> which aliases
+both &#39;latin1&#39; and ISO-8859-1 to win-1252. This means that while doing something
+like <code>http.get()</code>, if the returned charset is one of those listed in the WHATWG
+specification it is possible that the server actually returned
+win-1252-encoded data, and using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the
+characters.</p>
 <h2>Buffers and TypedArray<span><a class="mark" href="#buffer_buffers_and_typedarray" id="buffer_buffers_and_typedarray">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -6623,6 +6687,10 @@ object with which it was associated with, has been garbage-collected. The user
 must provide a function satisfying the following signature which would get
 called upon the object&#39;s collection. Currently, <code>napi_finalize</code> can be used for
 finding out when objects that have external data are collected.</p>
+<pre><code class="lang-C">typedef void (*napi_finalize)(napi_env env,
+                              void* finalize_data,
+                              void* finalize_hint);
+</code></pre>
 <h4>napi_async_execute_callback<span><a class="mark" href="#n_api_napi_async_execute_callback" id="n_api_napi_async_execute_callback">#</a></span></h4>
 <p>Function pointer used with functions that support asynchronous
 operations. Callback functions must statisfy the following signature:</p>
@@ -6724,7 +6792,7 @@ cases <a href="#n_api_napi_get_and_clear_last_exception"><code>napi_get_and_clea
 clear the exception.  On success, result will contain the handle to
 the last JavaScript Object thrown. If it is determined, after
 retrieving the exception, the exception cannot be handled after all
-it can be re-thrown it with [<code>napi_throw</code>][] where error is the
+it can be re-thrown it with <a href="#n_api_napi_throw"><code>napi_throw</code></a> where error is the
 JavaScript Error object to be thrown.</p>
 <p>The following utility functions are also available in case native code
 needs to throw an exception or determine if a <code>napi_value</code> is an instance
@@ -6736,7 +6804,24 @@ code needs to create an Error object: <a href="#n_api_napi_create_error"><code>n
 <a href="#n_api_napi_create_type_error"><code>napi_create_type_error</code></a>, and <a href="#n_api_napi_create_range_error"><code>napi_create_range_error</code></a>.
 where result is the napi_value that refers to the newly created
 JavaScript Error object.</p>
-<h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
+<p>The Node.js project is adding error codes to all of the errors
+generated internally.  The goal is for applications to use these
+error codes for all error checking. The associated error messages
+will remain, but will only be meant to be used for logging and
+display with the expectation that the message can change without
+SemVer applying. In order to support this model with N-API, both
+in internal functionality and for module specific functionality
+(as its good practice), the <code>throw_</code> and <code>create_</code> functions
+take an optional code parameter which is the string for the code
+to be added to the error object.  If the optional parameter is NULL
+then no code will be associated with the error. If a code is provided,
+the name associated with the error is also updated to be:</p>
+<pre><code>originalName [code]
+</code></pre><p>where originalName is the original name associated with the error
+and code is the code that was provided.  For example if the code
+is &#39;ERR_ERROR_1&#39; and a TypeError is being created the name will be:</p>
+<pre><code>TypeError [ERR_ERROR_1]
+</code></pre><h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw(napi_env env, napi_value error);
@@ -6750,10 +6835,13 @@ JavaScript Error object.</p>
 <h4>napi_throw_error<span><a class="mark" href="#n_api_napi_throw_error" id="n_api_napi_throw_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_error(napi_env env,
+                                         const char* code,
+                                         const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -6762,10 +6850,13 @@ the error.</li>
 <h4>napi_throw_type_error<span><a class="mark" href="#n_api_napi_throw_type_error" id="n_api_napi_throw_type_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_type_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_type_error(napi_env env,
+                                              const char* code,
+                                              const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -6774,10 +6865,13 @@ the error.</li>
 <h4>napi_throw_range_error<span><a class="mark" href="#n_api_napi_throw_range_error" id="n_api_napi_throw_range_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_range_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_range_error(napi_env env,
+                                               const char* code,
+                                               const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -6802,11 +6896,14 @@ an error, false otherwise.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_error(napi_env env,
+                                          napi_value code,
                                           napi_value msg,
                                           napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
 <li><code>[in] msg</code>: napi_value that references a JavaScript String to be
 used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
@@ -6817,11 +6914,14 @@ used as the message for the Error.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_type_error(napi_env env,
+                                               napi_value code,
                                                napi_value msg,
                                                napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
 <li><code>[in] msg</code>: napi_value that references a JavaScript String to be
 used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
@@ -6832,11 +6932,14 @@ used as the message for the Error.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_range_error(napi_env env,
+                                                napi_value code,
                                                 const char* msg,
                                                 napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
 <li><code>[in] msg</code>: napi_value that references a JavaScript String to be
 used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
@@ -7519,6 +7622,31 @@ raised.</p>
 <p>JavaScript TypedArray Objects are described in
 <a href="https://tc39.github.io/ecma262/#sec-typedarray-objects">Section 22.2</a>
 of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_dataview</em><span><a class="mark" href="#n_api_napi_create_dataview" id="n_api_napi_create_dataview">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_dataview(napi_env env,
+                                 size_t byte_length,
+                                 napi_value arraybuffer,
+                                 size_t byte_offset,
+                                 napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] length</code>: Number of elements in the DataView.</li>
+<li><code>[in] arraybuffer</code>: ArrayBuffer underlying the DataView.</li>
+<li><code>[in] byte_offset</code>: The byte offset within the ArrayBuffer from which to
+start projecting the DataView.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API creates a JavaScript DataView object over an existing ArrayBuffer.
+DataView objects provide an array-like view over an underlying data buffer,
+but one which allows items of different size and type in the ArrayBuffer.</p>
+<p>It is required that <code>byte_length + byte_offset</code> is less than or equal to the
+size in bytes of the array passed in. If not, a RangeError exception is raised.</p>
+<p>JavaScript DataView Objects are described in
+<a href="https://tc39.github.io/ecma262/#sec-dataview-objects">Section 24.3</a> of the ECMAScript Language Specification.</p>
 <h3>Functions to convert from C types to N-API<span><a class="mark" href="#n_api_functions_to_convert_from_c_types_to_n_api" id="n_api_functions_to_convert_from_c_types_to_n_api">#</a></span></h3>
 <h4><em>napi_create_number</em><span><a class="mark" href="#n_api_napi_create_number" id="n_api_napi_create_number">#</a></span></h4>
 <div class="api_metadata">
@@ -7697,6 +7825,28 @@ to start projecting the TypedArray.</li>
 <p>This API returns various properties of a typed array.</p>
 <p><em>Warning</em>: Use caution while using this API since the underlying data buffer
 is managed by the VM</p>
+<h4><em>napi_get_dataview_info</em><span><a class="mark" href="#n_api_napi_get_dataview_info" id="n_api_napi_get_dataview_info">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_get_dataview_info(napi_env env,
+                                   napi_value dataview,
+                                   size_t* byte_length,
+                                   void** data,
+                                   napi_value* arraybuffer,
+                                   size_t* byte_offset)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] dataview</code>: <code>napi_value</code> representing the DataView whose
+properties to query.</li>
+<li><code>[out] byte_length</code>: Number of bytes in the DataView.</li>
+<li><code>[out] data</code>: The data buffer underlying the DataView.</li>
+<li><code>[out] arraybuffer</code>: ArrayBuffer underlying the DataView.</li>
+<li><code>[out] byte_offset</code>: The byte offset within the data buffer from which
+to start projecting the DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API returns various properties of a DataView.</p>
 <h4><em>napi_get_value_bool</em><span><a class="mark" href="#n_api_napi_get_value_bool" id="n_api_napi_get_value_bool">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -8072,6 +8222,18 @@ object.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API checks if the Object passsed in is a typed array.</p>
+<h3><em>napi_is_dataview</em><span><a class="mark" href="#n_api_napi_is_dataview" id="n_api_napi_is_dataview">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_is_dataview(napi_env env, napi_value value, bool* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: The JavaScript value to check.</li>
+<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents a DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API checks if the Object passed in is a DataView.</p>
 <h3><em>napi_strict_equals</em><span><a class="mark" href="#n_api_napi_strict_equals" id="n_api_napi_strict_equals">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -9147,9 +9309,8 @@ exec(&#39;&quot;my script.cmd&quot; a b&#39;, (err, stdout, stderr) =&gt; {
 <li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Environment key-value pairs</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> (Default: <code>&#39;utf8&#39;</code>)</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Shell to execute the command with
-(Default: <code>&#39;/bin/sh&#39;</code> on UNIX, <code>&#39;cmd.exe&#39;</code> on Windows, The shell should
- understand the <code>-c</code> switch on UNIX or <code>/d /s /c</code> on Windows. On Windows,
- command line parsing should be compatible with <code>cmd.exe</code>.)</li>
+(Default: <code>&#39;/bin/sh&#39;</code> on UNIX, <code>process.env.ComSpec</code> on Windows. See
+<a href="#child_process_shell_requirements">Shell Requirements</a> and <a href="#child_process_default_windows_shell">Default Windows Shell</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> (Default: <code>0</code>)</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Largest amount of data in bytes allowed on stdout or
 stderr. (Default: <code>200*1024</code>) If exceeded, the child process is terminated.
@@ -9338,7 +9499,7 @@ will be thrown. For instance <code>[0, 1, 2, &#39;ipc&#39;]</code>.</li>
 Like <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a>, a <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> object is returned. The returned
 <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> will have an additional communication channel built-in that
 allows messages to be passed back and forth between the parent and child. See
-<a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a> for details.</p>
+<a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> for details.</p>
 <p>It is important to keep in mind that spawned Node.js child processes are
 independent of the parent with exception of the IPC communication channel
 that is established between the two. Each process has its own memory, with
@@ -9386,9 +9547,9 @@ process. Specific behavior depends on the platform, see
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>&#39;/bin/sh&#39;</code> on UNIX, and <code>&#39;cmd.exe&#39;</code> on Windows. A different shell can be
-specified as a string. The shell should understand the <code>-c</code> switch on UNIX,
-or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
+<code>&#39;/bin/sh&#39;</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
+<a href="#child_process_default_windows_shell">Default Windows Shell</a>. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
 <li>Returns: <a href="child_process.html#child_process_class_childprocess" class="type">&lt;ChildProcess&gt;</a></li>
@@ -9462,10 +9623,10 @@ grep.on(&#39;close&#39;, (code) =&gt; {
 </code></pre>
 <p>Example of checking for failed <code>spawn</code>:</p>
 <pre><code class="lang-js">const { spawn } = require(&#39;child_process&#39;);
-const child = spawn(&#39;bad_command&#39;);
+const subprocess = spawn(&#39;bad_command&#39;);
 
-child.on(&#39;error&#39;, (err) =&gt; {
-  console.log(&#39;Failed to start child process.&#39;);
+subprocess.on(&#39;error&#39;, (err) =&gt; {
+  console.log(&#39;Failed to start subprocess.&#39;);
 });
 </code></pre>
 <p><em>Note</em>: Certain platforms (macOS, Linux) will use the value of <code>argv[0]</code> for
@@ -9486,10 +9647,10 @@ process will be made the leader of a new process group and session. Note that
 child processes may continue running after the parent exits regardless of
 whether they are detached or not.  See <a href="http://man7.org/linux/man-pages/man2/setsid.2.html">setsid(2)</a> for more information.</p>
 <p>By default, the parent will wait for the detached child to exit. To prevent
-the parent from waiting for a given <code>child</code>, use the <code>child.unref()</code> method.
-Doing so will cause the parent&#39;s event loop to not include the child in its
-reference count, allowing the parent to exit independently of the child, unless
-there is an established IPC channel between the child and parent.</p>
+the parent from waiting for a given <code>subprocess</code>, use the <code>subprocess.unref()</code>
+method. Doing so will cause the parent&#39;s event loop to not include the child in
+its reference count, allowing the parent to exit independently of the child,
+unless there is an established IPC channel between the child and parent.</p>
 <p>When using the <code>detached</code> option to start a long-running process, the process
 will not stay running in the background after the parent exits unless it is
 provided with a <code>stdio</code> configuration that is not connected to the parent.
@@ -9499,12 +9660,12 @@ controlling terminal.</p>
 <code>stdio</code> file descriptors, in order to ignore the parent&#39;s termination:</p>
 <pre><code class="lang-js">const { spawn } = require(&#39;child_process&#39;);
 
-const child = spawn(process.argv[0], [&#39;child_program.js&#39;], {
+const subprocess = spawn(process.argv[0], [&#39;child_program.js&#39;], {
   detached: true,
   stdio: &#39;ignore&#39;
 });
 
-child.unref();
+subprocess.unref();
 </code></pre>
 <p>Alternatively one can redirect the child process&#39; output into files:</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
@@ -9512,12 +9673,12 @@ const { spawn } = require(&#39;child_process&#39;);
 const out = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 const err = fs.openSync(&#39;./out.log&#39;, &#39;a&#39;);
 
-const child = spawn(&#39;prg&#39;, [], {
+const subprocess = spawn(&#39;prg&#39;, [], {
   detached: true,
   stdio: [ &#39;ignore&#39;, out, err ]
 });
 
-child.unref();
+subprocess.unref();
 </code></pre>
 <h4>options.stdio<span><a class="mark" href="#child_process_options_stdio" id="child_process_options_stdio">#</a></span></h4>
 <div class="api_metadata">
@@ -9534,9 +9695,10 @@ child.unref();
 </details>
 </div><p>The <code>options.stdio</code> option is used to configure the pipes that are established
 between the parent and child process. By default, the child&#39;s stdin, stdout,
-and stderr are redirected to corresponding <a href="#child_process_child_stdin"><code>child.stdin</code></a>, <a href="#child_process_child_stdout"><code>child.stdout</code></a>, and
-<a href="#child_process_child_stderr"><code>child.stderr</code></a> streams on the <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> object. This is equivalent to
-setting the <code>options.stdio</code> equal to <code>[&#39;pipe&#39;, &#39;pipe&#39;, &#39;pipe&#39;]</code>.</p>
+and stderr are redirected to corresponding <a href="#child_process_subprocess_stdin"><code>subprocess.stdin</code></a>,
+<a href="#child_process_subprocess_stdout"><code>subprocess.stdout</code></a>, and <a href="#child_process_subprocess_stderr"><code>subprocess.stderr</code></a> streams on the
+<a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> object. This is equivalent to setting the <code>options.stdio</code>
+equal to <code>[&#39;pipe&#39;, &#39;pipe&#39;, &#39;pipe&#39;]</code>.</p>
 <p>For convenience, <code>options.stdio</code> may be one of the following strings:</p>
 <ul>
 <li><code>&#39;pipe&#39;</code> - equivalent to <code>[&#39;pipe&#39;, &#39;pipe&#39;, &#39;pipe&#39;]</code> (the default)</li>
@@ -9551,17 +9713,18 @@ pipes between the parent and child. The value is one of the following:</p>
 <ol>
 <li><code>&#39;pipe&#39;</code> - Create a pipe between the child process and the parent process.
 The parent end of the pipe is exposed to the parent as a property on the
-<code>child_process</code> object as <a href="#child_process_options_stdio"><code>child.stdio[fd]</code></a>. Pipes created for
-fds 0 - 2 are also available as <a href="#child_process_child_stdin"><code>child.stdin</code></a>, <a href="#child_process_child_stdout"><code>child.stdout</code></a>
-and <a href="#child_process_child_stderr"><code>child.stderr</code></a>, respectively.</li>
+<code>child_process</code> object as <a href="#child_process_options_stdio"><code>subprocess.stdio[fd]</code></a>. Pipes created
+for fds 0 - 2 are also available as <a href="#child_process_subprocess_stdin"><code>subprocess.stdin</code></a>,
+<a href="#child_process_subprocess_stdout"><code>subprocess.stdout</code></a> and <a href="#child_process_subprocess_stderr"><code>subprocess.stderr</code></a>, respectively.</li>
 <li><code>&#39;ipc&#39;</code> - Create an IPC channel for passing messages/file descriptors
 between parent and child. A <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> may have at most <em>one</em> IPC stdio
-file descriptor. Setting this option enables the <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a> method.
-If the child writes JSON messages to this file descriptor, the
-<a href="child_process.html#child_process_event_message"><code>child.on(&#39;message&#39;)</code></a> event handler will be triggered in the parent.
-If the child is a Node.js process, the presence of an IPC channel will enable
-<a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>, <a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a>, <a href="process.html#process_event_disconnect"><code>process.on(&#39;disconnect&#39;)</code></a>, and
-<a href="process.html#process_event_message"><code>process.on(&#39;message&#39;)</code></a> within the child.</li>
+file descriptor. Setting this option enables the <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a>
+method. If the child writes JSON messages to this file descriptor, the
+<a href="child_process.html#child_process_event_message"><code>subprocess.on(&#39;message&#39;)</code></a> event handler will be triggered in
+the parent. If the child is a Node.js process, the presence of an IPC channel
+will enable <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>, <a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a>,
+<a href="process.html#process_event_disconnect"><code>process.on(&#39;disconnect&#39;)</code></a>, and <a href="process.html#process_event_message"><code>process.on(&#39;message&#39;)</code></a> within the
+child.</li>
 <li><code>&#39;ignore&#39;</code> - Instructs Node.js to ignore the fd in the child. While Node.js
 will always open fds 0 - 2 for the processes it spawns, setting the fd to
 <code>&#39;ignore&#39;</code> will cause Node.js to open <code>/dev/null</code> and attach it to the
@@ -9693,9 +9856,8 @@ to the spawned process<ul>
 </li>
 <li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Environment key-value pairs</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Shell to execute the command with
-(Default: <code>&#39;/bin/sh&#39;</code> on UNIX, <code>&#39;cmd.exe&#39;</code> on Windows, The shell should
- understand the <code>-c</code> switch on UNIX or <code>/d /s /c</code> on Windows. On Windows,
- command line parsing should be compatible with <code>cmd.exe</code>.)</li>
+(Default: <code>&#39;/bin/sh&#39;</code> on UNIX, <code>process.env.ComSpec</code> on Windows. See
+<a href="#child_process_shell_requirements">Shell Requirements</a> and <a href="#child_process_default_windows_shell">Default Windows Shell</a>.)</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> In milliseconds the maximum amount of time the process
@@ -9767,9 +9929,9 @@ See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</co
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding used for all stdio inputs and outputs.
 (Default: <code>&#39;buffer&#39;</code>)</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>&#39;/bin/sh&#39;</code> on UNIX, and <code>&#39;cmd.exe&#39;</code> on Windows. A different shell can be
-specified as a string. The shell should understand the <code>-c</code> switch on UNIX,
-or <code>/d /s /c</code> on Windows. Defaults to <code>false</code> (no shell).</li>
+<code>&#39;/bin/sh&#39;</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
+<a href="#child_process_default_windows_shell">Default Windows Shell</a>. Defaults to <code>false</code> (no shell).</li>
 </ul>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
@@ -9816,9 +9978,10 @@ processes might share the same stdio streams.</p>
 <div class="api_metadata">
 <span>Added in: v0.7.2</span>
 </div><p>The <code>&#39;disconnect&#39;</code> event is emitted after calling the
-<a href="#child_process_child_disconnect"><code>child.disconnect()</code></a> method in parent process or <a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a> in child process. After
-disconnecting it is no longer possible to send or receive messages, and the
-<a href="#child_process_child_connected"><code>child.connected</code></a> property is <code>false</code>.</p>
+<a href="#child_process_subprocess_disconnect"><code>subprocess.disconnect()</code></a> method in parent process or
+<a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a> in child process. After disconnecting it is no longer
+possible to send or receive messages, and the <a href="#child_process_subprocess_connected"><code>subprocess.connected</code></a>
+property is <code>false</code>.</p>
 <h3>Event: &#39;error&#39;<span><a class="mark" href="#child_process_event_error" id="child_process_event_error">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> the error.</li>
@@ -9832,7 +9995,7 @@ disconnecting it is no longer possible to send or receive messages, and the
 <p><em>Note</em>: The <code>&#39;exit&#39;</code> event may or may not fire after an error has occurred.
 When listening to both the <code>&#39;exit&#39;</code> and <code>&#39;error&#39;</code> events, it is important
 to guard against accidentally invoking handler functions multiple times.</p>
-<p>See also <a href="child_process.html#child_process_child_kill_signal"><code>child.kill()</code></a> and <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a>.</p>
+<p>See also <a href="child_process.html#child_process_subprocess_kill_signal"><code>subprocess.kill()</code></a> and <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a>.</p>
 <h3>Event: &#39;exit&#39;<span><a class="mark" href="#child_process_event_exit" id="child_process_event_exit">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
@@ -9861,46 +10024,50 @@ undefined.</li>
 </ul>
 <p>The <code>&#39;message&#39;</code> event is triggered when a child process uses <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>
 to send messages.</p>
-<h3>child.channel<span><a class="mark" href="#child_process_child_channel" id="child_process_child_channel">#</a></span></h3>
+<p><a name="child_process_child_channel"></a></p>
+<h3>subprocess.channel<span><a class="mark" href="#child_process_subprocess_channel" id="child_process_subprocess_channel">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.1.0</span>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> A pipe representing the IPC channel to the child process.</li>
 </ul>
-<p>The <code>child.channel</code> property is a reference to the child&#39;s IPC channel. If no
-IPC channel currently exists, this property is <code>undefined</code>.</p>
-<h3>child.connected<span><a class="mark" href="#child_process_child_connected" id="child_process_child_connected">#</a></span></h3>
+<p>The <code>subprocess.channel</code> property is a reference to the child&#39;s IPC channel. If
+no IPC channel currently exists, this property is <code>undefined</code>.</p>
+<p><a name="child_process_child_connected"></a></p>
+<h3>subprocess.connected<span><a class="mark" href="#child_process_subprocess_connected" id="child_process_subprocess_connected">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.2</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Set to <code>false</code> after <code>child.disconnect()</code> is called</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Set to <code>false</code> after <code>subprocess.disconnect()</code> is called</li>
 </ul>
-<p>The <code>child.connected</code> property indicates whether it is still possible to send
-and receive messages from a child process. When <code>child.connected</code> is <code>false</code>, it
-is no longer possible to send or receive messages.</p>
-<h3>child.disconnect()<span><a class="mark" href="#child_process_child_disconnect" id="child_process_child_disconnect">#</a></span></h3>
+<p>The <code>subprocess.connected</code> property indicates whether it is still possible to
+send and receive messages from a child process. When <code>subprocess.connected</code> is
+<code>false</code>, it is no longer possible to send or receive messages.</p>
+<p><a name="child_process_child_disconnect"></a></p>
+<h3>subprocess.disconnect()<span><a class="mark" href="#child_process_subprocess_disconnect" id="child_process_subprocess_disconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.2</span>
 </div><p>Closes the IPC channel between parent and child, allowing the child to exit
 gracefully once there are no other connections keeping it alive. After calling
-this method the <code>child.connected</code> and <code>process.connected</code> properties in both
-the parent and child (respectively) will be set to <code>false</code>, and it will be no
-longer possible to pass messages between the processes.</p>
+this method the <code>subprocess.connected</code> and <code>process.connected</code> properties in
+both the parent and child (respectively) will be set to <code>false</code>, and it will be
+no longer possible to pass messages between the processes.</p>
 <p>The <code>&#39;disconnect&#39;</code> event will be emitted when there are no messages in the
 process of being received. This will most often be triggered immediately after
-calling <code>child.disconnect()</code>.</p>
+calling <code>subprocess.disconnect()</code>.</p>
 <p>Note that when the child process is a Node.js instance (e.g. spawned using
 <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>), the <code>process.disconnect()</code> method can be invoked
 within the child process to close the IPC channel as well.</p>
-<h3>child.kill([signal])<span><a class="mark" href="#child_process_child_kill_signal" id="child_process_child_kill_signal">#</a></span></h3>
+<p><a name="child_process_child_kill_signal"></a></p>
+<h3>subprocess.kill([signal])<span><a class="mark" href="#child_process_subprocess_kill_signal" id="child_process_subprocess_kill_signal">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
 <li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-<p>The <code>child.kill()</code> methods sends a signal to the child process. If no argument
-is given, the process will be sent the <code>&#39;SIGTERM&#39;</code> signal. See <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signal(7)</a> for
-a list of available signals.</p>
+<p>The <code>subprocess.kill()</code> methods sends a signal to the child process. If no
+argument is given, the process will be sent the <code>&#39;SIGTERM&#39;</code> signal. See
+signal(7) for a list of available signals.</p>
 <pre><code class="lang-js">const { spawn } = require(&#39;child_process&#39;);
 const grep = spawn(&#39;grep&#39;, [&#39;ssh&#39;]);
 
@@ -9927,7 +10094,7 @@ as in this example:</p>
 <pre><code class="lang-js">&#39;use strict&#39;;
 const { spawn } = require(&#39;child_process&#39;);
 
-const child = spawn(
+const subprocess = spawn(
   &#39;sh&#39;,
   [
     &#39;-c&#39;,
@@ -9940,10 +10107,20 @@ const child = spawn(
 );
 
 setTimeout(() =&gt; {
-  child.kill(); // does not terminate the node process in the shell
+  subprocess.kill(); // does not terminate the node process in the shell
 }, 2000);
 </code></pre>
-<h3>child.pid<span><a class="mark" href="#child_process_child_pid" id="child_process_child_pid">#</a></span></h3>
+<h3>subprocess.killed<span><a class="mark" href="#child_process_subprocess_killed" id="child_process_subprocess_killed">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.5.10</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Set to <code>true</code> after <code>subprocess.kill()</code> is used to successfully
+terminate the child process.</li>
+</ul>
+<p>The <code>subprocess.killed</code> property indicates whether the child process was
+successfully terminated using <code>subprocess.kill()</code>.</p>
+<p><a name="child_process_child_pid"></a></p>
+<h3>subprocess.pid<span><a class="mark" href="#child_process_subprocess_pid" id="child_process_subprocess_pid">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
@@ -9957,7 +10134,8 @@ const grep = spawn(&#39;grep&#39;, [&#39;ssh&#39;]);
 console.log(`Spawned child pid: ${grep.pid}`);
 grep.stdin.end();
 </code></pre>
-<h3>child.send(message[, sendHandle[, options]][, callback])<span><a class="mark" href="#child_process_child_send_message_sendhandle_options_callback" id="child_process_child_send_message_sendhandle_options_callback">#</a></span></h3>
+<p><a name="child_process_child_send_message_sendhandle_options_callback"></a></p>
+<h3>subprocess.send(message[, sendHandle[, options]][, callback])<span><a class="mark" href="#child_process_subprocess_send_message_sendhandle_options_callback" id="child_process_subprocess_send_message_sendhandle_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -9984,9 +10162,10 @@ grep.stdin.end();
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>When an IPC channel has been established between the parent and child (
-i.e. when using <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>), the <code>child.send()</code> method can be
-used to send messages to the child process. When the child process is a Node.js
-instance, these messages can be received via the <a href="process.html#process_event_message"><code>process.on(&#39;message&#39;)</code></a> event.</p>
+i.e. when using <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>), the <code>subprocess.send()</code> method can
+be used to send messages to the child process. When the child process is a
+Node.js instance, these messages can be received via the
+<a href="process.html#process_event_message"><code>process.on(&#39;message&#39;)</code></a> event.</p>
 <p>For example, in the parent script:</p>
 <pre><code class="lang-js">const cp = require(&#39;child_process&#39;);
 const n = cp.fork(`${__dirname}/sub.js`);
@@ -10013,8 +10192,8 @@ for use within Node.js core and will not be emitted in the child&#39;s
 <code>process.on(&#39;internalMessage&#39;)</code> event and are consumed internally by Node.js.
 Applications should avoid using such messages or listening for
 <code>&#39;internalMessage&#39;</code> events as it is subject to change without notice.</p>
-<p>The optional <code>sendHandle</code> argument that may be passed to <code>child.send()</code> is for
-passing a TCP server or socket object to the child process. The child will
+<p>The optional <code>sendHandle</code> argument that may be passed to <code>subprocess.send()</code> is
+for passing a TCP server or socket object to the child process. The child will
 receive the object as the second argument passed to the callback function
 registered on the <a href="process.html#process_event_message"><code>process.on(&#39;message&#39;)</code></a> event. Any data that is received
 and buffered in the socket will not be sent to the child.</p>
@@ -10032,14 +10211,14 @@ single argument: <code>null</code> on success, or an <a href="errors.html#errors
 <p>If no <code>callback</code> function is provided and the message cannot be sent, an
 <code>&#39;error&#39;</code> event will be emitted by the <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> object. This can happen,
 for instance, when the child process has already exited.</p>
-<p><code>child.send()</code> will return <code>false</code> if the channel has closed or when the
+<p><code>subprocess.send()</code> will return <code>false</code> if the channel has closed or when the
 backlog of unsent messages exceeds a threshold that makes it unwise to send
 more. Otherwise, the method returns <code>true</code>. The <code>callback</code> function can be
 used to implement flow control.</p>
 <h4>Example: sending a server object<span><a class="mark" href="#child_process_example_sending_a_server_object" id="child_process_example_sending_a_server_object">#</a></span></h4>
 <p>The <code>sendHandle</code> argument can be used, for instance, to pass the handle of
 a TCP server object to the child process as illustrated in the example below:</p>
-<pre><code class="lang-js">const child = require(&#39;child_process&#39;).fork(&#39;child.js&#39;);
+<pre><code class="lang-js">const subprocess = require(&#39;child_process&#39;).fork(&#39;subprocess.js&#39;);
 
 // Open up the server object and send the handle.
 const server = require(&#39;net&#39;).createServer();
@@ -10047,7 +10226,7 @@ server.on(&#39;connection&#39;, (socket) =&gt; {
   socket.end(&#39;handled by parent&#39;);
 });
 server.listen(1337, () =&gt; {
-  child.send(&#39;server&#39;, server);
+  subprocess.send(&#39;server&#39;, server);
 });
 </code></pre>
 <p>The child would then receive the server object as:</p>
@@ -10069,8 +10248,9 @@ a <code>&#39;message&#39;</code> event instead of <code>&#39;connection&#39;</co
 <p>Similarly, the <code>sendHandler</code> argument can be used to pass the handle of a
 socket to the child process. The example below spawns two children that each
 handle connections with &quot;normal&quot; or &quot;special&quot; priority:</p>
-<pre><code class="lang-js">const normal = require(&#39;child_process&#39;).fork(&#39;child.js&#39;, [&#39;normal&#39;]);
-const special = require(&#39;child_process&#39;).fork(&#39;child.js&#39;, [&#39;special&#39;]);
+<pre><code class="lang-js">const { fork } = require(&#39;child_process&#39;);
+const normal = fork(&#39;subprocess.js&#39;, [&#39;normal&#39;]);
+const special = fork(&#39;subprocess.js&#39;, [&#39;special&#39;]);
 
 // Open up the server and send sockets to child. Use pauseOnConnect to prevent
 // the sockets from being read before they are sent to the child process.
@@ -10087,8 +10267,8 @@ server.on(&#39;connection&#39;, (socket) =&gt; {
 });
 server.listen(1337);
 </code></pre>
-<p>The <code>child.js</code> would receive the socket handle as the second argument passed
-to the event callback function:</p>
+<p>The <code>subprocess.js</code> would receive the socket handle as the second argument
+passed to the event callback function:</p>
 <pre><code class="lang-js">process.on(&#39;message&#39;, (m, socket) =&gt; {
   if (m === &#39;socket&#39;) {
     if (socket) {
@@ -10109,7 +10289,8 @@ verify that <code>socket</code> exists, as the connection may have been closed d
 time it takes to send the connection to the child.</p>
 <p><em>Note</em>: This function uses <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a> internally to serialize the
 <code>message</code>.</p>
-<h3>child.stderr<span><a class="mark" href="#child_process_child_stderr" id="child_process_child_stderr">#</a></span></h3>
+<p><a name="child_process_child_stderr"></a></p>
+<h3>subprocess.stderr<span><a class="mark" href="#child_process_subprocess_stderr" id="child_process_subprocess_stderr">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
@@ -10118,9 +10299,10 @@ time it takes to send the connection to the child.</p>
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stderr</code>.</p>
 <p>If the child was spawned with <code>stdio[2]</code> set to anything other than <code>&#39;pipe&#39;</code>,
 then this will be <code>null</code>.</p>
-<p><code>child.stderr</code> is an alias for <code>child.stdio[2]</code>. Both properties will refer to
-the same value.</p>
-<h3>child.stdin<span><a class="mark" href="#child_process_child_stdin" id="child_process_child_stdin">#</a></span></h3>
+<p><code>subprocess.stderr</code> is an alias for <code>subprocess.stdio[2]</code>. Both properties will
+refer to the same value.</p>
+<p><a name="child_process_child_stdin"></a></p>
+<h3>subprocess.stdin<span><a class="mark" href="#child_process_subprocess_stdin" id="child_process_subprocess_stdin">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
@@ -10131,9 +10313,10 @@ the same value.</p>
 continue until this stream has been closed via <code>end()</code>.</em></p>
 <p>If the child was spawned with <code>stdio[0]</code> set to anything other than <code>&#39;pipe&#39;</code>,
 then this will be <code>null</code>.</p>
-<p><code>child.stdin</code> is an alias for <code>child.stdio[0]</code>. Both properties will refer to
-the same value.</p>
-<h3>child.stdio<span><a class="mark" href="#child_process_child_stdio" id="child_process_child_stdio">#</a></span></h3>
+<p><code>subprocess.stdin</code> is an alias for <code>subprocess.stdio[0]</code>. Both properties will
+refer to the same value.</p>
+<p><a name="child_process_child_stdio"></a></p>
+<h3>subprocess.stdio<span><a class="mark" href="#child_process_subprocess_stdio" id="child_process_subprocess_stdio">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.10</span>
 </div><ul>
@@ -10141,17 +10324,17 @@ the same value.</p>
 </ul>
 <p>A sparse array of pipes to the child process, corresponding with positions in
 the <a href="#child_process_options_stdio"><code>stdio</code></a> option passed to <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> that have been set
-to the value <code>&#39;pipe&#39;</code>. Note that <code>child.stdio[0]</code>, <code>child.stdio[1]</code>, and
-<code>child.stdio[2]</code> are also available as <code>child.stdin</code>, <code>child.stdout</code>, and
-<code>child.stderr</code>, respectively.</p>
+to the value <code>&#39;pipe&#39;</code>. Note that <code>subprocess.stdio[0]</code>, <code>subprocess.stdio[1]</code>,
+and <code>subprocess.stdio[2]</code> are also available as <code>subprocess.stdin</code>,
+<code>subprocess.stdout</code>, and <code>subprocess.stderr</code>, respectively.</p>
 <p>In the following example, only the child&#39;s fd <code>1</code> (stdout) is configured as a
-pipe, so only the parent&#39;s <code>child.stdio[1]</code> is a stream, all other values in
-the array are <code>null</code>.</p>
+pipe, so only the parent&#39;s <code>subprocess.stdio[1]</code> is a stream, all other values
+in the array are <code>null</code>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 const fs = require(&#39;fs&#39;);
 const child_process = require(&#39;child_process&#39;);
 
-const child = child_process.spawn(&#39;ls&#39;, {
+const subprocess = child_process.spawn(&#39;ls&#39;, {
   stdio: [
     0, // Use parent&#39;s stdin for child
     &#39;pipe&#39;, // Pipe child&#39;s stdout to parent
@@ -10159,16 +10342,17 @@ const child = child_process.spawn(&#39;ls&#39;, {
   ]
 });
 
-assert.strictEqual(child.stdio[0], null);
-assert.strictEqual(child.stdio[0], child.stdin);
+assert.strictEqual(subprocess.stdio[0], null);
+assert.strictEqual(subprocess.stdio[0], subprocess.stdin);
 
-assert(child.stdout);
-assert.strictEqual(child.stdio[1], child.stdout);
+assert(subprocess.stdout);
+assert.strictEqual(subprocess.stdio[1], subprocess.stdout);
 
-assert.strictEqual(child.stdio[2], null);
-assert.strictEqual(child.stdio[2], child.stderr);
+assert.strictEqual(subprocess.stdio[2], null);
+assert.strictEqual(subprocess.stdio[2], subprocess.stderr);
 </code></pre>
-<h3>child.stdout<span><a class="mark" href="#child_process_child_stdout" id="child_process_child_stdout">#</a></span></h3>
+<p><a name="child_process_child_stdout"></a></p>
+<h3>subprocess.stdout<span><a class="mark" href="#child_process_subprocess_stdout" id="child_process_subprocess_stdout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div><ul>
@@ -10177,14 +10361,23 @@ assert.strictEqual(child.stdio[2], child.stderr);
 <p>A <code>Readable Stream</code> that represents the child process&#39;s <code>stdout</code>.</p>
 <p>If the child was spawned with <code>stdio[1]</code> set to anything other than <code>&#39;pipe&#39;</code>,
 then this will be <code>null</code>.</p>
-<p><code>child.stdout</code> is an alias for <code>child.stdio[1]</code>. Both properties will refer
-to the same value.</p>
+<p><code>subprocess.stdout</code> is an alias for <code>subprocess.stdio[1]</code>. Both properties will
+refer to the same value.</p>
 <h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
 <p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>
 or <code>stderr</code>. If this value is exceeded, then the child process is terminated.
 This impacts output that includes multibyte character encodings such as UTF-8 or
 UTF-16. For instance, <code>console.log(&#39;中文测试&#39;)</code> will send 13 UTF-8 encoded bytes
 to <code>stdout</code> although there are only 4 characters.</p>
+<h2>Shell Requirements<span><a class="mark" href="#child_process_shell_requirements" id="child_process_shell_requirements">#</a></span></h2>
+<p>The shell should understand the <code>-c</code> switch on UNIX or <code>/d /s /c</code> on Windows.
+On Windows, command line parsing should be compatible with <code>&#39;cmd.exe&#39;</code>.</p>
+<h2>Default Windows Shell<span><a class="mark" href="#child_process_default_windows_shell" id="child_process_default_windows_shell">#</a></span></h2>
+<p>Although Microsoft specifies <code>%COMSPEC%</code> must contain the path to
+<code>&#39;cmd.exe&#39;</code> in the root environment, child processes are not always subject to
+the same requirement. Thus, in <code>child_process</code> functions where a shell can be
+spawned, <code>&#39;cmd.exe&#39;</code> is used as a fallback if <code>process.env.ComSpec</code> is
+unavailable.</p>
 <!-- [end-include:child_process.md] -->
 <!-- [start-include:cluster.md] -->
 <h1>Cluster<span><a class="mark" href="#cluster_cluster" id="cluster_cluster">#</a></span></h1>
@@ -10335,7 +10528,7 @@ worker.on(&#39;exit&#39;, (code, signal) =&gt; {
 <li><code>handle</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>
-<p>Within a worker, <code>process.on(&#39;message)</code> may also be used.</p>
+<p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>
 <p>See <a href="process.html#process_event_message"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>
 <p>As an example, here is a cluster that keeps count of the number of requests
 in the master process using the message system:</p>
@@ -11417,6 +11610,63 @@ module.exports = myConsole;
 <pre><code class="lang-js">const console = require(&#39;./myConsole&#39;);
 console.assert(false, &#39;this message will print, but no error thrown&#39;);
 console.log(&#39;this will also print&#39;);
+</code></pre>
+<h3>console.clear()<span><a class="mark" href="#console_console_clear" id="console_console_clear">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>When <code>stdout</code> is a TTY, calling <code>console.clear()</code> will attempt to clear the
+TTY. When <code>stdout</code> is not a TTY, this method does nothing.</p>
+<p><em>Note</em>: The specific operation of <code>console.clear()</code> can vary across operating
+systems and terminal types. For most Linux operating systems, <code>console.clear()</code>
+operates similarly to the <code>clear</code> shell command. On Windows, <code>console.clear()</code>
+will clear only the output in the current terminal viewport for the Node.js
+binary.</p>
+<h3>console.count([label])<span><a class="mark" href="#console_console_count_label" id="console_console_count_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>Maintains an internal counter specific to <code>label</code> and outputs to <code>stdout</code> the
+number of times <code>console.count()</code> has been called with the given <code>label</code>.</p>
+<!-- eslint-skip -->
+<pre><code class="lang-js">&gt; console.count()
+default: 1
+undefined
+&gt; console.count(&#39;default&#39;)
+default: 2
+undefined
+&gt; console.count(&#39;abc&#39;)
+abc: 1
+undefined
+&gt; console.count(&#39;xyz&#39;)
+xyz: 1
+undefined
+&gt; console.count(&#39;abc&#39;)
+abc: 2
+undefined
+&gt; console.count()
+default: 3
+undefined
+&gt;
+</code></pre>
+<h3>console.countReset([label = &#39;default&#39;])<span><a class="mark" href="#console_console_countreset_label_default" id="console_console_countreset_label_default">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>Resets the internal counter specific to <code>label</code>.</p>
+<!-- eslint-skip -->
+<pre><code class="lang-js">&gt; console.count(&#39;abc&#39;);
+abc: 1
+undefined
+&gt; console.countReset(&#39;abc&#39;);
+undefined
+&gt; console.count(&#39;abc&#39;);
+abc: 1
+undefined
+&gt;
 </code></pre>
 <h3>console.dir(obj[, options])<span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
 <div class="api_metadata">
@@ -12519,7 +12769,7 @@ const signature = getSignatureToVerify();
 console.log(verify.verify(publicKey, signature));
 // Prints: true or false
 </code></pre>
-<h3>verifier.update(data[, inputEncoding])<span><a class="mark" href="#crypto_verifier_update_data_inputencoding" id="crypto_verifier_update_data_inputencoding">#</a></span></h3>
+<h3>verify.update(data[, inputEncoding])<span><a class="mark" href="#crypto_verify_update_data_inputencoding" id="crypto_verify_update_data_inputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -12542,7 +12792,7 @@ is given in <code>inputEncoding</code> and can be <code>&#39;utf8&#39;</code>, <
 encoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
-<h3>verifier.verify(object, signature[, signatureFormat])<span><a class="mark" href="#crypto_verifier_verify_object_signature_signatureformat" id="crypto_verifier_verify_object_signature_signatureformat">#</a></span></h3>
+<h3>verify.verify(object, signature[, signatureFormat])<span><a class="mark" href="#crypto_verify_verify_object_signature_signatureformat" id="crypto_verify_verify_object_signature_signatureformat">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -12565,7 +12815,7 @@ The <code>object</code> argument can be either a string containing a PEM encoded
 which can be an RSA public key, a DSA public key, or an X.509 certificate,
 or an object with one or more of the following properties:</p>
 <ul>
-<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded private key (required)</li>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> - PEM encoded public key (required)</li>
 <li><p><code>padding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> - Optional padding value for RSA, one of the following:</p>
 <ul>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>
@@ -12587,7 +12837,7 @@ string; otherwise <code>signature</code> is expected to be a <a href="buffer.htm
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for
 the data and public key.</p>
-<p>The <code>verifier</code> object can not be used again after <code>verify.verify()</code> has been
+<p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been
 called. Multiple calls to <code>verify.verify()</code> will result in an error being
 thrown.</p>
 <h2><code>crypto</code> module methods and properties<span><a class="mark" href="#crypto_crypto_module_methods_and_properties" id="crypto_crypto_module_methods_and_properties">#</a></span></h2>
@@ -14153,6 +14403,46 @@ dns.resolve4(&#39;archive.org&#39;, (err, addresses) =&gt; {
 </code></pre>
 <p>There are subtle consequences in choosing one over the other, please consult
 the <a href="#dns_implementation_considerations">Implementation considerations section</a> for more information.</p>
+<h2>Class dns.Resolver<span><a class="mark" href="#dns_class_dns_resolver" id="dns_class_dns_resolver">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>An independent resolver for DNS requests.</p>
+<p>Note that creating a new resolver uses the default server settings. Setting
+the servers used for a resolver using
+<a href="#dns_dns_setservers_servers"><code>resolver.setServers()</code></a> does not affect
+other resolver:</p>
+<pre><code class="lang-js">const { Resolver } = require(&#39;dns&#39;);
+const resolver = new Resolver();
+resolver.setServers([&#39;4.4.4.4&#39;]);
+
+// This request will use the server at 4.4.4.4, independent of global settings.
+resolver.resolve4(&#39;example.org&#39;, (err, addresses) =&gt; {
+  // ...
+});
+</code></pre>
+<p>The following methods from the <code>dns</code> module are available:</p>
+<ul>
+<li><a href="#dns_dns_getservers"><code>resolver.getServers()</code></a></li>
+<li><a href="#dns_dns_setservers_servers"><code>resolver.setServers()</code></a></li>
+<li><a href="#dns_dns_resolve_hostname_rrtype_callback"><code>resolver.resolve()</code></a></li>
+<li><a href="#dns_dns_resolve4_hostname_options_callback"><code>resolver.resolve4()</code></a></li>
+<li><a href="#dns_dns_resolve6_hostname_options_callback"><code>resolver.resolve6()</code></a></li>
+<li><a href="#dns_dns_resolveany_hostname_callback"><code>resolver.resolveAny()</code></a></li>
+<li><a href="#dns_dns_resolvecname_hostname_callback"><code>resolver.resolveCname()</code></a></li>
+<li><a href="#dns_dns_resolvemx_hostname_callback"><code>resolver.resolveMx()</code></a></li>
+<li><a href="#dns_dns_resolvenaptr_hostname_callback"><code>resolver.resolveNaptr()</code></a></li>
+<li><a href="#dns_dns_resolvens_hostname_callback"><code>resolver.resolveNs()</code></a></li>
+<li><a href="#dns_dns_resolveptr_hostname_callback"><code>resolver.resolvePtr()</code></a></li>
+<li><a href="#dns_dns_resolvesoa_hostname_callback"><code>resolver.resolveSoa()</code></a></li>
+<li><a href="#dns_dns_resolvesrv_hostname_callback"><code>resolver.resolveSrv()</code></a></li>
+<li><a href="#dns_dns_resolvetxt_hostname_callback"><code>resolver.resolveTxt()</code></a></li>
+<li><a href="#dns_dns_reverse_ip_callback"><code>resolver.reverse()</code></a></li>
+</ul>
+<h3>resolver.cancel()<span><a class="mark" href="#dns_resolver_cancel" id="dns_resolver_cancel">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>Cancel all outstanding DNS queries made by this resolver. The corresponding
+callbacks will be called with an error with code <code>ECANCELLED</code>.</p>
 <h2>dns.getServers()<span><a class="mark" href="#dns_dns_getservers" id="dns_dns_getservers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
@@ -14281,7 +14571,7 @@ Promise for an object with <code>hostname</code> and <code>service</code> proper
 <li><code>rrtype</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Resource record type. Default: <code>&#39;A&#39;</code>.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <span class="type">&lt;string[][]&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -14593,7 +14883,7 @@ be an array of objects with the following properties:</p>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>addresses</code> <span class="type">&lt;string[][]&gt;</span></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -14608,7 +14898,7 @@ treated separately.</p>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>ret</code> <span class="type">&lt;Object[][]&gt;</span></li>
+<li><code>ret</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -15701,7 +15991,7 @@ platform-dependent.</p>
 <p><a id="ERR_INVALID_HANDLE_TYPE"></a></p>
 <h3>ERR_INVALID_HANDLE_TYPE<span><a class="mark" href="#errors_err_invalid_handle_type" id="errors_err_invalid_handle_type">#</a></span></h3>
 <p>Used when an attempt is made to send an unsupported &quot;handle&quot; over an IPC
-communication channel to a child process. See <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a> and
+communication channel to a child process. See <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> and
 <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> for more information.</p>
 <p><a id="ERR_INVALID_OPT_VALUE"></a></p>
 <h3>ERR_INVALID_OPT_VALUE<span><a class="mark" href="#errors_err_invalid_opt_value" id="errors_err_invalid_opt_value">#</a></span></h3>
@@ -15800,7 +16090,7 @@ internal bug within the Node.js binary itself.</p>
 <p><a id="ERR_UNKNOWN_SIGNAL"></a></p>
 <h3>ERR_UNKNOWN_SIGNAL<span><a class="mark" href="#errors_err_unknown_signal" id="errors_err_unknown_signal">#</a></span></h3>
 <p>Used when an invalid or unknown process signal is passed to an API expecting a
-valid signal (such as <a href="child_process.html#child_process_child_kill_signal"><code>child.kill()</code></a>).</p>
+valid signal (such as <a href="child_process.html#child_process_subprocess_kill_signal"><code>subprocess.kill()</code></a>).</p>
 <p><a id="ERR_UNKNOWN_STDIN_TYPE"></a></p>
 <h3>ERR_UNKNOWN_STDIN_TYPE<span><a class="mark" href="#errors_err_unknown_stdin_type" id="errors_err_unknown_stdin_type">#</a></span></h3>
 <p>Used when an attempt is made to launch a Node.js process with an unknown <code>stdin</code>
@@ -18188,6 +18478,8 @@ to the completion callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
+<p><em>Note</em>: Using <code>fs.rmdir()</code> on a file (not a directory) results in an <code>ENOENT</code>
+error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 <h2>fs.rmdirSync(path)<span><a class="mark" href="#fs_fs_rmdirsync_path" id="fs_fs_rmdirsync_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -18205,6 +18497,8 @@ to the completion callback.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. Returns <code>undefined</code>.</p>
+<p><em>Note</em>: Using <code>fs.rmdirSync()</code> on a file (not a directory) results in an <code>ENOENT</code>
+error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 <h2>fs.stat(path, callback)<span><a class="mark" href="#fs_fs_stat_path_callback" id="fs_fs_stat_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -20956,8 +21250,9 @@ Specification</a> (aka ECMA-402):<ul>
 <li>The <a href="url.html#url_the_whatwg_url_api">WHATWG URL parser</a>&#39;s <a href="https://en.wikipedia.org/wiki/Internationalized_domain_name">internationalized domain names</a> (IDNs) support</li>
 <li><a href="buffer.html#buffer_buffer_transcode_source_fromenc_toenc"><code>require(&#39;buffer&#39;).transcode()</code></a></li>
 <li>More accurate <a href="repl.html#repl_repl">REPL</a> line editing</li>
+<li><a href="util.html#util_class_util_textdecoder"><code>require(&#39;util&#39;).TextDecoder</code></a></li>
 </ul>
-<p>Node.js (and its underlying V8 engine) uses <a href="http://icu-project.org/">ICU</a> to implement these features
+<p>Node.js (and its underlying V8 engine) uses <a href="intl.html#intl_options_for_building_node_js">ICU</a> to implement these features
 in native C/C++ code. However, some of them require a very large ICU data file
 in order to support all locales of the world. Because it is expected that most
 Node.js users will make use of only a small portion of ICU functionality, only
@@ -21055,6 +21350,13 @@ option:</p>
 <td>partial (inaccurate line editing)</td>
 <td>full</td>
 <td>full</td>
+<td>full</td>
+</tr>
+<tr>
+<td><a href="util.html#util_class_util_textdecoder"><code>require(&#39;util&#39;).TextDecoder</code></a></td>
+<td>none (class does not exist)</td>
+<td>partial/full (depends on OS)</td>
+<td>partial (Unicode-only)</td>
 <td>full</td>
 </tr>
 </tbody>
@@ -21735,6 +22037,13 @@ loading.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Module object</li>
 </ul>
 <p>The module that first required this one.</p>
+<h3>module.paths<span><a class="mark" href="#modules_module_paths" id="modules_module_paths">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.4.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+<p>The search paths for the module.</p>
 <h3>module.require(id)<span><a class="mark" href="#modules_module_require_id" id="modules_module_require_id">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
@@ -21860,7 +22169,7 @@ was not open when it was closed.</p>
 </div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="net.html#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</pre><p>The number of concurrent connections on the server.</p>
 <p>This becomes <code>null</code> when sending a socket to a child with
 <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>. To poll forks and get current number of active
-connections use asynchronous <code>server.getConnections</code> instead.</p>
+connections use asynchronous <a href="net.html#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</p>
 <h3>server.getConnections(callback)<span><a class="mark" href="#net_server_getconnections_callback" id="net_server_getconnections_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.7</span>
@@ -21924,7 +22233,7 @@ after a certain amount of time:</p>
 <p>Start a server listening for connections on a given <code>handle</code> that has
 already been bound to a port, a UNIX domain socket, or a Windows named pipe.</p>
 <p>The <code>handle</code> object can be either a server, a socket (anything with an
-underlying <code>_handle</code> member), or an object with a <code>fd</code> member that is a
+underlying <code>_handle</code> member), or an object with an <code>fd</code> member that is a
 valid file descriptor.</p>
 <p><em>Note</em>: Listening on a file descriptor is not supported on Windows.</p>
 <h4>server.listen(options[, callback])<span><a class="mark" href="#net_server_listen_options_callback" id="net_server_listen_options_callback">#</a></span></h4>
@@ -22032,7 +22341,7 @@ writable, and it is also a <a href="events.html"><code>EventEmitter</code></a>.<
 <p>A <code>net.Socket</code> can be created by the user and used directly to interact with
 a server. For example, it is returned by <a href="#net_net_createconnection"><code>net.createConnection()</code></a>,
 so the user can use it to talk to the server.</p>
-<p>It can also be be created by Node.js and passed to the user when a connection
+<p>It can also be created by Node.js and passed to the user when a connection
 is received. For example, it is passed to the listeners of a
 <a href="#net_event_connection"><code>&#39;connection&#39;</code></a> event emitted on a <a href="net.html#net_class_net_server"><code>net.Server</code></a>, so the user can use
 it to interact with the client.</p>
@@ -22047,9 +22356,9 @@ the given file descriptor, otherwise a new socket will be created.</li>
 <li><code>allowHalfOpen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether half-opened TCP connections
 are allowed. See <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> and the <a href="#stream_event_end"><code>&#39;end&#39;</code></a> event
 for details. Defaults to <code>false</code>.</li>
-<li><code>readable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Allow reads on the socket when a <code>fd</code> is passed,
+<li><code>readable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Allow reads on the socket when an <code>fd</code> is passed,
 otherwise ignored. Defaults to <code>false</code>.</li>
-<li><code>writable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Allow reads on the socket when a <code>fd</code> is passed,
+<li><code>writable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Allow writes on the socket when an <code>fd</code> is passed,
 otherwise ignored. Defaults to <code>false</code>.</li>
 </ul>
 </li>
@@ -26147,7 +26456,9 @@ check, otherwise the history caching mechanism is not initialized at all.</li>
 <li><code>crlfDelay</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> If the delay between <code>\r</code> and <code>\n</code> exceeds
 <code>crlfDelay</code> milliseconds, both <code>\r</code> and <code>\n</code> will be treated as separate
 end-of-line input. Default to <code>100</code> milliseconds.
-<code>crlfDelay</code> will be coerced to <code>[100, 2000]</code> range.</li>
+<code>crlfDelay</code> will be coerced to a number no less than <code>100</code>. It can be set to
+<code>Infinity</code>, in which case <code>\r</code> followed by <code>\n</code> will always be considered a
+single newline.</li>
 <li><code>removeHistoryDuplicates</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, when a new input line added
 to the history list duplicates an older one, this removes the older line
 from the list. Defaults to <code>false</code>.</li>
@@ -28450,6 +28761,9 @@ transform.prototype._transform = function(data, encoding, callback) {
 <p>The <code>transform._transform()</code> method is prefixed with an underscore because it
 is internal to the class that defines it, and should never be called directly by
 user programs.</p>
+<p><code>transform._transform()</code> is never called in  parallel; streams implement a
+queue mechanism, and to receive the next chunk, <code>callback</code> must be
+called, either synchronously or asynchronously.</p>
 <h4>Class: stream.PassThrough<span><a class="mark" href="#stream_class_stream_passthrough" id="stream_class_stream_passthrough">#</a></span></h4>
 <p>The <code>stream.PassThrough</code> class is a trivial implementation of a <a href="#stream_class_stream_transform">Transform</a>
 stream that simply passes the input bytes across to the output. Its purpose is
@@ -30383,10 +30697,15 @@ const myURL =
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.0.0</span>
-</div><p><em>Note</em>: Using the <code>delete</code> keyword on <code>URL</code> objects (e.g.
-<code>delete myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will
-still return <code>true</code>.</p>
-<h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+</div><h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+<p>Browser-compatible <code>URL</code> class, implemented by following the WHATWG URL
+Standard. <a href="https://url.spec.whatwg.org/#example-url-parsing">Examples of parsed URLs</a> may be found in the Standard itself.</p>
+<p><em>Note</em>: In accordance with browser conventions, all properties of <code>URL</code> objects
+are implemented as getters and setters on the class prototype, rather than as
+data properties on the object itself. Thus, unlike <a href="#url_legacy_urlobject">legacy urlObject</a>s, using
+the <code>delete</code> keyword on any properties of <code>URL</code> objects (e.g. <code>delete
+myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will still
+return <code>true</code>.</p>
 <h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input URL to parse</li>
@@ -30412,7 +30731,8 @@ automatically converted to ASCII using the <a href="https://tools.ietf.org/html/
 const myURL = new URL(&#39;https://你好你好&#39;);
 // https://xn--6qqa088eba/
 </code></pre>
-<p>Additional <a href="https://url.spec.whatwg.org/#example-url-parsing">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>
+<p><em>Note</em>: This feature is only available if the <code>node</code> executable was compiled
+with <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -30488,9 +30808,7 @@ will be thrown.</p>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that
-may be contained within the hostname will be encoded as-is without <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
-encoding.</p>
+</div><p>Gets the read-only serialization of the URL&#39;s origin.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
 console.log(myURL.origin);
@@ -30499,7 +30817,7 @@ console.log(myURL.origin);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const idnURL = new URL(&#39;https://你好你好&#39;);
 console.log(idnURL.origin);
-// Prints https://你好你好
+// Prints https://xn--6qqa088eba
 
 console.log(idnURL.hostname);
 // Prints xn--6qqa088eba
@@ -31081,7 +31399,17 @@ forward-slash characters (<code>/</code>) are required following the colon in th
 <code>protocol</code>.</p>
 <h3>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.25</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A false-y <code>slashes</code> option with no protocol is now also respected at all times.</p>
+</td></tr>
+<tr><td>v0.1.25</td>
+<td><p><span>Added in: v0.1.25</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>urlObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A URL object (as returned by <code>url.parse()</code> or
 constructed otherwise). If a string, it is converted to an object by passing
@@ -31698,6 +32026,260 @@ standard format of taking an error-first callback as the last argument.</p>
 </ul>
 <p>A Symbol that can be used to declare custom promisified variants of functions,
 see <a href="#util_custom_promisified_functions">Custom promisified functions</a>.</p>
+<h3>Class: util.TextDecoder<span><a class="mark" href="#util_class_util_textdecoder" id="util_class_util_textdecoder">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>
+<pre><code class="lang-js">const decoder = new TextDecoder(&#39;shift_jis&#39;);
+let string = &#39;&#39;;
+let buffer;
+while (buffer = getNextChunkSomehow()) {
+  string += decoder.decode(buffer, { stream: true });
+}
+string += decoder.decode(); // end-of-stream
+</code></pre>
+<h4>WHATWG Supported Encodings<span><a class="mark" href="#util_whatwg_supported_encodings" id="util_whatwg_supported_encodings">#</a></span></h4>
+<p>Per the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a>, the encodings supported by the
+<code>TextDecoder</code> API are outlined in the tables below. For each encoding,
+one or more aliases may be used. Support for some encodings is enabled
+only when Node.js is using the full ICU data (see <a href="intl.html">Internationalization</a>).
+<code>util.TextDecoder</code> is <code>undefined</code> when ICU is not enabled during build.</p>
+<h5>Encodings Supported By Default<span><a class="mark" href="#util_encodings_supported_by_default" id="util_encodings_supported_by_default">#</a></span></h5>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Aliases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;utf8&#39;</code></td>
+<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf-8&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;utf-16be&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&#39;utf-16le&#39;</code></td>
+<td><code>&#39;utf-16&#39;</code></td>
+</tr>
+</tbody>
+</table>
+<h5>Encodings Requiring Full-ICU<span><a class="mark" href="#util_encodings_requiring_full_icu" id="util_encodings_requiring_full_icu">#</a></span></h5>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Aliases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;ibm866&#39;</code></td>
+<td><code>&#39;866&#39;</code>, <code>&#39;cp866&#39;</code>, <code>&#39;csibm866&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-2&#39;</code></td>
+<td><code>&#39;csisolatin2&#39;</code>, <code>&#39;iso-ir-101&#39;</code>, <code>&#39;iso8859-2&#39;</code>, <code>&#39;iso88592&#39;</code>, <code>&#39;iso_8859-2&#39;</code>, <code>&#39;iso_8859-2:1987&#39;</code>, <code>&#39;l2&#39;</code>, <code>&#39;latin2&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-3&#39;</code></td>
+<td><code>&#39;csisolatin3&#39;</code>, <code>&#39;iso-ir-109&#39;</code>, <code>&#39;iso8859-3&#39;</code>, <code>&#39;iso88593&#39;</code>, <code>&#39;iso_8859-3&#39;</code>, <code>&#39;iso_8859-3:1988&#39;</code>, <code>&#39;l3&#39;</code>, <code>&#39;latin3&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-4&#39;</code></td>
+<td><code>&#39;csisolatin4&#39;</code>, <code>&#39;iso-ir-110&#39;</code>, <code>&#39;iso8859-4&#39;</code>, <code>&#39;iso88594&#39;</code>, <code>&#39;iso_8859-4&#39;</code>, <code>&#39;iso_8859-4:1988&#39;</code>, <code>&#39;l4&#39;</code>, <code>&#39;latin4&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-5&#39;</code></td>
+<td><code>&#39;csisolatincyrillic&#39;</code>, <code>&#39;cyrillic&#39;</code>, <code>&#39;iso-ir-144&#39;</code>, <code>&#39;iso8859-5&#39;</code>, <code>&#39;iso88595&#39;</code>, <code>&#39;iso_8859-5&#39;</code>, <code>&#39;iso_8859-5:1988&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-6&#39;</code></td>
+<td><code>&#39;arabic&#39;</code>, <code>&#39;asmo-708&#39;</code>, <code>&#39;csiso88596e&#39;</code>, <code>&#39;csiso88596i&#39;</code>, <code>&#39;csisolatinarabic&#39;</code>, <code>&#39;ecma-114&#39;</code>, <code>&#39;iso-8859-6-e&#39;</code>, <code>&#39;iso-8859-6-i&#39;</code>, <code>&#39;iso-ir-127&#39;</code>, <code>&#39;iso8859-6&#39;</code>, <code>&#39;iso88596&#39;</code>, <code>&#39;iso_8859-6&#39;</code>, <code>&#39;iso_8859-6:1987&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-7&#39;</code></td>
+<td><code>&#39;csisolatingreek&#39;</code>, <code>&#39;ecma-118&#39;</code>, <code>&#39;elot_928&#39;</code>, <code>&#39;greek&#39;</code>, <code>&#39;greek8&#39;</code>, <code>&#39;iso-ir-126&#39;</code>, <code>&#39;iso8859-7&#39;</code>, <code>&#39;iso88597&#39;</code>, <code>&#39;iso_8859-7&#39;</code>, <code>&#39;iso_8859-7:1987&#39;</code>, <code>&#39;sun_eu_greek&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-8&#39;</code></td>
+<td><code>&#39;csiso88598e&#39;</code>, <code>&#39;csisolatinhebrew&#39;</code>, <code>&#39;hebrew&#39;</code>, <code>&#39;iso-8859-8-e&#39;</code>, <code>&#39;iso-ir-138&#39;</code>, <code>&#39;iso8859-8&#39;</code>, <code>&#39;iso88598&#39;</code>, <code>&#39;iso_8859-8&#39;</code>, <code>&#39;iso_8859-8:1988&#39;</code>, <code>&#39;visual&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-8-i&#39;</code></td>
+<td><code>&#39;csiso88598i&#39;</code>, <code>&#39;logical&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-10&#39;</code></td>
+<td><code>&#39;csisolatin6&#39;</code>, <code>&#39;iso-ir-157&#39;</code>, <code>&#39;iso8859-10&#39;</code>, <code>&#39;iso885910&#39;</code>, <code>&#39;l6&#39;</code>, <code>&#39;latin6&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-13&#39;</code></td>
+<td><code>&#39;iso8859-13&#39;</code>, <code>&#39;iso885913&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-14&#39;</code></td>
+<td><code>&#39;iso8859-14&#39;</code>, <code>&#39;iso885914&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-8859-15&#39;</code></td>
+<td><code>&#39;csisolatin9&#39;</code>, <code>&#39;iso8859-15&#39;</code>, <code>&#39;iso885915&#39;</code>, <code>&#39;iso_8859-15&#39;</code>, <code>&#39;l9&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;koi8-r&#39;</code></td>
+<td><code>&#39;cskoi8r&#39;</code>, <code>&#39;koi&#39;</code>, <code>&#39;koi8&#39;</code>, <code>&#39;koi8_r&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;koi8-u&#39;</code></td>
+<td><code>&#39;koi8-ru&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;macintosh&#39;</code></td>
+<td><code>&#39;csmacintosh&#39;</code>, <code>&#39;mac&#39;</code>, <code>&#39;x-mac-roman&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-874&#39;</code></td>
+<td><code>&#39;dos-874&#39;</code>, <code>&#39;iso-8859-11&#39;</code>, <code>&#39;iso8859-11&#39;</code>, <code>&#39;iso885911&#39;</code>, <code>&#39;tis-620&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1250&#39;</code></td>
+<td><code>&#39;cp1250&#39;</code>, <code>&#39;x-cp1250&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1251&#39;</code></td>
+<td><code>&#39;cp1251&#39;</code>, <code>&#39;x-cp1251&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1252&#39;</code></td>
+<td><code>&#39;ansi_x3.4-1968&#39;</code>, <code>&#39;ascii&#39;</code>, <code>&#39;cp1252&#39;</code>, <code>&#39;cp819&#39;</code>, <code>&#39;csisolatin1&#39;</code>, <code>&#39;ibm819&#39;</code>, <code>&#39;iso-8859-1&#39;</code>, <code>&#39;iso-ir-100&#39;</code>, <code>&#39;iso8859-1&#39;</code>, <code>&#39;iso88591&#39;</code>, <code>&#39;iso_8859-1&#39;</code>, <code>&#39;iso_8859-1:1987&#39;</code>, <code>&#39;l1&#39;</code>, <code>&#39;latin1&#39;</code>, <code>&#39;us-ascii&#39;</code>, <code>&#39;x-cp1252&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1253&#39;</code></td>
+<td><code>&#39;cp1253&#39;</code>, <code>&#39;x-cp1253&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1254&#39;</code></td>
+<td><code>&#39;cp1254&#39;</code>, <code>&#39;csisolatin5&#39;</code>, <code>&#39;iso-8859-9&#39;</code>, <code>&#39;iso-ir-148&#39;</code>, <code>&#39;iso8859-9&#39;</code>, <code>&#39;iso88599&#39;</code>, <code>&#39;iso_8859-9&#39;</code>, <code>&#39;iso_8859-9:1989&#39;</code>, <code>&#39;l5&#39;</code>, <code>&#39;latin5&#39;</code>, <code>&#39;x-cp1254&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1255&#39;</code></td>
+<td><code>&#39;cp1255&#39;</code>, <code>&#39;x-cp1255&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1256&#39;</code></td>
+<td><code>&#39;cp1256&#39;</code>, <code>&#39;x-cp1256&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1257&#39;</code></td>
+<td><code>&#39;cp1257&#39;</code>, <code>&#39;x-cp1257&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;windows-1258&#39;</code></td>
+<td><code>&#39;cp1258&#39;</code>, <code>&#39;x-cp1258&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;x-mac-cyrillic&#39;</code></td>
+<td><code>&#39;x-mac-ukrainian&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;gbk&#39;</code></td>
+<td><code>&#39;chinese&#39;</code>, <code>&#39;csgb2312&#39;</code>, <code>&#39;csiso58gb231280&#39;</code>, <code>&#39;gb2312&#39;</code>, <code>&#39;gb_2312&#39;</code>, <code>&#39;gb_2312-80&#39;</code>, <code>&#39;iso-ir-58&#39;</code>, <code>&#39;x-gbk&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;gb18030&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&#39;big5&#39;</code></td>
+<td><code>&#39;big5-hkscs&#39;</code>, <code>&#39;cn-big5&#39;</code>, <code>&#39;csbig5&#39;</code>, <code>&#39;x-x-big5&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;euc-jp&#39;</code></td>
+<td><code>&#39;cseucpkdfmtjapanese&#39;</code>, <code>&#39;x-euc-jp&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;iso-2022-jp&#39;</code></td>
+<td><code>&#39;csiso2022jp&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;shift_jis&#39;</code></td>
+<td><code>&#39;csshiftjis&#39;</code>, <code>&#39;ms932&#39;</code>, <code>&#39;ms_kanji&#39;</code>, <code>&#39;shift-jis&#39;</code>, <code>&#39;sjis&#39;</code>, <code>&#39;windows-31j&#39;</code>, <code>&#39;x-sjis&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;euc-kr&#39;</code></td>
+<td><code>&#39;cseuckr&#39;</code>, <code>&#39;csksc56011987&#39;</code>, <code>&#39;iso-ir-149&#39;</code>, <code>&#39;korean&#39;</code>, <code>&#39;ks_c_5601-1987&#39;</code>, <code>&#39;ks_c_5601-1989&#39;</code>, <code>&#39;ksc5601&#39;</code>, <code>&#39;ksc_5601&#39;</code>, <code>&#39;windows-949&#39;</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>Note</em>: The <code>&#39;iso-8859-16&#39;</code> encoding listed in the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a>
+is not supported.</p>
+<h4>new TextDecoder([encoding[, options]])<span><a class="mark" href="#util_new_textdecoder_encoding_options" id="util_new_textdecoder_encoding_options">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Identifies the <code>encoding</code> that this <code>TextDecoder</code> instance
+supports. Defaults to <code>&#39;utf-8&#39;</code>.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>fatal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if decoding failures are fatal. Defaults to
+<code>false</code>.</li>
+<li><code>ignoreBOM</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>TextDecoder</code> will include the byte
+ order mark in the decoded result. When <code>false</code>, the byte order mark will
+ be removed from the output. This option is only used when <code>encoding</code> is
+ <code>&#39;utf-8&#39;</code>, <code>&#39;utf-16be&#39;</code> or <code>&#39;utf-16le&#39;</code>. Defaults to <code>false</code>.</li>
+</ul>
+</li>
+</ul>
+</div><p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the
+supported encodings or an alias.</p>
+<h4>textDecoder.decode([input[, options]])<span><a class="mark" href="#util_textdecoder_decode_input_options" id="util_textdecoder_decode_input_options">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> An <code>ArrayBuffer</code>, <code>DataView</code> or
+Typed Array instance containing the encoded data.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>stream</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data are expected.
+Defaults to <code>false</code>.</li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</div><p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any
+incomplete byte sequences occuring at the end of the <code>input</code> are buffered
+internally and emitted after the next call to <code>textDecoder.decode()</code>.</p>
+<p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a
+<code>TypeError</code> being thrown.</p>
+<h4>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding" id="util_textdecoder_encoding">#</a></span></h4>
+<div class="signature"><ul>
+<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</div><p>The encoding supported by the <code>TextDecoder</code> instance.</p>
+<h4>textDecoder.fatal<span><a class="mark" href="#util_textdecoder_fatal" id="util_textdecoder_fatal">#</a></span></h4>
+<div class="signature"><ul>
+<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+</div><p>The value will be <code>true</code> if decoding errors result in a <code>TypeError</code> being
+thrown.</p>
+<h4>textDecoder.ignoreBOM<span><a class="mark" href="#util_textdecoder_ignorebom" id="util_textdecoder_ignorebom">#</a></span></h4>
+<div class="signature"><ul>
+<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+</div><p>The value will be <code>true</code> if the decoding result will include the byte order
+mark.</p>
+<h3>Class: util.TextEncoder<span><a class="mark" href="#util_class_util_textencoder" id="util_class_util_textencoder">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All
+instances of <code>TextEncoder</code> only support <code>UTF-8</code> encoding.</p>
+<pre><code class="lang-js">const encoder = new TextEncoder();
+const uint8array = encoder.encode(&#39;this is some data&#39;);
+</code></pre>
+<h4>textEncoder.encode([input])<span><a class="mark" href="#util_textencoder_encode_input" id="util_textencoder_encode_input">#</a></span></h4>
+<div class="signature"><ul>
+<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The text to encode. Defaults to an empty string.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+</ul>
+</div><p>UTF-8 Encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the
+encoded bytes.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#util_deprecated_apis" id="util_deprecated_apis">#</a></span></h2>
 <p>The following APIs have been deprecated and should no longer be used. Existing
 applications and modules should be updated to find alternative approaches.</p>
@@ -32054,7 +32636,7 @@ of V8.</p>
 </div><p>Returns statistics about the V8 heap spaces, i.e. the segments which make up
 the V8 heap. Neither the ordering of heap spaces, nor the availability of a
 heap space can be guaranteed as the statistics are provided via the V8
-<a href="https://v8docs.nodesource.com/node-5.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
+<a href="https://v8docs.nodesource.com/node-8.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
 next.</p>
 <p>The value returned is an array of objects containing the following properties:</p>
 <ul>
@@ -32273,7 +32855,7 @@ by subclasses.</p>
 <li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as
-host objects, i.e. pass them to [<code>serializer._writeHostObject</code>][].</p>
+host objects, i.e. pass them to <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
 <p>The default is not to treat those objects as host objects.</p>
 <h3>class: v8.Deserializer<span><a class="mark" href="#v8_class_v8_deserializer" id="v8_class_v8_deserializer">#</a></span></h3>
 <!--

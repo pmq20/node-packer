@@ -825,8 +825,19 @@ protoGetter('bytesWritten', function bytesWritten() {
       bytes += Buffer.byteLength(el.chunk, el.encoding);
   });
 
-  if (data) {
-    if (data instanceof Buffer)
+  if (Array.isArray(data)) {
+    // was a writev, iterate over chunks to get total length
+    for (var i = 0; i < data.length; i++) {
+      const chunk = data[i];
+
+      if (data.allBuffers || chunk instanceof Buffer)
+        bytes += chunk.length;
+      else
+        bytes += Buffer.byteLength(chunk.chunk, chunk.encoding);
+    }
+  } else if (data) {
+    // Writes are either a string or a Buffer.
+    if (typeof data !== 'string')
       bytes += data.length;
     else
       bytes += Buffer.byteLength(data, encoding);
@@ -986,9 +997,9 @@ Socket.prototype.connect = function() {
   if (pipe) {
     if (typeof path !== 'string') {
       throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
-        'options.path',
-        'string',
-        path);
+                                 'options.path',
+                                 'string',
+                                 path);
     }
     internalConnect(this, path);
   } else {

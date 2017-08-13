@@ -85,7 +85,7 @@ try {
 }
 
 // hack for repl require to work properly with node_modules folders
-module.paths = require('module')._nodeModulePaths(module.filename);
+module.paths = Module._nodeModulePaths(module.filename);
 
 // If obj.hasOwnProperty has been overridden, then calling
 // obj.hasOwnProperty(prop) will break.
@@ -282,17 +282,23 @@ function REPLServer(prompt,
   self._domain.on('error', function debugDomainError(e) {
     debug('domain error');
     const top = replMap.get(self);
+
     internalUtil.decorateErrorStack(e);
+    const isError = internalUtil.isError(e);
     if (e instanceof SyntaxError && e.stack) {
       // remove repl:line-number and stack trace
       e.stack = e.stack
                  .replace(/^repl:\d+\r?\n/, '')
                  .replace(/^\s+at\s.*\n?/gm, '');
-    } else if (e.stack && self.replMode === exports.REPL_MODE_STRICT) {
+    } else if (isError && self.replMode === exports.REPL_MODE_STRICT) {
       e.stack = e.stack.replace(/(\s+at\s+repl:)(\d+)/,
                                 (_, pre, line) => pre + (line - 1));
     }
-    top.outputStream.write((e.stack || e) + '\n');
+    if (isError && e.stack) {
+      top.outputStream.write(`${e.stack}\n`);
+    } else {
+      top.outputStream.write(`Thrown: ${String(e)}\n`);
+    }
     top.bufferedCommand = '';
     top.lines.level = [];
     top.displayPrompt();
@@ -412,7 +418,8 @@ function REPLServer(prompt,
     // Check to see if a REPL keyword was used. If it returns true,
     // display next prompt and return.
     if (trimmedCmd) {
-      if (trimmedCmd.charAt(0) === '.' && isNaN(parseFloat(trimmedCmd))) {
+      if (trimmedCmd.charAt(0) === '.' && trimmedCmd.charAt(1) !== '.' &&
+          isNaN(parseFloat(trimmedCmd))) {
         const matches = trimmedCmd.match(/^\.([^\s]+)\s*(.*)$/);
         const keyword = matches && matches[1];
         const rest = matches && matches[2];
@@ -787,7 +794,18 @@ function complete(line, callback) {
     filter = match[1];
     var dir, files, f, name, base, ext, abs, subfiles, s;
     group = [];
-    var paths = module.paths.concat(require('module').globalPaths);
+    let paths = [];
+
+    if (completeOn === '.') {
+      group = ['./', '../'];
+    } else if (completeOn === '..') {
+      group = ['../'];
+    } else if (/^\.\.?\//.test(completeOn)) {
+      paths = [process.cwd()];
+    } else {
+      paths = module.paths.concat(Module.globalPaths);
+    }
+
     for (i = 0; i < paths.length; i++) {
       dir = path.resolve(paths[i], subdir);
       try {

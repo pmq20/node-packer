@@ -24,17 +24,17 @@
             ],
             "changes": []
           },
-          "desc": "<p><em>Note</em>: Using the <code>delete</code> keyword on <code>URL</code> objects (e.g.\n<code>delete myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will\nstill return <code>true</code>.</p>\n",
           "classes": [
             {
               "textRaw": "Class: URL",
               "type": "class",
               "name": "URL",
+              "desc": "<p>Browser-compatible <code>URL</code> class, implemented by following the WHATWG URL\nStandard. <a href=\"https://url.spec.whatwg.org/#example-url-parsing\">Examples of parsed URLs</a> may be found in the Standard itself.</p>\n<p><em>Note</em>: In accordance with browser conventions, all properties of <code>URL</code> objects\nare implemented as getters and setters on the class prototype, rather than as\ndata properties on the object itself. Thus, unlike <a href=\"#url_legacy_urlobject\">legacy urlObject</a>s, using\nthe <code>delete</code> keyword on any properties of <code>URL</code> objects (e.g. <code>delete\nmyURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will still\nreturn <code>true</code>.</p>\n",
               "modules": [
                 {
                   "textRaw": "Constructor: new URL(input[, base])",
                   "name": "constructor:_new_url(input[,_base])",
-                  "desc": "<ul>\n<li><code>input</code> {string} The input URL to parse</li>\n<li><code>base</code> {string|URL} The base URL to resolve against if the <code>input</code> is not\nabsolute.</li>\n</ul>\n<p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If\n<code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);\n// https://example.org/foo\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note\nthat an effort will be made to coerce the given values into strings. For\ninstance:</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL({ toString: () =&gt; &#39;https://example.org/&#39; });\n// https://example.org/\n</code></pre>\n<p>Unicode characters appearing within the hostname of <code>input</code> will be\nautomatically converted to ASCII using the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> algorithm.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;https://你好你好&#39;);\n// https://xn--6qqa088eba/\n</code></pre>\n<p>Additional <a href=\"https://url.spec.whatwg.org/#example-url-parsing\">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>\n",
+                  "desc": "<ul>\n<li><code>input</code> {string} The input URL to parse</li>\n<li><code>base</code> {string|URL} The base URL to resolve against if the <code>input</code> is not\nabsolute.</li>\n</ul>\n<p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If\n<code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);\n// https://example.org/foo\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note\nthat an effort will be made to coerce the given values into strings. For\ninstance:</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL({ toString: () =&gt; &#39;https://example.org/&#39; });\n// https://example.org/\n</code></pre>\n<p>Unicode characters appearing within the hostname of <code>input</code> will be\nautomatically converted to ASCII using the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> algorithm.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;https://你好你好&#39;);\n// https://xn--6qqa088eba/\n</code></pre>\n<p><em>Note</em>: This feature is only available if the <code>node</code> executable was compiled\nwith <a href=\"intl.html#intl_options_for_building_node_js\">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>\n",
                   "type": "module",
                   "displayName": "Constructor: new URL(input[, base])"
                 }
@@ -68,7 +68,7 @@
                   "textRaw": "`origin` {string} ",
                   "type": "string",
                   "name": "origin",
-                  "desc": "<p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that\nmay be contained within the hostname will be encoded as-is without <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a>\nencoding.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);\nconsole.log(myURL.origin);\n// Prints https://example.org\n</code></pre>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst idnURL = new URL(&#39;https://你好你好&#39;);\nconsole.log(idnURL.origin);\n// Prints https://你好你好\n\nconsole.log(idnURL.hostname);\n// Prints xn--6qqa088eba\n</code></pre>\n"
+                  "desc": "<p>Gets the read-only serialization of the URL&#39;s origin.</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);\nconsole.log(myURL.origin);\n// Prints https://example.org\n</code></pre>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\nconst idnURL = new URL(&#39;https://你好你好&#39;);\nconsole.log(idnURL.origin);\n// Prints https://xn--6qqa088eba\n\nconsole.log(idnURL.hostname);\n// Prints xn--6qqa088eba\n</code></pre>\n"
                 },
                 {
                   "textRaw": "`password` {string} ",
@@ -760,7 +760,13 @@
                 "added": [
                   "v0.1.25"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v7.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/7234",
+                    "description": "URLs with a `file:` scheme will now always use the correct number of slashes regardless of `slashes` option. A false-y `slashes` option with no protocol is now also respected at all times."
+                  }
+                ]
               },
               "signatures": [
                 {

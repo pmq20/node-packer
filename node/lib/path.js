@@ -788,7 +788,9 @@ const win32 = {
         }
       }
     } else if (code === 47/*/*/ || code === 92/*\*/) {
-      return path[0];
+      // `path` contains just a path separator, exit early to avoid
+      // unnecessary work
+      return path;
     }
 
     for (var i = len - 1; i >= offset; --i) {
@@ -906,6 +908,7 @@ const win32 = {
 
   extname: function extname(path) {
     assertPath(path);
+    var start = 0;
     var startDot = -1;
     var startPart = 0;
     var end = -1;
@@ -913,7 +916,20 @@ const win32 = {
     // Track the state of characters (if any) we see before our first dot and
     // after any path separator we find
     var preDotState = 0;
-    for (var i = path.length - 1; i >= 0; --i) {
+
+    // Check for a drive letter prefix so as not to mistake the following
+    // path separator as an extra separator at the end of the path that can be
+    // disregarded
+    if (path.length >= 2) {
+      const code = path.charCodeAt(0);
+      if (path.charCodeAt(1) === 58/*:*/ &&
+          ((code >= 65/*A*/ && code <= 90/*Z*/) ||
+           (code >= 97/*a*/ && code <= 122/*z*/))) {
+        start = startPart = 2;
+      }
+    }
+
+    for (var i = path.length - 1; i >= start; --i) {
       const code = path.charCodeAt(i);
       if (code === 47/*/*/ || code === 92/*\*/) {
         // If we reached a path separator that was not part of a set of path
@@ -977,14 +993,11 @@ const win32 = {
     var len = path.length;
     var rootEnd = 0;
     var code = path.charCodeAt(0);
-    var isAbsolute = false;
 
     // Try to match a root
     if (len > 1) {
       if (code === 47/*/*/ || code === 92/*\*/) {
         // Possible UNC root
-
-        isAbsolute = true;
 
         code = path.charCodeAt(1);
         rootEnd = 1;
@@ -1041,16 +1054,15 @@ const win32 = {
               if (len === 3) {
                 // `path` contains just a drive root, exit early to avoid
                 // unnecessary work
-                ret.root = ret.dir = path.slice(0, 3);
+                ret.root = ret.dir = path;
                 return ret;
               }
-              isAbsolute = true;
               rootEnd = 3;
             }
           } else {
             // `path` contains just a drive root, exit early to avoid
             // unnecessary work
-            ret.root = ret.dir = path.slice(0, 2);
+            ret.root = ret.dir = path;
             return ret;
           }
         }
@@ -1058,7 +1070,7 @@ const win32 = {
     } else if (code === 47/*/*/ || code === 92/*\*/) {
       // `path` contains just a path separator, exit early to avoid
       // unnecessary work
-      ret.root = ret.dir = path[0];
+      ret.root = ret.dir = path;
       return ret;
     }
 
@@ -1066,7 +1078,7 @@ const win32 = {
       ret.root = path.slice(0, rootEnd);
 
     var startDot = -1;
-    var startPart = 0;
+    var startPart = rootEnd;
     var end = -1;
     var matchedSlash = true;
     var i = path.length - 1;
@@ -1115,26 +1127,21 @@ const win32 = {
          startDot === end - 1 &&
          startDot === startPart + 1)) {
       if (end !== -1) {
-        if (startPart === 0 && isAbsolute)
-          ret.base = ret.name = path.slice(rootEnd, end);
-        else
-          ret.base = ret.name = path.slice(startPart, end);
+        ret.base = ret.name = path.slice(startPart, end);
       }
     } else {
-      if (startPart === 0 && isAbsolute) {
-        ret.name = path.slice(rootEnd, startDot);
-        ret.base = path.slice(rootEnd, end);
-      } else {
-        ret.name = path.slice(startPart, startDot);
-        ret.base = path.slice(startPart, end);
-      }
+      ret.name = path.slice(startPart, startDot);
+      ret.base = path.slice(startPart, end);
       ret.ext = path.slice(startDot, end);
     }
 
-    if (startPart > 0)
+    // If the directory is the root, use the entire root as the `dir` including
+    // the trailing slash if any (`C:\abc` -> `C:\`). Otherwise, strip out the
+    // trailing slash (`C:\abc\def` -> `C:\abc`).
+    if (startPart > 0 && startPart !== rootEnd)
       ret.dir = path.slice(0, startPart - 1);
-    else if (isAbsolute)
-      ret.dir = path.slice(0, rootEnd);
+    else
+      ret.dir = ret.root;
 
     return ret;
   },

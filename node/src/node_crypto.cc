@@ -2699,18 +2699,6 @@ int Connection::HandleSSLError(const char* func,
 }
 
 
-void Connection::ClearError() {
-#ifndef NDEBUG
-  HandleScope scope(ssl_env()->isolate());
-
-  // We should clear the error in JS-land
-  Local<String> error_key = ssl_env()->error_string();
-  Local<Value> error = object()->Get(error_key);
-  CHECK_EQ(error->BooleanValue(), false);
-#endif  // NDEBUG
-}
-
-
 void Connection::SetShutdownFlags() {
   HandleScope scope(ssl_env()->isolate());
 
@@ -5193,7 +5181,7 @@ void ECDH::SetPublicKey(const FunctionCallbackInfo<Value>& args) {
 
 
 bool ECDH::IsKeyValidForCurve(const BIGNUM* private_key) {
-  ASSERT_NE(group_, nullptr);
+  CHECK_NE(group_, nullptr);
   CHECK_NE(private_key, nullptr);
   // Private keys must be in the range [1, n-1].
   // Ref: Section 3.2.1 - http://www.secg.org/sec1-v2.pdf
@@ -5424,8 +5412,13 @@ void PBKDF2(const FunctionCallbackInfo<Value>& args) {
   if (args[5]->IsFunction()) {
     obj->Set(env->ondone_string(), args[5]);
 
-    if (env->in_domain())
-      obj->Set(env->domain_string(), env->domain_array()->Get(0));
+    if (env->in_domain()) {
+      obj->Set(env->context(),
+               env->domain_string(),
+               env->domain_array()->Get(env->context(), 0).ToLocalChecked())
+          .FromJust();
+    }
+
     uv_queue_work(env->event_loop(),
                   req->work_req(),
                   PBKDF2Request::Work,
@@ -5627,8 +5620,13 @@ void RandomBytes(const FunctionCallbackInfo<Value>& args) {
   if (args[1]->IsFunction()) {
     obj->Set(env->ondone_string(), args[1]);
 
-    if (env->in_domain())
-      obj->Set(env->domain_string(), env->domain_array()->Get(0));
+    if (env->in_domain()) {
+      obj->Set(env->context(),
+               env->domain_string(),
+               env->domain_array()->Get(env->context(), 0).ToLocalChecked())
+          .FromJust();
+    }
+
     uv_queue_work(env->event_loop(),
                   req->work_req(),
                   RandomBytesWork,
@@ -5666,14 +5664,13 @@ void RandomBytesBuffer(const FunctionCallbackInfo<Value>& args) {
                              data,
                              RandomBytesRequest::DONT_FREE_DATA);
   if (args[3]->IsFunction()) {
-    obj->Set(env->context(),
-             FIXED_ONE_BYTE_STRING(args.GetIsolate(), "ondone"),
-             args[3]).FromJust();
+    obj->Set(env->context(), env->ondone_string(), args[3]).FromJust();
 
     if (env->in_domain()) {
       obj->Set(env->context(),
                env->domain_string(),
-               env->domain_array()->Get(0)).FromJust();
+               env->domain_array()->Get(env->context(), 0).ToLocalChecked())
+          .FromJust();
     }
 
     uv_queue_work(env->event_loop(),

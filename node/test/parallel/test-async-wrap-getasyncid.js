@@ -51,6 +51,7 @@ function testInitialized(req, ctor_name) {
   testInitialized(dns.lookup('www.google.com', () => {}), 'GetAddrInfoReqWrap');
   testInitialized(dns.lookupService('::1', 22, () => {}), 'GetNameInfoReqWrap');
   testInitialized(dns.resolve6('::1', () => {}), 'QueryReqWrap');
+  testInitialized(new cares.ChannelWrap(), 'ChannelWrap');
 }
 
 
@@ -160,6 +161,7 @@ if (common.hasCrypto) {
   const stream_wrap = process.binding('stream_wrap');
   const tcp_wrap = process.binding('tcp_wrap');
   const server = net.createServer(common.mustCall((socket) => {
+    server.close();
     socket.on('data', (x) => {
       socket.end();
       socket.destroy();
@@ -176,7 +178,6 @@ if (common.hasCrypto) {
 
     sreq.oncomplete = common.mustCall(() => {
       handle.close();
-      server.close();
     });
 
     wreq.handle = handle;

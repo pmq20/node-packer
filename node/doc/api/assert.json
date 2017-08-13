@@ -321,13 +321,22 @@
                 {
                   "textRaw": "`message` {any} ",
                   "name": "message",
-                  "type": "any"
+                  "type": "any",
+                  "optional": true
                 },
                 {
                   "textRaw": "`operator` {string} (default: '!=') ",
                   "name": "operator",
                   "default": "!=",
-                  "type": "string"
+                  "type": "string",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`stackStartFunction` {function} (default: `assert.fail`) ",
+                  "name": "stackStartFunction",
+                  "default": "assert.fail",
+                  "type": "function",
+                  "optional": true
                 }
               ]
             },
@@ -340,10 +349,16 @@
                   "name": "expected"
                 },
                 {
-                  "name": "message"
+                  "name": "message",
+                  "optional": true
                 },
                 {
-                  "name": "operator"
+                  "name": "operator",
+                  "optional": true
+                },
+                {
+                  "name": "stackStartFunction",
+                  "optional": true
                 }
               ]
             },
@@ -355,10 +370,10 @@
               ]
             }
           ],
-          "desc": "<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as\nthe values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.\nOtherwise, the error message is the value of <code>message</code>.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.fail(1, 2, undefined, &#39;&gt;&#39;);\n// AssertionError: 1 &gt; 2\n\nassert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);\n// AssertionError: whoops\n\nassert.fail(&#39;boom&#39;);\n// AssertionError: boom\n\nassert.fail(&#39;a&#39;, &#39;b&#39;);\n// AssertionError: &#39;a&#39; != &#39;b&#39;\n</code></pre>\n"
+          "desc": "<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as\nthe values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.\nIf just the two <code>actual</code> and <code>expected</code> arguments are provided, <code>operator</code> will\ndefault to <code>&#39;!=&#39;</code>. If <code>message</code> is provided only it will be used as the error\nmessage, the other arguments will be stored as properties on the thrown object.\nIf <code>stackStartFunction</code> is provided, all stack frames above that function will\nbe removed from stacktrace (see <a href=\"errors.html#errors_error_capturestacktrace_targetobject_constructoropt\"><code>Error.captureStackTrace</code></a>).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.fail(1, 2, undefined, &#39;&gt;&#39;);\n// AssertionError [ERR_ASSERTION]: 1 &gt; 2\n\nassert.fail(1, 2, &#39;fail&#39;);\n// AssertionError [ERR_ASSERTION]: fail\n\nassert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);\n// AssertionError [ERR_ASSERTION]: whoops\n</code></pre>\n<p><em>Note</em>: Is the last two cases <code>actual</code>, <code>expected</code>, and <code>operator</code> have no\ninfluence on the error message.</p>\n<pre><code class=\"lang-js\">assert.fail();\n// AssertionError [ERR_ASSERTION]: Failed\n\nassert.fail(&#39;boom&#39;);\n// AssertionError [ERR_ASSERTION]: boom\n\nassert.fail(&#39;a&#39;, &#39;b&#39;);\n// AssertionError [ERR_ASSERTION]: &#39;a&#39; != &#39;b&#39;\n</code></pre>\n<p>Example use of <code>stackStartFunction</code> for truncating the exception&#39;s stacktrace:</p>\n<pre><code class=\"lang-js\">function suppressFrame() {\n  assert.fail(&#39;a&#39;, &#39;b&#39;, undefined, &#39;!==&#39;, suppressFrame);\n}\nsuppressFrame();\n// AssertionError [ERR_ASSERTION]: &#39;a&#39; !== &#39;b&#39;\n//     at repl:1:1\n//     at ContextifyScript.Script.runInThisContext (vm.js:44:33)\n//     ...\n</code></pre>\n"
         },
         {
-          "textRaw": "assert.fail(actual, expected, message, operator)",
+          "textRaw": "assert.fail(actual, expected[, message[, operator[, stackStartFunction]]])",
           "type": "method",
           "name": "fail",
           "meta": {
@@ -383,13 +398,22 @@
                 {
                   "textRaw": "`message` {any} ",
                   "name": "message",
-                  "type": "any"
+                  "type": "any",
+                  "optional": true
                 },
                 {
                   "textRaw": "`operator` {string} (default: '!=') ",
                   "name": "operator",
                   "default": "!=",
-                  "type": "string"
+                  "type": "string",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`stackStartFunction` {function} (default: `assert.fail`) ",
+                  "name": "stackStartFunction",
+                  "default": "assert.fail",
+                  "type": "function",
+                  "optional": true
                 }
               ]
             },
@@ -402,15 +426,21 @@
                   "name": "expected"
                 },
                 {
-                  "name": "message"
+                  "name": "message",
+                  "optional": true
                 },
                 {
-                  "name": "operator"
+                  "name": "operator",
+                  "optional": true
+                },
+                {
+                  "name": "stackStartFunction",
+                  "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as\nthe values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.\nOtherwise, the error message is the value of <code>message</code>.</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.fail(1, 2, undefined, &#39;&gt;&#39;);\n// AssertionError: 1 &gt; 2\n\nassert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);\n// AssertionError: whoops\n\nassert.fail(&#39;boom&#39;);\n// AssertionError: boom\n\nassert.fail(&#39;a&#39;, &#39;b&#39;);\n// AssertionError: &#39;a&#39; != &#39;b&#39;\n</code></pre>\n"
+          "desc": "<p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as\nthe values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.\nIf just the two <code>actual</code> and <code>expected</code> arguments are provided, <code>operator</code> will\ndefault to <code>&#39;!=&#39;</code>. If <code>message</code> is provided only it will be used as the error\nmessage, the other arguments will be stored as properties on the thrown object.\nIf <code>stackStartFunction</code> is provided, all stack frames above that function will\nbe removed from stacktrace (see <a href=\"errors.html#errors_error_capturestacktrace_targetobject_constructoropt\"><code>Error.captureStackTrace</code></a>).</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n\nassert.fail(1, 2, undefined, &#39;&gt;&#39;);\n// AssertionError [ERR_ASSERTION]: 1 &gt; 2\n\nassert.fail(1, 2, &#39;fail&#39;);\n// AssertionError [ERR_ASSERTION]: fail\n\nassert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);\n// AssertionError [ERR_ASSERTION]: whoops\n</code></pre>\n<p><em>Note</em>: Is the last two cases <code>actual</code>, <code>expected</code>, and <code>operator</code> have no\ninfluence on the error message.</p>\n<pre><code class=\"lang-js\">assert.fail();\n// AssertionError [ERR_ASSERTION]: Failed\n\nassert.fail(&#39;boom&#39;);\n// AssertionError [ERR_ASSERTION]: boom\n\nassert.fail(&#39;a&#39;, &#39;b&#39;);\n// AssertionError [ERR_ASSERTION]: &#39;a&#39; != &#39;b&#39;\n</code></pre>\n<p>Example use of <code>stackStartFunction</code> for truncating the exception&#39;s stacktrace:</p>\n<pre><code class=\"lang-js\">function suppressFrame() {\n  assert.fail(&#39;a&#39;, &#39;b&#39;, undefined, &#39;!==&#39;, suppressFrame);\n}\nsuppressFrame();\n// AssertionError [ERR_ASSERTION]: &#39;a&#39; !== &#39;b&#39;\n//     at repl:1:1\n//     at ContextifyScript.Script.runInThisContext (vm.js:44:33)\n//     ...\n</code></pre>\n"
         },
         {
           "textRaw": "assert.ifError(value)",
@@ -776,7 +806,7 @@
               ]
             }
           ],
-          "desc": "<p>Expects the function <code>block</code> to throw an error.</p>\n<p>If specified, <code>error</code> can be a constructor, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>, or validation\nfunction.</p>\n<p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if\nthe block fails to throw.</p>\n<p>Validate instanceof using constructor:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  Error\n);\n</code></pre>\n<p>Validate error message using <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  /value/\n);\n</code></pre>\n<p>Custom error validation:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  function(err) {\n    if ((err instanceof Error) &amp;&amp; /value/.test(err)) {\n      return true;\n    }\n  },\n  &#39;unexpected error&#39;\n);\n</code></pre>\n<p>Note that <code>error</code> can not be a string. If a string is provided as the second\nargument, then <code>error</code> is assumed to be omitted and the string will be used for\n<code>message</code> instead. This can lead to easy-to-miss mistakes:</p>\n<!-- eslint-disable assert-throws-arguments -->\n<pre><code class=\"lang-js\">// THIS IS A MISTAKE! DO NOT DO THIS!\nassert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);\n\n// Do this instead.\nassert.throws(myFunction, /missing foo/, &#39;did not throw with expected message&#39;);\n</code></pre>\n"
+          "desc": "<p>Expects the function <code>block</code> to throw an error.</p>\n<p>If specified, <code>error</code> can be a constructor, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>, or validation\nfunction.</p>\n<p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if\nthe block fails to throw.</p>\n<p>Validate instanceof using constructor:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  Error\n);\n</code></pre>\n<p>Validate error message using <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions\"><code>RegExp</code></a>:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  /value/\n);\n</code></pre>\n<p>Custom error validation:</p>\n<pre><code class=\"lang-js\">assert.throws(\n  () =&gt; {\n    throw new Error(&#39;Wrong value&#39;);\n  },\n  function(err) {\n    if ((err instanceof Error) &amp;&amp; /value/.test(err)) {\n      return true;\n    }\n  },\n  &#39;unexpected error&#39;\n);\n</code></pre>\n<p>Note that <code>error</code> can not be a string. If a string is provided as the second\nargument, then <code>error</code> is assumed to be omitted and the string will be used for\n<code>message</code> instead. This can lead to easy-to-miss mistakes:</p>\n<!-- eslint-disable no-restricted-syntax -->\n<pre><code class=\"lang-js\">// THIS IS A MISTAKE! DO NOT DO THIS!\nassert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);\n\n// Do this instead.\nassert.throws(myFunction, /missing foo/, &#39;did not throw with expected message&#39;);\n</code></pre>\n"
         }
       ],
       "modules": [

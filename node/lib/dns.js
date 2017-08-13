@@ -28,11 +28,14 @@ const uv = process.binding('uv');
 const internalNet = require('internal/net');
 const { customPromisifyArgs } = require('internal/util');
 
-const GetAddrInfoReqWrap = cares.GetAddrInfoReqWrap;
-const GetNameInfoReqWrap = cares.GetNameInfoReqWrap;
-const QueryReqWrap = cares.QueryReqWrap;
+const {
+  GetAddrInfoReqWrap,
+  GetNameInfoReqWrap,
+  QueryReqWrap,
+  ChannelWrap,
+  isIP
+} = cares;
 
-const isIP = cares.isIP;
 const isLegalPort = internalNet.isLegalPort;
 
 
@@ -238,11 +241,19 @@ function onresolve(err, result, ttls) {
     this.callback(null, result);
 }
 
+// Resolver instances correspond 1:1 to c-ares channels.
+class Resolver {
+  constructor() {
+    this._handle = new ChannelWrap();
+  }
+
+  cancel() {
+    this._handle.cancel();
+  }
+}
 
 function resolver(bindingName) {
-  var binding = cares[bindingName];
-
-  return function query(name, /* options, */ callback) {
+  function query(name, /* options, */ callback) {
     var options;
     if (arguments.length > 2) {
       options = callback;
@@ -261,26 +272,29 @@ function resolver(bindingName) {
     req.hostname = name;
     req.oncomplete = onresolve;
     req.ttl = !!(options && options.ttl);
-    var err = binding(req, name);
+    var err = this._handle[bindingName](req, name);
     if (err) throw errnoException(err, bindingName);
     return req;
-  };
+  }
+  Object.defineProperty(query, 'name', { value: bindingName });
+  return query;
 }
 
-
 var resolveMap = Object.create(null);
-resolveMap.ANY = resolver('queryAny');
-resolveMap.A = resolver('queryA');
-resolveMap.AAAA = resolver('queryAaaa');
-resolveMap.CNAME = resolver('queryCname');
-resolveMap.MX = resolver('queryMx');
-resolveMap.NS = resolver('queryNs');
-resolveMap.TXT = resolver('queryTxt');
-resolveMap.SRV = resolver('querySrv');
-resolveMap.PTR = resolver('queryPtr');
-resolveMap.NAPTR = resolver('queryNaptr');
-resolveMap.SOA = resolver('querySoa');
+Resolver.prototype.resolveAny = resolveMap.ANY = resolver('queryAny');
+Resolver.prototype.resolve4 = resolveMap.A = resolver('queryA');
+Resolver.prototype.resolve6 = resolveMap.AAAA = resolver('queryAaaa');
+Resolver.prototype.resolveCname = resolveMap.CNAME = resolver('queryCname');
+Resolver.prototype.resolveMx = resolveMap.MX = resolver('queryMx');
+Resolver.prototype.resolveNs = resolveMap.NS = resolver('queryNs');
+Resolver.prototype.resolveTxt = resolveMap.TXT = resolver('queryTxt');
+Resolver.prototype.resolveSrv = resolveMap.SRV = resolver('querySrv');
+Resolver.prototype.resolvePtr = resolveMap.PTR = resolver('queryPtr');
+Resolver.prototype.resolveNaptr = resolveMap.NAPTR = resolver('queryNaptr');
+Resolver.prototype.resolveSoa = resolveMap.SOA = resolver('querySoa');
+Resolver.prototype.reverse = resolver('getHostByAddr');
 
+Resolver.prototype.resolve = resolve;
 
 function resolve(hostname, type_, callback_) {
   var resolver, callback;
@@ -295,15 +309,16 @@ function resolve(hostname, type_, callback_) {
   }
 
   if (typeof resolver === 'function') {
-    return resolver(hostname, callback);
+    return resolver.call(this, hostname, callback);
   } else {
     throw new Error(`Unknown type "${type_}"`);
   }
 }
 
 
+Resolver.prototype.getServers = getServers;
 function getServers() {
-  const ret = cares.getServers();
+  const ret = this._handle.getServers();
   return ret.map((val) => {
     if (!val[1] || val[1] === IANA_DNS_PORT) return val[0];
 
@@ -313,10 +328,11 @@ function getServers() {
 }
 
 
+Resolver.prototype.setServers = setServers;
 function setServers(servers) {
   // cache the original servers because in the event of an error setting the
   // servers cares won't have any servers available for resolution
-  const orig = cares.getServers();
+  const orig = this._handle.getServers();
   const newSet = [];
   const IPv6RE = /\[(.*)\]/;
   const addrSplitRE = /(^.+?)(?::(\d+))?$/;
@@ -348,35 +364,39 @@ function setServers(servers) {
     throw new Error(`IP address is not properly formatted: ${serv}`);
   });
 
-  const errorNumber = cares.setServers(newSet);
+  const errorNumber = this._handle.setServers(newSet);
 
   if (errorNumber !== 0) {
     // reset the servers to the old servers, because ares probably unset them
-    cares.setServers(orig.join(','));
+    this._handle.setServers(orig.join(','));
 
     var err = cares.strerror(errorNumber);
     throw new Error(`c-ares failed to set servers: "${err}" [${servers}]`);
   }
 }
 
+const defaultResolver = new Resolver();
+
 module.exports = {
   lookup,
   lookupService,
-  getServers,
-  setServers,
-  resolve,
-  resolveAny: resolveMap.ANY,
-  resolve4: resolveMap.A,
-  resolve6: resolveMap.AAAA,
-  resolveCname: resolveMap.CNAME,
-  resolveMx: resolveMap.MX,
-  resolveNs: resolveMap.NS,
-  resolveTxt: resolveMap.TXT,
-  resolveSrv: resolveMap.SRV,
-  resolvePtr: resolveMap.PTR,
-  resolveNaptr: resolveMap.NAPTR,
-  resolveSoa: resolveMap.SOA,
-  reverse: resolver('getHostByAddr'),
+
+  Resolver,
+  getServers: defaultResolver.getServers.bind(defaultResolver),
+  setServers: defaultResolver.setServers.bind(defaultResolver),
+  resolve: defaultResolver.resolve.bind(defaultResolver),
+  resolveAny: defaultResolver.resolveAny.bind(defaultResolver),
+  resolve4: defaultResolver.resolve4.bind(defaultResolver),
+  resolve6: defaultResolver.resolve6.bind(defaultResolver),
+  resolveCname: defaultResolver.resolveCname.bind(defaultResolver),
+  resolveMx: defaultResolver.resolveMx.bind(defaultResolver),
+  resolveNs: defaultResolver.resolveNs.bind(defaultResolver),
+  resolveTxt: defaultResolver.resolveTxt.bind(defaultResolver),
+  resolveSrv: defaultResolver.resolveSrv.bind(defaultResolver),
+  resolvePtr: defaultResolver.resolvePtr.bind(defaultResolver),
+  resolveNaptr: defaultResolver.resolveNaptr.bind(defaultResolver),
+  resolveSoa: defaultResolver.resolveSoa.bind(defaultResolver),
+  reverse: defaultResolver.reverse.bind(defaultResolver),
 
   // uv_getaddrinfo flags
   ADDRCONFIG: cares.AI_ADDRCONFIG,

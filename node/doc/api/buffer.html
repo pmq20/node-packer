@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v8.2.1 Documentation</title>
+  <title>Buffer | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -370,11 +370,12 @@ page 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>
 <li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>
 </li>
 </ul>
-<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG spec</a> which aliases both &#39;latin1&#39;
-and ISO-8859-1 to win-1252. This means that while doing something like
-<code>http.get()</code>, if the returned charset is one of those listed in the WHATWG spec
-it&#39;s possible that the server actually returned win-1252-encoded data, and
-using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the characters.</p>
+<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> which aliases
+both &#39;latin1&#39; and ISO-8859-1 to win-1252. This means that while doing something
+like <code>http.get()</code>, if the returned charset is one of those listed in the WHATWG
+specification it is possible that the server actually returned
+win-1252-encoded data, and using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the
+characters.</p>
 <h2>Buffers and TypedArray<span><a class="mark" href="#buffer_buffers_and_typedarray" id="buffer_buffers_and_typedarray">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>

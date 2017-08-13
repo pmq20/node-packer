@@ -3332,7 +3332,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous rmdir(2). No arguments other than a possible exception are given\nto the completion callback.</p>\n"
+          "desc": "<p>Asynchronous rmdir(2). No arguments other than a possible exception are given\nto the completion callback.</p>\n<p><em>Note</em>: Using <code>fs.rmdir()</code> on a file (not a directory) results in an <code>ENOENT</code>\nerror on Windows and an <code>ENOTDIR</code> error on POSIX.</p>\n"
         },
         {
           "textRaw": "fs.rmdirSync(path)",
@@ -3368,7 +3368,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous rmdir(2). Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronous rmdir(2). Returns <code>undefined</code>.</p>\n<p><em>Note</em>: Using <code>fs.rmdirSync()</code> on a file (not a directory) results in an <code>ENOENT</code>\nerror on Windows and an <code>ENOTDIR</code> error on POSIX.</p>\n"
         },
         {
           "textRaw": "fs.stat(path, callback)",

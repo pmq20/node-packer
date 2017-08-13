@@ -2,13 +2,14 @@
 
 require('../common');
 const { URL, URLSearchParams } = require('url');
-const { test, assert_array_equals } = require('../common/wpt');
+const { test, assert_equals, assert_array_equals } = require('../common/wpt');
 
-/* eslint-disable */
-/* WPT Refs:
-   https://github.com/w3c/web-platform-tests/blob/5903e00e77e85f8bcb21c73d1d7819fcd04763bd/url/urlsearchparams-sort.html
+/* The following tests are copied from WPT. Modifications to them should be
+   upstreamed first. Refs:
+   https://github.com/w3c/web-platform-tests/blob/70a0898763/url/urlsearchparams-sort.html
    License: http://www.w3.org/Consortium/Legal/2008/04-testsuite-copyright.html
 */
+/* eslint-disable */
 [
   {
     "input": "z=b&a=b&z=a&a=a",
@@ -52,6 +53,13 @@ const { test, assert_array_equals } = require('../common/wpt');
     }
   }, "URL parse and sort: " + val.input)
 })
+
+test(function() {
+  const url = new URL("http://example.com/?")
+  url.searchParams.sort()
+  assert_equals(url.href, "http://example.com/")
+  assert_equals(url.search, "")
+}, "Sorting non-existent params removes ? from URL")
 /* eslint-enable */
 
 // Tests below are not from WPT.

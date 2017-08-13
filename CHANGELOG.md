@@ -2,8 +2,8 @@
 
 ## v1.5.0
 
-- upgrade Node.js runtime to v8.2.1
-  - https://nodejs.org/en/blog/release/v8.2.1/
+- upgrade Node.js runtime to v8.3.0
+  - https://nodejs.org/en/blog/release/v8.3.0/
 - upgrade libsquash to v0.8.0
   - allow creating files inside an existing folder of memfs
     - removes the temporary directory and files at exit

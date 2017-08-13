@@ -1283,7 +1283,7 @@ void URL::Parse(const char* input,
         }
         break;
       case kNoScheme:
-        cannot_be_base = base->flags & URL_FLAGS_CANNOT_BE_BASE;
+        cannot_be_base = has_base && (base->flags & URL_FLAGS_CANNOT_BE_BASE);
         if (!has_base || (cannot_be_base && ch != '#')) {
           url->flags |= URL_FLAGS_FAILED;
           return;
@@ -1943,7 +1943,7 @@ static void Parse(Environment* env,
       null,  // fragment defaults to null
     };
     SetArgs(env, argv, &url);
-    (void)cb->Call(context, recv, arraysize(argv), argv);
+    cb->Call(context, recv, arraysize(argv), argv).FromMaybe(Local<Value>());
   } else if (error_cb->IsFunction()) {
     Local<Value> argv[2] = { undef, undef };
     argv[ERR_ARG_FLAGS] = Integer::NewFromUnsigned(isolate, url.flags);
@@ -1951,7 +1951,8 @@ static void Parse(Environment* env,
       String::NewFromUtf8(env->isolate(),
                           input,
                           v8::NewStringType::kNormal).ToLocalChecked();
-    (void)error_cb.As<Function>()->Call(context, recv, arraysize(argv), argv);
+    error_cb.As<Function>()->Call(context, recv, arraysize(argv), argv)
+        .FromMaybe(Local<Value>());
   }
 }
 

@@ -702,7 +702,8 @@ $(PKG): release-only
 		--release-urlbase=$(RELEASE_URLBASE) \
 		$(CONFIG_FLAGS) $(BUILD_RELEASE_FLAGS)
 	$(MAKE) install V=$(V) DESTDIR=$(PKGDIR)
-	SIGN="$(CODESIGN_CERT)" PKGDIR="$(PKGDIR)" bash tools/osx-codesign.sh
+	SIGN="$(CODESIGN_CERT)" PKGDIR="$(PKGDIR)/usr/local" bash \
+		tools/osx-codesign.sh
 	cat tools/osx-pkg.pmdoc/index.xml.tmpl \
 		| sed -E "s/\\{nodeversion\\}/$(FULLVERSION)/g" \
 		| sed -E "s/\\{npmversion\\}/$(NPMVERSION)/g" \
@@ -807,6 +808,9 @@ $(BINARYTAR): release-only
 	cp README.md $(BINARYNAME)
 	cp LICENSE $(BINARYNAME)
 	cp CHANGELOG.md $(BINARYNAME)
+ifeq ($(OSTYPE),darwin)
+	SIGN="$(CODESIGN_CERT)" PKGDIR="$(BINARYNAME)" bash tools/osx-codesign.sh
+endif
 	tar -cf $(BINARYNAME).tar $(BINARYNAME)
 	$(RM) -r $(BINARYNAME)
 	gzip -c -f -9 $(BINARYNAME).tar > $(BINARYNAME).tar.gz
@@ -887,11 +891,16 @@ CPPLINT_EXCLUDE += src/queue.h
 CPPLINT_EXCLUDE += src/tree.h
 CPPLINT_EXCLUDE += $(wildcard test/addons/??_*/*.cc test/addons/??_*/*.h)
 CPPLINT_EXCLUDE += $(wildcard test/addons-napi/??_*/*.cc test/addons-napi/??_*/*.h)
+# These files were copied more or less verbatim from V8.
+CPPLINT_EXCLUDE += src/tracing/trace_event.h src/tracing/trace_event_common.h
 
 CPPLINT_FILES = $(filter-out $(CPPLINT_EXCLUDE), $(wildcard \
 	src/*.c \
 	src/*.cc \
 	src/*.h \
+	src/*/*.c \
+	src/*/*.cc \
+	src/*/*.h \
 	test/addons/*/*.cc \
 	test/addons/*/*.h \
 	test/cctest/*.cc \

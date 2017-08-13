@@ -46,7 +46,6 @@ class AssertionError extends Error {
       throw new exports.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'object');
     }
     const util = lazyUtil();
-    const assert = lazyAssert();
     const message = options.message ||
                     `${util.inspect(options.actual).slice(0, 128)} ` +
                     `${options.operator} ` +
@@ -59,8 +58,7 @@ class AssertionError extends Error {
     this.actual = options.actual;
     this.expected = options.expected;
     this.operator = options.operator;
-    const stackStartFunction = options.stackStartFunction || assert.fail;
-    Error.captureStackTrace(this, stackStartFunction);
+    Error.captureStackTrace(this, options.stackStartFunction);
   }
 }
 
@@ -111,7 +109,17 @@ module.exports = exports = {
 // Note: Please try to keep these in alphabetical order
 E('ERR_ARG_NOT_ITERABLE', '%s must be iterable');
 E('ERR_ASSERTION', (msg) => msg);
+E('ERR_ENCODING_INVALID_ENCODED_DATA',
+  (enc) => `The encoded data was not valid for encoding ${enc}`);
+E('ERR_ENCODING_NOT_SUPPORTED',
+  (enc) => `The "${enc}" encoding is not supported`);
 E('ERR_FALSY_VALUE_REJECTION', 'Promise was rejected with falsy value');
+E('ERR_HTTP_HEADERS_SENT',
+  'Cannot render headers after they are sent to the client');
+E('ERR_HTTP_INVALID_STATUS_CODE', 'Invalid status code: %s');
+E('ERR_HTTP_TRAILER_INVALID',
+  'Trailers are invalid with this transfer encoding');
+E('ERR_INDEX_OUT_OF_RANGE', 'Index out of range');
 E('ERR_INVALID_ARG_TYPE', invalidArgType);
 E('ERR_INVALID_CALLBACK', 'callback must be a function');
 E('ERR_INVALID_FD', (fd) => `"fd" must be a positive integer: ${fd}`);
@@ -137,18 +145,22 @@ E('ERR_IPC_DISCONNECTED', 'IPC channel is already disconnected');
 E('ERR_IPC_ONE_PIPE', 'Child process can have only one IPC pipe');
 E('ERR_IPC_SYNC_FORK', 'IPC cannot be used with synchronous forks');
 E('ERR_MISSING_ARGS', missingArgs);
-E('ERR_STDERR_CLOSE', 'process.stderr cannot be closed');
-E('ERR_STDOUT_CLOSE', 'process.stdout cannot be closed');
-E('ERR_UNKNOWN_BUILTIN_MODULE', (id) => `No such built-in module: ${id}`);
-E('ERR_UNKNOWN_SIGNAL', (signal) => `Unknown signal: ${signal}`);
-E('ERR_UNKNOWN_STDIN_TYPE', 'Unknown stdin file type');
-E('ERR_UNKNOWN_STREAM_TYPE', 'Unknown stream file type');
+E('ERR_NAPI_CONS_FUNCTION', 'Constructor must be a function');
+E('ERR_NAPI_CONS_PROTOTYPE_OBJECT', 'Constructor.prototype must be an object');
+E('ERR_NO_CRYPTO', 'Node.js is not compiled with OpenSSL crypto support');
+E('ERR_PARSE_HISTORY_DATA', 'Could not parse history data in %s');
 E('ERR_SOCKET_ALREADY_BOUND', 'Socket is already bound');
 E('ERR_SOCKET_BAD_TYPE',
   'Bad socket type specified. Valid types are: udp4, udp6');
 E('ERR_SOCKET_CANNOT_SEND', 'Unable to send data');
 E('ERR_SOCKET_BAD_PORT', 'Port should be > 0 and < 65536');
 E('ERR_SOCKET_DGRAM_NOT_RUNNING', 'Not running');
+E('ERR_STDERR_CLOSE', 'process.stderr cannot be closed');
+E('ERR_STDOUT_CLOSE', 'process.stdout cannot be closed');
+E('ERR_UNKNOWN_BUILTIN_MODULE', (id) => `No such built-in module: ${id}`);
+E('ERR_UNKNOWN_SIGNAL', (signal) => `Unknown signal: ${signal}`);
+E('ERR_UNKNOWN_STDIN_TYPE', 'Unknown stdin file type');
+E('ERR_UNKNOWN_STREAM_TYPE', 'Unknown stream file type');
 // Add new errors from here...
 
 function invalidArgType(name, expected, actual) {

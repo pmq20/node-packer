@@ -20,20 +20,20 @@ assert.throws(function() {
 
 const enoentFile = path.join(common.tmpDir, 'non-existent-file');
 const expectedStatObject = new fs.Stats(
-    0,                                        // dev
-    0,                                        // mode
-    0,                                        // nlink
-    0,                                        // uid
-    0,                                        // gid
-    0,                                        // rdev
-    common.isWindows ? undefined : 0,         // blksize
-    0,                                        // ino
-    0,                                        // size
-    common.isWindows ? undefined : 0,         // blocks
-    Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
-    Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
-    Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
-    Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
+  0,                                        // dev
+  0,                                        // mode
+  0,                                        // nlink
+  0,                                        // uid
+  0,                                        // gid
+  0,                                        // rdev
+  common.isWindows ? undefined : 0,         // blksize
+  0,                                        // ino
+  0,                                        // size
+  common.isWindows ? undefined : 0,         // blocks
+  Date.UTC(1970, 0, 1, 0, 0, 0),            // atime
+  Date.UTC(1970, 0, 1, 0, 0, 0),            // mtime
+  Date.UTC(1970, 0, 1, 0, 0, 0),            // ctime
+  Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
 );
 
 common.refreshTmpDir();
@@ -67,7 +67,7 @@ fs.watchFile(enoentFile, {interval: 0}, common.mustCall(function(curr, prev) {
 // Watch events should callback with a filename on supported systems.
 // Omitting AIX. It works but not reliably.
 if (common.isLinux || common.isOSX || common.isWindows) {
-  const dir = common.tmpDir + '/watch';
+  const dir = path.join(common.tmpDir, 'watch');
 
   fs.mkdir(dir, common.mustCall(function(err) {
     if (err) assert.fail(err);
@@ -79,7 +79,7 @@ if (common.isLinux || common.isOSX || common.isWindows) {
     }));
 
     const interval = setInterval(() => {
-      fs.writeFile(`${dir}/foo.txt`, 'foo', common.mustCall(function(err) {
+      fs.writeFile(path.join(dir, 'foo.txt'), 'foo', common.mustCall((err) => {
         if (err) assert.fail(err);
       }));
     }, 1);

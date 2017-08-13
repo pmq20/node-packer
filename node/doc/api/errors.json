@@ -254,7 +254,7 @@
             {
               "textRaw": "ERR_INVALID_HANDLE_TYPE",
               "name": "err_invalid_handle_type",
-              "desc": "<p>Used when an attempt is made to send an unsupported &quot;handle&quot; over an IPC\ncommunication channel to a child process. See <a href=\"child_process.html#child_process_child_send_message_sendhandle_options_callback\"><code>child.send()</code></a> and\n<a href=\"process.html#process_process_send_message_sendhandle_options_callback\"><code>process.send()</code></a> for more information.</p>\n<p><a id=\"ERR_INVALID_OPT_VALUE\"></a></p>\n",
+              "desc": "<p>Used when an attempt is made to send an unsupported &quot;handle&quot; over an IPC\ncommunication channel to a child process. See <a href=\"child_process.html#child_process_subprocess_send_message_sendhandle_options_callback\"><code>subprocess.send()</code></a> and\n<a href=\"process.html#process_process_send_message_sendhandle_options_callback\"><code>process.send()</code></a> for more information.</p>\n<p><a id=\"ERR_INVALID_OPT_VALUE\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_INVALID_HANDLE_TYPE"
             },
@@ -394,7 +394,7 @@
             {
               "textRaw": "ERR_UNKNOWN_SIGNAL",
               "name": "err_unknown_signal",
-              "desc": "<p>Used when an invalid or unknown process signal is passed to an API expecting a\nvalid signal (such as <a href=\"child_process.html#child_process_child_kill_signal\"><code>child.kill()</code></a>).</p>\n<p><a id=\"ERR_UNKNOWN_STDIN_TYPE\"></a></p>\n",
+              "desc": "<p>Used when an invalid or unknown process signal is passed to an API expecting a\nvalid signal (such as <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>).</p>\n<p><a id=\"ERR_UNKNOWN_STDIN_TYPE\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_UNKNOWN_SIGNAL"
             },

@@ -181,6 +181,12 @@ must provide a function satisfying the following signature which would get
 called upon the object's collection. Currently, `napi_finalize` can be used for
 finding out when objects that have external data are collected.
 
+```C
+typedef void (*napi_finalize)(napi_env env,
+                              void* finalize_data,
+                              void* finalize_hint);
+```
+
 
 #### napi_async_execute_callback
 Function pointer used with functions that support asynchronous
@@ -323,6 +329,31 @@ code needs to create an Error object: [`napi_create_error`][],
 where result is the napi_value that refers to the newly created
 JavaScript Error object.
 
+The Node.js project is adding error codes to all of the errors
+generated internally.  The goal is for applications to use these
+error codes for all error checking. The associated error messages
+will remain, but will only be meant to be used for logging and
+display with the expectation that the message can change without
+SemVer applying. In order to support this model with N-API, both
+in internal functionality and for module specific functionality
+(as its good practice), the `throw_` and `create_` functions
+take an optional code parameter which is the string for the code
+to be added to the error object.  If the optional parameter is NULL
+then no code will be associated with the error. If a code is provided,
+the name associated with the error is also updated to be:
+
+```
+originalName [code]
+```
+
+where originalName is the original name associated with the error
+and code is the code that was provided.  For example if the code
+is 'ERR_ERROR_1' and a TypeError is being created the name will be:
+
+```
+TypeError [ERR_ERROR_1]
+```
+
 #### napi_throw
 <!-- YAML
 added: v8.0.0
@@ -343,9 +374,12 @@ This API throws the JavaScript Error provided.
 added: v8.0.0
 -->
 ```C
-NODE_EXTERN napi_status napi_throw_error(napi_env env, const char* msg);
+NODE_EXTERN napi_status napi_throw_error(napi_env env,
+                                         const char* code,
+                                         const char* msg);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional error code to be set on the error.
 - `[in] msg`: C string representing the text to be associated with
 the error.
 
@@ -358,9 +392,12 @@ This API throws a JavaScript Error with the text provided.
 added: v8.0.0
 -->
 ```C
-NODE_EXTERN napi_status napi_throw_type_error(napi_env env, const char* msg);
+NODE_EXTERN napi_status napi_throw_type_error(napi_env env,
+                                              const char* code,
+                                              const char* msg);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional error code to be set on the error.
 - `[in] msg`: C string representing the text to be associated with
 the error.
 
@@ -373,9 +410,12 @@ This API throws a JavaScript TypeError with the text provided.
 added: v8.0.0
 -->
 ```C
-NODE_EXTERN napi_status napi_throw_range_error(napi_env env, const char* msg);
+NODE_EXTERN napi_status napi_throw_range_error(napi_env env,
+                                               const char* code,
+                                               const char* msg);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional error code to be set on the error.
 - `[in] msg`: C string representing the text to be associated with
 the error.
 
@@ -409,10 +449,13 @@ added: v8.0.0
 -->
 ```C
 NODE_EXTERN napi_status napi_create_error(napi_env env,
+                                          napi_value code,
                                           napi_value msg,
                                           napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional `napi_value` with the string for the error code to
+               be associated with the error.
 - `[in] msg`: napi_value that references a JavaScript String to be
 used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
@@ -427,10 +470,13 @@ added: v8.0.0
 -->
 ```C
 NODE_EXTERN napi_status napi_create_type_error(napi_env env,
+                                               napi_value code,
                                                napi_value msg,
                                                napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional `napi_value` with the string for the error code to
+               be associated with the error.
 - `[in] msg`: napi_value that references a JavaScript String to be
 used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
@@ -446,10 +492,13 @@ added: v8.0.0
 -->
 ```C
 NODE_EXTERN napi_status napi_create_range_error(napi_env env,
+                                                napi_value code,
                                                 const char* msg,
                                                 napi_value* result);
 ```
 - `[in] env`: The environment that the API is invoked under.
+- `[in] code`: Optional `napi_value` with the string for the error code to
+               be associated with the error.
 - `[in] msg`: napi_value that references a JavaScript String to be
 used as the message for the Error.
 - `[out] result`: `napi_value` representing the error created.
@@ -1288,6 +1337,40 @@ JavaScript TypedArray Objects are described in
 [Section 22.2](https://tc39.github.io/ecma262/#sec-typedarray-objects)
 of the ECMAScript Language Specification.
 
+
+#### *napi_create_dataview*
+<!-- YAML
+added: v8.3.0
+-->
+
+```C
+napi_status napi_create_dataview(napi_env env,
+                                 size_t byte_length,
+                                 napi_value arraybuffer,
+                                 size_t byte_offset,
+                                 napi_value* result)
+
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] length`: Number of elements in the DataView.
+- `[in] arraybuffer`: ArrayBuffer underlying the DataView.
+- `[in] byte_offset`: The byte offset within the ArrayBuffer from which to
+  start projecting the DataView.
+- `[out] result`: A `napi_value` representing a JavaScript DataView.
+
+Returns `napi_ok` if the API succeeded.
+
+This API creates a JavaScript DataView object over an existing ArrayBuffer.
+DataView objects provide an array-like view over an underlying data buffer,
+but one which allows items of different size and type in the ArrayBuffer.
+
+It is required that `byte_length + byte_offset` is less than or equal to the
+size in bytes of the array passed in. If not, a RangeError exception is raised.
+
+JavaScript DataView Objects are described in
+[Section 24.3][] of the ECMAScript Language Specification.
+
 ### Functions to convert from C types to N-API
 #### *napi_create_number*
 <!-- YAML
@@ -1508,6 +1591,36 @@ This API returns various properties of a typed array.
 
 *Warning*: Use caution while using this API since the underlying data buffer
 is managed by the VM
+
+
+
+#### *napi_get_dataview_info*
+<!-- YAML
+added: v8.3.0
+-->
+
+```C
+napi_status napi_get_dataview_info(napi_env env,
+                                   napi_value dataview,
+                                   size_t* byte_length,
+                                   void** data,
+                                   napi_value* arraybuffer,
+                                   size_t* byte_offset)
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] dataview`: `napi_value` representing the DataView whose
+  properties to query.
+- `[out] byte_length`: Number of bytes in the DataView.
+- `[out] data`: The data buffer underlying the DataView.
+- `[out] arraybuffer`: ArrayBuffer underlying the DataView.
+- `[out] byte_offset`: The byte offset within the data buffer from which
+  to start projecting the DataView.
+
+Returns `napi_ok` if the API succeeded.
+
+This API returns various properties of a DataView.
+
 
 #### *napi_get_value_bool*
 <!-- YAML
@@ -1975,6 +2088,25 @@ napi_status napi_is_typedarray(napi_env env, napi_value value, bool* result)
 Returns `napi_ok` if the API succeeded.
 
 This API checks if the Object passsed in is a typed array.
+
+
+
+### *napi_is_dataview*
+<!-- YAML
+added: v8.3.0
+-->
+
+```C
+napi_status napi_is_dataview(napi_env env, napi_value value, bool* result)
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] value`: The JavaScript value to check.
+- `[out] result`: Whether the given `napi_value` represents a DataView.
+
+Returns `napi_ok` if the API succeeded.
+
+This API checks if the Object passed in is a DataView.
 
 ### *napi_strict_equals*
 <!-- YAML
@@ -3122,6 +3254,7 @@ support it:
 [Object Wrap]: #n_api_object_wrap
 [Section 9.1.6]: https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
 [Section 12.5.5]: https://tc39.github.io/ecma262/#sec-typeof-operator
+[Section 24.3]: https://tc39.github.io/ecma262/#sec-dataview-objects
 [Working with JavaScript Functions]: #n_api_working_with_javascript_functions
 [Working with JavaScript Properties]: #n_api_working_with_javascript_properties
 [Working with JavaScript Values]: #n_api_working_with_javascript_values
@@ -3160,6 +3293,7 @@ support it:
 [`napi_queue_async_work`]: #n_api_napi_queue_async_work
 [`napi_reference_ref`]: #n_api_napi_reference_ref
 [`napi_reference_unref`]: #n_api_napi_reference_unref
+[`napi_throw`]: #n_api_napi_throw
 [`napi_throw_error`]: #n_api_napi_throw_error
 [`napi_throw_range_error`]: #n_api_napi_throw_range_error
 [`napi_throw_type_error`]: #n_api_napi_throw_type_error

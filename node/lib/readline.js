@@ -48,7 +48,6 @@ const {
 
 const kHistorySize = 30;
 const kMincrlfDelay = 100;
-const kMaxcrlfDelay = 2000;
 // \r\n, \n, or \r followed by something other than \n
 const lineEnding = /\r?\n|\r(?!\n)/;
 
@@ -120,8 +119,8 @@ function Interface(input, output, completer, terminal) {
   this.input = input;
   this.historySize = historySize;
   this.removeHistoryDuplicates = !!removeHistoryDuplicates;
-  this.crlfDelay = Math.max(kMincrlfDelay,
-                            Math.min(kMaxcrlfDelay, crlfDelay >>> 0));
+  this.crlfDelay = crlfDelay ?
+    Math.max(kMincrlfDelay, crlfDelay) : kMincrlfDelay;
 
   // Check arity, 2 - for async, 1 for sync
   if (typeof completer === 'function') {
@@ -472,7 +471,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
           maxColumns = 1;
         }
         var group = [];
-        for (var i = 0, compLen = completions.length; i < compLen; i++) {
+        for (var i = 0; i < completions.length; i++) {
           var c = completions[i];
           if (c === '') {
             handleGroup(self, group, width, maxColumns);
@@ -511,7 +510,7 @@ function handleGroup(self, group, width, maxColumns) {
       var item = group[idx];
       self._writeToOutput(item);
       if (col < maxColumns - 1) {
-        for (var s = 0, itemLen = item.length; s < width - itemLen; s++) {
+        for (var s = 0; s < width - item.length; s++) {
           self._writeToOutput(' ');
         }
       }

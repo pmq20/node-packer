@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>About this Documentation | Node.js v8.2.1 Documentation</title>
+  <title>About this Documentation | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="documentation" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -106,17 +106,17 @@
         <h1>About this Documentation<span><a class="mark" href="#documentation_about_this_documentation" id="documentation_about_this_documentation">#</a></span></h1>
 <!-- type=misc -->
 <p>The goal of this documentation is to comprehensively explain the Node.js
-API, both from a reference as well as a conceptual point of view.  Each
+API, both from a reference as well as a conceptual point of view. Each
 section describes a built-in module or high-level concept.</p>
 <p>Where appropriate, property types, method arguments, and the arguments
 provided to event handlers are detailed in a list underneath the topic
 heading.</p>
 <p>Every <code>.html</code> document has a corresponding <code>.json</code> document presenting
-the same information in a structured manner.  This feature is
+the same information in a structured manner. This feature is
 experimental, and added for the benefit of IDEs and other utilities that
 wish to do programmatic things with the documentation.</p>
 <p>Every <code>.html</code> and <code>.json</code> file is generated based on the corresponding
-<code>.md</code> file in the <code>doc/api/</code> folder in Node.js&#39;s source tree.  The
+<code>.md</code> file in the <code>doc/api/</code> folder in Node.js&#39;s source tree. The
 documentation is generated using the <code>tools/doc/generate.js</code> program.
 The HTML template is located at <code>doc/template.html</code>.</p>
 <p>If errors are found in this documentation, please <a href="https://github.com/nodejs/node/issues/new">submit an issue</a>
@@ -130,16 +130,25 @@ proven, and so relied upon, that they are unlikely to ever change at
 all. Others are brand new and experimental, or known to be hazardous
 and in the process of being redesigned.</p>
 <p>The stability indices are as follows:</p>
-<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated This feature is known to be problematic, and changes are planned.  Do not rely on it.  Use of the feature may cause warnings.  Backwards compatibility should not be expected.</pre><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental This feature is subject to change, and is gated by a command line flag. It may change or be removed in future versions.</pre><pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
+<pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated This feature is known to be problematic, and changes may be planned. Do not rely on it. Use of the feature may cause warnings to be emitted. Backwards compatibility across major versions should not be expected.</pre><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental This feature is still under active development and subject to non-backwards compatible changes, or even removal, in any future version. Use of the feature is not recommended in production environments. Experimental features are not subject to the Node.js Semantic Versioning model.</pre><p><em>Note</em>: Caution must be used when making use of <code>Experimental</code> features,
+particularly within modules that may be used as dependencies (or dependencies
+of dependencies) within a Node.js application. End users may not be aware that
+experimental features are being used, and therefore may experience unexpected
+failures or behavioral changes when changes occur. To help avoid such surprises,
+<code>Experimental</code> features may require a command-line flag to explicitly enable
+them, or may cause a process warning to be emitted. By default, such warnings
+are printed to <code>stderr</code> and may be handled by attaching a listener to the
+<code>process.on(&#39;warning&#39;)</code> event.</p>
+<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable The API has proven satisfactory. Compatibility with the npm ecosystem is a high priority, and will not be broken unless absolutely necessary.</pre><h2>JSON Output<span><a class="mark" href="#documentation_json_output" id="documentation_json_output">#</a></span></h2>
 <pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>Every HTML file in the markdown has a corresponding JSON file with the
 same data.</p>
-<p>This feature was added in Node.js v0.6.12.  It is experimental.</p>
+<p>This feature was added in Node.js v0.6.12. It is experimental.</p>
 <h2>Syscalls and man pages<span><a class="mark" href="#documentation_syscalls_and_man_pages" id="documentation_syscalls_and_man_pages">#</a></span></h2>
 <p>System calls like <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a> and <a href="http://man7.org/linux/man-pages/man2/read.2.html">read(2)</a> define the interface between user programs
 and the underlying operating system. Node functions which simply wrap a syscall,
 like <code>fs.open()</code>, will document that. The docs link to the corresponding man
 pages (short for manual pages) which describe how the syscalls work.</p>
-<p><strong>Caveat:</strong> some syscalls, like <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>, are BSD-specific. That means, for
+<p><strong>Note:</strong> some syscalls, like <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>, are BSD-specific. That means, for
 example, that <code>fs.lchown()</code> only works on macOS and other BSD-derived systems,
 and is not available on Linux.</p>
 <p>Most Unix syscalls have Windows equivalents, but behavior may differ on Windows

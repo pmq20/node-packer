@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DNS | Node.js v8.2.1 Documentation</title>
+  <title>DNS | Node.js v8.3.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -78,7 +78,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v8.2.1 Documentation</h1>
+        <h1>Node.js v8.3.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -93,6 +93,10 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_2"><a href="#dns_dns">DNS</a></span><ul>
+<li><span class="stability_undefined"><a href="#dns_class_dns_resolver">Class dns.Resolver</a></span><ul>
+<li><span class="stability_undefined"><a href="#dns_resolver_cancel">resolver.cancel()</a></span></li>
+</ul>
+</li>
 <li><span class="stability_undefined"><a href="#dns_dns_getservers">dns.getServers()</a></span></li>
 <li><span class="stability_undefined"><a href="#dns_dns_lookup_hostname_options_callback">dns.lookup(hostname[, options], callback)</a></span><ul>
 <li><span class="stability_undefined"><a href="#dns_supported_getaddrinfo_flags">Supported getaddrinfo flags</a></span></li>
@@ -169,6 +173,46 @@ dns.resolve4(&#39;archive.org&#39;, (err, addresses) =&gt; {
 </code></pre>
 <p>There are subtle consequences in choosing one over the other, please consult
 the <a href="#dns_implementation_considerations">Implementation considerations section</a> for more information.</p>
+<h2>Class dns.Resolver<span><a class="mark" href="#dns_class_dns_resolver" id="dns_class_dns_resolver">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>An independent resolver for DNS requests.</p>
+<p>Note that creating a new resolver uses the default server settings. Setting
+the servers used for a resolver using
+<a href="#dns_dns_setservers_servers"><code>resolver.setServers()</code></a> does not affect
+other resolver:</p>
+<pre><code class="lang-js">const { Resolver } = require(&#39;dns&#39;);
+const resolver = new Resolver();
+resolver.setServers([&#39;4.4.4.4&#39;]);
+
+// This request will use the server at 4.4.4.4, independent of global settings.
+resolver.resolve4(&#39;example.org&#39;, (err, addresses) =&gt; {
+  // ...
+});
+</code></pre>
+<p>The following methods from the <code>dns</code> module are available:</p>
+<ul>
+<li><a href="#dns_dns_getservers"><code>resolver.getServers()</code></a></li>
+<li><a href="#dns_dns_setservers_servers"><code>resolver.setServers()</code></a></li>
+<li><a href="#dns_dns_resolve_hostname_rrtype_callback"><code>resolver.resolve()</code></a></li>
+<li><a href="#dns_dns_resolve4_hostname_options_callback"><code>resolver.resolve4()</code></a></li>
+<li><a href="#dns_dns_resolve6_hostname_options_callback"><code>resolver.resolve6()</code></a></li>
+<li><a href="#dns_dns_resolveany_hostname_callback"><code>resolver.resolveAny()</code></a></li>
+<li><a href="#dns_dns_resolvecname_hostname_callback"><code>resolver.resolveCname()</code></a></li>
+<li><a href="#dns_dns_resolvemx_hostname_callback"><code>resolver.resolveMx()</code></a></li>
+<li><a href="#dns_dns_resolvenaptr_hostname_callback"><code>resolver.resolveNaptr()</code></a></li>
+<li><a href="#dns_dns_resolvens_hostname_callback"><code>resolver.resolveNs()</code></a></li>
+<li><a href="#dns_dns_resolveptr_hostname_callback"><code>resolver.resolvePtr()</code></a></li>
+<li><a href="#dns_dns_resolvesoa_hostname_callback"><code>resolver.resolveSoa()</code></a></li>
+<li><a href="#dns_dns_resolvesrv_hostname_callback"><code>resolver.resolveSrv()</code></a></li>
+<li><a href="#dns_dns_resolvetxt_hostname_callback"><code>resolver.resolveTxt()</code></a></li>
+<li><a href="#dns_dns_reverse_ip_callback"><code>resolver.reverse()</code></a></li>
+</ul>
+<h3>resolver.cancel()<span><a class="mark" href="#dns_resolver_cancel" id="dns_resolver_cancel">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><p>Cancel all outstanding DNS queries made by this resolver. The corresponding
+callbacks will be called with an error with code <code>ECANCELLED</code>.</p>
 <h2>dns.getServers()<span><a class="mark" href="#dns_dns_getservers" id="dns_dns_getservers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
@@ -297,7 +341,7 @@ Promise for an object with <code>hostname</code> and <code>service</code> proper
 <li><code>rrtype</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Resource record type. Default: <code>&#39;A&#39;</code>.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <span class="type">&lt;string[][]&gt;</span> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -609,7 +653,7 @@ be an array of objects with the following properties:</p>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>addresses</code> <span class="type">&lt;string[][]&gt;</span></li>
+<li><code>addresses</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -624,7 +668,7 @@ treated separately.</p>
 <li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
-<li><code>ret</code> <span class="type">&lt;Object[][]&gt;</span></li>
+<li><code>ret</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object[]&gt;</a></li>
 </ul>
 </li>
 </ul>

@@ -3,16 +3,16 @@ language: node_js
 matrix:
   include:
   - os: osx
-    node_js: 8.2.0
+    node_js: 8.3.0
     env: TEST_SCRIPT=coffeescript
   - os: osx
-    node_js: 8.2.0
+    node_js: 8.3.0
     env: TEST_SCRIPT=microtime
   - os: linux
-    node_js: 8.2.0
+    node_js: 8.3.0
     env: TEST_SCRIPT=coffeescript
   - os: linux
-    node_js: 8.2.0
+    node_js: 8.3.0
     env: TEST_SCRIPT=microtime
 
 addons:

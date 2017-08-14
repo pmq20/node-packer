@@ -25,12 +25,10 @@ addons:
       - g++-4.9
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then rm -rf /usr/local/Cellar/openssl/ && brew install squashfs openssl; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then rm -rf /usr/local/Cellar/openssl/ && brew install squashfs openssl; clang --version; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9"; gcc-4.9 --version; g++-4.9 --version; fi
 
 before_script:
-  - gcc --version
-  - g++ --version
   - rvm install ruby-2.4.0
   - rvm use ruby-2.4.0
   - python --version

@@ -13,4 +13,3 @@ script:
   - mkdir build && cd build
   - cmake -DBUILD_TESTS=ON .. || exit $?
   - cmake --build . || exit $?
-  - ctest --verbose || exit $?

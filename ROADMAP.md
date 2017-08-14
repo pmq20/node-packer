@@ -1,7 +1,5 @@
 # Node.js Compiler Road Map
 
-- Compile to bytecode via v8 Ignition
-  - https://github.com/nodejs/node/issues/11842
 - eliminate dependending on an outside Node.js and npm when compiling
 - Support writing options down to package.json
   - select the correct Node.js version via `engines` of package.json

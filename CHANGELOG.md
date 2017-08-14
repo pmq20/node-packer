@@ -1,5 +1,11 @@
 # Node.js Compiler Changelog
 
+## v1.6.0
+
+Work in progress:
+- Compile to bytecode via v8 Ignition
+  - https://github.com/nodejs/node/issues/11842
+
 ## v1.5.0
 
 - upgrade Node.js runtime to v8.3.0

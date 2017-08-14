@@ -40,6 +40,38 @@ Work in progress:
 - set `ENCLOSE_IO_CHDIR` env var if `options.cwd` is set in `child_process.spawn`
   - call `process.chdir` at start-up when `ENCLOSE_IO_CHDIR` is set
 
+Translations in Chinese:
+- 将编译器的 Node.js 运行时升级到了 v8.3.0
+  - https://nodejs.org/en/blog/release/v8.3.0/
+- 将 libsquash 升级到了 v0.8.0
+  - 允许在虚拟的内存文件系统中创建文件夹
+    - 此种请求会被转发到磁盘的临时文件夹，并在退出时删除运行时所创建的文件夹及其内容
+  - 让 cmake 在 `BUILD_SAMPLE` 的时候生成一个 `squash_sample` 可执行文件
+    - 这可以让 CI 今早发现 sample 代码链接阶段的问题
+  - 劫持 `CreateProcessW` 系统调用
+    - 当第八个参数 `lpCurrentDirectory` 被设定为 `__enclose_io_memfs__` 路径时清空这个参数，以防出错
+  - 劫持 `SetCurrentDirectoryW`, `GetCurrentDirectoryW` 系统调用
+  - 为 Windows 实现 `enclose_io_mkdir` 函数
+    - 为 Windows 劫持 `_wmkdir` 系统调用
+  - 劫持 `CreateFileW()` 系统调用的写的情况
+    - 即允许在虚拟的内存文件系统中写文件，或在虚拟的内存文件系统中创建的文件夹内写文件
+    - 此种请求会被转发到磁盘的临时文件夹，并在退出时删除运行时所写的文件
+- 添加更多生成安装器的选项
+  - 添加 `--pkg` 以为 macOS 生成 pkg 安装器
+- 修复生成 MSI 安装器时特殊的版本号导致的出错，如带有英文的 `1.0.0-rc.9`
+- 修复编译 Web 应用示例时出错的问题
+  - 修复 https://github.com/pmq20/node-compiler/issues/50
+  - 修复 https://github.com/pmq20/node-compiler/issues/59
+- 编译开始前自动移除下列文件
+  - `.git`, `a.exe`, `a.out`
+  - `node_modules/node/bin/node.exe`
+  - `node_modules/.bin/node.exe`
+  - `node_modules/node/bin/node`
+  - `node_modules/.bin/node`
+  - 修复 https://github.com/pmq20/node-compiler/issues/57
+- 设定 `ENCLOSE_IO_CHDIR` 环境变量来处理 `child_process.spawn` 的 `options.cwd` 选项为包内虚拟路径的问题
+  - 一旦 `ENCLOSE_IO_CHDIR` 环境变量被设定，则启动时自动调用 `process.chdir` 切换到设定的目录
+
 ## v1.4.0
 
 - upgrade Node.js runtime to v8.2.0

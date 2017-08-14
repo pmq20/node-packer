@@ -15,6 +15,20 @@
   - redirect `CreateFileW()` with writing inside the memfs to a temporary directory
   - removes the temporary directory and files at exit
 
+Translations in Chinese:
+- 允许在虚拟的内存文件系统中创建文件夹
+  - 此种请求会被转发到磁盘的临时文件夹，并在退出时删除运行时所创建的文件夹及其内容
+- 让 cmake 在 `BUILD_SAMPLE` 的时候生成一个 `squash_sample` 可执行文件
+  - 这可以让 CI 今早发现 sample 代码链接阶段的问题
+- 劫持 `CreateProcessW` 系统调用
+  - 当第八个参数 `lpCurrentDirectory` 被设定为 `__enclose_io_memfs__` 路径时清空这个参数，以防出错
+- 劫持 `SetCurrentDirectoryW`, `GetCurrentDirectoryW` 系统调用
+- 为 Windows 实现 `enclose_io_mkdir` 函数
+  - 为 Windows 劫持 `_wmkdir` 系统调用
+- 劫持 `CreateFileW()` 系统调用的写的情况
+  - 即允许在虚拟的内存文件系统中写文件，或在虚拟的内存文件系统中创建的文件夹内写文件
+  - 此种请求会被转发到磁盘的临时文件夹，并在退出时删除运行时所写的文件
+
 ## v0.7.0
 
 - test ifndef __USE_XOPEN_EXTENDED

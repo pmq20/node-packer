@@ -108,7 +108,7 @@ Then,
       -V, --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
 
-It's all you need to do, you don't have to tweak your project in order to compile with `node-compiler`!
+It's all you need to do, you don't have to tweak your project in order to compile with Node.js Compiler!
 
 Note: if `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
 

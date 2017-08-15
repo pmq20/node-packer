@@ -86,7 +86,6 @@ Then,
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]
-
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files

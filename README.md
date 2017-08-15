@@ -85,10 +85,12 @@ Then,
 
 ## Usage
 
-    nodec [OPTION]... ENTRANCE
+    nodec [OPTION]... [ENTRANCE]
+    If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
+      -i, --ignition                   Compiles to v8 Ignition byte-code and ships no JavaScript source code
           --clean-tmpdir               Cleans all temporary files that were generated last time
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make
@@ -99,10 +101,13 @@ Then,
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
           --auto-update-base=STRING    Enables auto-update and specifies the base version string
+          --msi                        Generates a .msi installer for Windows
+          --pkg                        Generates a .pkg installer for macOS
           --debug                      Enable debug mode
+          --quiet                      Enable quiet mode
       -v, --version                    Prints the version of nodec and exit
+      -V, --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
-          --examples                   Prints usage examples
 
 It's all you need to do, you don't have to tweak your project in order to compile with `node-compiler`!
 

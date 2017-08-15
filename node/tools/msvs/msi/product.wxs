@@ -37,7 +37,7 @@
     <Property Id="INSTALLDIR" Secure="yes">
       <RegistrySearch Id="InstallPathRegistry"
                       Type="raw"
-                      Root="HKLM"
+                      Root="HKCU"
                       Key="$(var.RegistryKeyPath)"
                       Name="InstallPath"/>
       <!-- Also need to search under HKCU to support upgrading from old
@@ -60,20 +60,6 @@
       <ComponentRef Id="NodeVarsScript"/>
       <ComponentRef Id="NodeStartMenu"/>
       <ComponentGroupRef Id="Product.Generated"/>
-
-      <Feature Id="NodePerfCtrSupport"
-               Level="1"
-               Title="!(loc.NodePerfCtrSupport_Title)"
-               Description="!(loc.NodePerfCtrSupport_Description)">
-        <ComponentRef Id="NodePerfCtrSupport"/>
-      </Feature>
-
-      <Feature Id="NodeEtwSupport"
-               Level="1"
-               Title="!(loc.NodeEtwSupport_Title)"
-               Description="!(loc.NodeEtwSupport_Description)">
-        <ComponentRef Id="NodeEtwSupport"/>
-      </Feature>
     </Feature>
 
     <Feature Id="EnvironmentPath"
@@ -93,50 +79,46 @@
         <Directory Id="ApplicationProgramsFolder" Name="<%= @package_json['name'] %>"/>
       </Directory>
 
-      <Directory Id="$(var.ProgramFilesFolderId)">
+      <Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLDIR" Name="<%= @package_json['name'] %>">
         </Directory>
       </Directory>
     </Directory>
 
     <DirectoryRef Id="INSTALLDIR">
-      <Component Id="NodeExecutable">
-        <File Id="<%= @package_json['name'] %>.exe" KeyPath="yes" Source="$(var.SourceDir)\<%= @package_json['name'] %>.exe"/>
+      <Component Id="NodeExecutable" Guid="<%= SecureRandom.uuid %>">
+        <RegistryValue Root="HKCU"
+                       Key="$(var.RegistryKeyPath)"
+                       Name="InstallFolderNodeExecutable"
+                       Type="string"
+                       Value="[INSTALLFOLDER]"
+                       KeyPath="yes" />
+        <File Id="<%= @package_json['name'] %>.exe" Source="$(var.SourceDir)\<%= @package_json['name'] %>.exe"/>
       </Component>
 
       <Component Id="NodeRegistryEntries">
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="InstallPath"
                        Type="string"
                        Value="[INSTALLDIR]"
                        KeyPath="yes"/>
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="Version"
                        Type="string"
                        Value="<%= @package_json['version'] %>"/>
       </Component>
 
-      <Component Id="NodeVarsScript">
-        <File Id="nodevars.bat" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\nodevars.bat"/>
+      <Component Id="NodeVarsScript" Guid="<%= SecureRandom.uuid %>">
+        <RegistryValue Root="HKCU"
+                       Key="$(var.RegistryKeyPath)"
+                       Name="InstallFolderNodeVarsScript"
+                       Type="string"
+                       Value="[INSTALLFOLDER]"
+                       KeyPath="yes" />
+        <File Id="nodevars.bat" Source="$(var.RepoDir)\tools\msvs\nodevars.bat"/>
       </Component>
-
-      <?if $(var.NoPerfCtr) != 1 ?>
-      <Component Id="NodePerfCtrSupport">
-        <File Id="node_perfctr_provider_man" Name="node_perfctr_provider.man" Source="$(var.RepoDir)\src\res\node_perfctr_provider.man">
-          <util:PerfCounterManifest ResourceFileDirectory="[INSTALLDIR]"/>
-        </File>
-      </Component>
-      <?endif?>
-
-      <?if $(var.NoETW) != 1 ?>
-      <Component Id="NodeEtwSupport">
-        <File Id="node_etw_provider.man" Source="$(var.RepoDir)\src\res\node_etw_provider.man">
-          <util:EventManifest MessageFile="[INSTALLDIR]<%= @package_json['name'] %>.exe" ResourceFile="[INSTALLDIR]<%= @package_json['name'] %>.exe"/>
-        </File>
-      </Component>
-      <?endif?>
     </DirectoryRef>
 
     <DirectoryRef Id="ApplicationProgramsFolder">
@@ -163,6 +145,9 @@
                   Name="Uninstall $(var.ProductName)"
                   Target="[SystemFolder]msiexec.exe"
                   Arguments="/x [ProductCode]"/>
+        <RemoveFolder Id="RemoveINSTALLDIR"
+                      Directory="INSTALLDIR"
+                      On="uninstall"/>
         <RemoveFolder Id="RemoveApplicationProgramsFolder"
                       On="uninstall"/>
       </Component>
@@ -170,7 +155,7 @@
 
     <DirectoryRef Id="INSTALLDIR">
       <Component Id="EnvironmentPathNode">
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)\Components"
                        Name="EnvironmentPathNode"
                        Type="integer"
@@ -226,16 +211,13 @@
       <DialogRef Id="ResumeDlg"/>
       <DialogRef Id="UserExit"/>
       <DialogRef Id="WelcomeDlg"/>
-      <DialogRef Id="LicenseAgreementDlg"/>
       <DialogRef Id="InstallDirDlg"/>
       <DialogRef Id="BrowseDlg"/>
       <DialogRef Id="InvalidDirDlg"/>
 
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
-      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
-      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">LicenseAccepted = "1"</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg" Order="20">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="10">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="10">1</Publish>
@@ -260,7 +242,6 @@
     <UIRef Id="WixUI_ErrorProgressText"/>
     <WixVariable Id="WixUIBannerBmp" Value="..\..\..\doc\thin-white-stripe.jpg"/>
     <WixVariable Id="WixUIDialogBmp" Value="..\..\..\doc\full-white-stripe.jpg"/>
-    <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf"/>
   </Product>
 
 </Wix>

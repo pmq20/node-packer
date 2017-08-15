@@ -2,6 +2,10 @@
 
 ## v1.6.0
 
+- install to local directories of the current user in `--msi` generated Windows Installers
+  - so that auto-upgrading could work without requiring Administrator permissions
+- remove the LICENSE agreement window in `--msi` generated Windows Installers
+
 Work in progress:
 - Compile to bytecode via v8 Ignition
   - https://github.com/nodejs/node/issues/11842

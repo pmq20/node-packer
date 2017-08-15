@@ -7,7 +7,7 @@
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
 
 Work in progress:
-- Compile to bytecode via v8 Ignition
+- add --ignition (-i) to compile to v8 Ignition byte-code and ship no JavaScript source code
   - https://github.com/nodejs/node/issues/11842
 
 ## v1.5.0

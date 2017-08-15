@@ -71,6 +71,10 @@ OptionParser.new do |opts|
     options[:tmpdir] = dir
   end
 
+  opts.on('-i', "--ignition", "Compiles to v8 Ignition byte-code and ships no JavaScript source code") do
+    options[:ignition] = true
+  end
+
   opts.on("--clean-tmpdir", "Cleans all temporary files that were generated last time") do
     options[:clean_tmpdir] = true
   end

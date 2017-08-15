@@ -18,11 +18,14 @@ Node.js Compiler (nodec) v#{::Compiler::VERSION}
 
 Usage
   nodec [OPTION]... [ENTRANCE]
-  If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
 
 }.strip
 
 EXAMPLES = %Q{
+
+Note
+
+  If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
 
 Examples
 

@@ -75,7 +75,7 @@ OptionParser.new do |opts|
   end
 
   opts.on('-b', "--bytecode", "Compiles to bytecode and ships no JavaScript source code") do
-    options[:ignition] = true
+    options[:bytecode] = true
   end
 
   opts.on("--clean-tmpdir", "Cleans all temporary files that were generated last time") do

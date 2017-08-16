@@ -74,7 +74,7 @@ OptionParser.new do |opts|
     options[:tmpdir] = dir
   end
 
-  opts.on('-i', "--ignition", "Compiles to v8 Ignition byte-code and ships no JavaScript source code") do
+  opts.on('-b', "--bytecode", "Compiles to bytecode and ships no JavaScript source code") do
     options[:ignition] = true
   end
 

@@ -89,7 +89,7 @@ Then,
       -r, --root=DIR                   Specifies the path to the root of the application
       -o, --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
-      -i, --ignition                   Compiles to v8 Ignition byte-code and ships no JavaScript source code
+      -b, --bytecode                   Compiles to bytecode and ships no JavaScript source code
           --clean-tmpdir               Cleans all temporary files that were generated last time
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make

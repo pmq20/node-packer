@@ -179,6 +179,7 @@ class Compiler
     check_base_node_version!
     stuff_tmpdir
     npm_install if @entrance && !@options[:keep_tmpdir]
+    bytecode_compile if @options[:bytecode]
     npm_package_set_entrance if @npm_package
     set_package_json
     msi_prepare if @options[:msi]
@@ -284,6 +285,11 @@ class Compiler
         @utils.rm_rf('node_modules/node/bin/node')
       end
     end
+  end
+
+  def bytecode_compile
+    # TODO
+    exit 120
   end
 
   def make_enclose_io_memfs

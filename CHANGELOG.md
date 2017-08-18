@@ -6,10 +6,6 @@
   - so that auto-upgrading could work without requiring Administrator permissions
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
 
-Work in progress:
-- add --bytecode (-b) to compile to v8 Ignition byte-code and ship no JavaScript source code
-  - https://github.com/nodejs/node/issues/11842
-
 ## v1.5.0
 
 - upgrade Node.js runtime to v8.3.0

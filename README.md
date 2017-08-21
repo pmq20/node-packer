@@ -1,6 +1,6 @@
-# Node.js Compiler
+# Node.js Packer
 
-*Ahead-of-time (AOT) Compiler designed for Node.js, that just works.*
+*Packing your Node.js application into a single executable.*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
 [![Status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)

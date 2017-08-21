@@ -2,7 +2,7 @@
 
 **Contents**
 
-* [Upgrading the Node.js runtime](#upgrading-the-node-js-runtime)
+* [Upgrading the Node.js runtime](#upgrading-the-nodejs-runtime)
 * [Upgrading libsquash](#upgrading-libsquash)
 * [Upgrading libautoupdate](#upgrading-libautoupdate)
 

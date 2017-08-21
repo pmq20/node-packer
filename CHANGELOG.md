@@ -5,6 +5,7 @@
 - install to local directories of the current user in `--msi` generated Windows Installers
   - so that auto-upgrading could work without requiring Administrator permissions
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
+- add [Node.js Compiler Hackers' Guide](https://github.com/pmq20/node-compiler/blob/master/HACKERS_GUIDE.md)
 
 ## v1.5.0
 
@@ -41,6 +42,7 @@
   - call `process.chdir` at start-up when `ENCLOSE_IO_CHDIR` is set
 
 Translations in Chinese:
+
 - 将编译器的 Node.js 运行时升级到了 v8.3.0
   - https://nodejs.org/en/blog/release/v8.3.0/
 - 将 libsquash 升级到了 v0.8.0
@@ -92,6 +94,7 @@ Translations in Chinese:
 - remove `node/deps/npm`
 
 Translations in Chinese:
+
 - 将编译器的 Node.js 运行时升级到了 v8.2.0
   - https://nodejs.org/en/blog/release/v8.2.0/
 - 修复 MSI 生成时包的名字出错；名字是动态替换进去的，有些包的名字里包含@和减号等特殊字符
@@ -123,6 +126,7 @@ Translations in Chinese:
   - use this feature to warm up your tmpdir in one command: nodec --tmpdir=/your/dir
 
 Translations in Chinese:
+
 - 将编译器的 Node.js 运行时升级到了 v8.1.4
   - https://nodejs.org/en/blog/release/v8.1.4/
 - 添加生成安装器的选项
@@ -162,6 +166,7 @@ Translations in Chinese:
     - removes the temporary directory and files at exit
 
 Translations in Chinese:
+
 - 通过 http://enclose.io 提供的云服务，让 nodec 自身（从本版本起）也进行自动原地更新
 - 将编译器的 Node.js 运行时升级到了 v8.1.3
   - https://nodejs.org/en/blog/release/v8.1.3/
@@ -201,6 +206,7 @@ Translations in Chinese:
 - support spawning child processes via `sh -c "..."`, using the enclosed variable itself as the Node.js interpreter
 
 Translations in Chinese:
+
 - 用 Ant Design 为 Node.js Compiler 设计、发布了项目主页
   - http://enclose.io/
 - 升级 Node.js 运行时到 v8.1.1
@@ -225,6 +231,7 @@ Translations in Chinese:
 - add auto-update feature via --auto-update-url and --auto-update-base
 
 Translations in Chinese:
+
 - 升级 Node.js 运行时到 8.0.0
 - 升级 libsquash 到 v0.4.0
 - 支持使用 node-sass 等 C++ 扩展模块
@@ -256,6 +263,7 @@ Translations in Chinese:
 - cf. https://github.com/pmq20/libsquash/compare/ea07909623b1e1f43e67acc3c7880dea6ba5854a...4cc90f9dfe83f988b982d805cec84da533bc6d33
 
 Translations in Chinese:
+
 除了上述变化，最重要的修改发生在 libsquash 中，相比于上个版本添加了对符号链接更好的支持、添加了对并发的加锁控制、添加了更多 API 如 pread 和 readv、添加了对 DOS errno 和 errno 的更完备的处理、添加了 IODeviceIoControl 和 CreateIoCompletionPort 等 Win32 API 等。
 
 ## v0.9.3
@@ -266,6 +274,7 @@ Translations in Chinese:
 - add --npm-package
 
 Translations in Chinese:
+
 接入 SquashFS 和 libsquash 后已经可以正常编译 Windows 下的某些包，编译后轻测可用。
 其他平台和其他包还没来得及测试，可能还存在一些问题。
 
@@ -276,6 +285,7 @@ Translations in Chinese:
 - make libsquash + Node.js works under Windows: https://github.com/pmq20/node-compiler/pull/16
 
 Translations in Chinese:
+
 接入 SquashFS 和 libsquash，通过 libsquash，打包出来的产品自带压缩，才三四十兆，
 而且是根据访问需求在内存中进行部分解压，用户完全无感知，试验发现把 nodec 自身编译好之后，
 可执行文件大小仅比 node 大 9 MB，这在分发产品时是非常优雅的；
@@ -291,6 +301,7 @@ Translations in Chinese:
 - stop polluting the vendor directory of nodec itself
 
 Translations in Chinese:
+
 本次发布对 Node.js 编译器的命令行用法进行了大改，使它可以同时满足三种场景的通用需求，
 亦即，编译 CLI 工程、编译 Web 工程、编译 npm 包。同时编译时只使用临时目录，
 而不污染编译器自身的资源目录，这使得下一步实现编译器自举成为可能。

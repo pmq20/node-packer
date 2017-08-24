@@ -5,6 +5,7 @@
 - install to local directories of the current user in `--msi` generated Windows Installers
   - so that auto-upgrading could work without requiring Administrator permissions
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
+- use a fixed UUID for Windows `--msi` generation
 - add [Node.js Compiler Hackers' Guide](https://github.com/pmq20/node-compiler/blob/master/HACKERS_GUIDE.md)
 
 ## v1.5.0

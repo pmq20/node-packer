@@ -16,7 +16,7 @@
            Language="!(loc.LocaleId)"
            Version="<%= @package_json['version'] %>"
            Manufacturer="$(var.ProductAuthor)"
-           UpgradeCode="<%= SecureRandom.uuid %>">
+           UpgradeCode="e092c419-1d78-4fe0-9de0-9bcdad0b1693">
 
     <Package Languages="!(loc.LocaleId)"
              InstallerVersion="200"
@@ -86,7 +86,7 @@
     </Directory>
 
     <DirectoryRef Id="INSTALLDIR">
-      <Component Id="NodeExecutable" Guid="<%= SecureRandom.uuid %>">
+      <Component Id="NodeExecutable" Guid="1fe9e3b4-61bc-448b-95aa-36ca15b44902">
         <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="InstallFolderNodeExecutable"
@@ -110,7 +110,7 @@
                        Value="<%= @package_json['version'] %>"/>
       </Component>
 
-      <Component Id="NodeVarsScript" Guid="<%= SecureRandom.uuid %>">
+      <Component Id="NodeVarsScript" Guid="2e150d25-cc98-4a2a-8c30-adf9578f8b6d">
         <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="InstallFolderNodeVarsScript"

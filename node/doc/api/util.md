@@ -150,6 +150,10 @@ property take precedence over `--trace-deprecation` and
 ## util.format(format[, ...args])
 <!-- YAML
 added: v0.5.3
+changes:
+  - version: v8.4.0
+    pr-url: https://github.com/nodejs/node/pull/14558
+    description: The `%o` and `%O` specifiers are supported now.
 -->
 
 * `format` {string} A `printf`-like format string.
@@ -167,6 +171,14 @@ corresponding argument. Supported placeholders are:
 * `%f` - Floating point value.
 * `%j` - JSON.  Replaced with the string `'[Circular]'` if the argument
 contains circular references.
+* `%o` - Object. A string representation of an object
+  with generic JavaScript object formatting.
+  Similar to `util.inspect()` with options `{ showHidden: true, depth: 4, showProxy: true }`.
+  This will show the full object including non-enumerable symbols and properties.
+* `%O` - Object. A string representation of an object
+  with generic JavaScript object formatting.
+  Similar to `util.inspect()` without options.
+  This will show the full object not including non-enumerable symbols and properties.
 * `%%` - single percent sign (`'%'`). This does not consume an argument.
 
 If the placeholder does not have a corresponding argument, the placeholder is
@@ -536,7 +548,7 @@ added: v8.0.0
 A Symbol that can be used to declare custom promisified variants of functions,
 see [Custom promisified functions][].
 
-### Class: util.TextDecoder
+## Class: util.TextDecoder
 <!-- YAML
 added: v8.3.0
 -->
@@ -555,71 +567,82 @@ while (buffer = getNextChunkSomehow()) {
 string += decoder.decode(); // end-of-stream
 ```
 
-#### WHATWG Supported Encodings
+### WHATWG Supported Encodings
 
 Per the [WHATWG Encoding Standard][], the encodings supported by the
 `TextDecoder` API are outlined in the tables below. For each encoding,
-one or more aliases may be used. Support for some encodings is enabled
-only when Node.js is using the full ICU data (see [Internationalization][]).
-`util.TextDecoder` is `undefined` when ICU is not enabled during build.
+one or more aliases may be used.
 
-##### Encodings Supported By Default
+Different Node.js build configurations support different sets of encodings.
+While a very basic set of encodings is supported even on Node.js builds without
+ICU enabled, support for some encodings is provided only when Node.js is built
+with ICU and using the full ICU data (see [Internationalization][]).
 
-| Encoding    | Aliases                           |
-| ----------- | --------------------------------- |
-| `'utf8'`    | `'unicode-1-1-utf-8'`, `'utf-8'`  |
-| `'utf-16be'`|                                   |
-| `'utf-16le'`| `'utf-16'`                        |
+#### Encodings Supported Without ICU
 
-##### Encodings Requiring Full-ICU
+| Encoding     | Aliases                           |
+| -----------  | --------------------------------- |
+| `'utf-8'`    | `'unicode-1-1-utf-8'`, `'utf8'`   |
+| `'utf-16le'` | `'utf-16'`                        |
 
-| Encoding          | Aliases                          |
-| ----------------- | -------------------------------- |
-| `'ibm866'`        | `'866'`, `'cp866'`, `'csibm866'` |
-| `'iso-8859-2'`    | `'csisolatin2'`, `'iso-ir-101'`, `'iso8859-2'`, `'iso88592'`, `'iso_8859-2'`, `'iso_8859-2:1987'`, `'l2'`, `'latin2'` |
-| `'iso-8859-3'`    | `'csisolatin3'`, `'iso-ir-109'`, `'iso8859-3'`, `'iso88593'`, `'iso_8859-3'`, `'iso_8859-3:1988'`, `'l3'`, `'latin3'` |
-| `'iso-8859-4'`    | `'csisolatin4'`, `'iso-ir-110'`, `'iso8859-4'`, `'iso88594'`, `'iso_8859-4'`, `'iso_8859-4:1988'`, `'l4'`, `'latin4'` |
-| `'iso-8859-5'`    | `'csisolatincyrillic'`, `'cyrillic'`, `'iso-ir-144'`, `'iso8859-5'`, `'iso88595'`, `'iso_8859-5'`, `'iso_8859-5:1988'`|
-| `'iso-8859-6'`    | `'arabic'`, `'asmo-708'`, `'csiso88596e'`, `'csiso88596i'`, `'csisolatinarabic'`, `'ecma-114'`, `'iso-8859-6-e'`, `'iso-8859-6-i'`, `'iso-ir-127'`, `'iso8859-6'`, `'iso88596'`, `'iso_8859-6'`, `'iso_8859-6:1987'` |
-| `'iso-8859-7'`    | `'csisolatingreek'`, `'ecma-118'`, `'elot_928'`, `'greek'`, `'greek8'`, `'iso-ir-126'`, `'iso8859-7'`, `'iso88597'`, `'iso_8859-7'`, `'iso_8859-7:1987'`, `'sun_eu_greek'` |
-| `'iso-8859-8'`    | `'csiso88598e'`, `'csisolatinhebrew'`, `'hebrew'`, `'iso-8859-8-e'`, `'iso-ir-138'`, `'iso8859-8'`, `'iso88598'`, `'iso_8859-8'`, `'iso_8859-8:1988'`, `'visual'` |
-| `'iso-8859-8-i'`  | `'csiso88598i'`, `'logical'` |
-| `'iso-8859-10'`   | `'csisolatin6'`, `'iso-ir-157'`, `'iso8859-10'`, `'iso885910'`, `'l6'`, `'latin6'` |
-| `'iso-8859-13'`   | `'iso8859-13'`, `'iso885913'` |
-| `'iso-8859-14'`   | `'iso8859-14'`, `'iso885914'` |
-| `'iso-8859-15'`   | `'csisolatin9'`, `'iso8859-15'`, `'iso885915'`, `'iso_8859-15'`, `'l9'` |
-| `'koi8-r'`        | `'cskoi8r'`, `'koi'`, `'koi8'`, `'koi8_r'` |
-| `'koi8-u'`        | `'koi8-ru'` |
-| `'macintosh'`     | `'csmacintosh'`, `'mac'`, `'x-mac-roman'` |
-| `'windows-874'`   | `'dos-874'`, `'iso-8859-11'`, `'iso8859-11'`, `'iso885911'`, `'tis-620'` |
-| `'windows-1250'`  | `'cp1250'`, `'x-cp1250'` |
-| `'windows-1251'`  | `'cp1251'`, `'x-cp1251'` |
-| `'windows-1252'`  | `'ansi_x3.4-1968'`, `'ascii'`, `'cp1252'`, `'cp819'`, `'csisolatin1'`, `'ibm819'`, `'iso-8859-1'`, `'iso-ir-100'`, `'iso8859-1'`, `'iso88591'`, `'iso_8859-1'`, `'iso_8859-1:1987'`, `'l1'`, `'latin1'`, `'us-ascii'`, `'x-cp1252'` |
-| `'windows-1253'`  | `'cp1253'`, `'x-cp1253'` |
-| `'windows-1254'`  | `'cp1254'`, `'csisolatin5'`, `'iso-8859-9'`, `'iso-ir-148'`, `'iso8859-9'`, `'iso88599'`, `'iso_8859-9'`, `'iso_8859-9:1989'`, `'l5'`, `'latin5'`, `'x-cp1254'` |
-| `'windows-1255'`  | `'cp1255'`, `'x-cp1255'` |
-| `'windows-1256'`  | `'cp1256'`, `'x-cp1256'` |
-| `'windows-1257'`  | `'cp1257'`, `'x-cp1257'` |
-| `'windows-1258'`  | `'cp1258'`, `'x-cp1258'` |
-| `'x-mac-cyrillic'`| `'x-mac-ukrainian'` |
-| `'gbk'`           | `'chinese'`, `'csgb2312'`, `'csiso58gb231280'`, `'gb2312'`, `'gb_2312'`, `'gb_2312-80'`, `'iso-ir-58'`, `'x-gbk'` |
-| `'gb18030'`       | |
-| `'big5'`          | `'big5-hkscs'`, `'cn-big5'`, `'csbig5'`, `'x-x-big5'` |
-| `'euc-jp'`        | `'cseucpkdfmtjapanese'`, `'x-euc-jp'` |
-| `'iso-2022-jp'`   | `'csiso2022jp'` |
-| `'shift_jis'`     | `'csshiftjis'`, `'ms932'`, `'ms_kanji'`, `'shift-jis'`, `'sjis'`, `'windows-31j'`, `'x-sjis'` |
-| `'euc-kr'`        | `'cseuckr'`, `'csksc56011987'`, `'iso-ir-149'`, `'korean'`, `'ks_c_5601-1987'`, `'ks_c_5601-1989'`, `'ksc5601'`, `'ksc_5601'`, `'windows-949'` |
+#### Encodings Supported by Default (With ICU)
+
+| Encoding     | Aliases                           |
+| -----------  | --------------------------------- |
+| `'utf-8'`    | `'unicode-1-1-utf-8'`, `'utf8'`   |
+| `'utf-16le'` | `'utf-16'`                        |
+| `'utf-16be'` |                                   |
+
+#### Encodings Requiring Full ICU Data
+
+| Encoding           | Aliases                          |
+| -----------------  | -------------------------------- |
+| `'ibm866'`         | `'866'`, `'cp866'`, `'csibm866'` |
+| `'iso-8859-2'`     | `'csisolatin2'`, `'iso-ir-101'`, `'iso8859-2'`, `'iso88592'`, `'iso_8859-2'`, `'iso_8859-2:1987'`, `'l2'`, `'latin2'`  |
+| `'iso-8859-3'`     | `'csisolatin3'`, `'iso-ir-109'`, `'iso8859-3'`, `'iso88593'`, `'iso_8859-3'`, `'iso_8859-3:1988'`, `'l3'`, `'latin3'`  |
+| `'iso-8859-4'`     | `'csisolatin4'`, `'iso-ir-110'`, `'iso8859-4'`, `'iso88594'`, `'iso_8859-4'`, `'iso_8859-4:1988'`, `'l4'`, `'latin4'`  |
+| `'iso-8859-5'`     | `'csisolatincyrillic'`, `'cyrillic'`, `'iso-ir-144'`, `'iso8859-5'`, `'iso88595'`, `'iso_8859-5'`, `'iso_8859-5:1988'` |
+| `'iso-8859-6'`     | `'arabic'`, `'asmo-708'`, `'csiso88596e'`, `'csiso88596i'`, `'csisolatinarabic'`, `'ecma-114'`, `'iso-8859-6-e'`, `'iso-8859-6-i'`, `'iso-ir-127'`, `'iso8859-6'`, `'iso88596'`, `'iso_8859-6'`, `'iso_8859-6:1987'` |
+| `'iso-8859-7'`     | `'csisolatingreek'`, `'ecma-118'`, `'elot_928'`, `'greek'`, `'greek8'`, `'iso-ir-126'`, `'iso8859-7'`, `'iso88597'`, `'iso_8859-7'`, `'iso_8859-7:1987'`, `'sun_eu_greek'` |
+| `'iso-8859-8'`     | `'csiso88598e'`, `'csisolatinhebrew'`, `'hebrew'`, `'iso-8859-8-e'`, `'iso-ir-138'`, `'iso8859-8'`, `'iso88598'`, `'iso_8859-8'`, `'iso_8859-8:1988'`, `'visual'` |
+| `'iso-8859-8-i'`   | `'csiso88598i'`, `'logical'` |
+| `'iso-8859-10'`    | `'csisolatin6'`, `'iso-ir-157'`, `'iso8859-10'`, `'iso885910'`, `'l6'`, `'latin6'` |
+| `'iso-8859-13'`    | `'iso8859-13'`, `'iso885913'` |
+| `'iso-8859-14'`    | `'iso8859-14'`, `'iso885914'` |
+| `'iso-8859-15'`    | `'csisolatin9'`, `'iso8859-15'`, `'iso885915'`, `'iso_8859-15'`, `'l9'` |
+| `'koi8-r'`         | `'cskoi8r'`, `'koi'`, `'koi8'`, `'koi8_r'` |
+| `'koi8-u'`         | `'koi8-ru'` |
+| `'macintosh'`      | `'csmacintosh'`, `'mac'`, `'x-mac-roman'` |
+| `'windows-874'`    | `'dos-874'`, `'iso-8859-11'`, `'iso8859-11'`, `'iso885911'`, `'tis-620'` |
+| `'windows-1250'`   | `'cp1250'`, `'x-cp1250'` |
+| `'windows-1251'`   | `'cp1251'`, `'x-cp1251'` |
+| `'windows-1252'`   | `'ansi_x3.4-1968'`, `'ascii'`, `'cp1252'`, `'cp819'`, `'csisolatin1'`, `'ibm819'`, `'iso-8859-1'`, `'iso-ir-100'`, `'iso8859-1'`, `'iso88591'`, `'iso_8859-1'`, `'iso_8859-1:1987'`, `'l1'`, `'latin1'`, `'us-ascii'`, `'x-cp1252'` |
+| `'windows-1253'`   | `'cp1253'`, `'x-cp1253'` |
+| `'windows-1254'`   | `'cp1254'`, `'csisolatin5'`, `'iso-8859-9'`, `'iso-ir-148'`, `'iso8859-9'`, `'iso88599'`, `'iso_8859-9'`, `'iso_8859-9:1989'`, `'l5'`, `'latin5'`, `'x-cp1254'` |
+| `'windows-1255'`   | `'cp1255'`, `'x-cp1255'` |
+| `'windows-1256'`   | `'cp1256'`, `'x-cp1256'` |
+| `'windows-1257'`   | `'cp1257'`, `'x-cp1257'` |
+| `'windows-1258'`   | `'cp1258'`, `'x-cp1258'` |
+| `'x-mac-cyrillic'` | `'x-mac-ukrainian'` |
+| `'gbk'`            | `'chinese'`, `'csgb2312'`, `'csiso58gb231280'`, `'gb2312'`, `'gb_2312'`, `'gb_2312-80'`, `'iso-ir-58'`, `'x-gbk'` |
+| `'gb18030'`        | |
+| `'big5'`           | `'big5-hkscs'`, `'cn-big5'`, `'csbig5'`, `'x-x-big5'` |
+| `'euc-jp'`         | `'cseucpkdfmtjapanese'`, `'x-euc-jp'` |
+| `'iso-2022-jp'`    | `'csiso2022jp'` |
+| `'shift_jis'`      | `'csshiftjis'`, `'ms932'`, `'ms_kanji'`, `'shift-jis'`, `'sjis'`, `'windows-31j'`, `'x-sjis'` |
+| `'euc-kr'`         | `'cseuckr'`, `'csksc56011987'`, `'iso-ir-149'`, `'korean'`, `'ks_c_5601-1987'`, `'ks_c_5601-1989'`, `'ksc5601'`, `'ksc_5601'`, `'windows-949'` |
 
 *Note*: The `'iso-8859-16'` encoding listed in the [WHATWG Encoding Standard][]
 is not supported.
 
-#### new TextDecoder([encoding[, options]])
+### new TextDecoder([encoding[, options]])
 
 * `encoding` {string} Identifies the `encoding` that this `TextDecoder` instance
   supports. Defaults to `'utf-8'`.
 * `options` {Object}
   * `fatal` {boolean} `true` if decoding failures are fatal. Defaults to
-    `false`.
+    `false`. This option is only supported when ICU is enabled (see
+    [Internationalization][]).
   * `ignoreBOM` {boolean} When `true`, the `TextDecoder` will include the byte
      order mark in the decoded result. When `false`, the byte order mark will
      be removed from the output. This option is only used when `encoding` is
@@ -628,7 +651,7 @@ is not supported.
 Creates an new `TextDecoder` instance. The `encoding` may specify one of the
 supported encodings or an alias.
 
-#### textDecoder.decode([input[, options]])
+### textDecoder.decode([input[, options]])
 
 * `input` {ArrayBuffer|DataView|TypedArray} An `ArrayBuffer`, `DataView` or
   Typed Array instance containing the encoded data.
@@ -644,27 +667,27 @@ internally and emitted after the next call to `textDecoder.decode()`.
 If `textDecoder.fatal` is `true`, decoding errors that occur will result in a
 `TypeError` being thrown.
 
-#### textDecoder.encoding
+### textDecoder.encoding
 
-* Value: {string}
+* {string}
 
 The encoding supported by the `TextDecoder` instance.
 
-#### textDecoder.fatal
+### textDecoder.fatal
 
-* Value: {boolean}
+* {boolean}
 
 The value will be `true` if decoding errors result in a `TypeError` being
 thrown.
 
-#### textDecoder.ignoreBOM
+### textDecoder.ignoreBOM
 
-* Value: {boolean}
+* {boolean}
 
 The value will be `true` if the decoding result will include the byte order
 mark.
 
-### Class: util.TextEncoder
+## Class: util.TextEncoder
 <!-- YAML
 added: v8.3.0
 -->
@@ -672,20 +695,26 @@ added: v8.3.0
 > Stability: 1 - Experimental
 
 An implementation of the [WHATWG Encoding Standard][] `TextEncoder` API. All
-instances of `TextEncoder` only support `UTF-8` encoding.
+instances of `TextEncoder` only support UTF-8 encoding.
 
 ```js
 const encoder = new TextEncoder();
 const uint8array = encoder.encode('this is some data');
 ```
 
-#### textEncoder.encode([input])
+### textEncoder.encode([input])
 
 * `input` {string} The text to encode. Defaults to an empty string.
 * Returns: {Uint8Array}
 
-UTF-8 Encodes the `input` string and returns a `Uint8Array` containing the
+UTF-8 encodes the `input` string and returns a `Uint8Array` containing the
 encoded bytes.
+
+### textDecoder.encoding
+
+* {string}
+
+The encoding supported by the `TextEncoder` instance. Always set to `'utf-8'`.
 
 ## Deprecated APIs
 

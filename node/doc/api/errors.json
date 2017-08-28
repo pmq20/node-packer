@@ -92,6 +92,12 @@
       ]
     },
     {
+      "textRaw": "Class: AssertionError",
+      "type": "class",
+      "name": "AssertionError",
+      "desc": "<p>A subclass of <code>Error</code> that indicates the failure of an assertion. Such errors\ncommonly indicate inequality of actual and expected value.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">assert.strictEqual(1, 2);\n// AssertionError [ERR_ASSERTION]: 1 === 2\n</code></pre>\n"
+    },
+    {
       "textRaw": "Class: RangeError",
       "type": "class",
       "name": "RangeError",
@@ -219,9 +225,247 @@
             {
               "textRaw": "ERR_FALSY_VALUE_REJECTION",
               "name": "err_falsy_value_rejection",
-              "desc": "<p>Used by the <code>util.callbackify()</code> API when a callbackified <code>Promise</code> is rejected\nwith a falsy value (e.g. <code>null</code>).</p>\n<p><a id=\"ERR_INVALID_ARG_TYPE\"></a></p>\n",
+              "desc": "<p>Used by the <code>util.callbackify()</code> API when a callbackified <code>Promise</code> is rejected\nwith a falsy value (e.g. <code>null</code>).</p>\n<p><a id=\"ERR_HTTP_HEADERS_SENT\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_FALSY_VALUE_REJECTION"
+            },
+            {
+              "textRaw": "ERR_HTTP_HEADERS_SENT",
+              "name": "err_http_headers_sent",
+              "desc": "<p>Used when headers have already been sent and another attempt is made to add\nmore headers.</p>\n<p><a id=\"ERR_HTTP_INVALID_STATUS_CODE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP_HEADERS_SENT"
+            },
+            {
+              "textRaw": "ERR_HTTP_INVALID_STATUS_CODE",
+              "name": "err_http_invalid_status_code",
+              "desc": "<p>Used for status codes outside the regular status code ranges (100-999).</p>\n<p><a id=\"ERR_HTTP_TRAILER_INVALID\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP_INVALID_STATUS_CODE"
+            },
+            {
+              "textRaw": "ERR_HTTP_TRAILER_INVALID",
+              "name": "err_http_trailer_invalid",
+              "desc": "<p>Used when the <code>Trailer</code> header is set even though the transfer encoding does not\nsupport that.</p>\n<p><a id=\"ERR_HTTP2_CONNECT_AUTHORITY\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP_TRAILER_INVALID"
+            },
+            {
+              "textRaw": "ERR_HTTP2_CONNECT_AUTHORITY",
+              "name": "err_http2_connect_authority",
+              "desc": "<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:authority</code> pseudo-header\nis required.</p>\n<p><a id=\"ERR_HTTP2_CONNECT_PATH\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_CONNECT_AUTHORITY"
+            },
+            {
+              "textRaw": "ERR_HTTP2_CONNECT_PATH",
+              "name": "err_http2_connect_path",
+              "desc": "<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:path</code> pseudo-header is\nforbidden.</p>\n<p><a id=\"ERR_HTTP2_CONNECT_SCHEME\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_CONNECT_PATH"
+            },
+            {
+              "textRaw": "ERR_HTTP2_CONNECT_SCHEME",
+              "name": "err_http2_connect_scheme",
+              "desc": "<p>The HTTP/2 requests using the <code>CONNECT</code> method, the <code>:scheme</code> pseudo-header is\nforbidden.</p>\n<p><a id=\"ERR_HTTP2_ERROR\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_CONNECT_SCHEME"
+            },
+            {
+              "textRaw": "ERR_HTTP2_ERROR",
+              "name": "err_http2_error",
+              "desc": "<p>A non-specific HTTP/2 error has occurred.</p>\n<p><a id=\"ERR_HTTP2_FRAME_ERROR\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_ERROR"
+            },
+            {
+              "textRaw": "ERR_HTTP2_FRAME_ERROR",
+              "name": "err_http2_frame_error",
+              "desc": "<p>Used when a failure occurs sending an individual frame on the HTTP/2\nsession.</p>\n<p><a id=\"ERR_HTTP2_HEADERS_OBJECT\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_FRAME_ERROR"
+            },
+            {
+              "textRaw": "ERR_HTTP2_HEADERS_OBJECT",
+              "name": "err_http2_headers_object",
+              "desc": "<p>Used when an HTTP/2 Headers Object is expected.</p>\n<p><a id=\"ERR_HTTP2_HEADERS_SENT\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_HEADERS_OBJECT"
+            },
+            {
+              "textRaw": "ERR_HTTP2_HEADERS_SENT",
+              "name": "err_http2_headers_sent",
+              "desc": "<p>Used when an attempt is made to send multiple response headers.</p>\n<p><a id=\"ERR_HTTP2_HEADER_SINGLE_VALUE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_HEADERS_SENT"
+            },
+            {
+              "textRaw": "ERR_HTTP2_HEADER_SINGLE_VALUE",
+              "name": "err_http2_header_single_value",
+              "desc": "<p>Used when multiple values have been provided for an HTTP header field that\nrequired to have only a single value.</p>\n<p><a id=\"ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_HEADER_SINGLE_VALUE"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND",
+              "name": "err_http2_info_headers_after_respond",
+              "desc": "<p>HTTP/2 Informational headers must only be sent <em>prior</em> to calling the\n<code>Http2Stream.prototype.respond()</code> method.</p>\n<p><a id=\"ERR_HTTP2_INFO_STATUS_NOT_ALLOWED\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INFO_STATUS_NOT_ALLOWED",
+              "name": "err_http2_info_status_not_allowed",
+              "desc": "<p>Informational HTTP status codes (<code>1xx</code>) may not be set as the response status\ncode on HTTP/2 responses.</p>\n<p><a id=\"ERR_HTTP2_INVALID_CONNECTION_HEADERS\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INFO_STATUS_NOT_ALLOWED"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_CONNECTION_HEADERS",
+              "name": "err_http2_invalid_connection_headers",
+              "desc": "<p>HTTP/1 connection specific headers are forbidden to be used in HTTP/2\nrequests and responses.</p>\n<p><a id=\"ERR_HTTP2_INVALID_HEADER_VALUE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_CONNECTION_HEADERS"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_HEADER_VALUE",
+              "name": "err_http2_invalid_header_value",
+              "desc": "<p>Used to indicate that an invalid HTTP/2 header value has been specified.</p>\n<p><a id=\"ERR_HTTP2_INVALID_INFO_STATUS\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_HEADER_VALUE"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_INFO_STATUS",
+              "name": "err_http2_invalid_info_status",
+              "desc": "<p>An invalid HTTP informational status code has been specified. Informational\nstatus codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>\n<p><a id=\"ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH\"></a></p>\n<p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the\n<code>http2.getUnpackedSettings()</code> API must have a length that is a multiple of\nsix.</p>\n<p><a id=\"ERR_HTTP2_INVALID_PSEUDOHEADER\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_INFO_STATUS"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_PSEUDOHEADER",
+              "name": "err_http2_invalid_pseudoheader",
+              "desc": "<p>Only valid HTTP/2 pseudoheaders (<code>:status</code>, <code>:path</code>, <code>:authority</code>, <code>:scheme</code>,\nand <code>:method</code>) may be used.</p>\n<p><a id=\"ERR_HTTP2_INVALID_SESSION\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_PSEUDOHEADER"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_SESSION",
+              "name": "err_http2_invalid_session",
+              "desc": "<p>Used when any action is performed on an <code>Http2Session</code> object that has already\nbeen destroyed.</p>\n<p><a id=\"ERR_HTTP2_INVALID_SETTING_VALUE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_SESSION"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_SETTING_VALUE",
+              "name": "err_http2_invalid_setting_value",
+              "desc": "<p>An invalid value has been specified for an HTTP/2 setting.</p>\n<p><a id=\"ERR_HTTP2_INVALID_STREAM\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_SETTING_VALUE"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_STREAM",
+              "name": "err_http2_invalid_stream",
+              "desc": "<p>Used when an operation has been performed on a stream that has already been\ndestroyed.</p>\n<p><a id=\"ERR_HTTP2_MAX_PENDING_SETTINGS_ACK\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_STREAM"
+            },
+            {
+              "textRaw": "ERR_HTTP2_MAX_PENDING_SETTINGS_ACK",
+              "name": "err_http2_max_pending_settings_ack",
+              "desc": "<p>Whenever an HTTP/2 <code>SETTINGS</code> frame is sent to a connected peer, the peer is\nrequired to send an acknowledgement that it has received and applied the new\nSETTINGS. By default, a maximum number of un-acknowledged <code>SETTINGS</code> frame may\nbe sent at any given time. This error code is used when that limit has been\nreached.</p>\n<p><a id=\"ERR_HTTP2_OUT_OF_STREAMS\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"
+            },
+            {
+              "textRaw": "ERR_HTTP2_OUT_OF_STREAMS",
+              "name": "err_http2_out_of_streams",
+              "desc": "<p>Used when the maximum number of streams on a single HTTP/2 session have been\ncreated.</p>\n<p><a id=\"ERR_HTTP2_PAYLOAD_FORBIDDEN\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_OUT_OF_STREAMS"
+            },
+            {
+              "textRaw": "ERR_HTTP2_PAYLOAD_FORBIDDEN",
+              "name": "err_http2_payload_forbidden",
+              "desc": "<p>Used when a message payload is specified for an HTTP response code for which\na payload is forbidden.</p>\n<p><a id=\"ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_PAYLOAD_FORBIDDEN"
+            },
+            {
+              "textRaw": "ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED",
+              "name": "err_http2_pseudoheader_not_allowed",
+              "desc": "<p>Used to indicate that an HTTP/2 pseudo-header has been used inappropriately.\nPseudo-headers are header key names that begin with the <code>:</code> prefix.</p>\n<p><a id=\"ERR_HTTP2_PUSH_DISABLED\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED"
+            },
+            {
+              "textRaw": "ERR_HTTP2_PUSH_DISABLED",
+              "name": "err_http2_push_disabled",
+              "desc": "<p>Used when push streams have been disabled by the client but an attempt to\ncreate a push stream is made.</p>\n<p><a id=\"ERR_HTTP2_SEND_FILE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_PUSH_DISABLED"
+            },
+            {
+              "textRaw": "ERR_HTTP2_SEND_FILE",
+              "name": "err_http2_send_file",
+              "desc": "<p>Used when an attempt is made to use the\n<code>Http2Stream.prototype.responseWithFile()</code> API to send a non-regular file.</p>\n<p><a id=\"ERR_HTTP2_SOCKET_BOUND\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_SEND_FILE"
+            },
+            {
+              "textRaw": "ERR_HTTP2_SOCKET_BOUND",
+              "name": "err_http2_socket_bound",
+              "desc": "<p>Used when an attempt is made to connect a <code>Http2Session</code> object to a\n<code>net.Socket</code> or <code>tls.TLSSocket</code> that has already been bound to another\n<code>Http2Session</code> object.</p>\n<p><a id=\"ERR_HTTP2_STATUS_101\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_SOCKET_BOUND"
+            },
+            {
+              "textRaw": "ERR_HTTP2_STATUS_101",
+              "name": "err_http2_status_101",
+              "desc": "<p>Use of the <code>101</code> Informational status code is forbidden in HTTP/2.</p>\n<p><a id=\"ERR_HTTP2_STATUS_INVALID\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_STATUS_101"
+            },
+            {
+              "textRaw": "ERR_HTTP2_STATUS_INVALID",
+              "name": "err_http2_status_invalid",
+              "desc": "<p>An invalid HTTP status code has been specified. Status codes must be an integer\nbetween <code>100</code> and <code>599</code> (inclusive).</p>\n<p><a id=\"ERR_HTTP2_STREAM_CLOSED\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_STATUS_INVALID"
+            },
+            {
+              "textRaw": "ERR_HTTP2_STREAM_CLOSED",
+              "name": "err_http2_stream_closed",
+              "desc": "<p>Used when an action has been performed on an HTTP/2 Stream that has already\nbeen closed.</p>\n<p><a id=\"ERR_HTTP2_STREAM_ERROR\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_STREAM_CLOSED"
+            },
+            {
+              "textRaw": "ERR_HTTP2_STREAM_ERROR",
+              "name": "err_http2_stream_error",
+              "desc": "<p>Used when a non-zero error code has been specified in an <code>RST_STREAM</code> frame.</p>\n<p><a id=\"ERR_HTTP2_STREAM_SELF_DEPENDENCY\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_STREAM_ERROR"
+            },
+            {
+              "textRaw": "ERR_HTTP2_STREAM_SELF_DEPENDENCY",
+              "name": "err_http2_stream_self_dependency",
+              "desc": "<p>When setting the priority for an HTTP/2 stream, the stream may be marked as\na dependency for a parent stream. This error code is used when an attempt is\nmade to mark a stream and dependent of itself.</p>\n<p><a id=\"ERR_HTTP2_UNSUPPORTED_PROTOCOL\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_STREAM_SELF_DEPENDENCY"
+            },
+            {
+              "textRaw": "ERR_HTTP2_UNSUPPORTED_PROTOCOL",
+              "name": "err_http2_unsupported_protocol",
+              "desc": "<p>Used when <code>http2.connect()</code> is passed a URL that uses any protocol other than\n<code>http:</code> or <code>https:</code>.</p>\n<p><a id=\"ERR_INDEX_OUT_OF_RANGE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_UNSUPPORTED_PROTOCOL"
+            },
+            {
+              "textRaw": "ERR_INDEX_OUT_OF_RANGE",
+              "name": "err_index_out_of_range",
+              "desc": "<p>Used when a given index is out of the accepted range (e.g. negative offsets).</p>\n<p><a id=\"ERR_INVALID_ARG_TYPE\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_INDEX_OUT_OF_RANGE"
             },
             {
               "textRaw": "ERR_INVALID_ARG_TYPE",
@@ -331,9 +575,16 @@
             {
               "textRaw": "ERR_MISSING_ARGS",
               "name": "err_missing_args",
-              "desc": "<p>Used when a required argument of a Node.js API is not passed. This is currently\nonly used in the <a href=\"url.html#url_the_whatwg_url_api\">WHATWG URL API</a> for strict compliance with the specification\n(which in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most\nnative Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and\nthe <a href=\"#ERR_INVALID_ARG_TYPE\"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>\n<p><a id=\"ERR_SOCKET_ALREADY_BOUND\"></a></p>\n",
+              "desc": "<p>Used when a required argument of a Node.js API is not passed. This is currently\nonly used in the <a href=\"url.html#url_the_whatwg_url_api\">WHATWG URL API</a> for strict compliance with the specification\n(which in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most\nnative Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and\nthe <a href=\"#ERR_INVALID_ARG_TYPE\"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>\n<p><a id=\"ERR_NO_ICU\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_MISSING_ARGS"
+            },
+            {
+              "textRaw": "ERR_NO_ICU",
+              "name": "err_no_icu",
+              "desc": "<p>Used when an attempt is made to use features that require <a href=\"intl.html#intl_internationalization_support\">ICU</a>, while\nNode.js is not compiled with ICU support.</p>\n<p><a id=\"ERR_SOCKET_ALREADY_BOUND\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_NO_ICU"
             },
             {
               "textRaw": "ERR_SOCKET_ALREADY_BOUND",
@@ -507,6 +758,12 @@
               "desc": "<p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the\nprovided text message. If an object is passed as <code>message</code>, the text message\nis generated by calling <code>message.toString()</code>. The <code>error.stack</code> property will\nrepresent the point in the code at which <code>new Error()</code> was called. Stack traces\nare dependent on <a href=\"https://github.com/v8/v8/wiki/Stack-Trace-API\">V8&#39;s stack trace API</a>. Stack traces extend only to either\n(a) the beginning of  <em>synchronous code execution</em>, or (b) the number of frames\ngiven by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>\n"
             }
           ]
+        },
+        {
+          "textRaw": "Class: AssertionError",
+          "type": "class",
+          "name": "AssertionError",
+          "desc": "<p>A subclass of <code>Error</code> that indicates the failure of an assertion. Such errors\ncommonly indicate inequality of actual and expected value.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">assert.strictEqual(1, 2);\n// AssertionError [ERR_ASSERTION]: 1 === 2\n</code></pre>\n"
         },
         {
           "textRaw": "Class: RangeError",

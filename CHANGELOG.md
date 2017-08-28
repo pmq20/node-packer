@@ -2,6 +2,8 @@
 
 ## v1.6.0
 
+- upgrade Node.js runtime to v8.4.0
+  - https://nodejs.org/en/blog/release/v8.4.0/
 - install to local directories of the current user in `--msi` generated Windows Installers
   - so that auto-upgrading could work without requiring Administrator permissions
 - remove the LICENSE agreement window in `--msi` generated Windows Installers

@@ -114,7 +114,13 @@
             "added": [
               "v0.5.3"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v8.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/14558",
+                "description": "The `%o` and `%O` specifiers are supported now."
+              }
+            ]
           },
           "signatures": [
             {
@@ -143,7 +149,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format.</p>\n<p>The first argument is a string containing zero or more <em>placeholder</em> tokens.\nEach placeholder token is replaced with the converted value from the\ncorresponding argument. Supported placeholders are:</p>\n<ul>\n<li><code>%s</code> - String.</li>\n<li><code>%d</code> - Number (integer or floating point value).</li>\n<li><code>%i</code> - Integer.</li>\n<li><code>%f</code> - Floating point value.</li>\n<li><code>%j</code> - JSON.  Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument\ncontains circular references.</li>\n<li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>\n</ul>\n<p>If the placeholder does not have a corresponding argument, the placeholder is\nnot replaced.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;);\n// Returns: &#39;foo:%s&#39;\n</code></pre>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the number\nof placeholders, the extra arguments are coerced into strings then concatenated\nto the returned string, each delimited by a space. Excessive arguments whose\n<code>typeof</code> is <code>&#39;object&#39;</code> or <code>&#39;symbol&#39;</code> (except <code>null</code>) will be transformed by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;); // &#39;foo:bar baz&#39;\n</code></pre>\n<p>If the first argument is not a string then <code>util.format()</code> returns\na string that is the concatenation of all arguments separated by spaces.\nEach argument is converted to a string using <code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(1, 2, 3); // &#39;1 2 3&#39;\n</code></pre>\n<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is\nwithout any formatting.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%% %s&#39;); // &#39;%% %s&#39;\n</code></pre>\n"
+          "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format.</p>\n<p>The first argument is a string containing zero or more <em>placeholder</em> tokens.\nEach placeholder token is replaced with the converted value from the\ncorresponding argument. Supported placeholders are:</p>\n<ul>\n<li><code>%s</code> - String.</li>\n<li><code>%d</code> - Number (integer or floating point value).</li>\n<li><code>%i</code> - Integer.</li>\n<li><code>%f</code> - Floating point value.</li>\n<li><code>%j</code> - JSON.  Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument\ncontains circular references.</li>\n<li><code>%o</code> - Object. A string representation of an object\nwith generic JavaScript object formatting.\nSimilar to <code>util.inspect()</code> with options <code>{ showHidden: true, depth: 4, showProxy: true }</code>.\nThis will show the full object including non-enumerable symbols and properties.</li>\n<li><code>%O</code> - Object. A string representation of an object\nwith generic JavaScript object formatting.\nSimilar to <code>util.inspect()</code> without options.\nThis will show the full object not including non-enumerable symbols and properties.</li>\n<li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>\n</ul>\n<p>If the placeholder does not have a corresponding argument, the placeholder is\nnot replaced.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;);\n// Returns: &#39;foo:%s&#39;\n</code></pre>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the number\nof placeholders, the extra arguments are coerced into strings then concatenated\nto the returned string, each delimited by a space. Excessive arguments whose\n<code>typeof</code> is <code>&#39;object&#39;</code> or <code>&#39;symbol&#39;</code> (except <code>null</code>) will be transformed by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;); // &#39;foo:bar baz&#39;\n</code></pre>\n<p>If the first argument is not a string then <code>util.format()</code> returns\na string that is the concatenation of all arguments separated by spaces.\nEach argument is converted to a string using <code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(1, 2, 3); // &#39;1 2 3&#39;\n</code></pre>\n<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is\nwithout any formatting.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%% %s&#39;); // &#39;%% %s&#39;\n</code></pre>\n"
         },
         {
           "textRaw": "util.inherits(constructor, superConstructor)",
@@ -373,213 +379,228 @@
               "type": "module",
               "displayName": "util.promisify.custom"
             }
-          ],
-          "classes": [
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "textRaw": "Class: util.TextDecoder",
+          "type": "class",
+          "name": "util.TextDecoder",
+          "meta": {
+            "added": [
+              "v8.3.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>\n<pre><code class=\"lang-js\">const decoder = new TextDecoder(&#39;shift_jis&#39;);\nlet string = &#39;&#39;;\nlet buffer;\nwhile (buffer = getNextChunkSomehow()) {\n  string += decoder.decode(buffer, { stream: true });\n}\nstring += decoder.decode(); // end-of-stream\n</code></pre>\n",
+          "modules": [
             {
-              "textRaw": "Class: util.TextDecoder",
-              "type": "class",
-              "name": "util.TextDecoder",
-              "meta": {
-                "added": [
-                  "v8.3.0"
-                ],
-                "changes": []
-              },
-              "stability": 1,
-              "stabilityText": "Experimental",
-              "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>\n<pre><code class=\"lang-js\">const decoder = new TextDecoder(&#39;shift_jis&#39;);\nlet string = &#39;&#39;;\nlet buffer;\nwhile (buffer = getNextChunkSomehow()) {\n  string += decoder.decode(buffer, { stream: true });\n}\nstring += decoder.decode(); // end-of-stream\n</code></pre>\n",
+              "textRaw": "WHATWG Supported Encodings",
+              "name": "whatwg_supported_encodings",
+              "desc": "<p>Per the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a>, the encodings supported by the\n<code>TextDecoder</code> API are outlined in the tables below. For each encoding,\none or more aliases may be used.</p>\n<p>Different Node.js build configurations support different sets of encodings.\nWhile a very basic set of encodings is supported even on Node.js builds without\nICU enabled, support for some encodings is provided only when Node.js is built\nwith ICU and using the full ICU data (see <a href=\"intl.html\">Internationalization</a>).</p>\n",
               "modules": [
                 {
-                  "textRaw": "WHATWG Supported Encodings",
-                  "name": "whatwg_supported_encodings",
-                  "desc": "<p>Per the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a>, the encodings supported by the\n<code>TextDecoder</code> API are outlined in the tables below. For each encoding,\none or more aliases may be used. Support for some encodings is enabled\nonly when Node.js is using the full ICU data (see <a href=\"intl.html\">Internationalization</a>).\n<code>util.TextDecoder</code> is <code>undefined</code> when ICU is not enabled during build.</p>\n",
-                  "modules": [
-                    {
-                      "textRaw": "Encodings Supported By Default",
-                      "name": "encodings_supported_by_default",
-                      "desc": "<table>\n<thead>\n<tr>\n<th>Encoding</th>\n<th>Aliases</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;utf8&#39;</code></td>\n<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf-8&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;utf-16be&#39;</code></td>\n<td></td>\n</tr>\n<tr>\n<td><code>&#39;utf-16le&#39;</code></td>\n<td><code>&#39;utf-16&#39;</code></td>\n</tr>\n</tbody>\n</table>\n",
-                      "type": "module",
-                      "displayName": "Encodings Supported By Default"
-                    },
-                    {
-                      "textRaw": "Encodings Requiring Full-ICU",
-                      "name": "encodings_requiring_full-icu",
-                      "desc": "<table>\n<thead>\n<tr>\n<th>Encoding</th>\n<th>Aliases</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;ibm866&#39;</code></td>\n<td><code>&#39;866&#39;</code>, <code>&#39;cp866&#39;</code>, <code>&#39;csibm866&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-2&#39;</code></td>\n<td><code>&#39;csisolatin2&#39;</code>, <code>&#39;iso-ir-101&#39;</code>, <code>&#39;iso8859-2&#39;</code>, <code>&#39;iso88592&#39;</code>, <code>&#39;iso_8859-2&#39;</code>, <code>&#39;iso_8859-2:1987&#39;</code>, <code>&#39;l2&#39;</code>, <code>&#39;latin2&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-3&#39;</code></td>\n<td><code>&#39;csisolatin3&#39;</code>, <code>&#39;iso-ir-109&#39;</code>, <code>&#39;iso8859-3&#39;</code>, <code>&#39;iso88593&#39;</code>, <code>&#39;iso_8859-3&#39;</code>, <code>&#39;iso_8859-3:1988&#39;</code>, <code>&#39;l3&#39;</code>, <code>&#39;latin3&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-4&#39;</code></td>\n<td><code>&#39;csisolatin4&#39;</code>, <code>&#39;iso-ir-110&#39;</code>, <code>&#39;iso8859-4&#39;</code>, <code>&#39;iso88594&#39;</code>, <code>&#39;iso_8859-4&#39;</code>, <code>&#39;iso_8859-4:1988&#39;</code>, <code>&#39;l4&#39;</code>, <code>&#39;latin4&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-5&#39;</code></td>\n<td><code>&#39;csisolatincyrillic&#39;</code>, <code>&#39;cyrillic&#39;</code>, <code>&#39;iso-ir-144&#39;</code>, <code>&#39;iso8859-5&#39;</code>, <code>&#39;iso88595&#39;</code>, <code>&#39;iso_8859-5&#39;</code>, <code>&#39;iso_8859-5:1988&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-6&#39;</code></td>\n<td><code>&#39;arabic&#39;</code>, <code>&#39;asmo-708&#39;</code>, <code>&#39;csiso88596e&#39;</code>, <code>&#39;csiso88596i&#39;</code>, <code>&#39;csisolatinarabic&#39;</code>, <code>&#39;ecma-114&#39;</code>, <code>&#39;iso-8859-6-e&#39;</code>, <code>&#39;iso-8859-6-i&#39;</code>, <code>&#39;iso-ir-127&#39;</code>, <code>&#39;iso8859-6&#39;</code>, <code>&#39;iso88596&#39;</code>, <code>&#39;iso_8859-6&#39;</code>, <code>&#39;iso_8859-6:1987&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-7&#39;</code></td>\n<td><code>&#39;csisolatingreek&#39;</code>, <code>&#39;ecma-118&#39;</code>, <code>&#39;elot_928&#39;</code>, <code>&#39;greek&#39;</code>, <code>&#39;greek8&#39;</code>, <code>&#39;iso-ir-126&#39;</code>, <code>&#39;iso8859-7&#39;</code>, <code>&#39;iso88597&#39;</code>, <code>&#39;iso_8859-7&#39;</code>, <code>&#39;iso_8859-7:1987&#39;</code>, <code>&#39;sun_eu_greek&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-8&#39;</code></td>\n<td><code>&#39;csiso88598e&#39;</code>, <code>&#39;csisolatinhebrew&#39;</code>, <code>&#39;hebrew&#39;</code>, <code>&#39;iso-8859-8-e&#39;</code>, <code>&#39;iso-ir-138&#39;</code>, <code>&#39;iso8859-8&#39;</code>, <code>&#39;iso88598&#39;</code>, <code>&#39;iso_8859-8&#39;</code>, <code>&#39;iso_8859-8:1988&#39;</code>, <code>&#39;visual&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-8-i&#39;</code></td>\n<td><code>&#39;csiso88598i&#39;</code>, <code>&#39;logical&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-10&#39;</code></td>\n<td><code>&#39;csisolatin6&#39;</code>, <code>&#39;iso-ir-157&#39;</code>, <code>&#39;iso8859-10&#39;</code>, <code>&#39;iso885910&#39;</code>, <code>&#39;l6&#39;</code>, <code>&#39;latin6&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-13&#39;</code></td>\n<td><code>&#39;iso8859-13&#39;</code>, <code>&#39;iso885913&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-14&#39;</code></td>\n<td><code>&#39;iso8859-14&#39;</code>, <code>&#39;iso885914&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-15&#39;</code></td>\n<td><code>&#39;csisolatin9&#39;</code>, <code>&#39;iso8859-15&#39;</code>, <code>&#39;iso885915&#39;</code>, <code>&#39;iso_8859-15&#39;</code>, <code>&#39;l9&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;koi8-r&#39;</code></td>\n<td><code>&#39;cskoi8r&#39;</code>, <code>&#39;koi&#39;</code>, <code>&#39;koi8&#39;</code>, <code>&#39;koi8_r&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;koi8-u&#39;</code></td>\n<td><code>&#39;koi8-ru&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;macintosh&#39;</code></td>\n<td><code>&#39;csmacintosh&#39;</code>, <code>&#39;mac&#39;</code>, <code>&#39;x-mac-roman&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-874&#39;</code></td>\n<td><code>&#39;dos-874&#39;</code>, <code>&#39;iso-8859-11&#39;</code>, <code>&#39;iso8859-11&#39;</code>, <code>&#39;iso885911&#39;</code>, <code>&#39;tis-620&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1250&#39;</code></td>\n<td><code>&#39;cp1250&#39;</code>, <code>&#39;x-cp1250&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1251&#39;</code></td>\n<td><code>&#39;cp1251&#39;</code>, <code>&#39;x-cp1251&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1252&#39;</code></td>\n<td><code>&#39;ansi_x3.4-1968&#39;</code>, <code>&#39;ascii&#39;</code>, <code>&#39;cp1252&#39;</code>, <code>&#39;cp819&#39;</code>, <code>&#39;csisolatin1&#39;</code>, <code>&#39;ibm819&#39;</code>, <code>&#39;iso-8859-1&#39;</code>, <code>&#39;iso-ir-100&#39;</code>, <code>&#39;iso8859-1&#39;</code>, <code>&#39;iso88591&#39;</code>, <code>&#39;iso_8859-1&#39;</code>, <code>&#39;iso_8859-1:1987&#39;</code>, <code>&#39;l1&#39;</code>, <code>&#39;latin1&#39;</code>, <code>&#39;us-ascii&#39;</code>, <code>&#39;x-cp1252&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1253&#39;</code></td>\n<td><code>&#39;cp1253&#39;</code>, <code>&#39;x-cp1253&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1254&#39;</code></td>\n<td><code>&#39;cp1254&#39;</code>, <code>&#39;csisolatin5&#39;</code>, <code>&#39;iso-8859-9&#39;</code>, <code>&#39;iso-ir-148&#39;</code>, <code>&#39;iso8859-9&#39;</code>, <code>&#39;iso88599&#39;</code>, <code>&#39;iso_8859-9&#39;</code>, <code>&#39;iso_8859-9:1989&#39;</code>, <code>&#39;l5&#39;</code>, <code>&#39;latin5&#39;</code>, <code>&#39;x-cp1254&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1255&#39;</code></td>\n<td><code>&#39;cp1255&#39;</code>, <code>&#39;x-cp1255&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1256&#39;</code></td>\n<td><code>&#39;cp1256&#39;</code>, <code>&#39;x-cp1256&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1257&#39;</code></td>\n<td><code>&#39;cp1257&#39;</code>, <code>&#39;x-cp1257&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1258&#39;</code></td>\n<td><code>&#39;cp1258&#39;</code>, <code>&#39;x-cp1258&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;x-mac-cyrillic&#39;</code></td>\n<td><code>&#39;x-mac-ukrainian&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;gbk&#39;</code></td>\n<td><code>&#39;chinese&#39;</code>, <code>&#39;csgb2312&#39;</code>, <code>&#39;csiso58gb231280&#39;</code>, <code>&#39;gb2312&#39;</code>, <code>&#39;gb_2312&#39;</code>, <code>&#39;gb_2312-80&#39;</code>, <code>&#39;iso-ir-58&#39;</code>, <code>&#39;x-gbk&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;gb18030&#39;</code></td>\n<td></td>\n</tr>\n<tr>\n<td><code>&#39;big5&#39;</code></td>\n<td><code>&#39;big5-hkscs&#39;</code>, <code>&#39;cn-big5&#39;</code>, <code>&#39;csbig5&#39;</code>, <code>&#39;x-x-big5&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;euc-jp&#39;</code></td>\n<td><code>&#39;cseucpkdfmtjapanese&#39;</code>, <code>&#39;x-euc-jp&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-2022-jp&#39;</code></td>\n<td><code>&#39;csiso2022jp&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;shift_jis&#39;</code></td>\n<td><code>&#39;csshiftjis&#39;</code>, <code>&#39;ms932&#39;</code>, <code>&#39;ms_kanji&#39;</code>, <code>&#39;shift-jis&#39;</code>, <code>&#39;sjis&#39;</code>, <code>&#39;windows-31j&#39;</code>, <code>&#39;x-sjis&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;euc-kr&#39;</code></td>\n<td><code>&#39;cseuckr&#39;</code>, <code>&#39;csksc56011987&#39;</code>, <code>&#39;iso-ir-149&#39;</code>, <code>&#39;korean&#39;</code>, <code>&#39;ks_c_5601-1987&#39;</code>, <code>&#39;ks_c_5601-1989&#39;</code>, <code>&#39;ksc5601&#39;</code>, <code>&#39;ksc_5601&#39;</code>, <code>&#39;windows-949&#39;</code></td>\n</tr>\n</tbody>\n</table>\n<p><em>Note</em>: The <code>&#39;iso-8859-16&#39;</code> encoding listed in the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a>\nis not supported.</p>\n",
-                      "type": "module",
-                      "displayName": "Encodings Requiring Full-ICU"
-                    }
-                  ],
+                  "textRaw": "Encodings Supported Without ICU",
+                  "name": "encodings_supported_without_icu",
+                  "desc": "<table>\n<thead>\n<tr>\n<th>Encoding</th>\n<th>Aliases</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;utf-8&#39;</code></td>\n<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf8&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;utf-16le&#39;</code></td>\n<td><code>&#39;utf-16&#39;</code></td>\n</tr>\n</tbody>\n</table>\n",
                   "type": "module",
-                  "displayName": "WHATWG Supported Encodings"
-                }
-              ],
-              "methods": [
-                {
-                  "textRaw": "textDecoder.decode([input[, options]])",
-                  "type": "method",
-                  "name": "decode",
-                  "signatures": [
-                    {
-                      "return": {
-                        "textRaw": "Returns: {string} ",
-                        "name": "return",
-                        "type": "string"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`input` {ArrayBuffer|DataView|TypedArray} An `ArrayBuffer`, `DataView` or Typed Array instance containing the encoded data. ",
-                          "name": "input",
-                          "type": "ArrayBuffer|DataView|TypedArray",
-                          "desc": "An `ArrayBuffer`, `DataView` or Typed Array instance containing the encoded data.",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`options` {Object} ",
-                          "options": [
-                            {
-                              "textRaw": "`stream` {boolean} `true` if additional chunks of data are expected. Defaults to `false`. ",
-                              "name": "stream",
-                              "type": "boolean",
-                              "desc": "`true` if additional chunks of data are expected. Defaults to `false`."
-                            }
-                          ],
-                          "name": "options",
-                          "type": "Object",
-                          "optional": true
-                        }
-                      ]
-                    },
-                    {
-                      "params": [
-                        {
-                          "name": "input",
-                          "optional": true
-                        },
-                        {
-                          "name": "options",
-                          "optional": true
-                        }
-                      ]
-                    }
-                  ],
-                  "desc": "<p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any\nincomplete byte sequences occuring at the end of the <code>input</code> are buffered\ninternally and emitted after the next call to <code>textDecoder.decode()</code>.</p>\n<p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a\n<code>TypeError</code> being thrown.</p>\n"
-                }
-              ],
-              "properties": [
-                {
-                  "textRaw": "`encoding` Value: {string} ",
-                  "name": "encoding",
-                  "desc": "<p>The encoding supported by the <code>TextDecoder</code> instance.</p>\n",
-                  "shortDesc": "Value: {string}"
+                  "displayName": "Encodings Supported Without ICU"
                 },
                 {
-                  "textRaw": "`fatal` Value: {boolean} ",
-                  "name": "fatal",
-                  "desc": "<p>The value will be <code>true</code> if decoding errors result in a <code>TypeError</code> being\nthrown.</p>\n",
-                  "shortDesc": "Value: {boolean}"
+                  "textRaw": "Encodings Supported by Default (With ICU)",
+                  "name": "encodings_supported_by_default_(with_icu)",
+                  "desc": "<table>\n<thead>\n<tr>\n<th>Encoding</th>\n<th>Aliases</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;utf-8&#39;</code></td>\n<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf8&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;utf-16le&#39;</code></td>\n<td><code>&#39;utf-16&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;utf-16be&#39;</code></td>\n</tr>\n</tbody>\n</table>\n",
+                  "type": "module",
+                  "displayName": "Encodings Supported by Default (With ICU)"
                 },
                 {
-                  "textRaw": "`ignoreBOM` Value: {boolean} ",
-                  "name": "ignoreBOM",
-                  "desc": "<p>The value will be <code>true</code> if the decoding result will include the byte order\nmark.</p>\n",
-                  "shortDesc": "Value: {boolean}"
+                  "textRaw": "Encodings Requiring Full ICU Data",
+                  "name": "encodings_requiring_full_icu_data",
+                  "desc": "<table>\n<thead>\n<tr>\n<th>Encoding</th>\n<th>Aliases</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;ibm866&#39;</code></td>\n<td><code>&#39;866&#39;</code>, <code>&#39;cp866&#39;</code>, <code>&#39;csibm866&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-2&#39;</code></td>\n<td><code>&#39;csisolatin2&#39;</code>, <code>&#39;iso-ir-101&#39;</code>, <code>&#39;iso8859-2&#39;</code>, <code>&#39;iso88592&#39;</code>, <code>&#39;iso_8859-2&#39;</code>, <code>&#39;iso_8859-2:1987&#39;</code>, <code>&#39;l2&#39;</code>, <code>&#39;latin2&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-3&#39;</code></td>\n<td><code>&#39;csisolatin3&#39;</code>, <code>&#39;iso-ir-109&#39;</code>, <code>&#39;iso8859-3&#39;</code>, <code>&#39;iso88593&#39;</code>, <code>&#39;iso_8859-3&#39;</code>, <code>&#39;iso_8859-3:1988&#39;</code>, <code>&#39;l3&#39;</code>, <code>&#39;latin3&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-4&#39;</code></td>\n<td><code>&#39;csisolatin4&#39;</code>, <code>&#39;iso-ir-110&#39;</code>, <code>&#39;iso8859-4&#39;</code>, <code>&#39;iso88594&#39;</code>, <code>&#39;iso_8859-4&#39;</code>, <code>&#39;iso_8859-4:1988&#39;</code>, <code>&#39;l4&#39;</code>, <code>&#39;latin4&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-5&#39;</code></td>\n<td><code>&#39;csisolatincyrillic&#39;</code>, <code>&#39;cyrillic&#39;</code>, <code>&#39;iso-ir-144&#39;</code>, <code>&#39;iso8859-5&#39;</code>, <code>&#39;iso88595&#39;</code>, <code>&#39;iso_8859-5&#39;</code>, <code>&#39;iso_8859-5:1988&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-6&#39;</code></td>\n<td><code>&#39;arabic&#39;</code>, <code>&#39;asmo-708&#39;</code>, <code>&#39;csiso88596e&#39;</code>, <code>&#39;csiso88596i&#39;</code>, <code>&#39;csisolatinarabic&#39;</code>, <code>&#39;ecma-114&#39;</code>, <code>&#39;iso-8859-6-e&#39;</code>, <code>&#39;iso-8859-6-i&#39;</code>, <code>&#39;iso-ir-127&#39;</code>, <code>&#39;iso8859-6&#39;</code>, <code>&#39;iso88596&#39;</code>, <code>&#39;iso_8859-6&#39;</code>, <code>&#39;iso_8859-6:1987&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-7&#39;</code></td>\n<td><code>&#39;csisolatingreek&#39;</code>, <code>&#39;ecma-118&#39;</code>, <code>&#39;elot_928&#39;</code>, <code>&#39;greek&#39;</code>, <code>&#39;greek8&#39;</code>, <code>&#39;iso-ir-126&#39;</code>, <code>&#39;iso8859-7&#39;</code>, <code>&#39;iso88597&#39;</code>, <code>&#39;iso_8859-7&#39;</code>, <code>&#39;iso_8859-7:1987&#39;</code>, <code>&#39;sun_eu_greek&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-8&#39;</code></td>\n<td><code>&#39;csiso88598e&#39;</code>, <code>&#39;csisolatinhebrew&#39;</code>, <code>&#39;hebrew&#39;</code>, <code>&#39;iso-8859-8-e&#39;</code>, <code>&#39;iso-ir-138&#39;</code>, <code>&#39;iso8859-8&#39;</code>, <code>&#39;iso88598&#39;</code>, <code>&#39;iso_8859-8&#39;</code>, <code>&#39;iso_8859-8:1988&#39;</code>, <code>&#39;visual&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-8-i&#39;</code></td>\n<td><code>&#39;csiso88598i&#39;</code>, <code>&#39;logical&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-10&#39;</code></td>\n<td><code>&#39;csisolatin6&#39;</code>, <code>&#39;iso-ir-157&#39;</code>, <code>&#39;iso8859-10&#39;</code>, <code>&#39;iso885910&#39;</code>, <code>&#39;l6&#39;</code>, <code>&#39;latin6&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-13&#39;</code></td>\n<td><code>&#39;iso8859-13&#39;</code>, <code>&#39;iso885913&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-14&#39;</code></td>\n<td><code>&#39;iso8859-14&#39;</code>, <code>&#39;iso885914&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-8859-15&#39;</code></td>\n<td><code>&#39;csisolatin9&#39;</code>, <code>&#39;iso8859-15&#39;</code>, <code>&#39;iso885915&#39;</code>, <code>&#39;iso_8859-15&#39;</code>, <code>&#39;l9&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;koi8-r&#39;</code></td>\n<td><code>&#39;cskoi8r&#39;</code>, <code>&#39;koi&#39;</code>, <code>&#39;koi8&#39;</code>, <code>&#39;koi8_r&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;koi8-u&#39;</code></td>\n<td><code>&#39;koi8-ru&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;macintosh&#39;</code></td>\n<td><code>&#39;csmacintosh&#39;</code>, <code>&#39;mac&#39;</code>, <code>&#39;x-mac-roman&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-874&#39;</code></td>\n<td><code>&#39;dos-874&#39;</code>, <code>&#39;iso-8859-11&#39;</code>, <code>&#39;iso8859-11&#39;</code>, <code>&#39;iso885911&#39;</code>, <code>&#39;tis-620&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1250&#39;</code></td>\n<td><code>&#39;cp1250&#39;</code>, <code>&#39;x-cp1250&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1251&#39;</code></td>\n<td><code>&#39;cp1251&#39;</code>, <code>&#39;x-cp1251&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1252&#39;</code></td>\n<td><code>&#39;ansi_x3.4-1968&#39;</code>, <code>&#39;ascii&#39;</code>, <code>&#39;cp1252&#39;</code>, <code>&#39;cp819&#39;</code>, <code>&#39;csisolatin1&#39;</code>, <code>&#39;ibm819&#39;</code>, <code>&#39;iso-8859-1&#39;</code>, <code>&#39;iso-ir-100&#39;</code>, <code>&#39;iso8859-1&#39;</code>, <code>&#39;iso88591&#39;</code>, <code>&#39;iso_8859-1&#39;</code>, <code>&#39;iso_8859-1:1987&#39;</code>, <code>&#39;l1&#39;</code>, <code>&#39;latin1&#39;</code>, <code>&#39;us-ascii&#39;</code>, <code>&#39;x-cp1252&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1253&#39;</code></td>\n<td><code>&#39;cp1253&#39;</code>, <code>&#39;x-cp1253&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1254&#39;</code></td>\n<td><code>&#39;cp1254&#39;</code>, <code>&#39;csisolatin5&#39;</code>, <code>&#39;iso-8859-9&#39;</code>, <code>&#39;iso-ir-148&#39;</code>, <code>&#39;iso8859-9&#39;</code>, <code>&#39;iso88599&#39;</code>, <code>&#39;iso_8859-9&#39;</code>, <code>&#39;iso_8859-9:1989&#39;</code>, <code>&#39;l5&#39;</code>, <code>&#39;latin5&#39;</code>, <code>&#39;x-cp1254&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1255&#39;</code></td>\n<td><code>&#39;cp1255&#39;</code>, <code>&#39;x-cp1255&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1256&#39;</code></td>\n<td><code>&#39;cp1256&#39;</code>, <code>&#39;x-cp1256&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1257&#39;</code></td>\n<td><code>&#39;cp1257&#39;</code>, <code>&#39;x-cp1257&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;windows-1258&#39;</code></td>\n<td><code>&#39;cp1258&#39;</code>, <code>&#39;x-cp1258&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;x-mac-cyrillic&#39;</code></td>\n<td><code>&#39;x-mac-ukrainian&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;gbk&#39;</code></td>\n<td><code>&#39;chinese&#39;</code>, <code>&#39;csgb2312&#39;</code>, <code>&#39;csiso58gb231280&#39;</code>, <code>&#39;gb2312&#39;</code>, <code>&#39;gb_2312&#39;</code>, <code>&#39;gb_2312-80&#39;</code>, <code>&#39;iso-ir-58&#39;</code>, <code>&#39;x-gbk&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;gb18030&#39;</code></td>\n<td></td>\n</tr>\n<tr>\n<td><code>&#39;big5&#39;</code></td>\n<td><code>&#39;big5-hkscs&#39;</code>, <code>&#39;cn-big5&#39;</code>, <code>&#39;csbig5&#39;</code>, <code>&#39;x-x-big5&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;euc-jp&#39;</code></td>\n<td><code>&#39;cseucpkdfmtjapanese&#39;</code>, <code>&#39;x-euc-jp&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;iso-2022-jp&#39;</code></td>\n<td><code>&#39;csiso2022jp&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;shift_jis&#39;</code></td>\n<td><code>&#39;csshiftjis&#39;</code>, <code>&#39;ms932&#39;</code>, <code>&#39;ms_kanji&#39;</code>, <code>&#39;shift-jis&#39;</code>, <code>&#39;sjis&#39;</code>, <code>&#39;windows-31j&#39;</code>, <code>&#39;x-sjis&#39;</code></td>\n</tr>\n<tr>\n<td><code>&#39;euc-kr&#39;</code></td>\n<td><code>&#39;cseuckr&#39;</code>, <code>&#39;csksc56011987&#39;</code>, <code>&#39;iso-ir-149&#39;</code>, <code>&#39;korean&#39;</code>, <code>&#39;ks_c_5601-1987&#39;</code>, <code>&#39;ks_c_5601-1989&#39;</code>, <code>&#39;ksc5601&#39;</code>, <code>&#39;ksc_5601&#39;</code>, <code>&#39;windows-949&#39;</code></td>\n</tr>\n</tbody>\n</table>\n<p><em>Note</em>: The <code>&#39;iso-8859-16&#39;</code> encoding listed in the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a>\nis not supported.</p>\n",
+                  "type": "module",
+                  "displayName": "Encodings Requiring Full ICU Data"
                 }
               ],
+              "type": "module",
+              "displayName": "WHATWG Supported Encodings"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "textDecoder.decode([input[, options]])",
+              "type": "method",
+              "name": "decode",
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {string} ",
+                    "name": "return",
+                    "type": "string"
+                  },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string} Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`. ",
-                      "name": "encoding",
-                      "type": "string",
-                      "desc": "Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`.",
+                      "textRaw": "`input` {ArrayBuffer|DataView|TypedArray} An `ArrayBuffer`, `DataView` or Typed Array instance containing the encoded data. ",
+                      "name": "input",
+                      "type": "ArrayBuffer|DataView|TypedArray",
+                      "desc": "An `ArrayBuffer`, `DataView` or Typed Array instance containing the encoded data.",
                       "optional": true
                     },
                     {
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`fatal` {boolean} `true` if decoding failures are fatal. Defaults to `false`. ",
-                          "name": "fatal",
+                          "textRaw": "`stream` {boolean} `true` if additional chunks of data are expected. Defaults to `false`. ",
+                          "name": "stream",
                           "type": "boolean",
-                          "desc": "`true` if decoding failures are fatal. Defaults to `false`."
-                        },
-                        {
-                          "textRaw": "`ignoreBOM` {boolean} When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`. ",
-                          "name": "ignoreBOM",
-                          "type": "boolean",
-                          "desc": "When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`."
+                          "desc": "`true` if additional chunks of data are expected. Defaults to `false`."
                         }
                       ],
                       "name": "options",
                       "type": "Object",
                       "optional": true
                     }
-                  ],
-                  "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>\n"
+                  ]
                 },
                 {
                   "params": [
                     {
-                      "name": "encoding",
+                      "name": "input",
                       "optional": true
                     },
                     {
                       "name": "options",
                       "optional": true
                     }
-                  ],
-                  "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>\n"
+                  ]
                 }
-              ]
+              ],
+              "desc": "<p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any\nincomplete byte sequences occuring at the end of the <code>input</code> are buffered\ninternally and emitted after the next call to <code>textDecoder.decode()</code>.</p>\n<p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a\n<code>TypeError</code> being thrown.</p>\n"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "`encoding` {string} ",
+              "type": "string",
+              "name": "encoding",
+              "desc": "<p>The encoding supported by the <code>TextDecoder</code> instance.</p>\n"
             },
             {
-              "textRaw": "Class: util.TextEncoder",
-              "type": "class",
-              "name": "util.TextEncoder",
-              "meta": {
-                "added": [
-                  "v8.3.0"
-                ],
-                "changes": []
-              },
-              "stability": 1,
-              "stabilityText": "Experimental",
-              "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All\ninstances of <code>TextEncoder</code> only support <code>UTF-8</code> encoding.</p>\n<pre><code class=\"lang-js\">const encoder = new TextEncoder();\nconst uint8array = encoder.encode(&#39;this is some data&#39;);\n</code></pre>\n",
-              "methods": [
+              "textRaw": "`fatal` {boolean} ",
+              "type": "boolean",
+              "name": "fatal",
+              "desc": "<p>The value will be <code>true</code> if decoding errors result in a <code>TypeError</code> being\nthrown.</p>\n"
+            },
+            {
+              "textRaw": "`ignoreBOM` {boolean} ",
+              "type": "boolean",
+              "name": "ignoreBOM",
+              "desc": "<p>The value will be <code>true</code> if the decoding result will include the byte order\nmark.</p>\n"
+            }
+          ],
+          "signatures": [
+            {
+              "params": [
                 {
-                  "textRaw": "textEncoder.encode([input])",
-                  "type": "method",
-                  "name": "encode",
-                  "signatures": [
+                  "textRaw": "`encoding` {string} Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`. ",
+                  "name": "encoding",
+                  "type": "string",
+                  "desc": "Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`options` {Object} ",
+                  "options": [
                     {
-                      "return": {
-                        "textRaw": "Returns: {Uint8Array} ",
-                        "name": "return",
-                        "type": "Uint8Array"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`input` {string} The text to encode. Defaults to an empty string. ",
-                          "name": "input",
-                          "type": "string",
-                          "desc": "The text to encode. Defaults to an empty string.",
-                          "optional": true
-                        }
-                      ]
+                      "textRaw": "`fatal` {boolean} `true` if decoding failures are fatal. Defaults to `false`. This option is only supported when ICU is enabled (see [Internationalization][]). ",
+                      "name": "fatal",
+                      "type": "boolean",
+                      "desc": "`true` if decoding failures are fatal. Defaults to `false`. This option is only supported when ICU is enabled (see [Internationalization][])."
                     },
                     {
-                      "params": [
-                        {
-                          "name": "input",
-                          "optional": true
-                        }
-                      ]
+                      "textRaw": "`ignoreBOM` {boolean} When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`. ",
+                      "name": "ignoreBOM",
+                      "type": "boolean",
+                      "desc": "When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`."
                     }
                   ],
-                  "desc": "<p>UTF-8 Encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the\nencoded bytes.</p>\n"
+                  "name": "options",
+                  "type": "Object",
+                  "optional": true
                 }
-              ]
+              ],
+              "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>\n"
+            },
+            {
+              "params": [
+                {
+                  "name": "encoding",
+                  "optional": true
+                },
+                {
+                  "name": "options",
+                  "optional": true
+                }
+              ],
+              "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>\n"
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: util.TextEncoder",
+          "type": "class",
+          "name": "util.TextEncoder",
+          "meta": {
+            "added": [
+              "v8.3.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All\ninstances of <code>TextEncoder</code> only support UTF-8 encoding.</p>\n<pre><code class=\"lang-js\">const encoder = new TextEncoder();\nconst uint8array = encoder.encode(&#39;this is some data&#39;);\n</code></pre>\n",
+          "methods": [
+            {
+              "textRaw": "textEncoder.encode([input])",
+              "type": "method",
+              "name": "encode",
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Uint8Array} ",
+                    "name": "return",
+                    "type": "Uint8Array"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`input` {string} The text to encode. Defaults to an empty string. ",
+                      "name": "input",
+                      "type": "string",
+                      "desc": "The text to encode. Defaults to an empty string.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "input",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>UTF-8 encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the\nencoded bytes.</p>\n"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "`encoding` {string} ",
+              "type": "string",
+              "name": "encoding",
+              "desc": "<p>The encoding supported by the <code>TextEncoder</code> instance. Always set to <code>&#39;utf-8&#39;</code>.</p>\n"
             }
           ]
         }

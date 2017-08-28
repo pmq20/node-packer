@@ -1320,6 +1320,15 @@
                   "textRaw": "new stream.Duplex(options)",
                   "type": "method",
                   "name": "Duplex",
+                  "meta": {
+                    "changes": [
+                      {
+                        "version": "v8.4.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/14636",
+                        "description": "The `readableHighWaterMark` and `writableHighWaterMark` options are supported now."
+                      }
+                    ]
+                  },
                   "signatures": [
                     {
                       "params": [
@@ -1343,6 +1352,18 @@
                               "name": "writableObjectMode",
                               "type": "boolean",
                               "desc": "Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`."
+                            },
+                            {
+                              "textRaw": "`readableHighWaterMark` {number} Sets `highWaterMark` for the readable side of the stream. Has no effect if `highWaterMark` is provided. ",
+                              "name": "readableHighWaterMark",
+                              "type": "number",
+                              "desc": "Sets `highWaterMark` for the readable side of the stream. Has no effect if `highWaterMark` is provided."
+                            },
+                            {
+                              "textRaw": "`writableHighWaterMark` {number} Sets `highWaterMark` for the writable side of the stream. Has no effect if `highWaterMark` is provided. ",
+                              "name": "writableHighWaterMark",
+                              "type": "number",
+                              "desc": "Sets `highWaterMark` for the writable side of the stream. Has no effect if `highWaterMark` is provided."
                             }
                           ],
                           "name": "options",

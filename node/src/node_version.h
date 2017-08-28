@@ -23,7 +23,7 @@
 #define SRC_NODE_VERSION_H_
 
 #define NODE_MAJOR_VERSION 8
-#define NODE_MINOR_VERSION 3
+#define NODE_MINOR_VERSION 4
 #define NODE_PATCH_VERSION 0
 
 #define NODE_VERSION_IS_RELEASE 1
@@ -31,6 +31,10 @@
 #ifndef NODE_STRINGIFY
 #define NODE_STRINGIFY(n) NODE_STRINGIFY_HELPER(n)
 #define NODE_STRINGIFY_HELPER(n) #n
+#endif
+
+#ifndef NODE_RELEASE
+#define NODE_RELEASE "node"
 #endif
 
 #ifndef NODE_TAG

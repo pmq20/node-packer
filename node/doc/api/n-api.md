@@ -342,7 +342,7 @@ to be added to the error object.  If the optional parameter is NULL
 then no code will be associated with the error. If a code is provided,
 the name associated with the error is also updated to be:
 
-```
+```text
 originalName [code]
 ```
 
@@ -350,7 +350,7 @@ where originalName is the original name associated with the error
 and code is the code that was provided.  For example if the code
 is 'ERR_ERROR_1' and a TypeError is being created the name will be:
 
-```
+```text
 TypeError [ERR_ERROR_1]
 ```
 
@@ -1372,12 +1372,81 @@ JavaScript DataView Objects are described in
 [Section 24.3][] of the ECMAScript Language Specification.
 
 ### Functions to convert from C types to N-API
-#### *napi_create_number*
+#### *napi_create_int32*
 <!-- YAML
-added: v8.0.0
+added: v8.4.0
 -->
 ```C
-napi_status napi_create_number(napi_env env, double value, napi_value* result)
+napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result)
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] value`: Integer value to be represented in JavaScript.
+- `[out] result`: A `napi_value` representing a JavaScript Number.
+
+Returns `napi_ok` if the API succeeded.
+
+This API is used to convert from the C `int32_t` type to the JavaScript
+Number type.
+
+The JavaScript Number type is described in
+[Section 6.1.6](https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type)
+of the ECMAScript Language Specification.
+
+#### *napi_create_uint32*
+<!-- YAML
+added: v8.4.0
+-->
+```C
+napi_status napi_create_uint32(napi_env env, uint32_t value, napi_value* result)
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] value`: Unsigned integer value to be represented in JavaScript.
+- `[out] result`: A `napi_value` representing a JavaScript Number.
+
+Returns `napi_ok` if the API succeeded.
+
+This API is used to convert from the C `uint32_t` type to the JavaScript
+Number type.
+
+The JavaScript Number type is described in
+[Section 6.1.6](https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type)
+of the ECMAScript Language Specification.
+
+#### *napi_create_int64*
+<!-- YAML
+added: v8.4.0
+-->
+```C
+napi_status napi_create_int64(napi_env env, int64_t value, napi_value* result)
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[in] value`: Integer value to be represented in JavaScript.
+- `[out] result`: A `napi_value` representing a JavaScript Number.
+
+Returns `napi_ok` if the API succeeded.
+
+This API is used to convert from the C `int64_t` type to the JavaScript
+Number type.
+
+The JavaScript Number type is described in
+[Section 6.1.6](https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type)
+of the ECMAScript Language Specification. Note the complete range of `int64_t`
+cannot be represented with full precision in JavaScript. Integer values
+outside the range of
+[`Number.MIN_SAFE_INTEGER`](https://tc39.github.io/ecma262/#sec-number.min_safe_integer)
+-(2^53 - 1) -
+[`Number.MAX_SAFE_INTEGER`](https://tc39.github.io/ecma262/#sec-number.max_safe_integer)
+(2^53 - 1) will lose precision.
+
+#### *napi_create_double*
+<!-- YAML
+added: v8.4.0
+-->
+```C
+napi_status napi_create_double(napi_env env, double value, napi_value* result)
 ```
 
 - `[in] env`: The environment that the API is invoked under.
@@ -1386,7 +1455,7 @@ napi_status napi_create_number(napi_env env, double value, napi_value* result)
 
 Returns `napi_ok` if the API succeeded.
 
-This API is used to convert from the C double type to the JavaScript
+This API is used to convert from the C `double` type to the JavaScript
 Number type.
 
 The JavaScript Number type is described in
@@ -2170,7 +2239,7 @@ status = napi_create_object(env, &obj);
 if (status != napi_ok) return status;
 
 // Create a napi_value for 123
-status = napi_create_number(env, 123, &value);
+status = napi_create_int32(env, 123, &value);
 if (status != napi_ok) return status;
 
 // obj.myProp = 123
@@ -2244,9 +2313,9 @@ if (status != napi_ok) return status;
 
 // Create napi_values for 123 and 456
 napi_value fooValue, barValue;
-status = napi_create_number(env, 123, &fooValue);
+status = napi_create_int32(env, 123, &fooValue);
 if (status != napi_ok) return status;
-status = napi_create_number(env, 456, &barValue);
+status = napi_create_int32(env, 456, &barValue);
 if (status != napi_ok) return status;
 
 // Set the properties
@@ -2707,7 +2776,7 @@ status = napi_get_named_property(env, global, "AddTwo", &add_two);
 if (status != napi_ok) return;
 
 // const arg = 1337
-status = napi_create_number(env, 1337, &arg);
+status = napi_create_int32(env, 1337, &arg);
 if (status != napi_ok) return;
 
 napi_value* argv = &arg;
@@ -3216,6 +3285,35 @@ callback invocation, even if it has been successfully cancelled.
 
 ## Version Management
 
+### napi_get_node_version
+<!-- YAML
+added: v8.4.0
+-->
+
+```C
+typedef struct {
+  uint32_t major;
+  uint32_t minor;
+  uint32_t patch;
+  const char* release;
+} napi_node_version;
+
+NAPI_EXTERN
+napi_status napi_get_node_version(napi_env env,
+                                  const napi_node_version** version);
+```
+
+- `[in] env`: The environment that the API is invoked under.
+- `[out] version`: A pointer to version information for Node itself.
+
+Returns `napi_ok` if the API succeeded.
+
+This function fills the `version` struct with the major, minor and patch version
+of Node that is currently running, and the `release` field with the
+value of [`process.release.name`][`process.release`].
+
+The returned buffer is statically allocated and does not need to be freed.
+
 ### napi_get_version
 <!-- YAML
 added: v8.0.0
@@ -3244,6 +3342,8 @@ support it:
 * If the function is not available, provide an alternate implementation
   that does not use the function.
 
+<!-- it's very convenient to have all the anchors indexed -->
+<!--lint disable no-unused-definitions remark-lint-->
 [Asynchronous Operations]: #n_api_asynchronous_operations
 [Basic N-API Data Types]: #n_api_basic_n_api_data_types
 [ECMAScript Language Specification]: https://tc39.github.io/ecma262/
@@ -3299,3 +3399,5 @@ support it:
 [`napi_throw_type_error`]: #n_api_napi_throw_type_error
 [`napi_unwrap`]: #n_api_napi_unwrap
 [`napi_wrap`]: #n_api_napi_wrap
+
+[`process.release`]: process.html#process_process_release

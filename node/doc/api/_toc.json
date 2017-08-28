@@ -238,6 +238,16 @@
     },
     {
       "type": "text",
+      "text": "[HTTP/2](http2.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[HTTPS](https.html)"
     },
     {

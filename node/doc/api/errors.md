@@ -358,6 +358,18 @@ loop tick.
 System-level errors are generated as augmented `Error` instances, which are
 detailed [here](#errors_system_errors).
 
+## Class: AssertionError
+
+A subclass of `Error` that indicates the failure of an assertion. Such errors
+commonly indicate inequality of actual and expected value.
+
+For example:
+
+```js
+assert.strictEqual(1, 2);
+// AssertionError [ERR_ASSERTION]: 1 === 2
+```
+
 ## Class: RangeError
 
 A subclass of `Error` that indicates that a provided argument was not within the
@@ -575,6 +587,212 @@ with `for...of` loops) is required, but not provided to a Node.js API.
 Used by the `util.callbackify()` API when a callbackified `Promise` is rejected
 with a falsy value (e.g. `null`).
 
+<a id="ERR_HTTP_HEADERS_SENT"></a>
+### ERR_HTTP_HEADERS_SENT
+
+Used when headers have already been sent and another attempt is made to add
+more headers.
+
+<a id="ERR_HTTP_INVALID_STATUS_CODE"></a>
+### ERR_HTTP_INVALID_STATUS_CODE
+
+Used for status codes outside the regular status code ranges (100-999).
+
+<a id="ERR_HTTP_TRAILER_INVALID"></a>
+### ERR_HTTP_TRAILER_INVALID
+
+Used when the `Trailer` header is set even though the transfer encoding does not
+support that.
+
+<a id="ERR_HTTP2_CONNECT_AUTHORITY"></a>
+### ERR_HTTP2_CONNECT_AUTHORITY
+
+For HTTP/2 requests using the `CONNECT` method, the `:authority` pseudo-header
+is required.
+
+<a id="ERR_HTTP2_CONNECT_PATH"></a>
+### ERR_HTTP2_CONNECT_PATH
+
+For HTTP/2 requests using the `CONNECT` method, the `:path` pseudo-header is
+forbidden.
+
+<a id="ERR_HTTP2_CONNECT_SCHEME"></a>
+### ERR_HTTP2_CONNECT_SCHEME
+
+The HTTP/2 requests using the `CONNECT` method, the `:scheme` pseudo-header is
+forbidden.
+
+<a id="ERR_HTTP2_ERROR"></a>
+### ERR_HTTP2_ERROR
+
+A non-specific HTTP/2 error has occurred.
+
+<a id="ERR_HTTP2_FRAME_ERROR"></a>
+### ERR_HTTP2_FRAME_ERROR
+
+Used when a failure occurs sending an individual frame on the HTTP/2
+session.
+
+<a id="ERR_HTTP2_HEADERS_OBJECT"></a>
+### ERR_HTTP2_HEADERS_OBJECT
+
+Used when an HTTP/2 Headers Object is expected.
+
+<a id="ERR_HTTP2_HEADERS_SENT"></a>
+### ERR_HTTP2_HEADERS_SENT
+
+Used when an attempt is made to send multiple response headers.
+
+<a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a>
+### ERR_HTTP2_HEADER_SINGLE_VALUE
+
+Used when multiple values have been provided for an HTTP header field that
+required to have only a single value.
+
+<a id="ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"></a>
+### ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND
+
+HTTP/2 Informational headers must only be sent *prior* to calling the
+`Http2Stream.prototype.respond()` method.
+
+<a id="ERR_HTTP2_INFO_STATUS_NOT_ALLOWED"></a>
+### ERR_HTTP2_INFO_STATUS_NOT_ALLOWED
+
+Informational HTTP status codes (`1xx`) may not be set as the response status
+code on HTTP/2 responses.
+
+<a id="ERR_HTTP2_INVALID_CONNECTION_HEADERS"></a>
+### ERR_HTTP2_INVALID_CONNECTION_HEADERS
+
+HTTP/1 connection specific headers are forbidden to be used in HTTP/2
+requests and responses.
+
+<a id="ERR_HTTP2_INVALID_HEADER_VALUE"></a>
+### ERR_HTTP2_INVALID_HEADER_VALUE
+
+Used to indicate that an invalid HTTP/2 header value has been specified.
+
+<a id="ERR_HTTP2_INVALID_INFO_STATUS"></a>
+### ERR_HTTP2_INVALID_INFO_STATUS
+
+An invalid HTTP informational status code has been specified. Informational
+status codes must be an integer between `100` and `199` (inclusive).
+
+<a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a>
+
+Input `Buffer` and `Uint8Array` instances passed to the
+`http2.getUnpackedSettings()` API must have a length that is a multiple of
+six.
+
+<a id="ERR_HTTP2_INVALID_PSEUDOHEADER"></a>
+### ERR_HTTP2_INVALID_PSEUDOHEADER
+
+Only valid HTTP/2 pseudoheaders (`:status`, `:path`, `:authority`, `:scheme`,
+and `:method`) may be used.
+
+<a id="ERR_HTTP2_INVALID_SESSION"></a>
+### ERR_HTTP2_INVALID_SESSION
+
+Used when any action is performed on an `Http2Session` object that has already
+been destroyed.
+
+<a id="ERR_HTTP2_INVALID_SETTING_VALUE"></a>
+### ERR_HTTP2_INVALID_SETTING_VALUE
+
+An invalid value has been specified for an HTTP/2 setting.
+
+<a id="ERR_HTTP2_INVALID_STREAM"></a>
+### ERR_HTTP2_INVALID_STREAM
+
+Used when an operation has been performed on a stream that has already been
+destroyed.
+
+<a id="ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"></a>
+### ERR_HTTP2_MAX_PENDING_SETTINGS_ACK
+
+Whenever an HTTP/2 `SETTINGS` frame is sent to a connected peer, the peer is
+required to send an acknowledgement that it has received and applied the new
+SETTINGS. By default, a maximum number of un-acknowledged `SETTINGS` frame may
+be sent at any given time. This error code is used when that limit has been
+reached.
+
+<a id="ERR_HTTP2_OUT_OF_STREAMS"></a>
+### ERR_HTTP2_OUT_OF_STREAMS
+
+Used when the maximum number of streams on a single HTTP/2 session have been
+created.
+
+<a id="ERR_HTTP2_PAYLOAD_FORBIDDEN"></a>
+### ERR_HTTP2_PAYLOAD_FORBIDDEN
+
+Used when a message payload is specified for an HTTP response code for which
+a payload is forbidden.
+
+<a id="ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED"></a>
+### ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED
+
+Used to indicate that an HTTP/2 pseudo-header has been used inappropriately.
+Pseudo-headers are header key names that begin with the `:` prefix.
+
+<a id="ERR_HTTP2_PUSH_DISABLED"></a>
+### ERR_HTTP2_PUSH_DISABLED
+
+Used when push streams have been disabled by the client but an attempt to
+create a push stream is made.
+
+<a id="ERR_HTTP2_SEND_FILE"></a>
+### ERR_HTTP2_SEND_FILE
+
+Used when an attempt is made to use the
+`Http2Stream.prototype.responseWithFile()` API to send a non-regular file.
+
+<a id="ERR_HTTP2_SOCKET_BOUND"></a>
+### ERR_HTTP2_SOCKET_BOUND
+
+Used when an attempt is made to connect a `Http2Session` object to a
+`net.Socket` or `tls.TLSSocket` that has already been bound to another
+`Http2Session` object.
+
+<a id="ERR_HTTP2_STATUS_101"></a>
+### ERR_HTTP2_STATUS_101
+
+Use of the `101` Informational status code is forbidden in HTTP/2.
+
+<a id="ERR_HTTP2_STATUS_INVALID"></a>
+### ERR_HTTP2_STATUS_INVALID
+
+An invalid HTTP status code has been specified. Status codes must be an integer
+between `100` and `599` (inclusive).
+
+<a id="ERR_HTTP2_STREAM_CLOSED"></a>
+### ERR_HTTP2_STREAM_CLOSED
+
+Used when an action has been performed on an HTTP/2 Stream that has already
+been closed.
+
+<a id="ERR_HTTP2_STREAM_ERROR"></a>
+### ERR_HTTP2_STREAM_ERROR
+
+Used when a non-zero error code has been specified in an `RST_STREAM` frame.
+
+<a id="ERR_HTTP2_STREAM_SELF_DEPENDENCY"></a>
+### ERR_HTTP2_STREAM_SELF_DEPENDENCY
+
+When setting the priority for an HTTP/2 stream, the stream may be marked as
+a dependency for a parent stream. This error code is used when an attempt is
+made to mark a stream and dependent of itself.
+
+<a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a>
+### ERR_HTTP2_UNSUPPORTED_PROTOCOL
+
+Used when `http2.connect()` is passed a URL that uses any protocol other than
+`http:` or `https:`.
+
+<a id="ERR_INDEX_OUT_OF_RANGE"></a>
+### ERR_INDEX_OUT_OF_RANGE
+
+Used when a given index is out of the accepted range (e.g. negative offsets).
+
 <a id="ERR_INVALID_ARG_TYPE"></a>
 ### ERR_INVALID_ARG_TYPE
 
@@ -700,6 +918,12 @@ only used in the [WHATWG URL API][] for strict compliance with the specification
 native Node.js APIs, `func(undefined)` and `func()` are treated identically, and
 the [`ERR_INVALID_ARG_TYPE`][] error code may be used instead.
 
+<a id="ERR_NO_ICU"></a>
+### ERR_NO_ICU
+
+Used when an attempt is made to use features that require [ICU][], while
+Node.js is not compiled with ICU support.
+
 <a id="ERR_SOCKET_ALREADY_BOUND"></a>
 ### ERR_SOCKET_ALREADY_BOUND
 Used when an attempt is made to bind a socket that has already been bound.
@@ -783,6 +1007,7 @@ are most likely an indication of a bug within Node.js itself.
 [`new URLSearchParams(iterable)`]: url.html#url_constructor_new_urlsearchparams_iterable
 [`process.on('uncaughtException')`]: process.html#process_event_uncaughtexception
 [`process.send()`]: process.html#process_process_send_message_sendhandle_options_callback
+[ICU]: intl.html#intl_internationalization_support
 [Node.js Error Codes]: #nodejs-error-codes
 [V8's stack trace API]: https://github.com/v8/v8/wiki/Stack-Trace-API
 [WHATWG URL API]: url.html#url_the_whatwg_url_api

@@ -12,6 +12,7 @@
 #include "libplatform/libplatform.h"
 
 #include <string.h>
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 
@@ -22,6 +23,7 @@
 namespace node {
 namespace inspector {
 namespace {
+using v8::Array;
 using v8::Context;
 using v8::External;
 using v8::Function;
@@ -499,6 +501,7 @@ class NodeInspectorClient : public V8InspectorClient {
                                                 terminated_(false),
                                                 running_nested_loop_(false) {
     client_ = V8Inspector::create(env->isolate(), this);
+    contextCreated(env->context(), "Node.js Main Context");
   }
 
   void runMessageLoopOnPause(int context_group_id) override {
@@ -552,6 +555,20 @@ class NodeInspectorClient : public V8InspectorClient {
 
   Local<Context> ensureDefaultContextInGroup(int contextGroupId) override {
     return env_->context();
+  }
+
+  void installAdditionalCommandLineAPI(Local<Context> context,
+                                       Local<Object> target) override {
+    Local<Object> console_api = env_->inspector_console_api_object();
+
+    Local<Array> properties =
+        console_api->GetOwnPropertyNames(context).ToLocalChecked();
+    for (uint32_t i = 0; i < properties->Length(); ++i) {
+      Local<Value> key = properties->Get(context, i).ToLocalChecked();
+      target->Set(context,
+                  key,
+                  console_api->Get(context, key).ToLocalChecked()).FromJust();
+    }
   }
 
   void FatalException(Local<Value> error, Local<v8::Message> message) {
@@ -612,7 +629,8 @@ class NodeInspectorClient : public V8InspectorClient {
 Agent::Agent(Environment* env) : parent_env_(env),
                                  client_(nullptr),
                                  platform_(nullptr),
-                                 enabled_(false) {}
+                                 enabled_(false),
+                                 next_context_number_(1) {}
 
 // Destructor needs to be defined here in implementation file as the header
 // does not have full definition of some classes.
@@ -626,7 +644,6 @@ bool Agent::Start(v8::Platform* platform, const char* path,
   client_ =
       std::unique_ptr<NodeInspectorClient>(
           new NodeInspectorClient(parent_env_, platform));
-  client_->contextCreated(parent_env_->context(), "Node.js Main Context");
   platform_ = platform;
   CHECK_EQ(0, uv_async_init(uv_default_loop(),
                             &start_io_thread_async,
@@ -680,6 +697,20 @@ bool Agent::StartIoThread(bool wait_for_connect) {
                arraysize(argv), argv, {0, 0});
 
   return true;
+}
+
+static void AddCommandLineAPI(
+    const FunctionCallbackInfo<Value>& info) {
+  auto env = Environment::GetCurrent(info);
+  Local<Context> context = env->context();
+
+  if (info.Length() != 2 || !info[0]->IsString()) {
+    return env->ThrowTypeError("inspector.addCommandLineAPI takes "
+        "exactly 2 arguments: a string and a value.");
+  }
+
+  Local<Object> console_api = env->inspector_console_api_object();
+  console_api->Set(context, info[0], info[1]).FromJust();
 }
 
 void Agent::Stop() {
@@ -784,8 +815,16 @@ void Url(const FunctionCallbackInfo<Value>& args) {
 void Agent::InitInspector(Local<Object> target, Local<Value> unused,
                           Local<Context> context, void* priv) {
   Environment* env = Environment::GetCurrent(context);
+  {
+    auto obj = Object::New(env->isolate());
+    auto null = Null(env->isolate());
+    CHECK(obj->SetPrototype(context, null).FromJust());
+    env->set_inspector_console_api_object(obj);
+  }
+
   Agent* agent = env->inspector_agent();
   env->SetMethod(target, "consoleCall", InspectorConsoleCall);
+  env->SetMethod(target, "addCommandLineAPI", AddCommandLineAPI);
   if (agent->debug_options_.wait_for_connect())
     env->SetMethod(target, "callAndPauseOnStart", CallAndPauseOnStart);
   env->SetMethod(target, "connect", ConnectJSBindingsSession);
@@ -802,6 +841,14 @@ void Agent::RequestIoThreadStart() {
   platform_->CallOnForegroundThread(isolate, new StartIoTask(this));
   isolate->RequestInterrupt(StartIoInterrupt, this);
   uv_async_send(&start_io_thread_async);
+}
+
+void Agent::ContextCreated(Local<Context> context) {
+  if (client_ == nullptr)  // This happens for a main context
+    return;
+  std::ostringstream name;
+  name << "VM Context " << next_context_number_++;
+  client_->contextCreated(context, name.str());
 }
 
 }  // namespace inspector

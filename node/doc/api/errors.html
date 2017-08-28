@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Errors | Node.js v8.3.0 Documentation</title>
+  <title>Errors | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,6 +42,7 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-intl" href="intl.html">Internationalization</a></li>
@@ -78,7 +79,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.3.0 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -108,6 +109,7 @@
 <li><span class="stability_undefined"><a href="#errors_error_stack">error.stack</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#errors_class_assertionerror">Class: AssertionError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_rangeerror">Class: RangeError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_referenceerror">Class: ReferenceError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_syntaxerror">Class: SyntaxError</a></span></li>
@@ -129,6 +131,40 @@
 <li><span class="stability_undefined"><a href="#errors_node_js_error_codes">Node.js Error Codes</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_err_arg_not_iterable">ERR_ARG_NOT_ITERABLE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_falsy_value_rejection">ERR_FALSY_VALUE_REJECTION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_headers_sent">ERR_HTTP_HEADERS_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_invalid_status_code">ERR_HTTP_INVALID_STATUS_CODE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_trailer_invalid">ERR_HTTP_TRAILER_INVALID</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_authority">ERR_HTTP2_CONNECT_AUTHORITY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_path">ERR_HTTP2_CONNECT_PATH</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_scheme">ERR_HTTP2_CONNECT_SCHEME</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_error">ERR_HTTP2_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_frame_error">ERR_HTTP2_FRAME_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_headers_object">ERR_HTTP2_HEADERS_OBJECT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_headers_sent">ERR_HTTP2_HEADERS_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_header_single_value">ERR_HTTP2_HEADER_SINGLE_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_info_headers_after_respond">ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_info_status_not_allowed">ERR_HTTP2_INFO_STATUS_NOT_ALLOWED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_connection_headers">ERR_HTTP2_INVALID_CONNECTION_HEADERS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_header_value">ERR_HTTP2_INVALID_HEADER_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_info_status">ERR_HTTP2_INVALID_INFO_STATUS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_pseudoheader">ERR_HTTP2_INVALID_PSEUDOHEADER</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_session">ERR_HTTP2_INVALID_SESSION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_setting_value">ERR_HTTP2_INVALID_SETTING_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_stream">ERR_HTTP2_INVALID_STREAM</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_max_pending_settings_ack">ERR_HTTP2_MAX_PENDING_SETTINGS_ACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_out_of_streams">ERR_HTTP2_OUT_OF_STREAMS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_payload_forbidden">ERR_HTTP2_PAYLOAD_FORBIDDEN</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_pseudoheader_not_allowed">ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_push_disabled">ERR_HTTP2_PUSH_DISABLED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_closed">ERR_HTTP2_STREAM_CLOSED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_error">ERR_HTTP2_STREAM_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_self_dependency">ERR_HTTP2_STREAM_SELF_DEPENDENCY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_unsupported_protocol">ERR_HTTP2_UNSUPPORTED_PROTOCOL</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_index_out_of_range">ERR_INDEX_OUT_OF_RANGE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_callback">ERR_INVALID_CALLBACK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_host">ERR_INVALID_FILE_URL_HOST</a></span></li>
@@ -145,6 +181,7 @@
 <li><span class="stability_undefined"><a href="#errors_err_ipc_one_pipe">ERR_IPC_ONE_PIPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_ipc_sync_fork">ERR_IPC_SYNC_FORK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_missing_args">ERR_MISSING_ARGS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_no_icu">ERR_NO_ICU</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_already_bound">ERR_SOCKET_ALREADY_BOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_port">ERR_SOCKET_BAD_PORT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_type">ERR_SOCKET_BAD_TYPE</a></span></li>
@@ -469,6 +506,13 @@ a user program, or its dependencies.</li>
 loop tick.</p>
 <p>System-level errors are generated as augmented <code>Error</code> instances, which are
 detailed <a href="#errors_system_errors">here</a>.</p>
+<h2>Class: AssertionError<span><a class="mark" href="#errors_class_assertionerror" id="errors_class_assertionerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates the failure of an assertion. Such errors
+commonly indicate inequality of actual and expected value.</p>
+<p>For example:</p>
+<pre><code class="lang-js">assert.strictEqual(1, 2);
+// AssertionError [ERR_ASSERTION]: 1 === 2
+</code></pre>
 <h2>Class: RangeError<span><a class="mark" href="#errors_class_rangeerror" id="errors_class_rangeerror">#</a></span></h2>
 <p>A subclass of <code>Error</code> that indicates that a provided argument was not within the
 set or range of acceptable values for a function; whether that is a numeric
@@ -643,6 +687,142 @@ with <code>for...of</code> loops) is required, but not provided to a Node.js API
 <h3>ERR_FALSY_VALUE_REJECTION<span><a class="mark" href="#errors_err_falsy_value_rejection" id="errors_err_falsy_value_rejection">#</a></span></h3>
 <p>Used by the <code>util.callbackify()</code> API when a callbackified <code>Promise</code> is rejected
 with a falsy value (e.g. <code>null</code>).</p>
+<p><a id="ERR_HTTP_HEADERS_SENT"></a></p>
+<h3>ERR_HTTP_HEADERS_SENT<span><a class="mark" href="#errors_err_http_headers_sent" id="errors_err_http_headers_sent">#</a></span></h3>
+<p>Used when headers have already been sent and another attempt is made to add
+more headers.</p>
+<p><a id="ERR_HTTP_INVALID_STATUS_CODE"></a></p>
+<h3>ERR_HTTP_INVALID_STATUS_CODE<span><a class="mark" href="#errors_err_http_invalid_status_code" id="errors_err_http_invalid_status_code">#</a></span></h3>
+<p>Used for status codes outside the regular status code ranges (100-999).</p>
+<p><a id="ERR_HTTP_TRAILER_INVALID"></a></p>
+<h3>ERR_HTTP_TRAILER_INVALID<span><a class="mark" href="#errors_err_http_trailer_invalid" id="errors_err_http_trailer_invalid">#</a></span></h3>
+<p>Used when the <code>Trailer</code> header is set even though the transfer encoding does not
+support that.</p>
+<p><a id="ERR_HTTP2_CONNECT_AUTHORITY"></a></p>
+<h3>ERR_HTTP2_CONNECT_AUTHORITY<span><a class="mark" href="#errors_err_http2_connect_authority" id="errors_err_http2_connect_authority">#</a></span></h3>
+<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:authority</code> pseudo-header
+is required.</p>
+<p><a id="ERR_HTTP2_CONNECT_PATH"></a></p>
+<h3>ERR_HTTP2_CONNECT_PATH<span><a class="mark" href="#errors_err_http2_connect_path" id="errors_err_http2_connect_path">#</a></span></h3>
+<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:path</code> pseudo-header is
+forbidden.</p>
+<p><a id="ERR_HTTP2_CONNECT_SCHEME"></a></p>
+<h3>ERR_HTTP2_CONNECT_SCHEME<span><a class="mark" href="#errors_err_http2_connect_scheme" id="errors_err_http2_connect_scheme">#</a></span></h3>
+<p>The HTTP/2 requests using the <code>CONNECT</code> method, the <code>:scheme</code> pseudo-header is
+forbidden.</p>
+<p><a id="ERR_HTTP2_ERROR"></a></p>
+<h3>ERR_HTTP2_ERROR<span><a class="mark" href="#errors_err_http2_error" id="errors_err_http2_error">#</a></span></h3>
+<p>A non-specific HTTP/2 error has occurred.</p>
+<p><a id="ERR_HTTP2_FRAME_ERROR"></a></p>
+<h3>ERR_HTTP2_FRAME_ERROR<span><a class="mark" href="#errors_err_http2_frame_error" id="errors_err_http2_frame_error">#</a></span></h3>
+<p>Used when a failure occurs sending an individual frame on the HTTP/2
+session.</p>
+<p><a id="ERR_HTTP2_HEADERS_OBJECT"></a></p>
+<h3>ERR_HTTP2_HEADERS_OBJECT<span><a class="mark" href="#errors_err_http2_headers_object" id="errors_err_http2_headers_object">#</a></span></h3>
+<p>Used when an HTTP/2 Headers Object is expected.</p>
+<p><a id="ERR_HTTP2_HEADERS_SENT"></a></p>
+<h3>ERR_HTTP2_HEADERS_SENT<span><a class="mark" href="#errors_err_http2_headers_sent" id="errors_err_http2_headers_sent">#</a></span></h3>
+<p>Used when an attempt is made to send multiple response headers.</p>
+<p><a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a></p>
+<h3>ERR_HTTP2_HEADER_SINGLE_VALUE<span><a class="mark" href="#errors_err_http2_header_single_value" id="errors_err_http2_header_single_value">#</a></span></h3>
+<p>Used when multiple values have been provided for an HTTP header field that
+required to have only a single value.</p>
+<p><a id="ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"></a></p>
+<h3>ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND<span><a class="mark" href="#errors_err_http2_info_headers_after_respond" id="errors_err_http2_info_headers_after_respond">#</a></span></h3>
+<p>HTTP/2 Informational headers must only be sent <em>prior</em> to calling the
+<code>Http2Stream.prototype.respond()</code> method.</p>
+<p><a id="ERR_HTTP2_INFO_STATUS_NOT_ALLOWED"></a></p>
+<h3>ERR_HTTP2_INFO_STATUS_NOT_ALLOWED<span><a class="mark" href="#errors_err_http2_info_status_not_allowed" id="errors_err_http2_info_status_not_allowed">#</a></span></h3>
+<p>Informational HTTP status codes (<code>1xx</code>) may not be set as the response status
+code on HTTP/2 responses.</p>
+<p><a id="ERR_HTTP2_INVALID_CONNECTION_HEADERS"></a></p>
+<h3>ERR_HTTP2_INVALID_CONNECTION_HEADERS<span><a class="mark" href="#errors_err_http2_invalid_connection_headers" id="errors_err_http2_invalid_connection_headers">#</a></span></h3>
+<p>HTTP/1 connection specific headers are forbidden to be used in HTTP/2
+requests and responses.</p>
+<p><a id="ERR_HTTP2_INVALID_HEADER_VALUE"></a></p>
+<h3>ERR_HTTP2_INVALID_HEADER_VALUE<span><a class="mark" href="#errors_err_http2_invalid_header_value" id="errors_err_http2_invalid_header_value">#</a></span></h3>
+<p>Used to indicate that an invalid HTTP/2 header value has been specified.</p>
+<p><a id="ERR_HTTP2_INVALID_INFO_STATUS"></a></p>
+<h3>ERR_HTTP2_INVALID_INFO_STATUS<span><a class="mark" href="#errors_err_http2_invalid_info_status" id="errors_err_http2_invalid_info_status">#</a></span></h3>
+<p>An invalid HTTP informational status code has been specified. Informational
+status codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a></p>
+<p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the
+<code>http2.getUnpackedSettings()</code> API must have a length that is a multiple of
+six.</p>
+<p><a id="ERR_HTTP2_INVALID_PSEUDOHEADER"></a></p>
+<h3>ERR_HTTP2_INVALID_PSEUDOHEADER<span><a class="mark" href="#errors_err_http2_invalid_pseudoheader" id="errors_err_http2_invalid_pseudoheader">#</a></span></h3>
+<p>Only valid HTTP/2 pseudoheaders (<code>:status</code>, <code>:path</code>, <code>:authority</code>, <code>:scheme</code>,
+and <code>:method</code>) may be used.</p>
+<p><a id="ERR_HTTP2_INVALID_SESSION"></a></p>
+<h3>ERR_HTTP2_INVALID_SESSION<span><a class="mark" href="#errors_err_http2_invalid_session" id="errors_err_http2_invalid_session">#</a></span></h3>
+<p>Used when any action is performed on an <code>Http2Session</code> object that has already
+been destroyed.</p>
+<p><a id="ERR_HTTP2_INVALID_SETTING_VALUE"></a></p>
+<h3>ERR_HTTP2_INVALID_SETTING_VALUE<span><a class="mark" href="#errors_err_http2_invalid_setting_value" id="errors_err_http2_invalid_setting_value">#</a></span></h3>
+<p>An invalid value has been specified for an HTTP/2 setting.</p>
+<p><a id="ERR_HTTP2_INVALID_STREAM"></a></p>
+<h3>ERR_HTTP2_INVALID_STREAM<span><a class="mark" href="#errors_err_http2_invalid_stream" id="errors_err_http2_invalid_stream">#</a></span></h3>
+<p>Used when an operation has been performed on a stream that has already been
+destroyed.</p>
+<p><a id="ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"></a></p>
+<h3>ERR_HTTP2_MAX_PENDING_SETTINGS_ACK<span><a class="mark" href="#errors_err_http2_max_pending_settings_ack" id="errors_err_http2_max_pending_settings_ack">#</a></span></h3>
+<p>Whenever an HTTP/2 <code>SETTINGS</code> frame is sent to a connected peer, the peer is
+required to send an acknowledgement that it has received and applied the new
+SETTINGS. By default, a maximum number of un-acknowledged <code>SETTINGS</code> frame may
+be sent at any given time. This error code is used when that limit has been
+reached.</p>
+<p><a id="ERR_HTTP2_OUT_OF_STREAMS"></a></p>
+<h3>ERR_HTTP2_OUT_OF_STREAMS<span><a class="mark" href="#errors_err_http2_out_of_streams" id="errors_err_http2_out_of_streams">#</a></span></h3>
+<p>Used when the maximum number of streams on a single HTTP/2 session have been
+created.</p>
+<p><a id="ERR_HTTP2_PAYLOAD_FORBIDDEN"></a></p>
+<h3>ERR_HTTP2_PAYLOAD_FORBIDDEN<span><a class="mark" href="#errors_err_http2_payload_forbidden" id="errors_err_http2_payload_forbidden">#</a></span></h3>
+<p>Used when a message payload is specified for an HTTP response code for which
+a payload is forbidden.</p>
+<p><a id="ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED"></a></p>
+<h3>ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED<span><a class="mark" href="#errors_err_http2_pseudoheader_not_allowed" id="errors_err_http2_pseudoheader_not_allowed">#</a></span></h3>
+<p>Used to indicate that an HTTP/2 pseudo-header has been used inappropriately.
+Pseudo-headers are header key names that begin with the <code>:</code> prefix.</p>
+<p><a id="ERR_HTTP2_PUSH_DISABLED"></a></p>
+<h3>ERR_HTTP2_PUSH_DISABLED<span><a class="mark" href="#errors_err_http2_push_disabled" id="errors_err_http2_push_disabled">#</a></span></h3>
+<p>Used when push streams have been disabled by the client but an attempt to
+create a push stream is made.</p>
+<p><a id="ERR_HTTP2_SEND_FILE"></a></p>
+<h3>ERR_HTTP2_SEND_FILE<span><a class="mark" href="#errors_err_http2_send_file" id="errors_err_http2_send_file">#</a></span></h3>
+<p>Used when an attempt is made to use the
+<code>Http2Stream.prototype.responseWithFile()</code> API to send a non-regular file.</p>
+<p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
+<h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span></h3>
+<p>Used when an attempt is made to connect a <code>Http2Session</code> object to a
+<code>net.Socket</code> or <code>tls.TLSSocket</code> that has already been bound to another
+<code>Http2Session</code> object.</p>
+<p><a id="ERR_HTTP2_STATUS_101"></a></p>
+<h3>ERR_HTTP2_STATUS_101<span><a class="mark" href="#errors_err_http2_status_101" id="errors_err_http2_status_101">#</a></span></h3>
+<p>Use of the <code>101</code> Informational status code is forbidden in HTTP/2.</p>
+<p><a id="ERR_HTTP2_STATUS_INVALID"></a></p>
+<h3>ERR_HTTP2_STATUS_INVALID<span><a class="mark" href="#errors_err_http2_status_invalid" id="errors_err_http2_status_invalid">#</a></span></h3>
+<p>An invalid HTTP status code has been specified. Status codes must be an integer
+between <code>100</code> and <code>599</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_STREAM_CLOSED"></a></p>
+<h3>ERR_HTTP2_STREAM_CLOSED<span><a class="mark" href="#errors_err_http2_stream_closed" id="errors_err_http2_stream_closed">#</a></span></h3>
+<p>Used when an action has been performed on an HTTP/2 Stream that has already
+been closed.</p>
+<p><a id="ERR_HTTP2_STREAM_ERROR"></a></p>
+<h3>ERR_HTTP2_STREAM_ERROR<span><a class="mark" href="#errors_err_http2_stream_error" id="errors_err_http2_stream_error">#</a></span></h3>
+<p>Used when a non-zero error code has been specified in an <code>RST_STREAM</code> frame.</p>
+<p><a id="ERR_HTTP2_STREAM_SELF_DEPENDENCY"></a></p>
+<h3>ERR_HTTP2_STREAM_SELF_DEPENDENCY<span><a class="mark" href="#errors_err_http2_stream_self_dependency" id="errors_err_http2_stream_self_dependency">#</a></span></h3>
+<p>When setting the priority for an HTTP/2 stream, the stream may be marked as
+a dependency for a parent stream. This error code is used when an attempt is
+made to mark a stream and dependent of itself.</p>
+<p><a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a></p>
+<h3>ERR_HTTP2_UNSUPPORTED_PROTOCOL<span><a class="mark" href="#errors_err_http2_unsupported_protocol" id="errors_err_http2_unsupported_protocol">#</a></span></h3>
+<p>Used when <code>http2.connect()</code> is passed a URL that uses any protocol other than
+<code>http:</code> or <code>https:</code>.</p>
+<p><a id="ERR_INDEX_OUT_OF_RANGE"></a></p>
+<h3>ERR_INDEX_OUT_OF_RANGE<span><a class="mark" href="#errors_err_index_out_of_range" id="errors_err_index_out_of_range">#</a></span></h3>
+<p>Used when a given index is out of the accepted range (e.g. negative offsets).</p>
 <p><a id="ERR_INVALID_ARG_TYPE"></a></p>
 <h3>ERR_INVALID_ARG_TYPE<span><a class="mark" href="#errors_err_invalid_arg_type" id="errors_err_invalid_arg_type">#</a></span></h3>
 <p>Used generically to identify that an argument of the wrong type has been passed
@@ -732,6 +912,10 @@ only used in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> fo
 (which in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most
 native Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and
 the <a href="#ERR_INVALID_ARG_TYPE"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>
+<p><a id="ERR_NO_ICU"></a></p>
+<h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span></h3>
+<p>Used when an attempt is made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, while
+Node.js is not compiled with ICU support.</p>
 <p><a id="ERR_SOCKET_ALREADY_BOUND"></a></p>
 <h3>ERR_SOCKET_ALREADY_BOUND<span><a class="mark" href="#errors_err_socket_already_bound" id="errors_err_socket_already_bound">#</a></span></h3>
 <p>Used when an attempt is made to bind a socket that has already been bound.</p>

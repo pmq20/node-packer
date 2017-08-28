@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Util | Node.js v8.3.0 Documentation</title>
+  <title>Util | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,6 +42,7 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-intl" href="intl.html">Internationalization</a></li>
@@ -78,7 +79,7 @@
 
     <div id="column1" data-id="util" class="interior">
       <header>
-        <h1>Node.js v8.3.0 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -108,10 +109,13 @@
 <li><span class="stability_undefined"><a href="#util_util_promisify_original">util.promisify(original)</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_custom_promisified_functions">Custom promisified functions</a></span></li>
 <li><span class="stability_undefined"><a href="#util_util_promisify_custom">util.promisify.custom</a></span></li>
+</ul>
+</li>
 <li><span class="stability_1"><a href="#util_class_util_textdecoder">Class: util.TextDecoder</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_whatwg_supported_encodings">WHATWG Supported Encodings</a></span><ul>
-<li><span class="stability_undefined"><a href="#util_encodings_supported_by_default">Encodings Supported By Default</a></span></li>
-<li><span class="stability_undefined"><a href="#util_encodings_requiring_full_icu">Encodings Requiring Full-ICU</a></span></li>
+<li><span class="stability_undefined"><a href="#util_encodings_supported_without_icu">Encodings Supported Without ICU</a></span></li>
+<li><span class="stability_undefined"><a href="#util_encodings_supported_by_default_with_icu">Encodings Supported by Default (With ICU)</a></span></li>
+<li><span class="stability_undefined"><a href="#util_encodings_requiring_full_icu_data">Encodings Requiring Full ICU Data</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#util_new_textdecoder_encoding_options">new TextDecoder([encoding[, options]])</a></span></li>
@@ -123,8 +127,7 @@
 </li>
 <li><span class="stability_1"><a href="#util_class_util_textencoder">Class: util.TextEncoder</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_textencoder_encode_input">textEncoder.encode([input])</a></span></li>
-</ul>
-</li>
+<li><span class="stability_undefined"><a href="#util_textdecoder_encoding_1">textDecoder.encoding</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#util_deprecated_apis">Deprecated APIs</a></span><ul>
@@ -275,7 +278,17 @@ property take precedence over <code>--trace-deprecation</code> and
 <code>process.traceDeprecation</code>.</p>
 <h2>util.format(format[, ...args])<span><a class="mark" href="#util_util_format_format_args" id="util_util_format_format_args">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.5.3</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.4.0</td>
+<td><p>The <code>%o</code> and <code>%O</code> specifiers are supported now.</p>
+</td></tr>
+<tr><td>v0.5.3</td>
+<td><p><span>Added in: v0.5.3</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A <code>printf</code>-like format string.</li>
 </ul>
@@ -291,6 +304,14 @@ corresponding argument. Supported placeholders are:</p>
 <li><code>%f</code> - Floating point value.</li>
 <li><code>%j</code> - JSON.  Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument
 contains circular references.</li>
+<li><code>%o</code> - Object. A string representation of an object
+with generic JavaScript object formatting.
+Similar to <code>util.inspect()</code> with options <code>{ showHidden: true, depth: 4, showProxy: true }</code>.
+This will show the full object including non-enumerable symbols and properties.</li>
+<li><code>%O</code> - Object. A string representation of an object
+with generic JavaScript object formatting.
+Similar to <code>util.inspect()</code> without options.
+This will show the full object not including non-enumerable symbols and properties.</li>
 <li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>
 </ul>
 <p>If the placeholder does not have a corresponding argument, the placeholder is
@@ -603,7 +624,7 @@ standard format of taking an error-first callback as the last argument.</p>
 </ul>
 <p>A Symbol that can be used to declare custom promisified variants of functions,
 see <a href="#util_custom_promisified_functions">Custom promisified functions</a>.</p>
-<h3>Class: util.TextDecoder<span><a class="mark" href="#util_class_util_textdecoder" id="util_class_util_textdecoder">#</a></span></h3>
+<h2>Class: util.TextDecoder<span><a class="mark" href="#util_class_util_textdecoder" id="util_class_util_textdecoder">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>
@@ -615,13 +636,15 @@ while (buffer = getNextChunkSomehow()) {
 }
 string += decoder.decode(); // end-of-stream
 </code></pre>
-<h4>WHATWG Supported Encodings<span><a class="mark" href="#util_whatwg_supported_encodings" id="util_whatwg_supported_encodings">#</a></span></h4>
+<h3>WHATWG Supported Encodings<span><a class="mark" href="#util_whatwg_supported_encodings" id="util_whatwg_supported_encodings">#</a></span></h3>
 <p>Per the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a>, the encodings supported by the
 <code>TextDecoder</code> API are outlined in the tables below. For each encoding,
-one or more aliases may be used. Support for some encodings is enabled
-only when Node.js is using the full ICU data (see <a href="intl.html">Internationalization</a>).
-<code>util.TextDecoder</code> is <code>undefined</code> when ICU is not enabled during build.</p>
-<h5>Encodings Supported By Default<span><a class="mark" href="#util_encodings_supported_by_default" id="util_encodings_supported_by_default">#</a></span></h5>
+one or more aliases may be used.</p>
+<p>Different Node.js build configurations support different sets of encodings.
+While a very basic set of encodings is supported even on Node.js builds without
+ICU enabled, support for some encodings is provided only when Node.js is built
+with ICU and using the full ICU data (see <a href="intl.html">Internationalization</a>).</p>
+<h4>Encodings Supported Without ICU<span><a class="mark" href="#util_encodings_supported_without_icu" id="util_encodings_supported_without_icu">#</a></span></h4>
 <table>
 <thead>
 <tr>
@@ -631,12 +654,8 @@ only when Node.js is using the full ICU data (see <a href="intl.html">Internatio
 </thead>
 <tbody>
 <tr>
-<td><code>&#39;utf8&#39;</code></td>
-<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf-8&#39;</code></td>
-</tr>
-<tr>
-<td><code>&#39;utf-16be&#39;</code></td>
-<td></td>
+<td><code>&#39;utf-8&#39;</code></td>
+<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf8&#39;</code></td>
 </tr>
 <tr>
 <td><code>&#39;utf-16le&#39;</code></td>
@@ -644,7 +663,29 @@ only when Node.js is using the full ICU data (see <a href="intl.html">Internatio
 </tr>
 </tbody>
 </table>
-<h5>Encodings Requiring Full-ICU<span><a class="mark" href="#util_encodings_requiring_full_icu" id="util_encodings_requiring_full_icu">#</a></span></h5>
+<h4>Encodings Supported by Default (With ICU)<span><a class="mark" href="#util_encodings_supported_by_default_with_icu" id="util_encodings_supported_by_default_with_icu">#</a></span></h4>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Aliases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;utf-8&#39;</code></td>
+<td><code>&#39;unicode-1-1-utf-8&#39;</code>, <code>&#39;utf8&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;utf-16le&#39;</code></td>
+<td><code>&#39;utf-16&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;utf-16be&#39;</code></td>
+</tr>
+</tbody>
+</table>
+<h4>Encodings Requiring Full ICU Data<span><a class="mark" href="#util_encodings_requiring_full_icu_data" id="util_encodings_requiring_full_icu_data">#</a></span></h4>
 <table>
 <thead>
 <tr>
@@ -793,13 +834,14 @@ only when Node.js is using the full ICU data (see <a href="intl.html">Internatio
 </table>
 <p><em>Note</em>: The <code>&#39;iso-8859-16&#39;</code> encoding listed in the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a>
 is not supported.</p>
-<h4>new TextDecoder([encoding[, options]])<span><a class="mark" href="#util_new_textdecoder_encoding_options" id="util_new_textdecoder_encoding_options">#</a></span></h4>
+<h3>new TextDecoder([encoding[, options]])<span><a class="mark" href="#util_new_textdecoder_encoding_options" id="util_new_textdecoder_encoding_options">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Identifies the <code>encoding</code> that this <code>TextDecoder</code> instance
 supports. Defaults to <code>&#39;utf-8&#39;</code>.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>fatal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if decoding failures are fatal. Defaults to
-<code>false</code>.</li>
+<code>false</code>. This option is only supported when ICU is enabled (see
+<a href="intl.html">Internationalization</a>).</li>
 <li><code>ignoreBOM</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>TextDecoder</code> will include the byte
  order mark in the decoded result. When <code>false</code>, the byte order mark will
  be removed from the output. This option is only used when <code>encoding</code> is
@@ -809,7 +851,7 @@ supports. Defaults to <code>&#39;utf-8&#39;</code>.</li>
 </ul>
 </div><p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the
 supported encodings or an alias.</p>
-<h4>textDecoder.decode([input[, options]])<span><a class="mark" href="#util_textdecoder_decode_input_options" id="util_textdecoder_decode_input_options">#</a></span></h4>
+<h3>textDecoder.decode([input[, options]])<span><a class="mark" href="#util_textdecoder_decode_input_options" id="util_textdecoder_decode_input_options">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> An <code>ArrayBuffer</code>, <code>DataView</code> or
 Typed Array instance containing the encoded data.</li>
@@ -825,38 +867,43 @@ incomplete byte sequences occuring at the end of the <code>input</code> are buff
 internally and emitted after the next call to <code>textDecoder.decode()</code>.</p>
 <p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a
 <code>TypeError</code> being thrown.</p>
-<h4>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding" id="util_textdecoder_encoding">#</a></span></h4>
+<h3>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding" id="util_textdecoder_encoding">#</a></span></h3>
 <div class="signature"><ul>
-<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The encoding supported by the <code>TextDecoder</code> instance.</p>
-<h4>textDecoder.fatal<span><a class="mark" href="#util_textdecoder_fatal" id="util_textdecoder_fatal">#</a></span></h4>
+<h3>textDecoder.fatal<span><a class="mark" href="#util_textdecoder_fatal" id="util_textdecoder_fatal">#</a></span></h3>
 <div class="signature"><ul>
-<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>The value will be <code>true</code> if decoding errors result in a <code>TypeError</code> being
 thrown.</p>
-<h4>textDecoder.ignoreBOM<span><a class="mark" href="#util_textdecoder_ignorebom" id="util_textdecoder_ignorebom">#</a></span></h4>
+<h3>textDecoder.ignoreBOM<span><a class="mark" href="#util_textdecoder_ignorebom" id="util_textdecoder_ignorebom">#</a></span></h3>
 <div class="signature"><ul>
-<li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>The value will be <code>true</code> if the decoding result will include the byte order
 mark.</p>
-<h3>Class: util.TextEncoder<span><a class="mark" href="#util_class_util_textencoder" id="util_class_util_textencoder">#</a></span></h3>
+<h2>Class: util.TextEncoder<span><a class="mark" href="#util_class_util_textencoder" id="util_class_util_textencoder">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All
-instances of <code>TextEncoder</code> only support <code>UTF-8</code> encoding.</p>
+instances of <code>TextEncoder</code> only support UTF-8 encoding.</p>
 <pre><code class="lang-js">const encoder = new TextEncoder();
 const uint8array = encoder.encode(&#39;this is some data&#39;);
 </code></pre>
-<h4>textEncoder.encode([input])<span><a class="mark" href="#util_textencoder_encode_input" id="util_textencoder_encode_input">#</a></span></h4>
+<h3>textEncoder.encode([input])<span><a class="mark" href="#util_textencoder_encode_input" id="util_textencoder_encode_input">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The text to encode. Defaults to an empty string.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 </ul>
-</div><p>UTF-8 Encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the
+</div><p>UTF-8 encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the
 encoded bytes.</p>
+<h3>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding_1" id="util_textdecoder_encoding_1">#</a></span></h3>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</div><p>The encoding supported by the <code>TextEncoder</code> instance. Always set to <code>&#39;utf-8&#39;</code>.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#util_deprecated_apis" id="util_deprecated_apis">#</a></span></h2>
 <p>The following APIs have been deprecated and should no longer be used. Existing
 applications and modules should be updated to find alternative approaches.</p>

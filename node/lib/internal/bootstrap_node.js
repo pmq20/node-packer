@@ -291,6 +291,7 @@
         return console;
       }
     });
+    setupInspectorCommandLineAPI();
   }
 
   function installInspectorConsole(globalConsole) {
@@ -317,6 +318,22 @@
       wrappedConsole[key] = globalConsole[key];
     }
     return wrappedConsole;
+  }
+
+  function setupInspectorCommandLineAPI() {
+    const { addCommandLineAPI } = process.binding('inspector');
+    if (!addCommandLineAPI) return;
+
+    const Module = NativeModule.require('module');
+    const { makeRequireFunction } = NativeModule.require('internal/module');
+    const path = NativeModule.require('path');
+    const cwd = tryGetCwd(path);
+
+    const consoleAPIModule = new Module('<inspector console>');
+    consoleAPIModule.paths =
+        Module._nodeModulePaths(cwd).concat(Module.globalPaths);
+
+    addCommandLineAPI('require', makeRequireFunction(consoleAPIModule));
   }
 
   function setupProcessFatal() {
@@ -490,6 +507,11 @@
   NativeModule._source = process.binding('natives');
   NativeModule._cache = {};
 
+  const config = process.binding('config');
+
+  if (!config.exposeHTTP2)
+    delete NativeModule._source.http2;
+
   NativeModule.require = function(id) {
     if (id === 'native_module') {
       return NativeModule;
@@ -527,8 +549,6 @@
   NativeModule.exists = function(id) {
     return NativeModule._source.hasOwnProperty(id);
   };
-
-  const config = process.binding('config');
 
   if (config.exposeInternals) {
     NativeModule.nonInternalExists = NativeModule.exists;

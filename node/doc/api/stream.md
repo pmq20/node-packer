@@ -1740,6 +1740,13 @@ constructor and implement *both* the `readable._read()` and
 `writable._write()` methods.
 
 #### new stream.Duplex(options)
+<!-- YAML
+changes:
+  - version: v8.4.0
+    pr-url: https://github.com/nodejs/node/pull/14636
+    description: The `readableHighWaterMark` and `writableHighWaterMark` options
+                 are supported now.
+-->
 
 * `options` {Object} Passed to both Writable and Readable
   constructors. Also has the following fields:
@@ -1752,6 +1759,10 @@ constructor and implement *both* the `readable._read()` and
   * `writableObjectMode` {boolean} Defaults to `false`. Sets `objectMode`
     for writable side of the stream. Has no effect if `objectMode`
     is `true`.
+  * `readableHighWaterMark` {number} Sets `highWaterMark` for the readable side
+    of the stream. Has no effect if `highWaterMark` is provided.
+  * `writableHighWaterMark` {number} Sets `highWaterMark` for the writable side
+    of the stream. Has no effect if `highWaterMark` is provided.
 
 For example:
 

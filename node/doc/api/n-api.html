@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.3.0 Documentation</title>
+  <title>N-API | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,6 +42,7 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
 <li><a class="nav-intl" href="intl.html">Internationalization</a></li>
@@ -78,7 +79,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.3.0 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -181,7 +182,10 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_functions_to_convert_from_c_types_to_n_api">Functions to convert from C types to N-API</a></span><ul>
-<li><span class="stability_undefined"><a href="#n_api_napi_create_number"><em>napi_create_number</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_int32"><em>napi_create_int32</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_uint32"><em>napi_create_uint32</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_int64"><em>napi_create_int64</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_double"><em>napi_create_double</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf16"><em>napi_create_string_utf16</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_latin1"><em>napi_create_string_latin1</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf8"><em>napi_create_string_utf8</em></a></span></li>
@@ -277,6 +281,7 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_version_management">Version Management</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_node_version">napi_get_node_version</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_version">napi_get_version</a></span></li>
 </ul>
 </li>
@@ -571,12 +576,14 @@ take an optional code parameter which is the string for the code
 to be added to the error object.  If the optional parameter is NULL
 then no code will be associated with the error. If a code is provided,
 the name associated with the error is also updated to be:</p>
-<pre><code>originalName [code]
-</code></pre><p>where originalName is the original name associated with the error
+<pre><code class="lang-text">originalName [code]
+</code></pre>
+<p>where originalName is the original name associated with the error
 and code is the code that was provided.  For example if the code
 is &#39;ERR_ERROR_1&#39; and a TypeError is being created the name will be:</p>
-<pre><code>TypeError [ERR_ERROR_1]
-</code></pre><h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
+<pre><code class="lang-text">TypeError [ERR_ERROR_1]
+</code></pre>
+<h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw(napi_env env, napi_value error);
@@ -1403,10 +1410,64 @@ size in bytes of the array passed in. If not, a RangeError exception is raised.<
 <p>JavaScript DataView Objects are described in
 <a href="https://tc39.github.io/ecma262/#sec-dataview-objects">Section 24.3</a> of the ECMAScript Language Specification.</p>
 <h3>Functions to convert from C types to N-API<span><a class="mark" href="#n_api_functions_to_convert_from_c_types_to_n_api" id="n_api_functions_to_convert_from_c_types_to_n_api">#</a></span></h3>
-<h4><em>napi_create_number</em><span><a class="mark" href="#n_api_napi_create_number" id="n_api_napi_create_number">#</a></span></h4>
+<h4><em>napi_create_int32</em><span><a class="mark" href="#n_api_napi_create_int32" id="n_api_napi_create_int32">#</a></span></h4>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_create_number(napi_env env, double value, napi_value* result)
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>int32_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_uint32</em><span><a class="mark" href="#n_api_napi_create_uint32" id="n_api_napi_create_uint32">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_uint32(napi_env env, uint32_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Unsigned integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>uint32_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_int64</em><span><a class="mark" href="#n_api_napi_create_int64" id="n_api_napi_create_int64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_int64(napi_env env, int64_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>int64_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification. Note the complete range of <code>int64_t</code>
+cannot be represented with full precision in JavaScript. Integer values
+outside the range of
+<a href="https://tc39.github.io/ecma262/#sec-number.min_safe_integer"><code>Number.MIN_SAFE_INTEGER</code></a>
+-(2^53 - 1) -
+<a href="https://tc39.github.io/ecma262/#sec-number.max_safe_integer"><code>Number.MAX_SAFE_INTEGER</code></a>
+(2^53 - 1) will lose precision.</p>
+<h4><em>napi_create_double</em><span><a class="mark" href="#n_api_napi_create_double" id="n_api_napi_create_double">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_double(napi_env env, double value, napi_value* result)
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -1414,7 +1475,7 @@ size in bytes of the array passed in. If not, a RangeError exception is raised.<
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API is used to convert from the C double type to the JavaScript
+<p>This API is used to convert from the C <code>double</code> type to the JavaScript
 Number type.</p>
 <p>The JavaScript Number type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
@@ -2042,7 +2103,7 @@ status = napi_create_object(env, &amp;obj);
 if (status != napi_ok) return status;
 
 // Create a napi_value for 123
-status = napi_create_number(env, 123, &amp;value);
+status = napi_create_int32(env, 123, &amp;value);
 if (status != napi_ok) return status;
 
 // obj.myProp = 123
@@ -2105,9 +2166,9 @@ if (status != napi_ok) return status;
 
 // Create napi_values for 123 and 456
 napi_value fooValue, barValue;
-status = napi_create_number(env, 123, &amp;fooValue);
+status = napi_create_int32(env, 123, &amp;fooValue);
 if (status != napi_ok) return status;
-status = napi_create_number(env, 456, &amp;barValue);
+status = napi_create_int32(env, 456, &amp;barValue);
 if (status != napi_ok) return status;
 
 // Set the properties
@@ -2495,7 +2556,7 @@ status = napi_get_named_property(env, global, &quot;AddTwo&quot;, &amp;add_two);
 if (status != napi_ok) return;
 
 // const arg = 1337
-status = napi_create_number(env, 1337, &amp;arg);
+status = napi_create_int32(env, 1337, &amp;arg);
 if (status != napi_ok) return;
 
 napi_value* argv = &amp;arg;
@@ -2922,6 +2983,29 @@ the <code>complete</code> callback will be invoked with a status value of
 <code>napi_cancelled</code>. The work should not be deleted before the <code>complete</code>
 callback invocation, even if it has been successfully cancelled.</p>
 <h2>Version Management<span><a class="mark" href="#n_api_version_management" id="n_api_version_management">#</a></span></h2>
+<h3>napi_get_node_version<span><a class="mark" href="#n_api_napi_get_node_version" id="n_api_napi_get_node_version">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">typedef struct {
+  uint32_t major;
+  uint32_t minor;
+  uint32_t patch;
+  const char* release;
+} napi_node_version;
+
+NAPI_EXTERN
+napi_status napi_get_node_version(napi_env env,
+                                  const napi_node_version** version);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[out] version</code>: A pointer to version information for Node itself.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This function fills the <code>version</code> struct with the major, minor and patch version
+of Node that is currently running, and the <code>release</code> field with the
+value of <a href="process.html#process_process_release"><code>process.release.name</code></a>.</p>
+<p>The returned buffer is statically allocated and does not need to be freed.</p>
 <h3>napi_get_version<span><a class="mark" href="#n_api_napi_get_version" id="n_api_napi_get_version">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2947,6 +3031,8 @@ support it:</p>
 <li>If the function is not available, provide an alternate implementation
 that does not use the function.</li>
 </ul>
+<!-- it's very convenient to have all the anchors indexed -->
+<!--lint disable no-unused-definitions remark-lint-->
 
       </div>
     </div>

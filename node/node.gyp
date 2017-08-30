@@ -150,7 +150,7 @@
 
       'dependencies': [
         'node_js2c#host',
-        'deps/nghttp2/nghttp2.gyp:nghttp2'
+        'deps/nghttp2/nghttp2.gyp:nghttp2',
         'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
         'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
       ],

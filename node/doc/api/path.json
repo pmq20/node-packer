@@ -4,6 +4,7 @@
     {
       "textRaw": "Path",
       "name": "path",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>path</code> module provides utilities for working with file and directory paths.\nIt can be accessed using:</p>\n<pre><code class=\"lang-js\">const path = require(&#39;path&#39;);\n</code></pre>\n",

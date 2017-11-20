@@ -31,11 +31,12 @@ const typeParser = require('./type-parser.js');
 module.exports = toHTML;
 
 const STABILITY_TEXT_REG_EXP = /(.*:)\s*(\d)([\s\S]*)/;
+const DOC_CREATED_REG_EXP = /<!--\s*introduced_in\s*=\s*v([0-9]+)\.([0-9]+)\.([0-9]+)\s*-->/;
 
 // customized heading without id attribute
 const renderer = new marked.Renderer();
 renderer.heading = function(text, level) {
-  return '<h' + level + '>' + text + '</h' + level + '>\n';
+  return `<h${level}>${text}</h${level}>\n`;
 };
 marked.setOptions({
   renderer: renderer
@@ -52,13 +53,17 @@ const gtocPath = path.resolve(path.join(
 ));
 var gtocLoading = null;
 var gtocData = null;
+var docCreated = null;
+var nodeVersion = null;
 
 /**
  * opts: input, filename, template, nodeVersion.
  */
 function toHTML(opts, cb) {
   const template = opts.template;
-  const nodeVersion = opts.nodeVersion || process.version;
+
+  nodeVersion = opts.nodeVersion || process.version;
+  docCreated = opts.input.match(DOC_CREATED_REG_EXP);
 
   if (gtocData) {
     return onGtocLoaded();
@@ -102,7 +107,7 @@ function loadGtoc(cb) {
       if (err) return cb(err);
 
       data = marked(data).replace(/<a href="(.*?)"/gm, function(a, m) {
-        return '<a class="nav-' + toID(m) + '" href="' + m + '"';
+        return `<a class="nav-${toID(m)}" href="${m}"`;
       });
       return cb(null, data);
     });
@@ -147,7 +152,7 @@ function render(opts, cb) {
     template = template.replace(/__TOC__/g, toc);
     template = template.replace(
       /__GTOC__/g,
-      gtocData.replace('class="nav-' + id, 'class="nav-' + id + ' active')
+      gtocData.replace(`class="nav-${id}`, `class="nav-${id} active`)
     );
 
     if (opts.analytics) {
@@ -156,6 +161,8 @@ function render(opts, cb) {
         analyticsScript(opts.analytics)
       );
     }
+
+    template = template.replace(/__ALTDOCS__/, altDocs(filename));
 
     // content has to be the last thing we do with
     // the lexed tokens, because it's destructive.
@@ -186,6 +193,57 @@ function analyticsScript(analytics) {
 // replace placeholders in text tokens
 function replaceInText(text) {
   return linkJsTypeDocs(linkManPages(text));
+}
+
+function altDocs(filename) {
+  if (!docCreated) {
+    console.error(`Failed to add alternative version links to ${filename}`);
+    return '';
+  }
+
+  function lte(v) {
+    const ns = v.num.split('.');
+    if (docCreated[1] > +ns[0])
+      return false;
+    if (docCreated[1] < +ns[0])
+      return true;
+    return docCreated[2] <= +ns[1];
+  }
+
+  const versions = [
+    { num: '9.x' },
+    { num: '8.x', lts: true },
+    { num: '7.x' },
+    { num: '6.x', lts: true },
+    { num: '5.x' },
+    { num: '4.x', lts: true },
+    { num: '0.12.x' },
+    { num: '0.10.x' }
+  ];
+
+  const host = 'https://nodejs.org';
+  const href = (v) => `${host}/docs/latest-v${v.num}/api/${filename}.html`;
+
+  function li(v, i) {
+    let html = `<li><a href="${href(v)}">${v.num}`;
+
+    if (v.lts)
+      html += ' <b>LTS</b>';
+
+    return html + '</a></li>';
+  }
+
+  const lis = versions.filter(lte).map(li).join('\n');
+
+  if (!lis.length)
+    return '';
+
+  return `
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker">${lis}</ol>
+    </li>
+  `;
 }
 
 // handle general body-text replacements
@@ -400,7 +458,7 @@ function parseAPIHeader(text) {
 
   text = text.replace(
     STABILITY_TEXT_REG_EXP,
-    `<pre class="${classNames}"><a href="${docsUrl}">$1 $2</a>$3</pre>`
+    `<div class="${classNames}"><a href="${docsUrl}">$1 $2</a>$3</div>`
   );
   return text;
 }
@@ -443,8 +501,8 @@ function buildToc(lexed, filename, cb) {
     const realFilename = path.basename(realFilenames[0], '.md');
     const id = getId(realFilename + '_' + tok.text.trim());
     toc.push(new Array((depth - 1) * 2 + 1).join(' ') +
-             '* <span class="stability_' + tok.stability + '">' +
-             '<a href="#' + id + '">' + tok.text + '</a></span>');
+             `* <span class="stability_${tok.stability}">` +
+             `<a href="#${id}">${tok.text}</a></span>`);
     tok.text += '<span><a class="mark" href="#' + id + '" ' +
                 'id="' + id + '">#</a></span>';
   });

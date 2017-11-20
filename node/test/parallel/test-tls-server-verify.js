@@ -40,9 +40,8 @@ const assert = require('assert');
 const { spawn } = require('child_process');
 const { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } =
   require('crypto').constants;
-const fs = require('fs');
-const path = require('path');
 const tls = require('tls');
+const fixtures = require('../common/fixtures');
 
 const testCases =
   [{ title: 'Do not request certs. Everyone is unauthorized.',
@@ -128,14 +127,12 @@ const testCases =
    }
   ];
 
-
 function filenamePEM(n) {
-  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
+  return fixtures.path('keys', `${n}.pem`);
 }
 
-
 function loadPEM(n) {
-  return fs.readFileSync(filenamePEM(n));
+  return fixtures.readKey(`${n}.pem`);
 }
 
 
@@ -338,21 +335,19 @@ function runTest(port, testIndex) {
     port = server.address().port;
     if (tcase.debug) {
       console.error(`${prefix}TLS server running on port ${port}`);
+    } else if (tcase.renegotiate) {
+      runNextClient(0);
     } else {
-      if (tcase.renegotiate) {
-        runNextClient(0);
-      } else {
-        let clientsCompleted = 0;
-        for (let i = 0; i < tcase.clients.length; i++) {
-          runClient(`${prefix}${i} `, port, tcase.clients[i], function() {
-            clientsCompleted++;
-            if (clientsCompleted === tcase.clients.length) {
-              server.close();
-              successfulTests++;
-              runTest(port, nextTest++);
-            }
-          });
-        }
+      let clientsCompleted = 0;
+      for (let i = 0; i < tcase.clients.length; i++) {
+        runClient(`${prefix}${i} `, port, tcase.clients[i], function() {
+          clientsCompleted++;
+          if (clientsCompleted === tcase.clients.length) {
+            server.close();
+            successfulTests++;
+            runTest(port, nextTest++);
+          }
+        });
       }
     }
   });

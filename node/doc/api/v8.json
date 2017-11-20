@@ -4,6 +4,7 @@
     {
       "textRaw": "V8",
       "name": "v8",
+      "introduced_in": "v4.0.0",
       "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>\n",
       "methods": [
         {

@@ -4,6 +4,7 @@
     {
       "textRaw": "URL",
       "name": "url",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>url</code> module provides utilities for URL resolution and parsing. It can be\naccessed using:</p>\n<pre><code class=\"lang-js\">const url = require(&#39;url&#39;);\n</code></pre>\n",

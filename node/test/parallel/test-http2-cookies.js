@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -11,7 +10,8 @@ const server = h2.createServer();
 
 const setCookie = [
   'a=b',
-  'c=d; Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly'
+  'c=d; Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly',
+  'e=f'
 ];
 
 // we use the lower-level API here
@@ -19,11 +19,8 @@ server.on('stream', common.mustCall(onStream));
 
 function onStream(stream, headers, flags) {
 
-  assert(Array.isArray(headers.abc));
-  assert.strictEqual(headers.abc.length, 3);
-  assert.strictEqual(headers.abc[0], '1');
-  assert.strictEqual(headers.abc[1], '2');
-  assert.strictEqual(headers.abc[2], '3');
+  assert.strictEqual(typeof headers.abc, 'string');
+  assert.strictEqual(headers.abc, '1, 2, 3');
   assert.strictEqual(typeof headers.cookie, 'string');
   assert.strictEqual(headers.cookie, 'a=b; c=d; e=f');
 

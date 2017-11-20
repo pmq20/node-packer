@@ -61,11 +61,11 @@
               "displayName": "DEP0009: crypto.pbkdf2 without digest"
             },
             {
-              "textRaw": "DEP0013: fs async function without callback",
-              "name": "dep0013:_fs_async_function_without_callback",
+              "textRaw": "DEP0013: fs asynchronous function without callback",
+              "name": "dep0013:_fs_asynchronous_function_without_callback",
               "desc": "<p>Type: Runtime</p>\n<p>Calling an asynchronous function without a callback is deprecated.</p>\n<p><a id=\"DEP0014\"></a></p>\n",
               "type": "module",
-              "displayName": "DEP0013: fs async function without callback"
+              "displayName": "DEP0013: fs asynchronous function without callback"
             },
             {
               "textRaw": "DEP0014: fs.read legacy String interface",
@@ -189,7 +189,7 @@
             {
               "textRaw": "DEP0072: async_hooks.AsyncResource.triggerId()",
               "name": "dep0072:_async_hooks.asyncresource.triggerid()",
-              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0076\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0072: async_hooks.AsyncResource.triggerId()"
             }
@@ -243,7 +243,7 @@
             {
               "textRaw": "DEP0039: require.extensions",
               "name": "extensions",
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"globals.html#globals_require_extensions\"><code>require.extensions</code></a> property has been deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>\n"
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"modules.html#modules_require_extensions\"><code>require.extensions</code></a> property has been deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>\n"
             },
             {
               "textRaw": "DEP0042: tls.CryptoStream",
@@ -681,6 +681,28 @@
               "type": "method",
               "name": "triggerId",
               "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0072\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0076: tls.parseCertString()",
+              "type": "method",
+              "name": "parseCertString",
+              "desc": "<p>Type: Documentation-only</p>\n<p><code>tls.parseCertString()</code> is a trivial parsing helper that was made public by\nmistake. This function can usually be replaced with:</p>\n<pre><code class=\"lang-js\">const querystring = require(&#39;querystring&#39;);\nquerystring.parse(str, &#39;\\n&#39;, &#39;=&#39;);\n</code></pre>\n<p><em>Note</em>: This function is not completely equivalent to <code>querystring.parse()</code>. One\ndifference is that <code>querystring.parse()</code> does url decoding:</p>\n<pre><code class=\"lang-sh\">&gt; querystring.parse(&#39;%E5%A5%BD=1&#39;, &#39;\\n&#39;, &#39;=&#39;);\n{ &#39;好&#39;: &#39;1&#39; }\n&gt; tls.parseCertString(&#39;%E5%A5%BD=1&#39;);\n{ &#39;%E5%A5%BD&#39;: &#39;1&#39; }\n</code></pre>\n<p><a id=\"DEP0079\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0079: Custom inspection function on Objects via .inspect()",
+              "type": "method",
+              "name": "inspect",
+              "desc": "<p>Type: Documentation-only</p>\n<p>Using a property named <code>inspect</code> on an object to specify a custom inspection\nfunction for <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> is deprecated. Use <a href=\"util.html#util_util_inspect_custom\"><code>util.inspect.custom</code></a>\ninstead. For backwards compatibility with Node.js prior to version 6.4.0, both\nmay be specified.</p>\n",
               "signatures": [
                 {
                   "params": []

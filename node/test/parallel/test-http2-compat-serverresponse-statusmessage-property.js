@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -23,6 +22,7 @@ server.listen(0, common.mustCall(function() {
   server.once('request', common.mustCall(function(request, response) {
     response.on('finish', common.mustCall(function() {
       assert.strictEqual(response.statusMessage, '');
+      assert.strictEqual(response.statusMessage, ''); // only warn once
       server.close();
     }));
     response.end();

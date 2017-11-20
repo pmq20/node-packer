@@ -32,6 +32,7 @@ function assertPath(path) {
 // Resolves . and .. elements in a path with directory names
 function normalizeStringWin32(path, allowAboveRoot) {
   var res = '';
+  var lastSegmentLength = 0;
   var lastSlash = -1;
   var dots = 0;
   var code;
@@ -46,7 +47,7 @@ function normalizeStringWin32(path, allowAboveRoot) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
       } else if (lastSlash !== i - 1 && dots === 2) {
-        if (res.length < 2 ||
+        if (res.length < 2 || lastSegmentLength !== 2 ||
             res.charCodeAt(res.length - 1) !== 46/*.*/ ||
             res.charCodeAt(res.length - 2) !== 46/*.*/) {
           if (res.length > 2) {
@@ -57,16 +58,20 @@ function normalizeStringWin32(path, allowAboveRoot) {
                 break;
             }
             if (j !== start) {
-              if (j === -1)
+              if (j === -1) {
                 res = '';
-              else
+                lastSegmentLength = 0;
+              } else {
                 res = res.slice(0, j);
+                lastSegmentLength = j;
+              }
               lastSlash = i;
               dots = 0;
               continue;
             }
           } else if (res.length === 2 || res.length === 1) {
             res = '';
+            lastSegmentLength = 0;
             lastSlash = i;
             dots = 0;
             continue;
@@ -77,12 +82,14 @@ function normalizeStringWin32(path, allowAboveRoot) {
             res += '\\..';
           else
             res = '..';
+          lastSegmentLength = 2;
         }
       } else {
         if (res.length > 0)
           res += '\\' + path.slice(lastSlash + 1, i);
         else
           res = path.slice(lastSlash + 1, i);
+        lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
       dots = 0;
@@ -98,6 +105,7 @@ function normalizeStringWin32(path, allowAboveRoot) {
 // Resolves . and .. elements in a path with directory names
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = '';
+  var lastSegmentLength = 0;
   var lastSlash = -1;
   var dots = 0;
   var code;
@@ -112,7 +120,7 @@ function normalizeStringPosix(path, allowAboveRoot) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
       } else if (lastSlash !== i - 1 && dots === 2) {
-        if (res.length < 2 ||
+        if (res.length < 2 || lastSegmentLength !== 2 ||
             res.charCodeAt(res.length - 1) !== 46/*.*/ ||
             res.charCodeAt(res.length - 2) !== 46/*.*/) {
           if (res.length > 2) {
@@ -123,16 +131,20 @@ function normalizeStringPosix(path, allowAboveRoot) {
                 break;
             }
             if (j !== start) {
-              if (j === -1)
+              if (j === -1) {
                 res = '';
-              else
+                lastSegmentLength = 0;
+              } else {
                 res = res.slice(0, j);
+                lastSegmentLength = j;
+              }
               lastSlash = i;
               dots = 0;
               continue;
             }
           } else if (res.length === 2 || res.length === 1) {
             res = '';
+            lastSegmentLength = 0;
             lastSlash = i;
             dots = 0;
             continue;
@@ -143,12 +155,14 @@ function normalizeStringPosix(path, allowAboveRoot) {
             res += '/..';
           else
             res = '..';
+          lastSegmentLength = 2;
         }
       } else {
         if (res.length > 0)
           res += '/' + path.slice(lastSlash + 1, i);
         else
           res = path.slice(lastSlash + 1, i);
+        lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
       dots = 0;
@@ -441,17 +455,15 @@ const win32 = {
       } else {
         return '';
       }
+    } else if (isAbsolute) {
+      if (tail.length > 0)
+        return device + '\\' + tail;
+      else
+        return device + '\\';
+    } else if (tail.length > 0) {
+      return device + tail;
     } else {
-      if (isAbsolute) {
-        if (tail.length > 0)
-          return device + '\\' + tail;
-        else
-          return device + '\\';
-      } else if (tail.length > 0) {
-        return device + tail;
-      } else {
-        return device;
-      }
+      return device;
     }
   },
 

@@ -4,10 +4,18 @@
     {
       "textRaw": "Zlib",
       "name": "zlib",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>zlib</code> module provides compression functionality implemented using Gzip and\nDeflate/Inflate. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const zlib = require(&#39;zlib&#39;);\n</code></pre>\n<p>Compressing or decompressing a stream (such as a file) can be accomplished by\npiping the source stream data through a <code>zlib</code> stream into a destination stream:</p>\n<pre><code class=\"lang-js\">const gzip = zlib.createGzip();\nconst fs = require(&#39;fs&#39;);\nconst inp = fs.createReadStream(&#39;input.txt&#39;);\nconst out = fs.createWriteStream(&#39;input.txt.gz&#39;);\n\ninp.pipe(gzip).pipe(out);\n</code></pre>\n<p>It is also possible to compress or decompress data in a single step:</p>\n<pre><code class=\"lang-js\">const input = &#39;.................................&#39;;\nzlib.deflate(input, (err, buffer) =&gt; {\n  if (!err) {\n    console.log(buffer.toString(&#39;base64&#39;));\n  } else {\n    // handle error\n  }\n});\n\nconst buffer = Buffer.from(&#39;eJzT0yMAAGTvBe8=&#39;, &#39;base64&#39;);\nzlib.unzip(buffer, (err, buffer) =&gt; {\n  if (!err) {\n    console.log(buffer.toString());\n  } else {\n    // handle error\n  }\n});\n</code></pre>\n",
       "modules": [
+        {
+          "textRaw": "Threadpool Usage",
+          "name": "threadpool_usage",
+          "desc": "<p>Note that all zlib APIs except those that are explicitly synchronous use libuv&#39;s\nthreadpool, which can have surprising and negative performance implications for\nsome applications, see the <a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more\ninformation.</p>\n",
+          "type": "module",
+          "displayName": "Threadpool Usage"
+        },
         {
           "textRaw": "Compressing HTTP requests and responses",
           "name": "compressing_http_requests_and_responses",
@@ -1126,7 +1134,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n<p><em>Note</em>: The zlib library rejects requests for 256-byte windows (i.e.,\n<code>{ windowBits: 8 }</code> in <code>options</code>). An <code>Error</code> will be thrown when creating\na <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with this specific value of the <code>windowBits</code> option.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n<p><em>Note</em>: An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when windowBits\nis set to 8 for raw deflate streams. zlib would automatically set windowBits\nto 9 if was initially set to 8. Newer versions of zlib will throw an exception,\nso Node.js restored the original behavior of upgrading a value of 8 to 9,\nsince passing <code>windowBits = 9</code> to zlib actually results in a compressed stream\nthat effectively uses an 8-bit window only.</p>\n",
           "signatures": [
             {
               "params": [

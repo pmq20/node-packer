@@ -20,10 +20,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "node_constants.h"
-#include "env.h"
-#include "env-inl.h"
+#include "node_internals.h"
 
-#include "uv.h"
 #include "zlib.h"
 
 #include <errno.h>
@@ -1087,6 +1085,11 @@ void DefineSystemConstants(Local<Object> target) {
   NODE_DEFINE_CONSTANT(target, O_SYNC);
 #endif
 
+#ifdef O_DSYNC
+  NODE_DEFINE_CONSTANT(target, O_DSYNC);
+#endif
+
+
 #ifdef O_SYMLINK
   NODE_DEFINE_CONSTANT(target, O_SYMLINK);
 #endif
@@ -1162,10 +1165,6 @@ void DefineSystemConstants(Local<Object> target) {
 #ifdef X_OK
   NODE_DEFINE_CONSTANT(target, X_OK);
 #endif
-}
-
-void DefineUVConstants(Local<Object> target) {
-  NODE_DEFINE_CONSTANT(target, UV_UDP_REUSEADDR);
 }
 
 void DefineCryptoConstants(Local<Object> target) {
@@ -1290,11 +1289,14 @@ void DefineConstants(v8::Isolate* isolate, Local<Object> target) {
   DefineErrnoConstants(err_constants);
   DefineWindowsErrorConstants(err_constants);
   DefineSignalConstants(sig_constants);
-  DefineUVConstants(os_constants);
   DefineSystemConstants(fs_constants);
   DefineOpenSSLConstants(crypto_constants);
   DefineCryptoConstants(crypto_constants);
   DefineZlibConstants(zlib_constants);
+
+  // Define libuv constants.
+  NODE_DEFINE_CONSTANT(os_constants, UV_UDP_REUSEADDR);
+  NODE_DEFINE_CONSTANT(fs_constants, UV_FS_COPYFILE_EXCL);
 
   os_constants->Set(OneByteString(isolate, "errno"), err_constants);
   os_constants->Set(OneByteString(isolate, "signals"), sig_constants);

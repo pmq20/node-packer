@@ -4,6 +4,7 @@
     {
       "textRaw": "Query String",
       "name": "querystring",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>querystring</code> module provides utilities for parsing and formatting URL\nquery strings. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const querystring = require(&#39;querystring&#39;);\n</code></pre>\n",

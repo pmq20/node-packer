@@ -30,6 +30,7 @@
 | `test/*` | @nodejs/testing |
 | `tools/eslint`, `.eslintrc` | @not-an-aardvark, @silverwind, @trott |
 | async_hooks | @nodejs/async_hooks for bugs/reviews (+ @nodejs/diagnostics for API) |
+| build | @nodejs/build |
 | performance | @nodejs/performance |
 | platform specific | @nodejs/platform-{aix,arm,freebsd,macos,ppc,smartos,s390,windows} |
 | python code | @nodejs/python |
@@ -39,7 +40,7 @@
 | upgrading npm | @fishrock123, @MylesBorins |
 | upgrading V8 | @nodejs/v8, @nodejs/post-mortem |
 
-When things need extra attention, are controversial, or `semver-major`: @nodejs/ctc
+When things need extra attention, are controversial, or `semver-major`: @nodejs/tsc
 
 If you cannot find who to cc for a file, `git shortlog -n -s <file>` may help.
 
@@ -66,7 +67,7 @@ Please use these when possible / appropriate
 * `confirmed-bug` - Bugs you have verified exist
 * `discuss` - Things that need larger discussion
 * `feature request` - Any issue that requests a new feature (usually not PRs)
-* `good first contribution` - Issues suitable for newcomers to process
+* `good first issue` - Issues suitable for newcomers to process
 
 --
 

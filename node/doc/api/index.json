@@ -193,6 +193,16 @@
     },
     {
       "type": "text",
+      "text": "[ECMAScript Modules](esm.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[Errors](errors.html)"
     },
     {
@@ -314,6 +324,16 @@
     {
       "type": "text",
       "text": "[Path](path.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
+      "text": "[Performance Hooks](perf_hooks.html)"
     },
     {
       "type": "list_item_end"

@@ -1,5 +1,6 @@
 # Process
 
+<!-- introduced_in=v0.10.0 -->
 <!-- type=global -->
 
 The `process` object is a `global` that provides information about, and control
@@ -89,10 +90,13 @@ message sent by a parent process using [`childprocess.send()`][] is received by
 the child process.
 
 The listener callback is invoked with the following arguments:
-* `message` {Object} a parsed JSON object or primitive value
+* `message` {Object} a parsed JSON object or primitive value.
 * `sendHandle` {Handle object} a [`net.Socket`][] or [`net.Server`][] object, or
   undefined.
 
+*Note*: The message goes through JSON serialization and parsing. The resulting
+message might not be the same as what is originally sent. See notes in
+[the `JSON.stringify()` specification][`JSON.stringify` spec].
 
 ### Event: 'rejectionHandled'
 <!-- YAML
@@ -398,7 +402,7 @@ It is important to take note of the following:
    called asynchronously and therefore unable to correct the underlying problem.
 
 *Note*: Windows does not support sending signals, but Node.js offers some
-emulation with [`process.kill()`][], and [`ChildProcess.kill()`][]. Sending
+emulation with [`process.kill()`][], and [`subprocess.kill()`][]. Sending
 signal `0` can be used to test for the existence of a process. Sending `SIGINT`,
 `SIGTERM`, and `SIGKILL` cause the unconditional termination of the target
 process.
@@ -1392,7 +1396,11 @@ tarball.
   compiling Node.js native add-ons. _This property is only present on Windows
   builds of Node.js and will be missing on all other platforms._
 * `lts` {string} a string label identifying the [LTS][] label for this release.
-  If the Node.js release is not an LTS release, this will be `undefined`.
+  This property only exists for LTS releases and is `undefined` for all other
+  release types, including _Current_ releases.  Currently the valid values are:
+  - `'Argon'` for the v4.x LTS line beginning with v4.2.0.
+  - `'Boron'` for the v6.x LTS line beginning with v6.9.0.
+  - `'Carbon'` for the v8.x LTS line beginning with v8.9.1.
 
 For example:
 
@@ -1429,8 +1437,9 @@ used to send messages to the parent process. Messages will be received as a
 If Node.js was not spawned with an IPC channel, `process.send()` will be
 `undefined`.
 
-*Note*: This function uses [`JSON.stringify()`][] internally to serialize the
-`message`.
+*Note*: The message goes through JSON serialization and parsing. The resulting
+message might not be the same as what is originally sent. See notes in
+[the `JSON.stringify()` specification][`JSON.stringify` spec].
 
 ## process.setegid(id)
 <!-- YAML
@@ -1629,11 +1638,11 @@ important ways:
    respectively.
 2. They cannot be closed ([`end()`][] will throw).
 3. They will never emit the [`'finish'`][] event.
-4. Writes may be synchronous depending on the what the stream is connected to
-   and whether the system is Windows or Unix:
-   - Files: *synchronous* on Windows and Linux
-   - TTYs (Terminals): *asynchronous* on Windows, *synchronous* on Unix
-   - Pipes (and sockets): *synchronous* on Windows, *asynchronous* on Unix
+4. Writes may be synchronous depending on what the stream is connected to
+   and whether the system is Windows or POSIX:
+   - Files: *synchronous* on Windows and POSIX
+   - TTYs (Terminals): *asynchronous* on Windows, *synchronous* on POSIX
+   - Pipes (and sockets): *synchronous* on Windows, *asynchronous* on POSIX
 
 These behaviors are partly for historical reasons, as changing them would
 create backwards incompatibility, but they are also expected by some users.
@@ -1816,7 +1825,7 @@ cases:
   options were set, but the port number chosen was invalid or unavailable.
 * `>128` **Signal Exits** - If Node.js receives a fatal signal such as
   `SIGKILL` or `SIGHUP`, then its exit code will be `128` plus the
-  value of the signal code.  This is a standard Unix practice, since
+  value of the signal code.  This is a standard POSIX practice, since
   exit codes are defined to be 7-bit integers, and signal exits set
   the high-order bit, and then contain the value of the signal code.
 
@@ -1826,13 +1835,13 @@ cases:
 [`'message'`]: child_process.html#child_process_event_message
 [`'rejectionHandled'`]: #process_event_rejectionhandled
 [`'uncaughtException'`]: #process_event_uncaughtexception
-[`ChildProcess.disconnect()`]: child_process.html#child_process_child_disconnect
-[`ChildProcess.kill()`]: child_process.html#child_process_child_kill_signal
-[`ChildProcess.send()`]: child_process.html#child_process_child_send_message_sendhandle_options_callback
+[`ChildProcess.disconnect()`]: child_process.html#child_process_subprocess_disconnect
+[`subprocess.kill()`]: child_process.html#child_process_subprocess_kill_signal
+[`ChildProcess.send()`]: child_process.html#child_process_subprocess_send_message_sendhandle_options_callback
 [`ChildProcess`]: child_process.html#child_process_class_childprocess
 [`Error`]: errors.html#errors_class_error
 [`EventEmitter`]: events.html#events_class_eventemitter
-[`JSON.stringify()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+[`JSON.stringify` spec]: https://tc39.github.io/ecma262/#sec-json.stringify
 [`console.error()`]: console.html#console_console_error_data_args
 [`console.log()`]: console.html#console_console_log_data_args
 [`end()`]: stream.html#stream_writable_end_chunk_encoding_callback
@@ -1850,11 +1859,11 @@ cases:
 [Cluster]: cluster.html
 [Duplex]: stream.html#stream_duplex_and_transform_streams
 [LTS]: https://github.com/nodejs/LTS/
+[note on process I/O]: process.html#process_a_note_on_process_i_o
+[process_emit_warning]: #process_process_emitwarning_warning_type_code_ctor
+[process_warning]: #process_event_warning
 [Readable]: stream.html#stream_readable_streams
 [Signal Events]: #process_signal_events
 [Stream compatibility]: stream.html#stream_compatibility_with_older_node_js_versions
 [TTY]: tty.html#tty_tty
 [Writable]: stream.html#stream_writable_streams
-[note on process I/O]: process.html#process_a_note_on_process_i_o
-[process_emit_warning]: #process_process_emitwarning_warning_type_code_ctor
-[process_warning]: #process_event_warning

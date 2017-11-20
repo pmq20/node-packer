@@ -19,17 +19,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "node.h"
 #include "node_buffer.h"
 #include "node_internals.h"
 #include "node_stat_watcher.h"
 
-#include "env.h"
-#include "env-inl.h"
 #include "req-wrap.h"
 #include "req-wrap-inl.h"
 #include "string_bytes.h"
-#include "util.h"
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -212,6 +208,7 @@ void After(uv_fs_t *req) {
       case UV_FS_FCHMOD:
       case UV_FS_CHOWN:
       case UV_FS_FCHOWN:
+      case UV_FS_COPYFILE:
         // These, however, don't.
         argc = 1;
         break;
@@ -502,6 +499,9 @@ static void InternalModuleReadFile(const FunctionCallbackInfo<Value>& args) {
 
   CHECK(args[0]->IsString());
   node::Utf8Value path(env->isolate(), args[0]);
+
+  if (strlen(*path) != path.length())
+    return;  // Contains a nul byte.
 
   uv_fs_t open_req;
   const int fd = uv_fs_open(loop, &open_req, *path, O_RDONLY, 0, nullptr);
@@ -991,6 +991,30 @@ static void Open(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+static void CopyFile(const FunctionCallbackInfo<Value>& args) {
+  Environment* env = Environment::GetCurrent(args);
+
+  if (!args[0]->IsString())
+    return TYPE_ERROR("src must be a string");
+  if (!args[1]->IsString())
+    return TYPE_ERROR("dest must be a string");
+  if (!args[2]->IsInt32())
+    return TYPE_ERROR("flags must be an int");
+
+  BufferValue src(env->isolate(), args[0]);
+  ASSERT_PATH(src)
+  BufferValue dest(env->isolate(), args[1]);
+  ASSERT_PATH(dest)
+  int flags = args[2]->Int32Value();
+
+  if (args[3]->IsObject()) {
+    ASYNC_DEST_CALL(copyfile, args[3], *dest, UTF8, *src, *dest, flags)
+  } else {
+    SYNC_DEST_CALL(copyfile, *src, *dest, *src, *dest, flags)
+  }
+}
+
+
 // Wrapper for write(2).
 //
 // bytesWritten = write(fd, buffer, offset, length, position, callback)
@@ -1458,6 +1482,7 @@ void InitFs(Local<Object> target,
   env->SetMethod(target, "writeBuffers", WriteBuffers);
   env->SetMethod(target, "writeString", WriteString);
   env->SetMethod(target, "realpath", RealPath);
+  env->SetMethod(target, "copyFile", CopyFile);
 
   env->SetMethod(target, "chmod", Chmod);
   env->SetMethod(target, "fchmod", FChmod);
@@ -1480,10 +1505,11 @@ void InitFs(Local<Object> target,
   Local<FunctionTemplate> fst =
       FunctionTemplate::New(env->isolate(), NewFSReqWrap);
   fst->InstanceTemplate()->SetInternalFieldCount(1);
-  env->SetProtoMethod(fst, "getAsyncId", AsyncWrap::GetAsyncId);
-  fst->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "FSReqWrap"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "FSReqWrap"),
-              fst->GetFunction());
+  AsyncWrap::AddWrapMethods(env, fst);
+  Local<String> wrapString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "FSReqWrap");
+  fst->SetClassName(wrapString);
+  target->Set(wrapString, fst->GetFunction());
 }
 
 }  // end namespace node

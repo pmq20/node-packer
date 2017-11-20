@@ -1,12 +1,13 @@
 'use strict';
+
 const common = require('../common');
 
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
-const fn = path.join(common.fixturesDir, 'elipses.txt');
-const rangeFile = path.join(common.fixturesDir, 'x.txt');
+const fn = fixtures.path('elipses.txt');
+const rangeFile = fixtures.path('x.txt');
 
 {
   let paused = false;
@@ -49,7 +50,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 {
-  const file = fs.createReadStream(fn, Object.create({encoding: 'utf8'}));
+  const file = fs.createReadStream(fn, Object.create({ encoding: 'utf8' }));
   file.length = 0;
   file.on('data', function(data) {
     assert.strictEqual(typeof data, 'string');
@@ -67,7 +68,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 {
-  const options = Object.create({bufferSize: 1, start: 1, end: 2});
+  const options = Object.create({ bufferSize: 1, start: 1, end: 2 });
   const file = fs.createReadStream(rangeFile, options);
   assert.strictEqual(file.start, 1);
   assert.strictEqual(file.end, 2);
@@ -81,7 +82,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 {
-  const options = Object.create({bufferSize: 1, start: 1});
+  const options = Object.create({ bufferSize: 1, start: 1 });
   const file = fs.createReadStream(rangeFile, options);
   assert.strictEqual(file.start, 1);
   file.data = '';
@@ -95,7 +96,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
 // https://github.com/joyent/node/issues/2320
 {
-  const options = Object.create({bufferSize: 1.23, start: 1});
+  const options = Object.create({ bufferSize: 1.23, start: 1 });
   const file = fs.createReadStream(rangeFile, options);
   assert.strictEqual(file.start, 1);
   file.data = '';
@@ -109,12 +110,12 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
 {
   assert.throws(function() {
-    fs.createReadStream(rangeFile, Object.create({start: 10, end: 2}));
+    fs.createReadStream(rangeFile, Object.create({ start: 10, end: 2 }));
   }, /"start" option must be <= "end" option/);
 }
 
 {
-  const options = Object.create({start: 0, end: 0});
+  const options = Object.create({ start: 0, end: 0 });
   const stream = fs.createReadStream(rangeFile, options);
   assert.strictEqual(stream.start, 0);
   assert.strictEqual(stream.end, 0);
@@ -139,7 +140,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 {
   let data = '';
   let file =
-    fs.createReadStream(rangeFile, Object.create({autoClose: false }));
+    fs.createReadStream(rangeFile, Object.create({ autoClose: false }));
   assert.strictEqual(file.autoClose, false);
   file.on('data', (chunk) => { data += chunk; });
   file.on('end', common.mustCall(function() {
@@ -153,7 +154,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
   function fileNext() {
     // This will tell us if the fd is usable again or not.
-    file = fs.createReadStream(null, Object.create({fd: file.fd, start: 0 }));
+    file = fs.createReadStream(null, Object.create({ fd: file.fd, start: 0 }));
     file.data = '';
     file.on('data', function(data) {
       file.data += data;
@@ -170,7 +171,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
 // Just to make sure autoClose won't close the stream because of error.
 {
-  const options = Object.create({fd: 13337, autoClose: false});
+  const options = Object.create({ fd: 13337, autoClose: false });
   const file = fs.createReadStream(null, options);
   file.on('data', common.mustNotCall());
   file.on('error', common.mustCall());

@@ -29,13 +29,13 @@ const net = require('net');
 const tls = require('tls');
 const util = require('util');
 const common = require('_tls_common');
-const StreamWrap = require('_stream_wrap').StreamWrap;
-const Buffer = require('buffer').Buffer;
+const { StreamWrap } = require('_stream_wrap');
+const { Buffer } = require('buffer');
 const debug = util.debuglog('tls');
-const Timer = process.binding('timer_wrap').Timer;
+const { Timer } = process.binding('timer_wrap');
 const tls_wrap = process.binding('tls_wrap');
-const TCP = process.binding('tcp_wrap').TCP;
-const Pipe = process.binding('pipe_wrap').Pipe;
+const { TCP } = process.binding('tcp_wrap');
+const { Pipe } = process.binding('pipe_wrap');
 const kDisableRenegotiation = Symbol('disable-renegotiation');
 
 function onhandshakestart() {
@@ -429,9 +429,8 @@ TLSSocket.prototype._init = function(socket, wrap) {
   var ssl = this._handle;
 
   // lib/net.js expect this value to be non-zero if write hasn't been flushed
-  // immediately
-  // TODO(indutny): revise this solution, it might be 1 before handshake and
-  // represent real writeQueueSize during regular writes.
+  // immediately. After the handshake is done this will represent the actual
+  // write queue size
   ssl.writeQueueSize = 1;
 
   this.server = options.server;
@@ -1050,7 +1049,7 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
   tls.convertALPNProtocols(options.ALPNProtocols, ALPN);
 
   var socket = new TLSSocket(options.socket, {
-    pipe: options.path && !options.port,
+    pipe: !!options.path,
     secureContext: context,
     isServer: false,
     requestCert: true,
@@ -1065,19 +1064,15 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
     socket.once('secureConnect', cb);
 
   if (!options.socket) {
-    var connect_opt;
-    if (options.path && !options.port) {
-      connect_opt = { path: options.path };
-    } else {
-      connect_opt = {
-        port: options.port,
-        host: options.host,
-        family: options.family,
-        localAddress: options.localAddress,
-        lookup: options.lookup
-      };
-    }
-    socket.connect(connect_opt, function() {
+    const connectOpt = {
+      path: options.path,
+      port: options.port,
+      host: options.host,
+      family: options.family,
+      localAddress: options.localAddress,
+      lookup: options.lookup
+    };
+    socket.connect(connectOpt, function() {
       socket._start();
     });
   }

@@ -28,8 +28,9 @@
 'use strict';
 
 const { debug, inherits } = require('util');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const EventEmitter = require('events');
+const { StringDecoder } = require('string_decoder');
 const {
   CSI,
   emitKeys,
@@ -46,7 +47,7 @@ const {
   kClearScreenDown
 } = CSI;
 
-const now = process.binding('timer_wrap').Timer.now;
+const { now } = process.binding('timer_wrap').Timer;
 
 const kHistorySize = 30;
 const kMincrlfDelay = 100;
@@ -58,7 +59,6 @@ const ESCAPE_DECODER = Symbol('escape-decoder');
 
 // GNU readline library - keyseq-timeout is 500ms (default)
 const ESCAPE_CODE_TIMEOUT = 500;
-
 
 function createInterface(input, output, completer, terminal) {
   return new Interface(input, output, completer, terminal);
@@ -126,9 +126,11 @@ function Interface(input, output, completer, terminal) {
 
   // Check arity, 2 - for async, 1 for sync
   if (typeof completer === 'function') {
-    this.completer = completer.length === 2 ? completer : function(v, cb) {
-      cb(null, completer(v));
-    };
+    this.completer = completer.length === 2 ?
+      completer :
+      function completerWrapper(v, cb) {
+        cb(null, completer(v));
+      };
   }
 
   this.setPrompt(prompt);
@@ -171,16 +173,23 @@ function Interface(input, output, completer, terminal) {
   }
 
   if (!this.terminal) {
-    input.on('data', ondata);
-    input.on('end', onend);
-    self.once('close', function() {
+    function onSelfCloseWithoutTerminal() {
       input.removeListener('data', ondata);
       input.removeListener('end', onend);
-    });
-    var StringDecoder = require('string_decoder').StringDecoder; // lazy load
-    this._decoder = new StringDecoder('utf8');
+    }
 
+    input.on('data', ondata);
+    input.on('end', onend);
+    self.once('close', onSelfCloseWithoutTerminal);
+    this._decoder = new StringDecoder('utf8');
   } else {
+    function onSelfCloseWithTerminal() {
+      input.removeListener('keypress', onkeypress);
+      input.removeListener('end', ontermend);
+      if (output !== null && output !== undefined) {
+        output.removeListener('resize', onresize);
+      }
+    }
 
     emitKeypressEvents(input, this);
 
@@ -203,13 +212,7 @@ function Interface(input, output, completer, terminal) {
     if (output !== null && output !== undefined)
       output.on('resize', onresize);
 
-    self.once('close', function() {
-      input.removeListener('keypress', onkeypress);
-      input.removeListener('end', ontermend);
-      if (output !== null && output !== undefined) {
-        output.removeListener('resize', onresize);
-      }
-    });
+    self.once('close', onSelfCloseWithTerminal);
   }
 
   input.resume();
@@ -451,7 +454,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
   var self = this;
 
   self.pause();
-  self.completer(self.line.slice(0, self.cursor), function(err, rv) {
+  self.completer(self.line.slice(0, self.cursor), function onComplete(err, rv) {
     self.resume();
 
     if (err) {
@@ -465,7 +468,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
       // Apply/show completions.
       if (lastKeypressWasTab) {
         self._writeToOutput('\r\n');
-        var width = completions.reduce(function(a, b) {
+        var width = completions.reduce(function completionReducer(a, b) {
           return a.length > b.length ? a : b;
         }).length + 2;  // 2 space padding
         var maxColumns = Math.floor(self.columns / width);
@@ -486,7 +489,9 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
       }
 
       // If there is a common prefix to all matches, then apply that portion.
-      var f = completions.filter(function(e) { if (e) return e; });
+      var f = completions.filter(function completionFilter(e) {
+        if (e) return e;
+      });
       var prefix = commonPrefix(f);
       if (prefix.length > completeOn.length) {
         self._insertString(prefix.slice(completeOn.length));
@@ -683,7 +688,7 @@ Interface.prototype._getDisplayPos = function(str) {
   }
   var cols = offset % col;
   var rows = row + (offset - cols) / col;
-  return {cols: cols, rows: rows};
+  return { cols: cols, rows: rows };
 };
 
 
@@ -702,7 +707,7 @@ Interface.prototype._getCursorPos = function() {
     rows++;
     cols = 0;
   }
-  return {cols: cols, rows: rows};
+  return { cols: cols, rows: rows };
 };
 
 
@@ -979,7 +984,6 @@ Interface.prototype._ttyWrite = function(s, key) {
 
 function emitKeypressEvents(stream, iface) {
   if (stream[KEYPRESS_DECODER]) return;
-  var StringDecoder = require('string_decoder').StringDecoder; // lazy load
   stream[KEYPRESS_DECODER] = new StringDecoder('utf8');
 
   stream[ESCAPE_DECODER] = emitKeys(stream);

@@ -8,11 +8,12 @@ const fs = require('fs');
 
 const file = path.join(path.resolve(__dirname, '../fixtures'), 'alice.html');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   requests: [100, 1000, 10000, 100000],
   streams: [100, 200, 1000],
-  clients: [1, 2]
-}, { flags: ['--expose-http2', '--no-warnings'] });
+  clients: [1, 2],
+  benchmarker: ['h2load']
+}, { flags: ['--no-warnings', '--expose-http2'] });
 
 function main(conf) {
   const n = +conf.requests;

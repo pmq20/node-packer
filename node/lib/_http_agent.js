@@ -25,8 +25,8 @@ const net = require('net');
 const util = require('util');
 const EventEmitter = require('events');
 const debug = util.debuglog('http');
-const async_id_symbol = process.binding('async_wrap').async_id_symbol;
-const nextTick = require('internal/process/next_tick').nextTick;
+const { async_id_symbol } = process.binding('async_wrap');
+const { nextTick } = require('internal/process/next_tick');
 
 // New Agent code.
 
@@ -131,6 +131,9 @@ Agent.prototype.getName = function getName(options) {
   if (options.family === 4 || options.family === 6)
     name += ':' + options.family;
 
+  if (options.socketPath)
+    name += ':' + options.socketPath;
+
   return name;
 };
 
@@ -147,6 +150,8 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
 
   options = util._extend({}, options);
   util._extend(options, this.options);
+  if (options.socketPath)
+    options.path = options.socketPath;
 
   if (!options.servername) {
     options.servername = options.host;
@@ -199,6 +204,8 @@ Agent.prototype.createSocket = function createSocket(req, options, cb) {
   var self = this;
   options = util._extend({}, options);
   util._extend(options, self.options);
+  if (options.socketPath)
+    options.path = options.socketPath;
 
   if (!options.servername) {
     options.servername = options.host;

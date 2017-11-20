@@ -5,8 +5,7 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 const tls = require('tls');
 
 const tick = require('./tick');
@@ -21,12 +20,12 @@ hooks.enable();
 //
 const server = tls
   .createServer({
-    cert: fs.readFileSync(path.join(common.fixturesDir, 'test_cert.pem')),
-    key: fs.readFileSync(path.join(common.fixturesDir, 'test_key.pem'))
+    cert: fixtures.readSync('test_cert.pem'),
+    key: fixtures.readSync('test_key.pem')
   })
   .on('listening', common.mustCall(onlistening))
   .on('secureConnection', common.mustCall(onsecureConnection))
-  .listen(common.PORT);
+  .listen(0);
 
 let svr, client;
 function onlistening() {
@@ -34,7 +33,7 @@ function onlistening() {
   // Creating client and connecting it to server
   //
   tls
-    .connect(common.PORT, { rejectUnauthorized: false })
+    .connect(server.address().port, { rejectUnauthorized: false })
     .on('secureConnect', common.mustCall(onsecureConnect));
 
   const as = hooks.activitiesOfTypes('TLSWRAP');
@@ -92,6 +91,10 @@ function onsecureConnect() {
     // TODO: why is client not destroyed here even after 5 ticks?
     // or could it be that it isn't actually destroyed until
     // the server is closed?
+    if (client.before.length < 3) {
+      tick(5, tick1);
+      return;
+    }
     checkInvocations(client, { init: 1, before: 3, after: 3 },
                      'client: when client destroyed');
     //

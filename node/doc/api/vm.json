@@ -4,6 +4,7 @@
     {
       "textRaw": "VM (Executing JavaScript)",
       "name": "vm",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const vm = require(&#39;vm&#39;);\n</code></pre>\n<p>JavaScript code can be compiled and run immediately or compiled, saved, and run\nlater.</p>\n<p><em>Note</em>: The vm module is not a security mechanism.\n<strong>Do not use it to run untrusted code</strong>.</p>\n",
@@ -190,7 +191,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Runs the compiled code contained by the <code>vm.Script</code> object within the given\n<code>contextifiedSandbox</code> and returns the result. Running code does not have access\nto local scope.</p>\n<p>The following example compiles code that increments a global variable, sets\nthe value of another global variable, then execute the code multiple times.\nThe globals are contained in the <code>sandbox</code> object.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nconst script = new vm.Script(&#39;count += 1; name = &quot;kitty&quot;;&#39;);\n\nconst context = new vm.createContext(sandbox);\nfor (let i = 0; i &lt; 10; ++i) {\n  script.runInContext(context);\n}\n\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 12, name: &#39;kitty&#39; }\n</code></pre>\n<p><em>Note</em>: Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new\nevent loops and corresponding threads being started, which have a non-zero\nperformance overhead.</p>\n"
+              "desc": "<p>Runs the compiled code contained by the <code>vm.Script</code> object within the given\n<code>contextifiedSandbox</code> and returns the result. Running code does not have access\nto local scope.</p>\n<p>The following example compiles code that increments a global variable, sets\nthe value of another global variable, then execute the code multiple times.\nThe globals are contained in the <code>sandbox</code> object.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = {\n  animal: &#39;cat&#39;,\n  count: 2\n};\n\nconst script = new vm.Script(&#39;count += 1; name = &quot;kitty&quot;;&#39;);\n\nconst context = vm.createContext(sandbox);\nfor (let i = 0; i &lt; 10; ++i) {\n  script.runInContext(context);\n}\n\nconsole.log(util.inspect(sandbox));\n\n// { animal: &#39;cat&#39;, count: 12, name: &#39;kitty&#39; }\n</code></pre>\n<p><em>Note</em>: Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new\nevent loops and corresponding threads being started, which have a non-zero\nperformance overhead.</p>\n"
             },
             {
               "textRaw": "script.runInNewContext([sandbox[, options]])",

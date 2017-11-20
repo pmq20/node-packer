@@ -44,15 +44,16 @@
 
 const internalModule = require('internal/module');
 const internalUtil = require('internal/util');
+const { isTypedArray } = require('internal/util/types');
 const util = require('util');
 const utilBinding = process.binding('util');
-const inherits = util.inherits;
+const { inherits } = util;
 const Stream = require('stream');
 const vm = require('vm');
 const path = require('path');
 const fs = require('fs');
-const Interface = require('readline').Interface;
-const Console = require('console').Console;
+const { Interface } = require('readline');
+const { Console } = require('console');
 const Module = require('module');
 const domain = require('domain');
 const debug = util.debuglog('repl');
@@ -700,7 +701,7 @@ const ARRAY_LENGTH_THRESHOLD = 1e6;
 function mayBeLargeObject(obj) {
   if (Array.isArray(obj)) {
     return obj.length > ARRAY_LENGTH_THRESHOLD ? ['length'] : null;
-  } else if (utilBinding.isTypedArray(obj)) {
+  } else if (isTypedArray(obj)) {
     return obj.length > ARRAY_LENGTH_THRESHOLD ? [] : null;
   }
 
@@ -973,9 +974,7 @@ function complete(line, callback) {
 
   // Will be called when all completionGroups are in place
   // Useful for async autocompletion
-  function completionGroupsLoaded(err) {
-    if (err) throw err;
-
+  function completionGroupsLoaded() {
     // Filter, sort (within each group), uniq and merge the completion groups.
     if (completionGroups.length && filter) {
       var newCompletionGroups = [];
@@ -1069,7 +1068,7 @@ REPLServer.prototype.parseREPLKeyword = function(keyword, rest) {
 
 REPLServer.prototype.defineCommand = function(keyword, cmd) {
   if (typeof cmd === 'function') {
-    cmd = {action: cmd};
+    cmd = { action: cmd };
   } else if (typeof cmd.action !== 'function') {
     throw new Error('Bad argument, "action" command must be a function');
   }
@@ -1239,13 +1238,16 @@ function defineDefaultCommands(repl) {
       try {
         var stats = fs.statSync(file);
         if (stats && stats.isFile()) {
+          this.editorMode = true;
+          REPLServer.super_.prototype.setPrompt.call(this, '');
           var data = fs.readFileSync(file, 'utf8');
           var lines = data.split('\n');
-          this.displayPrompt();
           for (var n = 0; n < lines.length; n++) {
             if (lines[n])
               this.write(`${lines[n]}\n`);
           }
+          this.turnOffEditorMode();
+          this.write('\n');
         } else {
           this.outputStream.write('Failed to load:' + file +
                                   ' is not a valid file\n');

@@ -4,6 +4,7 @@
     {
       "textRaw": "Events",
       "name": "Events",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "type": "module",

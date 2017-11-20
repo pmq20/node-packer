@@ -4,6 +4,7 @@
     {
       "textRaw": "Console",
       "name": "console",
+      "introduced_in": "v0.10.13",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>console</code> module provides a simple debugging console that is similar to the\nJavaScript console mechanism provided by web browsers.</p>\n<p>The module exports two specific components:</p>\n<ul>\n<li>A <code>Console</code> class with methods such as <code>console.log()</code>, <code>console.error()</code> and\n<code>console.warn()</code> that can be used to write to any Node.js stream.</li>\n<li>A global <code>console</code> instance configured to write to <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and\n<a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>.  The global <code>console</code> can be used without calling\n<code>require(&#39;console&#39;)</code>.</li>\n</ul>\n<p><strong><em>Warning</em></strong>: The global console object&#39;s methods are neither consistently\nsynchronous like the browser APIs they resemble, nor are they consistently\nasynchronous like all other Node.js streams. See the <a href=\"process.html#process_a_note_on_process_i_o\">note on process I/O</a> for\nmore information.</p>\n<p>Example using the global <code>console</code>:</p>\n<pre><code class=\"lang-js\">console.log(&#39;hello world&#39;);\n// Prints: hello world, to stdout\nconsole.log(&#39;hello %s&#39;, &#39;world&#39;);\n// Prints: hello world, to stdout\nconsole.error(new Error(&#39;Whoops, something bad happened&#39;));\n// Prints: [Error: Whoops, something bad happened], to stderr\n\nconst name = &#39;Will Robinson&#39;;\nconsole.warn(`Danger ${name}! Danger!`);\n// Prints: Danger Will Robinson! Danger!, to stderr\n</code></pre>\n<p>Example using the <code>Console</code> class:</p>\n<pre><code class=\"lang-js\">const out = getStreamSomehow();\nconst err = getStreamSomehow();\nconst myConsole = new console.Console(out, err);\n\nmyConsole.log(&#39;hello world&#39;);\n// Prints: hello world, to out\nmyConsole.log(&#39;hello %s&#39;, &#39;world&#39;);\n// Prints: hello world, to out\nmyConsole.error(new Error(&#39;Whoops, something bad happened&#39;));\n// Prints: [Error: Whoops, something bad happened], to err\n\nconst name = &#39;Will Robinson&#39;;\nmyConsole.warn(`Danger ${name}! Danger!`);\n// Prints: Danger Will Robinson! Danger!, to err\n</code></pre>\n",
@@ -256,6 +257,72 @@
                 }
               ],
               "desc": "<p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the\nfirst used as the primary message and all additional used as substitution\nvalues similar to printf(3) (the arguments are all passed to\n<a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a>).</p>\n<pre><code class=\"lang-js\">const code = 5;\nconsole.error(&#39;error #%d&#39;, code);\n// Prints: error #5, to stderr\nconsole.error(&#39;error&#39;, code);\n// Prints: error 5, to stderr\n</code></pre>\n<p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then\n<a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> is called on each argument and the resulting string\nvalues are concatenated. See <a href=\"util.html#util_util_format_format_args\"><code>util.format()</code></a> for more information.</p>\n"
+            },
+            {
+              "textRaw": "console.group([...label])",
+              "type": "method",
+              "name": "group",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {any} ",
+                      "name": "label",
+                      "type": "any",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "...label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Increases indentation of subsequent lines by two spaces.</p>\n<p>If one or more <code>label</code>s are provided, those are printed first without the\nadditional indentation.</p>\n"
+            },
+            {
+              "textRaw": "console.groupCollapsed()",
+              "type": "method",
+              "name": "groupCollapsed",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>An alias for <a href=\"#console_console_group_label\"><code>console.group()</code></a>.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "console.groupEnd()",
+              "type": "method",
+              "name": "groupEnd",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Decreases indentation of subsequent lines by two spaces.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
             },
             {
               "textRaw": "console.info([data][, ...args])",

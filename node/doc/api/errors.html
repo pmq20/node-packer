@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Errors | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Errors | Node.js v8.9.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors active" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -79,13 +82,29 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.1 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="errors.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="errors.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/errors.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/errors.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/errors.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/errors.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/errors.html">5.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -101,11 +120,9 @@
 <li><span class="stability_undefined"><a href="#errors_class_error">Class: Error</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_new_error_message">new Error(message)</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_capturestacktrace_targetobject_constructoropt">Error.captureStackTrace(targetObject[, constructorOpt])</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span><ul>
+<li><span class="stability_undefined"><a href="#errors_error_stacktracelimit">Error.stackTraceLimit</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_code">error.code</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_error_message">error.message</a></span></li>
-</ul>
-</li>
 <li><span class="stability_undefined"><a href="#errors_error_stack">error.stack</a></span></li>
 </ul>
 </li>
@@ -130,28 +147,36 @@
 </li>
 <li><span class="stability_undefined"><a href="#errors_node_js_error_codes">Node.js Error Codes</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_err_arg_not_iterable">ERR_ARG_NOT_ITERABLE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_async_callback">ERR_ASYNC_CALLBACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_async_type">ERR_ASYNC_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_encoding_invalid_encoded_data">ERR_ENCODING_INVALID_ENCODED_DATA</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_encoding_not_supported">ERR_ENCODING_NOT_SUPPORTED</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_falsy_value_rejection">ERR_FALSY_VALUE_REJECTION</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http_headers_sent">ERR_HTTP_HEADERS_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_invalid_char">ERR_HTTP_INVALID_CHAR</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http_invalid_status_code">ERR_HTTP_INVALID_STATUS_CODE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http_trailer_invalid">ERR_HTTP_TRAILER_INVALID</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_connect_authority">ERR_HTTP2_CONNECT_AUTHORITY</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_connect_path">ERR_HTTP2_CONNECT_PATH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_connect_scheme">ERR_HTTP2_CONNECT_SCHEME</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_err_http2_error">ERR_HTTP2_ERROR</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_frame_error">ERR_HTTP2_FRAME_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_header_required">ERR_HTTP2_HEADER_REQUIRED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_header_single_value">ERR_HTTP2_HEADER_SINGLE_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_headers_after_respond">ERR_HTTP2_HEADERS_AFTER_RESPOND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_headers_object">ERR_HTTP2_HEADERS_OBJECT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_headers_sent">ERR_HTTP2_HEADERS_SENT</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_err_http2_header_single_value">ERR_HTTP2_HEADER_SINGLE_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_info_headers_after_respond">ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_info_status_not_allowed">ERR_HTTP2_INFO_STATUS_NOT_ALLOWED</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_connection_headers">ERR_HTTP2_INVALID_CONNECTION_HEADERS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_header_value">ERR_HTTP2_INVALID_HEADER_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_info_status">ERR_HTTP2_INVALID_INFO_STATUS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_packed_settings_length">ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_pseudoheader">ERR_HTTP2_INVALID_PSEUDOHEADER</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_session">ERR_HTTP2_INVALID_SESSION</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_setting_value">ERR_HTTP2_INVALID_SETTING_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_stream">ERR_HTTP2_INVALID_STREAM</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_max_pending_settings_ack">ERR_HTTP2_MAX_PENDING_SETTINGS_ACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_no_socket_manipulation">ERR_HTTP2_NO_SOCKET_MANIPULATION</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_out_of_streams">ERR_HTTP2_OUT_OF_STREAMS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_payload_forbidden">ERR_HTTP2_PAYLOAD_FORBIDDEN</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_pseudoheader_not_allowed">ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED</a></span></li>
@@ -166,11 +191,14 @@
 <li><span class="stability_undefined"><a href="#errors_err_http2_unsupported_protocol">ERR_HTTP2_UNSUPPORTED_PROTOCOL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_index_out_of_range">ERR_INDEX_OUT_OF_RANGE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_async_id">ERR_INVALID_ASYNC_ID</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_callback">ERR_INVALID_CALLBACK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_host">ERR_INVALID_FILE_URL_HOST</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_path">ERR_INVALID_FILE_URL_PATH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_handle_type">ERR_INVALID_HANDLE_TYPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_opt_value">ERR_INVALID_OPT_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_performance_mark">ERR_INVALID_PERFORMANCE_MARK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_invalid_protocol">ERR_INVALID_PROTOCOL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_sync_fork_input">ERR_INVALID_SYNC_FORK_INPUT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_this">ERR_INVALID_THIS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_tuple">ERR_INVALID_TUPLE</a></span></li>
@@ -181,18 +209,32 @@
 <li><span class="stability_undefined"><a href="#errors_err_ipc_one_pipe">ERR_IPC_ONE_PIPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_ipc_sync_fork">ERR_IPC_SYNC_FORK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_missing_args">ERR_MISSING_ARGS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_cons_function">ERR_NAPI_CONS_FUNCTION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_cons_prototype_object">ERR_NAPI_CONS_PROTOTYPE_OBJECT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_no_icu">ERR_NO_ICU</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_outofmemory">ERR_OUTOFMEMORY</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_already_bound">ERR_SOCKET_ALREADY_BOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_port">ERR_SOCKET_BAD_PORT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_type">ERR_SOCKET_BAD_TYPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_cannot_send">ERR_SOCKET_CANNOT_SEND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_socket_closed">ERR_SOCKET_CLOSED</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_dgram_not_running">ERR_SOCKET_DGRAM_NOT_RUNNING</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_stderr_close">ERR_STDERR_CLOSE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_stdout_close">ERR_STDOUT_CLOSE</a></span></li>
-<li><span class="stability_undefined"><a href="#errors_err_unknown_builtin_module">ERR_UNKNOWN_BUILTIN_MODULE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_cert_altname_invalid">ERR_TLS_CERT_ALTNAME_INVALID</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_dh_param_size">ERR_TLS_DH_PARAM_SIZE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_handshake_timeout">ERR_TLS_HANDSHAKE_TIMEOUT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_renegotiation_failed">ERR_TLS_RENEGOTIATION_FAILED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_required_server_name">ERR_TLS_REQUIRED_SERVER_NAME</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_tls_session_attack">ERR_TLS_SESSION_ATTACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_transform_already_transforming">ERR_TRANSFORM_ALREADY_TRANSFORMING</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_transform_with_length_0">ERR_TRANSFORM_WITH_LENGTH_0</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_unknown_signal">ERR_UNKNOWN_SIGNAL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_unknown_stdin_type">ERR_UNKNOWN_STDIN_TYPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_unknown_stream_type">ERR_UNKNOWN_STREAM_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_v8breakiterator">ERR_V8BREAKITERATOR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_valid_performance_entry_type">ERR_VALID_PERFORMANCE_ENTRY_TYPE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_value_out_of_range">ERR_VALUE_OUT_OF_RANGE</a></span></li>
 </ul>
 </li>
 </ul>
@@ -203,18 +245,25 @@
 
       <div id="apicontent">
         <h1>Errors<span><a class="mark" href="#errors_errors" id="errors_errors">#</a></span></h1>
+<!--introduced_in=v4.0.0-->
 <!--type=misc-->
 <p>Applications running in Node.js will generally experience four categories of
 errors:</p>
 <ul>
 <li>Standard JavaScript errors such as:<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError" class="type">&lt;EvalError&gt;</a> : thrown when a call to <code>eval()</code> fails.</li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError" class="type">&lt;SyntaxError&gt;</a> : thrown in response to improper JavaScript language
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError" class="type">&lt;EvalError&gt;</a> : thrown when a call to <code>eval()</code> fails.</li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError" class="type">&lt;SyntaxError&gt;</a> : thrown in response to improper JavaScript language
 syntax.</li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError" class="type">&lt;RangeError&gt;</a> : thrown when a value is not within an expected range</li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError" class="type">&lt;ReferenceError&gt;</a> : thrown when using undefined variables</li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError" class="type">&lt;TypeError&gt;</a> : thrown when passing arguments of the wrong type</li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError" class="type">&lt;URIError&gt;</a> : thrown when a global URI handling function is misused.</li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError" class="type">&lt;RangeError&gt;</a> : thrown when a value is not within an expected range</li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError" class="type">&lt;ReferenceError&gt;</a> : thrown when using undefined variables</li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError" class="type">&lt;TypeError&gt;</a> : thrown when passing arguments of the wrong type</li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError" class="type">&lt;URIError&gt;</a> : thrown when a global URI handling function is misused.</li>
 </ul>
 </li>
 <li>System errors triggered by underlying operating system constraints such
@@ -226,7 +275,8 @@ Node.js detects an exceptional logic violation that should never occur. These
 are raised typically by the <code>assert</code> module.</li>
 </ul>
 <p>All JavaScript and System errors raised by Node.js inherit from, or are
-instances of, the standard JavaScript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> class and are guaranteed
+instances of, the standard JavaScript 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> class and are guaranteed
 to provide <em>at least</em> the properties available on that class.</p>
 <h2>Error Propagation and Interception<span><a class="mark" href="#errors_error_propagation_and_interception" id="errors_error_propagation_and_interception">#</a></span></h2>
 <!--type=misc-->
@@ -367,11 +417,15 @@ intercepted.</p>
 circumstance of why the error occurred. <code>Error</code> objects capture a &quot;stack trace&quot;
 detailing the point in the code at which the <code>Error</code> was instantiated, and may
 provide a text description of the error.</p>
+<p>For crypto only, <code>Error</code> objects will include the OpenSSL error stack in a
+separate property called <code>opensslErrorStack</code> if it is available when the error
+is thrown.</p>
 <p>All errors generated by Node.js, including all System and JavaScript errors,
 will either be instances of, or inherit from, the <code>Error</code> class.</p>
 <h3>new Error(message)<span><a class="mark" href="#errors_new_error_message" id="errors_new_error_message">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>message</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the
 provided text message. If an object is passed as <code>message</code>, the text message
@@ -382,8 +436,10 @@ are dependent on <a href="https://github.com/v8/v8/wiki/Stack-Trace-API">V8&#39;
 given by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>
 <h3>Error.captureStackTrace(targetObject[, constructorOpt])<span><a class="mark" href="#errors_error_capturestacktrace_targetobject_constructoropt" id="errors_error_capturestacktrace_targetobject_constructoropt">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>targetObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-<li><code>constructorOpt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>targetObject</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>constructorOpt</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 </div><p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns
 a string representing the location in the code at which
@@ -409,7 +465,8 @@ new MyError().stack;
 </code></pre>
 <h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames
 collected by a stack trace (whether generated by <code>new Error().stack</code> or
@@ -418,15 +475,17 @@ collected by a stack trace (whether generated by <code>new Error().stack</code> 
 will affect any stack trace captured <em>after</em> the value has been changed.</p>
 <p>If set to a non-number value, or set to a negative number, stack traces will
 not capture any frames.</p>
-<h4>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h4>
+<h3>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.code</code> property is a string label that identifies the kind of error.
 See <a href="#nodejs-error-codes">Node.js Error Codes</a> for details about specific codes.</p>
-<h4>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h4>
+<h3>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.message</code> property is the string description of the error as set by
 calling <code>new Error(message)</code>. The <code>message</code> passed to the constructor will also
@@ -440,7 +499,8 @@ console.error(err.message);
 </code></pre>
 <h3>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.stack</code> property is a string describing the point in the code at which
 the <code>Error</code> was instantiated.</p>
@@ -582,13 +642,16 @@ added properties.</p>
 <h3>Class: System Error<span><a class="mark" href="#errors_class_system_error" id="errors_class_system_error">#</a></span></h3>
 <h4>error.code<span><a class="mark" href="#errors_error_code_1" id="errors_error_code_1">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.code</code> property is a string representing the error code, which is
 typically <code>E</code> followed by a sequence of capital letters.</p>
 <h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>The <code>error.errno</code> property is a number or a string.
 The number is a <strong>negative</strong> value which corresponds to the error code defined
@@ -597,24 +660,28 @@ in <a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handlin
 of a string, it is the same as <code>error.code</code>.</p>
 <h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.syscall</code> property is a string describing the <a href="http://man7.org/linux/man-pages/man2/syscall.2.html">syscall</a> that failed.</p>
 <h4>error.path<span><a class="mark" href="#errors_error_path" id="errors_error_path">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a
 string containing a relevant invalid pathname.</p>
 <h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a
 string describing the address to which the connection failed.</p>
 <h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number
 representing the connection&#39;s port that is not available.</p>
@@ -683,6 +750,22 @@ was not properly called.</p>
 <h3>ERR_ARG_NOT_ITERABLE<span><a class="mark" href="#errors_err_arg_not_iterable" id="errors_err_arg_not_iterable">#</a></span></h3>
 <p>Used generically to identify that an iterable argument (i.e. a value that works
 with <code>for...of</code> loops) is required, but not provided to a Node.js API.</p>
+<p><a id="ERR_ASYNC_CALLBACK"></a></p>
+<h3>ERR_ASYNC_CALLBACK<span><a class="mark" href="#errors_err_async_callback" id="errors_err_async_callback">#</a></span></h3>
+<p>Used with <code>AsyncHooks</code> to indicate an attempt of registering something that is
+not a function as a callback.</p>
+<p><a id="ERR_ASYNC_TYPE"></a></p>
+<h3>ERR_ASYNC_TYPE<span><a class="mark" href="#errors_err_async_type" id="errors_err_async_type">#</a></span></h3>
+<p>Used when the type of an asynchronous resource is invalid. Note that users are
+also able to define their own types when using the public embedder API.</p>
+<p><a id="ERR_ENCODING_INVALID_ENCODED_DATA"></a></p>
+<h3>ERR_ENCODING_INVALID_ENCODED_DATA<span><a class="mark" href="#errors_err_encoding_invalid_encoded_data" id="errors_err_encoding_invalid_encoded_data">#</a></span></h3>
+<p>Used by the <code>util.TextDecoder()</code> API when the data provided is invalid
+according to the encoding provided.</p>
+<p><a id="ERR_ENCODING_NOT_SUPPORTED"></a></p>
+<h3>ERR_ENCODING_NOT_SUPPORTED<span><a class="mark" href="#errors_err_encoding_not_supported" id="errors_err_encoding_not_supported">#</a></span></h3>
+<p>Used by the <code>util.TextDecoder()</code> API when the encoding provided is not one of
+the <a href="util.md#whatwg-supported-encodings">WHATWG Supported Encodings</a>.</p>
 <p><a id="ERR_FALSY_VALUE_REJECTION"></a></p>
 <h3>ERR_FALSY_VALUE_REJECTION<span><a class="mark" href="#errors_err_falsy_value_rejection" id="errors_err_falsy_value_rejection">#</a></span></h3>
 <p>Used by the <code>util.callbackify()</code> API when a callbackified <code>Promise</code> is rejected
@@ -691,6 +774,10 @@ with a falsy value (e.g. <code>null</code>).</p>
 <h3>ERR_HTTP_HEADERS_SENT<span><a class="mark" href="#errors_err_http_headers_sent" id="errors_err_http_headers_sent">#</a></span></h3>
 <p>Used when headers have already been sent and another attempt is made to add
 more headers.</p>
+<p><a id="ERR_HTTP_INVALID_CHAR"></a></p>
+<h3>ERR_HTTP_INVALID_CHAR<span><a class="mark" href="#errors_err_http_invalid_char" id="errors_err_http_invalid_char">#</a></span></h3>
+<p>Used when an invalid character is found in an HTTP response status message
+(reason phrase).</p>
 <p><a id="ERR_HTTP_INVALID_STATUS_CODE"></a></p>
 <h3>ERR_HTTP_INVALID_STATUS_CODE<span><a class="mark" href="#errors_err_http_invalid_status_code" id="errors_err_http_invalid_status_code">#</a></span></h3>
 <p>Used for status codes outside the regular status code ranges (100-999).</p>
@@ -708,25 +795,29 @@ is required.</p>
 forbidden.</p>
 <p><a id="ERR_HTTP2_CONNECT_SCHEME"></a></p>
 <h3>ERR_HTTP2_CONNECT_SCHEME<span><a class="mark" href="#errors_err_http2_connect_scheme" id="errors_err_http2_connect_scheme">#</a></span></h3>
-<p>The HTTP/2 requests using the <code>CONNECT</code> method, the <code>:scheme</code> pseudo-header is
+<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:scheme</code> pseudo-header is
 forbidden.</p>
-<p><a id="ERR_HTTP2_ERROR"></a></p>
-<h3>ERR_HTTP2_ERROR<span><a class="mark" href="#errors_err_http2_error" id="errors_err_http2_error">#</a></span></h3>
-<p>A non-specific HTTP/2 error has occurred.</p>
 <p><a id="ERR_HTTP2_FRAME_ERROR"></a></p>
 <h3>ERR_HTTP2_FRAME_ERROR<span><a class="mark" href="#errors_err_http2_frame_error" id="errors_err_http2_frame_error">#</a></span></h3>
 <p>Used when a failure occurs sending an individual frame on the HTTP/2
 session.</p>
+<p><a id="ERR_HTTP2_HEADER_REQUIRED"></a></p>
+<h3>ERR_HTTP2_HEADER_REQUIRED<span><a class="mark" href="#errors_err_http2_header_required" id="errors_err_http2_header_required">#</a></span></h3>
+<p>Used when a required header is missing in an HTTP/2 message.</p>
+<p><a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a></p>
+<h3>ERR_HTTP2_HEADER_SINGLE_VALUE<span><a class="mark" href="#errors_err_http2_header_single_value" id="errors_err_http2_header_single_value">#</a></span></h3>
+<p>Used when multiple values have been provided for an HTTP header field that
+required to have only a single value.</p>
+<p><a id="ERR_HTTP2_HEADERS_AFTER_RESPOND"></a></p>
+<h3>ERR_HTTP2_HEADERS_AFTER_RESPOND<span><a class="mark" href="#errors_err_http2_headers_after_respond" id="errors_err_http2_headers_after_respond">#</a></span></h3>
+<p>Used when trying to specify additional headers after an HTTP/2 response
+initiated.</p>
 <p><a id="ERR_HTTP2_HEADERS_OBJECT"></a></p>
 <h3>ERR_HTTP2_HEADERS_OBJECT<span><a class="mark" href="#errors_err_http2_headers_object" id="errors_err_http2_headers_object">#</a></span></h3>
 <p>Used when an HTTP/2 Headers Object is expected.</p>
 <p><a id="ERR_HTTP2_HEADERS_SENT"></a></p>
 <h3>ERR_HTTP2_HEADERS_SENT<span><a class="mark" href="#errors_err_http2_headers_sent" id="errors_err_http2_headers_sent">#</a></span></h3>
 <p>Used when an attempt is made to send multiple response headers.</p>
-<p><a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a></p>
-<h3>ERR_HTTP2_HEADER_SINGLE_VALUE<span><a class="mark" href="#errors_err_http2_header_single_value" id="errors_err_http2_header_single_value">#</a></span></h3>
-<p>Used when multiple values have been provided for an HTTP header field that
-required to have only a single value.</p>
 <p><a id="ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"></a></p>
 <h3>ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND<span><a class="mark" href="#errors_err_http2_info_headers_after_respond" id="errors_err_http2_info_headers_after_respond">#</a></span></h3>
 <p>HTTP/2 Informational headers must only be sent <em>prior</em> to calling the
@@ -747,6 +838,7 @@ requests and responses.</p>
 <p>An invalid HTTP informational status code has been specified. Informational
 status codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>
 <p><a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a></p>
+<h3>ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH<span><a class="mark" href="#errors_err_http2_invalid_packed_settings_length" id="errors_err_http2_invalid_packed_settings_length">#</a></span></h3>
 <p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the
 <code>http2.getUnpackedSettings()</code> API must have a length that is a multiple of
 six.</p>
@@ -772,6 +864,10 @@ required to send an acknowledgement that it has received and applied the new
 SETTINGS. By default, a maximum number of un-acknowledged <code>SETTINGS</code> frame may
 be sent at any given time. This error code is used when that limit has been
 reached.</p>
+<p><a id="ERR_HTTP2_NO_SOCKET_MANIPULATION"></a></p>
+<h3>ERR_HTTP2_NO_SOCKET_MANIPULATION<span><a class="mark" href="#errors_err_http2_no_socket_manipulation" id="errors_err_http2_no_socket_manipulation">#</a></span></h3>
+<p>Used when attempting to directly manipulate (e.g read, write, pause, resume,
+etc.) a socket attached to an <code>Http2Session</code>.</p>
 <p><a id="ERR_HTTP2_OUT_OF_STREAMS"></a></p>
 <h3>ERR_HTTP2_OUT_OF_STREAMS<span><a class="mark" href="#errors_err_http2_out_of_streams" id="errors_err_http2_out_of_streams">#</a></span></h3>
 <p>Used when the maximum number of streams on a single HTTP/2 session have been
@@ -827,6 +923,10 @@ made to mark a stream and dependent of itself.</p>
 <h3>ERR_INVALID_ARG_TYPE<span><a class="mark" href="#errors_err_invalid_arg_type" id="errors_err_invalid_arg_type">#</a></span></h3>
 <p>Used generically to identify that an argument of the wrong type has been passed
 to a Node.js API.</p>
+<p><a id="ERR_INVALID_ASYNC_ID"></a></p>
+<h3>ERR_INVALID_ASYNC_ID<span><a class="mark" href="#errors_err_invalid_async_id" id="errors_err_invalid_async_id">#</a></span></h3>
+<p>Used with <code>AsyncHooks</code> when an invalid <code>asyncId</code> or <code>triggerAsyncId</code> is passed.
+An id less than -1 should never happen.</p>
 <p><a id="ERR_INVALID_CALLBACK"></a></p>
 <h3>ERR_INVALID_CALLBACK<span><a class="mark" href="#errors_err_invalid_callback" id="errors_err_invalid_callback">#</a></span></h3>
 <p>Used generically to identify that a callback function is required and has not
@@ -852,6 +952,13 @@ communication channel to a child process. See <a href="child_process.html#child_
 <h3>ERR_INVALID_OPT_VALUE<span><a class="mark" href="#errors_err_invalid_opt_value" id="errors_err_invalid_opt_value">#</a></span></h3>
 <p>Used generically to identify when an invalid or unexpected value has been
 passed in an options object.</p>
+<p><a id="ERR_INVALID_PERFORMANCE_MARK"></a></p>
+<h3>ERR_INVALID_PERFORMANCE_MARK<span><a class="mark" href="#errors_err_invalid_performance_mark" id="errors_err_invalid_performance_mark">#</a></span></h3>
+<p>Used by the Performance Timing API (<code>perf_hooks</code>) when a performance mark is
+invalid.</p>
+<p><a id="ERR_INVALID_PROTOCOL"></a></p>
+<h3>ERR_INVALID_PROTOCOL<span><a class="mark" href="#errors_err_invalid_protocol" id="errors_err_invalid_protocol">#</a></span></h3>
+<p>Used when an invalid <code>options.protocol</code> is passed.</p>
 <p><a id="ERR_INVALID_SYNC_FORK_INPUT"></a></p>
 <h3>ERR_INVALID_SYNC_FORK_INPUT<span><a class="mark" href="#errors_err_invalid_sync_fork_input" id="errors_err_invalid_sync_fork_input">#</a></span></h3>
 <p>Used when a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code> is provided as stdio input to a
@@ -912,10 +1019,20 @@ only used in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> fo
 (which in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most
 native Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and
 the <a href="#ERR_INVALID_ARG_TYPE"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>
+<p><a id="ERR_NAPI_CONS_FUNCTION"></a></p>
+<h3>ERR_NAPI_CONS_FUNCTION<span><a class="mark" href="#errors_err_napi_cons_function" id="errors_err_napi_cons_function">#</a></span></h3>
+<p>Used by the <code>N-API</code> when a constructor passed is not a function.</p>
+<p><a id="ERR_NAPI_CONS_PROTOTYPE_OBJECT"></a></p>
+<h3>ERR_NAPI_CONS_PROTOTYPE_OBJECT<span><a class="mark" href="#errors_err_napi_cons_prototype_object" id="errors_err_napi_cons_prototype_object">#</a></span></h3>
+<p>Used by the <code>N-API</code> when <code>Constructor.prototype</code> is not an object.</p>
 <p><a id="ERR_NO_ICU"></a></p>
 <h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span></h3>
 <p>Used when an attempt is made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, while
 Node.js is not compiled with ICU support.</p>
+<p><a id="ERR_OUTOFMEMORY"></a></p>
+<h3>ERR_OUTOFMEMORY<span><a class="mark" href="#errors_err_outofmemory" id="errors_err_outofmemory">#</a></span></h3>
+<p>Used generically to identify that an operation caused an out of memory
+condition.</p>
 <p><a id="ERR_SOCKET_ALREADY_BOUND"></a></p>
 <h3>ERR_SOCKET_ALREADY_BOUND<span><a class="mark" href="#errors_err_socket_already_bound" id="errors_err_socket_already_bound">#</a></span></h3>
 <p>Used when an attempt is made to bind a socket that has already been bound.</p>
@@ -930,6 +1047,9 @@ invalid value.</p>
 <p><a id="ERR_SOCKET_CANNOT_SEND"></a></p>
 <h3>ERR_SOCKET_CANNOT_SEND<span><a class="mark" href="#errors_err_socket_cannot_send" id="errors_err_socket_cannot_send">#</a></span></h3>
 <p>Used when data cannot be sent on a socket.</p>
+<p><a id="ERR_SOCKET_CLOSED"></a></p>
+<h3>ERR_SOCKET_CLOSED<span><a class="mark" href="#errors_err_socket_closed" id="errors_err_socket_closed">#</a></span></h3>
+<p>Used when an attempt is made to operate on an already closed socket.</p>
 <p><a id="ERR_SOCKET_DGRAM_NOT_RUNNING"></a></p>
 <h3>ERR_SOCKET_DGRAM_NOT_RUNNING<span><a class="mark" href="#errors_err_socket_dgram_not_running" id="errors_err_socket_dgram_not_running">#</a></span></h3>
 <p>Used when a call is made and the UDP subsystem is not running.</p>
@@ -941,11 +1061,39 @@ Node.js does not allow <code>stdout</code> or <code>stderr</code> Streams to be 
 <h3>ERR_STDOUT_CLOSE<span><a class="mark" href="#errors_err_stdout_close" id="errors_err_stdout_close">#</a></span></h3>
 <p>Used when an attempt is made to close the <code>process.stdout</code> stream. By design,
 Node.js does not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
-<p><a id="ERR_UNKNOWN_BUILTIN_MODULE"></a></p>
-<h3>ERR_UNKNOWN_BUILTIN_MODULE<span><a class="mark" href="#errors_err_unknown_builtin_module" id="errors_err_unknown_builtin_module">#</a></span></h3>
-<p>Used to identify a specific kind of internal Node.js error that should not
-typically be triggered by user code. Instances of this error point to an
-internal bug within the Node.js binary itself.</p>
+<p><a id="ERR_TLS_CERT_ALTNAME_INVALID"></a></p>
+<h3>ERR_TLS_CERT_ALTNAME_INVALID<span><a class="mark" href="#errors_err_tls_cert_altname_invalid" id="errors_err_tls_cert_altname_invalid">#</a></span></h3>
+<p>Used with TLS, when the hostname/IP of the peer does not match any of the
+subjectAltNames in its certificate.</p>
+<p><a id="ERR_TLS_DH_PARAM_SIZE"></a></p>
+<h3>ERR_TLS_DH_PARAM_SIZE<span><a class="mark" href="#errors_err_tls_dh_param_size" id="errors_err_tls_dh_param_size">#</a></span></h3>
+<p>Used with TLS when the parameter offered for the Diffie-Hellman (<code>DH</code>)
+key-agreement protocol is too small. By default, the key length must be greater
+than or equal to 1024 bits to avoid vulnerabilities, even though it is strongly
+recommended to use 2048 bits or larger for stronger security.</p>
+<p><a id="ERR_TLS_HANDSHAKE_TIMEOUT"></a></p>
+<h3>ERR_TLS_HANDSHAKE_TIMEOUT<span><a class="mark" href="#errors_err_tls_handshake_timeout" id="errors_err_tls_handshake_timeout">#</a></span></h3>
+<p>A TLS error emitted by the server whenever a TLS/SSL handshake times out. In
+this case, the server must also abort the connection.</p>
+<p><a id="ERR_TLS_RENEGOTIATION_FAILED"></a></p>
+<h3>ERR_TLS_RENEGOTIATION_FAILED<span><a class="mark" href="#errors_err_tls_renegotiation_failed" id="errors_err_tls_renegotiation_failed">#</a></span></h3>
+<p>Used when a TLS renegotiation request has failed in a non-specific way.</p>
+<p><a id="ERR_TLS_REQUIRED_SERVER_NAME"></a></p>
+<h3>ERR_TLS_REQUIRED_SERVER_NAME<span><a class="mark" href="#errors_err_tls_required_server_name" id="errors_err_tls_required_server_name">#</a></span></h3>
+<p>Used with TLS, when calling the <code>server.addContext()</code> method without providing
+a hostname in the first parameter.</p>
+<p><a id="ERR_TLS_SESSION_ATTACK"></a></p>
+<h3>ERR_TLS_SESSION_ATTACK<span><a class="mark" href="#errors_err_tls_session_attack" id="errors_err_tls_session_attack">#</a></span></h3>
+<p>Used when an excessive amount of TLS renegotiations is detected, which is a
+potential vector for denial-of-service attacks.</p>
+<p><a id="ERR_TRANSFORM_ALREADY_TRANSFORMING"></a></p>
+<h3>ERR_TRANSFORM_ALREADY_TRANSFORMING<span><a class="mark" href="#errors_err_transform_already_transforming" id="errors_err_transform_already_transforming">#</a></span></h3>
+<p>Used in Transform streams when the stream finishes while it is still
+transforming.</p>
+<p><a id="ERR_TRANSFORM_WITH_LENGTH_0"></a></p>
+<h3>ERR_TRANSFORM_WITH_LENGTH_0<span><a class="mark" href="#errors_err_transform_with_length_0" id="errors_err_transform_with_length_0">#</a></span></h3>
+<p>Used in Transform streams when the stream finishes with data still in the write
+buffer.</p>
 <p><a id="ERR_UNKNOWN_SIGNAL"></a></p>
 <h3>ERR_UNKNOWN_SIGNAL<span><a class="mark" href="#errors_err_unknown_signal" id="errors_err_unknown_signal">#</a></span></h3>
 <p>Used when an invalid or unknown process signal is passed to an API expecting a
@@ -962,6 +1110,17 @@ an indication of a bug within Node.js itself.</p>
 <code>stdout</code> or <code>stderr</code> file type. Errors of this kind cannot <em>typically</em> be caused
 by errors in user code, although it is not impossible. Occurrences of this error
 are most likely an indication of a bug within Node.js itself.</p>
+<p><a id="ERR_V8BREAKITERATOR"></a></p>
+<h3>ERR_V8BREAKITERATOR<span><a class="mark" href="#errors_err_v8breakiterator" id="errors_err_v8breakiterator">#</a></span></h3>
+<p>Used when the V8 BreakIterator API is used but the full ICU data set is not
+installed.</p>
+<p><a id="ERR_VALID_PERFORMANCE_ENTRY_TYPE"></a></p>
+<h3>ERR_VALID_PERFORMANCE_ENTRY_TYPE<span><a class="mark" href="#errors_err_valid_performance_entry_type" id="errors_err_valid_performance_entry_type">#</a></span></h3>
+<p>Used by the Performance Timing API (<code>perf_hooks</code>) when no valid performance
+entry types were found.</p>
+<p><a id="ERR_VALUE_OUT_OF_RANGE"></a></p>
+<h3>ERR_VALUE_OUT_OF_RANGE<span><a class="mark" href="#errors_err_value_out_of_range" id="errors_err_value_out_of_range">#</a></span></h3>
+<p>Used when a given value is out of the accepted range.</p>
 
       </div>
     </div>

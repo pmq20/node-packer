@@ -4,8 +4,11 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "node_http2_core-inl.h"
+#include "node_http2_state.h"
 #include "stream_base-inl.h"
 #include "string_bytes.h"
+
+#include <queue>
 
 namespace node {
 namespace http2 {
@@ -16,6 +19,10 @@ using v8::EscapableHandleScope;
 using v8::Isolate;
 using v8::MaybeLocal;
 
+// Unlike the HTTP/1 implementation, the HTTP/2 implementation is not limited
+// to a fixed number of known supported HTTP methods. These constants, therefore
+// are provided strictly as a convenience to users and are exposed via the
+// require('http2').constants object.
 #define HTTP_KNOWN_METHODS(V)                                                 \
   V(ACL, "ACL")                                                               \
   V(BASELINE_CONTROL, "BASELINE-CONTROL")                                     \
@@ -57,6 +64,8 @@ using v8::MaybeLocal;
   V(UPDATEREDIRECTREF, "UPDATEREDIRECTREF")                                   \
   V(VERSION_CONTROL, "VERSION-CONTROL")
 
+// These are provided strictly as a convenience to users and are exposed via the
+// require('http2').constants objects
 #define HTTP_KNOWN_HEADERS(V)                                                 \
   V(STATUS, ":status")                                                        \
   V(METHOD, ":method")                                                        \
@@ -68,7 +77,14 @@ using v8::MaybeLocal;
   V(ACCEPT_LANGUAGE, "accept-language")                                       \
   V(ACCEPT_RANGES, "accept-ranges")                                           \
   V(ACCEPT, "accept")                                                         \
+  V(ACCESS_CONTROL_ALLOW_CREDENTIALS, "access-control-allow-credentials")     \
+  V(ACCESS_CONTROL_ALLOW_HEADERS, "access-control-allow-headers")             \
+  V(ACCESS_CONTROL_ALLOW_METHODS, "access-control-allow-methods")             \
   V(ACCESS_CONTROL_ALLOW_ORIGIN, "access-control-allow-origin")               \
+  V(ACCESS_CONTROL_EXPOSE_HEADERS, "access-control-expose-headers")           \
+  V(ACCESS_CONTROL_MAX_AGE, "access-control-max-age")                         \
+  V(ACCESS_CONTROL_REQUEST_HEADERS, "access-control-request-headers")         \
+  V(ACCESS_CONTROL_REQUEST_METHOD, "access-control-request-method")           \
   V(AGE, "age")                                                               \
   V(ALLOW, "allow")                                                           \
   V(AUTHORIZATION, "authorization")                                           \
@@ -84,9 +100,11 @@ using v8::MaybeLocal;
   V(CONTENT_TYPE, "content-type")                                             \
   V(COOKIE, "cookie")                                                         \
   V(DATE, "date")                                                             \
+  V(DNT, "dnt")                                                               \
   V(ETAG, "etag")                                                             \
   V(EXPECT, "expect")                                                         \
   V(EXPIRES, "expires")                                                       \
+  V(FORWARDED, "forwarded")                                                   \
   V(FROM, "from")                                                             \
   V(HOST, "host")                                                             \
   V(IF_MATCH, "if-match")                                                     \
@@ -108,13 +126,19 @@ using v8::MaybeLocal;
   V(SERVER, "server")                                                         \
   V(SET_COOKIE, "set-cookie")                                                 \
   V(STRICT_TRANSPORT_SECURITY, "strict-transport-security")                   \
+  V(TRAILER, "trailer")                                                       \
   V(TRANSFER_ENCODING, "transfer-encoding")                                   \
   V(TE, "te")                                                                 \
+  V(TK, "tk")                                                                 \
+  V(UPGRADE_INSECURE_REQUESTS, "upgrade-insecure-requests")                   \
   V(UPGRADE, "upgrade")                                                       \
   V(USER_AGENT, "user-agent")                                                 \
   V(VARY, "vary")                                                             \
   V(VIA, "via")                                                               \
+  V(WARNING, "warning")                                                       \
   V(WWW_AUTHENTICATE, "www-authenticate")                                     \
+  V(X_CONTENT_TYPE_OPTIONS, "x-content-type-options")                         \
+  V(X_FRAME_OPTIONS, "x-frame-options")                                       \
   V(HTTP2_SETTINGS, "http2-settings")                                         \
   V(KEEP_ALIVE, "keep-alive")                                                 \
   V(PROXY_CONNECTION, "proxy-connection")
@@ -127,6 +151,9 @@ HTTP_KNOWN_HEADERS(V)
 HTTP_KNOWN_HEADER_MAX
 };
 
+// While some of these codes are used within the HTTP/2 implementation in
+// core, they are provided strictly as a convenience to users and are exposed
+// via the require('http2').constants object.
 #define HTTP_STATUS_CODES(V)                                                  \
   V(CONTINUE, 100)                                                            \
   V(SWITCHING_PROTOCOLS, 101)                                                 \
@@ -197,15 +224,22 @@ HTTP_STATUS_CODES(V)
 #undef V
 };
 
+// The Padding Strategy determines the method by which extra padding is
+// selected for HEADERS and DATA frames. These are configurable via the
+// options passed in to a Http2Session object.
 enum padding_strategy_type {
-  // No padding strategy
+  // No padding strategy. This is the default.
   PADDING_STRATEGY_NONE,
   // Padding will ensure all data frames are maxFrameSize
   PADDING_STRATEGY_MAX,
-  // Padding will be determined via JS callback
+  // Padding will be determined via a JS callback. Note that this can be
+  // expensive because the callback is called once for every DATA and
+  // HEADERS frame. For performance reasons, this strategy should be
+  // avoided.
   PADDING_STRATEGY_CALLBACK
 };
 
+// These are the error codes provided by the underlying nghttp2 implementation.
 #define NGHTTP2_ERROR_CODES(V)                                                 \
   V(NGHTTP2_ERR_INVALID_ARGUMENT)                                              \
   V(NGHTTP2_ERR_BUFFER_ERROR)                                                  \
@@ -265,6 +299,10 @@ const char* nghttp2_errname(int rv) {
 #define MIN_MAX_FRAME_SIZE DEFAULT_SETTINGS_MAX_FRAME_SIZE
 #define MAX_INITIAL_WINDOW_SIZE 2147483647
 
+// The Http2Options class is used to parse the options object passed in to
+// a Http2Session object and convert those into an appropriate nghttp2_option
+// struct. This is the primary mechanism by which the Http2Session object is
+// configured.
 class Http2Options {
  public:
   explicit Http2Options(Environment* env);
@@ -273,29 +311,15 @@ class Http2Options {
     nghttp2_option_del(options_);
   }
 
-  nghttp2_option* operator*() {
+  nghttp2_option* operator*() const {
     return options_;
   }
 
-  void SetPaddingStrategy(uint32_t val) {
+  void SetPaddingStrategy(padding_strategy_type val) {
+#if DEBUG
     CHECK_LE(val, PADDING_STRATEGY_CALLBACK);
+#endif
     padding_strategy_ = static_cast<padding_strategy_type>(val);
-  }
-
-  void SetMaxDeflateDynamicTableSize(size_t val) {
-    nghttp2_option_set_max_deflate_dynamic_table_size(options_, val);
-  }
-
-  void SetMaxReservedRemoteStreams(uint32_t val) {
-    nghttp2_option_set_max_reserved_remote_streams(options_, val);
-  }
-
-  void SetMaxSendHeaderBlockLength(size_t val) {
-    nghttp2_option_set_max_send_header_block_length(options_, val);
-  }
-
-  void SetPeerMaxConcurrentStreams(uint32_t val) {
-    nghttp2_option_set_peer_max_concurrent_streams(options_, val);
   }
 
   padding_strategy_type GetPaddingStrategy() {
@@ -307,9 +331,9 @@ class Http2Options {
   padding_strategy_type padding_strategy_ = PADDING_STRATEGY_NONE;
 };
 
-static const size_t kAllocBufferSize = 64 * 1024;
+// This allows for 4 default-sized frames with their frame headers
+static const size_t kAllocBufferSize = 4 * (16384 + 9);
 
-////
 typedef uint32_t(*get_setting)(nghttp2_session* session,
                                nghttp2_settings_id id);
 
@@ -319,24 +343,8 @@ class Http2Session : public AsyncWrap,
  public:
   Http2Session(Environment* env,
                Local<Object> wrap,
-               nghttp2_session_type type) :
-               AsyncWrap(env, wrap, AsyncWrap::PROVIDER_HTTP2SESSION),
-               StreamBase(env) {
-    Wrap(object(), this);
-
-    Http2Options opts(env);
-
-    padding_strategy_ = opts.GetPaddingStrategy();
-
-    Init(env->event_loop(), type, *opts);
-  }
-
-  ~Http2Session() override {
-    CHECK_EQ(false, persistent().IsEmpty());
-    ClearWrap(object());
-    persistent().Reset();
-    CHECK_EQ(true, persistent().IsEmpty());
-  }
+               nghttp2_session_type type);
+  ~Http2Session() override;
 
   static void OnStreamAllocImpl(size_t suggested_size,
                                 uv_buf_t* buf,
@@ -345,9 +353,8 @@ class Http2Session : public AsyncWrap,
                                const uv_buf_t* bufs,
                                uv_handle_type pending,
                                void* ctx);
- protected:
-  void OnFreeSession() override;
 
+ protected:
   ssize_t OnMaxFrameSizePadding(size_t frameLength,
                                 size_t maxPayloadLen);
 
@@ -364,18 +371,21 @@ class Http2Session : public AsyncWrap,
       return OnMaxFrameSizePadding(frameLength, maxPayloadLen);
     }
 
+#if defined(DEBUG) && DEBUG
     CHECK_EQ(padding_strategy_, PADDING_STRATEGY_CALLBACK);
+#endif
 
     return OnCallbackPadding(frameLength, maxPayloadLen);
   }
 
-  void OnHeaders(Nghttp2Stream* stream,
-                 nghttp2_header_list* headers,
-                 nghttp2_headers_category cat,
-                 uint8_t flags) override;
+  void OnHeaders(
+      Nghttp2Stream* stream,
+      std::queue<nghttp2_header>* headers,
+      nghttp2_headers_category cat,
+      uint8_t flags) override;
   void OnStreamClose(int32_t id, uint32_t code) override;
   void Send(uv_buf_t* bufs, size_t total) override;
-  void OnDataChunk(Nghttp2Stream* stream, nghttp2_data_chunk_t* chunk) override;
+  void OnDataChunk(Nghttp2Stream* stream, uv_buf_t* chunk) override;
   void OnSettings(bool ack) override;
   void OnPriority(int32_t stream,
                   int32_t parent,
@@ -388,7 +398,7 @@ class Http2Session : public AsyncWrap,
   void OnFrameError(int32_t id, uint8_t type, int error_code) override;
   void OnTrailers(Nghttp2Stream* stream,
                   const SubmitTrailers& submit_trailers) override;
-  void AllocateSend(size_t recommended, uv_buf_t* buf) override;
+  void AllocateSend(uv_buf_t* buf) override;
 
   int DoWrite(WriteWrap* w, uv_buf_t* bufs, size_t count,
               uv_stream_t* send_handle) override;
@@ -422,6 +432,9 @@ class Http2Session : public AsyncWrap,
     return 0;
   }
 
+  uv_loop_t* event_loop() const override {
+    return env()->event_loop();
+  }
  public:
   void Consume(Local<External> external);
   void Unconsume();
@@ -447,6 +460,8 @@ class Http2Session : public AsyncWrap,
   static void SendShutdownNotice(const FunctionCallbackInfo<Value>& args);
   static void SubmitGoaway(const FunctionCallbackInfo<Value>& args);
   static void DestroyStream(const FunctionCallbackInfo<Value>& args);
+  static void FlushData(const FunctionCallbackInfo<Value>& args);
+  static void UpdateChunksSent(const FunctionCallbackInfo<Value>& args);
 
   template <get_setting fn>
   static void GetSettings(const FunctionCallbackInfo<Value>& args);
@@ -459,11 +474,17 @@ class Http2Session : public AsyncWrap,
     return stream_buf_;
   }
 
+  void Close() override;
+
  private:
   StreamBase* stream_;
   StreamResource::Callback<StreamResource::AllocCb> prev_alloc_cb_;
   StreamResource::Callback<StreamResource::ReadCb> prev_read_cb_;
   padding_strategy_type padding_strategy_ = PADDING_STRATEGY_NONE;
+
+  // use this to allow timeout tracking during long-lasting writes
+  uint32_t chunks_sent_since_last_write_ = 0;
+  uv_prepare_t* prep_ = nullptr;
 
   char stream_buf_[kAllocBufferSize];
 };
@@ -488,24 +509,48 @@ class ExternalHeader :
     return vec_.len;
   }
 
-  static Local<String> New(Isolate* isolate, nghttp2_rcbuf* buf) {
-    EscapableHandleScope scope(isolate);
+  static inline
+  MaybeLocal<String> GetInternalizedString(Environment* env,
+                                           const nghttp2_vec& vec) {
+    return String::NewFromOneByte(env->isolate(),
+                                  vec.base,
+                                  v8::NewStringType::kInternalized,
+                                  vec.len);
+  }
+
+  template<bool may_internalize>
+  static MaybeLocal<String> New(Environment* env, nghttp2_rcbuf* buf) {
+    if (nghttp2_rcbuf_is_static(buf)) {
+      auto& static_str_map = env->isolate_data()->http2_static_strs;
+      v8::Eternal<v8::String>& eternal = static_str_map[buf];
+      if (eternal.IsEmpty()) {
+        Local<String> str =
+            GetInternalizedString(env, nghttp2_rcbuf_get_buf(buf))
+                .ToLocalChecked();
+        eternal.Set(env->isolate(), str);
+        return str;
+      }
+      return eternal.Get(env->isolate());
+    }
+
     nghttp2_vec vec = nghttp2_rcbuf_get_buf(buf);
     if (vec.len == 0) {
       nghttp2_rcbuf_decref(buf);
-      return scope.Escape(String::Empty(isolate));
+      return String::Empty(env->isolate());
+    }
+
+    if (may_internalize && vec.len < 64) {
+      // This is a short header name, so there is a good chance V8 already has
+      // it internalized.
+      return GetInternalizedString(env, vec);
     }
 
     ExternalHeader* h_str = new ExternalHeader(buf);
-    MaybeLocal<String> str = String::NewExternalOneByte(isolate, h_str);
-    isolate->AdjustAmountOfExternalAllocatedMemory(vec.len);
-
-    if (str.IsEmpty()) {
+    MaybeLocal<String> str = String::NewExternalOneByte(env->isolate(), h_str);
+    if (str.IsEmpty())
       delete h_str;
-      return scope.Escape(String::Empty(isolate));
-    }
 
-    return scope.Escape(str.ToLocalChecked());
+    return str;
   }
 
  private:

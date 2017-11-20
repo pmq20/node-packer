@@ -50,6 +50,7 @@
       'lib/net.js',
       'lib/os.js',
       'lib/path.js',
+      'lib/perf_hooks.js',
       'lib/process.js',
       'lib/punycode.js',
       'lib/querystring.js',
@@ -88,9 +89,18 @@
       'lib/internal/freelist.js',
       'lib/internal/fs.js',
       'lib/internal/http.js',
+      'lib/internal/inspector_async_hook.js',
       'lib/internal/linkedlist.js',
+      'lib/internal/loader/Loader.js',
+      'lib/internal/loader/ModuleMap.js',
+      'lib/internal/loader/ModuleJob.js',
+      'lib/internal/loader/ModuleWrap.js',
+      'lib/internal/loader/ModuleRequest.js',
+      'lib/internal/loader/search.js',
+      'lib/internal/safe_globals.js',
       'lib/internal/net.js',
       'lib/internal/module.js',
+      'lib/internal/os.js',
       'lib/internal/process/next_tick.js',
       'lib/internal/process/promises.js',
       'lib/internal/process/stdio.js',
@@ -104,6 +114,7 @@
       'lib/internal/test/unicode.js',
       'lib/internal/url.js',
       'lib/internal/util.js',
+      'lib/internal/util/types.js',
       'lib/internal/http2/core.js',
       'lib/internal/http2/compat.js',
       'lib/internal/http2/util.js',
@@ -113,6 +124,7 @@
       'lib/internal/streams/BufferList.js',
       'lib/internal/streams/legacy.js',
       'lib/internal/streams/destroy.js',
+      'lib/internal/wrap_js_stream.js',
       'deps/v8/tools/splaytree.js',
       'deps/v8/tools/codemap.js',
       'deps/v8/tools/consarray.js',
@@ -179,6 +191,7 @@
         'src/fs_event_wrap.cc',
         'src/handle_wrap.cc',
         'src/js_stream.cc',
+        'src/module_wrap.cc',
         'src/node.cc',
         'src/node_api.cc',
         'src/node_api.h',
@@ -189,12 +202,12 @@
         'src/node_contextify.cc',
         'src/node_debug_options.cc',
         'src/node_file.cc',
-        'src/node_http2_core.cc',
         'src/node_http2.cc',
         'src/node_http_parser.cc',
         'src/node_main.cc',
         'src/node_os.cc',
-        'src/node_revert.cc',
+        'src/node_platform.cc',
+        'src/node_perf.cc',
         'src/node_serdes.cc',
         'src/node_url.cc',
         'src/node_util.cc',
@@ -222,6 +235,7 @@
         'src/util.cc',
         'src/uv.cc',
         # headers to make for a more pleasant IDE experience
+        'src/aliased_buffer.h',
         'src/async-wrap.h',
         'src/async-wrap-inl.h',
         'src/base-object.h',
@@ -232,6 +246,7 @@
         'src/env-inl.h',
         'src/handle_wrap.h',
         'src/js_stream.h',
+        'src/module_wrap.h',
         'src/node.h',
         'src/node_http2_core.h',
         'src/node_http2_core-inl.h',
@@ -239,9 +254,13 @@
         'src/node_constants.h',
         'src/node_debug_options.h',
         'src/node_http2.h',
+        'src/node_http2_state.h',
         'src/node_internals.h',
         'src/node_javascript.h',
         'src/node_mutex.h',
+        'src/node_platform.h',
+        'src/node_perf.h',
+        'src/node_perf_common.h',
         'src/node_root_certs.h',
         'src/node_version.h',
         'src/node_watchdog.h',
@@ -262,7 +281,6 @@
         'src/tracing/node_trace_buffer.h',
         'src/tracing/node_trace_writer.h',
         'src/tracing/trace_event.h'
-        'src/tree.h',
         'src/util.h',
         'src/util-inl.h',
         'deps/http_parser/http_parser.h',
@@ -281,8 +299,6 @@
         'NODE_WANT_INTERNALS=1',
         # Warn when using deprecated V8 APIs.
         'V8_DEPRECATION_WARNINGS=1',
-        # We're using the nghttp2 static lib
-        'NGHTTP2_STATICLIB'
       ],
     },
     {
@@ -429,7 +445,7 @@
               'inputs': [ 'src/nolttng_macros.py' ]
             }],
             [ 'node_use_perfctr=="false"', {
-              'inputs': [ 'src/perfctr_macros.py' ]
+              'inputs': [ 'src/noperfctr_macros.py' ]
             }]
           ],
           'action': [
@@ -638,30 +654,13 @@
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
 
-      'libraries': [
-        '<(OBJ_GEN_PATH)<(OBJ_SEPARATOR)node_javascript.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_debug_options.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)async-wrap.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)env.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_buffer.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_i18n.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_url.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)util.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)string_bytes.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)string_search.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)stream_base.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_constants.<(OBJ_SUFFIX)',
-        '<(OBJ_PATH)<(OBJ_SEPARATOR)node_revert.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)agent.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_buffer.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_writer.<(OBJ_SUFFIX)',
-        '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)trace_event.<(OBJ_SUFFIX)',
-      ],
-
       'defines': [ 'NODE_WANT_INTERNALS=1' ],
 
       'sources': [
+        'src/node_platform.cc',
+        'src/node_platform.h',
+        'test/cctest/node_test_fixture.cc',
+        'test/cctest/test_aliased_buffer.cc',
         'test/cctest/test_base64.cc',
         'test/cctest/test_environment.cc',
         'test/cctest/test_util.cc',
@@ -673,6 +672,28 @@
       ],
 
       'conditions': [
+        ['node_target_type!="static_library"', {
+          'libraries': [
+            '<(OBJ_GEN_PATH)<(OBJ_SEPARATOR)node_javascript.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_debug_options.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)async-wrap.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)env.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_buffer.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_i18n.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_perf.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_url.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)util.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)string_bytes.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)string_search.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)stream_base.<(OBJ_SUFFIX)',
+            '<(OBJ_PATH)<(OBJ_SEPARATOR)node_constants.<(OBJ_SUFFIX)',
+            '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)agent.<(OBJ_SUFFIX)',
+            '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_buffer.<(OBJ_SUFFIX)',
+            '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)node_trace_writer.<(OBJ_SUFFIX)',
+            '<(OBJ_TRACING_PATH)<(OBJ_SEPARATOR)trace_event.<(OBJ_SUFFIX)',
+          ],
+        }],
         ['v8_enable_inspector==1', {
           'sources': [
             'test/cctest/test_inspector_socket.cc',

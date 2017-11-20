@@ -31,6 +31,10 @@
     # Don't bake anything extra into the snapshot.
     'v8_use_external_startup_data%': 0,
 
+    # Some STL containers (e.g. std::vector) do not preserve ABI compatibility
+    # between debug and non-debug mode.
+    'disable_glibcxx_debug': 1,
+
     # Don't use ICU data file (icudtl.dat) from V8, we use our own.
     'icu_use_data_file_flag%': 0,
 
@@ -110,6 +114,10 @@
             'MinimalRebuild': 'false',
             'OmitFramePointers': 'false',
             'BasicRuntimeChecks': 3, # /RTC1
+            'AdditionalOptions': [
+              '/bigobj', # prevent error C1128 in VS2015
+              '/MP', # compile across multiple CPUs
+            ],
           },
           'VCLinkerTool': {
             'LinkIncremental': 2, # enable incremental linking

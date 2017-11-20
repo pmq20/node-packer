@@ -4,6 +4,7 @@
     {
       "textRaw": "Buffer",
       "name": "buffer",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>Prior to the introduction of <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a> in ECMAScript 2015 (ES6), the\nJavaScript language had no mechanism for reading or manipulating streams\nof binary data. The <code>Buffer</code> class was introduced as part of the Node.js\nAPI to make it possible to interact with octet streams in the context of things\nlike TCP streams and file system operations.</p>\n<p>Now that <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a> has been added in ES6, the <code>Buffer</code> class implements the\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a> API in a manner that is more optimized and suitable for Node.js&#39;\nuse cases.</p>\n<p>Instances of the <code>Buffer</code> class are similar to arrays of integers but\ncorrespond to fixed-sized, raw memory allocations outside the V8 heap.\nThe size of the <code>Buffer</code> is established when it is created and cannot be\nresized.</p>\n<p>The <code>Buffer</code> class is a global within Node.js, making it unlikely that one\nwould need to ever use <code>require(&#39;buffer&#39;).Buffer</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">// Creates a zero-filled Buffer of length 10.\nconst buf1 = Buffer.alloc(10);\n\n// Creates a Buffer of length 10, filled with 0x1.\nconst buf2 = Buffer.alloc(10, 1);\n\n// Creates an uninitialized buffer of length 10.\n// This is faster than calling Buffer.alloc() but the returned\n// Buffer instance might contain old data that needs to be\n// overwritten using either fill() or write().\nconst buf3 = Buffer.allocUnsafe(10);\n\n// Creates a Buffer containing [0x1, 0x2, 0x3].\nconst buf4 = Buffer.from([1, 2, 3]);\n\n// Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].\nconst buf5 = Buffer.from(&#39;tést&#39;);\n\n// Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].\nconst buf6 = Buffer.from(&#39;tést&#39;, &#39;latin1&#39;);\n</code></pre>\n",
@@ -54,7 +55,7 @@
               }
             ]
           },
-          "desc": "<p><code>Buffer</code> instances are commonly used to represent sequences of encoded characters\nsuch as UTF-8, UCS2, Base64 or even Hex-encoded data. It is possible to\nconvert back and forth between <code>Buffer</code> instances and ordinary JavaScript strings\nby using an explicit character encoding.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;hello world&#39;, &#39;ascii&#39;);\n\n// Prints: 68656c6c6f20776f726c64\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// Prints: aGVsbG8gd29ybGQ=\nconsole.log(buf.toString(&#39;base64&#39;));\n</code></pre>\n<p>The character encodings currently supported by Node.js include:</p>\n<ul>\n<li><p><code>&#39;ascii&#39;</code> - for 7-bit ASCII data only. This encoding is fast and will strip\nthe high bit if set.</p>\n</li>\n<li><p><code>&#39;utf8&#39;</code> - Multibyte encoded Unicode characters. Many web pages and other\ndocument formats use UTF-8.</p>\n</li>\n<li><p><code>&#39;utf16le&#39;</code> - 2 or 4 bytes, little-endian encoded Unicode characters.\nSurrogate pairs (U+10000 to U+10FFFF) are supported.</p>\n</li>\n<li><p><code>&#39;ucs2&#39;</code> - Alias of <code>&#39;utf16le&#39;</code>.</p>\n</li>\n<li><p><code>&#39;base64&#39;</code> - Base64 encoding. When creating a <code>Buffer</code> from a string,\nthis encoding will also correctly accept &quot;URL and Filename Safe Alphabet&quot; as\nspecified in <a href=\"https://tools.ietf.org/html/rfc4648#section-5\">RFC4648, Section 5</a>.</p>\n</li>\n<li><p><code>&#39;latin1&#39;</code> - A way of encoding the <code>Buffer</code> into a one-byte encoded string\n(as defined by the IANA in <a href=\"https://tools.ietf.org/html/rfc1345\">RFC1345</a>,\npage 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>\n</li>\n<li><p><code>&#39;binary&#39;</code> - Alias for <code>&#39;latin1&#39;</code>.</p>\n</li>\n<li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>\n</li>\n</ul>\n<p><em>Note</em>: Today&#39;s browsers follow the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> which aliases\nboth &#39;latin1&#39; and ISO-8859-1 to win-1252. This means that while doing something\nlike <code>http.get()</code>, if the returned charset is one of those listed in the WHATWG\nspecification it is possible that the server actually returned\nwin-1252-encoded data, and using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the\ncharacters.</p>\n",
+          "desc": "<p><code>Buffer</code> instances are commonly used to represent sequences of encoded characters\nsuch as UTF-8, UCS2, Base64 or even Hex-encoded data. It is possible to\nconvert back and forth between <code>Buffer</code> instances and ordinary JavaScript strings\nby using an explicit character encoding.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.from(&#39;hello world&#39;, &#39;ascii&#39;);\n\n// Prints: 68656c6c6f20776f726c64\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// Prints: aGVsbG8gd29ybGQ=\nconsole.log(buf.toString(&#39;base64&#39;));\n</code></pre>\n<p>The character encodings currently supported by Node.js include:</p>\n<ul>\n<li><p><code>&#39;ascii&#39;</code> - For 7-bit ASCII data only. This encoding is fast and will strip\nthe high bit if set.</p>\n</li>\n<li><p><code>&#39;utf8&#39;</code> - Multibyte encoded Unicode characters. Many web pages and other\ndocument formats use UTF-8.</p>\n</li>\n<li><p><code>&#39;utf16le&#39;</code> - 2 or 4 bytes, little-endian encoded Unicode characters.\nSurrogate pairs (U+10000 to U+10FFFF) are supported.</p>\n</li>\n<li><p><code>&#39;ucs2&#39;</code> - Alias of <code>&#39;utf16le&#39;</code>.</p>\n</li>\n<li><p><code>&#39;base64&#39;</code> - Base64 encoding. When creating a <code>Buffer</code> from a string,\nthis encoding will also correctly accept &quot;URL and Filename Safe Alphabet&quot; as\nspecified in <a href=\"https://tools.ietf.org/html/rfc4648#section-5\">RFC4648, Section 5</a>.</p>\n</li>\n<li><p><code>&#39;latin1&#39;</code> - A way of encoding the <code>Buffer</code> into a one-byte encoded string\n(as defined by the IANA in <a href=\"https://tools.ietf.org/html/rfc1345\">RFC1345</a>,\npage 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>\n</li>\n<li><p><code>&#39;binary&#39;</code> - Alias for <code>&#39;latin1&#39;</code>.</p>\n</li>\n<li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>\n</li>\n</ul>\n<p><em>Note</em>: Today&#39;s browsers follow the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> which aliases\nboth &#39;latin1&#39; and ISO-8859-1 to win-1252. This means that while doing something\nlike <code>http.get()</code>, if the returned charset is one of those listed in the WHATWG\nspecification it is possible that the server actually returned\nwin-1252-encoded data, and using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the\ncharacters.</p>\n",
           "type": "module",
           "displayName": "Buffers and Character Encodings"
         },
@@ -101,7 +102,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<ul>\n<li>{integer} The largest size allowed for a single <code>Buffer</code> instance</li>\n</ul>\n<p>On 32-bit architectures, this value is <code>(2^30)-1</code> (~1GB).\nOn 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>\n<p>This value is also available as <a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a>.</p>\n",
+              "desc": "<ul>\n<li>{integer} The largest size allowed for a single <code>Buffer</code> instance.</li>\n</ul>\n<p>On 32-bit architectures, this value is <code>(2^30)-1</code> (~1GB).\nOn 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>\n<p>This value is also available as <a href=\"#buffer_buffer_kmaxlength\"><code>buffer.kMaxLength</code></a>.</p>\n",
               "type": "module",
               "displayName": "buffer.constants.MAX_LENGTH"
             },
@@ -114,7 +115,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<ul>\n<li>{integer} The largest length allowed for a single <code>string</code> instance</li>\n</ul>\n<p>Represents the largest <code>length</code> that a <code>string</code> primitive can have, counted\nin UTF-16 code units.</p>\n<p>This value may depend on the JS engine that is being used.</p>\n",
+              "desc": "<ul>\n<li>{integer} The largest length allowed for a single <code>string</code> instance.</li>\n</ul>\n<p>Represents the largest <code>length</code> that a <code>string</code> primitive can have, counted\nin UTF-16 code units.</p>\n<p>This value may depend on the JS engine that is being used.</p>\n",
               "type": "module",
               "displayName": "buffer.constants.MAX_STRING_LENGTH"
             }
@@ -144,10 +145,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`size` {integer} The desired length of the new `Buffer` ",
+                      "textRaw": "`size` {integer} The desired length of the new `Buffer`. ",
                       "name": "size",
                       "type": "integer",
-                      "desc": "The desired length of the new `Buffer`"
+                      "desc": "The desired length of the new `Buffer`."
                     },
                     {
                       "textRaw": "`fill` {string|Buffer|integer} A value to pre-fill the new `Buffer` with. **Default:** `0` ",
@@ -203,10 +204,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`size` {integer} The desired length of the new `Buffer` ",
+                      "textRaw": "`size` {integer} The desired length of the new `Buffer`. ",
                       "name": "size",
                       "type": "integer",
-                      "desc": "The desired length of the new `Buffer`"
+                      "desc": "The desired length of the new `Buffer`."
                     }
                   ]
                 },
@@ -226,7 +227,7 @@
               "name": "allocUnsafeSlow",
               "meta": {
                 "added": [
-                  "v5.10.0"
+                  "v5.12.0"
                 ],
                 "changes": []
               },
@@ -234,10 +235,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`size` {integer} The desired length of the new `Buffer` ",
+                      "textRaw": "`size` {integer} The desired length of the new `Buffer`. ",
                       "name": "size",
                       "type": "integer",
-                      "desc": "The desired length of the new `Buffer`"
+                      "desc": "The desired length of the new `Buffer`."
                     }
                   ]
                 },
@@ -275,17 +276,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} The number of bytes contained within `string` ",
+                    "textRaw": "Returns: {integer} The number of bytes contained within `string`. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "The number of bytes contained within `string`"
+                    "desc": "The number of bytes contained within `string`."
                   },
                   "params": [
                     {
-                      "textRaw": "`string` {string|Buffer|TypedArray|DataView|ArrayBuffer} A value to calculate the length of ",
+                      "textRaw": "`string` {string|Buffer|TypedArray|DataView|ArrayBuffer} A value to calculate the length of. ",
                       "name": "string",
                       "type": "string|Buffer|TypedArray|DataView|ArrayBuffer",
-                      "desc": "A value to calculate the length of"
+                      "desc": "A value to calculate the length of."
                     },
                     {
                       "textRaw": "`encoding` {string} If `string` is a string, this is its encoding. **Default:** `'utf8'` ",
@@ -384,16 +385,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`list` {Array} List of `Buffer` or [`Uint8Array`] instances to concat ",
+                      "textRaw": "`list` {Array} List of `Buffer` or [`Uint8Array`] instances to concat. ",
                       "name": "list",
                       "type": "Array",
-                      "desc": "List of `Buffer` or [`Uint8Array`] instances to concat"
+                      "desc": "List of `Buffer` or [`Uint8Array`] instances to concat."
                     },
                     {
-                      "textRaw": "`totalLength` {integer} Total length of the `Buffer` instances in `list` when concatenated ",
+                      "textRaw": "`totalLength` {integer} Total length of the `Buffer` instances in `list` when concatenated. ",
                       "name": "totalLength",
                       "type": "integer",
-                      "desc": "Total length of the `Buffer` instances in `list` when concatenated",
+                      "desc": "Total length of the `Buffer` instances in `list` when concatenated.",
                       "optional": true
                     }
                   ]
@@ -509,10 +510,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer} An existing `Buffer` to copy data from ",
+                      "textRaw": "`buffer` {Buffer} An existing `Buffer` to copy data from. ",
                       "name": "buffer",
                       "type": "Buffer",
-                      "desc": "An existing `Buffer` to copy data from"
+                      "desc": "An existing `Buffer` to copy data from."
                     }
                   ]
                 },
@@ -566,7 +567,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If\nprovided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.from(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\n\nconst buf2 = Buffer.from(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if <code>str</code> is not a string.</p>\n"
+              "desc": "<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If\nprovided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.from(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\n\nconst buf2 = Buffer.from(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if <code>string</code> is not a string.</p>\n"
             },
             {
               "textRaw": "Class Method: Buffer.from(object[, offsetOrEncoding[, length]])",
@@ -675,10 +676,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string} A character encoding name to check ",
+                      "textRaw": "`encoding` {string} A character encoding name to check. ",
                       "name": "encoding",
                       "type": "string",
-                      "desc": "A character encoding name to check"
+                      "desc": "A character encoding name to check."
                     }
                   ]
                 },
@@ -781,10 +782,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`target` {Buffer|Uint8Array} A `Buffer` or [`Uint8Array`] to compare to ",
+                      "textRaw": "`target` {Buffer|Uint8Array} A `Buffer` or [`Uint8Array`] to compare to. ",
                       "name": "target",
                       "type": "Buffer|Uint8Array",
-                      "desc": "A `Buffer` or [`Uint8Array`] to compare to"
+                      "desc": "A `Buffer` or [`Uint8Array`] to compare to."
                     },
                     {
                       "textRaw": "`targetStart` {integer} The offset within `target` at which to begin comparison. **Default:** `0` ",
@@ -962,10 +963,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`otherBuffer` {Buffer} A `Buffer` or [`Uint8Array`] to compare to ",
+                      "textRaw": "`otherBuffer` {Buffer} A `Buffer` or [`Uint8Array`] to compare to. ",
                       "name": "otherBuffer",
                       "type": "Buffer",
-                      "desc": "A `Buffer` or [`Uint8Array`] to compare to"
+                      "desc": "A `Buffer` or [`Uint8Array`] to compare to."
                     }
                   ]
                 },
@@ -998,23 +999,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer} A reference to `buf` ",
+                    "textRaw": "Returns: {Buffer} A reference to `buf`. ",
                     "name": "return",
                     "type": "Buffer",
-                    "desc": "A reference to `buf`"
+                    "desc": "A reference to `buf`."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|integer} The value to fill `buf` with ",
+                      "textRaw": "`value` {string|Buffer|integer} The value to fill `buf` with. ",
                       "name": "value",
                       "type": "string|Buffer|integer",
-                      "desc": "The value to fill `buf` with"
+                      "desc": "The value to fill `buf` with."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start filling `buf`. **Default:** `0` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to fill `buf`. **Default:** `0` ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start filling `buf`. **Default:** `0`",
+                      "desc": "Number of bytes to skip before starting to fill `buf`. **Default:** `0`",
                       "optional": true
                     },
                     {
@@ -1068,17 +1069,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {boolean} `true` if `value` was found in `buf`, `false` otherwise ",
+                    "textRaw": "Returns: {boolean} `true` if `value` was found in `buf`, `false` otherwise. ",
                     "name": "return",
                     "type": "boolean",
-                    "desc": "`true` if `value` was found in `buf`, `false` otherwise"
+                    "desc": "`true` if `value` was found in `buf`, `false` otherwise."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|integer} What to search for ",
+                      "textRaw": "`value` {string|Buffer|integer} What to search for. ",
                       "name": "value",
                       "type": "string|Buffer|integer",
-                      "desc": "What to search for"
+                      "desc": "What to search for."
                     },
                     {
                       "textRaw": "`byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0` ",
@@ -1138,17 +1139,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} The index of the first occurrence of `value` in `buf` or `-1` if `buf` does not contain `value` ",
+                    "textRaw": "Returns: {integer} The index of the first occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "The index of the first occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`"
+                    "desc": "The index of the first occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for ",
+                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for. ",
                       "name": "value",
                       "type": "string|Buffer|Uint8Array|integer",
-                      "desc": "What to search for"
+                      "desc": "What to search for."
                     },
                     {
                       "textRaw": "`byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0` ",
@@ -1228,17 +1229,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} The index of the last occurrence of `value` in `buf` or `-1` if `buf` does not contain `value` ",
+                    "textRaw": "Returns: {integer} The index of the last occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "The index of the last occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`"
+                    "desc": "The index of the last occurrence of `value` in `buf` or `-1` if `buf` does not contain `value`."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for ",
+                      "textRaw": "`value` {string|Buffer|Uint8Array|integer} What to search for. ",
                       "name": "value",
                       "type": "string|Buffer|Uint8Array|integer",
-                      "desc": "What to search for"
+                      "desc": "What to search for."
                     },
                     {
                       "textRaw": "`byteOffset` {integer} Where to begin searching in `buf`. **Default:** [`buf.length`]` - 1` ",
@@ -1293,10 +1294,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 8` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 8`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 8`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 8`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1351,10 +1352,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 8` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 8`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 8`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 8`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1398,10 +1399,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1456,10 +1457,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1503,10 +1504,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 1` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 1`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 1`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 1`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1550,10 +1551,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1608,10 +1609,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1655,10 +1656,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1713,10 +1714,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1760,22 +1761,22 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to read. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to read. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to read. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to read. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
-                      "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false` ",
+                      "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false`. ",
                       "name": "noAssert",
                       "type": "boolean",
-                      "desc": "Skip `offset` and `byteLength` validation? **Default:** `false`",
+                      "desc": "Skip `offset` and `byteLength` validation? **Default:** `false`.",
                       "optional": true
                     }
                   ]
@@ -1830,22 +1831,22 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to read. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to read. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to read. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to read. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
-                      "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false` ",
+                      "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false`. ",
                       "name": "noAssert",
                       "type": "boolean",
-                      "desc": "Skip `offset` and `byteLength` validation? **Default:** `false`",
+                      "desc": "Skip `offset` and `byteLength` validation? **Default:** `false`.",
                       "optional": true
                     }
                   ]
@@ -1886,10 +1887,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 1` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 1`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 1`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 1`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1933,10 +1934,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -1991,10 +1992,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -2038,10 +2039,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -2096,10 +2097,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` validation? **Default:** `false` ",
@@ -2143,16 +2144,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to read. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to read. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to read. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to read. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false` ",
@@ -2213,16 +2214,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`offset` {integer} Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start reading. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to read. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to read. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to read. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to read. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to read. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `offset` and `byteLength` validation? **Default:** `false` ",
@@ -2323,10 +2324,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer} A reference to `buf` ",
+                    "textRaw": "Returns: {Buffer} A reference to `buf`. ",
                     "name": "return",
                     "type": "Buffer",
-                    "desc": "A reference to `buf`"
+                    "desc": "A reference to `buf`."
                   },
                   "params": []
                 },
@@ -2349,10 +2350,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer} A reference to `buf` ",
+                    "textRaw": "Returns: {Buffer} A reference to `buf`. ",
                     "name": "return",
                     "type": "Buffer",
-                    "desc": "A reference to `buf`"
+                    "desc": "A reference to `buf`."
                   },
                   "params": []
                 },
@@ -2375,10 +2376,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer} A reference to `buf` ",
+                    "textRaw": "Returns: {Buffer} A reference to `buf`. ",
                     "name": "return",
                     "type": "Buffer",
-                    "desc": "A reference to `buf`"
+                    "desc": "A reference to `buf`."
                   },
                   "params": []
                 },
@@ -2511,30 +2512,30 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} Number of bytes written ",
+                    "textRaw": "Returns: {integer} Number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "Number of bytes written"
+                    "desc": "Number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`string` {string} String to be written to `buf` ",
+                      "textRaw": "`string` {string} String to be written to `buf`. ",
                       "name": "string",
                       "type": "string",
-                      "desc": "String to be written to `buf`"
+                      "desc": "String to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing `string`. **Default:** `0` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write `string`. **Default:** `0` ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing `string`. **Default:** `0`",
+                      "desc": "Number of bytes to skip before starting to write `string`. **Default:** `0`",
                       "optional": true
                     },
                     {
-                      "textRaw": "`length` {integer} How many bytes to write. **Default:** `buf.length - offset` ",
+                      "textRaw": "`length` {integer} Number of bytes to write. **Default:** `buf.length - offset` ",
                       "name": "length",
                       "type": "integer",
-                      "desc": "How many bytes to write. **Default:** `buf.length - offset`",
+                      "desc": "Number of bytes to write. **Default:** `buf.length - offset`",
                       "optional": true
                     },
                     {
@@ -2581,23 +2582,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {number} Number to be written to `buf` ",
+                      "textRaw": "`value` {number} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "number",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 8` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 8`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 8`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 8`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2652,23 +2653,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {number} Number to be written to `buf` ",
+                      "textRaw": "`value` {number} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "number",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 8` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 8`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 8`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 8`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2709,23 +2710,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {number} Number to be written to `buf` ",
+                      "textRaw": "`value` {number} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "number",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2780,23 +2781,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {number} Number to be written to `buf` ",
+                      "textRaw": "`value` {number} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "number",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2837,23 +2838,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 1` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 1`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 1`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 1`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2894,23 +2895,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -2965,23 +2966,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3022,23 +3023,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3093,23 +3094,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3150,29 +3151,29 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to write. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to write. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to write. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to write. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value`, `offset`, and `byteLength` validation? **Default:** `false` ",
@@ -3218,7 +3219,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.\nSupports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is\nanything other than a signed integer.</p>\n<p>Setting <code>noAssert</code> to <code>true</code> allows the encoded form of <code>value</code> to extend beyond\nthe end of <code>buf</code>, but the result should be considered undefined behavior.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(6);\n\nbuf.writeUIntBE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer 12 34 56 78 90 ab&gt;\nconsole.log(buf);\n\nbuf.writeUIntLE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer ab 90 78 56 34 12&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.\nSupports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is\nanything other than a signed integer.</p>\n<p>Setting <code>noAssert</code> to <code>true</code> allows the encoded form of <code>value</code> to extend beyond\nthe end of <code>buf</code>, but the result should be considered undefined behavior.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(6);\n\nbuf.writeIntBE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer 12 34 56 78 90 ab&gt;\nconsole.log(buf);\n\nbuf.writeIntLE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer ab 90 78 56 34 12&gt;\nconsole.log(buf);\n</code></pre>\n"
             },
             {
               "textRaw": "buf.writeIntLE(value, offset, byteLength[, noAssert])",
@@ -3233,29 +3234,29 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to write. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to write. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to write. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to write. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value`, `offset`, and `byteLength` validation? **Default:** `false` ",
@@ -3284,7 +3285,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.\nSupports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is\nanything other than a signed integer.</p>\n<p>Setting <code>noAssert</code> to <code>true</code> allows the encoded form of <code>value</code> to extend beyond\nthe end of <code>buf</code>, but the result should be considered undefined behavior.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(6);\n\nbuf.writeUIntBE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer 12 34 56 78 90 ab&gt;\nconsole.log(buf);\n\nbuf.writeUIntLE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer ab 90 78 56 34 12&gt;\nconsole.log(buf);\n</code></pre>\n"
+              "desc": "<p>Writes <code>byteLength</code> bytes of <code>value</code> to <code>buf</code> at the specified <code>offset</code>.\nSupports up to 48 bits of accuracy. Behavior is undefined when <code>value</code> is\nanything other than a signed integer.</p>\n<p>Setting <code>noAssert</code> to <code>true</code> allows the encoded form of <code>value</code> to extend beyond\nthe end of <code>buf</code>, but the result should be considered undefined behavior.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf = Buffer.allocUnsafe(6);\n\nbuf.writeIntBE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer 12 34 56 78 90 ab&gt;\nconsole.log(buf);\n\nbuf.writeIntLE(0x1234567890ab, 0, 6);\n\n// Prints: &lt;Buffer ab 90 78 56 34 12&gt;\nconsole.log(buf);\n</code></pre>\n"
             },
             {
               "textRaw": "buf.writeUInt8(value, offset[, noAssert])",
@@ -3299,23 +3300,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 1` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 1`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 1`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 1`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3356,23 +3357,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3427,23 +3428,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 2`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 2`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3484,23 +3485,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3555,23 +3556,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - 4`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - 4`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value` and `offset` validation? **Default:** `false` ",
@@ -3612,29 +3613,29 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to write. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to write. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to write. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to write. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value`, `offset`, and `byteLength` validation? **Default:** `false` ",
@@ -3695,29 +3696,29 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written ",
+                    "textRaw": "Returns: {integer} `offset` plus the number of bytes written. ",
                     "name": "return",
                     "type": "integer",
-                    "desc": "`offset` plus the number of bytes written"
+                    "desc": "`offset` plus the number of bytes written."
                   },
                   "params": [
                     {
-                      "textRaw": "`value` {integer} Number to be written to `buf` ",
+                      "textRaw": "`value` {integer} Number to be written to `buf`. ",
                       "name": "value",
                       "type": "integer",
-                      "desc": "Number to be written to `buf`"
+                      "desc": "Number to be written to `buf`."
                     },
                     {
-                      "textRaw": "`offset` {integer} Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength` ",
+                      "textRaw": "`offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`. ",
                       "name": "offset",
                       "type": "integer",
-                      "desc": "Where to start writing. Must satisfy: `0 <= offset <= buf.length - byteLength`"
+                      "desc": "Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`."
                     },
                     {
-                      "textRaw": "`byteLength` {integer} How many bytes to write. Must satisfy: `0 < byteLength <= 6` ",
+                      "textRaw": "`byteLength` {integer} Number of bytes to write. Must satisfy: `0 < byteLength <= 6`. ",
                       "name": "byteLength",
                       "type": "integer",
-                      "desc": "How many bytes to write. Must satisfy: `0 < byteLength <= 6`"
+                      "desc": "Number of bytes to write. Must satisfy: `0 < byteLength <= 6`."
                     },
                     {
                       "textRaw": "`noAssert` {boolean} Skip `value`, `offset`, and `byteLength` validation? **Default:** `false` ",
@@ -3753,10 +3754,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`array` {Array} An array of bytes to copy from ",
+                  "textRaw": "`array` {integer[]} An array of bytes to copy from. ",
                   "name": "array",
-                  "type": "Array",
-                  "desc": "An array of bytes to copy from"
+                  "type": "integer[]",
+                  "desc": "An array of bytes to copy from."
                 }
               ],
               "desc": "<p>Allocates a new <code>Buffer</code> using an <code>array</code> of octets.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">// Creates a new Buffer containing the UTF-8 bytes of the string &#39;buffer&#39;\nconst buf = new Buffer([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);\n</code></pre>\n"
@@ -3813,10 +3814,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer} An existing `Buffer` to copy data from ",
+                  "textRaw": "`buffer` {Buffer} An existing `Buffer` to copy data from. ",
                   "name": "buffer",
                   "type": "Buffer",
-                  "desc": "An existing `Buffer` to copy data from"
+                  "desc": "An existing `Buffer` to copy data from."
                 }
               ],
               "desc": "<p>Copies the passed <code>buffer</code> data onto a new <code>Buffer</code> instance.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf1 = new Buffer(&#39;buffer&#39;);\nconst buf2 = new Buffer(buf1);\n\nbuf1[0] = 0x61;\n\n// Prints: auffer\nconsole.log(buf1.toString());\n\n// Prints: buffer\nconsole.log(buf2.toString());\n</code></pre>\n"
@@ -3832,10 +3833,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`size` {integer} The desired length of the new `Buffer` ",
+                  "textRaw": "`size` {integer} The desired length of the new `Buffer`. ",
                   "name": "size",
                   "type": "integer",
-                  "desc": "The desired length of the new `Buffer`"
+                  "desc": "The desired length of the new `Buffer`."
                 }
               ],
               "desc": "<p>Stability: 0 - Deprecated: Use <a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc()</code></a> instead (also see\n<a href=\"#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a>).</p>\n<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_constants_max_length\"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be\nthrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>Prior to Node.js 8.0.0, the underlying memory for <code>Buffer</code> instances\ncreated in this way is <em>not initialized</em>. The contents of a newly created\n<code>Buffer</code> are unknown and <em>may contain sensitive data</em>. Use\n<a href=\"#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size)</code></a> instead to initialize a <code>Buffer</code>\nto zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const buf = new Buffer(10);\n\n// Prints: &lt;Buffer 00 00 00 00 00 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
@@ -3851,10 +3852,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`string` {string} String to encode ",
+                  "textRaw": "`string` {string} String to encode. ",
                   "name": "string",
                   "type": "string",
-                  "desc": "String to encode"
+                  "desc": "String to encode."
                 },
                 {
                   "textRaw": "`encoding` {string} The encoding of `string`. **Default:** `'utf8'` ",
@@ -3897,10 +3898,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`size` {integer} The desired length of the new `SlowBuffer` ",
+                  "textRaw": "`size` {integer} The desired length of the new `SlowBuffer`. ",
                   "name": "size",
                   "type": "integer",
-                  "desc": "The desired length of the new `SlowBuffer`"
+                  "desc": "The desired length of the new `SlowBuffer`."
                 }
               ],
               "desc": "<p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than\n<a href=\"#buffer_buffer_constants_max_length\"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href=\"errors.html#errors_class_rangeerror\"><code>RangeError</code></a> will be\nthrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>\n<p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The\ncontents of a newly created <code>SlowBuffer</code> are unknown and may contain\nsensitive data. Use <a href=\"#buffer_buf_fill_value_offset_end_encoding\"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const { SlowBuffer } = require(&#39;buffer&#39;);\n\nconst buf = new SlowBuffer(5);\n\n// Prints: (contents may vary): &lt;Buffer 78 e0 82 02 01&gt;\nconsole.log(buf);\n\nbuf.fill(0);\n\n// Prints: &lt;Buffer 00 00 00 00 00&gt;\nconsole.log(buf);\n</code></pre>\n"
@@ -3931,7 +3932,7 @@
           "shortDesc": "**Default:** `50`"
         },
         {
-          "textRaw": "`kMaxLength` {integer} The largest size allowed for a single `Buffer` instance ",
+          "textRaw": "`kMaxLength` {integer} The largest size allowed for a single `Buffer` instance. ",
           "type": "integer",
           "name": "kMaxLength",
           "meta": {
@@ -3941,7 +3942,7 @@
             "changes": []
           },
           "desc": "<p>An alias for <a href=\"#buffer_buffer_constants_max_length\"><code>buffer.constants.MAX_LENGTH</code></a></p>\n<p>Note that this is a property on the <code>buffer</code> module returned by\n<code>require(&#39;buffer&#39;)</code>, not on the <code>Buffer</code> global or a <code>Buffer</code> instance.</p>\n",
-          "shortDesc": "The largest size allowed for a single `Buffer` instance"
+          "shortDesc": "The largest size allowed for a single `Buffer` instance."
         }
       ],
       "methods": [
@@ -3965,22 +3966,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`source` {Buffer|Uint8Array} A `Buffer` or `Uint8Array` instance ",
+                  "textRaw": "`source` {Buffer|Uint8Array} A `Buffer` or `Uint8Array` instance. ",
                   "name": "source",
                   "type": "Buffer|Uint8Array",
-                  "desc": "A `Buffer` or `Uint8Array` instance"
+                  "desc": "A `Buffer` or `Uint8Array` instance."
                 },
                 {
-                  "textRaw": "`fromEnc` {string} The current encoding ",
+                  "textRaw": "`fromEnc` {string} The current encoding. ",
                   "name": "fromEnc",
                   "type": "string",
-                  "desc": "The current encoding"
+                  "desc": "The current encoding."
                 },
                 {
-                  "textRaw": "`toEnc` {string} To target encoding ",
+                  "textRaw": "`toEnc` {string} To target encoding. ",
                   "name": "toEnc",
                   "type": "string",
-                  "desc": "To target encoding"
+                  "desc": "To target encoding."
                 }
               ]
             },

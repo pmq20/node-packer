@@ -1,5 +1,7 @@
 # VM (Executing JavaScript)
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--name=vm-->
@@ -115,7 +117,7 @@ const sandbox = {
 
 const script = new vm.Script('count += 1; name = "kitty";');
 
-const context = new vm.createContext(sandbox);
+const context = vm.createContext(sandbox);
 for (let i = 0; i < 10; ++i) {
   script.runInContext(context);
 }

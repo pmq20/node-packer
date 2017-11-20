@@ -28,7 +28,6 @@
 #include "node.h"
 #include "req-wrap.h"
 #include "req-wrap-inl.h"
-#include "tree.h"
 #include "util.h"
 #include "util-inl.h"
 #include "uv.h"
@@ -37,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <unordered_set>
 
 #if defined(__ANDROID__) || \
     defined(__MINGW32__) || \
@@ -122,10 +122,22 @@ struct node_ares_task {
   ChannelWrap* channel;
   ares_socket_t sock;
   uv_poll_t poll_watcher;
-  RB_ENTRY(node_ares_task) node;
 };
 
-RB_HEAD(node_ares_task_list, node_ares_task);
+struct TaskHash {
+  size_t operator()(node_ares_task* a) const {
+    return std::hash<ares_socket_t>()(a->sock);
+  }
+};
+
+struct TaskEqual {
+  inline bool operator()(node_ares_task* a, node_ares_task* b) const {
+    return a->sock == b->sock;
+  }
+};
+
+using node_ares_task_list =
+    std::unordered_set<node_ares_task*, TaskHash, TaskEqual>;
 
 class ChannelWrap : public AsyncWrap {
  public:
@@ -169,8 +181,6 @@ ChannelWrap::ChannelWrap(Environment* env,
     query_last_ok_(true),
     is_servers_default_(true),
     library_inited_(false) {
-  RB_INIT(&task_list_);
-
   MakeWeak<ChannelWrap>(this);
 
   Setup();
@@ -186,15 +196,23 @@ void ChannelWrap::New(const FunctionCallbackInfo<Value>& args) {
 
 class GetAddrInfoReqWrap : public ReqWrap<uv_getaddrinfo_t> {
  public:
-  GetAddrInfoReqWrap(Environment* env, Local<Object> req_wrap_obj);
+  GetAddrInfoReqWrap(Environment* env,
+                     Local<Object> req_wrap_obj,
+                     bool verbatim);
   ~GetAddrInfoReqWrap();
 
   size_t self_size() const override { return sizeof(*this); }
+  bool verbatim() const { return verbatim_; }
+
+ private:
+  const bool verbatim_;
 };
 
 GetAddrInfoReqWrap::GetAddrInfoReqWrap(Environment* env,
-                                       Local<Object> req_wrap_obj)
-    : ReqWrap(env, req_wrap_obj, AsyncWrap::PROVIDER_GETADDRINFOREQWRAP) {
+                                       Local<Object> req_wrap_obj,
+                                       bool verbatim)
+    : ReqWrap(env, req_wrap_obj, AsyncWrap::PROVIDER_GETADDRINFOREQWRAP)
+    , verbatim_(verbatim) {
   Wrap(req_wrap_obj, this);
 }
 
@@ -222,25 +240,12 @@ GetNameInfoReqWrap::~GetNameInfoReqWrap() {
 }
 
 
-int cmp_ares_tasks(const node_ares_task* a, const node_ares_task* b) {
-  if (a->sock < b->sock)
-    return -1;
-  if (a->sock > b->sock)
-    return 1;
-  return 0;
-}
-
-
-RB_GENERATE_STATIC(node_ares_task_list, node_ares_task, node, cmp_ares_tasks)
-
-
-
 /* This is called once per second by loop->timer. It is used to constantly */
 /* call back into c-ares for possibly processing timeouts. */
 void ChannelWrap::AresTimeout(uv_timer_t* handle) {
   ChannelWrap* channel = static_cast<ChannelWrap*>(handle->data);
   CHECK_EQ(channel->timer_handle(), handle);
-  CHECK_EQ(false, RB_EMPTY(channel->task_list()));
+  CHECK_EQ(false, channel->task_list()->empty());
   ares_process_fd(channel->cares_channel(), ARES_SOCKET_BAD, ARES_SOCKET_BAD);
 }
 
@@ -306,7 +311,9 @@ void ares_sockstate_cb(void* data,
 
   node_ares_task lookup_task;
   lookup_task.sock = sock;
-  task = RB_FIND(node_ares_task_list, channel->task_list(), &lookup_task);
+  auto it = channel->task_list()->find(&lookup_task);
+
+  task = (it == channel->task_list()->end()) ? nullptr : *it;
 
   if (read || write) {
     if (!task) {
@@ -315,7 +322,7 @@ void ares_sockstate_cb(void* data,
       /* If this is the first socket then start the timer. */
       uv_timer_t* timer_handle = channel->timer_handle();
       if (!uv_is_active(reinterpret_cast<uv_handle_t*>(timer_handle))) {
-        CHECK(RB_EMPTY(channel->task_list()));
+        CHECK(channel->task_list()->empty());
         uv_timer_start(timer_handle, ChannelWrap::AresTimeout, 1000, 1000);
       }
 
@@ -327,7 +334,7 @@ void ares_sockstate_cb(void* data,
         return;
       }
 
-      RB_INSERT(node_ares_task_list, channel->task_list(), task);
+      channel->task_list()->insert(task);
     }
 
     /* This should never fail. If it fails anyway, the query will eventually */
@@ -343,11 +350,11 @@ void ares_sockstate_cb(void* data,
     CHECK(task &&
           "When an ares socket is closed we should have a handle for it");
 
-    RB_REMOVE(node_ares_task_list, channel->task_list(), task);
+    channel->task_list()->erase(it);
     uv_close(reinterpret_cast<uv_handle_t*>(&task->poll_watcher),
              ares_poll_close_cb);
 
-    if (RB_EMPTY(channel->task_list())) {
+    if (channel->task_list()->empty()) {
       uv_timer_stop(channel->timer_handle());
     }
   }
@@ -1812,70 +1819,38 @@ void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
   };
 
   if (status == 0) {
-    // Success
-    struct addrinfo *address;
     int n = 0;
-
-    // Create the response array.
     Local<Array> results = Array::New(env->isolate());
 
-    char ip[INET6_ADDRSTRLEN];
-    const char *addr;
+    auto add = [&] (bool want_ipv4, bool want_ipv6) {
+      for (auto p = res; p != nullptr; p = p->ai_next) {
+        CHECK_EQ(p->ai_socktype, SOCK_STREAM);
 
-    // Iterate over the IPv4 responses again this time creating javascript
-    // strings for each IP and filling the results array.
-    address = res;
-    while (address) {
-      CHECK_EQ(address->ai_socktype, SOCK_STREAM);
+        const char* addr;
+        if (want_ipv4 && p->ai_family == AF_INET) {
+          addr = reinterpret_cast<char*>(
+              &(reinterpret_cast<struct sockaddr_in*>(p->ai_addr)->sin_addr));
+        } else if (want_ipv6 && p->ai_family == AF_INET6) {
+          addr = reinterpret_cast<char*>(
+              &(reinterpret_cast<struct sockaddr_in6*>(p->ai_addr)->sin6_addr));
+        } else {
+          continue;
+        }
 
-      // Ignore random ai_family types.
-      if (address->ai_family == AF_INET) {
-        // Juggle pointers
-        addr = reinterpret_cast<char*>(&(reinterpret_cast<struct sockaddr_in*>(
-            address->ai_addr)->sin_addr));
-        int err = uv_inet_ntop(address->ai_family,
-                               addr,
-                               ip,
-                               INET6_ADDRSTRLEN);
-        if (err)
+        char ip[INET6_ADDRSTRLEN];
+        if (uv_inet_ntop(p->ai_family, addr, ip, sizeof(ip)))
           continue;
 
-        // Create JavaScript string
         Local<String> s = OneByteString(env->isolate(), ip);
         results->Set(n, s);
         n++;
       }
+    };
 
-      // Increment
-      address = address->ai_next;
-    }
-
-    // Iterate over the IPv6 responses putting them in the array.
-    address = res;
-    while (address) {
-      CHECK_EQ(address->ai_socktype, SOCK_STREAM);
-
-      // Ignore random ai_family types.
-      if (address->ai_family == AF_INET6) {
-        // Juggle pointers
-        addr = reinterpret_cast<char*>(&(reinterpret_cast<struct sockaddr_in6*>(
-            address->ai_addr)->sin6_addr));
-        int err = uv_inet_ntop(address->ai_family,
-                               addr,
-                               ip,
-                               INET6_ADDRSTRLEN);
-        if (err)
-          continue;
-
-        // Create JavaScript string
-        Local<String> s = OneByteString(env->isolate(), ip);
-        results->Set(n, s);
-        n++;
-      }
-
-      // Increment
-      address = address->ai_next;
-    }
+    const bool verbatim = req_wrap->verbatim();
+    add(true, verbatim);
+    if (verbatim == false)
+      add(false, true);
 
     // No responses were found to return
     if (n == 0) {
@@ -1966,6 +1941,7 @@ void GetAddrInfo(const FunctionCallbackInfo<Value>& args) {
   CHECK(args[0]->IsObject());
   CHECK(args[1]->IsString());
   CHECK(args[2]->IsInt32());
+  CHECK(args[4]->IsBoolean());
   Local<Object> req_wrap_obj = args[0].As<Object>();
   node::Utf8Value hostname(env->isolate(), args[1]);
 
@@ -1986,7 +1962,7 @@ void GetAddrInfo(const FunctionCallbackInfo<Value>& args) {
     CHECK(0 && "bad address family");
   }
 
-  GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(env, req_wrap_obj);
+  auto req_wrap = new GetAddrInfoReqWrap(env, req_wrap_obj, args[4]->IsTrue());
 
   struct addrinfo hints;
   memset(&hints, 0, sizeof(struct addrinfo));
@@ -2190,34 +2166,34 @@ void Initialize(Local<Object> target,
   Local<FunctionTemplate> aiw =
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
   aiw->InstanceTemplate()->SetInternalFieldCount(1);
-  env->SetProtoMethod(aiw, "getAsyncId", AsyncWrap::GetAsyncId);
-  aiw->SetClassName(
-      FIXED_ONE_BYTE_STRING(env->isolate(), "GetAddrInfoReqWrap"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "GetAddrInfoReqWrap"),
-              aiw->GetFunction());
+  AsyncWrap::AddWrapMethods(env, aiw);
+  Local<String> addrInfoWrapString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "GetAddrInfoReqWrap");
+  aiw->SetClassName(addrInfoWrapString);
+  target->Set(addrInfoWrapString, aiw->GetFunction());
 
   Local<FunctionTemplate> niw =
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
   niw->InstanceTemplate()->SetInternalFieldCount(1);
-  env->SetProtoMethod(niw, "getAsyncId", AsyncWrap::GetAsyncId);
-  niw->SetClassName(
-      FIXED_ONE_BYTE_STRING(env->isolate(), "GetNameInfoReqWrap"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "GetNameInfoReqWrap"),
-              niw->GetFunction());
+  AsyncWrap::AddWrapMethods(env, niw);
+  Local<String> nameInfoWrapString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "GetNameInfoReqWrap");
+  niw->SetClassName(nameInfoWrapString);
+  target->Set(nameInfoWrapString, niw->GetFunction());
 
   Local<FunctionTemplate> qrw =
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
   qrw->InstanceTemplate()->SetInternalFieldCount(1);
-  env->SetProtoMethod(qrw, "getAsyncId", AsyncWrap::GetAsyncId);
-  qrw->SetClassName(
-      FIXED_ONE_BYTE_STRING(env->isolate(), "QueryReqWrap"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "QueryReqWrap"),
-              qrw->GetFunction());
+  AsyncWrap::AddWrapMethods(env, qrw);
+  Local<String> queryWrapString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "QueryReqWrap");
+  qrw->SetClassName(queryWrapString);
+  target->Set(queryWrapString, qrw->GetFunction());
 
   Local<FunctionTemplate> channel_wrap =
       env->NewFunctionTemplate(ChannelWrap::New);
   channel_wrap->InstanceTemplate()->SetInternalFieldCount(1);
-  env->SetProtoMethod(channel_wrap, "getAsyncId", AsyncWrap::GetAsyncId);
+  AsyncWrap::AddWrapMethods(env, channel_wrap);
 
   env->SetProtoMethod(channel_wrap, "queryAny", Query<QueryAnyWrap>);
   env->SetProtoMethod(channel_wrap, "queryA", Query<QueryAWrap>);
@@ -2236,10 +2212,10 @@ void Initialize(Local<Object> target,
   env->SetProtoMethod(channel_wrap, "setServers", SetServers);
   env->SetProtoMethod(channel_wrap, "cancel", Cancel);
 
-  channel_wrap->SetClassName(
-      FIXED_ONE_BYTE_STRING(env->isolate(), "ChannelWrap"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "ChannelWrap"),
-              channel_wrap->GetFunction());
+  Local<String> channelWrapString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "ChannelWrap");
+  channel_wrap->SetClassName(channelWrapString);
+  target->Set(channelWrapString, channel_wrap->GetFunction());
 }
 
 }  // anonymous namespace

@@ -14,7 +14,7 @@ function useFor(n, items, count) {
   for (i = 0; i < n; i++) {
     for (j = 0; j < count; j++) {
       /* eslint-disable no-unused-vars */
-      var item = items[j];
+      const item = items[j];
       /* esline-enable no-unused-vars */
     }
   }
@@ -63,6 +63,8 @@ function main(conf) {
     items[i] = i;
 
   switch (conf.method) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'for':
       fn = useFor;
       break;

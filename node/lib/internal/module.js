@@ -14,11 +14,17 @@ function makeRequireFunction(mod) {
     }
   }
 
-  function resolve(request) {
-    return Module._resolveFilename(request, mod);
+  function resolve(request, options) {
+    return Module._resolveFilename(request, mod, false, options);
   }
 
   require.resolve = resolve;
+
+  function paths(request) {
+    return Module._resolveLookupPaths(request, mod, true);
+  }
+
+  resolve.paths = paths;
 
   require.main = process.mainModule;
 
@@ -79,13 +85,18 @@ function stripShebang(content) {
 const builtinLibs = [
   'assert', 'async_hooks', 'buffer', 'child_process', 'cluster', 'crypto',
   'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net',
-  'os', 'path', 'punycode', 'querystring', 'readline', 'repl', 'stream',
-  'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'
+  'os', 'path', 'perf_hooks', 'punycode', 'querystring', 'readline', 'repl',
+  'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'
 ];
 
 const { exposeHTTP2 } = process.binding('config');
 if (exposeHTTP2)
   builtinLibs.push('http2');
+
+if (typeof process.binding('inspector').connect === 'function') {
+  builtinLibs.push('inspector');
+  builtinLibs.sort();
+}
 
 function addBuiltinLibsToObject(object) {
   // Make built-in modules available directly (loaded lazily).

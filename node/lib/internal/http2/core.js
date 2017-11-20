@@ -6,19 +6,25 @@ require('internal/util').assertCrypto();
 
 const binding = process.binding('http2');
 const assert = require('assert');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const EventEmitter = require('events');
 const net = require('net');
 const tls = require('tls');
 const util = require('util');
 const fs = require('fs');
 const errors = require('internal/errors');
+const { StreamWrap } = require('_stream_wrap');
 const { Duplex } = require('stream');
 const { URL } = require('url');
-const { onServerStream } = require('internal/http2/compat');
+const { onServerStream,
+        Http2ServerRequest,
+        Http2ServerResponse,
+} = require('internal/http2/compat');
 const { utcDate } = require('internal/http');
+const { promisify } = require('internal/util');
+const { isUint8Array } = require('internal/util/types');
 const { _connectionListener: httpConnectionListener } = require('http');
-const { isUint8Array } = process.binding('util');
+const { createPromise, promiseResolve } = process.binding('util');
 const debug = util.debuglog('http2');
 
 
@@ -32,8 +38,10 @@ const {
   getSettings,
   getStreamState,
   isPayloadMeaningless,
+  kSocket,
   mapToHeaders,
   NghttpError,
+  sessionName,
   toHeaderObject,
   updateOptionsBuffer,
   updateSettingsBuffer
@@ -63,10 +71,10 @@ const kOptions = Symbol('options');
 const kOwner = Symbol('owner');
 const kProceed = Symbol('proceed');
 const kProtocol = Symbol('protocol');
+const kProxySocket = Symbol('proxy-socket');
 const kRemoteSettings = Symbol('remote-settings');
 const kServer = Symbol('server');
 const kSession = Symbol('session');
-const kSocket = Symbol('socket');
 const kState = Symbol('state');
 const kType = Symbol('type');
 
@@ -84,7 +92,6 @@ const {
   NGHTTP2_CANCEL,
   NGHTTP2_DEFAULT_WEIGHT,
   NGHTTP2_FLAG_END_STREAM,
-  NGHTTP2_HCAT_HEADERS,
   NGHTTP2_HCAT_PUSH_RESPONSE,
   NGHTTP2_HCAT_RESPONSE,
   NGHTTP2_INTERNAL_ERROR,
@@ -117,27 +124,20 @@ const {
   HTTP2_METHOD_HEAD,
   HTTP2_METHOD_CONNECT,
 
-  HTTP_STATUS_CONTENT_RESET,
+  HTTP_STATUS_CONTINUE,
+  HTTP_STATUS_RESET_CONTENT,
   HTTP_STATUS_OK,
   HTTP_STATUS_NO_CONTENT,
   HTTP_STATUS_NOT_MODIFIED,
-  HTTP_STATUS_SWITCHING_PROTOCOLS
+  HTTP_STATUS_SWITCHING_PROTOCOLS,
+
+  STREAM_OPTION_EMPTY_PAYLOAD,
+  STREAM_OPTION_GET_TRAILERS
 } = constants;
 
-function sessionName(type) {
-  switch (type) {
-    case NGHTTP2_SESSION_CLIENT:
-      return 'client';
-    case NGHTTP2_SESSION_SERVER:
-      return 'server';
-    default:
-      return '<invalid>';
-  }
-}
-
 // Top level to avoid creating a closure
-function emit() {
-  this.emit.apply(this, arguments);
+function emit(self, ...args) {
+  self.emit(...args);
 }
 
 // Called when a new block of headers has been received for a given
@@ -146,9 +146,10 @@ function emit() {
 // event. If the stream is not new, emit the 'headers' event to pass
 // the block of headers on.
 function onSessionHeaders(id, cat, flags, headers) {
-  _unrefActive(this);
   const owner = this[kOwner];
-  debug(`[${sessionName(owner[kType])}] headers were received on ` +
+  const type = owner[kType];
+  _unrefActive(owner);
+  debug(`[${sessionName(type)}] headers were received on ` +
         `stream ${id}: ${cat}`);
   const streams = owner[kState].streams;
 
@@ -159,62 +160,47 @@ function onSessionHeaders(id, cat, flags, headers) {
   const obj = toHeaderObject(headers);
 
   if (stream === undefined) {
-    switch (owner[kType]) {
-      case NGHTTP2_SESSION_SERVER:
-        stream = new ServerHttp2Stream(owner, id,
-                                       { readable: !endOfStream },
-                                       obj);
-        if (obj[HTTP2_HEADER_METHOD] === HTTP2_METHOD_HEAD) {
-          // For head requests, there must not be a body...
-          // end the writable side immediately.
-          stream.end();
-          const state = stream[kState];
-          state.headRequest = true;
-        }
-        break;
-      case NGHTTP2_SESSION_CLIENT:
-        stream = new ClientHttp2Stream(owner, id, { readable: !endOfStream });
-        break;
-      default:
-        assert.fail(null, null,
-                    'Internal HTTP/2 Error. Invalid session type. Please ' +
-                    'report this as a bug in Node.js');
+    // owner[kType] can be only one of two possible values
+    if (type === NGHTTP2_SESSION_SERVER) {
+      stream = new ServerHttp2Stream(owner, id,
+                                     { readable: !endOfStream },
+                                     obj);
+      if (obj[HTTP2_HEADER_METHOD] === HTTP2_METHOD_HEAD) {
+        // For head requests, there must not be a body...
+        // end the writable side immediately.
+        stream.end();
+        stream[kState].headRequest = true;
+      }
+    } else {
+      stream = new ClientHttp2Stream(owner, id, { readable: !endOfStream });
     }
     streams.set(id, stream);
-    process.nextTick(emit.bind(owner, 'stream', stream, obj, flags));
+    process.nextTick(emit, owner, 'stream', stream, obj, flags, headers);
   } else {
     let event;
-    let status;
-    switch (cat) {
-      case NGHTTP2_HCAT_RESPONSE:
-        status = obj[HTTP2_HEADER_STATUS];
-        if (!endOfStream &&
-            status !== undefined &&
-            status >= 100 &&
-            status < 200) {
-          event = 'headers';
-        } else {
-          event = 'response';
-        }
-        break;
-      case NGHTTP2_HCAT_PUSH_RESPONSE:
-        event = 'push';
-        break;
-      case NGHTTP2_HCAT_HEADERS:
-        status = obj[HTTP2_HEADER_STATUS];
-        if (!endOfStream && status !== undefined && status >= 200) {
-          event = 'response';
-        } else {
-          event = endOfStream ? 'trailers' : 'headers';
-        }
-        break;
-      default:
-        assert.fail(null, null,
-                    'Internal HTTP/2 Error. Invalid headers category. Please ' +
-                    'report this as a bug in Node.js');
+    const status = obj[HTTP2_HEADER_STATUS];
+    if (cat === NGHTTP2_HCAT_RESPONSE) {
+      if (!endOfStream &&
+          status !== undefined &&
+          status >= 100 &&
+          status < 200) {
+        event = 'headers';
+      } else {
+        event = 'response';
+      }
+    } else if (cat === NGHTTP2_HCAT_PUSH_RESPONSE) {
+      event = 'push';
+      // cat === NGHTTP2_HCAT_HEADERS:
+    } else if (!endOfStream && status !== undefined && status >= 200) {
+      event = 'response';
+    } else {
+      event = endOfStream ? 'trailers' : 'headers';
     }
-    debug(`[${sessionName(owner[kType])}] emitting stream '${event}' event`);
-    process.nextTick(emit.bind(stream, event, obj, flags));
+    debug(`[${sessionName(type)}] emitting stream '${event}' event`);
+    process.nextTick(emit, stream, event, obj, flags, headers);
+  }
+  if (endOfStream) {
+    stream.push(null);
   }
 }
 
@@ -234,14 +220,11 @@ function onSessionTrailers(id) {
   assert(stream !== undefined,
          'Internal HTTP/2 Failure. Stream does not exist. Please ' +
          'report this as a bug in Node.js');
-  const getTrailers = stream[kState].getTrailers;
-  if (typeof getTrailers !== 'function')
-    return [];
   const trailers = Object.create(null);
-  getTrailers.call(stream, trailers);
+  stream[kState].getTrailers.call(stream, trailers);
   const headersList = mapToHeaders(trailers, assertValidPseudoHeaderTrailer);
   if (!Array.isArray(headersList)) {
-    process.nextTick(() => stream.emit('error', headersList));
+    process.nextTick(emit, stream, 'error', headersList);
     return;
   }
   return headersList;
@@ -258,7 +241,7 @@ function onSessionStreamClose(id, code) {
   const stream = owner[kState].streams.get(id);
   if (stream === undefined)
     return;
-  _unrefActive(this);
+  _unrefActive(owner);
   // Set the rst state for the stream
   abort(stream);
   const state = stream[kState];
@@ -275,19 +258,21 @@ function onSessionStreamClose(id, code) {
 
 function afterFDClose(err) {
   if (err)
-    process.nextTick(() => this.emit('error', err));
+    process.nextTick(emit, this, 'error', err);
 }
 
 // Called when an error event needs to be triggered
 function onSessionError(error) {
-  _unrefActive(this);
-  process.nextTick(() => this[kOwner].emit('error', error));
+  const owner = this[kOwner];
+  _unrefActive(owner);
+  process.nextTick(emit, owner, 'error', error);
 }
 
 // Receives a chunk of data for a given stream and forwards it on
 // to the Http2Stream Duplex for processing.
 function onSessionRead(nread, buf, handle) {
-  const streams = this[kOwner][kState].streams;
+  const owner = this[kOwner];
+  const streams = owner[kState].streams;
   const id = handle.id;
   const stream = streams.get(id);
   // It should not be possible for the stream to not exist at this point.
@@ -295,19 +280,18 @@ function onSessionRead(nread, buf, handle) {
   assert(stream !== undefined,
          'Internal HTTP/2 Failure. Stream does not exist. Please ' +
          'report this as a bug in Node.js');
-  const state = stream[kState];
-  _unrefActive(this); // Reset the session timeout timer
+  _unrefActive(owner); // Reset the session timeout timer
   _unrefActive(stream); // Reset the stream timeout timer
-
   if (nread >= 0 && !stream.destroyed) {
-    if (!stream.push(buf)) {
-      this.streamReadStop(id);
-      state.reading = false;
-    }
-  } else {
-    // Last chunk was received. End the readable side.
-    stream.push(null);
+    // prevent overflowing the buffer while pause figures out the
+    // stream needs to actually pause and streamOnPause runs
+    if (!stream.push(buf))
+      owner[kHandle].streamReadStop(id);
+    return;
   }
+
+  // Last chunk was received. End the readable side.
+  stream.push(null);
 }
 
 // Called when the remote peer settings have been updated.
@@ -315,7 +299,7 @@ function onSessionRead(nread, buf, handle) {
 function onSettings(ack) {
   const owner = this[kOwner];
   debug(`[${sessionName(owner[kType])}] new settings received`);
-  _unrefActive(this);
+  _unrefActive(owner);
   let event = 'remoteSettings';
   if (ack) {
     if (owner[kState].pendingAck > 0)
@@ -329,7 +313,7 @@ function onSettings(ack) {
   if (owner.listenerCount(event) > 0) {
     const settings = event === 'localSettings' ?
       owner.localSettings : owner.remoteSettings;
-    process.nextTick(emit.bind(owner, event, settings));
+    process.nextTick(emit, owner, event, settings);
   }
 }
 
@@ -341,19 +325,18 @@ function onPriority(id, parent, weight, exclusive) {
   debug(`[${sessionName(owner[kType])}] priority advisement for stream ` +
         `${id}: \n  parent: ${parent},\n  weight: ${weight},\n` +
         `  exclusive: ${exclusive}`);
-  _unrefActive(this);
+  _unrefActive(owner);
   const streams = owner[kState].streams;
   const stream = streams.get(id);
   const emitter = stream === undefined ? owner : stream;
-  process.nextTick(
-    emit.bind(emitter, 'priority', id, parent, weight, exclusive));
+  process.nextTick(emit, emitter, 'priority', id, parent, weight, exclusive);
 }
 
-function emitFrameError(id, type, code) {
-  if (!this.emit('frameError', type, code, id)) {
+function emitFrameError(self, id, type, code) {
+  if (!self.emit('frameError', type, code, id)) {
     const err = new errors.Error('ERR_HTTP2_FRAME_ERROR', type, code, id);
     err.errno = code;
-    this.emit('error', err);
+    self.emit('error', err);
   }
 }
 
@@ -363,29 +346,31 @@ function onFrameError(id, type, code) {
   const owner = this[kOwner];
   debug(`[${sessionName(owner[kType])}] error sending frame type ` +
         `${type} on stream ${id}, code: ${code}`);
-  _unrefActive(this);
+  _unrefActive(owner);
   const streams = owner[kState].streams;
   const stream = streams.get(id);
   const emitter = stream !== undefined ? stream : owner;
-  process.nextTick(emitFrameError.bind(emitter, id, type, code));
+  process.nextTick(emitFrameError, emitter, id, type, code);
 }
 
-function emitGoaway(state, code, lastStreamID, buf) {
-  this.emit('goaway', code, lastStreamID, buf);
+function emitGoaway(self, code, lastStreamID, buf) {
+  self.emit('goaway', code, lastStreamID, buf);
   // Tear down the session or destroy
+  const state = self[kState];
+  if (state.destroying || state.destroyed)
+    return;
   if (!state.shuttingDown && !state.shutdown) {
-    this.shutdown({}, this.destroy.bind(this));
+    self.shutdown({}, self.destroy.bind(self));
   } else {
-    this.destroy();
+    self.destroy();
   }
 }
 
 // Called by the native layer when a goaway frame has been received
 function onGoawayData(code, lastStreamID, buf) {
   const owner = this[kOwner];
-  const state = owner[kState];
   debug(`[${sessionName(owner[kType])}] goaway data received`);
-  process.nextTick(emitGoaway.bind(owner, state, code, lastStreamID, buf));
+  process.nextTick(emitGoaway, owner, code, lastStreamID, buf);
 }
 
 // Returns the padding to use per frame. The selectPadding callback is set
@@ -393,9 +378,6 @@ function onGoawayData(code, lastStreamID, buf) {
 // maxPayloadLen. The method must return a numeric value within the range
 // frameLen <= n <= maxPayloadLen.
 function onSelectPadding(fn) {
-  assert(typeof fn === 'function',
-         'options.selectPadding must be a function. Please report this as a ' +
-         'bug in Node.js');
   return function getPadding() {
     debug('fetching padding for frame');
     const frameLen = paddingBuffer[PADDING_BUF_FRAME_LENGTH];
@@ -417,28 +399,29 @@ function requestOnConnect(headers, options) {
   const streams = session[kState].streams;
 
   validatePriorityOptions(options);
-  const handle = session[kHandle];
 
   const headersList = mapToHeaders(headers);
   if (!Array.isArray(headersList)) {
-    process.nextTick(() => this.emit('error', headersList));
+    process.nextTick(emit, this, 'error', headersList);
     return;
   }
 
-  let getTrailers = false;
+  let streamOptions = 0;
+  if (options.endStream)
+    streamOptions |= STREAM_OPTION_EMPTY_PAYLOAD;
+
   if (typeof options.getTrailers === 'function') {
-    getTrailers = true;
+    streamOptions |= STREAM_OPTION_GET_TRAILERS;
     this[kState].getTrailers = options.getTrailers;
   }
 
   // ret will be either the reserved stream ID (if positive)
   // or an error code (if negative)
-  const ret = handle.submitRequest(headersList,
-                                   !!options.endStream,
-                                   options.parent | 0,
-                                   options.weight | 0,
-                                   !!options.exclusive,
-                                   getTrailers);
+  const ret = session[kHandle].submitRequest(headersList,
+                                             streamOptions,
+                                             options.parent | 0,
+                                             options.weight | 0,
+                                             !!options.exclusive);
 
   // In an error condition, one of three possible response codes will be
   // possible:
@@ -454,21 +437,21 @@ function requestOnConnect(headers, options) {
   switch (ret) {
     case NGHTTP2_ERR_NOMEM:
       err = new errors.Error('ERR_OUTOFMEMORY');
-      process.nextTick(() => session.emit('error', err));
+      process.nextTick(emit, session, 'error', err);
       break;
     case NGHTTP2_ERR_STREAM_ID_NOT_AVAILABLE:
       err = new errors.Error('ERR_HTTP2_OUT_OF_STREAMS');
-      process.nextTick(() => this.emit('error', err));
+      process.nextTick(emit, session, 'error', err);
       break;
     case NGHTTP2_ERR_INVALID_ARGUMENT:
       err = new errors.Error('ERR_HTTP2_STREAM_SELF_DEPENDENCY');
-      process.nextTick(() => this.emit('error', err));
+      process.nextTick(emit, this, 'error', err);
       break;
     default:
       // Some other, unexpected error was returned. Emit on the session.
       if (ret < 0) {
         err = new NghttpError(ret);
-        process.nextTick(() => session.emit('error', err));
+        process.nextTick(emit, session, 'error', err);
         break;
       }
       debug(`[${sessionName(session[kType])}] stream ${ret} initialized`);
@@ -481,9 +464,9 @@ function validatePriorityOptions(options) {
   if (options.weight === undefined) {
     options.weight = NGHTTP2_DEFAULT_WEIGHT;
   } else if (typeof options.weight !== 'number') {
-    const err = new errors.RangeError('ERR_INVALID_OPT_VALUE',
-                                      'weight',
-                                      options.weight);
+    const err = new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                                     'weight',
+                                     options.weight);
     Error.captureStackTrace(err, validatePriorityOptions);
     throw err;
   }
@@ -491,9 +474,9 @@ function validatePriorityOptions(options) {
   if (options.parent === undefined) {
     options.parent = 0;
   } else if (typeof options.parent !== 'number' || options.parent < 0) {
-    const err = new errors.RangeError('ERR_INVALID_OPT_VALUE',
-                                      'parent',
-                                      options.parent);
+    const err = new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                                     'parent',
+                                     options.parent);
     Error.captureStackTrace(err, validatePriorityOptions);
     throw err;
   }
@@ -501,9 +484,9 @@ function validatePriorityOptions(options) {
   if (options.exclusive === undefined) {
     options.exclusive = false;
   } else if (typeof options.exclusive !== 'boolean') {
-    const err = new errors.RangeError('ERR_INVALID_OPT_VALUE',
-                                      'exclusive',
-                                      options.exclusive);
+    const err = new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                                     'exclusive',
+                                     options.exclusive);
     Error.captureStackTrace(err, validatePriorityOptions);
     throw err;
   }
@@ -511,9 +494,9 @@ function validatePriorityOptions(options) {
   if (options.silent === undefined) {
     options.silent = false;
   } else if (typeof options.silent !== 'boolean') {
-    const err = new errors.RangeError('ERR_INVALID_OPT_VALUE',
-                                      'silent',
-                                      options.silent);
+    const err = new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                                     'silent',
+                                     options.silent);
     Error.captureStackTrace(err, validatePriorityOptions);
     throw err;
   }
@@ -555,96 +538,93 @@ function setupHandle(session, socket, type, options) {
       options.settings : Object.create(null);
 
     session.settings(settings);
-    process.nextTick(emit.bind(session, 'connect', session, socket));
+    process.nextTick(emit, session, 'connect', session, socket);
   };
 }
 
 // Submits a SETTINGS frame to be sent to the remote peer.
 function submitSettings(settings) {
-  debug(`[${sessionName(this[kType])}] submitting actual settings`);
+  const type = this[kType];
+  debug(`[${sessionName(type)}] submitting actual settings`);
   _unrefActive(this);
   this[kLocalSettings] = undefined;
 
   updateSettingsBuffer(settings);
-  const handle = this[kHandle];
-  const ret = handle.submitSettings();
+  const ret = this[kHandle].submitSettings();
   let err;
   switch (ret) {
     case NGHTTP2_ERR_NOMEM:
       err = new errors.Error('ERR_OUTOFMEMORY');
-      process.nextTick(() => this.emit('error', err));
+      process.nextTick(emit, this, 'error', err);
       break;
     default:
       // Some other unexpected error was reported.
       if (ret < 0) {
         err = new NghttpError(ret);
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, this, 'error', err);
       }
   }
-  debug(`[${sessionName(this[kType])}] settings complete`);
+  debug(`[${sessionName(type)}] settings complete`);
 }
 
 // Submits a PRIORITY frame to be sent to the remote peer
 // Note: If the silent option is true, the change will be made
 // locally with no PRIORITY frame sent.
 function submitPriority(stream, options) {
-  debug(`[${sessionName(this[kType])}] submitting actual priority`);
+  const type = this[kType];
+  debug(`[${sessionName(type)}] submitting actual priority`);
   _unrefActive(this);
 
-  const handle = this[kHandle];
-  const ret =
-    handle.submitPriority(
-      stream[kID],
-      options.parent | 0,
-      options.weight | 0,
-      !!options.exclusive,
-      !!options.silent);
+  const ret = this[kHandle].submitPriority(stream[kID],
+                                           options.parent | 0,
+                                           options.weight | 0,
+                                           !!options.exclusive,
+                                           !!options.silent);
 
   let err;
   switch (ret) {
     case NGHTTP2_ERR_NOMEM:
       err = new errors.Error('ERR_OUTOFMEMORY');
-      process.nextTick(() => this.emit('error', err));
+      process.nextTick(emit, this, 'error', err);
       break;
     default:
       // Some other unexpected error was reported.
       if (ret < 0) {
         err = new NghttpError(ret);
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, stream, 'error', err);
       }
   }
-  debug(`[${sessionName(this[kType])}] priority complete`);
+  debug(`[${sessionName(type)}] priority complete`);
 }
 
 // Submit an RST-STREAM frame to be sent to the remote peer.
 // This will cause the Http2Stream to be closed.
 function submitRstStream(stream, code) {
-  debug(`[${sessionName(this[kType])}] submit actual rststream`);
+  const type = this[kType];
+  debug(`[${sessionName(type)}] submit actual rststream`);
   _unrefActive(this);
-  const id = stream[kID];
-  const handle = this[kHandle];
-  const ret = handle.submitRstStream(id, code);
+  const ret = this[kHandle].submitRstStream(stream[kID], code);
   let err;
   switch (ret) {
     case NGHTTP2_ERR_NOMEM:
       err = new errors.Error('ERR_OUTOFMEMORY');
-      process.nextTick(() => this.emit('error', err));
+      process.nextTick(emit, this, 'error', err);
       break;
     default:
       // Some other unexpected error was reported.
       if (ret < 0) {
         err = new NghttpError(ret);
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, stream, 'error', err);
         break;
       }
       stream.destroy();
   }
-  debug(`[${sessionName(this[kType])}] rststream complete`);
+  debug(`[${sessionName(type)}] rststream complete`);
 }
 
-function doShutdown(options) {
-  const handle = this[kHandle];
-  const state = this[kState];
+function doShutdown(self, options) {
+  const handle = self[kHandle];
+  const state = self[kState];
   if (handle === undefined || state.shutdown)
     return; // Nothing to do, possibly because the session shutdown already.
   const ret = handle.submitGoaway(options.errorCode | 0,
@@ -653,35 +633,32 @@ function doShutdown(options) {
   state.shuttingDown = false;
   state.shutdown = true;
   if (ret < 0) {
-    debug(`[${sessionName(this[kType])}] shutdown failed! code: ${ret}`);
+    debug(`[${sessionName(self[kType])}] shutdown failed! code: ${ret}`);
     const err = new NghttpError(ret);
-    process.nextTick(() => this.emit('error', err));
+    process.nextTick(emit, self, 'error', err);
     return;
   }
-  process.nextTick(emit.bind(this, 'shutdown', options));
-  debug(`[${sessionName(this[kType])}] shutdown is complete`);
+  process.nextTick(emit, self, 'shutdown', options);
+  debug(`[${sessionName(self[kType])}] shutdown is complete`);
 }
 
 // Submit a graceful or immediate shutdown request for the Http2Session.
 function submitShutdown(options) {
-  debug(`[${sessionName(this[kType])}] submitting actual shutdown request`);
-  const handle = this[kHandle];
   const type = this[kType];
+  debug(`[${sessionName(type)}] submitting actual shutdown request`);
   if (type === NGHTTP2_SESSION_SERVER &&
       options.graceful === true) {
     // first send a shutdown notice
-    handle.submitShutdownNotice();
+    this[kHandle].submitShutdownNotice();
     // then, on flip of the event loop, do the actual shutdown
-    setImmediate(doShutdown.bind(this, options));
+    setImmediate(doShutdown, this, options);
   } else {
-    doShutdown.call(this, options);
+    doShutdown(this, options);
   }
 }
 
-function finishSessionDestroy(socket) {
-  const state = this[kState];
-  if (state.destroyed)
-    return;
+function finishSessionDestroy(self, socket) {
+  const state = self[kState];
 
   if (!socket.destroyed)
     socket.destroy();
@@ -690,16 +667,58 @@ function finishSessionDestroy(socket) {
   state.destroyed = true;
 
   // Destroy the handle
-  const handle = this[kHandle];
+  const handle = self[kHandle];
   if (handle !== undefined) {
     handle.destroy(state.skipUnconsume);
-    debug(`[${sessionName(this[kType])}] nghttp2session handle destroyed`);
+    debug(`[${sessionName(self[kType])}] nghttp2session handle destroyed`);
   }
-  this[kHandle] = undefined;
+  self[kHandle] = undefined;
 
-  process.nextTick(emit.bind(this, 'close'));
-  debug(`[${sessionName(this[kType])}] nghttp2session destroyed`);
+  process.nextTick(emit, self, 'close');
+  debug(`[${sessionName(self[kType])}] nghttp2session destroyed`);
 }
+
+const proxySocketHandler = {
+  get(session, prop) {
+    switch (prop) {
+      case 'setTimeout':
+        return session.setTimeout.bind(session);
+      case 'destroy':
+      case 'emit':
+      case 'end':
+      case 'pause':
+      case 'read':
+      case 'resume':
+      case 'write':
+        throw new errors.Error('ERR_HTTP2_NO_SOCKET_MANIPULATION');
+      default:
+        const socket = session[kSocket];
+        const value = socket[prop];
+        return typeof value === 'function' ? value.bind(socket) : value;
+    }
+  },
+  getPrototypeOf(session) {
+    return Reflect.getPrototypeOf(session[kSocket]);
+  },
+  set(session, prop, value) {
+    switch (prop) {
+      case 'setTimeout':
+        session.setTimeout = value;
+        return true;
+      case 'destroy':
+      case 'emit':
+      case 'end':
+      case 'pause':
+      case 'read':
+      case 'resume':
+      case 'write':
+        throw new errors.Error('ERR_HTTP2_NO_SOCKET_MANIPULATION');
+      default:
+        session[kSocket][prop] = value;
+        return true;
+    }
+  }
+};
 
 // Upon creation, the Http2Session takes ownership of the socket. The session
 // may not be ready to use immediately if the socket is not yet fully connected.
@@ -707,9 +726,13 @@ class Http2Session extends EventEmitter {
 
   // type     { number } either NGHTTP2_SESSION_SERVER or NGHTTP2_SESSION_CLIENT
   // options  { Object }
-  // socket   { net.Socket | tls.TLSSocket }
+  // socket   { net.Socket | tls.TLSSocket | stream.Duplex }
   constructor(type, options, socket) {
     super();
+
+    if (!socket._handle || !socket._handle._externalStream) {
+      socket = new StreamWrap(socket);
+    }
 
     // No validation is performed on the input parameters because this
     // constructor is not exported directly for users.
@@ -728,14 +751,17 @@ class Http2Session extends EventEmitter {
       shutdown: false,
       shuttingDown: false,
       pendingAck: 0,
-      maxPendingAck: Math.max(1, (options.maxPendingAck | 0) || 10)
+      maxPendingAck: Math.max(1, (options.maxPendingAck | 0) || 10),
+      writeQueueSize: 0
     };
 
     this[kType] = type;
+    this[kProxySocket] = null;
     this[kSocket] = socket;
 
     // Do not use nagle's algorithm
-    socket.setNoDelay();
+    if (typeof socket.setNoDelay === 'function')
+      socket.setNoDelay();
 
     // Disable TLS renegotiation on the socket
     if (typeof socket.disableRenegotiation === 'function')
@@ -780,7 +806,10 @@ class Http2Session extends EventEmitter {
 
   // The socket owned by this session
   get socket() {
-    return this[kSocket];
+    const proxySocket = this[kProxySocket];
+    if (proxySocket === null)
+      return this[kProxySocket] = new Proxy(this, proxySocketHandler);
+    return proxySocket;
   }
 
   // The session type
@@ -839,7 +868,8 @@ class Http2Session extends EventEmitter {
 
   // Submits a SETTINGS frame to be sent to the remote peer.
   settings(settings) {
-    if (this[kState].destroyed || this[kState].destroying)
+    const state = this[kState];
+    if (state.destroyed || state.destroying)
       throw new errors.Error('ERR_HTTP2_INVALID_SESSION');
 
     // Validate the input first
@@ -867,14 +897,14 @@ class Http2Session extends EventEmitter {
       err.actual = settings.enablePush;
       throw err;
     }
-    if (this[kState].pendingAck === this[kState].maxPendingAck) {
+    if (state.pendingAck === state.maxPendingAck) {
       throw new errors.Error('ERR_HTTP2_MAX_PENDING_SETTINGS_ACK',
                              this[kState].pendingAck);
     }
     debug(`[${sessionName(this[kType])}] sending settings`);
 
-    this[kState].pendingAck++;
-    if (this[kState].connecting) {
+    state.pendingAck++;
+    if (state.connecting) {
       debug(`[${sessionName(this[kType])}] session still connecting, ` +
             'queue settings');
       this.once('connect', submitSettings.bind(this, settings));
@@ -885,7 +915,8 @@ class Http2Session extends EventEmitter {
 
   // Submits a PRIORITY frame to be sent to the remote peer.
   priority(stream, options) {
-    if (this[kState].destroyed || this[kState].destroying)
+    const state = this[kState];
+    if (state.destroyed || state.destroying)
       throw new errors.Error('ERR_HTTP2_INVALID_SESSION');
 
     if (!(stream instanceof Http2Stream)) {
@@ -897,19 +928,20 @@ class Http2Session extends EventEmitter {
     options = Object.assign(Object.create(null), options);
     validatePriorityOptions(options);
 
+    const id = stream[kID];
     debug(`[${sessionName(this[kType])}] sending priority for stream ` +
-          `${stream[kID]}`);
+          `${id}`);
 
     // A stream cannot be made to depend on itself
-    if (options.parent === stream[kID]) {
-      debug(`[${sessionName(this[kType])}] session still connecting. queue ` +
-            'priority');
+    if (options.parent === id) {
       throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
                                  'parent',
                                  options.parent);
     }
 
-    if (stream[kID] === undefined) {
+    if (id === undefined) {
+      debug(`[${sessionName(this[kType])}] session still connecting. queue ` +
+            'priority');
       stream.once('ready', submitPriority.bind(this, stream, options));
       return;
     }
@@ -936,19 +968,21 @@ class Http2Session extends EventEmitter {
                                  'number');
     }
 
-    if (this[kState].rst) {
+    const state = stream[kState];
+    if (state.rst) {
       // rst has already been called, do not call again,
       // skip straight to destroy
       stream.destroy();
       return;
     }
-    stream[kState].rst = true;
-    stream[kState].rstCode = code;
+    state.rst = true;
+    state.rstCode = code;
 
+    const id = stream[kID];
     debug(`[${sessionName(this[kType])}] initiating rststream for stream ` +
-          `${stream[kID]}: ${code}`);
+          `${id}: ${code}`);
 
-    if (stream[kID] === undefined) {
+    if (id === undefined) {
       debug(`[${sessionName(this[kType])}] session still connecting, queue ` +
             'rststream');
       stream.once('ready', submitRstStream.bind(this, stream, code));
@@ -964,9 +998,10 @@ class Http2Session extends EventEmitter {
       return;
     debug(`[${sessionName(this[kType])}] destroying nghttp2session`);
     state.destroying = true;
+    state.destroyed = false;
 
     // Unenroll the timer
-    unenroll(this);
+    this.setTimeout(0, sessionOnTimeout);
 
     // Shut down any still open streams
     const streams = state.streams;
@@ -975,29 +1010,25 @@ class Http2Session extends EventEmitter {
     // Disassociate from the socket and server
     const socket = this[kSocket];
     // socket.pause();
+    delete this[kProxySocket];
     delete this[kSocket];
     delete this[kServer];
-
-    state.destroyed = false;
-    state.destroying = true;
 
     if (this[kHandle] !== undefined)
       this[kHandle].destroying();
 
-    setImmediate(finishSessionDestroy.bind(this, socket));
+    setImmediate(finishSessionDestroy, this, socket);
   }
 
   // Graceful or immediate shutdown of the Http2Session. Graceful shutdown
   // is only supported on the server-side
   shutdown(options, callback) {
-    if (this[kState].destroyed || this[kState].destroying)
+    const state = this[kState];
+    if (state.destroyed || state.destroying)
       throw new errors.Error('ERR_HTTP2_INVALID_SESSION');
 
-    if (this[kState].shutdown || this[kState].shuttingDown)
+    if (state.shutdown || state.shuttingDown)
       return;
-
-    debug(`[${sessionName(this[kType])}] initiating shutdown`);
-    this[kState].shuttingDown = true;
 
     const type = this[kType];
 
@@ -1036,23 +1067,42 @@ class Http2Session extends EventEmitter {
                                  options.lastStreamID);
     }
 
+    debug(`[${sessionName(type)}] initiating shutdown`);
+    state.shuttingDown = true;
+
     if (callback) {
       this.on('shutdown', callback);
     }
 
-    if (this[kState].connecting) {
-      debug(`[${sessionName(this[kType])}] session still connecting, queue ` +
+    if (state.connecting) {
+      debug(`[${sessionName(type)}] session still connecting, queue ` +
             'shutdown');
       this.once('connect', submitShutdown.bind(this, options));
       return;
     }
 
-    debug(`[${sessionName(this[kType])}] sending shutdown`);
+    debug(`[${sessionName(type)}] sending shutdown`);
     submitShutdown.call(this, options);
   }
 
   _onTimeout() {
-    process.nextTick(emit.bind(this, 'timeout'));
+    // This checks whether a write is currently in progress and also whether
+    // that write is actually sending data across the write. The kHandle
+    // stored `chunksSentSinceLastWrite` is only updated when a timeout event
+    // happens, meaning that if a write is ongoing it should never equal the
+    // newly fetched, updated value.
+    if (this[kState].writeQueueSize > 0) {
+      const handle = this[kHandle];
+      const chunksSentSinceLastWrite = handle !== undefined ?
+        handle.chunksSentSinceLastWrite : null;
+      if (chunksSentSinceLastWrite !== null &&
+          chunksSentSinceLastWrite !== handle.updateChunksSent()) {
+        _unrefActive(this);
+        return;
+      }
+    }
+
+    process.nextTick(emit, this, 'timeout');
   }
 }
 
@@ -1076,7 +1126,8 @@ class ClientHttp2Session extends Http2Session {
   // Submits a new HTTP2 request to the connected peer. Returns the
   // associated Http2Stream instance.
   request(headers, options) {
-    if (this[kState].destroyed || this[kState].destroying)
+    const state = this[kState];
+    if (state.destroyed || state.destroying)
       throw new errors.Error('ERR_HTTP2_INVALID_SESSION');
     debug(`[${sessionName(this[kType])}] initiating request`);
     _unrefActive(this);
@@ -1115,9 +1166,9 @@ class ClientHttp2Session extends Http2Session {
       // preference.
       options.endStream = isPayloadMeaningless(headers[HTTP2_HEADER_METHOD]);
     } else if (typeof options.endStream !== 'boolean') {
-      throw new errors.RangeError('ERR_INVALID_OPT_VALUE',
-                                  'endStream',
-                                  options.endStream);
+      throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
+                                 'endStream',
+                                 options.endStream);
     }
 
     if (options.getTrailers !== undefined &&
@@ -1135,7 +1186,7 @@ class ClientHttp2Session extends Http2Session {
     if (options.endStream)
       stream.end();
 
-    if (this[kState].connecting) {
+    if (state.connecting) {
       debug(`[${sessionName(this[kType])}] session still connecting, queue ` +
             'stream init');
       stream.on('connect', onConnect);
@@ -1150,11 +1201,6 @@ class ClientHttp2Session extends Http2Session {
 
 function createWriteReq(req, handle, data, encoding) {
   switch (encoding) {
-    case 'latin1':
-    case 'binary':
-      return handle.writeLatin1String(req, data);
-    case 'buffer':
-      return handle.writeBuffer(req, data);
     case 'utf8':
     case 'utf-8':
       return handle.writeUtf8String(req, data);
@@ -1165,13 +1211,37 @@ function createWriteReq(req, handle, data, encoding) {
     case 'utf16le':
     case 'utf-16le':
       return handle.writeUcs2String(req, data);
+    case 'latin1':
+    case 'binary':
+      return handle.writeLatin1String(req, data);
+    case 'buffer':
+      return handle.writeBuffer(req, data);
     default:
       return handle.writeBuffer(req, Buffer.from(data, encoding));
   }
 }
 
+function trackWriteState(stream, bytes) {
+  const session = stream[kSession];
+  stream[kState].writeQueueSize += bytes;
+  session[kState].writeQueueSize += bytes;
+  session[kHandle].chunksSentSinceLastWrite = 0;
+}
+
 function afterDoStreamWrite(status, handle, req) {
-  _unrefActive(handle[kOwner]);
+  const session = handle[kOwner];
+  _unrefActive(session);
+
+  const state = session[kState];
+  const { bytes } = req;
+  state.writeQueueSize -= bytes;
+
+  const stream = state.streams.get(req.stream);
+  if (stream !== undefined) {
+    _unrefActive(stream);
+    stream[kState].writeQueueSize -= bytes;
+  }
+
   if (typeof req.callback === 'function')
     req.callback();
   this.handle = undefined;
@@ -1181,7 +1251,7 @@ function onHandleFinish() {
   const session = this[kSession];
   if (session === undefined) return;
   if (this[kID] === undefined) {
-    this.once('ready', onHandleFinish.bind(this));
+    this.once('ready', onHandleFinish);
   } else {
     const handle = session[kHandle];
     if (handle !== undefined) {
@@ -1211,39 +1281,31 @@ function onStreamClosed(code) {
 }
 
 function streamOnResume() {
-  if (this._paused)
-    return this.pause();
   if (this[kID] === undefined) {
-    this.once('ready', streamOnResume.bind(this));
+    this.once('ready', streamOnResume);
     return;
   }
   const session = this[kSession];
-  const state = this[kState];
-  if (session && !state.reading) {
-    state.reading = true;
+  if (session) {
     assert(session[kHandle].streamReadStart(this[kID]) === undefined,
-           'HTTP/2 Stream #{this[kID]} does not exist. Please report this as ' +
+           `HTTP/2 Stream ${this[kID]} does not exist. Please report this as ` +
            'a bug in Node.js');
   }
 }
 
 function streamOnPause() {
   const session = this[kSession];
-  const state = this[kState];
-  if (session && state.reading) {
-    state.reading = false;
+  if (session) {
     assert(session[kHandle].streamReadStop(this[kID]) === undefined,
            `HTTP/2 Stream ${this[kID]} does not exist. Please report this as ' +
            'a bug in Node.js`);
   }
 }
 
-function streamOnDrain() {
-  const needPause = 0 > this._writableState.highWaterMark;
-  if (this._paused && !needPause) {
-    this._paused = false;
-    this.resume();
-  }
+function handleFlushData(handle, streamID) {
+  assert(handle.flushData(streamID) === undefined,
+         `HTTP/2 Stream ${streamID} does not exist. Please report this as ` +
+         'a bug in Node.js');
 }
 
 function streamOnSessionConnect() {
@@ -1251,7 +1313,7 @@ function streamOnSessionConnect() {
   debug(`[${sessionName(session[kType])}] session connected. emiting stream ` +
         'connect');
   this[kState].connecting = false;
-  process.nextTick(emit.bind(this, 'connect'));
+  process.nextTick(emit, this, 'connect');
 }
 
 function streamOnceReady() {
@@ -1276,6 +1338,7 @@ function abort(stream) {
 class Http2Stream extends Duplex {
   constructor(session, options) {
     options.allowHalfOpen = true;
+    options.decodeStrings = false;
     super(options);
     this.cork();
     this[kSession] = session;
@@ -1284,8 +1347,10 @@ class Http2Stream extends Duplex {
       rst: false,
       rstCode: NGHTTP2_NO_ERROR,
       headersSent: false,
+      headRequest: false,
       aborted: false,
-      closeHandler: onSessionClose.bind(this)
+      closeHandler: onSessionClose.bind(this),
+      writeQueueSize: 0
     };
 
     this.once('ready', streamOnceReady);
@@ -1293,7 +1358,6 @@ class Http2Stream extends Duplex {
     this.once('finish', onHandleFinish);
     this.on('resume', streamOnResume);
     this.on('pause', streamOnPause);
-    this.on('drain', streamOnDrain);
     session.once('close', state.closeHandler);
 
     if (session[kState].connecting) {
@@ -1332,12 +1396,34 @@ class Http2Stream extends Duplex {
   }
 
   _onTimeout() {
-    process.nextTick(emit.bind(this, 'timeout'));
+    // This checks whether a write is currently in progress and also whether
+    // that write is actually sending data across the write. The kHandle
+    // stored `chunksSentSinceLastWrite` is only updated when a timeout event
+    // happens, meaning that if a write is ongoing it should never equal the
+    // newly fetched, updated value.
+    if (this[kState].writeQueueSize > 0) {
+      const handle = this[kSession][kHandle];
+      const chunksSentSinceLastWrite = handle !== undefined ?
+        handle.chunksSentSinceLastWrite : null;
+      if (chunksSentSinceLastWrite !== null &&
+          chunksSentSinceLastWrite !== handle.updateChunksSent()) {
+        _unrefActive(this);
+        _unrefActive(this[kSession]);
+        return;
+      }
+    }
+
+    process.nextTick(emit, this, 'timeout');
   }
 
   // true if the Http2Stream was aborted abornomally.
   get aborted() {
     return this[kState].aborted;
+  }
+
+  // true if dealing with a HEAD request
+  get headRequest() {
+    return this[kState].headRequest;
   }
 
   // The error code reported when this Http2Stream was closed.
@@ -1364,10 +1450,11 @@ class Http2Stream extends Duplex {
       this.once('ready', this._write.bind(this, data, encoding, cb));
       return;
     }
-    _unrefActive(this);
     if (!this[kState].headersSent)
       this[kProceed]();
     const session = this[kSession];
+    _unrefActive(this);
+    _unrefActive(session);
     const handle = session[kHandle];
     const req = new WriteWrap();
     req.stream = this[kID];
@@ -1378,7 +1465,7 @@ class Http2Stream extends Duplex {
     const err = createWriteReq(req, handle, data, encoding);
     if (err)
       throw util._errnoException(err, 'write', req.error);
-    this._bytesDispatched += req.bytes;
+    trackWriteState(this, req.bytes);
   }
 
   _writev(data, cb) {
@@ -1386,10 +1473,11 @@ class Http2Stream extends Duplex {
       this.once('ready', this._writev.bind(this, data, cb));
       return;
     }
-    _unrefActive(this);
     if (!this[kState].headersSent)
       this[kProceed]();
     const session = this[kSession];
+    _unrefActive(this);
+    _unrefActive(session);
     const handle = session[kHandle];
     const req = new WriteWrap();
     req.stream = this[kID];
@@ -1406,6 +1494,7 @@ class Http2Stream extends Duplex {
     const err = handle.writev(req, chunks);
     if (err)
       throw util._errnoException(err, 'write', req.error);
+    trackWriteState(this, req.bytes);
   }
 
   _read(nread) {
@@ -1418,13 +1507,7 @@ class Http2Stream extends Duplex {
       return;
     }
     _unrefActive(this);
-    const state = this[kState];
-    if (state.reading)
-      return;
-    state.reading = true;
-    assert(this[kSession][kHandle].streamReadStart(this[kID]) === undefined,
-           'HTTP/2 Stream #{this[kID]} does not exist. Please report this as ' +
-           'a bug in Node.js');
+    process.nextTick(handleFlushData, this[kSession][kHandle], this[kID]);
   }
 
   // Submits an RST-STREAM frame to shutdown this stream.
@@ -1445,7 +1528,7 @@ class Http2Stream extends Duplex {
     debug(`[${sessionName(session[kType])}] sending rstStream for stream ` +
           `${this[kID]}: ${code}`);
     _unrefActive(this);
-    this[kSession].rstStream(this, code);
+    session.rstStream(this, code);
   }
 
   rstWithNoError() {
@@ -1486,7 +1569,7 @@ class Http2Stream extends Duplex {
     debug(`[${sessionName(session[kType])}] sending priority for stream ` +
           `${this[kID]}`);
     _unrefActive(this);
-    this[kSession].priority(this, options);
+    session.priority(this, options);
   }
 
   // Called by this.destroy().
@@ -1497,54 +1580,66 @@ class Http2Stream extends Duplex {
   // * Then cleans up the resources on the js side
   _destroy(err, callback) {
     const session = this[kSession];
-    const handle = session[kHandle];
     if (this[kID] === undefined) {
       debug(`[${sessionName(session[kType])}] queuing destroy for new stream`);
       this.once('ready', this._destroy.bind(this, err, callback));
       return;
     }
-    process.nextTick(() => {
-      debug(`[${sessionName(session[kType])}] destroying stream ${this[kID]}`);
 
-      // Submit RST-STREAM frame if one hasn't been sent already and the
-      // stream hasn't closed normally...
-      if (!this[kState].rst && !session.destroyed) {
-        const code =
-          err instanceof Error ?
-            NGHTTP2_INTERNAL_ERROR : NGHTTP2_NO_ERROR;
-        this[kSession].rstStream(this, code);
-      }
+    const state = this[kState];
+    session[kState].writeQueueSize -= state.writeQueueSize;
+    state.writeQueueSize = 0;
 
-      // Remove the close handler on the session
-      session.removeListener('close', this[kState].closeHandler);
+    const server = session[kServer];
+    if (server !== undefined && err) {
+      server.emit('streamError', err, this);
+    }
 
-      // Unenroll the timer
-      unenroll(this);
-
-      setImmediate(finishStreamDestroy.bind(this, handle));
-
-      // All done
-      const rst = this[kState].rst;
-      const code = rst ? this[kState].rstCode : NGHTTP2_NO_ERROR;
-      if (code !== NGHTTP2_NO_ERROR) {
-        const err = new errors.Error('ERR_HTTP2_STREAM_ERROR', code);
-        process.nextTick(() => this.emit('error', err));
-      }
-      process.nextTick(emit.bind(this, 'streamClosed', code));
-      debug(`[${sessionName(session[kType])}] stream ${this[kID]} destroyed`);
-      callback(err);
-    });
+    process.nextTick(continueStreamDestroy, this, err, callback);
   }
 }
 
-function finishStreamDestroy(handle) {
-  const id = this[kID];
-  const session = this[kSession];
-  session[kState].streams.delete(id);
-  delete this[kSession];
+function continueStreamDestroy(self, err, callback) {
+  const session = self[kSession];
+  const state = self[kState];
+
+  debug(`[${sessionName(session[kType])}] destroying stream ${self[kID]}`);
+
+  // Submit RST-STREAM frame if one hasn't been sent already and the
+  // stream hasn't closed normally...
+  const rst = state.rst;
+  let code = state.rstCode;
+  if (!rst && !session.destroyed) {
+    code = err instanceof Error ? NGHTTP2_INTERNAL_ERROR : NGHTTP2_NO_ERROR;
+    session.rstStream(self, code);
+  }
+
+  // Remove the close handler on the session
+  session.removeListener('close', state.closeHandler);
+
+  // Unenroll the timer
+  self.setTimeout(0);
+
+  setImmediate(finishStreamDestroy, self, session[kHandle]);
+
+  // RST code 8 not emitted as an error as its used by clients to signify
+  // abort and is already covered by aborted event, also allows more
+  // seamless compatibility with http1
+  if (code !== NGHTTP2_NO_ERROR && code !== NGHTTP2_CANCEL && !err) {
+    err = new errors.Error('ERR_HTTP2_STREAM_ERROR', code);
+  }
+  callback(err);
+  process.nextTick(emit, self, 'streamClosed', code);
+  debug(`[${sessionName(session[kType])}] stream ${self[kID]} destroyed`);
+}
+
+function finishStreamDestroy(self, handle) {
+  const id = self[kID];
+  self[kSession][kState].streams.delete(id);
+  delete self[kSession];
   if (handle !== undefined)
     handle.destroyStream(id);
-  this.emit('destroy');
+  self.emit('destroy');
 }
 
 function processHeaders(headers) {
@@ -1569,7 +1664,7 @@ function processHeaders(headers) {
 }
 
 function processRespondWithFD(fd, headers, offset = 0, length = -1,
-                              getTrailers = false) {
+                              streamOptions = 0) {
   const session = this[kSession];
   const state = this[kState];
   state.headersSent = true;
@@ -1577,30 +1672,34 @@ function processRespondWithFD(fd, headers, offset = 0, length = -1,
   // Close the writable side of the stream
   this.end();
 
-  const handle = session[kHandle];
-  const ret =
-    handle.submitFile(this[kID], fd, headers, offset, length, getTrailers);
+  const ret = session[kHandle].submitFile(this[kID], fd, headers,
+                                          offset, length, streamOptions);
   let err;
   switch (ret) {
     case NGHTTP2_ERR_NOMEM:
       err = new errors.Error('ERR_OUTOFMEMORY');
-      process.nextTick(() => session.emit('error', err));
+      process.nextTick(emit, session, 'error', err);
       break;
     default:
       if (ret < 0) {
         err = new NghttpError(ret);
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, this, 'error', err);
+        break;
       }
+      // exact length of the file doesn't matter here, since the
+      // stream is closing anyway — just use 1 to signify that
+      // a write does exist
+      trackWriteState(this, 1);
   }
 }
 
-function doSendFD(session, options, fd, headers, getTrailers, err, stat) {
+function doSendFD(session, options, fd, headers, streamOptions, err, stat) {
   if (this.destroyed || session.destroyed) {
     abort(this);
     return;
   }
   if (err) {
-    process.nextTick(() => this.emit('error', err));
+    process.nextTick(emit, this, 'error', err);
     return;
   }
 
@@ -1617,27 +1716,39 @@ function doSendFD(session, options, fd, headers, getTrailers, err, stat) {
   const headersList = mapToHeaders(headers,
                                    assertValidPseudoHeaderResponse);
   if (!Array.isArray(headersList)) {
-    process.nextTick(() => this.emit('error', headersList));
+    process.nextTick(emit, this, 'error', headersList);
+    return;
   }
 
   processRespondWithFD.call(this, fd, headersList,
                             statOptions.offset,
                             statOptions.length,
-                            getTrailers);
+                            streamOptions);
 }
 
-function doSendFileFD(session, options, fd, headers, getTrailers, err, stat) {
+function doSendFileFD(session, options, fd, headers, streamOptions, err, stat) {
   if (this.destroyed || session.destroyed) {
     abort(this);
     return;
   }
+  const onError = options.onError;
+
   if (err) {
-    process.nextTick(() => this.emit('error', err));
+    if (onError) {
+      onError(err);
+    } else {
+      this.destroy(err);
+    }
     return;
   }
+
   if (!stat.isFile()) {
     err = new errors.Error('ERR_HTTP2_SEND_FILE');
-    process.nextTick(() => this.emit('error', err));
+    if (onError) {
+      onError(err);
+    } else {
+      this.destroy(err);
+    }
     return;
   }
 
@@ -1663,29 +1774,42 @@ function doSendFileFD(session, options, fd, headers, getTrailers, err, stat) {
   const headersList = mapToHeaders(headers,
                                    assertValidPseudoHeaderResponse);
   if (!Array.isArray(headersList)) {
-    process.nextTick(() => this.emit('error', headersList));
+    process.nextTick(emit, this, 'error', headersList);
+    return;
   }
 
   processRespondWithFD.call(this, fd, headersList,
                             options.offset,
                             options.length,
-                            getTrailers);
+                            streamOptions);
 }
 
-function afterOpen(session, options, headers, getTrailers, err, fd) {
+function afterOpen(session, options, headers, streamOptions, err, fd) {
   const state = this[kState];
+  const onError = options.onError;
   if (this.destroyed || session.destroyed) {
     abort(this);
     return;
   }
   if (err) {
-    process.nextTick(() => this.emit('error', err));
+    if (onError) {
+      onError(err);
+    } else {
+      this.destroy(err);
+    }
     return;
   }
   state.fd = fd;
 
   fs.fstat(fd,
-           doSendFileFD.bind(this, session, options, fd, headers, getTrailers));
+           doSendFileFD.bind(this, session, options, fd,
+                             headers, streamOptions));
+}
+
+function streamOnError(err) {
+  // we swallow the error for parity with HTTP1
+  // all the errors that ends here are not critical for the project
+  debug('ServerHttp2Stream errored, avoiding uncaughtException', err);
 }
 
 
@@ -1695,6 +1819,7 @@ class ServerHttp2Stream extends Http2Stream {
     this[kInit](id);
     this[kProtocol] = headers[HTTP2_HEADER_SCHEME];
     this[kAuthority] = headers[HTTP2_HEADER_AUTHORITY];
+    this.on('error', streamOnError);
     debug(`[${sessionName(session[kType])}] created serverhttp2stream`);
   }
 
@@ -1721,9 +1846,8 @@ class ServerHttp2Stream extends Http2Stream {
     _unrefActive(this);
     const state = session[kState];
     const streams = state.streams;
-    const handle = session[kHandle];
 
-    if (!this[kSession].remoteSettings.enablePush)
+    if (!session.remoteSettings.enablePush)
       throw new errors.Error('ERR_HTTP2_PUSH_DISABLED');
 
     if (typeof options === 'function') {
@@ -1762,27 +1886,29 @@ class ServerHttp2Stream extends Http2Stream {
       throw headersList;
     }
 
-    const ret = handle.submitPushPromise(this[kID],
-                                         headersList,
-                                         options.endStream);
+    const streamOptions = options.endStream ? STREAM_OPTION_EMPTY_PAYLOAD : 0;
+
+    const ret = session[kHandle].submitPushPromise(this[kID],
+                                                   headersList,
+                                                   streamOptions);
     let err;
     switch (ret) {
       case NGHTTP2_ERR_NOMEM:
         err = new errors.Error('ERR_OUTOFMEMORY');
-        process.nextTick(() => session.emit('error', err));
+        process.nextTick(emit, session, 'error', err);
         break;
       case NGHTTP2_ERR_STREAM_ID_NOT_AVAILABLE:
         err = new errors.Error('ERR_HTTP2_OUT_OF_STREAMS');
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, session, 'error', err);
         break;
       case NGHTTP2_ERR_STREAM_CLOSED:
         err = new errors.Error('ERR_HTTP2_STREAM_CLOSED');
-        process.nextTick(() => this.emit('error', err));
+        process.nextTick(emit, this, 'error', err);
         break;
       default:
         if (ret <= 0) {
           err = new NghttpError(ret);
-          process.nextTick(() => this.emit('error', err));
+          process.nextTick(emit, this, 'error', err);
           break;
         }
         debug(`[${sessionName(session[kType])}] push stream ${ret} created`);
@@ -1820,14 +1946,17 @@ class ServerHttp2Stream extends Http2Stream {
     options = Object.assign(Object.create(null), options);
     options.endStream = !!options.endStream;
 
-    let getTrailers = false;
+    let streamOptions = 0;
+    if (options.endStream)
+      streamOptions |= STREAM_OPTION_EMPTY_PAYLOAD;
+
     if (options.getTrailers !== undefined) {
       if (typeof options.getTrailers !== 'function') {
         throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
                                    'getTrailers',
                                    options.getTrailers);
       }
-      getTrailers = true;
+      streamOptions |= STREAM_OPTION_GET_TRAILERS;
       state.getTrailers = options.getTrailers;
     }
 
@@ -1838,7 +1967,7 @@ class ServerHttp2Stream extends Http2Stream {
     // the options.endStream option to true so that the underlying
     // bits do not attempt to send any.
     if (statusCode === HTTP_STATUS_NO_CONTENT ||
-        statusCode === HTTP_STATUS_CONTENT_RESET ||
+        statusCode === HTTP_STATUS_RESET_CONTENT ||
         statusCode === HTTP_STATUS_NOT_MODIFIED ||
         state.headRequest === true) {
       options.endStream = true;
@@ -1855,22 +1984,19 @@ class ServerHttp2Stream extends Http2Stream {
     if (options.endStream)
       this.end();
 
-    const handle = session[kHandle];
-    const ret =
-      handle.submitResponse(this[kID],
-                            headersList,
-                            options.endStream,
-                            getTrailers);
+    const ret = session[kHandle].submitResponse(this[kID],
+                                                headersList,
+                                                streamOptions);
     let err;
     switch (ret) {
       case NGHTTP2_ERR_NOMEM:
         err = new errors.Error('ERR_OUTOFMEMORY');
-        process.nextTick(() => session.emit('error', err));
+        process.nextTick(emit, session, 'error', err);
         break;
       default:
         if (ret < 0) {
           err = new NghttpError(ret);
-          process.nextTick(() => this.emit('error', err));
+          process.nextTick(emit, this, 'error', err);
         }
     }
   }
@@ -1913,14 +2039,14 @@ class ServerHttp2Stream extends Http2Stream {
                                  options.statCheck);
     }
 
-    let getTrailers = false;
+    let streamOptions = 0;
     if (options.getTrailers !== undefined) {
       if (typeof options.getTrailers !== 'function') {
         throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
                                    'getTrailers',
                                    options.getTrailers);
       }
-      getTrailers = true;
+      streamOptions |= STREAM_OPTION_GET_TRAILERS;
       state.getTrailers = options.getTrailers;
     }
 
@@ -1932,27 +2058,29 @@ class ServerHttp2Stream extends Http2Stream {
     const statusCode = headers[HTTP2_HEADER_STATUS] |= 0;
     // Payload/DATA frames are not permitted in these cases
     if (statusCode === HTTP_STATUS_NO_CONTENT ||
-        statusCode === HTTP_STATUS_CONTENT_RESET ||
+        statusCode === HTTP_STATUS_RESET_CONTENT ||
         statusCode === HTTP_STATUS_NOT_MODIFIED) {
       throw new errors.Error('ERR_HTTP2_PAYLOAD_FORBIDDEN', statusCode);
     }
 
     if (options.statCheck !== undefined) {
       fs.fstat(fd,
-               doSendFD.bind(this, session, options, fd, headers, getTrailers));
+               doSendFD.bind(this, session, options, fd,
+                             headers, streamOptions));
       return;
     }
 
     const headersList = mapToHeaders(headers,
                                      assertValidPseudoHeaderResponse);
     if (!Array.isArray(headersList)) {
-      process.nextTick(() => this.emit('error', headersList));
+      process.nextTick(emit, this, 'error', headersList);
+      return;
     }
 
     processRespondWithFD.call(this, fd, headersList,
                               options.offset,
                               options.length,
-                              getTrailers);
+                              streamOptions);
   }
 
   // Initiate a file response on this Http2Stream. The path is passed to
@@ -1994,14 +2122,14 @@ class ServerHttp2Stream extends Http2Stream {
                                  options.statCheck);
     }
 
-    let getTrailers = false;
+    let streamOptions = 0;
     if (options.getTrailers !== undefined) {
       if (typeof options.getTrailers !== 'function') {
         throw new errors.TypeError('ERR_INVALID_OPT_VALUE',
                                    'getTrailers',
                                    options.getTrailers);
       }
-      getTrailers = true;
+      streamOptions |= STREAM_OPTION_GET_TRAILERS;
       state.getTrailers = options.getTrailers;
     }
 
@@ -2009,13 +2137,13 @@ class ServerHttp2Stream extends Http2Stream {
     const statusCode = headers[HTTP2_HEADER_STATUS] |= 0;
     // Payload/DATA frames are not permitted in these cases
     if (statusCode === HTTP_STATUS_NO_CONTENT ||
-        statusCode === HTTP_STATUS_CONTENT_RESET ||
+        statusCode === HTTP_STATUS_RESET_CONTENT ||
         statusCode === HTTP_STATUS_NOT_MODIFIED) {
       throw new errors.Error('ERR_HTTP2_PAYLOAD_FORBIDDEN', statusCode);
     }
 
     fs.open(path, 'r',
-            afterOpen.bind(this, session, options, headers, getTrailers));
+            afterOpen.bind(this, session, options, headers, streamOptions));
   }
 
   // Sends a block of informational headers. In theory, the HTTP/2 spec
@@ -2048,7 +2176,6 @@ class ServerHttp2Stream extends Http2Stream {
     }
 
     _unrefActive(this);
-    const handle = this[kSession][kHandle];
 
     const headersList = mapToHeaders(headers,
                                      assertValidPseudoHeaderResponse);
@@ -2056,18 +2183,17 @@ class ServerHttp2Stream extends Http2Stream {
       throw headersList;
     }
 
-    const ret =
-      handle.sendHeaders(this[kID], headersList);
+    const ret = session[kHandle].sendHeaders(this[kID], headersList);
     let err;
     switch (ret) {
       case NGHTTP2_ERR_NOMEM:
         err = new errors.Error('ERR_OUTOFMEMORY');
-        process.nextTick(() => this[kSession].emit('error', err));
+        process.nextTick(emit, session, 'error', err);
         break;
       default:
         if (ret < 0) {
           err = new NghttpError(ret);
-          process.nextTick(() => this.emit('error', err));
+          process.nextTick(emit, this, 'error', err);
         }
     }
   }
@@ -2081,7 +2207,14 @@ class ClientHttp2Stream extends Http2Stream {
     this[kState].headersSent = true;
     if (id !== undefined)
       this[kInit](id);
+    this.on('headers', handleHeaderContinue);
     debug(`[${sessionName(session[kType])}] clienthttp2stream created`);
+  }
+}
+
+function handleHeaderContinue(headers) {
+  if (headers[HTTP2_HEADER_STATUS] === HTTP_STATUS_CONTINUE) {
+    this.emit('continue');
   }
 }
 
@@ -2114,63 +2247,24 @@ const setTimeout = {
     return this;
   }
 };
-
-const onTimeout = {
-  configurable: false,
-  enumerable: false,
-  value: function() {
-    process.nextTick(emit.bind(this, 'timeout'));
-  }
-};
-
-Object.defineProperties(Http2Stream.prototype, {
-  setTimeout,
-  onTimeout
-});
-Object.defineProperties(Http2Session.prototype, {
-  setTimeout,
-  onTimeout
-});
+Object.defineProperty(Http2Stream.prototype, 'setTimeout', setTimeout);
+Object.defineProperty(Http2Session.prototype, 'setTimeout', setTimeout);
 
 // --------------------------------------------------------------------
 
 // Set as a replacement for socket.prototype.destroy upon the
 // establishment of a new connection.
 function socketDestroy(error) {
-  const type = this[kSession][kType];
+  const session = this[kSession];
+  const type = session[kType];
   debug(`[${sessionName(type)}] socket destroy called`);
   delete this[kServer];
-  this.removeListener('timeout', socketOnTimeout);
   // destroy the session first so that it will stop trying to
   // send data while we close the socket.
-  this[kSession].destroy();
+  session.destroy();
   this.destroy = this[kDestroySocket];
   debug(`[${sessionName(type)}] destroying the socket`);
   this.destroy(error);
-}
-
-function socketOnResume() {
-  if (this._paused)
-    return this.pause();
-  if (this._handle && !this._handle.reading) {
-    this._handle.reading = true;
-    this._handle.readStart();
-  }
-}
-
-function socketOnPause() {
-  if (this._handle && this._handle.reading) {
-    this._handle.reading = false;
-    this._handle.readStop();
-  }
-}
-
-function socketOnDrain() {
-  const needPause = 0 > this._writableState.highWaterMark;
-  if (this._paused && !needPause) {
-    this._paused = false;
-    this.resume();
-  }
 }
 
 // When an Http2Session emits an error, first try to forward it to the
@@ -2191,44 +2285,23 @@ function sessionOnError(error) {
 // When a Socket emits an error, forward it to the session as a
 // socketError; failing that, remove the listener and call destroy
 function socketOnError(error) {
-  const type = this[kSession] && this[kSession][kType];
+  const session = this[kSession];
+  const type = session && session[kType];
   debug(`[${sessionName(type)}] server socket error: ${error.message}`);
   if (kRenegTest.test(error.message))
     return this.destroy();
-  if (this[kSession] !== undefined &&
-      this[kSession].emit('socketError', error, this))
+  if (session !== undefined &&
+      session.emit('socketError', error, this))
     return;
   this.removeListener('error', socketOnError);
   this.destroy(error);
 }
 
-// When the socket times out on the server, attempt a graceful shutdown
-// of the session.
-function socketOnTimeout() {
-  debug('socket timeout');
-  process.nextTick(() => {
-    const server = this[kServer];
-    const session = this[kSession];
-    // If server or session are undefined, then we're already in the process of
-    // shutting down, do nothing.
-    if (server === undefined || session === undefined)
-      return;
-    if (!server.emit('timeout', session, this)) {
-      session.shutdown(
-        {
-          graceful: true,
-          errorCode: NGHTTP2_NO_ERROR
-        },
-        this.destroy.bind(this));
-    }
-  });
-}
-
 // Handles the on('stream') event for a session and forwards
 // it on to the server object.
-function sessionOnStream(stream, headers, flags) {
+function sessionOnStream(stream, headers, flags, rawHeaders) {
   debug(`[${sessionName(this[kType])}] emit server stream event`);
-  this[kServer].emit('stream', stream, headers, flags);
+  this[kServer].emit('stream', stream, headers, flags, rawHeaders);
 }
 
 function sessionOnPriority(stream, parent, weight, exclusive) {
@@ -2241,32 +2314,47 @@ function sessionOnSocketError(error, socket) {
     this[kServer].emit('socketError', error, socket, this);
 }
 
+// When the session times out on the server, attempt a graceful shutdown
+function sessionOnTimeout() {
+  debug('session timeout');
+  process.nextTick(() => {
+    const state = this[kState];
+    // if destroyed or destryoing, do nothing
+    if (state.destroyed || state.destroying)
+      return;
+    const server = this[kServer];
+    const socket = this[kSocket];
+    // If server or socket are undefined, then we're already in the process of
+    // shutting down, do nothing.
+    if (server === undefined || socket === undefined)
+      return;
+    if (!server.emit('timeout', this)) {
+      this.shutdown(
+        {
+          graceful: true,
+          errorCode: NGHTTP2_NO_ERROR
+        },
+        socket.destroy.bind(socket));
+    }
+  });
+}
+
 function connectionListener(socket) {
   debug('[server] received a connection');
   const options = this[kOptions] || {};
 
-  if (this.timeout) {
-    socket.setTimeout(this.timeout);
-    socket.on('timeout', socketOnTimeout);
-  }
-
   if (socket.alpnProtocol === false || socket.alpnProtocol === 'http/1.1') {
-    if (options.allowHTTP1 === true) {
-      // Fallback to HTTP/1.1
+    // Fallback to HTTP/1.1
+    if (options.allowHTTP1 === true)
       return httpConnectionListener.call(this, socket);
-    } else if (this.emit('unknownProtocol', socket)) {
-      // Let event handler deal with the socket
+    // Let event handler deal with the socket
+    if (this.emit('unknownProtocol', socket))
       return;
-    } else {
-      // Reject non-HTTP/2 client
-      return socket.destroy();
-    }
+    // Reject non-HTTP/2 client
+    return socket.destroy();
   }
 
   socket.on('error', socketOnError);
-  socket.on('resume', socketOnResume);
-  socket.on('pause', socketOnPause);
-  socket.on('drain', socketOnDrain);
   socket.on('close', socketOnClose);
 
   // Set up the Session
@@ -2277,9 +2365,14 @@ function connectionListener(socket) {
   session.on('priority', sessionOnPriority);
   session.on('socketError', sessionOnSocketError);
 
+  if (this.timeout) {
+    session.setTimeout(this.timeout);
+    session.on('timeout', sessionOnTimeout);
+  }
+
   socket[kServer] = this;
 
-  process.nextTick(emit.bind(this, 'session', session));
+  process.nextTick(emit, this, 'session', session);
 }
 
 function initializeOptions(options) {
@@ -2397,25 +2490,27 @@ function connect(authority, options, listener) {
   debug(`connecting to ${authority}`);
 
   const protocol = authority.protocol || options.protocol || 'https:';
-  const port = '' + (authority.port !== '' ? authority.port : 443);
+  const port = '' + (authority.port !== '' ?
+    authority.port : (authority.protocol === 'http:' ? 80 : 443));
   const host = authority.hostname || authority.host || 'localhost';
 
   let socket;
-  switch (protocol) {
-    case 'http:':
-      socket = net.connect(port, host);
-      break;
-    case 'https:':
-      socket = tls.connect(port, host, initializeTLSOptions(options, host));
-      break;
-    default:
-      throw new errors.Error('ERR_HTTP2_UNSUPPORTED_PROTOCOL', protocol);
+  if (typeof options.createConnection === 'function') {
+    socket = options.createConnection(authority, options);
+  } else {
+    switch (protocol) {
+      case 'http:':
+        socket = net.connect(port, host);
+        break;
+      case 'https:':
+        socket = tls.connect(port, host, initializeTLSOptions(options, host));
+        break;
+      default:
+        throw new errors.Error('ERR_HTTP2_UNSUPPORTED_PROTOCOL', protocol);
+    }
   }
 
   socket.on('error', socketOnError);
-  socket.on('resume', socketOnResume);
-  socket.on('pause', socketOnPause);
-  socket.on('drain', socketOnDrain);
   socket.on('close', socketOnClose);
 
   const session = new ClientHttp2Session(options, socket);
@@ -2430,10 +2525,22 @@ function connect(authority, options, listener) {
   return session;
 }
 
+// Support util.promisify
+Object.defineProperty(connect, promisify.custom, {
+  value: (authority, options) => {
+    const promise = createPromise();
+    const server = connect(authority,
+                           options,
+                           () => promiseResolve(promise, server));
+    return promise;
+  }
+});
+
 function createSecureServer(options, handler) {
-  if (typeof options === 'function') {
-    handler = options;
-    options = Object.create(null);
+  if (options == null || typeof options !== 'object') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                               'options',
+                               'object');
   }
   debug('creating http2secureserver');
   return new Http2SecureServer(options, handler);
@@ -2498,7 +2605,7 @@ function getUnpackedSettings(buf, options = {}) {
         settings.headerTableSize = value;
         break;
       case NGHTTP2_SETTINGS_ENABLE_PUSH:
-        settings.enablePush = Boolean(value);
+        settings.enablePush = value;
         break;
       case NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS:
         settings.maxConcurrentStreams = value;
@@ -2520,6 +2627,9 @@ function getUnpackedSettings(buf, options = {}) {
     assertWithinRange('headerTableSize',
                       settings.headerTableSize,
                       0, 2 ** 32 - 1);
+    assertWithinRange('enablePush',
+                      settings.enablePush,
+                      0, 1);
     assertWithinRange('initialWindowSize',
                       settings.initialWindowSize,
                       0, 2 ** 32 - 1);
@@ -2532,13 +2642,10 @@ function getUnpackedSettings(buf, options = {}) {
     assertWithinRange('maxHeaderListSize',
                       settings.maxHeaderListSize,
                       0, 2 ** 32 - 1);
-    if (settings.enablePush !== undefined &&
-        typeof settings.enablePush !== 'boolean') {
-      const err = new errors.TypeError('ERR_HTTP2_INVALID_SETTING_VALUE',
-                                       'enablePush', settings.enablePush);
-      err.actual = settings.enablePush;
-      throw err;
-    }
+  }
+
+  if (settings.enablePush !== undefined) {
+    settings.enablePush = !!settings.enablePush;
   }
 
   return settings;
@@ -2552,7 +2659,11 @@ module.exports = {
   getUnpackedSettings,
   createServer,
   createSecureServer,
-  connect
+  connect,
+  Http2Session,
+  Http2Stream,
+  Http2ServerRequest,
+  Http2ServerResponse
 };
 
 /* eslint-enable no-use-before-define */

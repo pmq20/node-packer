@@ -29,10 +29,9 @@ if (!common.opensslCli)
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const join = require('path').join;
 const net = require('net');
 const assert = require('assert');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 const tls = require('tls');
 const spawn = require('child_process').spawn;
 
@@ -56,11 +55,8 @@ function test2() {
 }
 
 function test(keyfn, certfn, check, next) {
-  keyfn = join(common.fixturesDir, keyfn);
-  const key = fs.readFileSync(keyfn).toString();
-
-  certfn = join(common.fixturesDir, certfn);
-  const cert = fs.readFileSync(certfn).toString();
+  const key = fixtures.readSync(keyfn).toString();
+  const cert = fixtures.readSync(certfn).toString();
 
   const server = spawn(common.opensslCli, ['s_server',
                                            '-accept', common.PORT,
@@ -121,7 +117,7 @@ function test(keyfn, certfn, check, next) {
   function startClient() {
     const s = new net.Stream();
 
-    const sslcontext = tls.createSecureContext({key: key, cert: cert});
+    const sslcontext = tls.createSecureContext({ key: key, cert: cert });
     sslcontext.context.setCiphers('RC4-SHA:AES128-SHA:AES256-SHA');
 
     const pair = tls.createSecurePair(sslcontext, false);

@@ -43,7 +43,10 @@ const Buffer = require('buffer').Buffer;
 const kBufferMaxLength = require('buffer').kMaxLength;
 const stream = require('stream');
 const util = require('util');
-const { isUint8Array } = process.binding('util');
+const {
+  isArrayBufferView,
+  isUint8Array
+} = require('internal/util/types');
 const LazyTransform = require('internal/streams/lazy_transform');
 
 const DH_GENERATOR = 2;
@@ -66,7 +69,6 @@ function toBuf(str, encoding) {
   return str;
 }
 exports._toBuf = toBuf;
-
 
 const assert = require('assert');
 const StringDecoder = require('string_decoder').StringDecoder;
@@ -416,7 +418,7 @@ function DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding) {
 
   if (typeof sizeOrKey !== 'number' &&
       typeof sizeOrKey !== 'string' &&
-      !ArrayBuffer.isView(sizeOrKey)) {
+      !isArrayBufferView(sizeOrKey)) {
     throw new TypeError('First argument should be number, string, ' +
                         'Buffer, TypedArray, or DataView');
   }
@@ -559,16 +561,15 @@ DiffieHellman.prototype.setPrivateKey = function setPrivateKey(key, encoding) {
 };
 
 
+exports.createECDH = exports.ECDH = ECDH;
 function ECDH(curve) {
+  if (!(this instanceof ECDH))
+    return new ECDH(curve);
   if (typeof curve !== 'string')
     throw new TypeError('"curve" argument should be a string');
 
   this._handle = new binding.ECDH(curve);
 }
-
-exports.createECDH = function createECDH(curve) {
-  return new ECDH(curve);
-};
 
 ECDH.prototype.computeSecret = DiffieHellman.prototype.computeSecret;
 ECDH.prototype.setPrivateKey = DiffieHellman.prototype.setPrivateKey;

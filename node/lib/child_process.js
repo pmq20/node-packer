@@ -23,21 +23,24 @@
 
 const util = require('util');
 const { deprecate, convertToValidSignal } = require('internal/util');
+const { isUint8Array } = require('internal/util/types');
 const { createPromise,
         promiseResolve, promiseReject } = process.binding('util');
 const debug = util.debuglog('child_process');
 
 const uv = process.binding('uv');
 const spawn_sync = process.binding('spawn_sync');
-const Buffer = require('buffer').Buffer;
-const Pipe = process.binding('pipe_wrap').Pipe;
-const { isUint8Array } = process.binding('util');
+const { Buffer } = require('buffer');
+const { Pipe } = process.binding('pipe_wrap');
 const child_process = require('internal/child_process');
+const {
+  _validateStdio,
+  setupChannel,
+  ChildProcess
+} = child_process;
 
 const errnoException = util._errnoException;
-const _validateStdio = child_process._validateStdio;
-const setupChannel = child_process.setupChannel;
-const ChildProcess = exports.ChildProcess = child_process.ChildProcess;
+exports.ChildProcess = ChildProcess;
 
 function stdioStringToArray(option) {
   switch (option) {
@@ -95,6 +98,7 @@ exports.fork = function(modulePath /*, args, options*/) {
   }
 
   options.execPath = options.execPath || process.execPath;
+  options.shell = false;
 
   return spawn(options.execPath, args, options);
 };
@@ -211,6 +215,7 @@ exports.execFile = function(file /*, args, options, callback*/) {
     gid: options.gid,
     uid: options.uid,
     shell: options.shell,
+    windowsHide: !!options.windowsHide,
     windowsVerbatimArguments: !!options.windowsVerbatimArguments
   });
 
@@ -322,11 +327,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stdoutLen > options.maxBuffer) {
         ex = new Error('stdout maxBuffer exceeded');
         kill();
+      } else if (encoding) {
+        _stdout += chunk;
       } else {
-        if (encoding)
-          _stdout += chunk;
-        else
-          _stdout.push(chunk);
+        _stdout.push(chunk);
       }
     });
   }
@@ -341,11 +345,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stderrLen > options.maxBuffer) {
         ex = new Error('stderr maxBuffer exceeded');
         kill();
+      } else if (encoding) {
+        _stderr += chunk;
       } else {
-        if (encoding)
-          _stderr += chunk;
-        else
-          _stderr.push(chunk);
+        _stderr.push(chunk);
       }
     });
   }
@@ -465,6 +468,12 @@ function normalizeSpawnArguments(file, args, options) {
   if (options.argv0 != null &&
       typeof options.argv0 !== 'string') {
     throw new TypeError('"argv0" must be a string');
+  }
+
+  // Validate windowsHide, if present.
+  if (options.windowsHide != null &&
+      typeof options.windowsHide !== 'boolean') {
+    throw new TypeError('"windowsHide" must be a boolean');
   }
 
   // Validate windowsVerbatimArguments, if present.
@@ -659,6 +668,7 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
     file: opts.file,
     args: opts.args,
     cwd: options.cwd,
+    windowsHide: !!options.windowsHide,
     windowsVerbatimArguments: !!options.windowsVerbatimArguments,
     detached: !!options.detached,
     envPairs: opts.envPairs,

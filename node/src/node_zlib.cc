@@ -48,6 +48,7 @@ using v8::Integer;
 using v8::Local;
 using v8::Number;
 using v8::Object;
+using v8::String;
 using v8::Value;
 
 namespace {
@@ -683,7 +684,7 @@ void InitZlib(Local<Object> target,
 
   z->InstanceTemplate()->SetInternalFieldCount(1);
 
-  env->SetProtoMethod(z, "getAsyncId", AsyncWrap::GetAsyncId);
+  AsyncWrap::AddWrapMethods(env, z);
   env->SetProtoMethod(z, "write", ZCtx::Write<true>);
   env->SetProtoMethod(z, "writeSync", ZCtx::Write<false>);
   env->SetProtoMethod(z, "init", ZCtx::Init);
@@ -691,8 +692,9 @@ void InitZlib(Local<Object> target,
   env->SetProtoMethod(z, "params", ZCtx::Params);
   env->SetProtoMethod(z, "reset", ZCtx::Reset);
 
-  z->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Zlib"));
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "Zlib"), z->GetFunction());
+  Local<String> zlibString = FIXED_ONE_BYTE_STRING(env->isolate(), "Zlib");
+  z->SetClassName(zlibString);
+  target->Set(zlibString, z->GetFunction());
 
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "ZLIB_VERSION"),
               FIXED_ONE_BYTE_STRING(env->isolate(), ZLIB_VERSION));

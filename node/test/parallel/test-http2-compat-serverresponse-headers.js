@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -42,27 +41,75 @@ server.listen(0, common.mustCall(function() {
     response.removeHeader(denormalised);
     assert.strictEqual(response.hasHeader(denormalised), false);
 
-    assert.throws(function() {
-      response.setHeader(':status', 'foobar');
-    }, common.expectsError({
-      code: 'ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED',
-      type: Error,
-      message: 'Cannot set HTTP/2 pseudo-headers'
-    }));
+    common.expectsError(
+      () => response.hasHeader(),
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        type: TypeError,
+        message: 'The "name" argument must be of type string'
+      }
+    );
+    common.expectsError(
+      () => response.getHeader(),
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        type: TypeError,
+        message: 'The "name" argument must be of type string'
+      }
+    );
+    common.expectsError(
+      () => response.removeHeader(),
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        type: TypeError,
+        message: 'The "name" argument must be of type string'
+      }
+    );
+
+    [
+      ':status',
+      ':method',
+      ':path',
+      ':authority',
+      ':scheme'
+    ].forEach((header) => assert.throws(
+      () => response.setHeader(header, 'foobar'),
+      common.expectsError({
+        code: 'ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED',
+        type: Error,
+        message: 'Cannot set HTTP/2 pseudo-headers'
+      })
+    ));
     assert.throws(function() {
       response.setHeader(real, null);
     }, common.expectsError({
       code: 'ERR_HTTP2_INVALID_HEADER_VALUE',
       type: TypeError,
-      message: 'Value must not be undefined or null'
+      message: 'Invalid value "null" for header "foo-bar"'
     }));
     assert.throws(function() {
       response.setHeader(real, undefined);
     }, common.expectsError({
       code: 'ERR_HTTP2_INVALID_HEADER_VALUE',
       type: TypeError,
-      message: 'Value must not be undefined or null'
+      message: 'Invalid value "undefined" for header "foo-bar"'
     }));
+    common.expectsError(
+      () => response.setHeader(), // header name undefined
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        type: TypeError,
+        message: 'The "name" argument must be of type string'
+      }
+    );
+    common.expectsError(
+      () => response.setHeader(''),
+      {
+        code: 'ERR_INVALID_HTTP_TOKEN',
+        type: TypeError,
+        message: 'Header name must be a valid HTTP token [""]'
+      }
+    );
 
     response.setHeader(real, expectedValue);
     const expectedHeaderNames = [real];
@@ -73,8 +120,51 @@ server.listen(0, common.mustCall(function() {
     response.getHeaders()[fake] = fake;
     assert.strictEqual(response.hasHeader(fake), false);
 
+    assert.strictEqual(response.sendDate, true);
+    response.sendDate = false;
+    assert.strictEqual(response.sendDate, false);
+
     response.on('finish', common.mustCall(function() {
-      server.close();
+      assert.strictEqual(response.headersSent, true);
+
+      common.expectsError(
+        () => response.setHeader(real, expectedValue),
+        {
+          code: 'ERR_HTTP2_HEADERS_SENT',
+          type: Error,
+          message: 'Response has already been initiated.'
+        }
+      );
+      common.expectsError(
+        () => response.removeHeader(real, expectedValue),
+        {
+          code: 'ERR_HTTP2_HEADERS_SENT',
+          type: Error,
+          message: 'Response has already been initiated.'
+        }
+      );
+
+      process.nextTick(() => {
+        common.expectsError(
+          () => response.setHeader(real, expectedValue),
+          {
+            code: 'ERR_HTTP2_HEADERS_SENT',
+            type: Error,
+            message: 'Response has already been initiated.'
+          }
+        );
+        common.expectsError(
+          () => response.removeHeader(real, expectedValue),
+          {
+            code: 'ERR_HTTP2_HEADERS_SENT',
+            type: Error,
+            message: 'Response has already been initiated.'
+          }
+        );
+
+        assert.strictEqual(response.headersSent, true);
+        server.close();
+      });
     }));
     response.end();
   }));

@@ -21,7 +21,7 @@
 
 'use strict';
 
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 
 // Note: export Stream before Readable/Writable/Duplex/...
 // to avoid a cross-reference(require) issues
@@ -38,10 +38,16 @@ Stream.Stream = Stream;
 
 // Internal utilities
 try {
-  Stream._isUint8Array = process.binding('util').isUint8Array;
+  Stream._isUint8Array = require('internal/util/types').isUint8Array;
 } catch (e) {
-  // This throws for Node < 4.2.0 because there’s no util binding and
-  // returns undefined for Node < 7.4.0.
+  // Throws for code outside of Node.js core.
+
+  try {
+    Stream._isUint8Array = process.binding('util').isUint8Array;
+  } catch (e) {
+    // This throws for Node < 4.2.0 because there’s no util binding and
+    // returns undefined for Node < 7.4.0.
+  }
 }
 
 if (!Stream._isUint8Array) {

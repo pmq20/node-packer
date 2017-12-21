@@ -4,6 +4,7 @@
     {
       "textRaw": "REPL",
       "name": "repl",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>repl</code> module provides a Read-Eval-Print-Loop (REPL) implementation that\nis available both as a standalone program or includible in other applications.\nIt can be accessed using:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n</code></pre>\n",
@@ -126,7 +127,7 @@
             {
               "textRaw": "Using the Node.js REPL with advanced line-editors",
               "name": "using_the_node.js_repl_with_advanced_line-editors",
-              "desc": "<p>For advanced line-editors, start Node.js with the environmental variable\n<code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical\nterminal settings, which will allow use with <code>rlwrap</code>.</p>\n<p>For example, the following can be added to a <code>.bashrc</code> file:</p>\n<pre><code class=\"lang-text\">alias node=&quot;env NODE_NO_READLINE=1 rlwrap node&quot;\n</code></pre>\n",
+              "desc": "<p>For advanced line-editors, start Node.js with the environment variable\n<code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical\nterminal settings, which will allow use with <code>rlwrap</code>.</p>\n<p>For example, the following can be added to a <code>.bashrc</code> file:</p>\n<pre><code class=\"lang-text\">alias node=&quot;env NODE_NO_READLINE=1 rlwrap node&quot;\n</code></pre>\n",
               "type": "module",
               "displayName": "Using the Node.js REPL with advanced line-editors"
             },

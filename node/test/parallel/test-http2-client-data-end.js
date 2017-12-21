@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -83,7 +82,7 @@ server.listen(0, common.mustCall(() => {
   let data = '';
 
   req.setEncoding('utf8');
-  req.on('data', common.mustCall((d) => data += d));
+  req.on('data', common.mustCallAtLeast((d) => data += d));
   req.on('end', common.mustCall(() => {
     assert.strictEqual(data, 'test');
     maybeClose();

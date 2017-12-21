@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -26,7 +25,7 @@ server.on('listening', common.mustCall(() => {
   const client = h2.connect(`http://localhost:${server.address().port}`);
 
   const req = client.request({ ':path': '/' });
-  client.priority(req, {});
+  req.priority({});
 
   req.on('response', common.mustCall());
   req.resume();

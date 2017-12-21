@@ -1,4 +1,5 @@
 'use strict';
+// Flags: --expose-gc
 
 const common = require('../../common');
 const test_general = require(`./build/${common.buildType}/test_general`);
@@ -56,10 +57,42 @@ assert.strictEqual(release, process.release.name);
 // for null
 assert.strictEqual(test_general.testNapiTypeof(null), 'null');
 
-const x = {};
+// Ensure that garbage collecting an object with a wrapped native item results
+// in the finalize callback being called.
+let w = {};
+test_general.wrap(w);
+w = null;
+global.gc();
+assert.strictEqual(test_general.derefItemWasCalled(), true,
+                   'deref_item() was called upon garbage collecting a ' +
+                   'wrapped object');
 
 // Assert that wrapping twice fails.
-test_general.wrap(x, 25);
+const x = {};
+test_general.wrap(x);
 assert.throws(function() {
-  test_general.wrap(x, 'Blah');
+  test_general.wrap(x);
 }, Error);
+
+// Ensure that wrapping, removing the wrap, and then wrapping again works.
+const y = {};
+test_general.wrap(y);
+test_general.removeWrap(y);
+assert.doesNotThrow(function() {
+  test_general.wrap(y);
+}, Error, 'Wrapping twice succeeds if a remove_wrap() separates the instances');
+
+// Ensure that removing a wrap and garbage collecting does not fire the
+// finalize callback.
+let z = {};
+test_general.testFinalizeWrap(z);
+test_general.removeWrap(z);
+z = null;
+global.gc();
+assert.strictEqual(test_general.finalizeWasCalled(), false,
+                   'finalize callback was not called upon garbage collection');
+
+// test napi_adjust_external_memory
+const adjustedValue = test_general.testAdjustExternalMemory();
+assert.strictEqual(typeof adjustedValue, 'number');
+assert(adjustedValue > 0);

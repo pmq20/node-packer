@@ -26,21 +26,25 @@ const TimerWrap = process.binding('timer_wrap').Timer;
 const L = require('internal/linkedlist');
 const internalUtil = require('internal/util');
 const { createPromise, promiseResolve } = process.binding('util');
-const async_hooks = require('async_hooks');
 const assert = require('assert');
 const util = require('util');
 const debug = util.debuglog('timer');
 const kOnTimeout = TimerWrap.kOnTimeout | 0;
-const initTriggerId = async_hooks.initTriggerId;
 // Two arrays that share state between C++ and JS.
-const { async_hook_fields, async_uid_fields } = async_wrap;
-// The needed emit*() functions.
-const { emitInit, emitBefore, emitAfter, emitDestroy } = async_hooks;
+const { async_hook_fields, async_id_fields } = async_wrap;
+const {
+  initTriggerId,
+  // The needed emit*() functions.
+  emitInit,
+  emitBefore,
+  emitAfter,
+  emitDestroy
+} = require('async_hooks');
 // Grab the constants necessary for working with internal arrays.
-const { kInit, kDestroy, kAsyncUidCntr } = async_wrap.constants;
+const { kInit, kDestroy, kAsyncIdCounter } = async_wrap.constants;
 // Symbols for storing async id state.
 const async_id_symbol = Symbol('asyncId');
-const trigger_id_symbol = Symbol('triggerAsyncId');
+const trigger_async_id_symbol = Symbol('triggerAsyncId');
 
 // Timeout values > TIMEOUT_MAX are set to 1.
 const TIMEOUT_MAX = 2147483647; // 2^31-1
@@ -107,7 +111,7 @@ const TIMEOUT_MAX = 2147483647; // 2^31-1
 // timeout later, thus only needing to be appended.
 // Removal from an object-property linked list is also virtually constant-time
 // as can be seen in the lib/internal/linkedlist.js implementation.
-// Timeouts only need to process any timers due to currently timeout, which will
+// Timeouts only need to process any timers currently due to expire, which will
 // always be at the beginning of the list for reasons stated above. Any timers
 // after the first one encountered that does not yet need to timeout will also
 // always be due to timeout at a later time.
@@ -168,10 +172,12 @@ function insert(item, unrefed) {
 
   if (!item[async_id_symbol] || item._destroyed) {
     item._destroyed = false;
-    item[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-    item[trigger_id_symbol] = initTriggerId();
+    item[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+    item[trigger_async_id_symbol] = initTriggerId();
     if (async_hook_fields[kInit] > 0)
-      emitInit(item[async_id_symbol], 'Timeout', item[trigger_id_symbol], item);
+      emitInit(
+        item[async_id_symbol], 'Timeout', item[trigger_async_id_symbol], item
+      );
   }
 
   L.append(list, item);
@@ -226,7 +232,7 @@ function listOnTimeout() {
     if (diff < msecs) {
       var timeRemaining = msecs - (TimerWrap.now() - timer._idleStart);
       if (timeRemaining < 0) {
-        timeRemaining = 0;
+        timeRemaining = 1;
       }
       this.start(timeRemaining);
       debug('%d list wait because diff is %d', msecs, diff);
@@ -299,7 +305,7 @@ function tryOnTimeout(timer, list) {
     timer[async_id_symbol] : null;
   var threw = true;
   if (timerAsyncId !== null)
-    emitBefore(timerAsyncId, timer[trigger_id_symbol]);
+    emitBefore(timerAsyncId, timer[trigger_async_id_symbol]);
   try {
     ontimeout(timer);
     threw = false;
@@ -567,10 +573,12 @@ function Timeout(after, callback, args) {
   this._timerArgs = args;
   this._repeat = null;
   this._destroyed = false;
-  this[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-  this[trigger_id_symbol] = initTriggerId();
+  this[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+  this[trigger_async_id_symbol] = initTriggerId();
   if (async_hook_fields[kInit] > 0)
-    emitInit(this[async_id_symbol], 'Timeout', this[trigger_id_symbol], this);
+    emitInit(
+      this[async_id_symbol], 'Timeout', this[trigger_async_id_symbol], this
+    );
 }
 
 
@@ -737,9 +745,9 @@ function processImmediate() {
 // 4.7) what is in this smaller function.
 function tryOnImmediate(immediate, oldTail) {
   var threw = true;
-  emitBefore(immediate[async_id_symbol], immediate[trigger_id_symbol]);
+  emitBefore(immediate[async_id_symbol], immediate[trigger_async_id_symbol]);
   try {
-    // make the actual call outside the try/catch to allow it to be optimized
+    // make the actual call outside the try/finally to allow it to be optimized
     runCallback(immediate);
     threw = false;
   } finally {
@@ -802,10 +810,12 @@ function Immediate() {
   this._onImmediate = null;
   this._destroyed = false;
   this.domain = process.domain;
-  this[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-  this[trigger_id_symbol] = initTriggerId();
+  this[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+  this[trigger_async_id_symbol] = initTriggerId();
   if (async_hook_fields[kInit] > 0)
-    emitInit(this[async_id_symbol], 'Immediate', this[trigger_id_symbol], this);
+    emitInit(
+      this[async_id_symbol], 'Immediate', this[trigger_async_id_symbol], this
+    );
 }
 
 function setImmediate(callback, arg1, arg2, arg3) {

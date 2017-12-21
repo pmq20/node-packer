@@ -2,57 +2,87 @@
 
 const internalUtil = require('internal/util');
 const async_wrap = process.binding('async_wrap');
-/* Both these arrays are used to communicate between JS and C++ with as little
- * overhead as possible.
+const errors = require('internal/errors');
+/* async_hook_fields is a Uint32Array wrapping the uint32_t array of
+ * Environment::AsyncHooks::fields_[]. Each index tracks the number of active
+ * hooks for each type.
  *
- * async_hook_fields is a Uint32Array() that communicates the number of each
- * type of active hooks of each type and wraps the uin32_t array of
- * node::Environment::AsyncHooks::fields_.
- *
- * async_uid_fields is a Float64Array() that contains the async/trigger ids for
- * several operations. These fields are as follows:
- *   kCurrentAsyncId: The async id of the current execution stack.
- *   kCurrentTriggerId: The trigger id of the current execution stack.
- *   kAsyncUidCntr: Counter that tracks the unique ids given to new resources.
- *   kInitTriggerId: Written to just before creating a new resource, so the
- *    constructor knows what other resource is responsible for its init().
- *    Used this way so the trigger id doesn't need to be passed to every
- *    resource's constructor.
+ * async_id_fields is a Float64Array wrapping the double array of
+ * Environment::AsyncHooks::async_id_fields_[]. Each index contains the ids for
+ * the various asynchronous states of the application. These are:
+ *  kExecutionAsyncId: The async_id assigned to the resource responsible for the
+ *    current execution stack.
+ *  kTriggerAsyncId: The trigger_async_id of the resource responsible for
+ *    the current execution stack.
+ *  kAsyncIdCounter: Incremental counter tracking the next assigned async_id.
+ *  kInitTriggerAsyncId: Written immediately before a resource's constructor
+ *    that sets the value of the init()'s triggerAsyncId. The order of
+ *    retrieving the triggerAsyncId value is passing directly to the
+ *    constructor -> value set in kInitTriggerAsyncId -> executionAsyncId of
+ *    the current resource.
  */
-const { async_hook_fields, async_uid_fields } = async_wrap;
-// Used to change the state of the async id stack.
+const { async_hook_fields, async_id_fields } = async_wrap;
+// Store the pair executionAsyncId and triggerAsyncId in a std::stack on
+// Environment::AsyncHooks::ids_stack_ tracks the resource responsible for the
+// current execution stack. This is unwound as each resource exits. In the case
+// of a fatal exception this stack is emptied after calling each hook's after()
+// callback.
 const { pushAsyncIds, popAsyncIds } = async_wrap;
-// Array of all AsyncHooks that will be iterated whenever an async event fires.
-// Using var instead of (preferably const) in order to assign
-// tmp_active_hooks_array if a hook is enabled/disabled during hook execution.
-var active_hooks_array = [];
-// Use a counter to track whether a hook callback is currently being processed.
-// Used to make sure active_hooks_array isn't altered in mid execution if
-// another hook is added or removed. A counter is used to track nested calls.
-var processing_hook = 0;
-// Use to temporarily store and updated active_hooks_array if the user enables
-// or disables a hook while hooks are being processed.
-var tmp_active_hooks_array = null;
-// Keep track of the field counts held in tmp_active_hooks_array.
-var tmp_async_hook_fields = null;
+// For performance reasons, only track Proimses when a hook is enabled.
+const { enablePromiseHook, disablePromiseHook } = async_wrap;
+// Properties in active_hooks are used to keep track of the set of hooks being
+// executed in case another hook is enabled/disabled. The new set of hooks is
+// then restored once the active set of hooks is finished executing.
+const active_hooks = {
+  // Array of all AsyncHooks that will be iterated whenever an async event
+  // fires. Using var instead of (preferably const) in order to assign
+  // active_hooks.tmp_array if a hook is enabled/disabled during hook
+  // execution.
+  array: [],
+  // Use a counter to track nested calls of async hook callbacks and make sure
+  // the active_hooks.array isn't altered mid execution.
+  call_depth: 0,
+  // Use to temporarily store and updated active_hooks.array if the user
+  // enables or disables a hook while hooks are being processed. If a hook is
+  // enabled() or disabled() during hook execution then the current set of
+  // active hooks is duplicated and set equal to active_hooks.tmp_array. Any
+  // subsequent changes are on the duplicated array. When all hooks have
+  // completed executing active_hooks.tmp_array is assigned to
+  // active_hooks.array.
+  tmp_array: null,
+  // Keep track of the field counts held in active_hooks.tmp_array. Because the
+  // async_hook_fields can't be reassigned, store each uint32 in an array that
+  // is written back to async_hook_fields when active_hooks.array is restored.
+  tmp_fields: null
+};
+
 
 // Each constant tracks how many callbacks there are for any given step of
 // async execution. These are tracked so if the user didn't include callbacks
 // for a given step, that step can bail out early.
-const { kInit, kBefore, kAfter, kDestroy, kTotals, kCurrentAsyncId,
-        kCurrentTriggerId, kAsyncUidCntr,
-        kInitTriggerId } = async_wrap.constants;
+const { kInit, kBefore, kAfter, kDestroy, kTotals, kPromiseResolve,
+        kCheck, kExecutionAsyncId, kTriggerAsyncId, kAsyncIdCounter,
+        kInitTriggerAsyncId } = async_wrap.constants;
 
-const { async_id_symbol, trigger_id_symbol } = async_wrap;
+// Symbols used to store the respective ids on both AsyncResource instances and
+// internal resources. They will also be assigned to arbitrary objects passed
+// in by the user that take place of internally constructed objects.
+const { async_id_symbol, trigger_async_id_symbol } = async_wrap;
 
 // Used in AsyncHook and AsyncResource.
 const init_symbol = Symbol('init');
 const before_symbol = Symbol('before');
 const after_symbol = Symbol('after');
 const destroy_symbol = Symbol('destroy');
+const promise_resolve_symbol = Symbol('promiseResolve');
 const emitBeforeNative = emitHookFactory(before_symbol, 'emitBeforeNative');
 const emitAfterNative = emitHookFactory(after_symbol, 'emitAfterNative');
 const emitDestroyNative = emitHookFactory(destroy_symbol, 'emitDestroyNative');
+const emitPromiseResolveNative =
+    emitHookFactory(promise_resolve_symbol, 'emitPromiseResolveNative');
+
+// TODO(refack): move to node-config.cc
+const abort_regex = /^--abort[_-]on[_-]uncaught[_-]exception$/;
 
 // Setup the callbacks that node::AsyncWrap will call when there are hooks to
 // process. They use the same functions as the JS embedder API. These callbacks
@@ -61,7 +91,8 @@ const emitDestroyNative = emitHookFactory(destroy_symbol, 'emitDestroyNative');
 async_wrap.setupHooks({ init: emitInitNative,
                         before: emitBeforeNative,
                         after: emitAfterNative,
-                        destroy: emitDestroyNative });
+                        destroy: emitDestroyNative,
+                        promise_resolve: emitPromiseResolveNative });
 
 // Used to fatally abort the process if a callback throws.
 function fatalError(e) {
@@ -72,7 +103,7 @@ function fatalError(e) {
     Error.captureStackTrace(o, fatalError);
     process._rawDebug(o.stack);
   }
-  if (process.execArgv.some((e) => /^--abort[_-]on[_-]uncaught[_-]exception$/.test(e))) {
+  if (process.execArgv.some((e) => abort_regex.test(e))) {
     process.abort();
   }
   process.exit(1);
@@ -82,20 +113,23 @@ function fatalError(e) {
 // Public API //
 
 class AsyncHook {
-  constructor({ init, before, after, destroy }) {
+  constructor({ init, before, after, destroy, promiseResolve }) {
     if (init !== undefined && typeof init !== 'function')
-      throw new TypeError('init must be a function');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'init');
     if (before !== undefined && typeof before !== 'function')
-      throw new TypeError('before must be a function');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
     if (after !== undefined && typeof after !== 'function')
-      throw new TypeError('after must be a function');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
     if (destroy !== undefined && typeof destroy !== 'function')
-      throw new TypeError('destroy must be a function');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
+    if (promiseResolve !== undefined && typeof promiseResolve !== 'function')
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'promiseResolve');
 
     this[init_symbol] = init;
     this[before_symbol] = before;
     this[after_symbol] = after;
     this[destroy_symbol] = destroy;
+    this[promise_resolve_symbol] = promiseResolve;
   }
 
   enable() {
@@ -119,10 +153,14 @@ class AsyncHook {
     hook_fields[kTotals] += hook_fields[kBefore] += +!!this[before_symbol];
     hook_fields[kTotals] += hook_fields[kAfter] += +!!this[after_symbol];
     hook_fields[kTotals] += hook_fields[kDestroy] += +!!this[destroy_symbol];
+    hook_fields[kTotals] +=
+        hook_fields[kPromiseResolve] += +!!this[promise_resolve_symbol];
     hooks_array.push(this);
 
-    if (prev_kTotals === 0 && hook_fields[kTotals] > 0)
-      async_wrap.enablePromiseHook();
+    if (prev_kTotals === 0 && hook_fields[kTotals] > 0) {
+      enablePromiseHook();
+      hook_fields[kCheck] += 1;
+    }
 
     return this;
   }
@@ -141,10 +179,14 @@ class AsyncHook {
     hook_fields[kTotals] += hook_fields[kBefore] -= +!!this[before_symbol];
     hook_fields[kTotals] += hook_fields[kAfter] -= +!!this[after_symbol];
     hook_fields[kTotals] += hook_fields[kDestroy] -= +!!this[destroy_symbol];
+    hook_fields[kTotals] +=
+        hook_fields[kPromiseResolve] -= +!!this[promise_resolve_symbol];
     hooks_array.splice(index, 1);
 
-    if (prev_kTotals > 0 && hook_fields[kTotals] === 0)
-      async_wrap.disablePromiseHook();
+    if (prev_kTotals > 0 && hook_fields[kTotals] === 0) {
+      disablePromiseHook();
+      hook_fields[kCheck] -= 1;
+    }
 
     return this;
   }
@@ -152,41 +194,43 @@ class AsyncHook {
 
 
 function getHookArrays() {
-  if (processing_hook === 0)
-    return [active_hooks_array, async_hook_fields];
+  if (active_hooks.call_depth === 0)
+    return [active_hooks.array, async_hook_fields];
   // If this hook is being enabled while in the middle of processing the array
   // of currently active hooks then duplicate the current set of active hooks
   // and store this there. This shouldn't fire until the next time hooks are
   // processed.
-  if (tmp_active_hooks_array === null)
+  if (active_hooks.tmp_array === null)
     storeActiveHooks();
-  return [tmp_active_hooks_array, tmp_async_hook_fields];
+  return [active_hooks.tmp_array, active_hooks.tmp_fields];
 }
 
 
 function storeActiveHooks() {
-  tmp_active_hooks_array = active_hooks_array.slice();
+  active_hooks.tmp_array = active_hooks.array.slice();
   // Don't want to make the assumption that kInit to kDestroy are indexes 0 to
   // 4. So do this the long way.
-  tmp_async_hook_fields = [];
-  tmp_async_hook_fields[kInit] = async_hook_fields[kInit];
-  tmp_async_hook_fields[kBefore] = async_hook_fields[kBefore];
-  tmp_async_hook_fields[kAfter] = async_hook_fields[kAfter];
-  tmp_async_hook_fields[kDestroy] = async_hook_fields[kDestroy];
+  active_hooks.tmp_fields = [];
+  active_hooks.tmp_fields[kInit] = async_hook_fields[kInit];
+  active_hooks.tmp_fields[kBefore] = async_hook_fields[kBefore];
+  active_hooks.tmp_fields[kAfter] = async_hook_fields[kAfter];
+  active_hooks.tmp_fields[kDestroy] = async_hook_fields[kDestroy];
+  active_hooks.tmp_fields[kPromiseResolve] = async_hook_fields[kPromiseResolve];
 }
 
 
 // Then restore the correct hooks array in case any hooks were added/removed
 // during hook callback execution.
-function restoreTmpHooks() {
-  active_hooks_array = tmp_active_hooks_array;
-  async_hook_fields[kInit] = tmp_async_hook_fields[kInit];
-  async_hook_fields[kBefore] = tmp_async_hook_fields[kBefore];
-  async_hook_fields[kAfter] = tmp_async_hook_fields[kAfter];
-  async_hook_fields[kDestroy] = tmp_async_hook_fields[kDestroy];
+function restoreActiveHooks() {
+  active_hooks.array = active_hooks.tmp_array;
+  async_hook_fields[kInit] = active_hooks.tmp_fields[kInit];
+  async_hook_fields[kBefore] = active_hooks.tmp_fields[kBefore];
+  async_hook_fields[kAfter] = active_hooks.tmp_fields[kAfter];
+  async_hook_fields[kDestroy] = active_hooks.tmp_fields[kDestroy];
+  async_hook_fields[kPromiseResolve] = active_hooks.tmp_fields[kPromiseResolve];
 
-  tmp_active_hooks_array = null;
-  tmp_async_hook_fields = null;
+  active_hooks.tmp_array = null;
+  active_hooks.tmp_fields = null;
 }
 
 
@@ -196,12 +240,21 @@ function createHook(fns) {
 
 
 function executionAsyncId() {
-  return async_uid_fields[kCurrentAsyncId];
+  return async_id_fields[kExecutionAsyncId];
 }
 
 
 function triggerAsyncId() {
-  return async_uid_fields[kCurrentTriggerId];
+  return async_id_fields[kTriggerAsyncId];
+}
+
+function validateAsyncId(asyncId, type) {
+  // Skip validation when async_hooks is disabled
+  if (async_hook_fields[kCheck] <= 0) return;
+
+  if (!Number.isSafeInteger(asyncId) || asyncId < -1) {
+    fatalError(new errors.RangeError('ERR_INVALID_ASYNC_ID', type, asyncId));
+  }
 }
 
 
@@ -209,19 +262,27 @@ function triggerAsyncId() {
 
 class AsyncResource {
   constructor(type, triggerAsyncId = initTriggerId()) {
+    if (typeof type !== 'string')
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'type', 'string');
+
     // Unlike emitInitScript, AsyncResource doesn't supports null as the
     // triggerAsyncId.
-    if (!Number.isSafeInteger(triggerAsyncId) || triggerAsyncId < 0)
-      throw new RangeError('triggerAsyncId must be an unsigned integer');
+    if (!Number.isSafeInteger(triggerAsyncId) || triggerAsyncId < -1) {
+      throw new errors.RangeError('ERR_INVALID_ASYNC_ID',
+                                  'triggerAsyncId',
+                                  triggerAsyncId);
+    }
 
-    this[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-    this[trigger_id_symbol] = triggerAsyncId;
+    this[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+    this[trigger_async_id_symbol] = triggerAsyncId;
 
-    emitInitScript(this[async_id_symbol], type, this[trigger_id_symbol], this);
+    emitInitScript(
+      this[async_id_symbol], type, this[trigger_async_id_symbol], this
+    );
   }
 
   emitBefore() {
-    emitBeforeScript(this[async_id_symbol], this[trigger_id_symbol]);
+    emitBeforeScript(this[async_id_symbol], this[trigger_async_id_symbol]);
     return this;
   }
 
@@ -240,7 +301,7 @@ class AsyncResource {
   }
 
   triggerAsyncId() {
-    return this[trigger_id_symbol];
+    return this[trigger_async_id_symbol];
   }
 }
 
@@ -275,7 +336,7 @@ function runInAsyncIdScope(asyncId, cb) {
 // counter increment first. Since it's done the same way in
 // Environment::new_async_uid()
 function newUid() {
-  return ++async_uid_fields[kAsyncUidCntr];
+  return ++async_id_fields[kAsyncIdCounter];
 }
 
 
@@ -283,28 +344,34 @@ function newUid() {
 // the user to safeguard this call and make sure it's zero'd out when the
 // constructor is complete.
 function initTriggerId() {
-  var tId = async_uid_fields[kInitTriggerId];
+  var triggerAsyncId = async_id_fields[kInitTriggerAsyncId];
   // Reset value after it's been called so the next constructor doesn't
   // inherit it by accident.
-  async_uid_fields[kInitTriggerId] = 0;
-  if (tId <= 0)
-    tId = async_uid_fields[kCurrentAsyncId];
-  return tId;
+  async_id_fields[kInitTriggerAsyncId] = 0;
+  if (triggerAsyncId <= 0)
+    triggerAsyncId = async_id_fields[kExecutionAsyncId];
+  return triggerAsyncId;
 }
 
 
 function setInitTriggerId(triggerAsyncId) {
   // CHECK(Number.isSafeInteger(triggerAsyncId))
   // CHECK(triggerAsyncId > 0)
-  async_uid_fields[kInitTriggerId] = triggerAsyncId;
+  async_id_fields[kInitTriggerAsyncId] = triggerAsyncId;
 }
 
 
 function emitInitScript(asyncId, type, triggerAsyncId, resource) {
+  validateAsyncId(asyncId, 'asyncId');
+  if (triggerAsyncId !== null)
+    validateAsyncId(triggerAsyncId, 'triggerAsyncId');
+  if (async_hook_fields[kCheck] > 0 &&
+      (typeof type !== 'string' || type.length <= 0)) {
+    throw new errors.TypeError('ERR_ASYNC_TYPE', type);
+  }
+
   // Short circuit all checks for the common case. Which is that no hooks have
   // been set. Do this to remove performance impact for embedders (and core).
-  // Even though it bypasses all the argument checks. The performance savings
-  // here is critical.
   if (async_hook_fields[kInit] === 0)
     return;
 
@@ -313,18 +380,10 @@ function emitInitScript(asyncId, type, triggerAsyncId, resource) {
   if (triggerAsyncId === null) {
     triggerAsyncId = initTriggerId();
   } else {
-    // If a triggerAsyncId was passed, any kInitTriggerId still must be null'd.
-    async_uid_fields[kInitTriggerId] = 0;
+    // If a triggerAsyncId was passed, any kInitTriggerAsyncId still must be
+    // null'd.
+    async_id_fields[kInitTriggerAsyncId] = 0;
   }
-
-  // TODO(trevnorris): I'd prefer allowing these checks to not exist, or only
-  // throw in a debug build, in order to improve performance.
-  if (!Number.isSafeInteger(asyncId) || asyncId < 0)
-    throw new RangeError('asyncId must be an unsigned integer');
-  if (typeof type !== 'string' || type.length <= 0)
-    throw new TypeError('type must be a string with length > 0');
-  if (!Number.isSafeInteger(triggerAsyncId) || triggerAsyncId < 0)
-    throw new RangeError('triggerAsyncId must be an unsigned integer');
 
   emitInitNative(asyncId, type, triggerAsyncId, resource);
 }
@@ -334,25 +393,30 @@ function emitHookFactory(symbol, name) {
   // before this is called.
   // eslint-disable-next-line func-style
   const fn = function(asyncId) {
-    processing_hook += 1;
+    active_hooks.call_depth += 1;
     // Use a single try/catch for all hook to avoid setting up one per
     // iteration.
     try {
-      for (var i = 0; i < active_hooks_array.length; i++) {
-        if (typeof active_hooks_array[i][symbol] === 'function') {
-          active_hooks_array[i][symbol](asyncId);
+      for (var i = 0; i < active_hooks.array.length; i++) {
+        if (typeof active_hooks.array[i][symbol] === 'function') {
+          active_hooks.array[i][symbol](asyncId);
         }
       }
     } catch (e) {
       fatalError(e);
     } finally {
-      processing_hook -= 1;
+      active_hooks.call_depth -= 1;
     }
 
-    if (processing_hook === 0 && tmp_active_hooks_array !== null) {
-      restoreTmpHooks();
+    // Hooks can only be restored if there have been no recursive hook calls.
+    // Also the active hooks do not need to be restored if enable()/disable()
+    // weren't called during hook execution, in which case
+    // active_hooks.tmp_array will be null.
+    if (active_hooks.call_depth === 0 && active_hooks.tmp_array !== null) {
+      restoreActiveHooks();
     }
   };
+
   // Set the name property of the anonymous function as it looks good in the
   // stack trace.
   Object.defineProperty(fn, 'name', {
@@ -363,14 +427,11 @@ function emitHookFactory(symbol, name) {
 
 
 function emitBeforeScript(asyncId, triggerAsyncId) {
-  // CHECK(Number.isSafeInteger(asyncId) && asyncId > 0)
-  // CHECK(Number.isSafeInteger(triggerAsyncId) && triggerAsyncId > 0)
-
-  // Validate the ids.
-  if (asyncId < 0 || triggerAsyncId < 0) {
-    fatalError('before(): asyncId or triggerAsyncId is less than zero ' +
-               `(asyncId: ${asyncId}, triggerAsyncId: ${triggerAsyncId})`);
-  }
+  // Validate the ids. An id of -1 means it was never set and is visible on the
+  // call graph. An id < -1 should never happen in any circumstance. Throw
+  // on user calls because async state should still be recoverable.
+  validateAsyncId(asyncId, 'asyncId');
+  validateAsyncId(triggerAsyncId, 'triggerAsyncId');
 
   pushAsyncIds(asyncId, triggerAsyncId);
 
@@ -379,10 +440,9 @@ function emitBeforeScript(asyncId, triggerAsyncId) {
 }
 
 
-// TODO(trevnorris): Calling emitBefore/emitAfter from native can't adjust the
-// kIdStackIndex. But what happens if the user doesn't have both before and
-// after callbacks.
 function emitAfterScript(asyncId) {
+  validateAsyncId(asyncId, 'asyncId');
+
   if (async_hook_fields[kAfter] > 0)
     emitAfterNative(asyncId);
 
@@ -391,34 +451,25 @@ function emitAfterScript(asyncId) {
 
 
 function emitDestroyScript(asyncId) {
-  // Return early if there are no destroy callbacks, or on attempt to emit
-  // destroy on the void.
-  if (async_hook_fields[kDestroy] === 0 || asyncId === 0)
+  validateAsyncId(asyncId, 'asyncId');
+
+  // Return early if there are no destroy callbacks, or invalid asyncId.
+  if (async_hook_fields[kDestroy] === 0 || asyncId <= 0)
     return;
-  async_wrap.addIdToDestroyList(asyncId);
+  async_wrap.queueDestroyAsyncId(asyncId);
 }
 
 
-// Emit callbacks for native calls. Since some state can be setup directly from
-// C++ there's no need to perform all the work here.
-
-// This should only be called if hooks_array has kInit > 0. There are no global
-// values to setup. Though hooks_array will be cloned if C++ needed to call
-// init().
-// TODO(trevnorris): Perhaps have MakeCallback call a single JS function that
-// does the before/callback/after calls to remove two additional calls to JS.
-
-// Force the application to shutdown if one of the callbacks throws. This may
-// change in the future depending on whether it can be determined if there's a
-// slim chance of the application remaining stable after handling one of these
-// exceptions.
+// Used by C++ to call all init() callbacks. Because some state can be setup
+// from C++ there's no need to perform all the same operations as in
+// emitInitScript.
 function emitInitNative(asyncId, type, triggerAsyncId, resource) {
-  processing_hook += 1;
+  active_hooks.call_depth += 1;
   // Use a single try/catch for all hook to avoid setting up one per iteration.
   try {
-    for (var i = 0; i < active_hooks_array.length; i++) {
-      if (typeof active_hooks_array[i][init_symbol] === 'function') {
-        active_hooks_array[i][init_symbol](
+    for (var i = 0; i < active_hooks.array.length; i++) {
+      if (typeof active_hooks.array[i][init_symbol] === 'function') {
+        active_hooks.array[i][init_symbol](
           asyncId, type, triggerAsyncId,
           resource
         );
@@ -427,18 +478,15 @@ function emitInitNative(asyncId, type, triggerAsyncId, resource) {
   } catch (e) {
     fatalError(e);
   } finally {
-    processing_hook -= 1;
+    active_hooks.call_depth -= 1;
   }
 
-  // * `tmp_active_hooks_array` is null if no hooks were added/removed while
-  //   the hooks were running. In that case no restoration is needed.
-  // * In the case where another hook was added/removed while the hooks were
-  //   running and a handle was created causing the `init` hooks to fire again,
-  //   then `restoreTmpHooks` should not be called for the nested `hooks`.
-  //   Otherwise `active_hooks_array` can change during execution of the
-  //   `hooks`.
-  if (processing_hook === 0 && tmp_active_hooks_array !== null) {
-    restoreTmpHooks();
+  // Hooks can only be restored if there have been no recursive hook calls.
+  // Also the active hooks do not need to be restored if enable()/disable()
+  // weren't called during hook execution, in which case active_hooks.tmp_array
+  // will be null.
+  if (active_hooks.call_depth === 0 && active_hooks.tmp_array !== null) {
+    restoreActiveHooks();
   }
 }
 

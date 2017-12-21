@@ -3,12 +3,20 @@
 const binding = process.binding('http2');
 const errors = require('internal/errors');
 
+const kSocket = Symbol('socket');
+
 const {
+  NGHTTP2_SESSION_CLIENT,
+  NGHTTP2_SESSION_SERVER,
+
   HTTP2_HEADER_STATUS,
   HTTP2_HEADER_METHOD,
   HTTP2_HEADER_AUTHORITY,
   HTTP2_HEADER_SCHEME,
   HTTP2_HEADER_PATH,
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS,
+  HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE,
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
   HTTP2_HEADER_AGE,
   HTTP2_HEADER_AUTHORIZATION,
   HTTP2_HEADER_CONTENT_ENCODING,
@@ -20,6 +28,7 @@ const {
   HTTP2_HEADER_CONTENT_TYPE,
   HTTP2_HEADER_COOKIE,
   HTTP2_HEADER_DATE,
+  HTTP2_HEADER_DNT,
   HTTP2_HEADER_ETAG,
   HTTP2_HEADER_EXPIRES,
   HTTP2_HEADER_FROM,
@@ -35,7 +44,11 @@ const {
   HTTP2_HEADER_RANGE,
   HTTP2_HEADER_REFERER,
   HTTP2_HEADER_RETRY_AFTER,
+  HTTP2_HEADER_SET_COOKIE,
+  HTTP2_HEADER_TK,
+  HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS,
   HTTP2_HEADER_USER_AGENT,
+  HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS,
 
   HTTP2_HEADER_CONNECTION,
   HTTP2_HEADER_UPGRADE,
@@ -70,6 +83,9 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_AUTHORITY,
   HTTP2_HEADER_SCHEME,
   HTTP2_HEADER_PATH,
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS,
+  HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE,
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
   HTTP2_HEADER_AGE,
   HTTP2_HEADER_AUTHORIZATION,
   HTTP2_HEADER_CONTENT_ENCODING,
@@ -80,6 +96,7 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_CONTENT_RANGE,
   HTTP2_HEADER_CONTENT_TYPE,
   HTTP2_HEADER_DATE,
+  HTTP2_HEADER_DNT,
   HTTP2_HEADER_ETAG,
   HTTP2_HEADER_EXPIRES,
   HTTP2_HEADER_FROM,
@@ -95,7 +112,10 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_RANGE,
   HTTP2_HEADER_REFERER,
   HTTP2_HEADER_RETRY_AFTER,
-  HTTP2_HEADER_USER_AGENT
+  HTTP2_HEADER_TK,
+  HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS,
+  HTTP2_HEADER_USER_AGENT,
+  HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS
 ]);
 
 // The HTTP methods in this set are specifically defined as assigning no
@@ -152,7 +172,9 @@ const IDX_OPTIONS_MAX_RESERVED_REMOTE_STREAMS = 1;
 const IDX_OPTIONS_MAX_SEND_HEADER_BLOCK_LENGTH = 2;
 const IDX_OPTIONS_PEER_MAX_CONCURRENT_STREAMS = 3;
 const IDX_OPTIONS_PADDING_STRATEGY = 4;
-const IDX_OPTIONS_FLAGS = 5;
+const IDX_OPTIONS_MAX_HEADER_LIST_PAIRS = 5;
+const IDX_OPTIONS_MAX_OUTSTANDING_PINGS = 6;
+const IDX_OPTIONS_FLAGS = 7;
 
 function updateOptionsBuffer(options) {
   var flags = 0;
@@ -180,6 +202,16 @@ function updateOptionsBuffer(options) {
     flags |= (1 << IDX_OPTIONS_PADDING_STRATEGY);
     optionsBuffer[IDX_OPTIONS_PADDING_STRATEGY] =
       options.paddingStrategy;
+  }
+  if (typeof options.maxHeaderListPairs === 'number') {
+    flags |= (1 << IDX_OPTIONS_MAX_HEADER_LIST_PAIRS);
+    optionsBuffer[IDX_OPTIONS_MAX_HEADER_LIST_PAIRS] =
+      options.maxHeaderListPairs;
+  }
+  if (typeof options.maxOutstandingPings === 'number') {
+    flags |= (1 << IDX_OPTIONS_MAX_OUTSTANDING_PINGS);
+    optionsBuffer[IDX_OPTIONS_MAX_OUTSTANDING_PINGS] =
+      options.maxOutstandingPings;
   }
   optionsBuffer[IDX_OPTIONS_FLAGS] = flags;
 }
@@ -233,25 +265,19 @@ function getDefaultSettings() {
 // remote is a boolean. true to fetch remote settings, false to fetch local.
 // this is only called internally
 function getSettings(session, remote) {
-  const holder = Object.create(null);
   if (remote)
-    binding.refreshRemoteSettings(session);
+    session.remoteSettings();
   else
-    binding.refreshLocalSettings(session);
+    session.localSettings();
 
-  holder.headerTableSize =
-    settingsBuffer[IDX_SETTINGS_HEADER_TABLE_SIZE];
-  holder.enablePush =
-    !!settingsBuffer[IDX_SETTINGS_ENABLE_PUSH];
-  holder.initialWindowSize =
-    settingsBuffer[IDX_SETTINGS_INITIAL_WINDOW_SIZE];
-  holder.maxFrameSize =
-    settingsBuffer[IDX_SETTINGS_MAX_FRAME_SIZE];
-  holder.maxConcurrentStreams =
-    settingsBuffer[IDX_SETTINGS_MAX_CONCURRENT_STREAMS];
-  holder.maxHeaderListSize =
-    settingsBuffer[IDX_SETTINGS_MAX_HEADER_LIST_SIZE];
-  return holder;
+  return {
+    headerTableSize: settingsBuffer[IDX_SETTINGS_HEADER_TABLE_SIZE],
+    enablePush: !!settingsBuffer[IDX_SETTINGS_ENABLE_PUSH],
+    initialWindowSize: settingsBuffer[IDX_SETTINGS_INITIAL_WINDOW_SIZE],
+    maxFrameSize: settingsBuffer[IDX_SETTINGS_MAX_FRAME_SIZE],
+    maxConcurrentStreams: settingsBuffer[IDX_SETTINGS_MAX_CONCURRENT_STREAMS],
+    maxHeaderListSize: settingsBuffer[IDX_SETTINGS_MAX_HEADER_LIST_SIZE]
+  };
 }
 
 function updateSettingsBuffer(settings) {
@@ -290,45 +316,39 @@ function updateSettingsBuffer(settings) {
 }
 
 function getSessionState(session) {
-  const holder = Object.create(null);
-  binding.refreshSessionState(session);
-  holder.effectiveLocalWindowSize =
-    sessionState[IDX_SESSION_STATE_EFFECTIVE_LOCAL_WINDOW_SIZE];
-  holder.effectiveRecvDataLength =
-    sessionState[IDX_SESSION_STATE_EFFECTIVE_RECV_DATA_LENGTH];
-  holder.nextStreamID =
-    sessionState[IDX_SESSION_STATE_NEXT_STREAM_ID];
-  holder.localWindowSize =
-    sessionState[IDX_SESSION_STATE_LOCAL_WINDOW_SIZE];
-  holder.lastProcStreamID =
-    sessionState[IDX_SESSION_STATE_LAST_PROC_STREAM_ID];
-  holder.remoteWindowSize =
-    sessionState[IDX_SESSION_STATE_REMOTE_WINDOW_SIZE];
-  holder.outboundQueueSize =
-    sessionState[IDX_SESSION_STATE_OUTBOUND_QUEUE_SIZE];
-  holder.deflateDynamicTableSize =
-    sessionState[IDX_SESSION_STATE_HD_DEFLATE_DYNAMIC_TABLE_SIZE];
-  holder.inflateDynamicTableSize =
-    sessionState[IDX_SESSION_STATE_HD_INFLATE_DYNAMIC_TABLE_SIZE];
-  return holder;
+  session.refreshState();
+  return {
+    effectiveLocalWindowSize:
+      sessionState[IDX_SESSION_STATE_EFFECTIVE_LOCAL_WINDOW_SIZE],
+    effectiveRecvDataLength:
+      sessionState[IDX_SESSION_STATE_EFFECTIVE_RECV_DATA_LENGTH],
+    nextStreamID:
+      sessionState[IDX_SESSION_STATE_NEXT_STREAM_ID],
+    localWindowSize:
+      sessionState[IDX_SESSION_STATE_LOCAL_WINDOW_SIZE],
+    lastProcStreamID:
+      sessionState[IDX_SESSION_STATE_LAST_PROC_STREAM_ID],
+    remoteWindowSize:
+      sessionState[IDX_SESSION_STATE_REMOTE_WINDOW_SIZE],
+    outboundQueueSize:
+      sessionState[IDX_SESSION_STATE_OUTBOUND_QUEUE_SIZE],
+    deflateDynamicTableSize:
+      sessionState[IDX_SESSION_STATE_HD_DEFLATE_DYNAMIC_TABLE_SIZE],
+    inflateDynamicTableSize:
+      sessionState[IDX_SESSION_STATE_HD_INFLATE_DYNAMIC_TABLE_SIZE]
+  };
 }
 
-function getStreamState(session, stream) {
-  const holder = Object.create(null);
-  binding.refreshStreamState(session, stream);
-  holder.state =
-    streamState[IDX_STREAM_STATE];
-  holder.weight =
-    streamState[IDX_STREAM_STATE_WEIGHT];
-  holder.sumDependencyWeight =
-    streamState[IDX_STREAM_STATE_SUM_DEPENDENCY_WEIGHT];
-  holder.localClose =
-    streamState[IDX_STREAM_STATE_LOCAL_CLOSE];
-  holder.remoteClose =
-    streamState[IDX_STREAM_STATE_REMOTE_CLOSE];
-  holder.localWindowSize =
-    streamState[IDX_STREAM_STATE_LOCAL_WINDOW_SIZE];
-  return holder;
+function getStreamState(stream) {
+  stream.refreshState();
+  return {
+    state: streamState[IDX_STREAM_STATE],
+    weight: streamState[IDX_STREAM_STATE_WEIGHT],
+    sumDependencyWeight: streamState[IDX_STREAM_STATE_SUM_DEPENDENCY_WEIGHT],
+    localClose: streamState[IDX_STREAM_STATE_LOCAL_CLOSE],
+    remoteClose: streamState[IDX_STREAM_STATE_REMOTE_CLOSE],
+    localWindowSize: streamState[IDX_STREAM_STATE_LOCAL_WINDOW_SIZE]
+  };
 }
 
 function isIllegalConnectionSpecificHeader(name, value) {
@@ -342,8 +362,7 @@ function isIllegalConnectionSpecificHeader(name, value) {
     case HTTP2_HEADER_TRANSFER_ENCODING:
       return true;
     case HTTP2_HEADER_TE:
-      const val = Array.isArray(value) ? value.join(', ') : value;
-      return val !== 'trailers';
+      return value !== 'trailers';
     default:
       return false;
   }
@@ -380,47 +399,49 @@ function mapToHeaders(map,
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
     let value = map[key];
-    let val;
-    if (typeof key === 'symbol' || value === undefined || !key)
+    if (value === undefined || key === '')
       continue;
-    key = String(key).toLowerCase();
-    const isArray = Array.isArray(value);
+    key = key.toLowerCase();
+    const isSingleValueHeader = kSingleValueHeaders.has(key);
+    let isArray = Array.isArray(value);
     if (isArray) {
       switch (value.length) {
         case 0:
           continue;
         case 1:
           value = String(value[0]);
+          isArray = false;
           break;
         default:
-          if (kSingleValueHeaders.has(key))
+          if (isSingleValueHeader)
             return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
       }
+    } else {
+      value = String(value);
+    }
+    if (isSingleValueHeader) {
+      if (singles.has(key))
+        return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
+      singles.add(key);
     }
     if (key[0] === ':') {
       const err = assertValuePseudoHeader(key);
       if (err !== undefined)
         return err;
-      ret = `${key}\0${String(value)}\0${ret}`;
+      ret = `${key}\0${value}\0${ret}`;
       count++;
     } else {
-      if (kSingleValueHeaders.has(key)) {
-        if (singles.has(key))
-          return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
-        singles.add(key);
-      }
       if (isIllegalConnectionSpecificHeader(key, value)) {
-        return new errors.Error('ERR_HTTP2_INVALID_CONNECTION_HEADERS');
+        return new errors.Error('ERR_HTTP2_INVALID_CONNECTION_HEADERS', key);
       }
       if (isArray) {
         for (var k = 0; k < value.length; k++) {
-          val = String(value[k]);
+          const val = String(value[k]);
           ret += `${key}\0${val}\0`;
         }
         count += value.length;
       } else {
-        val = String(value);
-        ret += `${key}\0${val}\0`;
+        ret += `${key}\0${value}\0`;
         count++;
       }
     }
@@ -438,13 +459,12 @@ class NghttpError extends Error {
   }
 }
 
-function assertIsObject(value, name, types) {
+function assertIsObject(value, name, types = 'object') {
   if (value !== undefined &&
       (value === null ||
        typeof value !== 'object' ||
        Array.isArray(value))) {
-    const err = new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                     name, types || 'object');
+    const err = new errors.TypeError('ERR_INVALID_ARG_TYPE', name, types);
     Error.captureStackTrace(err, assertIsObject);
     throw err;
   }
@@ -474,18 +494,36 @@ function toHeaderObject(headers) {
     if (existing === undefined) {
       obj[name] = value;
     } else if (!kSingleValueHeaders.has(name)) {
-      if (name === HTTP2_HEADER_COOKIE) {
-        // https://tools.ietf.org/html/rfc7540#section-8.1.2.5
-        // "...If there are multiple Cookie header fields after decompression,
-        //  these MUST be concatenated into a single octet string using the
-        //  two-octet delimiter of 0x3B, 0x20 (the ASCII string "; ") before
-        //  being passed into a non-HTTP/2 context."
-        obj[name] = `${existing}; ${value}`;
-      } else {
-        if (Array.isArray(existing))
-          existing.push(value);
-        else
-          obj[name] = [existing, value];
+      switch (name) {
+        case HTTP2_HEADER_COOKIE:
+          // https://tools.ietf.org/html/rfc7540#section-8.1.2.5
+          // "...If there are multiple Cookie header fields after decompression,
+          //  these MUST be concatenated into a single octet string using the
+          //  two-octet delimiter of 0x3B, 0x20 (the ASCII string "; ") before
+          //  being passed into a non-HTTP/2 context."
+          obj[name] = `${existing}; ${value}`;
+          break;
+        case HTTP2_HEADER_SET_COOKIE:
+          // https://tools.ietf.org/html/rfc7230#section-3.2.2
+          // "Note: In practice, the "Set-Cookie" header field ([RFC6265]) often
+          // appears multiple times in a response message and does not use the
+          // list syntax, violating the above requirements on multiple header
+          // fields with the same name.  Since it cannot be combined into a
+          // single field-value, recipients ought to handle "Set-Cookie" as a
+          // special case while processing header fields."
+          if (Array.isArray(existing))
+            existing.push(value);
+          else
+            obj[name] = [existing, value];
+          break;
+        default:
+          // https://tools.ietf.org/html/rfc7230#section-3.2.2
+          // "A recipient MAY combine multiple header fields with the same field
+          // name into one "field-name: field-value" pair, without changing the
+          // semantics of the message, by appending each subsequent field value
+          // to the combined field value in order, separated by a comma."
+          obj[name] = `${existing}, ${value}`;
+          break;
       }
     }
   }
@@ -494,6 +532,17 @@ function toHeaderObject(headers) {
 
 function isPayloadMeaningless(method) {
   return kNoPayloadMethods.has(method);
+}
+
+function sessionName(type) {
+  switch (type) {
+    case NGHTTP2_SESSION_CLIENT:
+      return 'client';
+    case NGHTTP2_SESSION_SERVER:
+      return 'server';
+    default:
+      return '<invalid>';
+  }
 }
 
 module.exports = {
@@ -506,8 +555,10 @@ module.exports = {
   getSettings,
   getStreamState,
   isPayloadMeaningless,
+  kSocket,
   mapToHeaders,
   NghttpError,
+  sessionName,
   toHeaderObject,
   updateOptionsBuffer,
   updateSettingsBuffer

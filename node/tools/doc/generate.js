@@ -54,7 +54,6 @@ if (!inputFile) {
   throw new Error('No input file specified');
 }
 
-console.error('Input file = %s', inputFile);
 fs.readFile(inputFile, 'utf8', function(er, input) {
   if (er) throw er;
   // process the input for @include lines
@@ -89,6 +88,6 @@ function next(er, input) {
       break;
 
     default:
-      throw new Error('Invalid format: ' + format);
+      throw new Error(`Invalid format: ${format}`);
   }
 }

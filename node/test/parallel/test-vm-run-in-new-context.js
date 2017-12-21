@@ -31,21 +31,21 @@ assert.strictEqual(typeof global.gc, 'function',
 
 common.globalCheck = false;
 
-console.error('run a string');
+// Run a string
 const result = vm.runInNewContext('\'passed\';');
-assert.strictEqual('passed', result);
+assert.strictEqual(result, 'passed');
 
-console.error('thrown error');
-assert.throws(function() {
+// Thrown error
+assert.throws(() => {
   vm.runInNewContext('throw new Error(\'test\');');
 }, /^Error: test$/);
 
 global.hello = 5;
 vm.runInNewContext('hello = 2');
-assert.strictEqual(5, global.hello);
+assert.strictEqual(global.hello, 5);
 
 
-console.error('pass values in and out');
+// Pass values in and out
 global.code = 'foo = 1;' +
               'bar = 2;' +
               'if (baz !== 3) throw new Error(\'test fail\');';
@@ -54,22 +54,42 @@ global.obj = { foo: 0, baz: 3 };
 /* eslint-disable no-unused-vars */
 const baz = vm.runInNewContext(global.code, global.obj);
 /* eslint-enable no-unused-vars */
-assert.strictEqual(1, global.obj.foo);
-assert.strictEqual(2, global.obj.bar);
-assert.strictEqual(2, global.foo);
+assert.strictEqual(global.obj.foo, 1);
+assert.strictEqual(global.obj.bar, 2);
+assert.strictEqual(global.foo, 2);
 
-console.error('call a function by reference');
+// Call a function by reference
 function changeFoo() { global.foo = 100; }
 vm.runInNewContext('f()', { f: changeFoo });
 assert.strictEqual(global.foo, 100);
 
-console.error('modify an object by reference');
+// Modify an object by reference
 const f = { a: 1 };
 vm.runInNewContext('f.a = 2', { f: f });
 assert.strictEqual(f.a, 2);
 
-console.error('use function in context without referencing context');
+// Use function in context without referencing context
 const fn = vm.runInNewContext('(function() { obj.p = {}; })', { obj: {} });
 global.gc();
 fn();
 // Should not crash
+
+{
+  // Verify that providing a custom filename as a string argument works.
+  const code = 'throw new Error("foo");';
+  const file = 'test_file.vm';
+
+  assert.throws(() => {
+    vm.runInNewContext(code, {}, file);
+  }, (err) => {
+    const lines = err.stack.split('\n');
+
+    assert.strictEqual(lines[0].trim(), `${file}:1`);
+    assert.strictEqual(lines[1].trim(), code);
+    // Skip lines[2] and lines[3]. They're just a ^ and blank line.
+    assert.strictEqual(lines[4].trim(), 'Error: foo');
+    assert.strictEqual(lines[5].trim(), `at ${file}:1:7`);
+    // The rest of the stack is uninteresting.
+    return true;
+  });
+}

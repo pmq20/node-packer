@@ -57,7 +57,7 @@
 #include <sys/prctl.h>  // NOLINT, for prctl
 #endif
 
-#ifndef _AIX
+#if !defined(_AIX) && !defined(V8_OS_FUCHSIA)
 #include <sys/syscall.h>
 #endif
 
@@ -102,24 +102,11 @@ intptr_t OS::CommitPageSize() {
 }
 
 void* OS::Allocate(const size_t requested, size_t* allocated,
-                   bool is_executable) {
+                   bool is_executable, void* hint) {
   return OS::Allocate(requested, allocated,
                       is_executable ? OS::MemoryPermission::kReadWriteExecute
-                                    : OS::MemoryPermission::kReadWrite);
-}
-
-void* OS::AllocateGuarded(const size_t requested) {
-  size_t allocated = 0;
-  void* mbase =
-      OS::Allocate(requested, &allocated, OS::MemoryPermission::kNoAccess);
-  if (allocated != requested) {
-    OS::Free(mbase, allocated);
-    return nullptr;
-  }
-  if (mbase == nullptr) {
-    return nullptr;
-  }
-  return mbase;
+                                    : OS::MemoryPermission::kReadWrite,
+                      hint);
 }
 
 void OS::Free(void* address, const size_t size) {
@@ -362,6 +349,8 @@ int OS::GetCurrentThreadId() {
   return static_cast<int>(gettid());
 #elif V8_OS_AIX
   return static_cast<int>(thread_self());
+#elif V8_OS_FUCHSIA
+  return static_cast<int>(pthread_self());
 #elif V8_OS_SOLARIS
   return static_cast<int>(pthread_self());
 #else
@@ -387,26 +376,6 @@ int OS::GetUserTime(uint32_t* secs, uint32_t* usecs) {
 double OS::TimeCurrentMillis() {
   return Time::Now().ToJsTime();
 }
-
-#if !V8_OS_AIX && !V8_OS_SOLARIS && !V8_OS_CYGWIN
-const char* PosixTimezoneCache::LocalTimezone(double time) {
-  if (std::isnan(time)) return "";
-  time_t tv = static_cast<time_t>(std::floor(time / msPerSecond));
-  struct tm tm;
-  struct tm* t = localtime_r(&tv, &tm);
-  if (!t || !t->tm_zone) return "";
-  return t->tm_zone;
-}
-
-double PosixTimezoneCache::LocalTimeOffset() {
-  time_t tv = time(NULL);
-  struct tm tm;
-  struct tm* t = localtime_r(&tv, &tm);
-  // tm_gmtoff includes any daylight savings offset, so subtract it.
-  return static_cast<double>(t->tm_gmtoff * msPerSecond -
-                             (t->tm_isdst > 0 ? 3600 * msPerSecond : 0));
-}
-#endif
 
 double PosixTimezoneCache::DaylightSavingsOffset(double time) {
   if (std::isnan(time)) return std::numeric_limits<double>::quiet_NaN();

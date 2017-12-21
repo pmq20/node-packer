@@ -1,5 +1,7 @@
 # REPL
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `repl` module provides a Read-Eval-Print-Loop (REPL) implementation that
@@ -499,7 +501,7 @@ by the `NODE_REPL_HISTORY` variable, as documented in the
 
 ### Using the Node.js REPL with advanced line-editors
 
-For advanced line-editors, start Node.js with the environmental variable
+For advanced line-editors, start Node.js with the environment variable
 `NODE_NO_READLINE=1`. This will start the main and debugger REPL in canonical
 terminal settings, which will allow use with `rlwrap`.
 

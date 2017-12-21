@@ -7,7 +7,7 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include "node.h"
+#include "node_internals.h"
 #include <string.h>
 
 namespace node {
@@ -44,7 +44,9 @@ class Vector {
 
   // Access individual vector elements - checks bounds in debug mode.
   T& operator[](size_t index) const {
+#ifdef DEBUG
     CHECK(index < length_);
+#endif
     return start_[is_forward_ ? index : (length_ - index - 1)];
   }
 

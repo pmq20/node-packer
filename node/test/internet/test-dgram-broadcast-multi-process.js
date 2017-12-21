@@ -150,11 +150,7 @@ if (process.argv[2] !== 'child') {
                             worker.pid,
                             count);
 
-              assert.strictEqual(
-                count,
-                messages.length,
-                'A worker received an invalid multicast message'
-              );
+              assert.strictEqual(count, messages.length);
             });
 
             clearTimeout(timer);
@@ -233,7 +229,7 @@ if (process.argv[2] === 'child') {
 
     receivedMessages.push(buf);
 
-    process.send({message: buf.toString()});
+    process.send({ message: buf.toString() });
 
     if (receivedMessages.length === messages.length) {
       process.nextTick(function() {
@@ -252,7 +248,7 @@ if (process.argv[2] === 'child') {
   });
 
   listenSocket.on('listening', function() {
-    process.send({listening: true});
+    process.send({ listening: true });
   });
 
   listenSocket.bind(common.PORT);

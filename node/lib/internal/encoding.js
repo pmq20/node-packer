@@ -10,15 +10,12 @@ const kEncoding = Symbol('encoding');
 const kDecoder = Symbol('decoder');
 const kEncoder = Symbol('encoder');
 
-let warned = false;
-const experimental =
-  'The WHATWG Encoding Standard implementation is an experimental API. It ' +
-  'should not yet be used in production applications.';
-
 const {
   getConstructorOf,
   customInspectSymbol: inspect
 } = require('internal/util');
+
+const { isArrayBufferView } = require('internal/util/types');
 
 const {
   isArrayBuffer
@@ -287,11 +284,6 @@ function getEncodingFromLabel(label) {
 
 class TextEncoder {
   constructor() {
-    if (!warned) {
-      warned = true;
-      process.emitWarning(experimental, 'ExperimentalWarning');
-    }
-
     this[kEncoder] = true;
   }
 
@@ -351,11 +343,6 @@ function makeTextDecoderICU() {
 
   class TextDecoder {
     constructor(encoding = 'utf-8', options = {}) {
-      if (!warned) {
-        warned = true;
-        process.emitWarning(experimental, 'ExperimentalWarning');
-      }
-
       encoding = `${encoding}`;
       if (typeof options !== 'object')
         throw new errors.Error('ERR_INVALID_ARG_TYPE', 'options', 'object');
@@ -386,7 +373,7 @@ function makeTextDecoderICU() {
         throw new errors.TypeError('ERR_INVALID_THIS', 'TextDecoder');
       if (isArrayBuffer(input)) {
         input = lazyBuffer().from(input);
-      } else if (!ArrayBuffer.isView(input)) {
+      } else if (!isArrayBufferView(input)) {
         throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'input',
                                    ['ArrayBuffer', 'ArrayBufferView']);
       }
@@ -428,11 +415,6 @@ function makeTextDecoderJS() {
 
   class TextDecoder {
     constructor(encoding = 'utf-8', options = {}) {
-      if (!warned) {
-        warned = true;
-        process.emitWarning(experimental, 'ExperimentalWarning');
-      }
-
       encoding = `${encoding}`;
       if (typeof options !== 'object')
         throw new errors.Error('ERR_INVALID_ARG_TYPE', 'options', 'object');
@@ -462,7 +444,7 @@ function makeTextDecoderJS() {
         throw new errors.TypeError('ERR_INVALID_THIS', 'TextDecoder');
       if (isArrayBuffer(input)) {
         input = lazyBuffer().from(input);
-      } else if (ArrayBuffer.isView(input)) {
+      } else if (isArrayBufferView(input)) {
         input = lazyBuffer().from(input.buffer, input.byteOffset,
                                   input.byteLength);
       } else {

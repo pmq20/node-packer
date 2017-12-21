@@ -2,7 +2,7 @@
 
 const errors = require('internal/errors');
 const binding = process.binding('util');
-const signals = process.binding('constants').os.signals;
+const { signals } = process.binding('constants').os;
 
 const { createPromise, promiseResolve, promiseReject } = binding;
 
@@ -150,8 +150,8 @@ function createClassWrapper(type) {
   }
   // Mask the wrapper function name and length values
   Object.defineProperties(fn, {
-    name: {value: type.name},
-    length: {value: type.length}
+    name: { value: type.name },
+    length: { value: type.length }
   });
   Object.setPrototypeOf(fn, type);
   fn.prototype = type.prototype;
@@ -252,6 +252,27 @@ function promisify(orig) {
 
 promisify.custom = kCustomPromisifiedSymbol;
 
+// The build-in Array#join is slower in v8 6.0
+function join(output, separator) {
+  var str = '';
+  if (output.length !== 0) {
+    for (var i = 0; i < output.length - 1; i++) {
+      // It is faster not to use a template string here
+      str += output[i];
+      str += separator;
+    }
+    str += output[i];
+  }
+  return str;
+}
+
+// About 1.5x faster than the two-arg version of Array#splice().
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    list[i] = list[k];
+  list.pop();
+}
+
 module.exports = {
   assertCrypto,
   cachedResult,
@@ -262,9 +283,11 @@ module.exports = {
   filterDuplicateStrings,
   getConstructorOf,
   isError,
+  join,
   normalizeEncoding,
   objectToString,
   promisify,
+  spliceOne,
 
   // Symbol used to customize promisify conversion
   customPromisifyArgs: kCustomPromisifyArgsSymbol,

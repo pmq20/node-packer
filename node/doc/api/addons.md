@@ -1,5 +1,7 @@
 # C++ Addons
 
+<!--introduced_in=v0.10.0-->
+
 Node.js Addons are dynamically-linked shared objects, written in C++, that
 can be loaded into Node.js using the [`require()`][require] function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
@@ -72,7 +74,7 @@ void init(Local<Object> exports) {
   NODE_SET_METHOD(exports, "hello", Method);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)
 
 }  // namespace demo
 ```
@@ -82,7 +84,7 @@ the pattern:
 
 ```cpp
 void Initialize(Local<Object> exports);
-NODE_MODULE(module_name, Initialize)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 ```
 
 There is no semi-colon after `NODE_MODULE` as it's not a function (see
@@ -328,7 +330,7 @@ void Init(Local<Object> exports) {
   NODE_SET_METHOD(exports, "add", Add);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -376,7 +378,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", RunCallback);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -432,7 +434,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateObject);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -491,7 +493,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateFunction);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -527,7 +529,7 @@ void InitAll(Local<Object> exports) {
   MyObject::Init(exports);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -711,7 +713,7 @@ void InitAll(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateObject);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -924,7 +926,7 @@ void InitAll(Local<Object> exports) {
   NODE_SET_METHOD(exports, "add", Add);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -1058,8 +1060,8 @@ has ended but before the JavaScript VM is terminated and Node.js shuts down.
 
 #### void AtExit(callback, args)
 
-* `callback`: `void (*)(void*)` - A pointer to the function to call at exit.
-* `args`: `void*` - A pointer to pass to the callback at exit.
+* `callback` {void (\*)(void\*)} A pointer to the function to call at exit.
+* `args` {void\*} A pointer to pass to the callback at exit.
 
 Registers exit hooks that run after the event loop has ended but before the VM
 is killed.
@@ -1093,7 +1095,7 @@ static void at_exit_cb1(void* arg) {
   Isolate* isolate = static_cast<Isolate*>(arg);
   HandleScope scope(isolate);
   Local<Object> obj = Object::New(isolate);
-  assert(!obj.IsEmpty()); // assert VM is still alive
+  assert(!obj.IsEmpty());  // assert VM is still alive
   assert(obj->IsObject());
   at_exit_cb1_called++;
 }
@@ -1115,7 +1117,7 @@ void init(Local<Object> exports) {
   AtExit(sanity_check);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)
 
 }  // namespace demo
 ```

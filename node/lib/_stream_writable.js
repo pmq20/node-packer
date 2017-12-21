@@ -31,7 +31,7 @@ Writable.WritableState = WritableState;
 const util = require('util');
 const internalUtil = require('internal/util');
 const Stream = require('stream');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const destroyImpl = require('internal/streams/destroy');
 
 util.inherits(Writable, Stream);
@@ -179,6 +179,8 @@ if (typeof Symbol === 'function' && Symbol.hasInstance) {
     value: function(object) {
       if (realHasInstance.call(this, object))
         return true;
+      if (this !== Writable)
+        return false;
 
       return object && object._writableState instanceof WritableState;
     }
@@ -500,6 +502,7 @@ function clearBuffer(stream, state) {
       corkReq.finish = onCorkedFinish.bind(undefined, corkReq, state);
       state.corkedRequestsFree = corkReq;
     }
+    state.bufferedRequestCount = 0;
   } else {
     // Slow case, write chunks one-by-one
     while (entry) {
@@ -510,6 +513,7 @@ function clearBuffer(stream, state) {
 
       doWrite(stream, state, false, len, chunk, encoding, cb);
       entry = entry.next;
+      state.bufferedRequestCount--;
       // if we didn't call the onwrite immediately, then
       // it means that we need to wait until it does.
       // also, that means that the chunk and cb are currently
@@ -523,7 +527,6 @@ function clearBuffer(stream, state) {
       state.lastBufferedRequest = null;
   }
 
-  state.bufferedRequestCount = 0;
   state.bufferedRequest = entry;
   state.bufferProcessing = false;
 }

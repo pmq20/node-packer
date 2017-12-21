@@ -4,6 +4,7 @@
     {
       "textRaw": "HTTPS",
       "name": "https",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>HTTPS is the HTTP protocol over TLS/SSL. In Node.js this is implemented as a\nseparate module.</p>\n",
@@ -32,6 +33,49 @@
           },
           "desc": "<p>This class is a subclass of <code>tls.Server</code> and emits events same as\n<a href=\"http.html#http_class_http_server\"><code>http.Server</code></a>. See <a href=\"http.html#http_class_http_server\"><code>http.Server</code></a> for more information.</p>\n",
           "methods": [
+            {
+              "textRaw": "server.close([callback])",
+              "type": "method",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`callback` {Function} ",
+                      "name": "callback",
+                      "type": "Function",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "callback",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>See <a href=\"http.html#http_server_close_callback\"><code>server.close()</code></a> from the HTTP module for details.</p>\n"
+            },
+            {
+              "textRaw": "server.listen()",
+              "type": "method",
+              "name": "listen",
+              "desc": "<p>Starts the HTTPS server listening for encrypted connections.\nThis method is identical to <a href=\"net.html#net_server_listen\"><code>server.listen()</code></a> from <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a>.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
             {
               "textRaw": "server.setTimeout([msecs][, callback])",
               "type": "method",
@@ -149,131 +193,7 @@
               ]
             }
           ],
-          "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">// curl -k https://localhost:8000/\nconst https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;test/fixtures/test_cert.pfx&#39;),\n  passphrase: &#39;sample&#39;\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n",
-          "methods": [
-            {
-              "textRaw": "server.close([callback])",
-              "type": "method",
-              "name": "close",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>See <a href=\"http.html#http_server_close_callback\"><code>http.close()</code></a> for details.</p>\n"
-            },
-            {
-              "textRaw": "server.listen(path[, callback])",
-              "type": "method",
-              "name": "listen",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`path` {string} ",
-                      "name": "path",
-                      "type": "string"
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "path"
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>See <a href=\"http.html#http_server_listen_port_hostname_backlog_callback\"><code>http.listen()</code></a> for details.</p>\n"
-            },
-            {
-              "textRaw": "server.listen([port][, host][, backlog][, callback])",
-              "type": "method",
-              "name": "listen",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`port` {number} ",
-                      "name": "port",
-                      "type": "number",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`hostname` {string} ",
-                      "name": "hostname",
-                      "type": "string",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`backlog` {number} ",
-                      "name": "backlog",
-                      "type": "number",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "port",
-                      "optional": true
-                    },
-                    {
-                      "name": "host",
-                      "optional": true
-                    },
-                    {
-                      "name": "backlog",
-                      "optional": true
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>See <a href=\"http.html#http_server_listen_port_hostname_backlog_callback\"><code>http.listen()</code></a> for details.</p>\n"
-            }
-          ]
+          "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">// curl -k https://localhost:8000/\nconst https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  key: fs.readFileSync(&#39;test/fixtures/keys/agent2-key.pem&#39;),\n  cert: fs.readFileSync(&#39;test/fixtures/keys/agent2-cert.pem&#39;)\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n<p>Or</p>\n<pre><code class=\"lang-js\">const https = require(&#39;https&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst options = {\n  pfx: fs.readFileSync(&#39;test/fixtures/test_cert.pfx&#39;),\n  passphrase: &#39;sample&#39;\n};\n\nhttps.createServer(options, (req, res) =&gt; {\n  res.writeHead(200);\n  res.end(&#39;hello world\\n&#39;);\n}).listen(8000);\n</code></pre>\n"
         },
         {
           "textRaw": "https.get(options[, callback])",

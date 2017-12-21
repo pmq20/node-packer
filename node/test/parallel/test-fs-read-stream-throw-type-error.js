@@ -1,10 +1,10 @@
 'use strict';
-const common = require('../common');
+require('../common');
+const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
 
-const example = path.join(common.fixturesDir, 'x.txt');
+const example = fixtures.path('x.txt');
 
 assert.doesNotThrow(function() {
   fs.createReadStream(example, undefined);
@@ -16,7 +16,7 @@ assert.doesNotThrow(function() {
   fs.createReadStream(example, 'utf8');
 });
 assert.doesNotThrow(function() {
-  fs.createReadStream(example, {encoding: 'utf8'});
+  fs.createReadStream(example, { encoding: 'utf8' });
 });
 
 const errMessage = /"options" must be a string or an object/;

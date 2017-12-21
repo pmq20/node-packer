@@ -27,39 +27,39 @@ const vm = require('vm');
 const Script = vm.Script;
 let script = new Script('"passed";');
 
-console.error('run in a new empty context');
+// Run in a new empty context
 let context = vm.createContext();
 let result = script.runInContext(context);
 assert.strictEqual('passed', result);
 
-console.error('create a new pre-populated context');
-context = vm.createContext({'foo': 'bar', 'thing': 'lala'});
+// Create a new pre-populated context
+context = vm.createContext({ 'foo': 'bar', 'thing': 'lala' });
 assert.strictEqual('bar', context.foo);
 assert.strictEqual('lala', context.thing);
 
-console.error('test updating context');
+// Test updating context
 script = new Script('foo = 3;');
 result = script.runInContext(context);
 assert.strictEqual(3, context.foo);
 assert.strictEqual('lala', context.thing);
 
 // Issue GH-227:
-assert.throws(function() {
+assert.throws(() => {
   vm.runInNewContext('', null, 'some.js');
 }, /^TypeError: sandbox must be an object$/);
 
 // Issue GH-1140:
-console.error('test runInContext signature');
+// Test runInContext signature
 let gh1140Exception;
 try {
   vm.runInContext('throw new Error()', context, 'expected-filename.js');
 } catch (e) {
   gh1140Exception = e;
   assert.ok(/expected-filename/.test(e.stack),
-            'expected appearance of filename in Error stack');
+            `expected appearance of filename in Error stack: ${e.stack}`);
 }
-assert.ok(gh1140Exception,
-          'expected exception from runInContext signature test');
+// This is outside of catch block to confirm catch block ran.
+assert.strictEqual(gh1140Exception.toString(), 'Error');
 
 // GH-558, non-context argument segfaults / raises assertion
 const nonContextualSandboxErrorMsg =
@@ -77,7 +77,7 @@ const contextifiedSandboxErrorMsg =
 });
 
 // Issue GH-693:
-console.error('test RegExp as argument to assert.throws');
+// Test RegExp as argument to assert.throws
 script = vm.createScript('const assert = require(\'assert\'); assert.throws(' +
                          'function() { throw "hello world"; }, /hello/);',
                          'some.js');
@@ -90,17 +90,22 @@ Object.defineProperty(ctx, 'b', { configurable: false });
 ctx = vm.createContext(ctx);
 assert.strictEqual(script.runInContext(ctx), false);
 
-// Error on the first line of a module should
-// have the correct line and column number
-assert.throws(function() {
-  vm.runInContext('throw new Error()', context, {
-    filename: 'expected-filename.js',
-    lineOffset: 32,
-    columnOffset: 123
-  });
-}, function(err) {
-  return /expected-filename\.js:33:130/.test(err.stack);
-}, 'Expected appearance of proper offset in Error stack');
+// Error on the first line of a module should have the correct line and column
+// number.
+{
+  let stack = null;
+  assert.throws(() => {
+    vm.runInContext(' throw new Error()', context, {
+      filename: 'expected-filename.js',
+      lineOffset: 32,
+      columnOffset: 123
+    });
+  }, (err) => {
+    stack = err.stack;
+    return /^ \^/m.test(stack) &&
+           /expected-filename\.js:33:131/.test(stack);
+  }, `stack not formatted as expected: ${stack}`);
+}
 
 // https://github.com/nodejs/node/issues/6158
 ctx = new Proxy({}, {});

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>File System | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>File System | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs active" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="fs.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="fs.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/fs.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/fs.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/fs.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/fs.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/fs.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/fs.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/fs.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/fs.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -94,6 +116,7 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_2"><a href="#fs_file_system">File System</a></span><ul>
+<li><span class="stability_undefined"><a href="#fs_threadpool_usage">Threadpool Usage</a></span></li>
 <li><span class="stability_1"><a href="#fs_whatwg_url_object_support">WHATWG URL object support</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_buffer_api">Buffer API</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_class_fs_fswatcher">Class: fs.FSWatcher</a></span><ul>
@@ -131,6 +154,8 @@
 <li><span class="stability_undefined"><a href="#fs_fs_close_fd_callback">fs.close(fd, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_closesync_fd">fs.closeSync(fd)</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_constants">fs.constants</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_fs_copyfile_src_dest_flags_callback">fs.copyFile(src, dest[, flags], callback)</a></span></li>
+<li><span class="stability_undefined"><a href="#fs_fs_copyfilesync_src_dest_flags">fs.copyFileSync(src, dest[, flags])</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_createreadstream_path_options">fs.createReadStream(path[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#fs_fs_createwritestream_path_options">fs.createWriteStream(path[, options])</a></span></li>
 <li><span class="stability_0"><a href="#fs_fs_exists_path_callback">fs.exists(path, callback)</a></span></li>
@@ -219,7 +244,8 @@
 
       <div id="apicontent">
         <h1>File System<span><a class="mark" href="#fs_file_system" id="fs_file_system">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!--name=fs-->
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><!--name=fs-->
 <p>File I/O is provided by simple wrappers around standard POSIX functions.  To
 use this module do <code>require(&#39;fs&#39;)</code>. All the methods have asynchronous and
 synchronous forms.</p>
@@ -294,10 +320,19 @@ This behavior can be observed when using a drive path without a backslash. For
 example <code>fs.readdirSync(&#39;c:\\&#39;)</code> can potentially return a different result than
 <code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see
 <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths">this MSDN page</a>.</p>
+<p><em>Note:</em> On Windows, opening an existing hidden file using the <code>w</code> flag (either
+through <code>fs.open</code> or <code>fs.writeFile</code>) will fail with <code>EPERM</code>. Existing hidden
+files can be opened for writing with the <code>r+</code> flag. A call to <code>fs.ftruncate</code> can
+be used to reset the file contents.</p>
+<h2>Threadpool Usage<span><a class="mark" href="#fs_threadpool_usage" id="fs_threadpool_usage">#</a></span></h2>
+<p>Note that all file system APIs except <code>fs.FSWatcher()</code> and those that are
+explicitly synchronous use libuv&#39;s threadpool, which can have surprising and
+negative performance implications for some applications, see the
+<a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <h2>WHATWG URL object support<span><a class="mark" href="#fs_whatwg_url_object_support" id="fs_whatwg_url_object_support">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
-</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>For most <code>fs</code> module functions, the <code>path</code> or <code>filename</code> argument may be passed
+</div><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>For most <code>fs</code> module functions, the <code>path</code> or <code>filename</code> argument may be passed
 as a WHATWG <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> object. Only <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> objects using the <code>file:</code> protocol
 are supported.</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
@@ -384,8 +419,11 @@ non-UTF-8 encoded Buffers to <code>fs</code> functions will not work as expected
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div><ul>
-<li><code>eventType</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of fs change</li>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The filename that changed (if relevant/available)</li>
+<li><code>eventType</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of fs change</li>
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The filename that changed (if relevant/available)</li>
 </ul>
 <p>Emitted when something changes in a watched directory or file.
 See more details in <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a>.</p>
@@ -405,7 +443,8 @@ fs.watch(&#39;./tmp&#39;, { encoding: &#39;buffer&#39; }, (eventType, filename) 
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div><ul>
-<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>error</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
 <p>Emitted when an error occurs.</p>
 <h3>watcher.close()<span><a class="mark" href="#fs_watcher_close" id="fs_watcher_close">#</a></span></h3>
@@ -419,13 +458,13 @@ fs.watch(&#39;./tmp&#39;, { encoding: &#39;buffer&#39; }, (eventType, filename) 
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close" id="fs_event_close">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
-</div><p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed
-using the <code>fs.close()</code> method.</p>
+</div><p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed.</p>
 <h3>Event: &#39;open&#39;<span><a class="mark" href="#fs_event_open" id="fs_event_open">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Integer file descriptor used by the ReadStream.</li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Integer file descriptor used by the ReadStream.</li>
 </ul>
 <p>Emitted when the ReadStream&#39;s file is opened.</p>
 <h3>readStream.bytesRead<span><a class="mark" href="#fs_readstream_bytesread" id="fs_readstream_bytesread">#</a></span></h3>
@@ -495,13 +534,13 @@ value, will not be reflected in the corresponding alternate representation.</p>
 <p>The times in the stat object have the following semantics:</p>
 <ul>
 <li><code>atime</code> &quot;Access Time&quot; - Time when file data last accessed.  Changed
-by the <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>, <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>, and <a href="http://man7.org/linux/man-pages/man2/read.2.html">read(2)</a> system calls.</li>
+by the  <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>, and  <a href="http://man7.org/linux/man-pages/man2/read.2.html">read(2)</a> system calls.</li>
 <li><code>mtime</code> &quot;Modified Time&quot; - Time when file data last modified.
-Changed by the <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>, <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>, and <a href="http://man7.org/linux/man-pages/man2/write.2.html">write(2)</a> system calls.</li>
+Changed by the  <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>, and  <a href="http://man7.org/linux/man-pages/man2/write.2.html">write(2)</a> system calls.</li>
 <li><code>ctime</code> &quot;Change Time&quot; - Time when file status was last changed
-(inode data modification).  Changed by the <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>, <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>,
-link(2), <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>, <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>, <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>, <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>,
-read(2), and <a href="http://man7.org/linux/man-pages/man2/write.2.html">write(2)</a> system calls.</li>
+(inode data modification).  Changed by the  <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>,
+ <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/mknod.2.html">mknod(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>,  <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a>,
+ <a href="http://man7.org/linux/man-pages/man2/read.2.html">read(2)</a>, and  <a href="http://man7.org/linux/man-pages/man2/write.2.html">write(2)</a> system calls.</li>
 <li><code>birthtime</code> &quot;Birth Time&quot; -  Time of file creation. Set once when the
 file is created.  On filesystems where birthtime is not available,
 this field may instead hold either the <code>ctime</code> or
@@ -509,7 +548,7 @@ this field may instead hold either the <code>ctime</code> or
 value may be greater than <code>atime</code> or <code>mtime</code> in this case. On Darwin
 and other FreeBSD variants, also set if the <code>atime</code> is explicitly
 set to an earlier value than the current <code>birthtime</code> using the
-utimes(2) system call.</li>
+ <a href="http://man7.org/linux/man-pages/man2/utimes.2.html">utimes(2)</a> system call.</li>
 </ul>
 <p>Prior to Node v0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows
 systems.  Note that as of v0.12, <code>ctime</code> is not &quot;creation time&quot;, and
@@ -521,13 +560,13 @@ on Unix systems, it never was.</p>
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#fs_event_close_1" id="fs_event_close_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
-</div><p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed
-using the <code>fs.close()</code> method.</p>
+</div><p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed.</p>
 <h3>Event: &#39;open&#39;<span><a class="mark" href="#fs_event_open_1" id="fs_event_open_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Integer file descriptor used by the WriteStream.</li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> Integer file descriptor used by the WriteStream.</li>
 </ul>
 <p>Emitted when the WriteStream&#39;s file is opened.</p>
 <h3>writeStream.bytesWritten<span><a class="mark" href="#fs_writestream_byteswritten" id="fs_writestream_byteswritten">#</a></span></h3>
@@ -559,9 +598,18 @@ argument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed 
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>fs.constants.F_OK</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>fs.constants.F_OK</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Tests a user&#39;s permissions for the file or directory specified by <code>path</code>.
 The <code>mode</code> argument is an optional integer that specifies the accessibility
@@ -669,8 +717,12 @@ process.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>fs.constants.F_OK</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>fs.constants.F_OK</code></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a>. This throws if any accessibility
 checks fail, and does nothing otherwise.</p>
@@ -694,15 +746,31 @@ checks fail, and does nothing otherwise.</p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;a&#39;</code></li>
+<li><code>file</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> filename or file descriptor</li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;a&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Asynchronously append data to a file, creating the file if it does not yet exist.
 <code>data</code> can be a string or a buffer.</p>
@@ -735,12 +803,23 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;a&#39;</code></li>
+<li><code>file</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> filename or file descriptor</li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;a&#39;</code></li>
 </ul>
 </li>
 </ul>
@@ -762,11 +841,20 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.chmodSync(path, mode)<span><a class="mark" href="#fs_fs_chmodsync_path_mode" id="fs_fs_chmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
@@ -782,10 +870,14 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/chmod.2.html">chmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.chown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -803,12 +895,22 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.chownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_chownsync_path_uid_gid" id="fs_fs_chownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
@@ -824,11 +926,16 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/chown.2.html">chown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.close(fd, callback)<span><a class="mark" href="#fs_fs_close_fd_callback" id="fs_fs_close_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -843,22 +950,108 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/close.2.html">close(2)</a>.  No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/close.2.html">close(2)</a>.  No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.closeSync(fd)<span><a class="mark" href="#fs_fs_closesync_fd" id="fs_fs_closesync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/close.2.html">close(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/close.2.html">close(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.constants<span><a class="mark" href="#fs_fs_constants" id="fs_fs_constants">#</a></span></h2>
 <p>Returns an object containing commonly used constants for file system
 operations. The specific constants currently defined are described in
 <a href="#fs_fs_constants_1">FS Constants</a>.</p>
+<h2>fs.copyFile(src, dest[, flags], callback)<span><a class="mark" href="#fs_fs_copyfile_src_dest_flags_callback" id="fs_fs_copyfile_src_dest_flags_callback">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>src</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> source filename to copy</li>
+<li><code>dest</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> destination filename of the copy operation</li>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> modifiers for copy operation. <strong>Default:</strong> <code>0</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it
+already exists. No arguments other than a possible exception are given to the
+callback function. Node.js makes no guarantees about the atomicity of the copy
+operation. If an error occurs after the destination file has been opened for
+writing, Node.js will attempt to remove the destination.</p>
+<p><code>flags</code> is an optional integer that specifies the behavior
+of the copy operation. The only supported flag is <code>fs.constants.COPYFILE_EXCL</code>,
+which causes the copy operation to fail if <code>dest</code> already exists.</p>
+<p>Example:</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+
+// destination.txt will be created or overwritten by default.
+fs.copyFile(&#39;source.txt&#39;, &#39;destination.txt&#39;, (err) =&gt; {
+  if (err) throw err;
+  console.log(&#39;source.txt was copied to destination.txt&#39;);
+});
+</code></pre>
+<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the
+following example.</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+const { COPYFILE_EXCL } = fs.constants;
+
+// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
+fs.copyFile(&#39;source.txt&#39;, &#39;destination.txt&#39;, COPYFILE_EXCL, callback);
+</code></pre>
+<h2>fs.copyFileSync(src, dest[, flags])<span><a class="mark" href="#fs_fs_copyfilesync_src_dest_flags" id="fs_fs_copyfilesync_src_dest_flags">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>src</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> source filename to copy</li>
+<li><code>dest</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> destination filename of the copy operation</li>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> modifiers for copy operation. <strong>Default:</strong> <code>0</code></li>
+</ul>
+<p>Synchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it
+already exists. Returns <code>undefined</code>. Node.js makes no guarantees about the
+atomicity of the copy operation. If an error occurs after the destination file
+has been opened for writing, Node.js will attempt to remove the destination.</p>
+<p><code>flags</code> is an optional integer that specifies the behavior
+of the copy operation. The only supported flag is <code>fs.constants.COPYFILE_EXCL</code>,
+which causes the copy operation to fail if <code>dest</code> already exists.</p>
+<p>Example:</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+
+// destination.txt will be created or overwritten by default.
+fs.copyFileSync(&#39;source.txt&#39;, &#39;destination.txt&#39;);
+console.log(&#39;source.txt was copied to destination.txt&#39;);
+</code></pre>
+<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the
+following example.</p>
+<pre><code class="lang-js">const fs = require(&#39;fs&#39;);
+const { COPYFILE_EXCL } = fs.constants;
+
+// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
+fs.copyFileSync(&#39;source.txt&#39;, &#39;destination.txt&#39;, COPYFILE_EXCL);
+</code></pre>
 <h2>fs.createReadStream(path[, options])<span><a class="mark" href="#fs_fs_createreadstream_path_options" id="fs_fs_createreadstream_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -879,15 +1072,29 @@ operations. The specific constants currently defined are described in
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>autoClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
-<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>autoClose</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>start</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>end</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>highWaterMark</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -901,7 +1108,8 @@ default value of 64 kb for the same parameter.</p>
   encoding: null,
   fd: null,
   mode: 0o666,
-  autoClose: true
+  autoClose: true,
+  highWaterMark: 64 * 1024
 };
 </code></pre>
 <p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from
@@ -947,14 +1155,25 @@ file was created.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>defaultEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>autoClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
-<li><code>start</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>autoClose</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>start</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -962,7 +1181,7 @@ file was created.</p>
 <p><code>options</code> is an object or string with the following defaults:</p>
 <pre><code class="lang-js">const defaults = {
   flags: &#39;w&#39;,
-  defaultEncoding: &#39;utf8&#39;,
+  encoding: &#39;utf8&#39;,
   fd: null,
   mode: 0o666,
   autoClose: true
@@ -971,7 +1190,7 @@ file was created.</p>
 <p><code>options</code> may also include a <code>start</code> option to allow writing data at
 some position past the beginning of the file.  Modifying a file rather
 than replacing it may require a <code>flags</code> mode of <code>r+</code> rather than the
-default mode <code>w</code>. The <code>defaultEncoding</code> can be any one of those accepted by
+default mode <code>w</code>. The <code>encoding</code> can be any one of those accepted by
 <a href="buffer.html#buffer_buffer"><code>Buffer</code></a>.</p>
 <p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>
 the file descriptor will be closed automatically. If <code>autoClose</code> is false,
@@ -999,9 +1218,17 @@ file descriptor leak.</p>
 </td></tr>
 </table>
 </details>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a> or <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a> instead.</pre><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#fs_fs_stat_path_callback"><code>fs.stat()</code></a> or <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a> instead.</div><ul>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>exists</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;Boolean&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Test whether or not the given path exists by checking with the file system.
 Then call the <code>callback</code> argument with either true or false.  Example:</p>
@@ -1091,7 +1318,10 @@ process.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.
 Returns <code>true</code> if the file exists, <code>false</code> otherwise.</p>
@@ -1113,20 +1343,29 @@ a callback.)</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html">fchmod(2)</a>. No arguments other than a possible exception
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html">fchmod(2)</a>. No arguments other than a possible exception
 are given to the completion callback.</p>
 <h2>fs.fchmodSync(fd, mode)<span><a class="mark" href="#fs_fs_fchmodsync_fd_mode" id="fs_fs_fchmodsync_fd_mode">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.4.7</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html">fchmod(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html">fchmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fchown(fd, uid, gid, callback)<span><a class="mark" href="#fs_fs_fchown_fd_uid_gid_callback" id="fs_fs_fchown_fd_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1141,22 +1380,33 @@ are given to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fchown.2.html">fchown(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/fchown.2.html">fchown(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.fchownSync(fd, uid, gid)<span><a class="mark" href="#fs_fs_fchownsync_fd_uid_gid" id="fs_fs_fchownsync_fd_uid_gid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.4.7</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchown.2.html">fchown(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/fchown.2.html">fchown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fdatasync(fd, callback)<span><a class="mark" href="#fs_fs_fdatasync_fd_callback" id="fs_fs_fdatasync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1171,18 +1421,25 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html">fdatasync(2)</a>. No arguments other than a possible exception are
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html">fdatasync(2)</a>. No arguments other than a possible exception are
 given to the completion callback.</p>
 <h2>fs.fdatasyncSync(fd)<span><a class="mark" href="#fs_fs_fdatasyncsync_fd" id="fs_fs_fdatasyncsync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.96</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html">fdatasync(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html">fdatasync(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.fstat(fd, callback)<span><a class="mark" href="#fs_fs_fstat_fd_callback" id="fs_fs_fstat_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1197,19 +1454,27 @@ given to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>stats</code> <span class="type">&lt;fs.Stats&gt;</span></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fstat.2.html">fstat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/fstat.2.html">fstat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
 <code>stats</code> is an <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object. <code>fstat()</code> is identical to <a href="fs.html#fs_fs_stat_path_callback"><code>stat()</code></a>,
 except that the file to be stat-ed is specified by the file descriptor <code>fd</code>.</p>
 <h2>fs.fstatSync(fd)<span><a class="mark" href="#fs_fs_fstatsync_fd" id="fs_fs_fstatsync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.95</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fstat.2.html">fstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/fstat.2.html">fstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.fsync(fd, callback)<span><a class="mark" href="#fs_fs_fsync_fd_callback" id="fs_fs_fsync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1224,18 +1489,25 @@ except that the file to be stat-ed is specified by the file descriptor <code>fd<
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fsync.2.html">fsync(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/fsync.2.html">fsync(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.fsyncSync(fd)<span><a class="mark" href="#fs_fs_fsyncsync_fd" id="fs_fs_fsyncsync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.96</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fsync.2.html">fsync(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/fsync.2.html">fsync(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.ftruncate(fd[, len], callback)<span><a class="mark" href="#fs_fs_ftruncate_fd_len_callback" id="fs_fs_ftruncate_fd_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1250,11 +1522,18 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>len</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html">ftruncate(2)</a>. No arguments other than a possible exception are
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html">ftruncate(2)</a>. No arguments other than a possible exception are
 given to the completion callback.</p>
 <p>If the file referred to by the file descriptor was larger than <code>len</code> bytes, only
 the first <code>len</code> bytes will be retained in the file.</p>
@@ -1274,7 +1553,7 @@ fs.ftruncate(fd, 4, (err) =&gt; {
 </code></pre>
 <p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the
 extended part is filled with null bytes (&#39;\0&#39;). For example,</p>
-<pre><code class="lang-js">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf-8&#39;));
+<pre><code class="lang-js">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));
 // Prints: Node.js
 
 // get the file descriptor of the file to be truncated
@@ -1293,10 +1572,12 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.8.6</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>len</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html">ftruncate(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html">ftruncate(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.futimes(fd, atime, mtime, callback)<span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1314,13 +1595,25 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>atime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" class="type">&lt;Date&gt;</a></li>
+<li><code>mtime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" class="type">&lt;Date&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Change the file timestamps of a file referenced by the supplied file
-descriptor.</p>
+</li>
+</ul>
+<p>Change the file system timestamps of the object referenced by the supplied file
+descriptor. See <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>.</p>
 <p><em>Note</em>: This function does not work on AIX versions before 7.1, it will return
 the error <code>UV_ENOSYS</code>.</p>
 <h2>fs.futimesSync(fd, atime, mtime)<span><a class="mark" href="#fs_fs_futimessync_fd_atime_mtime" id="fs_fs_futimessync_fd_atime_mtime">#</a></span></h2>
@@ -1337,9 +1630,12 @@ the error <code>UV_ENOSYS</code>.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>atime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mtime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_futimes_fd_atime_mtime_callback"><code>fs.futimes()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.lchmod(path, mode, callback)<span><a class="mark" href="#fs_fs_lchmod_path_mode_callback" id="fs_fs_lchmod_path_mode_callback">#</a></span></h2>
@@ -1356,21 +1652,32 @@ the error <code>UV_ENOSYS</code>.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. No arguments other than a possible exception
+</li>
+</ul>
+<p>Asynchronous  <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. No arguments other than a possible exception
 are given to the completion callback.</p>
 <p>Only available on macOS.</p>
 <h2>fs.lchmodSync(path, mode)<span><a class="mark" href="#fs_fs_lchmodsync_path_mode" id="fs_fs_lchmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <span>Deprecated since: v0.4.7</span>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&sektion=2">lchmod(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.lchown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_lchown_path_uid_gid_callback" id="fs_fs_lchown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1385,22 +1692,35 @@ are given to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.lchownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_lchownsync_path_uid_gid" id="fs_fs_lchownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
 <span>Deprecated since: v0.4.7</span>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>uid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>gid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/lchown.2.html">lchown(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.link(existingPath, newPath, callback)<span><a class="mark" href="#fs_fs_link_existingpath_newpath_callback" id="fs_fs_link_existingpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1418,11 +1738,22 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>existingPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. No arguments other than a possible exception are given to
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. No arguments other than a possible exception are given to
 the completion callback.</p>
 <h2>fs.linkSync(existingPath, newPath)<span><a class="mark" href="#fs_fs_linksync_existingpath_newpath" id="fs_fs_linksync_existingpath_newpath">#</a></span></h2>
 <div class="api_metadata">
@@ -1438,10 +1769,16 @@ the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>existingPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>existingPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/link.2.html">link(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.lstat(path, callback)<span><a class="mark" href="#fs_fs_lstat_path_callback" id="fs_fs_lstat_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1459,10 +1796,19 @@ the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>stats</code> <span class="type">&lt;fs.Stats&gt;</span></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
 <code>stats</code> is a <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object. <code>lstat()</code> is identical to <code>stat()</code>,
 except that if <code>path</code> is a symbolic link, then the link itself is stat-ed,
 not the file that it refers to.</p>
@@ -1480,9 +1826,12 @@ not the file that it refers to.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/lstat.2.html">lstat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.mkdir(path[, mode], callback)<span><a class="mark" href="#fs_fs_mkdir_path_mode_callback" id="fs_fs_mkdir_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1500,11 +1849,20 @@ not the file that it refers to.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o777</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o777</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. No arguments other than a possible exception are given
 to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p>
 <h2>fs.mkdirSync(path[, mode])<span><a class="mark" href="#fs_fs_mkdirsync_path_mode" id="fs_fs_mkdirsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
@@ -1520,10 +1878,14 @@ to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o777</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o777</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html">mkdir(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.mkdtemp(prefix[, options], callback)<span><a class="mark" href="#fs_fs_mkdtemp_prefix_options_callback" id="fs_fs_mkdtemp_prefix_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1541,12 +1903,23 @@ to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p
 </table>
 </details>
 </div><ul>
-<li><code>prefix</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>prefix</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>folder</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Creates a unique temporary directory.</p>
 <p>Generates six random characters to be appended behind a required
@@ -1556,10 +1929,10 @@ parameter.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use.</p>
 <p>Example:</p>
-<pre><code class="lang-js">fs.mkdtemp(&#39;/tmp/foo-&#39;, (err, folder) =&gt; {
+<pre><code class="lang-js">fs.mkdtemp(path.join(os.tmpdir(), &#39;foo-&#39;), (err, folder) =&gt; {
   if (err) throw err;
   console.log(folder);
-  // Prints: /tmp/foo-itXde2
+  // Prints: /tmp/foo-itXde2 or C:\Users\...\AppData\Local\Temp\foo-itXde2
 });
 </code></pre>
 <p><em>Note</em>: The <code>fs.mkdtemp()</code> method will append the six randomly selected
@@ -1568,7 +1941,7 @@ characters directly to the <code>prefix</code> string. For instance, given a dir
 the <code>prefix</code> <em>must</em> end with a trailing platform-specific path separator
 (<code>require(&#39;path&#39;).sep</code>).</p>
 <pre><code class="lang-js">// The parent directory for the new temporary directory
-const tmpDir = &#39;/tmp&#39;;
+const tmpDir = os.tmpdir();
 
 // This method is *INCORRECT*:
 fs.mkdtemp(tmpDir, (err, folder) =&gt; {
@@ -1594,9 +1967,13 @@ fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div><ul>
-<li><code>prefix</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>prefix</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
 </ul>
@@ -1618,12 +1995,25 @@ object with an <code>encoding</code> property specifying the character encoding 
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Asynchronous file open. See <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>. <code>flags</code> can be:</p>
+</li>
+</ul>
+<p>Asynchronous file open. See  <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>. <code>flags</code> can be:</p>
 <ul>
 <li><p><code>&#39;r&#39;</code> - Open file for reading.
 An exception occurs if the file does not exist.</p>
@@ -1661,13 +2051,13 @@ The file is created if it does not exist.</p>
 </li>
 </ul>
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was
-created. It defaults to <code>0o666</code>, readable and writable.</p>
+created. It defaults to <code>0o666</code> (readable and writable).</p>
 <p>The callback gets two arguments <code>(err, fd)</code>.</p>
-<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>) ensures that <code>path</code> is newly
+<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in  <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>) ensures that <code>path</code> is newly
 created. On POSIX systems, <code>path</code> is considered to exist even if it is a symlink
 to a non-existent file. The exclusive flag may or may not work with network file
 systems.</p>
-<p><code>flags</code> can also be a number as documented by <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>; commonly used constants
+<p><code>flags</code> can also be a number as documented by  <a href="http://man7.org/linux/man-pages/man2/open.2.html">open(2)</a>; commonly used constants
 are available from <code>fs.constants</code>.  On Windows, flags are translated to
 their equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,
 or <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by CreateFileW.</p>
@@ -1708,9 +2098,15 @@ a colon, Node.js will open a file system stream, as described by
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>flags</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>. Returns an integer representing the file
 descriptor.</p>
@@ -1731,12 +2127,27 @@ descriptor.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>offset</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>length</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>bytesRead</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Read data from the file specified by <code>fd</code>.</p>
 <p><code>buffer</code> is the buffer that the data will be written to.</p>
@@ -1769,14 +2180,28 @@ a Promise for an object with <code>bytesRead</code> and <code>buffer</code> prop
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>files</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer[]&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man3/readdir.3.html">readdir(3)</a>.  Reads the contents of a directory.
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man3/readdir.3.html">readdir(3)</a>.  Reads the contents of a directory.
 The callback gets two arguments <code>(err, files)</code> where <code>files</code> is an array of
 the names of the files in the directory excluding <code>&#39;.&#39;</code> and <code>&#39;..&#39;</code>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
@@ -1797,13 +2222,19 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man3/readdir.3.html">readdir(3)</a>. Returns an array of filenames excluding <code>&#39;.&#39;</code> and
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man3/readdir.3.html">readdir(3)</a>. Returns an array of filenames excluding <code>&#39;.&#39;</code> and
 <code>&#39;..&#39;</code>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use for
@@ -1832,13 +2263,30 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>null</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;r&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>null</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;r&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Asynchronously reads the entire contents of a file. Example:</p>
 <pre><code class="lang-js">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {
@@ -1856,7 +2304,7 @@ contents of the file.</p>
 <code>fs.readFile()</code> and <a href="#fs_fs_readfilesync_path_options"><code>fs.readFileSync()</code></a> is platform-specific. On macOS,
 Linux, and Windows, an error will be returned. On FreeBSD, a representation
 of the directory&#39;s contents will be returned.</p>
-<pre><code class="lang-js">// macOS, Linux and Windows
+<pre><code class="lang-js">// macOS, Linux, and Windows
 fs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {
   // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]
 });
@@ -1869,6 +2317,10 @@ fs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {
 <p>Any specified file descriptor has to support reading.</p>
 <p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed
 automatically.</p>
+<p><em>Note</em>: <code>fs.readFile()</code> reads the entire file in a single threadpool request.
+To minimize threadpool task length variation, prefer the partitioned APIs
+<code>fs.read()</code> and <code>fs.createReadStream()</code> when reading files as part of
+fulfilling a client request.</p>
 <h2>fs.readFileSync(path[, options])<span><a class="mark" href="#fs_fs_readfilesync_path_options" id="fs_fs_readfilesync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1886,10 +2338,19 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>null</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;r&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>null</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;r&#39;</code></li>
 </ul>
 </li>
 </ul>
@@ -1898,7 +2359,7 @@ automatically.</p>
 string. Otherwise it returns a buffer.</p>
 <p><em>Note</em>: Similar to <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>, when the path is a directory, the
 behavior of <code>fs.readFileSync()</code> is platform-specific.</p>
-<pre><code class="lang-js">// macOS, Linux and Windows
+<pre><code class="lang-js">// macOS, Linux, and Windows
 fs.readFileSync(&#39;&lt;directory&gt;&#39;);
 // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]
 
@@ -1922,14 +2383,28 @@ fs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>linkString</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/readlink.2.html">readlink(2)</a>. The callback gets two arguments <code>(err,
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/readlink.2.html">readlink(2)</a>. The callback gets two arguments <code>(err,
 linkString)</code>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use for
@@ -1949,13 +2424,19 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/readlink.2.html">readlink(2)</a>. Returns the symbolic link&#39;s string value.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/readlink.2.html">readlink(2)</a>. Returns the symbolic link&#39;s string value.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use for
 the link path passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,
@@ -1974,11 +2455,18 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>buffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>offset</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>length</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>. Returns the number of <code>bytesRead</code>.</p>
 <h2>fs.realpath(path[, options], callback)<span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
@@ -2007,14 +2495,28 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>resolvedPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man3/realpath.3.html">realpath(3)</a>. The <code>callback</code> gets two arguments <code>(err,
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man3/realpath.3.html">realpath(3)</a>. The <code>callback</code> gets two arguments <code>(err,
 resolvedPath)</code>. May use <code>process.cwd</code> to resolve relative paths.</p>
 <p>Only paths that can be converted to UTF8 strings are supported.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
@@ -2046,13 +2548,19 @@ system dependent name for that object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man3/realpath.3.html">realpath(3)</a>. Returns the resolved path.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man3/realpath.3.html">realpath(3)</a>. Returns the resolved path.</p>
 <p>Only paths that can be converted to UTF8 strings are supported.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use for
@@ -2077,11 +2585,22 @@ system dependent name for that object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>oldPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.renameSync(oldPath, newPath)<span><a class="mark" href="#fs_fs_renamesync_oldpath_newpath" id="fs_fs_renamesync_oldpath_newpath">#</a></span></h2>
 <div class="api_metadata">
@@ -2097,10 +2616,16 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>oldPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>oldPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>newPath</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/rename.2.html">rename(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.rmdir(path, callback)<span><a class="mark" href="#fs_fs_rmdir_path_callback" id="fs_fs_rmdir_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2118,10 +2643,18 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <p><em>Note</em>: Using <code>fs.rmdir()</code> on a file (not a directory) results in an <code>ENOENT</code>
 error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
@@ -2139,9 +2672,12 @@ error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html">rmdir(2)</a>. Returns <code>undefined</code>.</p>
 <p><em>Note</em>: Using <code>fs.rmdirSync()</code> on a file (not a directory) results in an <code>ENOENT</code>
 error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 <h2>fs.stat(path, callback)<span><a class="mark" href="#fs_fs_stat_path_callback" id="fs_fs_stat_path_callback">#</a></span></h2>
@@ -2161,10 +2697,19 @@ error on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>stats</code> <span class="type">&lt;fs.Stats&gt;</span></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. The callback gets two arguments <code>(err, stats)</code> where
 <code>stats</code> is an <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object.</p>
 <p>In case of an error, the <code>err.code</code> will be one of <a href="errors.html#errors_common_system_errors">Common System Errors</a>.</p>
 <p>Using <code>fs.stat()</code> to check for the existence of a file before calling
@@ -2187,9 +2732,12 @@ is recommended.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/stat.2.html">stat(2)</a>. Returns an instance of <a href="#fs_class_fs_stats"><code>fs.Stats</code></a>.</p>
 <h2>fs.symlink(target, path[, type], callback)<span><a class="mark" href="#fs_fs_symlink_target_path_type_callback" id="fs_fs_symlink_target_path_type_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2204,12 +2752,24 @@ is recommended.</p>
 </table>
 </details>
 </div><ul>
-<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>target</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. No arguments other than a possible exception are given
 to the completion callback. The <code>type</code> argument can be set to <code>&#39;dir&#39;</code>,
 <code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code> (default is <code>&#39;file&#39;</code>) and is only available on
 Windows (ignored on other platforms). Note that Windows junction points require
@@ -2233,11 +2793,18 @@ argument will automatically be normalized to absolute path.</p>
 </table>
 </details>
 </div><ul>
-<li><code>target</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
+<li><code>target</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/symlink.2.html">symlink(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.truncate(path[, len], callback)<span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2252,21 +2819,32 @@ argument will automatically be normalized to absolute path.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>len</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/truncate.2.html">truncate(2)</a>. No arguments other than a possible exception are
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/truncate.2.html">truncate(2)</a>. No arguments other than a possible exception are
 given to the completion callback. A file descriptor can also be passed as the
 first argument. In this case, <code>fs.ftruncate()</code> is called.</p>
 <h2>fs.truncateSync(path[, len])<span><a class="mark" href="#fs_fs_truncatesync_path_len" id="fs_fs_truncatesync_path_len">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.6</span>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>len</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/truncate.2.html">truncate(2)</a>. Returns <code>undefined</code>. A file descriptor can also be
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/truncate.2.html">truncate(2)</a>. Returns <code>undefined</code>. A file descriptor can also be
 passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is called.</p>
 <h2>fs.unlink(path, callback)<span><a class="mark" href="#fs_fs_unlink_path_callback" id="fs_fs_unlink_path_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -2285,10 +2863,18 @@ passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is c
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. No arguments other than a possible exception are given
+</li>
+</ul>
+<p>Asynchronous  <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. No arguments other than a possible exception are given
 to the completion callback.</p>
 <h2>fs.unlinkSync(path)<span><a class="mark" href="#fs_fs_unlinksync_path" id="fs_fs_unlinksync_path">#</a></span></h2>
 <div class="api_metadata">
@@ -2304,15 +2890,29 @@ to the completion callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. Returns <code>undefined</code>.</p>
+<p>Synchronous  <a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink(2)</a>. Returns <code>undefined</code>.</p>
 <h2>fs.unwatchFile(filename[, listener])<span><a class="mark" href="#fs_fs_unwatchfile_filename_listener" id="fs_fs_unwatchfile_filename_listener">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
 </div><ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> <strong>Default:</strong> <code>undefined</code></li>
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+<li><code>listener</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> <strong>Default:</strong> <code>undefined</code><ul>
+<li><code>eventType</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that
 particular listener is removed. Otherwise, <em>all</em> listeners are removed,
@@ -2327,6 +2927,9 @@ and <code>fs.unwatchFile()</code> when possible.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p><code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code> are no longer valid time specifiers.</p>
+</td></tr>
 <tr><td>v7.6.0</td>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
 </td></tr>
@@ -2342,26 +2945,41 @@ and <code>fs.unwatchFile()</code> when possible.</p>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>atime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" class="type">&lt;Date&gt;</a></li>
+<li><code>mtime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" class="type">&lt;Date&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
 </ul>
-<p>Change file timestamps of the file referenced by the supplied path.</p>
-<p><em>Note</em>: The arguments <code>atime</code> and <code>mtime</code> of the following related functions
-follow these rules:</p>
+</li>
+</ul>
+<p>Change the file system timestamps of the object referenced by <code>path</code>.</p>
+<p>The <code>atime</code> and <code>mtime</code> arguments follow these rules:</p>
 <ul>
-<li>The value should be a Unix timestamp in seconds. For example, <code>Date.now()</code>
-returns milliseconds, so it should be divided by 1000 before passing it in.</li>
-<li>If the value is a numeric string like <code>&#39;123456789&#39;</code>, the value will get
-converted to the corresponding number.</li>
-<li>If the value is <code>NaN</code>, <code>Infinity</code> or <code>-Infinity</code>, an Error will be thrown.</li>
+<li>Values can be either numbers representing Unix epoch time, <code>Date</code>s, or a
+numeric string like <code>&#39;123456789.0&#39;</code>.</li>
+<li>If the value can not be converted to a number, or is <code>NaN</code>, <code>Infinity</code> or
+<code>-Infinity</code>, a <code>Error</code> will be thrown.</li>
 </ul>
 <h2>fs.utimesSync(path, atime, mtime)<span><a class="mark" href="#fs_fs_utimessync_path_atime_mtime" id="fs_fs_utimessync_path_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p><code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code> are no longer valid time specifiers.</p>
+</td></tr>
 <tr><td>v7.6.0</td>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p>
 </td></tr>
@@ -2374,9 +2992,14 @@ converted to the corresponding number.</li>
 </table>
 </details>
 </div><ul>
-<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>path</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>atime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>mtime</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
 <h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
@@ -2396,19 +3019,36 @@ converted to the corresponding number.</li>
 </table>
 </details>
 </div><ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>persistent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether the process should continue to run
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>persistent</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether the process should continue to run
 as long as files are being watched. <strong>Default:</strong> <code>true</code></li>
-<li><code>recursive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether all subdirectories should be
+<li><code>recursive</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Indicates whether all subdirectories should be
 watched, or only the current directory. This applies when a directory is
 specified, and only on supported platforms (See <a href="#fs_caveats">Caveats</a>). <strong>Default:</strong>
 <code>false</code></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the character encoding to be used for the
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Specifies the character encoding to be used for the
  filename passed to the listener. <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
 </ul>
 </li>
-<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> <strong>Default:</strong> <code>undefined</code></li>
+<li><code>listener</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> <strong>Default:</strong> <code>undefined</code><ul>
+<li><code>eventType</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Watch for changes on <code>filename</code>, where <code>filename</code> is either a file or a
 directory.  The returned object is a <a href="#fs_class_fs_fswatcher"><code>fs.FSWatcher</code></a>.</p>
@@ -2453,12 +3093,9 @@ watches the inode. If the watched path is deleted and recreated, it is assigned
 a new inode. The watch will emit an event for the delete but will continue
 watching the <em>original</em> inode. Events for the new inode will not be emitted.
 This is expected behavior.</p>
-<p>In AIX, save and close of a file being watched causes two notifications -
-one for adding new content, and one for truncation. Moreover, save and
-close operations on some platforms cause inode changes that force watch
-operations to become invalid and ineffective. AIX retains inode for the
-lifetime of a file, that way though this is different from Linux / macOS,
-this improves the usability of file watching. This is expected behavior.</p>
+<p>AIX files retain the same inode for the lifetime of a file. Saving and closing a
+watched file on AIX will result in two notifications (one for adding new
+content, and one for truncation).</p>
 <h4>Filename Argument<span><a class="mark" href="#fs_filename_argument" id="fs_filename_argument">#</a></span></h4>
 <!--type=misc-->
 <p>Providing <code>filename</code> argument in the callback is only supported on Linux,
@@ -2488,13 +3125,24 @@ always provided in the callback, and have some fallback logic if it is null.</p>
 </table>
 </details>
 </div><ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>persistent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
-<li><code>interval</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>5007</code></li>
+<li><code>filename</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>persistent</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
+<li><code>interval</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>5007</code></li>
 </ul>
 </li>
-<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>listener</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>current</code> <span class="type">&lt;fs.Stats&gt;</span></li>
+<li><code>previous</code> <span class="type">&lt;fs.Stats&gt;</span></li>
+</ul>
+</li>
 </ul>
 <p>Watch for changes on <code>filename</code>. The callback <code>listener</code> will be called each
 time the file is accessed.</p>
@@ -2523,6 +3171,15 @@ v0.10.</p>
 <p><em>Note</em>: <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and
 <code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and
 <code>fs.unwatchFile</code> when possible.</p>
+<p><em>Note:</em> When a file being watched by <code>fs.watchFile()</code> disappears and reappears,
+then the <code>previousStat</code> reported in the second callback event (the file&#39;s
+reappearance) will be the same as the <code>previousStat</code> of the first callback
+event (its disappearance).</p>
+<p>This happens when:</p>
+<ul>
+<li>the file is deleted, followed by a restore</li>
+<li>the file is renamed twice - the second time back to its original name</li>
+</ul>
 <h2>fs.write(fd, buffer[, offset[, length[, position]]], callback)<span><a class="mark" href="#fs_fs_write_fd_buffer_offset_length_position_callback" id="fs_fs_write_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2543,19 +3200,35 @@ v0.10.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>offset</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>length</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>bytesWritten</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>
 <p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is
 an integer specifying the number of bytes to write.</p>
 <p><code>position</code> refers to the offset from the beginning of the file where this data
 should be written. If <code>typeof position !== &#39;number&#39;</code>, the data will be written
-at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
+at the current position. See  <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
 <p>The callback will be given three arguments <code>(err, bytesWritten, buffer)</code> where
 <code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
@@ -2583,17 +3256,30 @@ the end of the file.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>written</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Write <code>string</code> to the file specified by <code>fd</code>.  If <code>string</code> is not a string, then
 the value will be coerced to one.</p>
 <p><code>position</code> refers to the offset from the beginning of the file where this data
 should be written. If <code>typeof position !== &#39;number&#39;</code> the data will be written at
-the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
+the current position. See  <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html">pwrite(2)</a>.</p>
 <p><code>encoding</code> is the expected string encoding.</p>
 <p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>
 specifies how many <em>bytes</em> the passed string required to be written. Note that
@@ -2627,15 +3313,32 @@ the end of the file.</p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;w&#39;</code></li>
+<li><code>file</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;w&#39;</code></li>
 </ul>
 </li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a><ul>
+<li><code>err</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+</ul>
+</li>
 </ul>
 <p>Asynchronously writes data to a file, replacing the file if it already exists.
 <code>data</code> can be a string or a buffer.</p>
@@ -2673,12 +3376,24 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
-<li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;w&#39;</code></li>
+<li><code>file</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> filename or file descriptor</li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&lt;null&gt;</a> <strong>Default:</strong> <code>&#39;utf8&#39;</code></li>
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
+<li><code>flag</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;w&#39;</code></li>
 </ul>
 </li>
 </ul>
@@ -2700,11 +3415,17 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
-<li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>offset</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>length</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <h2>fs.writeSync(fd, string[, position[, encoding]])<span><a class="mark" href="#fs_fs_writesync_fd_string_position_encoding" id="fs_fs_writesync_fd_string_position_encoding">#</a></span></h2>
 <div class="api_metadata">
@@ -2720,10 +3441,14 @@ automatically.</p>
 </table>
 </details>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>position</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Synchronous versions of <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>. Returns the number of bytes written.</p>
 <h2>FS Constants<span><a class="mark" href="#fs_fs_constants_1" id="fs_fs_constants_1">#</a></span></h2>
@@ -2818,7 +3543,13 @@ automatically.</p>
   </tr>
   <tr>
     <td><code>O_SYNC</code></td>
-    <td>Flag indicating that the file is opened for synchronous I/O.</td>
+    <td>Flag indicating that the file is opened for synchronized I/O with write
+    operations waiting for file integrity.</td>
+  </tr>
+  <tr>
+    <td><code>O_DSYNC</code></td>
+    <td>Flag indicating that the file is opened for synchronized I/O with write
+    operations waiting for data integrity.</td>
   </tr>
   <tr>
     <td><code>O_SYMLINK</code></td>
@@ -2888,7 +3619,7 @@ automatically.</p>
   </tr>
   <tr>
     <td><code>S_IRWXU</code></td>
-    <td>File mode indicating readable, writable and executable by owner.</td>
+    <td>File mode indicating readable, writable, and executable by owner.</td>
   </tr>
   <tr>
     <td><code>S_IRUSR</code></td>
@@ -2904,7 +3635,7 @@ automatically.</p>
   </tr>
   <tr>
     <td><code>S_IRWXG</code></td>
-    <td>File mode indicating readable, writable and executable by group.</td>
+    <td>File mode indicating readable, writable, and executable by group.</td>
   </tr>
   <tr>
     <td><code>S_IRGRP</code></td>
@@ -2920,7 +3651,7 @@ automatically.</p>
   </tr>
   <tr>
     <td><code>S_IRWXO</code></td>
-    <td>File mode indicating readable, writable and executable by others.</td>
+    <td>File mode indicating readable, writable, and executable by others.</td>
   </tr>
   <tr>
     <td><code>S_IROTH</code></td>

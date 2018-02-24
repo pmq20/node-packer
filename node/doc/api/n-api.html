@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>N-API | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,33 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="n-api.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="n-api.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/n-api.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/n-api.html">8.x <b>LTS</b></a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -186,8 +202,8 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_create_uint32"><em>napi_create_uint32</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_int64"><em>napi_create_int64</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_double"><em>napi_create_double</em></a></span></li>
-<li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf16"><em>napi_create_string_utf16</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_latin1"><em>napi_create_string_latin1</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf16"><em>napi_create_string_utf16</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf8"><em>napi_create_string_utf8</em></a></span></li>
 </ul>
 </li>
@@ -203,6 +219,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_external"><em>napi_get_value_external</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_int32"><em>napi_get_value_int32</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_int64"><em>napi_get_value_int64</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_latin1"><em>napi_get_value_string_latin1</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_utf8"><em>napi_get_value_string_utf8</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_string_utf16"><em>napi_get_value_string_utf16</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_uint32"><em>napi_get_value_uint32</em></a></span></li>
@@ -262,27 +279,48 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_call_function"><em>napi_call_function</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_function_1"><em>napi_create_function</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_cb_info"><em>napi_get_cb_info</em></a></span></li>
-<li><span class="stability_undefined"><a href="#n_api_napi_is_construct_call"><em>napi_is_construct_call</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_new_target"><em>napi_get_new_target</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_new_instance"><em>napi_new_instance</em></a></span></li>
-<li><span class="stability_undefined"><a href="#n_api_napi_make_callback"><em>napi_make_callback</em></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_object_wrap">Object Wrap</a></span><ul>
 <li><span class="stability_undefined"><a href="#n_api_napi_define_class"><em>napi_define_class</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_wrap"><em>napi_wrap</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_unwrap"><em>napi_unwrap</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_remove_wrap"><em>napi_remove_wrap</em></a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#n_api_asynchronous_operations">Asynchronous Operations</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_simple_asynchronous_operations">Simple Asynchronous Operations</a></span><ul>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_async_work">napi_create_async_work</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_delete_async_work">napi_delete_async_work</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_queue_async_work">napi_queue_async_work</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_cancel_async_work">napi_cancel_async_work</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#n_api_custom_asynchronous_operations">Custom Asynchronous Operations</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_async_init"><em>napi_async_init*</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_async_destroy"><em>napi_async_destroy*</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_make_callback"><em>napi_make_callback</em></a></span></li>
+</ul>
+</li>
 <li><span class="stability_undefined"><a href="#n_api_version_management">Version Management</a></span><ul>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_node_version">napi_get_node_version</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_version">napi_get_version</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#n_api_memory_management">Memory Management</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_adjust_external_memory">napi_adjust_external_memory</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#n_api_promises">Promises</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_promise">napi_create_promise</a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_resolve_deferred">napi_resolve_deferred</a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_reject_deferred">napi_reject_deferred</a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_is_promise">napi_is_promise</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#n_api_script_execution">Script execution</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_run_script">napi_run_script</a></span></li>
 </ul>
 </li>
 </ul>
@@ -293,7 +331,8 @@
 
       <div id="apicontent">
         <h1>N-API<span><a class="mark" href="#n_api_n_api" id="n_api_n_api">#</a></span></h1>
-<pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>N-API (pronounced N as in the letter, followed by API)
+<!--introduced_in=v7.10.0-->
+<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>N-API (pronounced N as in the letter, followed by API)
 is an API for building native Addons. It is independent from
 the underlying JavaScript runtime (ex V8) and is maintained as part of
 Node.js itself. This API will be Application Binary Interface (ABI) stable
@@ -331,7 +370,10 @@ handling section <a href="#n_api_error_handling">Error Handling</a>.</li>
 <li><a href="#n_api_working_with_javascript_properties">Working with JavaScript Properties</a></li>
 <li><a href="#n_api_working_with_javascript_functions">Working with JavaScript Functions</a></li>
 <li><a href="#n_api_object_wrap">Object Wrap</a></li>
-<li><a href="#n_api_asynchronous_operations">Asynchronous Operations</a></li>
+<li><a href="#n_api_simple_asynchronous_operations">Simple Asynchronous Operations</a></li>
+<li><a href="#n_api_custom_asynchronous_operations">Custom Asynchronous Operations</a></li>
+<li><a href="#n_api_promises">Promises</a></li>
+<li><a href="#n_api_script_execution">Script Execution</a></li>
 </ul>
 <p>The N-API is a C API that ensures ABI stability across Node.js versions
 and different compiler levels. However, we also understand that a C++
@@ -346,11 +388,6 @@ example is: <a href="https://github.com/nodejs/node-api">node-api</a>.</p>
 which is located in the src directory in the node development tree.
 For example:</p>
 <pre><code class="lang-C">#include &lt;node_api.h&gt;
-</code></pre>
-<p>As the feature is experimental it must be enabled with the
-following command line
-<a href="https://nodejs.org/dist/latest-v8.x/docs/api/cli.html#cli_napi_modules">option</a>:</p>
-<pre><code class="lang-bash">--napi-modules
 </code></pre>
 <h2>Basic N-API Data Types<span><a class="mark" href="#n_api_basic_n_api_data_types" id="n_api_basic_n_api_data_types">#</a></span></h2>
 <p>N-API exposes the following fundamental datatypes as abstractions that are
@@ -464,7 +501,7 @@ operations. Callback functions must statisfy the following signature:</p>
                                              void* data);
 </code></pre>
 <h2>Error Handling<span><a class="mark" href="#n_api_error_handling" id="n_api_error_handling">#</a></span></h2>
-<p>N-API uses both return values and Javascript exceptions for error handling.
+<p>N-API uses both return values and JavaScript exceptions for error handling.
 The following sections explain the approach for each case.</p>
 <h3>Return values<span><a class="mark" href="#n_api_return_values" id="n_api_return_values">#</a></span></h3>
 <p>All of the N-API functions share the same error handling pattern. The
@@ -508,7 +545,7 @@ It is intended only for logging purposes.</p>
 <h4>napi_get_last_error_info<span><a class="mark" href="#n_api_napi_get_last_error_info" id="n_api_napi_get_last_error_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status
+</div><pre><code class="lang-C">napi_status
 napi_get_last_error_info(napi_env env,
                          const napi_extended_error_info** result);
 </code></pre>
@@ -537,7 +574,7 @@ exception is pending and no additional action is required. If the
 instead of simply returning immediately, <a href="#n_api_napi_is_exception_pending"><code>napi_is_exception_pending</code></a>
 must be called in order to determine if an exception is pending or not.</p>
 <p>When an exception is pending one of two approaches can be employed.</p>
-<p>The first appoach is to do any appropriate cleanup and then return so that
+<p>The first approach is to do any appropriate cleanup and then return so that
 execution will return to JavaScript. As part of the transition back to
 JavaScript the exception will be thrown at the point in the JavaScript
 code where the native method was invoked. The behavior of most N-API calls
@@ -711,8 +748,8 @@ used as the message for the Error.</li>
 <h4>napi_get_and_clear_last_exception<span><a class="mark" href="#n_api_napi_get_and_clear_last_exception" id="n_api_napi_get_and_clear_last_exception">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_get_and_clear_last_exception(napi_env env,
-                                                          napi_value* result);
+</div><pre><code class="lang-C">napi_status napi_get_and_clear_last_exception(napi_env env,
+                                              napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -723,7 +760,7 @@ used as the message for the Error.</li>
 <h4>napi_is_exception_pending<span><a class="mark" href="#n_api_napi_is_exception_pending" id="n_api_napi_is_exception_pending">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_is_exception_pending(napi_env env, bool* result);
+</div><pre><code class="lang-C">napi_status napi_is_exception_pending(napi_env env, bool* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -737,11 +774,19 @@ thrown to immediately terminate the process.</p>
 <h4>napi_fatal_error<span><a class="mark" href="#n_api_napi_fatal_error" id="n_api_napi_fatal_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN NAPI_NO_RETURN void napi_fatal_error(const char* location, const char* message);
+</div><pre><code class="lang-C">NAPI_NO_RETURN void napi_fatal_error(const char* location,
+                                                 size_t location_len,
+                                                 const char* message,
+                                                 size_t message_len);
 </code></pre>
 <ul>
 <li><code>[in] location</code>: Optional location at which the error occurred.</li>
+<li><code>[in] location_len</code>: The length of the location in bytes, or
+NAPI_AUTO_LENGTH if it is null-terminated.</li>
 <li><code>[in] message</code>: The message associated with the error.</li>
+<li><code>[in] message_len</code>: The length of the message in bytes, or
+NAPI_AUTO_LENGTH if it is
+null-terminated.</li>
 </ul>
 <p>The function call does not return, the process will be terminated.</p>
 <h2>Object Lifetime management<span><a class="mark" href="#n_api_object_lifetime_management" id="n_api_object_lifetime_management">#</a></span></h2>
@@ -873,10 +918,10 @@ reverse order from which they were created.</p>
 <h4>napi_escape_handle<span><a class="mark" href="#n_api_napi_escape_handle" id="n_api_napi_escape_handle">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_escape_handle(napi_env env,
-                                           napi_escapable_handle_scope scope,
-                                           napi_value escapee,
-                                           napi_value* result);
+</div><pre><code class="lang-C">napi_status napi_escape_handle(napi_env env,
+                               napi_escapable_handle_scope scope,
+                               napi_value escapee,
+                               napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -933,7 +978,7 @@ individual count.</p>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] value</code>: <code>napi_value</code> representing the Object to which we want
-a reference to.</li>
+a reference.</li>
 <li><code>[in] initial_refcount</code>: Initial reference count for the new reference.</li>
 <li><code>[out] result</code>: <code>napi_ref</code> pointing to the new reference.</li>
 </ul>
@@ -1001,58 +1046,67 @@ object to which the reference is related.</p>
 JavaScript Object associated with the <code>napi_ref</code>. Otherise, result
 will be NULL.</p>
 <h2>Module registration<span><a class="mark" href="#n_api_module_registration" id="n_api_module_registration">#</a></span></h2>
-<p>N-API modules are registered in the same manner as other modules
+<p>N-API modules are registered in a manner similar to other modules
 except that instead of using the <code>NODE_MODULE</code> macro the following
 is used:</p>
-<pre><code class="lang-C">NAPI_MODULE(addon, Init)
+<pre><code class="lang-C">NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 </code></pre>
 <p>The next difference is the signature for the <code>Init</code> method. For a N-API
 module it is as follows:</p>
-<pre><code class="lang-C">void Init(napi_env env, napi_value exports, napi_value module, void* priv);
+<pre><code class="lang-C">napi_value Init(napi_env env, napi_value exports);
 </code></pre>
-<p>As with any other module, functions are exported by either adding them to
-the <code>exports</code> or <code>module</code> objects passed to the <code>Init</code> method.</p>
+<p>The return value from <code>Init</code> is treated as the <code>exports</code> object for the module.
+The <code>Init</code> method is passed an empty object via the <code>exports</code> parameter as a
+convenience. If <code>Init</code> returns NULL, the parameter passed as <code>exports</code> is
+exported by the module. N-API modules cannot modify the <code>module</code> object but can
+specify anything as the <code>exports</code> property of the module.</p>
 <p>For example, to add the method <code>hello</code> as a function so that it can be called
 as a method provided by the addon:</p>
-<pre><code class="lang-C">void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+<pre><code class="lang-C">napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
   napi_property_descriptor desc =
     {&quot;hello&quot;, Method, 0, 0, 0, napi_default, 0};
+  if (status != napi_ok) return nullptr;
   status = napi_define_properties(env, exports, 1, &amp;desc);
+  if (status != napi_ok) return nullptr;
+  return exports;
 }
 </code></pre>
 <p>For example, to set a function to be returned by the <code>require()</code> for the addon:</p>
-<pre><code class="lang-C">void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+<pre><code class="lang-C">napi_value Init(napi_env env, napi_value exports) {
+  napi_value method;
   napi_status status;
-  napi_property_descriptor desc =
-    {&quot;exports&quot;, Method, 0, 0, 0, napi_default, 0};
-  status = napi_define_properties(env, module, 1, &amp;desc);
+  status = napi_create_function(env, &quot;exports&quot;, Method, NULL, &amp;method));
+  if (status != napi_ok) return nullptr;
+  return method;
 }
 </code></pre>
 <p>For example, to define a class so that new instances can be created
 (often used with <a href="#n_api_object_wrap">Object Wrap</a>):</p>
 <pre><code class="lang-C">// NOTE: partial example, not all referenced code is included
-
-napi_status status;
-napi_property_descriptor properties[] = {
+napi_value Init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_property_descriptor properties[] = {
     { &quot;value&quot;, nullptr, GetValue, SetValue, 0, napi_default, 0 },
     DECLARE_NAPI_METHOD(&quot;plusOne&quot;, PlusOne),
     DECLARE_NAPI_METHOD(&quot;multiply&quot;, Multiply),
-};
+  };
 
-napi_value cons;
-status =
-    napi_define_class(env, &quot;MyObject&quot;, New, nullptr, 3, properties, &amp;cons);
-if (status != napi_ok) return;
+  napi_value cons;
+  status =
+      napi_define_class(env, &quot;MyObject&quot;, New, nullptr, 3, properties, &amp;cons);
+  if (status != napi_ok) return nullptr;
 
-status = napi_create_reference(env, cons, 1, &amp;constructor);
-if (status != napi_ok) return;
+  status = napi_create_reference(env, cons, 1, &amp;constructor);
+  if (status != napi_ok) return nullptr;
 
-status = napi_set_named_property(env, exports, &quot;MyObject&quot;, cons);
-if (status != napi_ok) return;
+  status = napi_set_named_property(env, exports, &quot;MyObject&quot;, cons);
+  if (status != napi_ok) return nullptr;
+
+  return exports;
+}
 </code></pre>
-<p>For more details on setting properties on either the <code>exports</code> or <code>module</code>
-objects, see the section on
+<p>For more details on setting properties on objects, see the section on
 <a href="#n_api_working_with_javascript_properties">Working with JavaScript Properties</a>.</p>
 <p>For more details on building addon modules in general, refer to the existing API</p>
 <h2>Working with JavaScript Values<span><a class="mark" href="#n_api_working_with_javascript_values" id="n_api_working_with_javascript_values">#</a></span></h2>
@@ -1302,6 +1356,7 @@ structure, in most cases using a TypedArray will suffice.</p>
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">napi_status napi_create_function(napi_env env,
                                  const char* utf8name,
+                                 size_t length,
                                  napi_callback cb,
                                  void* data,
                                  napi_value* result)
@@ -1310,6 +1365,8 @@ structure, in most cases using a TypedArray will suffice.</p>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] utf8name</code>: A string representing the name of the function encoded as
 UTF8.</li>
+<li><code>[in] length</code>: The length of the utf8name in bytes, or
+NAPI_AUTO_LENGTH if it is null-terminated.</li>
 <li><code>[in] cb</code>: A function pointer to the native function to be invoked when the
 created function is invoked from JavaScript.</li>
 <li><code>[in] data</code>: Optional arbitrary context data to be passed into the native
@@ -1480,6 +1537,26 @@ Number type.</p>
 <p>The JavaScript Number type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
 of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_string_latin1</em><span><a class="mark" href="#n_api_napi_create_string_latin1" id="n_api_napi_create_string_latin1">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_string_latin1(napi_env env,
+                                      const char* str,
+                                      size_t length,
+                                      napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] str</code>: Character buffer representing a ISO-8859-1-encoded string.</li>
+<li><code>[in] length</code>: The length of the string in bytes, or
+NAPI_AUTO_LENGTH if it is null-terminated.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API creates a JavaScript String object from a ISO-8859-1-encoded C string.</p>
+<p>The JavaScript String type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">Section 6.1.4</a>
+of the ECMAScript Language Specification.</p>
 <h4><em>napi_create_string_utf16</em><span><a class="mark" href="#n_api_napi_create_string_utf16" id="n_api_napi_create_string_utf16">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1491,32 +1568,12 @@ of the ECMAScript Language Specification.</p>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] str</code>: Character buffer representing a UTF16-LE-encoded string.</li>
-<li><code>[in] length</code>: The length of the string in two-byte code units, or -1 if
-it is null-terminated.</li>
+<li><code>[in] length</code>: The length of the string in two-byte code units, or
+NAPI_AUTO_LENGTH if it is null-terminated.</li>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API creates a JavaScript String object from a UTF16-LE-encoded C string</p>
-<p>The JavaScript String type is described in
-<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">Section 6.1.4</a>
-of the ECMAScript Language Specification.</p>
-<h4><em>napi_create_string_latin1</em><span><a class="mark" href="#n_api_napi_create_string_latin1" id="n_api_napi_create_string_latin1">#</a></span></h4>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_string_latin1(napi_env env,
-                                                  const char* str,
-                                                  size_t length,
-                                                  napi_value* result);
-</code></pre>
-<ul>
-<li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] str</code>: Character buffer representing a latin1-encoded string.</li>
-<li><code>[in] length</code>: The length of the string in bytes, or -1 if it is
-null-terminated.</li>
-<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
-</ul>
-<p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API creates a JavaScript String object from a latin1-encoded C string.</p>
 <p>The JavaScript String type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">Section 6.1.4</a>
 of the ECMAScript Language Specification.</p>
@@ -1531,8 +1588,8 @@ of the ECMAScript Language Specification.</p>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] str</code>: Character buffer representing a UTF8-encoded string.</li>
-<li><code>[in] length</code>: The length of the string in bytes, or -1 if it is
-null-terminated.</li>
+<li><code>[in] length</code>: The length of the string in bytes, or NAPI_AUTO_LENGTH
+if it is null-terminated.</li>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
@@ -1729,7 +1786,7 @@ is passed in `napi_number_expected .</p>
 of the given JavaScript Number. If the number exceeds the range of the
 32 bit integer, then the result is truncated to the equivalent of the
 bottom 32 bits. This can result in a large positive number becoming
-a negative number if the the value is &gt; 2^31 -1.</p>
+a negative number if the value is &gt; 2^31 -1.</p>
 <h4><em>napi_get_value_int64</em><span><a class="mark" href="#n_api_napi_get_value_int64" id="n_api_napi_get_value_int64">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1746,6 +1803,29 @@ a negative number if the the value is &gt; 2^31 -1.</p>
 is passed in it returns <code>napi_number_expected</code>.</p>
 <p>This API returns the C int64 primitive equivalent of the given
 JavaScript Number</p>
+<h4><em>napi_get_value_string_latin1</em><span><a class="mark" href="#n_api_napi_get_value_string_latin1" id="n_api_napi_get_value_string_latin1">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><pre><code class="lang-C">napi_status napi_get_value_string_latin1(napi_env env,
+                                         napi_value value,
+                                         char* buf,
+                                         size_t bufsize,
+                                         size_t* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>
+<li><code>[in] buf</code>: Buffer to write the ISO-8859-1-encoded string into. If NULL is
+passed in, the length of the string (in bytes) is returned.</li>
+<li><code>[in] bufsize</code>: Size of the destination buffer. When this value is
+insufficient, the returned string will be truncated.</li>
+<li><code>[out] result</code>: Number of bytes copied into the buffer, excluding the null
+terminator.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>
+is passed in it returns <code>napi_string_expected</code>.</p>
+<p>This API returns the ISO-8859-1-encoded string corresponding the value passed
+in.</p>
 <h4><em>napi_get_value_string_utf8</em><span><a class="mark" href="#n_api_napi_get_value_string_utf8" id="n_api_napi_get_value_string_utf8">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1760,13 +1840,13 @@ JavaScript Number</p>
 <li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>
 <li><code>[in] buf</code>: Buffer to write the UTF8-encoded string into. If NULL is passed
 in, the length of the string (in bytes) is returned.</li>
-<li><code>[in] bufsize</code>: Size of the destination buffer.</li>
-<li><code>[out] result</code>: Number of bytes copied into the buffer including the null.
-terminator. If the buffer size is insufficient, the string will be truncated
-including a null terminator.</li>
+<li><code>[in] bufsize</code>: Size of the destination buffer. When this value is
+insufficient, the returned string will be truncated.</li>
+<li><code>[out] result</code>: Number of bytes copied into the buffer, excluding the null
+terminator.</li>
 </ul>
-<p>Returns <code>napi_ok</code> if the API succeeded. Ifa non-String <code>napi_value</code>
-x is passed in it returns <code>napi_string_expected</code>.</p>
+<p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>
+is passed in it returns <code>napi_string_expected</code>.</p>
 <p>This API returns the UTF8-encoded string corresponding the value passed in.</p>
 <h4><em>napi_get_value_string_utf16</em><span><a class="mark" href="#n_api_napi_get_value_string_utf16" id="n_api_napi_get_value_string_utf16">#</a></span></h4>
 <div class="api_metadata">
@@ -1782,10 +1862,10 @@ x is passed in it returns <code>napi_string_expected</code>.</p>
 <li><code>[in] value</code>: <code>napi_value</code> representing JavaScript string.</li>
 <li><code>[in] buf</code>: Buffer to write the UTF16-LE-encoded string into. If NULL is
 passed in, the length of the string (in 2-byte code units) is returned.</li>
-<li><code>[in] bufsize</code>: Size of the destination buffer.</li>
-<li><code>[out] result</code>: Number of 2-byte code units copied into the buffer including
-the null terminateor. If the buffer size is insufficient, the string will be
-truncated including a null terminator.</li>
+<li><code>[in] bufsize</code>: Size of the destination buffer. When this value is
+insufficient, the returned string will be truncated.</li>
+<li><code>[out] result</code>: Number of 2-byte code units copied into the buffer, excluding the null
+terminator.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded. If a non-String <code>napi_value</code>
 is passed in it returns <code>napi_string_expected</code>.</p>
@@ -2081,7 +2161,7 @@ following forms:</p>
 <li>Named: a simple UTF8-encoded string</li>
 <li>Integer-Indexed: an index value represented by <code>uint32_t</code></li>
 <li>JavaScript value: these are represented in N-API by <code>napi_value</code>. This can
-be a <code>napi_value</code> representing a String, Number or Symbol.</li>
+be a <code>napi_value</code> representing a String, Number, or Symbol.</li>
 </ul>
 <p>N-API values are represented by the type <code>napi_value</code>.
 Any N-API call that requires a JavaScript value takes in a <code>napi_value</code>.
@@ -2124,7 +2204,7 @@ status = napi_create_array(env, &amp;arr);
 if (status != napi_ok) return status;
 
 // Create a napi_value for &#39;hello&#39;
-status = napi_create_string_utf8(env, &quot;hello&quot;, -1, &amp;value);
+status = napi_create_string_utf8(env, &quot;hello&quot;, NAPI_AUTO_LENGTH, &amp;value);
 if (status != napi_ok) return status;
 
 // arr[123] = &#39;hello&#39;;
@@ -2161,7 +2241,7 @@ Object.defineProperties(obj, {
 
 // const obj = {};
 napi_value obj;
-status = napi_create_obj(env, &amp;obj);
+status = napi_create_object(env, &amp;obj);
 if (status != napi_ok) return status;
 
 // Create napi_values for 123 and 456
@@ -2172,9 +2252,9 @@ status = napi_create_int32(env, 456, &amp;barValue);
 if (status != napi_ok) return status;
 
 // Set the properties
-napi_property_descriptors descriptors[] = {
-  { &quot;foo&quot;, fooValue, 0, 0, 0, napi_default, 0 },
-  { &quot;bar&quot;, barValue, 0, 0, 0, napi_default, 0 }
+napi_property_descriptor descriptors[] = {
+  { &quot;foo&quot;, nullptr, 0, 0, 0, fooValue, napi_default, 0 },
+  { &quot;bar&quot;, nullptr, 0, 0, 0, barValue, napi_default, 0 }
 }
 status = napi_define_properties(env,
                                 obj,
@@ -2536,8 +2616,8 @@ in as arguments to the function.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This method allows a JavaScript function object to be called from a native
-add-on. This is an primary mechanism of calling back <em>from</em> the add-on&#39;s
-native code <em>into</em> JavaScript. For special cases like calling into JavaScript
+add-on. This is the primary mechanism of calling back <em>from</em> the add-on&#39;s
+native code <em>into</em> JavaScript. For the special case of calling into JavaScript
 after an async operation, see <a href="#n_api_napi_make_callback"><code>napi_make_callback</code></a>.</p>
 <p>A sample use case might look as follows. Consider the following JavaScript
 snippet:</p>
@@ -2595,7 +2675,7 @@ the newly created function.</li>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API allows an add-on author to create a function object in native code.
 This is the primary mechanism to allow calling <em>into</em> the add-on&#39;s native code
-<em>from</em> Javascript.</p>
+<em>from</em> JavaScript.</p>
 <p><em>Note</em>: The newly created function is not automatically visible from
 script after this call. Instead, a property must be explicitly set on any
 object that is visible to JavaScript, in order for the function to be accessible
@@ -2608,18 +2688,20 @@ object. A sample module might look as follows:</p>
   return nullptr;
 }
 
-void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
 
   napi_value fn;
-  status =  napi_create_function(env, NULL, SayHello, NULL, &amp;fn);
-  if (status != napi_ok) return;
+  status =  napi_create_function(env, nullptr, 0, SayHello, nullptr, &amp;fn);
+  if (status != napi_ok) return nullptr;
 
   status = napi_set_named_property(env, exports, &quot;sayHello&quot;, fn);
-  if (status != napi_ok) return;
+  if (status != napi_ok) return nullptr;
+
+  return exports;
 }
 
-NAPI_MODULE(addon, Init)
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 </code></pre>
 <p>Given the above code, the add-on can be used from JavaScript as follows:</p>
 <pre><code class="lang-js">const myaddon = require(&#39;./addon&#39;);
@@ -2654,22 +2736,21 @@ values that represent <code>undefined</code>.</li>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This method is used within a callback function to retrieve details about the
 call like the arguments and the <code>this</code> pointer from a given callback info.</p>
-<h3><em>napi_is_construct_call</em><span><a class="mark" href="#n_api_napi_is_construct_call" id="n_api_napi_is_construct_call">#</a></span></h3>
+<h3><em>napi_get_new_target</em><span><a class="mark" href="#n_api_napi_get_new_target" id="n_api_napi_get_new_target">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_is_construct_call(napi_env env,
-                                   napi_callback_info cbinfo,
-                                   bool* result)
+<span>Added in: v8.6.0</span>
+</div><pre><code class="lang-C">napi_status napi_get_new_target(napi_env env,
+                                napi_callback_info cbinfo,
+                                napi_value* result)
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] cbinfo</code>: The callback info passed into the callback function.</li>
-<li><code>[out] result</code>: Whether the native function is being invoked as
-a constructor call.</li>
+<li><code>[out] result</code>: The <code>new.target</code> of the constructor call.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API checks if the the current callback was due to a
-consructor call.</p>
+<p>This API returns the <code>new.target</code> of the constructor call. If the current
+callback is not a constructor call, the result is <code>nullptr</code>.</p>
 <h3><em>napi_new_instance</em><span><a class="mark" href="#n_api_napi_new_instance" id="n_api_napi_new_instance">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2709,7 +2790,7 @@ status = napi_get_named_property(env, global, &quot;MyObject&quot;, &amp;constru
 if (status != napi_ok) return;
 
 // const arg = &quot;hello&quot;
-status = napi_create_string_utf8(env, &quot;hello&quot;, -1, &amp;arg);
+status = napi_create_string_utf8(env, &quot;hello&quot;, NAPI_AUTO_LENGTH, &amp;arg);
 if (status != napi_ok) return;
 
 napi_value* argv = &amp;arg;
@@ -2719,41 +2800,13 @@ size_t argc = 1;
 status = napi_new_instance(env, constructor, argc, argv, &amp;value);
 </code></pre>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<h3><em>napi_make_callback</em><span><a class="mark" href="#n_api_napi_make_callback" id="n_api_napi_make_callback">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_make_callback(napi_env env,
-                               napi_value recv,
-                               napi_value func,
-                               int argc,
-                               const napi_value* argv,
-                               napi_value* result)
-</code></pre>
-<ul>
-<li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] recv</code>: The <code>this</code> object passed to the called function.</li>
-<li><code>[in] func</code>: <code>napi_value</code> representing the JavaScript function
-to be invoked.</li>
-<li><code>[in] argc</code>: The count of elements in the <code>argv</code> array.</li>
-<li><code>[in] argv</code>: Array of JavaScript values as <code>napi_value</code>
-representing the arguments to the function.</li>
-<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript object returned.</li>
-</ul>
-<p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This method allows a JavaScript function object to be called from a native
-add-on. This API is similar to <code>napi_call_function</code>. However, it is used to call
-<em>from</em> native code back <em>into</em> JavaScript <em>after</em> returning from an async
-operation (when there is no other script on the stack). It is a fairly simple
-wrapper around <code>node::MakeCallback</code>.</p>
-<p>For an example on how to use <code>napi_make_callback</code>, see the section on
-<a href="#n_api_asynchronous_operations">Asynchronous Operations</a>.</p>
 <h2>Object Wrap<span><a class="mark" href="#n_api_object_wrap" id="n_api_object_wrap">#</a></span></h2>
 <p>N-API offers a way to &quot;wrap&quot; C++ classes and instances so that the class
 constructor and methods can be called from JavaScript.</p>
 <ol>
 <li>The <a href="#n_api_napi_define_class"><code>napi_define_class</code></a> API defines a JavaScript class with constructor,
 static properties and methods, and instance properties and methods that
-correspond to the The C++ class.</li>
+correspond to the C++ class.</li>
 <li>When JavaScript code invokes the constructor, the constructor callback
 uses <a href="#n_api_napi_wrap"><code>napi_wrap</code></a> to wrap a new C++ instance in a JavaScript object,
 then returns the wrapper object.</li>
@@ -2762,11 +2815,30 @@ the corresponding <code>napi_callback</code> C++ function is invoked. For an ins
 callback, <a href="#n_api_napi_unwrap"><code>napi_unwrap</code></a> obtains the C++ instance that is the target of
 the call.</li>
 </ol>
+<p>For wrapped objects it may be difficult to distinguish between a function
+called on a class prototype and a function called on an instance of a class.
+A common pattern used to address this problem is to save a persistent
+reference to the class constructor for later <code>instanceof</code> checks.</p>
+<p>As an example:</p>
+<pre><code class="lang-C">napi_value MyClass_constructor = nullptr;
+status = napi_get_reference_value(env, MyClass::es_constructor, &amp;MyClass_constructor);
+assert(napi_ok == status);
+bool is_instance = false;
+status = napi_instanceof(env, es_this, MyClass_constructor, &amp;is_instance);
+assert(napi_ok == status);
+if (is_instance) {
+  // napi_unwrap() ...
+} else {
+  // otherwise...
+}
+</code></pre>
+<p>The reference must be freed once it is no longer needed.</p>
 <h3><em>napi_define_class</em><span><a class="mark" href="#n_api_napi_define_class" id="n_api_napi_define_class">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">napi_status napi_define_class(napi_env env,
                               const char* utf8name,
+                              size_t length,
                               napi_callback constructor,
                               void* data,
                               size_t property_count,
@@ -2778,6 +2850,8 @@ the call.</li>
 <li><code>[in] utf8name</code>: Name of the JavaScript constructor function; this is
 not required to be the same as the C++ class name, though it is recommended
 for clarity.</li>
+<li><code>[in] length</code>: The length of the utf8name in bytes, or NAPI_AUTO_LENGTH
+if it is null-terminated.</li>
 <li><code>[in] constructor</code>: Callback function that handles constructing instances
 of the class. (This should be a static method on the class, not an actual
 C++ constructor function.)</li>
@@ -2860,7 +2934,9 @@ Afterward, additional manipulation of the wrapper&#39;s prototype chain may caus
 <code>napi_unwrap()</code> to fail.</p>
 <p><em>Note</em>: Calling <code>napi_wrap()</code> a second time on an object that already has a
 native instance associated with it by virtue of a previous call to
-<code>napi_wrap()</code> will cause an error to be returned.</p>
+<code>napi_wrap()</code> will cause an error to be returned. If you wish to associate
+another native instance with the given object, call <code>napi_remove_wrap()</code> on it
+first.</p>
 <h3><em>napi_unwrap</em><span><a class="mark" href="#n_api_napi_unwrap" id="n_api_napi_unwrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2870,8 +2946,8 @@ native instance associated with it by virtue of a previous call to
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] js_object</code>: The object associated with the C++ class instance.</li>
-<li><code>[out] result</code>: Pointer to the wrapped C++ class instance.</li>
+<li><code>[in] js_object</code>: The object associated with the native instance.</li>
+<li><code>[out] result</code>: Pointer to the wrapped native instance.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>Retrieves a native instance that was previously wrapped in a JavaScript
@@ -2881,7 +2957,25 @@ corresponding <code>napi_callback</code> is invoked. If the callback is for an i
 method or accessor, then the <code>this</code> argument to the callback is the wrapper
 object; the wrapped C++ instance that is the target of the call can be obtained
 then by calling <code>napi_unwrap()</code> on the wrapper object.</p>
-<h2>Asynchronous Operations<span><a class="mark" href="#n_api_asynchronous_operations" id="n_api_asynchronous_operations">#</a></span></h2>
+<h3><em>napi_remove_wrap</em><span><a class="mark" href="#n_api_napi_remove_wrap" id="n_api_napi_remove_wrap">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">napi_status napi_remove_wrap(napi_env env,
+                             napi_value js_object,
+                             void** result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] js_object</code>: The object associated with the native instance.</li>
+<li><code>[out] result</code>: Pointer to the wrapped native instance.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>Retrieves a native instance that was previously wrapped in the JavaScript
+object <code>js_object</code> using <code>napi_wrap()</code> and removes the wrapping, thereby
+restoring the JavaScript object&#39;s prototype chain. If a finalize callback was
+associated with the wrapping, it will no longer be called when the JavaScript
+object becomes garbage-collected.</p>
+<h2>Simple Asynchronous Operations<span><a class="mark" href="#n_api_simple_asynchronous_operations" id="n_api_simple_asynchronous_operations">#</a></span></h2>
 <p>Addon modules often need to leverage async helpers from libuv as part of their
 implementation. This allows them to schedule work to be executed asynchronously
 so that their methods can return in advance of the work being completed. This
@@ -2906,8 +3000,8 @@ addon-provided void* data that was passed into the
 <code>napi_create_async_work</code> call.</p>
 <p>Once created the async worker can be queued
 for execution using the <a href="#n_api_napi_queue_async_work"><code>napi_queue_async_work</code></a> function:</p>
-<pre><code class="lang-C">NAPI_EXTERN napi_status napi_queue_async_work(napi_env env,
-                                              napi_async_work work);
+<pre><code class="lang-C">napi_status napi_queue_async_work(napi_env env,
+                                  napi_async_work work);
 </code></pre>
 <p><a href="#n_api_napi_cancel_async_work"><code>napi_cancel_async_work</code></a> can be used if  the work needs
 to be cancelled before the work has started execution.</p>
@@ -2917,9 +3011,20 @@ The work should not be deleted before the <code>complete</code>
 callback invocation, even when it was cancelled.</p>
 <h3>napi_create_async_work<span><a class="mark" href="#n_api_napi_create_async_work" id="n_api_napi_create_async_work">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN
-napi_status napi_create_async_work(napi_env env,
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.6.0</td>
+<td><p>Added <code>async_resource</code> and <code>async_resource_name</code> parameters.</p>
+</td></tr>
+<tr><td>v8.0.0</td>
+<td><p><span>Added in: v8.0.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><pre><code class="lang-C">napi_status napi_create_async_work(napi_env env,
+                                   napi_value async_resource,
+                                   napi_value async_resource_name,
                                    napi_async_execute_callback execute,
                                    napi_async_complete_callback complete,
                                    void* data,
@@ -2927,6 +3032,10 @@ napi_status napi_create_async_work(napi_env env,
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] async_resource</code>: An optional object associated with the async work
+that will be passed to possible async_hooks <a href="async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init</code> hooks</a>.</li>
+<li><code>[in] async_resource_name</code>: An identifier for the kind of resource that is
+being provided for diagnostic information exposed by the <code>async_hooks</code> API.</li>
 <li><code>[in] execute</code>: The native function which should be called to excute
 the logic asynchronously.</li>
 <li><code>[in] complete</code>: The native function which will be called when the
@@ -2940,11 +3049,17 @@ async work.</li>
 <p>This API allocates a work object that is used to execute logic asynchronously.
 It should be freed using <a href="#n_api_napi_delete_async_work"><code>napi_delete_async_work</code></a> once the work is no longer
 required.</p>
+<p><code>async_resource_name</code> should be a null-terminated, UTF-8-encoded string.</p>
+<p><em>Note</em>: The <code>async_resource_name</code> identifier is provided by the user and should
+be representative of the type of async work being performed. It is also
+recommended to apply namespacing to the identifier, e.g. by including the
+module name. See the <a href="async_hooks.html#async_hooks_type"><code>async_hooks</code> documentation</a>
+for more information.</p>
 <h3>napi_delete_async_work<span><a class="mark" href="#n_api_napi_delete_async_work" id="n_api_napi_delete_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_delete_async_work(napi_env env,
-                                               napi_async_work work);
+</div><pre><code class="lang-C">napi_status napi_delete_async_work(napi_env env,
+                                   napi_async_work work);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -2955,8 +3070,8 @@ required.</p>
 <h3>napi_queue_async_work<span><a class="mark" href="#n_api_napi_queue_async_work" id="n_api_napi_queue_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_queue_async_work(napi_env env,
-                                              napi_async_work work);
+</div><pre><code class="lang-C">napi_status napi_queue_async_work(napi_env env,
+                                  napi_async_work work);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -2968,8 +3083,8 @@ for execution.</p>
 <h3>napi_cancel_async_work<span><a class="mark" href="#n_api_napi_cancel_async_work" id="n_api_napi_cancel_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_cancel_async_work(napi_env env,
-                                               napi_async_work work);
+</div><pre><code class="lang-C">napi_status napi_cancel_async_work(napi_env env,
+                                   napi_async_work work);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -2982,6 +3097,88 @@ cancelled and <code>napi_generic_failure</code> will be returned. If successful,
 the <code>complete</code> callback will be invoked with a status value of
 <code>napi_cancelled</code>. The work should not be deleted before the <code>complete</code>
 callback invocation, even if it has been successfully cancelled.</p>
+<h2>Custom Asynchronous Operations<span><a class="mark" href="#n_api_custom_asynchronous_operations" id="n_api_custom_asynchronous_operations">#</a></span></h2>
+<p>The simple asynchronous work APIs above may not be appropriate for every
+scenario, because with those the async execution still happens on the main
+event loop. When using any other async mechanism, the following APIs are
+necessary to ensure an async operation is properly tracked by the runtime.</p>
+<h3><em>napi_async_init*</em><span><a class="mark" href="#n_api_napi_async_init" id="n_api_napi_async_init">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.6.0</span>
+</div><pre><code class="lang-C">napi_status napi_async_init(napi_env env,
+                            napi_value async_resource,
+                            napi_value async_resource_name,
+                            napi_async_context* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] async_resource</code>: An optional object associated with the async work
+that will be passed to possible <code>async_hooks</code> <a href="async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init</code> hooks</a>.</li>
+<li><code>[in] async_resource_name</code>: Required identifier for the kind of resource
+that is being provided for diagnostic information exposed by the
+<code>async_hooks</code> API.</li>
+<li><code>[out] result</code>: The initialized async context.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<h3><em>napi_async_destroy*</em><span><a class="mark" href="#n_api_napi_async_destroy" id="n_api_napi_async_destroy">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.6.0</span>
+</div><pre><code class="lang-C">napi_status napi_async_destroy(napi_env env,
+                               napi_async_context async_context);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] async_context</code>: The async context to be destroyed.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<h3><em>napi_make_callback</em><span><a class="mark" href="#n_api_napi_make_callback" id="n_api_napi_make_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.6.0</td>
+<td><p>Added <code>async_context</code> parameter.</p>
+</td></tr>
+<tr><td>v8.0.0</td>
+<td><p><span>Added in: v8.0.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><pre><code class="lang-C">napi_status napi_make_callback(napi_env env,
+                               napi_async_context async_context,
+                               napi_value recv,
+                               napi_value func,
+                               int argc,
+                               const napi_value* argv,
+                               napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] async_context</code>: Context for the async operation that is
+ invoking the callback. This should normally be a value previously
+ obtained from <a href="#n_api_napi_async_init"><code>napi_async_init</code></a>. However <code>NULL</code> is also allowed,
+ which indicates the current async context (if any) is to be used
+ for the callback.</li>
+<li><code>[in] recv</code>: The <code>this</code> object passed to the called function.</li>
+<li><code>[in] func</code>: <code>napi_value</code> representing the JavaScript function
+to be invoked.</li>
+<li><code>[in] argc</code>: The count of elements in the <code>argv</code> array.</li>
+<li><code>[in] argv</code>: Array of JavaScript values as <code>napi_value</code>
+representing the arguments to the function.</li>
+<li><code>[out] result</code>: <code>napi_value</code> representing the JavaScript object returned.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This method allows a JavaScript function object to be called from a native
+add-on. This API is similar to <code>napi_call_function</code>. However, it is used to call
+<em>from</em> native code back <em>into</em> JavaScript <em>after</em> returning from an async
+operation (when there is no other script on the stack). It is a fairly simple
+wrapper around <code>node::MakeCallback</code>.</p>
+<p>Note it is <em>not</em> necessary to use <code>napi_make_callback</code> from within a
+<code>napi_async_complete_callback</code>; in that situation the callback&#39;s async
+context has already been set up, so a direct call to <code>napi_call_function</code>
+is sufficient and appropriate. Use of the <code>napi_make_callback</code> function
+may be required when implementing custom async behavior that does not use
+<code>napi_create_async_work</code>.</p>
 <h2>Version Management<span><a class="mark" href="#n_api_version_management" id="n_api_version_management">#</a></span></h2>
 <h3>napi_get_node_version<span><a class="mark" href="#n_api_napi_get_node_version" id="n_api_napi_get_node_version">#</a></span></h3>
 <div class="api_metadata">
@@ -2993,7 +3190,6 @@ callback invocation, even if it has been successfully cancelled.</p>
   const char* release;
 } napi_node_version;
 
-NAPI_EXTERN
 napi_status napi_get_node_version(napi_env env,
                                   const napi_node_version** version);
 </code></pre>
@@ -3002,15 +3198,15 @@ napi_status napi_get_node_version(napi_env env,
 <li><code>[out] version</code>: A pointer to version information for Node itself.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This function fills the <code>version</code> struct with the major, minor and patch version
-of Node that is currently running, and the <code>release</code> field with the
+<p>This function fills the <code>version</code> struct with the major, minor, and patch
+version of Node.js that is currently running, and the <code>release</code> field with the
 value of <a href="process.html#process_process_release"><code>process.release.name</code></a>.</p>
 <p>The returned buffer is statically allocated and does not need to be freed.</p>
 <h3>napi_get_version<span><a class="mark" href="#n_api_napi_get_version" id="n_api_napi_get_version">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_get_version(napi_env env,
-                                         uint32_t* result);
+</div><pre><code class="lang-C">napi_status napi_get_version(napi_env env,
+                             uint32_t* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -3031,8 +3227,158 @@ support it:</p>
 <li>If the function is not available, provide an alternate implementation
 that does not use the function.</li>
 </ul>
+<h2>Memory Management<span><a class="mark" href="#n_api_memory_management" id="n_api_memory_management">#</a></span></h2>
+<h3>napi_adjust_external_memory<span><a class="mark" href="#n_api_napi_adjust_external_memory" id="n_api_napi_adjust_external_memory">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_adjust_external_memory(napi_env env,
+                                                    int64_t change_in_bytes,
+                                                    int64_t* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] change_in_bytes</code>: The change in externally allocated memory that is
+kept alive by JavaScript objects.</li>
+<li><code>[out] result</code>: The adjusted value</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This function gives V8 an indication of the amount of externally allocated
+memory that is kept alive by JavaScript objects (i.e. a JavaScript object
+that points to its own memory allocated by a native module). Registering
+externally allocated memory will trigger global garbage collections more
+often than it would otherwise.</p>
 <!-- it's very convenient to have all the anchors indexed -->
 <!--lint disable no-unused-definitions remark-lint-->
+<h2>Promises<span><a class="mark" href="#n_api_promises" id="n_api_promises">#</a></span></h2>
+<p>N-API provides facilities for creating <code>Promise</code> objects as described in
+<a href="https://tc39.github.io/ecma262/#sec-promise-objects">Section 25.4</a> of the ECMA specification. It implements promises as a pair of
+objects. When a promise is created by <code>napi_create_promise()</code>, a &quot;deferred&quot;
+object is created and returned alongside the <code>Promise</code>. The deferred object is
+bound to the created <code>Promise</code> and is the only means to resolve or reject the
+<code>Promise</code> using <code>napi_resolve_deferred()</code> or <code>napi_reject_deferred()</code>. The
+deferred object that is created by <code>napi_create_promise()</code> is freed by
+<code>napi_resolve_deferred()</code> or <code>napi_reject_deferred()</code>. The <code>Promise</code> object may
+be returned to JavaScript where it can be used in the usual fashion.</p>
+<p>For example, to create a promise and pass it to an asynchronous worker:</p>
+<pre><code class="lang-c">napi_deferred deferred;
+napi_value promise;
+napi_status status;
+
+// Create the promise.
+status = napi_create_promise(env, &amp;deferred, &amp;promise);
+if (status != napi_ok) return NULL;
+
+// Pass the deferred to a function that performs an asynchronous action.
+do_something_asynchronous(deferred);
+
+// Return the promise to JS
+return promise;
+</code></pre>
+<p>The above function <code>do_something_asynchronous()</code> would perform its asynchronous
+action and then it would resolve or reject the deferred, thereby concluding the
+promise and freeing the deferred:</p>
+<pre><code class="lang-c">napi_deferred deferred;
+napi_value undefined;
+napi_status status;
+
+// Create a value with which to conclude the deferred.
+status = napi_get_undefined(env, &amp;undefined);
+if (status != napi_ok) return NULL;
+
+// Resolve or reject the promise associated with the deferred depending on
+// whether the asynchronous action succeeded.
+if (asynchronous_action_succeeded) {
+  status = napi_resolve_deferred(env, deferred, undefined);
+} else {
+  status = napi_reject_deferred(env, deferred, undefined);
+}
+if (status != napi_ok) return NULL;
+
+// At this point the deferred has been freed, so we should assign NULL to it.
+deferred = NULL;
+</code></pre>
+<h3>napi_create_promise<span><a class="mark" href="#n_api_napi_create_promise" id="n_api_napi_create_promise">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_promise(napi_env env,
+                                napi_deferred* deferred,
+                                napi_value* promise);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[out] deferred</code>: A newly created deferred object which can later be passed to
+<code>napi_resolve_deferred()</code> or <code>napi_reject_deferred()</code> to resolve resp. reject
+the associated promise.</li>
+<li><code>[out] promise</code>: The JavaScript promise associated with the deferred object.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API creates a deferred object and a JavaScript promise.</p>
+<h3>napi_resolve_deferred<span><a class="mark" href="#n_api_napi_resolve_deferred" id="n_api_napi_resolve_deferred">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">napi_status napi_resolve_deferred(napi_env env,
+                                  napi_deferred deferred,
+                                  napi_value resolution);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] deferred</code>: The deferred object whose associated promise to resolve.</li>
+<li><code>[in] resolution</code>: The value with which to resolve the promise.</li>
+</ul>
+<p>This API resolves a JavaScript promise by way of the deferred object
+with which it is associated. Thus, it can only be used to resolve JavaScript
+promises for which the corresponding deferred object is available. This
+effectively means that the promise must have been created using
+<code>napi_create_promise()</code> and the deferred object returned from that call must
+have been retained in order to be passed to this API.</p>
+<p>The deferred object is freed upon successful completion.</p>
+<h3>napi_reject_deferred<span><a class="mark" href="#n_api_napi_reject_deferred" id="n_api_napi_reject_deferred">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">napi_status napi_reject_deferred(napi_env env,
+                                 napi_deferred deferred,
+                                 napi_value rejection);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] deferred</code>: The deferred object whose associated promise to resolve.</li>
+<li><code>[in] rejection</code>: The value with which to reject the promise.</li>
+</ul>
+<p>This API rejects a JavaScript promise by way of the deferred object
+with which it is associated. Thus, it can only be used to reject JavaScript
+promises for which the corresponding deferred object is available. This
+effectively means that the promise must have been created using
+<code>napi_create_promise()</code> and the deferred object returned from that call must
+have been retained in order to be passed to this API.</p>
+<p>The deferred object is freed upon successful completion.</p>
+<h3>napi_is_promise<span><a class="mark" href="#n_api_napi_is_promise" id="n_api_napi_is_promise">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">napi_status napi_is_promise(napi_env env,
+                            napi_value promise,
+                            bool* is_promise);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] promise</code>: The promise to examine</li>
+<li><code>[out] is_promise</code>: Flag indicating whether <code>promise</code> is a native promise
+object - that is, a promise object created by the underlying engine.</li>
+</ul>
+<h2>Script execution<span><a class="mark" href="#n_api_script_execution" id="n_api_script_execution">#</a></span></h2>
+<p>N-API provides an API for executing a string containing JavaScript using the
+underlying JavaScript engine.</p>
+<h3>napi_run_script<span><a class="mark" href="#n_api_napi_run_script" id="n_api_napi_run_script">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_run_script(napi_env env,
+                                        napi_value script,
+                                        napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] script</code>: A JavaScript string containing the script to execute.</li>
+<li><code>[out] result</code>: The value resulting from having executed the script.</li>
+</ul>
 
       </div>
     </div>

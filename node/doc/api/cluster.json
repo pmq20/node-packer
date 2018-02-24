@@ -4,15 +4,16 @@
     {
       "textRaw": "Cluster",
       "name": "cluster",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>A single instance of Node.js runs in a single thread. To take advantage of\nmulti-core systems the user will sometimes want to launch a cluster of Node.js\nprocesses to handle the load.</p>\n<p>The cluster module allows easy creation of child processes that all share\nserver ports.</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\nconst numCPUs = require(&#39;os&#39;).cpus().length;\n\nif (cluster.isMaster) {\n  console.log(`Master ${process.pid} is running`);\n\n  // Fork workers.\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n    console.log(`worker ${worker.process.pid} died`);\n  });\n} else {\n  // Workers can share any TCP connection\n  // In this case it is an HTTP server\n  http.createServer((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n  }).listen(8000);\n\n  console.log(`Worker ${process.pid} started`);\n}\n</code></pre>\n<p>Running Node.js will now share port 8000 between the workers:</p>\n<pre><code class=\"lang-txt\">$ node server.js\nMaster 3596 is running\nWorker 4324 started\nWorker 4520 started\nWorker 6056 started\nWorker 5644 started\n</code></pre>\n<p>Please note that on Windows, it is not yet possible to set up a named pipe\nserver in a worker.</p>\n",
+      "desc": "<p>A single instance of Node.js runs in a single thread. To take advantage of\nmulti-core systems, the user will sometimes want to launch a cluster of Node.js\nprocesses to handle the load.</p>\n<p>The cluster module allows easy creation of child processes that all share\nserver ports.</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\nconst numCPUs = require(&#39;os&#39;).cpus().length;\n\nif (cluster.isMaster) {\n  console.log(`Master ${process.pid} is running`);\n\n  // Fork workers.\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  cluster.on(&#39;exit&#39;, (worker, code, signal) =&gt; {\n    console.log(`worker ${worker.process.pid} died`);\n  });\n} else {\n  // Workers can share any TCP connection\n  // In this case it is an HTTP server\n  http.createServer((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n  }).listen(8000);\n\n  console.log(`Worker ${process.pid} started`);\n}\n</code></pre>\n<p>Running Node.js will now share port 8000 between the workers:</p>\n<pre><code class=\"lang-txt\">$ node server.js\nMaster 3596 is running\nWorker 4324 started\nWorker 4520 started\nWorker 6056 started\nWorker 5644 started\n</code></pre>\n<p>Please note that on Windows, it is not yet possible to set up a named pipe\nserver in a worker.</p>\n",
       "miscs": [
         {
           "textRaw": "How It Works",
           "name": "How It Works",
           "type": "misc",
-          "desc": "<p>The worker processes are spawned using the <a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a> method,\nso that they can communicate with the parent via IPC and pass server\nhandles back and forth.</p>\n<p>The cluster module supports two methods of distributing incoming\nconnections.</p>\n<p>The first one (and the default one on all platforms except Windows),\nis the round-robin approach, where the master process listens on a\nport, accepts new connections and distributes them across the workers\nin a round-robin fashion, with some built-in smarts to avoid\noverloading a worker process.</p>\n<p>The second approach is where the master process creates the listen\nsocket and sends it to interested workers. The workers then accept\nincoming connections directly.</p>\n<p>The second approach should, in theory, give the best performance.\nIn practice however, distribution tends to be very unbalanced due\nto operating system scheduler vagaries. Loads have been observed\nwhere over 70% of all connections ended up in just two processes,\nout of a total of eight.</p>\n<p>Because <code>server.listen()</code> hands off most of the work to the master\nprocess, there are three cases where the behavior between a normal\nNode.js process and a cluster worker differs:</p>\n<ol>\n<li><code>server.listen({fd: 7})</code> Because the message is passed to the master,\nfile descriptor 7 <strong>in the parent</strong> will be listened on, and the\nhandle passed to the worker, rather than listening to the worker&#39;s\nidea of what the number 7 file descriptor references.</li>\n<li><code>server.listen(handle)</code> Listening on handles explicitly will cause\nthe worker to use the supplied handle, rather than talk to the master\nprocess.</li>\n<li><code>server.listen(0)</code> Normally, this will cause servers to listen on a\nrandom port.  However, in a cluster, each worker will receive the\nsame &quot;random&quot; port each time they do <code>listen(0)</code>.  In essence, the\nport is random the first time, but predictable thereafter. To listen\non a unique port, generate a port number based on the cluster worker ID.</li>\n</ol>\n<p><em>Note</em>: Node.js does not provide routing logic. It is, therefore important to\ndesign an application such that it does not rely too heavily on in-memory data\nobjects for things like sessions and login.</p>\n<p>Because workers are all separate processes, they can be killed or\nre-spawned depending on a program&#39;s needs, without affecting other\nworkers.  As long as there are some workers still alive, the server will\ncontinue to accept connections.  If no workers are alive, existing connections\nwill be dropped and new connections will be refused. Node.js does not\nautomatically manage the number of workers, however. It is the application&#39;s\nresponsibility to manage the worker pool based on its own needs.</p>\n"
+          "desc": "<p>The worker processes are spawned using the <a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a> method,\nso that they can communicate with the parent via IPC and pass server\nhandles back and forth.</p>\n<p>The cluster module supports two methods of distributing incoming\nconnections.</p>\n<p>The first one (and the default one on all platforms except Windows),\nis the round-robin approach, where the master process listens on a\nport, accepts new connections and distributes them across the workers\nin a round-robin fashion, with some built-in smarts to avoid\noverloading a worker process.</p>\n<p>The second approach is where the master process creates the listen\nsocket and sends it to interested workers. The workers then accept\nincoming connections directly.</p>\n<p>The second approach should, in theory, give the best performance.\nIn practice however, distribution tends to be very unbalanced due\nto operating system scheduler vagaries. Loads have been observed\nwhere over 70% of all connections ended up in just two processes,\nout of a total of eight.</p>\n<p>Because <code>server.listen()</code> hands off most of the work to the master\nprocess, there are three cases where the behavior between a normal\nNode.js process and a cluster worker differs:</p>\n<ol>\n<li><code>server.listen({fd: 7})</code> Because the message is passed to the master,\nfile descriptor 7 <strong>in the parent</strong> will be listened on, and the\nhandle passed to the worker, rather than listening to the worker&#39;s\nidea of what the number 7 file descriptor references.</li>\n<li><code>server.listen(handle)</code> Listening on handles explicitly will cause\nthe worker to use the supplied handle, rather than talk to the master\nprocess.</li>\n<li><code>server.listen(0)</code> Normally, this will cause servers to listen on a\nrandom port.  However, in a cluster, each worker will receive the\nsame &quot;random&quot; port each time they do <code>listen(0)</code>.  In essence, the\nport is random the first time, but predictable thereafter. To listen\non a unique port, generate a port number based on the cluster worker ID.</li>\n</ol>\n<p><em>Note</em>: Node.js does not provide routing logic. It is, therefore important to\ndesign an application such that it does not rely too heavily on in-memory data\nobjects for things like sessions and login.</p>\n<p>Because workers are all separate processes, they can be killed or\nre-spawned depending on a program&#39;s needs, without affecting other\nworkers.  As long as there are some workers still alive, the server will\ncontinue to accept connections.  If no workers are alive, existing connections\nwill be dropped and new connections will be refused. Node.js does not\nautomatically manage the number of workers, however. It is the application&#39;s\nresponsibility to manage the worker pool based on its own needs.</p>\n<p>Although a primary use case for the <code>cluster</code> module is networking, it can\nalso be used for other use cases requiring worker processes.</p>\n"
         }
       ],
       "classes": [
@@ -138,7 +139,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>In a worker, this function will close all servers, wait for the <code>&#39;close&#39;</code> event on\nthose servers, and then disconnect the IPC channel.</p>\n<p>In the master, an internal message is sent to the worker causing it to call\n<code>.disconnect()</code> on itself.</p>\n<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>\n<p>Note that after a server is closed, it will no longer accept new connections,\nbut connections may be accepted by any other listening worker. Existing\nconnections will be allowed to close as usual. When no more connections exist,\nsee <a href=\"net.html#net_event_close\"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it to\ndie gracefully.</p>\n<p>The above applies <em>only</em> to server connections, client connections are not\nautomatically closed by workers, and disconnect does not wait for them to close\nbefore exiting.</p>\n<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,\nit is <a href=\"child_process.html#child_process_child_disconnect\"><code>disconnect</code></a>.</p>\n<p>Because long living server connections may block workers from disconnecting, it\nmay be useful to send a message, so application specific actions may be taken to\nclose them. It also may be useful to implement a timeout, killing a worker if\nthe <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  let timeout;\n\n  worker.on(&#39;listening&#39;, (address) =&gt; {\n    worker.send(&#39;shutdown&#39;);\n    worker.disconnect();\n    timeout = setTimeout(() =&gt; {\n      worker.kill();\n    }, 2000);\n  });\n\n  worker.on(&#39;disconnect&#39;, () =&gt; {\n    clearTimeout(timeout);\n  });\n\n} else if (cluster.isWorker) {\n  const net = require(&#39;net&#39;);\n  const server = net.createServer((socket) =&gt; {\n    // connections never end\n  });\n\n  server.listen(8000);\n\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    if (msg === &#39;shutdown&#39;) {\n      // initiate graceful close of any connections to server\n    }\n  });\n}\n</code></pre>\n"
+              "desc": "<p>In a worker, this function will close all servers, wait for the <code>&#39;close&#39;</code> event on\nthose servers, and then disconnect the IPC channel.</p>\n<p>In the master, an internal message is sent to the worker causing it to call\n<code>.disconnect()</code> on itself.</p>\n<p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>\n<p>Note that after a server is closed, it will no longer accept new connections,\nbut connections may be accepted by any other listening worker. Existing\nconnections will be allowed to close as usual. When no more connections exist,\nsee <a href=\"net.html#net_event_close\"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it to\ndie gracefully.</p>\n<p>The above applies <em>only</em> to server connections, client connections are not\nautomatically closed by workers, and disconnect does not wait for them to close\nbefore exiting.</p>\n<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,\nit is <a href=\"child_process.html#child_process_subprocess_disconnect\"><code>disconnect</code></a>.</p>\n<p>Because long living server connections may block workers from disconnecting, it\nmay be useful to send a message, so application specific actions may be taken to\nclose them. It also may be useful to implement a timeout, killing a worker if\nthe <code>&#39;disconnect&#39;</code> event has not been emitted after some time.</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  let timeout;\n\n  worker.on(&#39;listening&#39;, (address) =&gt; {\n    worker.send(&#39;shutdown&#39;);\n    worker.disconnect();\n    timeout = setTimeout(() =&gt; {\n      worker.kill();\n    }, 2000);\n  });\n\n  worker.on(&#39;disconnect&#39;, () =&gt; {\n    clearTimeout(timeout);\n  });\n\n} else if (cluster.isWorker) {\n  const net = require(&#39;net&#39;);\n  const server = net.createServer((socket) =&gt; {\n    // connections never end\n  });\n\n  server.listen(8000);\n\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    if (msg === &#39;shutdown&#39;) {\n      // initiate graceful close of any connections to server\n    }\n  });\n}\n</code></pre>\n"
             },
             {
               "textRaw": "worker.isConnected()",
@@ -228,9 +229,9 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: Boolean ",
+                    "textRaw": "Returns: {boolean} ",
                     "name": "return",
-                    "desc": "Boolean"
+                    "type": "boolean"
                   },
                   "params": [
                     {
@@ -268,7 +269,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Send a message to a worker or master, optionally with a handle.</p>\n<p>In the master this sends a message to a specific worker. It is identical to\n<a href=\"child_process.html#child_process_child_send_message_sendhandle_options_callback\"><code>ChildProcess.send()</code></a>.</p>\n<p>In a worker this sends a message to the master. It is identical to\n<code>process.send()</code>.</p>\n<p>This example will echo back all messages from the master:</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  worker.send(&#39;hi there&#39;);\n\n} else if (cluster.isWorker) {\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    process.send(msg);\n  });\n}\n</code></pre>\n"
+              "desc": "<p>Send a message to a worker or master, optionally with a handle.</p>\n<p>In the master this sends a message to a specific worker. It is identical to\n<a href=\"child_process.html#child_process_subprocess_send_message_sendhandle_options_callback\"><code>ChildProcess.send()</code></a>.</p>\n<p>In a worker this sends a message to the master. It is identical to\n<code>process.send()</code>.</p>\n<p>This example will echo back all messages from the master:</p>\n<pre><code class=\"lang-js\">if (cluster.isMaster) {\n  const worker = cluster.fork();\n  worker.send(&#39;hi there&#39;);\n\n} else if (cluster.isWorker) {\n  process.on(&#39;message&#39;, (msg) =&gt; {\n    process.send(msg);\n  });\n}\n</code></pre>\n"
             }
           ],
           "properties": [
@@ -447,10 +448,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`callback` {Function} called when all workers are disconnected and handles are closed ",
+                  "textRaw": "`callback` {Function} Called when all workers are disconnected and handles are closed. ",
                   "name": "callback",
                   "type": "Function",
-                  "desc": "called when all workers are disconnected and handles are closed",
+                  "desc": "Called when all workers are disconnected and handles are closed.",
                   "optional": true
                 }
               ]
@@ -479,7 +480,7 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "return {cluster.Worker} ",
+                "textRaw": "Returns: {cluster.Worker} ",
                 "name": "return",
                 "type": "cluster.Worker"
               },
@@ -603,32 +604,28 @@
           },
           "options": [
             {
-              "textRaw": "`execArgv` {Array} List of string arguments passed to the Node.js executable. (Default=`process.execArgv`) ",
+              "textRaw": "`execArgv` {Array} List of string arguments passed to the Node.js executable. **Default:** `process.execArgv` ",
               "name": "execArgv",
-              "default": "process.execArgv",
               "type": "Array",
-              "desc": "List of string arguments passed to the Node.js executable."
+              "desc": "List of string arguments passed to the Node.js executable. **Default:** `process.execArgv`"
             },
             {
-              "textRaw": "`exec` {string} File path to worker file.  (Default=`process.argv[1]`) ",
+              "textRaw": "`exec` {string} File path to worker file. **Default:** `process.argv[1]` ",
               "name": "exec",
-              "default": "process.argv[1]",
               "type": "string",
-              "desc": "File path to worker file."
+              "desc": "File path to worker file. **Default:** `process.argv[1]`"
             },
             {
-              "textRaw": "`args` {Array} String arguments passed to worker. (Default=`process.argv.slice(2)`) ",
+              "textRaw": "`args` {Array} String arguments passed to worker. **Default:** `process.argv.slice(2)` ",
               "name": "args",
-              "default": "process.argv.slice(2)",
               "type": "Array",
-              "desc": "String arguments passed to worker."
+              "desc": "String arguments passed to worker. **Default:** `process.argv.slice(2)`"
             },
             {
-              "textRaw": "`silent` {boolean} Whether or not to send output to parent's stdio. (Default=`false`) ",
+              "textRaw": "`silent` {boolean} Whether or not to send output to parent's stdio. **Default:** `false` ",
               "name": "silent",
-              "default": "false",
               "type": "boolean",
-              "desc": "Whether or not to send output to parent's stdio."
+              "desc": "Whether or not to send output to parent's stdio. **Default:** `false`"
             },
             {
               "textRaw": "`stdio` {Array} Configures the stdio of forked processes. Because the cluster module relies on IPC to function, this configuration must contain an `'ipc'` entry. When this option is provided, it overrides `silent`. ",

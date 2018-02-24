@@ -1,5 +1,7 @@
 # Stream
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 A stream is an abstract interface for working with streaming data in Node.js.
@@ -66,8 +68,8 @@ buffer that can be retrieved using `writable._writableState.getBuffer()` or
 
 The amount of data potentially buffered depends on the `highWaterMark` option
 passed into the streams constructor. For normal streams, the `highWaterMark`
-option specifies a total number of bytes. For streams operating in object mode,
-the `highWaterMark` specifies a total number of objects.
+option specifies a [total number of bytes][hwm-gotcha]. For streams operating
+in object mode, the `highWaterMark` specifies a total number of objects.
 
 Data is buffered in Readable streams when the implementation calls
 [`stream.push(chunk)`][stream-push]. If the consumer of the Stream does not
@@ -314,7 +316,7 @@ reader.pipe(writer);
 added: v0.9.4
 -->
 
-* `src` {[Readable][] Stream} The source stream that
+* `src` {stream.Readable} The source stream that
   [unpiped][`stream.unpipe()`] this writable
 
 The `'unpipe'` event is emitted when the [`stream.unpipe()`][] method is called
@@ -754,7 +756,7 @@ available data. In the latter case, [`stream.read()`][stream-read] will return
 const fs = require('fs');
 const rr = fs.createReadStream('foo.txt');
 rr.on('readable', () => {
-  console.log('readable:', rr.read());
+  console.log(`readable: ${rr.read()}`);
 });
 rr.on('end', () => {
   console.log('end');
@@ -894,7 +896,7 @@ in object mode.
 The optional `size` argument specifies a specific number of bytes to read. If
 `size` bytes are not available to be read, `null` will be returned *unless*
 the stream has ended, in which case all of the data remaining in the internal
-buffer will be returned (*even if it exceeds `size` bytes*).
+buffer will be returned.
 
 If the `size` argument is not specified, all of the data contained in the
 internal buffer will be returned.
@@ -1383,7 +1385,7 @@ resource.
 [`writable._write()`][stream-_write].
 
 *Note*: This function MUST NOT be called by application code directly. It
-should be implemented by child classes, and called only by the internal Writable
+should be implemented by child classes, and called by the internal Writable
 class methods only.
 
 The `callback` method must be called to signal either that the write completed
@@ -1418,7 +1420,7 @@ user programs.
   argument) to be invoked when processing is complete for the supplied chunks.
 
 *Note*: This function MUST NOT be called by application code directly. It
-should be implemented by child classes, and called only by the internal Writable
+should be implemented by child classes, and called by the internal Writable
 class methods only.
 
 The `writable._writev()` method may be implemented in addition to
@@ -1435,9 +1437,12 @@ user programs.
 added: v8.0.0
 -->
 
-* `err` {Error} An error.
-* `callback` {Function} A callback function that takes an optional error argument
-  which is invoked when the writable is destroyed.
+* `err` {Error} A possible error.
+* `callback` {Function} A callback function that takes an optional error
+  argument.
+
+The `_destroy()` method is called by [`writable.destroy()`][writable-destroy].
+It can be overriden by child classes but it **must not** be called directly.
 
 #### writable.\_final(callback)
 <!-- YAML
@@ -1445,9 +1450,9 @@ added: v8.0.0
 -->
 
 * `callback` {Function} Call this function (optionally with an error
-  argument) when you are done writing any remaining data.
+  argument) when finished writing any remaining data.
 
-Note: `_final()` **must not** be called directly.  It MAY be implemented
+The `_final()` method **must not** be called directly. It may be implemented
 by child classes, and if so, will be called by the internal Writable
 class methods only.
 
@@ -1505,6 +1510,47 @@ class MyWritable extends Writable {
 }
 ```
 
+#### Decoding buffers in a Writable Stream
+
+Decoding buffers is a common task, for instance, when using transformers whose
+input is a string. This is not a trivial process when using multi-byte
+characters encoding, such as UTF-8. The following example shows how to decode
+multi-byte strings using `StringDecoder` and [Writable][].
+
+```js
+const { Writable } = require('stream');
+const { StringDecoder } = require('string_decoder');
+
+class StringWritable extends Writable {
+  constructor(options) {
+    super(options);
+    const state = this._writableState;
+    this._decoder = new StringDecoder(state.defaultEncoding);
+    this.data = '';
+  }
+  _write(chunk, encoding, callback) {
+    if (encoding === 'buffer') {
+      chunk = this._decoder.write(chunk);
+    }
+    this.data += chunk;
+    callback();
+  }
+  _final(callback) {
+    this.data += this._decoder.end();
+    callback();
+  }
+}
+
+const euro = [[0xE2, 0x82], [0xAC]].map(Buffer.from);
+const w = new StringWritable();
+
+w.write('currency: ');
+w.write(euro[0]);
+w.end(euro[1]);
+
+console.log(w.data); // currency: €
+```
+
 ### Implementing a Readable Stream
 
 The `stream.Readable` class is extended to implement a [Readable][] stream.
@@ -1515,9 +1561,9 @@ constructor and implement the `readable._read()` method.
 #### new stream.Readable([options])
 
 * `options` {Object}
-  * `highWaterMark` {number} The maximum number of bytes to store in
-    the internal buffer before ceasing to read from the underlying
-    resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams
+  * `highWaterMark` {number} The maximum [number of bytes][hwm-gotcha] to store
+    in the internal buffer before ceasing to read from the underlying resource.
+    Defaults to `16384` (16kb), or `16` for `objectMode` streams
   * `encoding` {string} If specified, then buffers will be decoded to
     strings using the specified encoding. Defaults to `null`
   * `objectMode` {boolean} Whether this stream should behave
@@ -1573,7 +1619,7 @@ const myReadable = new Readable({
 * `size` {number} Number of bytes to read asynchronously
 
 *Note*: This function MUST NOT be called by application code directly. It
-should be implemented by child classes, and called only by the internal Readable
+should be implemented by child classes, and called by the internal Readable
 class methods only.
 
 All Readable stream implementations must provide an implementation of the
@@ -1599,6 +1645,18 @@ The `readable._read()` method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
 user programs.
 
+#### readable.\_destroy(err, callback)
+<!-- YAML
+added: v8.0.0
+-->
+
+* `err` {Error} A possible error.
+* `callback` {Function} A callback function that takes an optional error
+  argument.
+
+The `_destroy()` method is called by [`readable.destroy()`][readable-destroy].
+It can be overriden by child classes but it **must not** be called directly.
+
 #### readable.push(chunk[, encoding])
 <!-- YAML
 changes:
@@ -1613,7 +1671,7 @@ changes:
   any JavaScript value.
 * `encoding` {string} Encoding of string chunks.  Must be a valid
   Buffer encoding, such as `'utf8'` or `'ascii'`
-* Returns {boolean} `true` if additional chunks of data may continued to be
+* Returns: {boolean} `true` if additional chunks of data may continued to be
   pushed; `false` otherwise.
 
 When `chunk` is a `Buffer`, `Uint8Array` or `string`, the `chunk` of data will
@@ -1974,7 +2032,7 @@ after all data has been output, which occurs after the callback in
   argument and data) to be called when remaining data has been flushed.
 
 *Note*: This function MUST NOT be called by application code directly. It
-should be implemented by child classes, and called only by the internal Readable
+should be implemented by child classes, and called by the internal Readable
 class methods only.
 
 In some cases, a transform operation may need to emit an additional bit of
@@ -2009,7 +2067,7 @@ user programs.
   processed.
 
 *Note*: This function MUST NOT be called by application code directly. It
-should be implemented by child classes, and called only by the internal Readable
+should be implemented by child classes, and called by the internal Readable
 class methods only.
 
 All Transform stream implementations must provide a `_transform()`
@@ -2155,6 +2213,19 @@ object mode has an interesting side effect. Because it *is* a call to
 However, because the argument is an empty string, no data is added to the
 readable buffer so there is nothing for a user to consume.
 
+### `highWaterMark` discrepancy after calling `readable.setEncoding()`
+
+The use of `readable.setEncoding()` will change the behavior of how the
+`highWaterMark` operates in non-object mode.
+
+Typically, the size of the current buffer is measured against the
+`highWaterMark` in _bytes_. However, after `setEncoding()` is called, the
+comparison function will begin to measure the buffer's size in _characters_.
+
+This is not a problem in common cases with `latin1` or `ascii`. But it is
+advised to be mindful about this behavior when working with strings that could
+contain multi-byte characters.
+
 [`'data'`]: #stream_event_data
 [`'drain'`]: #stream_event_drain
 [`'end'`]: #stream_event_end
@@ -2186,13 +2257,14 @@ readable buffer so there is nothing for a user to consume.
 [TCP sockets]: net.html#net_class_net_socket
 [Transform]: #stream_class_stream_transform
 [Writable]: #stream_class_stream_writable
-[child process stdin]: child_process.html#child_process_child_stdin
-[child process stdout and stderr]: child_process.html#child_process_child_stdout
+[child process stdin]: child_process.html#child_process_subprocess_stdin
+[child process stdout and stderr]: child_process.html#child_process_subprocess_stdout
 [crypto]: crypto.html
 [fs read streams]: fs.html#fs_class_fs_readstream
 [fs write streams]: fs.html#fs_class_fs_writestream
 [http-incoming-message]: http.html#http_class_http_incomingmessage
 [zlib]: zlib.html
+[hwm-gotcha]: #stream_highwatermark_discrepancy_after_calling_readable_setencoding
 [stream-_flush]: #stream_transform_flush_callback
 [stream-_read]: #stream_readable_read_size_1
 [stream-_transform]: #stream_transform_transform_chunk_encoding_callback
@@ -2206,4 +2278,6 @@ readable buffer so there is nothing for a user to consume.
 [stream-resume]: #stream_readable_resume
 [stream-write]: #stream_writable_write_chunk_encoding_callback
 [readable-_destroy]: #stream_readable_destroy_err_callback
+[readable-destroy]: #stream_readable_destroy_error
 [writable-_destroy]: #stream_writable_destroy_err_callback
+[writable-destroy]: #stream_writable_destroy_error

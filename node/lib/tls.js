@@ -23,12 +23,12 @@
 
 const internalUtil = require('internal/util');
 internalUtil.assertCrypto();
+const { isUint8Array } = require('internal/util/types');
 
 const net = require('net');
 const url = require('url');
 const binding = process.binding('crypto');
 const Buffer = require('buffer').Buffer;
-const { isUint8Array } = process.binding('util');
 
 // Allow {CLIENT_RENEG_LIMIT} client-initiated session renegotiations
 // every {CLIENT_RENEG_WINDOW} seconds. An error event is emitted if more
@@ -251,7 +251,6 @@ exports.parseCertString = function parseCertString(s) {
   return out;
 };
 
-// Public API
 exports.createSecureContext = require('_tls_common').createSecureContext;
 exports.SecureContext = require('_tls_common').SecureContext;
 exports.TLSSocket = require('_tls_wrap').TLSSocket;

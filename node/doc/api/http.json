@@ -4,6 +4,7 @@
     {
       "textRaw": "HTTP",
       "name": "http",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>To use the HTTP server and client one must <code>require(&#39;http&#39;)</code>.</p>\n<p>The HTTP interfaces in Node.js are designed to support many features\nof the protocol which have been traditionally difficult to use.\nIn particular, large, possibly chunk-encoded, messages. The interface is\ncareful to never buffer entire requests or responses--the\nuser is able to stream data.</p>\n<p>HTTP message headers are represented by an object like this:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{ &#39;content-length&#39;: &#39;123&#39;,\n  &#39;content-type&#39;: &#39;text/plain&#39;,\n  &#39;connection&#39;: &#39;keep-alive&#39;,\n  &#39;host&#39;: &#39;mysite.com&#39;,\n  &#39;accept&#39;: &#39;*/*&#39; }\n</code></pre>\n<p>Keys are lowercased. Values are not modified.</p>\n<p>In order to support the full spectrum of possible HTTP applications, Node.js&#39;s\nHTTP API is very low-level. It deals with stream handling and message\nparsing only. It parses a message into headers and body but it does not\nparse the actual headers or the body.</p>\n<p>See <a href=\"#http_message_headers\"><code>message.headers</code></a> for details on how duplicate headers are handled.</p>\n<p>The raw headers as they were received are retained in the <code>rawHeaders</code>\nproperty, which is an array of <code>[key, value, key2, value2, ...]</code>.  For\nexample, the previous message header object might have a <code>rawHeaders</code>\nlist like the following:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">[ &#39;ConTent-Length&#39;, &#39;123456&#39;,\n  &#39;content-LENGTH&#39;, &#39;123&#39;,\n  &#39;content-type&#39;, &#39;text/plain&#39;,\n  &#39;CONNECTION&#39;, &#39;keep-alive&#39;,\n  &#39;Host&#39;, &#39;mysite.com&#39;,\n  &#39;accepT&#39;, &#39;*/*&#39; ]\n</code></pre>\n",
@@ -18,7 +19,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>An <code>Agent</code> is responsible for managing connection persistence\nand reuse for HTTP clients. It maintains a queue of pending requests\nfor a given host and port, reusing a single socket connection for each\nuntil the queue is empty, at which time the socket is either destroyed\nor put into a pool where it is kept to be used again for requests to the\nsame host and port. Whether it is destroyed or pooled depends on the\n<code>keepAlive</code> <a href=\"#http_new_agent_options\">option</a>.</p>\n<p>Pooled connections have TCP Keep-Alive enabled for them, but servers may\nstill close idle connections, in which case they will be removed from the\npool and a new connection will be made when a new HTTP request is made for\nthat host and port. Servers may also refuse to allow multiple requests\nover the same connection, in which case the connection will have to be\nremade for every request and cannot be pooled. The <code>Agent</code> will still make\nthe requests to that server, but each one will occur over a new connection.</p>\n<p>When a connection is closed by the client or the server, it is removed\nfrom the pool. Any unused sockets in the pool will be unrefed so as not\nto keep the Node.js process running when there are no outstanding requests.\n(see <a href=\"net.html#net_socket_unref\">socket.unref()</a>).</p>\n<p>It is good practice, to <a href=\"#http_agent_destroy\"><code>destroy()</code></a> an <code>Agent</code> instance when it is no\nlonger in use, because unused sockets consume OS resources.</p>\n<p>Sockets are removed from an agent&#39;s pool when the socket emits either\na <code>&#39;close&#39;</code> event or an <code>&#39;agentRemove&#39;</code> event. When intending to keep one\nHTTP request open for a long time without keeping it in the pool, something\nlike the following may be done:</p>\n<pre><code class=\"lang-js\">http.get(options, (res) =&gt; {\n  // Do stuff\n}).on(&#39;socket&#39;, (socket) =&gt; {\n  socket.emit(&#39;agentRemove&#39;);\n});\n</code></pre>\n<p>An agent may also be used for an individual request. By providing\n<code>{agent: false}</code> as an option to the <code>http.get()</code> or <code>http.request()</code>\nfunctions, a one-time use <code>Agent</code> with default options will be used\nfor the client connection.</p>\n<p><code>agent:false</code>:</p>\n<pre><code class=\"lang-js\">http.get({\n  hostname: &#39;localhost&#39;,\n  port: 80,\n  path: &#39;/&#39;,\n  agent: false  // create a new agent just for this one request\n}, (res) =&gt; {\n  // Do stuff with response\n});\n</code></pre>\n",
+          "desc": "<p>An <code>Agent</code> is responsible for managing connection persistence\nand reuse for HTTP clients. It maintains a queue of pending requests\nfor a given host and port, reusing a single socket connection for each\nuntil the queue is empty, at which time the socket is either destroyed\nor put into a pool where it is kept to be used again for requests to the\nsame host and port. Whether it is destroyed or pooled depends on the\n<code>keepAlive</code> <a href=\"#http_new_agent_options\">option</a>.</p>\n<p>Pooled connections have TCP Keep-Alive enabled for them, but servers may\nstill close idle connections, in which case they will be removed from the\npool and a new connection will be made when a new HTTP request is made for\nthat host and port. Servers may also refuse to allow multiple requests\nover the same connection, in which case the connection will have to be\nremade for every request and cannot be pooled. The <code>Agent</code> will still make\nthe requests to that server, but each one will occur over a new connection.</p>\n<p>When a connection is closed by the client or the server, it is removed\nfrom the pool. Any unused sockets in the pool will be unrefed so as not\nto keep the Node.js process running when there are no outstanding requests.\n(see <a href=\"net.html#net_socket_unref\">socket.unref()</a>).</p>\n<p>It is good practice, to <a href=\"#http_agent_destroy\"><code>destroy()</code></a> an <code>Agent</code> instance when it is no\nlonger in use, because unused sockets consume OS resources.</p>\n<p>Sockets are removed from an agent when the socket emits either\na <code>&#39;close&#39;</code> event or an <code>&#39;agentRemove&#39;</code> event. When intending to keep one\nHTTP request open for a long time without keeping it in the agent, something\nlike the following may be done:</p>\n<pre><code class=\"lang-js\">http.get(options, (res) =&gt; {\n  // Do stuff\n}).on(&#39;socket&#39;, (socket) =&gt; {\n  socket.emit(&#39;agentRemove&#39;);\n});\n</code></pre>\n<p>An agent may also be used for an individual request. By providing\n<code>{agent: false}</code> as an option to the <code>http.get()</code> or <code>http.request()</code>\nfunctions, a one-time use <code>Agent</code> with default options will be used\nfor the client connection.</p>\n<p><code>agent:false</code>:</p>\n<pre><code class=\"lang-js\">http.get({\n  hostname: &#39;localhost&#39;,\n  port: 80,\n  path: &#39;/&#39;,\n  agent: false  // create a new agent just for this one request\n}, (res) =&gt; {\n  // Do stuff with response\n});\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "agent.createConnection(options[, callback])",
@@ -95,7 +96,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Called when <code>socket</code> is detached from a request and could be persisted by the\nAgent. Default behavior is to:</p>\n<pre><code class=\"lang-js\">socket.unref();\nsocket.setKeepAlive(agent.keepAliveMsecs);\n</code></pre>\n<p>This method can be overridden by a particular <code>Agent</code> subclass. If this\nmethod returns a falsy value, the socket will be destroyed instead of persisting\nit for use with the next request.</p>\n"
+              "desc": "<p>Called when <code>socket</code> is detached from a request and could be persisted by the\nAgent. Default behavior is to:</p>\n<pre><code class=\"lang-js\">socket.setKeepAlive(true, this.keepAliveMsecs);\nsocket.unref();\nreturn true;\n</code></pre>\n<p>This method can be overridden by a particular <code>Agent</code> subclass. If this\nmethod returns a falsy value, the socket will be destroyed instead of persisting\nit for use with the next request.</p>\n"
             },
             {
               "textRaw": "agent.reuseSocket(socket, request)",
@@ -190,6 +191,12 @@
                           "name": "localAddress",
                           "type": "string",
                           "desc": "Local interface to bind for network connections when issuing the request"
+                        },
+                        {
+                          "textRaw": "`family` {integer} Must be 4 or 6 if this doesn't equal `undefined`. ",
+                          "name": "family",
+                          "type": "integer",
+                          "desc": "Must be 4 or 6 if this doesn't equal `undefined`."
                         }
                       ],
                       "name": "options",
@@ -206,7 +213,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Get a unique name for a set of request options, to determine whether a\nconnection can be reused.  For an HTTP agent, this returns\n<code>host:port:localAddress</code>.  For an HTTPS agent, the name includes the\nCA, cert, ciphers, and other HTTPS/TLS-specific options that determine\nsocket reusability.</p>\n"
+              "desc": "<p>Get a unique name for a set of request options, to determine whether a\nconnection can be reused. For an HTTP agent, this returns\n<code>host:port:localAddress</code> or <code>host:port:localAddress:family</code>. For an HTTPS agent,\nthe name includes the CA, cert, ciphers, and other HTTPS/TLS-specific options\nthat determine socket reusability.</p>\n"
             }
           ],
           "properties": [
@@ -244,7 +251,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>By default set to Infinity. Determines how many concurrent sockets the agent\ncan have open per origin. Origin is either a &#39;host:port&#39; or\n&#39;host:port:localAddress&#39; combination.</p>\n"
+              "desc": "<p>By default set to Infinity. Determines how many concurrent sockets the agent\ncan have open per origin. Origin is the returned value of <a href=\"#http_agent_getname_options\"><code>agent.getName()</code></a>.</p>\n"
             },
             {
               "textRaw": "`requests` {Object} ",
@@ -331,7 +338,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>This object is created internally and returned from <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a>.  It\nrepresents an <em>in-progress</em> request whose header has already been queued.  The\nheader is still mutable using the <code>setHeader(name, value)</code>, <code>getHeader(name)</code>,\n<code>removeHeader(name)</code> API.  The actual header will be sent along with the first\ndata chunk or when closing the connection.</p>\n<p>To get the response, add a listener for <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> to the request object.\n<a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> will be emitted from the request object when the response\nheaders have been received.  The <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event is executed with one\nargument which is an instance of <a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a>.</p>\n<p>During the <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event, one can add listeners to the\nresponse object; particularly to listen for the <code>&#39;data&#39;</code> event.</p>\n<p>If no <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> handler is added, then the response will be\nentirely discarded.  However, if a <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event handler is added,\nthen the data from the response object <strong>must</strong> be consumed, either by\ncalling <code>response.read()</code> whenever there is a <code>&#39;readable&#39;</code> event, or\nby adding a <code>&#39;data&#39;</code> handler, or by calling the <code>.resume()</code> method.\nUntil the data is consumed, the <code>&#39;end&#39;</code> event will not fire.  Also, until\nthe data is read it will consume memory that can eventually lead to a\n&#39;process out of memory&#39; error.</p>\n<p><em>Note</em>: Node.js does not check whether Content-Length and the length of the\nbody which has been transmitted are equal or not.</p>\n<p>The request implements the <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a> interface. This is an\n<a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
+          "desc": "<p>This object is created internally and returned from <a href=\"#http_http_request_options_callback\"><code>http.request()</code></a>.  It\nrepresents an <em>in-progress</em> request whose header has already been queued.  The\nheader is still mutable using the <a href=\"#http_request_setheader_name_value\"><code>setHeader(name, value)</code></a>,\n <a href=\"#http_request_getheader_name\"><code>getHeader(name)</code></a>, <a href=\"#http_request_removeheader_name\"><code>removeHeader(name)</code></a> API.  The actual header will\nbe sent along with the first data chunk or when calling <a href=\"#http_request_end_data_encoding_callback\"><code>request.end()</code></a>.</p>\n<p>To get the response, add a listener for <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> to the request object.\n<a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> will be emitted from the request object when the response\nheaders have been received.  The <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event is executed with one\nargument which is an instance of <a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a>.</p>\n<p>During the <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event, one can add listeners to the\nresponse object; particularly to listen for the <code>&#39;data&#39;</code> event.</p>\n<p>If no <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> handler is added, then the response will be\nentirely discarded.  However, if a <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event handler is added,\nthen the data from the response object <strong>must</strong> be consumed, either by\ncalling <code>response.read()</code> whenever there is a <code>&#39;readable&#39;</code> event, or\nby adding a <code>&#39;data&#39;</code> handler, or by calling the <code>.resume()</code> method.\nUntil the data is consumed, the <code>&#39;end&#39;</code> event will not fire.  Also, until\nthe data is read it will consume memory that can eventually lead to a\n&#39;process out of memory&#39; error.</p>\n<p><em>Note</em>: Node.js does not check whether Content-Length and the length of the\nbody which has been transmitted are equal or not.</p>\n<p>The request implements the <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a> interface. This is an\n<a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
           "events": [
             {
               "textRaw": "Event: 'abort'",
@@ -344,19 +351,6 @@
                 "changes": []
               },
               "desc": "<p>Emitted when the request has been aborted by the client. This event is only\nemitted on the first call to <code>abort()</code>.</p>\n",
-              "params": []
-            },
-            {
-              "textRaw": "Event: 'aborted'",
-              "type": "event",
-              "name": "aborted",
-              "meta": {
-                "added": [
-                  "v0.3.8"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Emitted when the request has been aborted by the server and the network\nsocket has closed.</p>\n",
               "params": []
             },
             {
@@ -410,6 +404,19 @@
               },
               "params": [],
               "desc": "<p>Emitted after a socket is assigned to this request.</p>\n"
+            },
+            {
+              "textRaw": "Event: 'timeout'",
+              "type": "event",
+              "name": "timeout",
+              "meta": {
+                "added": [
+                  "v0.7.8"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Emitted when the underlying socket times out from inactivity. This only notifies\nthat the socket has been idle. The request must be aborted manually.</p>\n<p>See also: <a href=\"#http_request_settimeout_timeout_callback\"><code>request.setTimeout()</code></a></p>\n",
+              "params": []
             },
             {
               "textRaw": "Event: 'upgrade'",
@@ -511,6 +518,109 @@
                   "params": []
                 }
               ]
+            },
+            {
+              "textRaw": "request.getHeader(name)",
+              "type": "method",
+              "name": "getHeader",
+              "meta": {
+                "added": [
+                  "v1.6.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {string} ",
+                    "name": "return",
+                    "type": "string"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`name` {string} ",
+                      "name": "name",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "name"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Reads out a header on the request. Note that the name is case insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const contentType = request.getHeader(&#39;Content-Type&#39;);\n</code></pre>\n"
+            },
+            {
+              "textRaw": "request.removeHeader(name)",
+              "type": "method",
+              "name": "removeHeader",
+              "meta": {
+                "added": [
+                  "v1.6.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`name` {string} ",
+                      "name": "name",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "name"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Removes a header that&#39;s already defined into headers object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">request.removeHeader(&#39;Content-Type&#39;);\n</code></pre>\n"
+            },
+            {
+              "textRaw": "request.setHeader(name, value)",
+              "type": "method",
+              "name": "setHeader",
+              "meta": {
+                "added": [
+                  "v1.6.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`name` {string} ",
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`value` {string} ",
+                      "name": "value",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "name"
+                    },
+                    {
+                      "name": "value"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Sets a single header value for headers object. If this header already exists in\nthe to-be-sent headers, its value will be replaced. Use an array of strings\nhere to send multiple headers with the same name.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">request.setHeader(&#39;Content-Type&#39;, &#39;application/json&#39;);\n</code></pre>\n<p>or</p>\n<pre><code class=\"lang-js\">request.setHeader(&#39;Set-Cookie&#39;, [&#39;type=ninja&#39;, &#39;language=javascript&#39;]);\n</code></pre>\n"
             },
             {
               "textRaw": "request.setNoDelay([noDelay])",
@@ -713,7 +823,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>request.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst server = http.createServer((req, res) =&gt; {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>\n"
+              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>request.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst options = {\n  host: &#39;www.google.com&#39;,\n};\nconst req = http.get(options);\nreq.end();\nreq.once(&#39;response&#39;, (res) =&gt; {\n  const ip = req.socket.localAddress;\n  const port = req.socket.localPort;\n  console.log(`Your IP address is ${ip} and your source port is ${port}.`);\n  // consume response object\n});\n</code></pre>\n"
             }
           ]
         },
@@ -874,146 +984,15 @@
               "desc": "<p>Stops the server from accepting new connections.  See <a href=\"net.html#net_server_close_callback\"><code>net.Server.close()</code></a>.</p>\n"
             },
             {
-              "textRaw": "server.listen(handle[, callback])",
+              "textRaw": "server.listen()",
               "type": "method",
               "name": "listen",
-              "meta": {
-                "added": [
-                  "v0.5.10"
-                ],
-                "changes": []
-              },
+              "desc": "<p>Starts the HTTP server listening for connections.\nThis method is identical to <a href=\"net.html#net_server_listen\"><code>server.listen()</code></a> from <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a>.</p>\n",
               "signatures": [
                 {
-                  "params": [
-                    {
-                      "textRaw": "`handle` {Object} ",
-                      "name": "handle",
-                      "type": "Object"
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "handle"
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
+                  "params": []
                 }
-              ],
-              "desc": "<p>The <code>handle</code> object can be set to either a server or socket (anything\nwith an underlying <code>_handle</code> member), or a <code>{fd: &lt;n&gt;}</code> object.</p>\n<p>This will cause the server to accept connections on the specified\nhandle, but it is presumed that the file descriptor or handle has\nalready been bound to a port or domain socket.</p>\n<p>Listening on a file descriptor is not supported on Windows.</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event. See also <a href=\"net.html#net_server_listen_handle_backlog_callback\"><code>net.Server.listen()</code></a>.</p>\n<p>Returns <code>server</code>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
-            },
-            {
-              "textRaw": "server.listen(path[, callback])",
-              "type": "method",
-              "name": "listen",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`path` {string} ",
-                      "name": "path",
-                      "type": "string"
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "path"
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Start a UNIX socket server listening for connections on the given <code>path</code>.</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event.  See also <a href=\"net.html#net_server_listen_path_backlog_callback\"><code>net.Server.listen(path)</code></a>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
-            },
-            {
-              "textRaw": "server.listen([port][, hostname][, backlog][, callback])",
-              "type": "method",
-              "name": "listen",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`port` {number} ",
-                      "name": "port",
-                      "type": "number",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`hostname` {string} ",
-                      "name": "hostname",
-                      "type": "string",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`backlog` {number} ",
-                      "name": "backlog",
-                      "type": "number",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "port",
-                      "optional": true
-                    },
-                    {
-                      "name": "hostname",
-                      "optional": true
-                    },
-                    {
-                      "name": "backlog",
-                      "optional": true
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Begin accepting connections on the specified <code>port</code> and <code>hostname</code>. If the\n<code>hostname</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: In most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n<p>Omit the port argument, or use a port value of <code>0</code>, to have the operating system\nassign a random port, which can be retrieved by using <code>server.address().port</code>\nafter the <code>&#39;listening&#39;</code> event has been emitted.</p>\n<p>To listen to a unix socket, supply a filename instead of port and hostname.</p>\n<p><code>backlog</code> is the maximum length of the queue of pending connections.\nThe actual length will be determined by the OS through sysctl settings such as\n<code>tcp_max_syn_backlog</code> and <code>somaxconn</code> on linux. The default value of this\nparameter is 511 (not 512).</p>\n<p>This function is asynchronous. <code>callback</code> will be added as a listener for the\n<a href=\"net.html#net_event_listening\"><code>&#39;listening&#39;</code></a> event.  See also <a href=\"net.html#net_server_listen_port_host_backlog_callback\"><code>net.Server.listen(port)</code></a>.</p>\n<p><em>Note</em>: The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n"
+              ]
             },
             {
               "textRaw": "server.setTimeout([msecs][, callback])",
@@ -1651,7 +1630,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>response.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst server = http.createServer((req, res) =&gt; {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>\n"
+              "desc": "<p>Reference to the underlying socket. Usually users will not want to access\nthis property. In particular, the socket will not emit <code>&#39;readable&#39;</code> events\nbecause of how the protocol parser attaches to the socket. After\n<code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed\nvia <code>response.connection</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\nconst server = http.createServer((req, res) =&gt; {\n  const ip = res.socket.remoteAddress;\n  const port = res.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>\n"
             },
             {
               "textRaw": "`statusCode` {number} ",
@@ -1701,7 +1680,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Emitted when the request has been aborted by the client and the network\nsocket has closed.</p>\n",
+              "desc": "<p>Emitted when the request has been aborted and the network socket has closed.</p>\n",
               "params": []
             },
             {
@@ -2040,7 +2019,7 @@
               ]
             }
           ],
-          "desc": "<p>Since most requests are GET requests without bodies, Node.js provides this\nconvenience method. The only difference between this method and\n<a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> is that it sets the method to GET and calls <code>req.end()</code>\nautomatically. Note that response data must be consumed in the callback\nfor reasons stated in <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a> section.</p>\n<p>The <code>callback</code> is invoked with a single argument that is an instance of\n<a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a></p>\n<p>JSON Fetching Example:</p>\n<pre><code class=\"lang-js\">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {\n  const { statusCode } = res;\n  const contentType = res.headers[&#39;content-type&#39;];\n\n  let error;\n  if (statusCode !== 200) {\n    error = new Error(&#39;Request Failed.\\n&#39; +\n                      `Status Code: ${statusCode}`);\n  } else if (!/^application\\/json/.test(contentType)) {\n    error = new Error(&#39;Invalid content-type.\\n&#39; +\n                      `Expected application/json but received ${contentType}`);\n  }\n  if (error) {\n    console.error(error.message);\n    // consume response data to free up memory\n    res.resume();\n    return;\n  }\n\n  res.setEncoding(&#39;utf8&#39;);\n  let rawData = &#39;&#39;;\n  res.on(&#39;data&#39;, (chunk) =&gt; { rawData += chunk; });\n  res.on(&#39;end&#39;, () =&gt; {\n    try {\n      const parsedData = JSON.parse(rawData);\n      console.log(parsedData);\n    } catch (e) {\n      console.error(e.message);\n    }\n  });\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.error(`Got error: ${e.message}`);\n});\n</code></pre>\n"
+          "desc": "<p>Since most requests are GET requests without bodies, Node.js provides this\nconvenience method. The only difference between this method and\n<a href=\"#http_http_request_options_callback\"><code>http.request()</code></a> is that it sets the method to GET and calls <code>req.end()</code>\nautomatically. Note that the callback must take care to consume the response\ndata for reasons stated in <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a> section.</p>\n<p>The <code>callback</code> is invoked with a single argument that is an instance of\n<a href=\"#http_class_http_incomingmessage\"><code>http.IncomingMessage</code></a></p>\n<p>JSON Fetching Example:</p>\n<pre><code class=\"lang-js\">http.get(&#39;http://nodejs.org/dist/index.json&#39;, (res) =&gt; {\n  const { statusCode } = res;\n  const contentType = res.headers[&#39;content-type&#39;];\n\n  let error;\n  if (statusCode !== 200) {\n    error = new Error(&#39;Request Failed.\\n&#39; +\n                      `Status Code: ${statusCode}`);\n  } else if (!/^application\\/json/.test(contentType)) {\n    error = new Error(&#39;Invalid content-type.\\n&#39; +\n                      `Expected application/json but received ${contentType}`);\n  }\n  if (error) {\n    console.error(error.message);\n    // consume response data to free up memory\n    res.resume();\n    return;\n  }\n\n  res.setEncoding(&#39;utf8&#39;);\n  let rawData = &#39;&#39;;\n  res.on(&#39;data&#39;, (chunk) =&gt; { rawData += chunk; });\n  res.on(&#39;end&#39;, () =&gt; {\n    try {\n      const parsedData = JSON.parse(rawData);\n      console.log(parsedData);\n    } catch (e) {\n      console.error(e.message);\n    }\n  });\n}).on(&#39;error&#39;, (e) =&gt; {\n  console.error(`Got error: ${e.message}`);\n});\n</code></pre>\n"
         },
         {
           "textRaw": "http.request(options[, callback])",
@@ -2195,7 +2174,7 @@
               ]
             }
           ],
-          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object, a string, or a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> object. If <code>options</code> is a\nstring, it is automatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>. If it is a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a>\nobject, it will be automatically converted to an ordinary <code>options</code> object.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const postData = querystring.stringify({\n  &#39;msg&#39;: &#39;Hello World!&#39;\n});\n\nconst options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nconst req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify the end of the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, both a timeout and a listener\nfor the <code>continue</code> event should be set. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n<p>Example using a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> as <code>options</code>:</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\n\nconst options = new URL(&#39;http://abc:xyz@example.com&#39;);\n\nconst req = http.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n"
+          "desc": "<p>Node.js maintains several connections per server to make HTTP requests.\nThis function allows one to transparently issue requests.</p>\n<p><code>options</code> can be an object, a string, or a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> object. If <code>options</code> is a\nstring, it is automatically parsed with <a href=\"url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>. If it is a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a>\nobject, it will be automatically converted to an ordinary <code>options</code> object.</p>\n<p>The optional <code>callback</code> parameter will be added as a one-time listener for\nthe <a href=\"#http_event_response\"><code>&#39;response&#39;</code></a> event.</p>\n<p><code>http.request()</code> returns an instance of the <a href=\"#http_class_http_clientrequest\"><code>http.ClientRequest</code></a>\nclass. The <code>ClientRequest</code> instance is a writable stream. If one needs to\nupload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const postData = querystring.stringify({\n  &#39;msg&#39;: &#39;Hello World!&#39;\n});\n\nconst options = {\n  hostname: &#39;www.google.com&#39;,\n  port: 80,\n  path: &#39;/upload&#39;,\n  method: &#39;POST&#39;,\n  headers: {\n    &#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;,\n    &#39;Content-Length&#39;: Buffer.byteLength(postData)\n  }\n};\n\nconst req = http.request(options, (res) =&gt; {\n  console.log(`STATUS: ${res.statusCode}`);\n  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);\n  res.setEncoding(&#39;utf8&#39;);\n  res.on(&#39;data&#39;, (chunk) =&gt; {\n    console.log(`BODY: ${chunk}`);\n  });\n  res.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;No more data in response.&#39;);\n  });\n});\n\nreq.on(&#39;error&#39;, (e) =&gt; {\n  console.error(`problem with request: ${e.message}`);\n});\n\n// write data to request body\nreq.write(postData);\nreq.end();\n</code></pre>\n<p>Note that in the example <code>req.end()</code> was called. With <code>http.request()</code> one\nmust always call <code>req.end()</code> to signify the end of the request -\neven if there is no data being written to the request body.</p>\n<p>If any error is encountered during the request (be that with DNS resolution,\nTCP level errors, or actual HTTP parse errors) an <code>&#39;error&#39;</code> event is emitted\non the returned request object. As with all <code>&#39;error&#39;</code> events, if no listeners\nare registered the error will be thrown.</p>\n<p>There are a few special headers that should be noted.</p>\n<ul>\n<li><p>Sending a &#39;Connection: keep-alive&#39; will notify Node.js that the connection to\nthe server should be persisted until the next request.</p>\n</li>\n<li><p>Sending a &#39;Content-Length&#39; header will disable the default chunked encoding.</p>\n</li>\n<li><p>Sending an &#39;Expect&#39; header will immediately send the request headers.\nUsually, when sending &#39;Expect: 100-continue&#39;, both a timeout and a listener\nfor the <code>continue</code> event should be set. See RFC2616 Section 8.2.3 for more\ninformation.</p>\n</li>\n<li><p>Sending an Authorization header will override using the <code>auth</code> option\nto compute basic authentication.</p>\n</li>\n</ul>\n<p>Example using a <a href=\"url.html#url_the_whatwg_url_api\"><code>URL</code></a> as <code>options</code>:</p>\n<pre><code class=\"lang-js\">const { URL } = require(&#39;url&#39;);\n\nconst options = new URL(&#39;http://abc:xyz@example.com&#39;);\n\nconst req = http.request(options, (res) =&gt; {\n  // ...\n});\n</code></pre>\n"
         }
       ],
       "type": "module",

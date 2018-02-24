@@ -10,6 +10,7 @@
   * [Running all benchmarks](#running-all-benchmarks)
   * [Comparing Node.js versions](#comparing-nodejs-versions)
   * [Comparing parameters](#comparing-parameters)
+  * [Running Benchmarks on the CI](#running-benchmarks-on-the-ci)
 * [Creating a benchmark](#creating-a-benchmark)
   * [Basics of a benchmark](#basics-of-a-benchmark)
   * [Creating an HTTP benchmark](#creating-an-http-benchmark)
@@ -103,7 +104,7 @@ buffers/buffer-tostring.js n=10000000 len=1024 arg=false: 4103857.0726124765
 Each line represents a single benchmark with parameters specified as
 `${variable}=${value}`. Each configuration combination is executed in a separate
 process. This ensures that benchmark results aren't affected by the execution
-order due to v8 optimizations. **The last number is the rate of operations
+order due to V8 optimizations. **The last number is the rate of operations
 measured in ops/sec (higher is better).**
 
 Furthermore a subset of the configurations can be specified, by setting them in
@@ -162,6 +163,19 @@ an example. This pull request _claims_ to improve the performance of the
 First build two versions of Node.js, one from the master branch (here called
 `./node-master`) and another with the pull request applied (here called
 `./node-pr-5134`).
+
+To run multiple compiled versions in parallel you need to copy the output of the
+build: `cp ./out/Release/node ./node-master`. Check out the following example:
+
+```console
+$ git checkout master
+$ ./configure && make -j4
+$ cp ./out/Release/node ./node-master
+
+$ git checkout pr-5134
+$ ./configure && make -j4
+$ cp ./out/Release/node ./node-pr-5134
+```
 
 The `compare.js` tool will then produce a csv file with the benchmark results.
 
@@ -298,6 +312,11 @@ chunk     encoding       mean confidence.interval
 
 ![compare tool boxplot](doc_img/scatter-plot.png)
 
+### Running Benchmarks on the CI
+
+To see the performance impact of a Pull Request by running benchmarks on
+the CI, check out [How to: Running core benchmarks on Node.js CI][benchmark-ci].
+
 ## Creating a benchmark
 
 ### Basics of a benchmark
@@ -432,3 +451,4 @@ Supported options keys are:
 [t-test]: https://en.wikipedia.org/wiki/Student%27s_t-test#Equal_or_unequal_sample_sizes.2C_unequal_variances
 [git-for-windows]: http://git-scm.com/download/win
 [nghttp2.org]: http://nghttp2.org
+[benchmark-ci]: https://github.com/nodejs/benchmarking/blob/master/docs/core_benchmarks.md

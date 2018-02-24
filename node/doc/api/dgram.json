@@ -4,6 +4,7 @@
     {
       "textRaw": "UDP / Datagram Sockets",
       "name": "dgram",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>dgram</code> module provides an implementation of UDP Datagram sockets.</p>\n<pre><code class=\"lang-js\">const dgram = require(&#39;dgram&#39;);\nconst server = dgram.createSocket(&#39;udp4&#39;);\n\nserver.on(&#39;error&#39;, (err) =&gt; {\n  console.log(`server error:\\n${err.stack}`);\n  server.close();\n});\n\nserver.on(&#39;message&#39;, (msg, rinfo) =&gt; {\n  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);\n});\n\nserver.on(&#39;listening&#39;, () =&gt; {\n  const address = server.address();\n  console.log(`server listening ${address.address}:${address.port}`);\n});\n\nserver.bind(41234);\n// server listening 0.0.0.0:41234\n</code></pre>\n",
@@ -69,7 +70,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} - The message</li>\n<li><code>rinfo</code> {Object} - Remote address information<ul>\n<li><code>address</code> {string} The sender address</li>\n<li><code>family</code> {string} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>)</li>\n<li><code>port</code> {number} The sender port</li>\n<li><code>size</code> {number} The message size</li>\n</ul>\n</li>\n</ul>\n",
+              "desc": "<p>The <code>&#39;message&#39;</code> event is emitted when a new datagram is available on a socket.\nThe event handler function is passed two arguments: <code>msg</code> and <code>rinfo</code>.</p>\n<ul>\n<li><code>msg</code> {Buffer} The message.</li>\n<li><code>rinfo</code> {Object} Remote address information.<ul>\n<li><code>address</code> {string} The sender address.</li>\n<li><code>family</code> {string} The address family (<code>&#39;IPv4&#39;</code> or <code>&#39;IPv6&#39;</code>).</li>\n<li><code>port</code> {number} The sender port.</li>\n<li><code>size</code> {number} The message size.</li>\n</ul>\n</li>\n</ul>\n",
               "params": []
             }
           ],
@@ -93,7 +94,7 @@
                       "type": "string"
                     },
                     {
-                      "textRaw": "`multicastInterface` {string}, Optional ",
+                      "textRaw": "`multicastInterface` {string} ",
                       "name": "multicastInterface",
                       "type": "string",
                       "optional": true
@@ -145,23 +146,23 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`port` {number} - Integer, Optional ",
+                      "textRaw": "`port` {number} Integer. ",
                       "name": "port",
                       "type": "number",
-                      "optional": true,
-                      "desc": "Integer"
+                      "desc": "Integer.",
+                      "optional": true
                     },
                     {
-                      "textRaw": "`address` {string}, Optional ",
+                      "textRaw": "`address` {string} ",
                       "name": "address",
                       "type": "string",
                       "optional": true
                     },
                     {
-                      "textRaw": "`callback` {Function} with no parameters, Optional. Called when binding is complete. ",
+                      "textRaw": "`callback` {Function} with no parameters. Called when binding is complete. ",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "with no parameters, Optional. Called when binding is complete.",
+                      "desc": "with no parameters. Called when binding is complete.",
                       "optional": true
                     }
                   ]
@@ -199,25 +200,22 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`options` {Object} - Required. Supports the following properties: ",
+                      "textRaw": "`options` {Object} Required. Supports the following properties: ",
                       "options": [
                         {
-                          "textRaw": "`port` {number} - Optional. ",
+                          "textRaw": "`port` {Integer} ",
                           "name": "port",
-                          "type": "number",
-                          "desc": "Optional."
+                          "type": "Integer"
                         },
                         {
-                          "textRaw": "`address` {string} - Optional. ",
+                          "textRaw": "`address` {string} ",
                           "name": "address",
-                          "type": "string",
-                          "desc": "Optional."
+                          "type": "string"
                         },
                         {
-                          "textRaw": "`exclusive` {boolean} - Optional. ",
+                          "textRaw": "`exclusive` {boolean} ",
                           "name": "exclusive",
-                          "type": "boolean",
-                          "desc": "Optional."
+                          "type": "boolean"
                         }
                       ],
                       "name": "options",
@@ -225,10 +223,9 @@
                       "desc": "Required. Supports the following properties:"
                     },
                     {
-                      "textRaw": "`callback` {Function} - Optional. ",
+                      "textRaw": "`callback` {Function} ",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Optional.",
                       "optional": true
                     }
                   ]
@@ -288,7 +285,7 @@
                       "type": "string"
                     },
                     {
-                      "textRaw": "`multicastInterface` {string}, Optional ",
+                      "textRaw": "`multicastInterface` {string} ",
                       "name": "multicastInterface",
                       "type": "string",
                       "optional": true
@@ -308,6 +305,32 @@
                 }
               ],
               "desc": "<p>Instructs the kernel to leave a multicast group at <code>multicastAddress</code> using the\n<code>IP_DROP_MEMBERSHIP</code> socket option. This method is automatically called by the\nkernel when the socket is closed or the process terminates, so most apps will\nnever have reason to call this.</p>\n<p>If <code>multicastInterface</code> is not specified, the operating system will attempt to\ndrop membership on all valid interfaces.</p>\n"
+            },
+            {
+              "textRaw": "socket.getSendBufferSize()",
+              "type": "method",
+              "name": "getSendBufferSize",
+              "meta": {
+                "added": [
+                  "v8.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns {number} the `SO_SNDBUF` socket send buffer size in bytes. ",
+                    "name": "return",
+                    "type": "number",
+                    "desc": "the `SO_SNDBUF` socket send buffer size in bytes."
+                  },
+                  "params": []
+                },
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>By default, binding a socket will cause it to block the Node.js process from\nexiting as long as the socket is open. The <code>socket.unref()</code> method can be used\nto exclude the socket from the reference counting that keeps the Node.js\nprocess active. The <code>socket.ref()</code> method adds the socket back to the reference\ncounting and restores the default behavior.</p>\n<p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>\n<p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be\nchained.</p>\n"
             },
             {
               "textRaw": "socket.ref()",
@@ -361,23 +384,23 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`msg` {Buffer|Uint8Array|string|array} Message to be sent ",
+                      "textRaw": "`msg` {Buffer|Uint8Array|string|Array} Message to be sent. ",
                       "name": "msg",
-                      "type": "Buffer|Uint8Array|string|array",
-                      "desc": "Message to be sent"
+                      "type": "Buffer|Uint8Array|string|Array",
+                      "desc": "Message to be sent."
                     },
                     {
-                      "textRaw": "`offset` {number} Integer. Optional. Offset in the buffer where the message starts. ",
+                      "textRaw": "`offset` {number} Integer. Offset in the buffer where the message starts. ",
                       "name": "offset",
                       "type": "number",
-                      "desc": "Integer. Optional. Offset in the buffer where the message starts.",
+                      "desc": "Integer. Offset in the buffer where the message starts.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`length` {number} Integer. Optional. Number of bytes in the message. ",
+                      "textRaw": "`length` {number} Integer. Number of bytes in the message. ",
                       "name": "length",
                       "type": "number",
-                      "desc": "Integer. Optional. Number of bytes in the message.",
+                      "desc": "Integer. Number of bytes in the message.",
                       "optional": true
                     },
                     {
@@ -387,17 +410,17 @@
                       "desc": "Integer. Destination port."
                     },
                     {
-                      "textRaw": "`address` {string} Destination hostname or IP address. Optional. ",
+                      "textRaw": "`address` {string} Destination hostname or IP address. ",
                       "name": "address",
                       "type": "string",
-                      "desc": "Destination hostname or IP address. Optional.",
+                      "desc": "Destination hostname or IP address.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`callback` {Function} Called when the message has been sent. Optional. ",
+                      "textRaw": "`callback` {Function} Called when the message has been sent. ",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Called when the message has been sent. Optional.",
+                      "desc": "Called when the message has been sent.",
                       "optional": true
                     }
                   ]
@@ -462,6 +485,45 @@
               "desc": "<p>Sets or clears the <code>SO_BROADCAST</code> socket option.  When set to <code>true</code>, UDP\npackets may be sent to a local interface&#39;s broadcast address.</p>\n"
             },
             {
+              "textRaw": "socket.setMulticastInterface(multicastInterface)",
+              "type": "method",
+              "name": "setMulticastInterface",
+              "meta": {
+                "added": [
+                  "v8.6.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`multicastInterface` {String} ",
+                      "name": "multicastInterface",
+                      "type": "String"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "multicastInterface"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><em>Note: All references to scope in this section are refering to\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Scoped_literal_IPv6_addresses\">IPv6 Zone Indices</a>, which are defined by <a href=\"https://tools.ietf.org/html/rfc4007\">RFC 4007</a>. In string form, an IP\nwith a scope index is written as <code>&#39;IP%scope&#39;</code> where scope is an interface name or\ninterface number.</em></p>\n<p>Sets the default outgoing multicast interface of the socket to a chosen\ninterface or back to system interface selection. The <code>multicastInterface</code> must\nbe a valid string representation of an IP from the socket&#39;s family.</p>\n<p>For IPv4 sockets, this should be the IP configured for the desired physical\ninterface. All packets sent to multicast on the socket will be sent on the\ninterface determined by the most recent successful use of this call.</p>\n<p>For IPv6 sockets, <code>multicastInterface</code> should include a scope to indicate the\ninterface as in the examples that follow. In IPv6, individual <code>send</code> calls can\nalso use explicit scope in addresses, so only packets sent to a multicast\naddress without specifying an explicit scope are affected by the most recent\nsuccessful use of this call.</p>\n<h4>Examples: IPv6 Outgoing Multicast Interface</h4>\n<p>On most systems, where scope format uses the interface name:</p>\n<pre><code class=\"lang-js\">const socket = dgram.createSocket(&#39;udp6&#39;);\n\nsocket.bind(1234, () =&gt; {\n  socket.setMulticastInterface(&#39;::%eth1&#39;);\n});\n</code></pre>\n<p>On Windows, where scope format uses an interface number:</p>\n<pre><code class=\"lang-js\">const socket = dgram.createSocket(&#39;udp6&#39;);\n\nsocket.bind(1234, () =&gt; {\n  socket.setMulticastInterface(&#39;::%2&#39;);\n});\n</code></pre>\n<h4>Example: IPv4 Outgoing Multicast Interface</h4>\n<p>All systems use an IP of the host on the desired physical interface:</p>\n<pre><code class=\"lang-js\">const socket = dgram.createSocket(&#39;udp4&#39;);\n\nsocket.bind(1234, () =&gt; {\n  socket.setMulticastInterface(&#39;10.0.0.2&#39;);\n});\n</code></pre>\n",
+              "modules": [
+                {
+                  "textRaw": "Call Results",
+                  "name": "call_results",
+                  "desc": "<p>A call on a socket that is not ready to send or no longer open may throw a <em>Not\nrunning</em> <a href=\"errors.html#errors_class_error\"><code>Error</code></a>.</p>\n<p>If <code>multicastInterface</code> can not be parsed into an IP then an <em>EINVAL</em>\n<a href=\"errors.html#errors_class_systemerror\"><code>System Error</code></a> is thrown.</p>\n<p>On IPv4, if <code>multicastInterface</code> is a valid address but does not match any\ninterface, or if the address does not match the family then\na <a href=\"errors.html#errors_class_systemerror\"><code>System Error</code></a> such as <code>EADDRNOTAVAIL</code> or <code>EPROTONOSUP</code> is thrown.</p>\n<p>On IPv6, most errors with specifying or omitting scope will result in the socket\ncontinuing to use (or returning to) the system&#39;s default interface selection.</p>\n<p>A socket&#39;s address family&#39;s ANY address (IPv4 <code>&#39;0.0.0.0&#39;</code> or IPv6 <code>&#39;::&#39;</code>) can be\nused to return control of the sockets default outgoing interface to the system\nfor future multicast packets.</p>\n",
+                  "type": "module",
+                  "displayName": "Call Results"
+                }
+              ]
+            },
+            {
               "textRaw": "socket.setMulticastLoopback(flag)",
               "type": "method",
               "name": "setMulticastLoopback",
@@ -505,10 +567,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`ttl` {number} Integer ",
+                      "textRaw": "`ttl` {number} Integer. ",
                       "name": "ttl",
                       "type": "number",
-                      "desc": "Integer"
+                      "desc": "Integer."
                     }
                   ]
                 },
@@ -521,6 +583,68 @@
                 }
               ],
               "desc": "<p>Sets the <code>IP_MULTICAST_TTL</code> socket option.  While TTL generally stands for\n&quot;Time to Live&quot;, in this context it specifies the number of IP hops that a\npacket is allowed to travel through, specifically for multicast traffic.  Each\nrouter or gateway that forwards a packet decrements the TTL. If the TTL is\ndecremented to 0 by a router, it will not be forwarded.</p>\n<p>The argument passed to to <code>socket.setMulticastTTL()</code> is a number of hops\nbetween 0 and 255. The default on most systems is <code>1</code> but can vary.</p>\n"
+            },
+            {
+              "textRaw": "socket.setRecvBufferSize(size)",
+              "type": "method",
+              "name": "setRecvBufferSize",
+              "meta": {
+                "added": [
+                  "v8.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`size` {number} Integer ",
+                      "name": "size",
+                      "type": "number",
+                      "desc": "Integer"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "size"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Sets the <code>SO_RCVBUF</code> socket option. Sets the maximum socket receive buffer\nin bytes.</p>\n"
+            },
+            {
+              "textRaw": "socket.setSendBufferSize(size)",
+              "type": "method",
+              "name": "setSendBufferSize",
+              "meta": {
+                "added": [
+                  "v8.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`size` {number} Integer ",
+                      "name": "size",
+                      "type": "number",
+                      "desc": "Integer"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "size"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Sets the <code>SO_SNDBUF</code> socket option. Sets the maximum socket send buffer\nin bytes.</p>\n"
             },
             {
               "textRaw": "socket.setTTL(ttl)",
@@ -536,10 +660,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`ttl` {number} Integer ",
+                      "textRaw": "`ttl` {number} Integer. ",
                       "name": "ttl",
                       "type": "number",
-                      "desc": "Integer"
+                      "desc": "Integer."
                     }
                   ]
                 },
@@ -595,7 +719,18 @@
                 "added": [
                   "v0.11.13"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.6.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/14560",
+                    "description": "The `lookup` option is supported."
+                  },
+                  {
+                    "version": "v8.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/13623",
+                    "description": "The `recvBufferSize` and `sendBufferSize` options are supported now."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -606,15 +741,48 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`options` {Object} ",
+                      "textRaw": "`options` {Object} Available options are: ",
+                      "options": [
+                        {
+                          "textRaw": "`type` {string} The family of socket. Must be either `'udp4'` or `'udp6'`. Required. ",
+                          "name": "type",
+                          "type": "string",
+                          "desc": "The family of socket. Must be either `'udp4'` or `'udp6'`. Required."
+                        },
+                        {
+                          "textRaw": "`reuseAddr` {boolean} When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it. Defaults to `false`. ",
+                          "name": "reuseAddr",
+                          "type": "boolean",
+                          "desc": "When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it. Defaults to `false`."
+                        },
+                        {
+                          "textRaw": "`recvBufferSize` {number} - Sets the `SO_RCVBUF` socket value. ",
+                          "name": "recvBufferSize",
+                          "type": "number",
+                          "desc": "Sets the `SO_RCVBUF` socket value."
+                        },
+                        {
+                          "textRaw": "`sendBufferSize` {number} - Sets the `SO_SNDBUF` socket value. ",
+                          "name": "sendBufferSize",
+                          "type": "number",
+                          "desc": "Sets the `SO_SNDBUF` socket value."
+                        },
+                        {
+                          "textRaw": "`lookup` {Function} Custom lookup function. Defaults to [`dns.lookup()`][]. ",
+                          "name": "lookup",
+                          "type": "Function",
+                          "desc": "Custom lookup function. Defaults to [`dns.lookup()`][]."
+                        }
+                      ],
                       "name": "options",
-                      "type": "Object"
+                      "type": "Object",
+                      "desc": "Available options are:"
                     },
                     {
-                      "textRaw": "`callback` {Function} Attached as a listener to `'message'` events. ",
+                      "textRaw": "`callback` {Function} Attached as a listener for `'message'` events. Optional. ",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Attached as a listener to `'message'` events.",
+                      "desc": "Attached as a listener for `'message'` events. Optional.",
                       "optional": true
                     }
                   ]
@@ -631,7 +799,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a <code>dgram.Socket</code> object. The <code>options</code> argument is an object that\nshould contain a <code>type</code> field of either <code>udp4</code> or <code>udp6</code> and an optional\nboolean <code>reuseAddr</code> field.</p>\n<p>When <code>reuseAddr</code> is <code>true</code> <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will reuse the address, even if\nanother process has already bound a socket on it. <code>reuseAddr</code> defaults to\n<code>false</code>. The optional <code>callback</code> function is added as a listener for <code>&#39;message&#39;</code>\nevents.</p>\n<p>Once the socket is created, calling <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will instruct the\nsocket to begin listening for datagram messages. When <code>address</code> and <code>port</code> are\nnot passed to  <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> the method will bind the socket to the &quot;all\ninterfaces&quot; address on a random port (it does the right thing for both <code>udp4</code>\nand <code>udp6</code> sockets). The bound address and port can be retrieved using\n<a href=\"#dgram_socket_address\"><code>socket.address().address</code></a> and <a href=\"#dgram_socket_address\"><code>socket.address().port</code></a>.</p>\n"
+              "desc": "<p>Creates a <code>dgram.Socket</code> object. Once the socket is created, calling\n<a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> will instruct the socket to begin listening for datagram\nmessages. When <code>address</code> and <code>port</code> are not passed to  <a href=\"#dgram_socket_bind_port_address_callback\"><code>socket.bind()</code></a> the\nmethod will bind the socket to the &quot;all interfaces&quot; address on a random port\n(it does the right thing for both <code>udp4</code> and <code>udp6</code> sockets). The bound address\nand port can be retrieved using <a href=\"#dgram_socket_address\"><code>socket.address().address</code></a> and\n<a href=\"#dgram_socket_address\"><code>socket.address().port</code></a>.</p>\n"
             },
             {
               "textRaw": "dgram.createSocket(type[, callback])",
@@ -652,17 +820,17 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`type` {string} - Either 'udp4' or 'udp6' ",
+                      "textRaw": "`type` {string} - Either 'udp4' or 'udp6'. ",
                       "name": "type",
                       "type": "string",
-                      "desc": "Either 'udp4' or 'udp6'"
+                      "desc": "Either 'udp4' or 'udp6'."
                     },
                     {
-                      "textRaw": "`callback` {Function} - Attached as a listener to `'message'` events. Optional ",
+                      "textRaw": "`callback` {Function} - Attached as a listener to `'message'` events. ",
                       "name": "callback",
                       "type": "Function",
-                      "optional": true,
-                      "desc": "Attached as a listener to `'message'` events."
+                      "desc": "Attached as a listener to `'message'` events.",
+                      "optional": true
                     }
                   ]
                 },

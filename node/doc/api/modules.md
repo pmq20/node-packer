@@ -1,13 +1,13 @@
 # Modules
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--name=module-->
 
-Node.js has a simple module loading system.  In Node.js, files and modules
-are in one-to-one correspondence (each file is treated as a separate module).
-
-As an example, consider a file named `foo.js`:
+In the Node.js module system, each file is treated as a separate module. For
+example, consider a file named `foo.js`:
 
 ```js
 const circle = require('./circle.js');
@@ -38,22 +38,26 @@ In this example, the variable `PI` is private to `circle.js`.
 The `module.exports` property can be assigned a new value (such as a function
 or object).
 
-Below, `bar.js` makes use of the `square` module, which exports a constructor:
+Below, `bar.js` makes use of the `square` module, which exports a Square class:
 
 ```js
-const square = require('./square.js');
-const mySquare = square(2);
-console.log(`The area of my square is ${mySquare.area()}`);
+const Square = require('./square.js');
+const mySquare = new Square(2);
+console.log(`The area of mySquare is ${mySquare.area()}`);
 ```
 
 The `square` module is defined in `square.js`:
 
 ```js
 // assigning to exports will not modify module, must use module.exports
-module.exports = (width) => {
-  return {
-    area: () => width ** 2
-  };
+module.exports = class Square {
+  constructor(width) {
+    this.width = width;
+  }
+
+  area() {
+    return this.width ** 2;
+  }
 };
 ```
 
@@ -596,13 +600,35 @@ filename scales linearly with the number of registered extensions.
 In other words, adding extensions slows down the module loader and
 should be discouraged.
 
-#### require.resolve()
+#### require.resolve(request[, options])
 <!-- YAML
 added: v0.3.0
+changes:
+  - version: v8.9.0
+    pr-url: https://github.com/nodejs/node/pull/16397
+    description: The `paths` option is now supported.
 -->
+
+* `request` {string} The module path to resolve.
+* `options` {Object}
+  * `paths` {Array} Paths to resolve module location from. If present, these
+    paths are used instead of the default resolution paths. Note that each of
+    these paths is used as a starting point for the module resolution algorithm,
+    meaning that the `node_modules` hierarchy is checked from this location.
+* Returns: {string}
 
 Use the internal `require()` machinery to look up the location of a module,
 but rather than loading the module, just return the resolved filename.
+
+#### require.resolve.paths(request)
+<!-- YAML
+added: v8.9.0
+-->
+
+* `request` {string} The module path whose lookup paths are being retrieved.
+* Returns: {Array}
+
+Returns an array containing the paths searched during resolution of `request`.
 
 ## The `module` Object
 <!-- YAML

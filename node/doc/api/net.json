@@ -4,6 +4,7 @@
     {
       "textRaw": "Net",
       "name": "net",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>net</code> module provides an asynchronous network API for creating stream-based\nTCP or <a href=\"#net_ipc_support\">IPC</a> servers (<a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer()</code></a>) and clients\n(<a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>).</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\n</code></pre>\n",
@@ -36,7 +37,549 @@
             ],
             "changes": []
           },
-          "desc": "<p>This class is used to create a TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n"
+          "desc": "<p>This class is used to create a TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n",
+          "methods": [
+            {
+              "textRaw": "new net.Server([options][, connectionListener])",
+              "type": "method",
+              "name": "Server",
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": [
+                    {
+                      "name": "options",
+                      "optional": true
+                    },
+                    {
+                      "name": "connectionListener",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "options",
+                      "optional": true
+                    },
+                    {
+                      "name": "connectionListener",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer([options][, connectionListener])</code></a>.</p>\n<p><code>net.Server</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n"
+            },
+            {
+              "textRaw": "server.address()",
+              "type": "method",
+              "name": "address",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Returns the bound address, the address family name, and port of the server\nas reported by the operating system if listening on an IP socket.\nUseful to find which port was assigned when getting an OS-assigned address.\nReturns an object with <code>port</code>, <code>family</code>, and <code>address</code> properties:\n<code>{ port: 12346, family: &#39;IPv4&#39;, address: &#39;127.0.0.1&#39; }</code></p>\n<p>For a server listening on a pipe or UNIX domain socket, the name is returned\nas a string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const server = net.createServer((socket) =&gt; {\n  socket.end(&#39;goodbye\\n&#39;);\n}).on(&#39;error&#39;, (err) =&gt; {\n  // handle errors here\n  throw err;\n});\n\n// grab an arbitrary unused port.\nserver.listen(() =&gt; {\n  console.log(&#39;opened server on&#39;, server.address());\n});\n</code></pre>\n<p>Don&#39;t call <code>server.address()</code> until the <code>&#39;listening&#39;</code> event has been emitted.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "server.close([callback])",
+              "type": "method",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": [
+                    {
+                      "name": "callback",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "callback",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Stops the server from accepting new connections and keeps existing\nconnections. This function is asynchronous, the server is finally\nclosed when all connections are ended and the server emits a <a href=\"#net_event_close\"><code>&#39;close&#39;</code></a> event.\nThe optional <code>callback</code> will be called once the <code>&#39;close&#39;</code> event occurs. Unlike\nthat event, it will be called with an Error as its only argument if the server\nwas not open when it was closed.</p>\n<p>Returns <code>server</code>.</p>\n"
+            },
+            {
+              "textRaw": "server.getConnections(callback)",
+              "type": "method",
+              "name": "getConnections",
+              "meta": {
+                "added": [
+                  "v0.9.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": [
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronously get the number of concurrent connections on the server. Works\nwhen sockets were sent to forks.</p>\n<p>Callback should take two arguments <code>err</code> and <code>count</code>.</p>\n"
+            },
+            {
+              "textRaw": "server.listen()",
+              "type": "method",
+              "name": "listen",
+              "desc": "<p>Start a server listening for connections. A <code>net.Server</code> can be a TCP or\na <a href=\"#net_ipc_support\">IPC</a> server depending on what it listens to.</p>\n<p>Possible signatures:</p>\n<ul>\n<li><a href=\"#net_server_listen_handle_backlog_callback\"><code>server.listen(handle[, backlog][, callback])</code></a></li>\n<li><a href=\"#net_server_listen_options_callback\"><code>server.listen(options[, callback])</code></a></li>\n<li><a href=\"#net_server_listen_path_backlog_callback\"><code>server.listen(path[, backlog][, callback])</code></a>\nfor <a href=\"#net_ipc_support\">IPC</a> servers</li>\n<li><a href=\"#net_server_listen_port_host_backlog_callback\"><code>server.listen([port][, host][, backlog][, callback])</code></a>\nfor TCP servers</li>\n</ul>\n<p>This function is asynchronous.  When the server starts listening, the\n<a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event will be emitted.  The last parameter <code>callback</code>\nwill be added as a listener for the <a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event.</p>\n<p>All <code>listen()</code> methods can take a <code>backlog</code> parameter to specify the maximum\nlength of the queue of pending connections. The actual length will be determined\nby the OS through sysctl settings such as <code>tcp_max_syn_backlog</code> and <code>somaxconn</code>\non Linux. The default value of this parameter is 511 (not 512).</p>\n<p><em>Note</em>:</p>\n<ul>\n<li><p>All <a href=\"#net_class_net_socket\"><code>net.Socket</code></a> are set to <code>SO_REUSEADDR</code> (See <a href=\"http://man7.org/linux/man-pages/man7/socket.7.html\">socket(7)</a> for\ndetails).</p>\n</li>\n<li><p>The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n</li>\n</ul>\n<p>One of the most common errors raised when listening is <code>EADDRINUSE</code>.\nThis happens when another server is already listening on the requested\n<code>port</code> / <code>path</code> / <code>handle</code>. One way to handle this would be to retry\nafter a certain amount of time:</p>\n<pre><code class=\"lang-js\">server.on(&#39;error&#39;, (e) =&gt; {\n  if (e.code === &#39;EADDRINUSE&#39;) {\n    console.log(&#39;Address in use, retrying...&#39;);\n    setTimeout(() =&gt; {\n      server.close();\n      server.listen(PORT, HOST);\n    }, 1000);\n  }\n});\n</code></pre>\n",
+              "methods": [
+                {
+                  "textRaw": "server.listen(handle[, backlog][, callback])",
+                  "type": "method",
+                  "name": "listen",
+                  "meta": {
+                    "added": [
+                      "v0.5.10"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {net.Server} ",
+                        "name": "return",
+                        "type": "net.Server"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`handle` {Object} ",
+                          "name": "handle",
+                          "type": "Object"
+                        },
+                        {
+                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions ",
+                          "name": "backlog",
+                          "type": "number",
+                          "desc": "Common parameter of [`server.listen()`][] functions",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions ",
+                          "name": "callback",
+                          "type": "Function",
+                          "desc": "Common parameter of [`server.listen()`][] functions",
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "handle"
+                        },
+                        {
+                          "name": "backlog",
+                          "optional": true
+                        },
+                        {
+                          "name": "callback",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Start a server listening for connections on a given <code>handle</code> that has\nalready been bound to a port, a UNIX domain socket, or a Windows named pipe.</p>\n<p>The <code>handle</code> object can be either a server, a socket (anything with an\nunderlying <code>_handle</code> member), or an object with an <code>fd</code> member that is a\nvalid file descriptor.</p>\n<p><em>Note</em>: Listening on a file descriptor is not supported on Windows.</p>\n"
+                },
+                {
+                  "textRaw": "server.listen(options[, callback])",
+                  "type": "method",
+                  "name": "listen",
+                  "meta": {
+                    "added": [
+                      "v0.11.14"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {net.Server} ",
+                        "name": "return",
+                        "type": "net.Server"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`options` {Object} Required. Supports the following properties: ",
+                          "options": [
+                            {
+                              "textRaw": "`port` {number} ",
+                              "name": "port",
+                              "type": "number"
+                            },
+                            {
+                              "textRaw": "`host` {string} ",
+                              "name": "host",
+                              "type": "string"
+                            },
+                            {
+                              "textRaw": "`path` {string} Will be ignored if `port` is specified. See [Identifying paths for IPC connections][]. ",
+                              "name": "path",
+                              "type": "string",
+                              "desc": "Will be ignored if `port` is specified. See [Identifying paths for IPC connections][]."
+                            },
+                            {
+                              "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions. ",
+                              "name": "backlog",
+                              "type": "number",
+                              "desc": "Common parameter of [`server.listen()`][] functions."
+                            },
+                            {
+                              "textRaw": "`exclusive` {boolean} **Default:** `false` ",
+                              "name": "exclusive",
+                              "type": "boolean",
+                              "desc": "**Default:** `false`"
+                            }
+                          ],
+                          "name": "options",
+                          "type": "Object",
+                          "desc": "Required. Supports the following properties:"
+                        },
+                        {
+                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions. ",
+                          "name": "callback",
+                          "type": "Function",
+                          "desc": "Common parameter of [`server.listen()`][] functions.",
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "options"
+                        },
+                        {
+                          "name": "callback",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>If <code>port</code> is specified, it behaves the same as\n<a href=\"#net_server_listen_port_host_backlog_callback\"><code>server.listen([port][, hostname][, backlog][, callback])</code></a>.\nOtherwise, if <code>path</code> is specified, it behaves the same as\n<a href=\"#net_server_listen_path_backlog_callback\"><code>server.listen(path[, backlog][, callback])</code></a>.\nIf none of them is specified, an error will be thrown.</p>\n<p>If <code>exclusive</code> is <code>false</code> (default), then cluster workers will use the same\nunderlying handle, allowing connection handling duties to be shared. When\n<code>exclusive</code> is <code>true</code>, the handle is not shared, and attempted port sharing\nresults in an error. An example which listens on an exclusive port is\nshown below.</p>\n<pre><code class=\"lang-js\">server.listen({\n  host: &#39;localhost&#39;,\n  port: 80,\n  exclusive: true\n});\n</code></pre>\n"
+                },
+                {
+                  "textRaw": "server.listen(path[, backlog][, callback])",
+                  "type": "method",
+                  "name": "listen",
+                  "meta": {
+                    "added": [
+                      "v0.1.90"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {net.Server} ",
+                        "name": "return",
+                        "type": "net.Server"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`path` {String} Path the server should listen to. See [Identifying paths for IPC connections][]. ",
+                          "name": "path",
+                          "type": "String",
+                          "desc": "Path the server should listen to. See [Identifying paths for IPC connections][]."
+                        },
+                        {
+                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions. ",
+                          "name": "backlog",
+                          "type": "number",
+                          "desc": "Common parameter of [`server.listen()`][] functions.",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions. ",
+                          "name": "callback",
+                          "type": "Function",
+                          "desc": "Common parameter of [`server.listen()`][] functions.",
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "path"
+                        },
+                        {
+                          "name": "backlog",
+                          "optional": true
+                        },
+                        {
+                          "name": "callback",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Start a <a href=\"#net_ipc_support\">IPC</a> server listening for connections on the given <code>path</code>.</p>\n"
+                },
+                {
+                  "textRaw": "server.listen([port][, host][, backlog][, callback])",
+                  "type": "method",
+                  "name": "listen",
+                  "meta": {
+                    "added": [
+                      "v0.1.90"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {net.Server} ",
+                        "name": "return",
+                        "type": "net.Server"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`port` {number} ",
+                          "name": "port",
+                          "type": "number",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`host` {string} ",
+                          "name": "host",
+                          "type": "string",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions. ",
+                          "name": "backlog",
+                          "type": "number",
+                          "desc": "Common parameter of [`server.listen()`][] functions.",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions. ",
+                          "name": "callback",
+                          "type": "Function",
+                          "desc": "Common parameter of [`server.listen()`][] functions.",
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "port",
+                          "optional": true
+                        },
+                        {
+                          "name": "host",
+                          "optional": true
+                        },
+                        {
+                          "name": "backlog",
+                          "optional": true
+                        },
+                        {
+                          "name": "callback",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Start a TCP server listening for connections on the given <code>port</code> and <code>host</code>.</p>\n<p>If <code>port</code> is omitted or is 0, the operating system will assign an arbitrary\nunused port, which can be retrieved by using <code>server.address().port</code>\nafter the <a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event has been emitted.</p>\n<p>If <code>host</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: In most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n"
+                }
+              ],
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "server.ref()",
+              "type": "method",
+              "name": "ref",
+              "meta": {
+                "added": [
+                  "v0.9.1"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": []
+                },
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Opposite of <code>unref</code>, calling <code>ref</code> on a previously <code>unref</code>d server will <em>not</em>\nlet the program exit if it&#39;s the only server left (the default behavior). If\nthe server is <code>ref</code>d calling <code>ref</code> again will have no effect.</p>\n"
+            },
+            {
+              "textRaw": "server.unref()",
+              "type": "method",
+              "name": "unref",
+              "meta": {
+                "added": [
+                  "v0.9.1"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {net.Server} ",
+                    "name": "return",
+                    "type": "net.Server"
+                  },
+                  "params": []
+                },
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Calling <code>unref</code> on a server will allow the program to exit if this is the only\nactive server in the event system. If the server is already <code>unref</code>d calling\n<code>unref</code> again will have no effect.</p>\n"
+            }
+          ],
+          "events": [
+            {
+              "textRaw": "Event: 'close'",
+              "type": "event",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v0.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Emitted when the server closes. Note that if connections exist, this\nevent is not emitted until all connections are ended.</p>\n",
+              "params": []
+            },
+            {
+              "textRaw": "Event: 'connection'",
+              "type": "event",
+              "name": "connection",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when a new connection is made. <code>socket</code> is an instance of\n<code>net.Socket</code>.</p>\n"
+            },
+            {
+              "textRaw": "Event: 'error'",
+              "type": "event",
+              "name": "error",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>Emitted when an error occurs. Unlike <a href=\"#net_class_net_socket\"><code>net.Socket</code></a>, the <a href=\"#net_event_close\"><code>&#39;close&#39;</code></a>\nevent will <strong>not</strong> be emitted directly following this event unless\n<a href=\"#net_server_close_callback\"><code>server.close()</code></a> is manually called. See the example in discussion of\n<a href=\"#net_server_listen\"><code>server.listen()</code></a>.</p>\n"
+            },
+            {
+              "textRaw": "Event: 'listening'",
+              "type": "event",
+              "name": "listening",
+              "meta": {
+                "added": [
+                  "v0.1.90"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Emitted when the server has been bound after calling <a href=\"#net_server_listen\"><code>server.listen()</code></a>.</p>\n",
+              "params": []
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "server.connections",
+              "name": "connections",
+              "meta": {
+                "added": [
+                  "v0.2.0"
+                ],
+                "deprecated": [
+                  "v0.9.7"
+                ],
+                "changes": []
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`server.getConnections()`][] instead.",
+              "desc": "<p>The number of concurrent connections on the server.</p>\n<p>This becomes <code>null</code> when sending a socket to a child with\n<a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>. To poll forks and get current number of active\nconnections use asynchronous <a href=\"#net_server_getconnections_callback\"><code>server.getConnections()</code></a> instead.</p>\n"
+            },
+            {
+              "textRaw": "server.listening",
+              "name": "listening",
+              "meta": {
+                "added": [
+                  "v5.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A Boolean indicating whether or not the server is listening for\nconnections.</p>\n"
+            },
+            {
+              "textRaw": "server.maxConnections",
+              "name": "maxConnections",
+              "meta": {
+                "added": [
+                  "v0.2.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set this property to reject connections when the server&#39;s connection count gets\nhigh.</p>\n<p>It is not recommended to use this option once a socket has been sent to a child\nwith <a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>.</p>\n"
+            }
+          ]
         },
         {
           "textRaw": "Class: net.Socket",
@@ -60,7 +603,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates a new socket object.</p>\n<ul>\n<li><code>options</code> {Object} Available options are:<ul>\n<li><code>fd</code>: {number} If specified, wrap around an existing socket with\nthe given file descriptor, otherwise a new socket will be created.</li>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP connections\nare allowed. See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer()</code></a> and the <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nfor details. Defaults to <code>false</code>.</li>\n<li><code>readable</code> {boolean} Allow reads on the socket when an <code>fd</code> is passed,\notherwise ignored. Defaults to <code>false</code>.</li>\n<li><code>writable</code> {boolean} Allow writes on the socket when an <code>fd</code> is passed,\notherwise ignored. Defaults to <code>false</code>.</li>\n</ul>\n</li>\n<li>Returns: {net.Socket}</li>\n</ul>\n<p>The newly created socket can be either a TCP socket or a streaming <a href=\"#net_ipc_support\">IPC</a>\nendpoint, depending on what it <a href=\"#net_socket_connect\"><code>connect()</code></a> to.</p>\n",
+              "desc": "<p>Creates a new socket object.</p>\n<ul>\n<li><code>options</code> {Object} Available options are:<ul>\n<li><code>fd</code>: {number} If specified, wrap around an existing socket with\nthe given file descriptor, otherwise a new socket will be created.</li>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP connections\nare allowed. See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer()</code></a> and the <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nfor details. <strong>Default:</strong> <code>false</code></li>\n<li><code>readable</code> {boolean} Allow reads on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code></li>\n<li><code>writable</code> {boolean} Allow writes on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code></li>\n</ul>\n</li>\n<li>Returns: {net.Socket}</li>\n</ul>\n<p>The newly created socket can be either a TCP socket or a streaming <a href=\"#net_ipc_support\">IPC</a>\nendpoint, depending on what it <a href=\"#net_socket_connect\"><code>connect()</code></a> to.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -151,7 +694,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Initiate a connection on a given socket. Normally this method is not needed,\nthe socket should be created and opened with <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>. Use\nthis only when implementing a custom Socket.</p>\n<p>For TCP connections, available <code>options</code> are:</p>\n<ul>\n<li><code>port</code> {number} Required. Port the socket should connect to.</li>\n<li><code>host</code> {string} Host the socket should connect to. Defaults to <code>&#39;localhost&#39;</code>.</li>\n<li><code>localAddress</code> {string} Local address the socket should connect from.</li>\n<li><code>localPort</code> {number} Local port the socket should connect from.</li>\n<li><code>family</code> {number}: Version of IP stack, can be either 4 or 6. Defaults to 4.</li>\n<li><code>hints</code> {number} Optional <a href=\"dns.html#dns_supported_getaddrinfo_flags\"><code>dns.lookup()</code> hints</a>.</li>\n<li><code>lookup</code> {Function} Custom lookup function. Defaults to <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n</ul>\n<p>For <a href=\"#net_ipc_support\">IPC</a> connections, available <code>options</code> are:</p>\n<ul>\n<li><code>path</code> {string} Required. Path the client should connect to.\nSee <a href=\"#net_identifying_paths_for_ipc_connections\">Identifying paths for IPC connections</a>.</li>\n</ul>\n<p>Returns <code>socket</code>.</p>\n"
+                  "desc": "<p>Initiate a connection on a given socket. Normally this method is not needed,\nthe socket should be created and opened with <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>. Use\nthis only when implementing a custom Socket.</p>\n<p>For TCP connections, available <code>options</code> are:</p>\n<ul>\n<li><code>port</code> {number} Required. Port the socket should connect to.</li>\n<li><code>host</code> {string} Host the socket should connect to. <strong>Default:</strong> <code>&#39;localhost&#39;</code></li>\n<li><code>localAddress</code> {string} Local address the socket should connect from.</li>\n<li><code>localPort</code> {number} Local port the socket should connect from.</li>\n<li><code>family</code> {number}: Version of IP stack, can be either 4 or 6. <strong>Default:</strong> <code>4</code></li>\n<li><code>hints</code> {number} Optional <a href=\"dns.html#dns_supported_getaddrinfo_flags\"><code>dns.lookup()</code> hints</a>.</li>\n<li><code>lookup</code> {Function} Custom lookup function. <strong>Default:</strong> <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a></li>\n</ul>\n<p>For <a href=\"#net_ipc_support\">IPC</a> connections, available <code>options</code> are:</p>\n<ul>\n<li><code>path</code> {string} Required. Path the client should connect to.\nSee <a href=\"#net_identifying_paths_for_ipc_connections\">Identifying paths for IPC connections</a>. If provided, the TCP-specific\noptions above are ignored.</li>\n</ul>\n<p>Returns <code>socket</code>.</p>\n"
                 },
                 {
                   "textRaw": "socket.connect(path[, connectListener])",
@@ -562,7 +1105,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Sets the socket to timeout after <code>timeout</code> milliseconds of inactivity on\nthe socket. By default <code>net.Socket</code> do not have a timeout.</p>\n<p>When an idle timeout is triggered the socket will receive a <a href=\"#net_event_timeout\"><code>&#39;timeout&#39;</code></a>\nevent but the connection will not be severed. The user must manually call\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> or <a href=\"#net_socket_destroy_exception\"><code>socket.destroy()</code></a> to end the connection.</p>\n<pre><code class=\"lang-js\">socket.setTimeout(3000);\nsocket.on(&#39;timeout&#39;, () =&gt; {\n  console.log(&#39;socket timeout&#39;);\n  socket.end();\n});\n</code></pre>\n<p>If <code>timeout</code> is 0, then the existing idle timeout is disabled.</p>\n<p>The optional <code>callback</code> parameter will be added as a one time listener for the\n<a href=\"#net_event_timeout\"><code>&#39;timeout&#39;</code></a> event.</p>\n"
+              "desc": "<p>Sets the socket to timeout after <code>timeout</code> milliseconds of inactivity on\nthe socket. By default <code>net.Socket</code> do not have a timeout.</p>\n<p>When an idle timeout is triggered the socket will receive a <a href=\"#net_event_timeout\"><code>&#39;timeout&#39;</code></a>\nevent but the connection will not be severed. The user must manually call\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> or <a href=\"#net_socket_destroy_exception\"><code>socket.destroy()</code></a> to end the connection.</p>\n<pre><code class=\"lang-js\">socket.setTimeout(3000);\nsocket.on(&#39;timeout&#39;, () =&gt; {\n  console.log(&#39;socket timeout&#39;);\n  socket.end();\n});\n</code></pre>\n<p>If <code>timeout</code> is 0, then the existing idle timeout is disabled.</p>\n<p>The optional <code>callback</code> parameter will be added as a one-time listener for the\n<a href=\"#net_event_timeout\"><code>&#39;timeout&#39;</code></a> event.</p>\n"
             },
             {
               "textRaw": "socket.unref()",
@@ -842,548 +1385,6 @@
       ],
       "methods": [
         {
-          "textRaw": "new net.Server([options][, connectionListener])",
-          "type": "method",
-          "name": "Server",
-          "signatures": [
-            {
-              "return": {
-                "textRaw": "Returns: {net.Server} ",
-                "name": "return",
-                "type": "net.Server"
-              },
-              "params": [
-                {
-                  "name": "options",
-                  "optional": true
-                },
-                {
-                  "name": "connectionListener",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "options",
-                  "optional": true
-                },
-                {
-                  "name": "connectionListener",
-                  "optional": true
-                }
-              ]
-            }
-          ],
-          "desc": "<p>See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer([options][, connectionListener])</code></a>.</p>\n<p><code>net.Server</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
-          "events": [
-            {
-              "textRaw": "Event: 'close'",
-              "type": "event",
-              "name": "close",
-              "meta": {
-                "added": [
-                  "v0.5.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Emitted when the server closes. Note that if connections exist, this\nevent is not emitted until all connections are ended.</p>\n",
-              "params": []
-            },
-            {
-              "textRaw": "Event: 'connection'",
-              "type": "event",
-              "name": "connection",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "params": [],
-              "desc": "<p>Emitted when a new connection is made. <code>socket</code> is an instance of\n<code>net.Socket</code>.</p>\n"
-            },
-            {
-              "textRaw": "Event: 'error'",
-              "type": "event",
-              "name": "error",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "params": [],
-              "desc": "<p>Emitted when an error occurs. Unlike <a href=\"#net_class_net_socket\"><code>net.Socket</code></a>, the <a href=\"#net_event_close\"><code>&#39;close&#39;</code></a>\nevent will <strong>not</strong> be emitted directly following this event unless\n<a href=\"#net_server_close_callback\"><code>server.close()</code></a> is manually called. See the example in discussion of\n<a href=\"#net_server_listen\"><code>server.listen()</code></a>.</p>\n"
-            },
-            {
-              "textRaw": "Event: 'listening'",
-              "type": "event",
-              "name": "listening",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Emitted when the server has been bound after calling <a href=\"#net_server_listen\"><code>server.listen()</code></a>.</p>\n",
-              "params": []
-            }
-          ],
-          "methods": [
-            {
-              "textRaw": "server.address()",
-              "type": "method",
-              "name": "address",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Returns the bound address, the address family name, and port of the server\nas reported by the operating system if listening on an IP socket.\nUseful to find which port was assigned when getting an OS-assigned address.\nReturns an object with <code>port</code>, <code>family</code>, and <code>address</code> properties:\n<code>{ port: 12346, family: &#39;IPv4&#39;, address: &#39;127.0.0.1&#39; }</code></p>\n<p>For a server listening on a pipe or UNIX domain socket, the name is returned\nas a string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const server = net.createServer((socket) =&gt; {\n  socket.end(&#39;goodbye\\n&#39;);\n}).on(&#39;error&#39;, (err) =&gt; {\n  // handle errors here\n  throw err;\n});\n\n// grab an arbitrary unused port.\nserver.listen(() =&gt; {\n  console.log(&#39;opened server on&#39;, server.address());\n});\n</code></pre>\n<p>Don&#39;t call <code>server.address()</code> until the <code>&#39;listening&#39;</code> event has been emitted.</p>\n",
-              "signatures": [
-                {
-                  "params": []
-                }
-              ]
-            },
-            {
-              "textRaw": "server.close([callback])",
-              "type": "method",
-              "name": "close",
-              "meta": {
-                "added": [
-                  "v0.1.90"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {net.Server} ",
-                    "name": "return",
-                    "type": "net.Server"
-                  },
-                  "params": [
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Stops the server from accepting new connections and keeps existing\nconnections. This function is asynchronous, the server is finally\nclosed when all connections are ended and the server emits a <a href=\"#net_event_close\"><code>&#39;close&#39;</code></a> event.\nThe optional <code>callback</code> will be called once the <code>&#39;close&#39;</code> event occurs. Unlike\nthat event, it will be called with an Error as its only argument if the server\nwas not open when it was closed.</p>\n<p>Returns <code>server</code>.</p>\n"
-            },
-            {
-              "textRaw": "server.getConnections(callback)",
-              "type": "method",
-              "name": "getConnections",
-              "meta": {
-                "added": [
-                  "v0.9.7"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns {net.Server} ",
-                    "name": "return",
-                    "type": "net.Server"
-                  },
-                  "params": [
-                    {
-                      "name": "callback"
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "callback"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Asynchronously get the number of concurrent connections on the server. Works\nwhen sockets were sent to forks.</p>\n<p>Callback should take two arguments <code>err</code> and <code>count</code>.</p>\n"
-            },
-            {
-              "textRaw": "server.listen()",
-              "type": "method",
-              "name": "listen",
-              "desc": "<p>Start a server listening for connections. A <code>net.Server</code> can be a TCP or\na <a href=\"#net_ipc_support\">IPC</a> server depending on what it listens to.</p>\n<p>Possible signatures:</p>\n<ul>\n<li><a href=\"#net_server_listen_handle_backlog_callback\"><code>server.listen(handle[, backlog][, callback])</code></a></li>\n<li><a href=\"#net_server_listen_options_callback\"><code>server.listen(options[, callback])</code></a></li>\n<li><a href=\"#net_server_listen_path_backlog_callback\"><code>server.listen(path[, backlog][, callback])</code></a>\nfor <a href=\"#net_ipc_support\">IPC</a> servers</li>\n<li><a href=\"#net_server_listen_port_host_backlog_callback\"><code>server.listen([port][, host][, backlog][, callback])</code></a>\nfor TCP servers</li>\n</ul>\n<p>This function is asynchronous.  When the server starts listening, the\n<a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event will be emitted.  The last parameter <code>callback</code>\nwill be added as a listener for the <a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event.</p>\n<p>All <code>listen()</code> methods can take a <code>backlog</code> parameter to specify the maximum\nlength of the queue of pending connections. The actual length will be determined\nby the OS through sysctl settings such as <code>tcp_max_syn_backlog</code> and <code>somaxconn</code>\non Linux. The default value of this parameter is 511 (not 512).</p>\n<p><em>Note</em>:</p>\n<ul>\n<li><p>All <a href=\"#net_class_net_socket\"><code>net.Socket</code></a> are set to <code>SO_REUSEADDR</code> (See <a href=\"http://man7.org/linux/man-pages/man7/socket.7.html\">socket(7)</a> for\ndetails).</p>\n</li>\n<li><p>The <code>server.listen()</code> method may be called multiple times. Each\nsubsequent call will <em>re-open</em> the server using the provided options.</p>\n</li>\n</ul>\n<p>One of the most common errors raised when listening is <code>EADDRINUSE</code>.\nThis happens when another server is already listening on the requested\n<code>port</code> / <code>path</code> / <code>handle</code>. One way to handle this would be to retry\nafter a certain amount of time:</p>\n<pre><code class=\"lang-js\">server.on(&#39;error&#39;, (e) =&gt; {\n  if (e.code === &#39;EADDRINUSE&#39;) {\n    console.log(&#39;Address in use, retrying...&#39;);\n    setTimeout(() =&gt; {\n      server.close();\n      server.listen(PORT, HOST);\n    }, 1000);\n  }\n});\n</code></pre>\n",
-              "methods": [
-                {
-                  "textRaw": "server.listen(handle[, backlog][, callback])",
-                  "type": "method",
-                  "name": "listen",
-                  "meta": {
-                    "added": [
-                      "v0.5.10"
-                    ],
-                    "changes": []
-                  },
-                  "signatures": [
-                    {
-                      "return": {
-                        "textRaw": "Returns: {net.Server} ",
-                        "name": "return",
-                        "type": "net.Server"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`handle` {Object} ",
-                          "name": "handle",
-                          "type": "Object"
-                        },
-                        {
-                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions ",
-                          "name": "backlog",
-                          "type": "number",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions ",
-                          "name": "callback",
-                          "type": "Function",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        }
-                      ]
-                    },
-                    {
-                      "params": [
-                        {
-                          "name": "handle"
-                        },
-                        {
-                          "name": "backlog",
-                          "optional": true
-                        },
-                        {
-                          "name": "callback",
-                          "optional": true
-                        }
-                      ]
-                    }
-                  ],
-                  "desc": "<p>Start a server listening for connections on a given <code>handle</code> that has\nalready been bound to a port, a UNIX domain socket, or a Windows named pipe.</p>\n<p>The <code>handle</code> object can be either a server, a socket (anything with an\nunderlying <code>_handle</code> member), or an object with an <code>fd</code> member that is a\nvalid file descriptor.</p>\n<p><em>Note</em>: Listening on a file descriptor is not supported on Windows.</p>\n"
-                },
-                {
-                  "textRaw": "server.listen(options[, callback])",
-                  "type": "method",
-                  "name": "listen",
-                  "meta": {
-                    "added": [
-                      "v0.11.14"
-                    ],
-                    "changes": []
-                  },
-                  "signatures": [
-                    {
-                      "return": {
-                        "textRaw": "Returns: {net.Server} ",
-                        "name": "return",
-                        "type": "net.Server"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`options` {Object} Required. Supports the following properties: ",
-                          "options": [
-                            {
-                              "textRaw": "`port` {number} ",
-                              "name": "port",
-                              "type": "number"
-                            },
-                            {
-                              "textRaw": "`host` {string} ",
-                              "name": "host",
-                              "type": "string"
-                            },
-                            {
-                              "textRaw": "`path` {string} Will be ignored if `port` is specified. See [Identifying paths for IPC connections][]. ",
-                              "name": "path",
-                              "type": "string",
-                              "desc": "Will be ignored if `port` is specified. See [Identifying paths for IPC connections][]."
-                            },
-                            {
-                              "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions ",
-                              "name": "backlog",
-                              "type": "number",
-                              "desc": "Common parameter of [`server.listen()`][] functions"
-                            },
-                            {
-                              "textRaw": "`exclusive` {boolean} Default to `false` ",
-                              "name": "exclusive",
-                              "type": "boolean",
-                              "desc": "Default to `false`"
-                            }
-                          ],
-                          "name": "options",
-                          "type": "Object",
-                          "desc": "Required. Supports the following properties:"
-                        },
-                        {
-                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions ",
-                          "name": "callback",
-                          "type": "Function",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        }
-                      ]
-                    },
-                    {
-                      "params": [
-                        {
-                          "name": "options"
-                        },
-                        {
-                          "name": "callback",
-                          "optional": true
-                        }
-                      ]
-                    }
-                  ],
-                  "desc": "<p>If <code>port</code> is specified, it behaves the same as\n<a href=\"#net_server_listen_port_host_backlog_callback\"><code>server.listen([port][, hostname][, backlog][, callback])</code></a>.\nOtherwise, if <code>path</code> is specified, it behaves the same as\n<a href=\"#net_server_listen_path_backlog_callback\"><code>server.listen(path[, backlog][, callback])</code></a>.\nIf none of them is specified, an error will be thrown.</p>\n<p>If <code>exclusive</code> is <code>false</code> (default), then cluster workers will use the same\nunderlying handle, allowing connection handling duties to be shared. When\n<code>exclusive</code> is <code>true</code>, the handle is not shared, and attempted port sharing\nresults in an error. An example which listens on an exclusive port is\nshown below.</p>\n<pre><code class=\"lang-js\">server.listen({\n  host: &#39;localhost&#39;,\n  port: 80,\n  exclusive: true\n});\n</code></pre>\n"
-                },
-                {
-                  "textRaw": "server.listen(path[, backlog][, callback])",
-                  "type": "method",
-                  "name": "listen",
-                  "meta": {
-                    "added": [
-                      "v0.1.90"
-                    ],
-                    "changes": []
-                  },
-                  "signatures": [
-                    {
-                      "return": {
-                        "textRaw": "Returns: {net.Server} ",
-                        "name": "return",
-                        "type": "net.Server"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`path` {String} Path the server should listen to. See [Identifying paths for IPC connections][]. ",
-                          "name": "path",
-                          "type": "String",
-                          "desc": "Path the server should listen to. See [Identifying paths for IPC connections][]."
-                        },
-                        {
-                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions ",
-                          "name": "backlog",
-                          "type": "number",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions ",
-                          "name": "callback",
-                          "type": "Function",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        }
-                      ]
-                    },
-                    {
-                      "params": [
-                        {
-                          "name": "path"
-                        },
-                        {
-                          "name": "backlog",
-                          "optional": true
-                        },
-                        {
-                          "name": "callback",
-                          "optional": true
-                        }
-                      ]
-                    }
-                  ],
-                  "desc": "<p>Start a <a href=\"#net_ipc_support\">IPC</a> server listening for connections on the given <code>path</code>.</p>\n"
-                },
-                {
-                  "textRaw": "server.listen([port][, host][, backlog][, callback])",
-                  "type": "method",
-                  "name": "listen",
-                  "meta": {
-                    "added": [
-                      "v0.1.90"
-                    ],
-                    "changes": []
-                  },
-                  "signatures": [
-                    {
-                      "return": {
-                        "textRaw": "Returns: {net.Server} ",
-                        "name": "return",
-                        "type": "net.Server"
-                      },
-                      "params": [
-                        {
-                          "textRaw": "`port` {number} ",
-                          "name": "port",
-                          "type": "number",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`host` {string} ",
-                          "name": "host",
-                          "type": "string",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`backlog` {number} Common parameter of [`server.listen()`][] functions ",
-                          "name": "backlog",
-                          "type": "number",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        },
-                        {
-                          "textRaw": "`callback` {Function} Common parameter of [`server.listen()`][] functions ",
-                          "name": "callback",
-                          "type": "Function",
-                          "desc": "Common parameter of [`server.listen()`][] functions",
-                          "optional": true
-                        }
-                      ]
-                    },
-                    {
-                      "params": [
-                        {
-                          "name": "port",
-                          "optional": true
-                        },
-                        {
-                          "name": "host",
-                          "optional": true
-                        },
-                        {
-                          "name": "backlog",
-                          "optional": true
-                        },
-                        {
-                          "name": "callback",
-                          "optional": true
-                        }
-                      ]
-                    }
-                  ],
-                  "desc": "<p>Start a TCP server listening for connections on the given <code>port</code> and <code>host</code>.</p>\n<p>If <code>port</code> is omitted or is 0, the operating system will assign an arbitrary\nunused port, which can be retrieved by using <code>server.address().port</code>\nafter the <a href=\"#net_event_listening\"><code>&#39;listening&#39;</code></a> event has been emitted.</p>\n<p>If <code>host</code> is omitted, the server will accept connections on the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) when IPv6 is available, or the\n<a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>) otherwise.</p>\n<p><em>Note</em>: In most operating systems, listening to the\n<a href=\"https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address\">unspecified IPv6 address</a> (<code>::</code>) may cause the <code>net.Server</code> to also listen on\nthe <a href=\"https://en.wikipedia.org/wiki/0.0.0.0\">unspecified IPv4 address</a> (<code>0.0.0.0</code>).</p>\n"
-                }
-              ],
-              "signatures": [
-                {
-                  "params": []
-                }
-              ]
-            },
-            {
-              "textRaw": "server.ref()",
-              "type": "method",
-              "name": "ref",
-              "meta": {
-                "added": [
-                  "v0.9.1"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {net.Server} ",
-                    "name": "return",
-                    "type": "net.Server"
-                  },
-                  "params": []
-                },
-                {
-                  "params": []
-                }
-              ],
-              "desc": "<p>Opposite of <code>unref</code>, calling <code>ref</code> on a previously <code>unref</code>d server will <em>not</em>\nlet the program exit if it&#39;s the only server left (the default behavior). If\nthe server is <code>ref</code>d calling <code>ref</code> again will have no effect.</p>\n"
-            },
-            {
-              "textRaw": "server.unref()",
-              "type": "method",
-              "name": "unref",
-              "meta": {
-                "added": [
-                  "v0.9.1"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {net.Server} ",
-                    "name": "return",
-                    "type": "net.Server"
-                  },
-                  "params": []
-                },
-                {
-                  "params": []
-                }
-              ],
-              "desc": "<p>Calling <code>unref</code> on a server will allow the program to exit if this is the only\nactive server in the event system. If the server is already <code>unref</code>d calling\n<code>unref</code> again will have no effect.</p>\n"
-            }
-          ],
-          "properties": [
-            {
-              "textRaw": "server.connections",
-              "name": "connections",
-              "meta": {
-                "added": [
-                  "v0.2.0"
-                ],
-                "deprecated": [
-                  "v0.9.7"
-                ],
-                "changes": []
-              },
-              "stability": 0,
-              "stabilityText": "Deprecated: Use [`server.getConnections()`][] instead.",
-              "desc": "<p>The number of concurrent connections on the server.</p>\n<p>This becomes <code>null</code> when sending a socket to a child with\n<a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>. To poll forks and get current number of active\nconnections use asynchronous <a href=\"#net_server_getconnections_callback\"><code>server.getConnections()</code></a> instead.</p>\n"
-            },
-            {
-              "textRaw": "server.listening",
-              "name": "listening",
-              "meta": {
-                "added": [
-                  "v5.7.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>A Boolean indicating whether or not the server is listening for\nconnections.</p>\n"
-            },
-            {
-              "textRaw": "server.maxConnections",
-              "name": "maxConnections",
-              "meta": {
-                "added": [
-                  "v0.2.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Set this property to reject connections when the server&#39;s connection count gets\nhigh.</p>\n<p>It is not recommended to use this option once a socket has been sent to a child\nwith <a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>.</p>\n"
-            }
-          ]
-        },
-        {
           "textRaw": "net.connect()",
           "type": "method",
           "name": "connect",
@@ -1603,10 +1604,10 @@
                       "desc": "Port the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`]."
                     },
                     {
-                      "textRaw": "`host` {string} Host the socket should connect to. Defaults to `'localhost'`. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`]. ",
+                      "textRaw": "`host` {string} Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].  **Default:** `'localhost'` ",
                       "name": "host",
                       "type": "string",
-                      "desc": "Host the socket should connect to. Defaults to `'localhost'`. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].",
+                      "desc": "Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].  **Default:** `'localhost'`",
                       "optional": true
                     },
                     {
@@ -1653,7 +1654,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates a new TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n<ul>\n<li><code>options</code> {Object}<ul>\n<li><code>allowHalfOpen</code> {boolean} Default to <code>false</code>. Indicates whether half-opened\nTCP connections are allowed.</li>\n<li><code>pauseOnConnect</code> {boolean} Default to <code>false</code>. Indicates whether the socket\nshould be paused on incoming connections.</li>\n</ul>\n</li>\n<li><code>connectionListener</code> {Function} Automatically set as a listener for the\n<a href=\"#net_event_connection\"><code>&#39;connection&#39;</code></a> event</li>\n<li>Returns: {net.Server}</li>\n</ul>\n<p>If <code>allowHalfOpen</code> is set to <code>true</code>, when the other end of the socket\nsends a FIN packet, the server will only send a FIN packet back when\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> is explicitly called, until then the connection is\nhalf-closed (non-readable but still writable). See <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nand <a href=\"https://tools.ietf.org/html/rfc1122#section-4.2.2.13\">RFC 1122</a> for more information.</p>\n<p>If <code>pauseOnConnect</code> is set to <code>true</code>, then the socket associated with each\nincoming connection will be paused, and no data will be read from its handle.\nThis allows connections to be passed between processes without any data being\nread by the original process. To begin reading data from a paused socket, call\n<a href=\"#net_socket_resume\"><code>socket.resume()</code></a>.</p>\n<p>The server can be a TCP server or a <a href=\"#net_ipc_support\">IPC</a> server, depending on what it\n<a href=\"#net_server_listen\"><code>listen()</code></a> to.</p>\n<p>Here is an example of an TCP echo server which listens for connections\non port 8124:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst server = net.createServer((c) =&gt; {\n  // &#39;connection&#39; listener\n  console.log(&#39;client connected&#39;);\n  c.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;client disconnected&#39;);\n  });\n  c.write(&#39;hello\\r\\n&#39;);\n  c.pipe(c);\n});\nserver.on(&#39;error&#39;, (err) =&gt; {\n  throw err;\n});\nserver.listen(8124, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Test this by using <code>telnet</code>:</p>\n<pre><code class=\"lang-console\">$ telnet localhost 8124\n</code></pre>\n<p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would\njust be changed to</p>\n<pre><code class=\"lang-js\">server.listen(&#39;/tmp/echo.sock&#39;, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>\n<pre><code class=\"lang-console\">$ nc -U /tmp/echo.sock\n</code></pre>\n",
+          "desc": "<p>Creates a new TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n<ul>\n<li><code>options</code> {Object}<ul>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP\nconnections are allowed. <strong>Default:</strong> <code>false</code></li>\n<li><code>pauseOnConnect</code> {boolean} Indicates whether the socket should be\npaused on incoming connections. <strong>Default:</strong> <code>false</code></li>\n</ul>\n</li>\n<li><code>connectionListener</code> {Function} Automatically set as a listener for the\n<a href=\"#net_event_connection\"><code>&#39;connection&#39;</code></a> event.</li>\n<li>Returns: {net.Server}</li>\n</ul>\n<p>If <code>allowHalfOpen</code> is set to <code>true</code>, when the other end of the socket\nsends a FIN packet, the server will only send a FIN packet back when\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> is explicitly called, until then the connection is\nhalf-closed (non-readable but still writable). See <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nand <a href=\"https://tools.ietf.org/html/rfc1122\">RFC 1122</a> (section 4.2.2.13) for more information.</p>\n<p>If <code>pauseOnConnect</code> is set to <code>true</code>, then the socket associated with each\nincoming connection will be paused, and no data will be read from its handle.\nThis allows connections to be passed between processes without any data being\nread by the original process. To begin reading data from a paused socket, call\n<a href=\"#net_socket_resume\"><code>socket.resume()</code></a>.</p>\n<p>The server can be a TCP server or a <a href=\"#net_ipc_support\">IPC</a> server, depending on what it\n<a href=\"#net_server_listen\"><code>listen()</code></a> to.</p>\n<p>Here is an example of an TCP echo server which listens for connections\non port 8124:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst server = net.createServer((c) =&gt; {\n  // &#39;connection&#39; listener\n  console.log(&#39;client connected&#39;);\n  c.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;client disconnected&#39;);\n  });\n  c.write(&#39;hello\\r\\n&#39;);\n  c.pipe(c);\n});\nserver.on(&#39;error&#39;, (err) =&gt; {\n  throw err;\n});\nserver.listen(8124, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Test this by using <code>telnet</code>:</p>\n<pre><code class=\"lang-console\">$ telnet localhost 8124\n</code></pre>\n<p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would\njust be changed to</p>\n<pre><code class=\"lang-js\">server.listen(&#39;/tmp/echo.sock&#39;, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>\n<pre><code class=\"lang-console\">$ nc -U /tmp/echo.sock\n</code></pre>\n",
           "signatures": [
             {
               "params": [

@@ -22,7 +22,7 @@ The [Node.js build team](https://github.com/nodejs/build) is able to provide thi
 
 The _dist_ user on nodejs.org controls the assets available in <https://nodejs.org/download/>. <https://nodejs.org/dist/> is an alias for <https://nodejs.org/download/release/>.
 
-The Jenkins release build slaves upload their artifacts to the web server as the _staging_ user. The _dist_ user has access to move these assets to public access while, for security, the _staging_ user does not.
+The Jenkins release build workers upload their artifacts to the web server as the _staging_ user. The _dist_ user has access to move these assets to public access while, for security, the _staging_ user does not.
 
 Nightly builds are promoted automatically on the server by a cron task for the _dist_ user.
 
@@ -32,7 +32,7 @@ Release builds require manual promotion by an individual with SSH access to the 
 
 A SHASUMS256.txt file is produced for every promoted build, nightly, and releases. Additionally for releases, this file is signed by the individual responsible for that release. In order to be able to verify downloaded binaries, the public should be able to check that the SHASUMS256.txt file has been signed by someone who has been authorized to create a release.
 
-The GPG keys should be fetchable from a known third-party keyserver. The SKS Keyservers at <https://sks-keyservers.net> are recommended. Use the [submission](https://sks-keyservers.net/i/#submit) form to submit a new GPG key. Keys should be fetchable via:
+The GPG keys should be fetchable from a known third-party keyserver. The SKS Keyservers at <https://sks-keyservers.net> are recommended. Use the [submission](https://pgp.mit.edu/) form to submit a new GPG key. Keys should be fetchable via:
 
 ```console
 $ gpg --keyserver pool.sks-keyservers.net --recv-keys <FINGERPRINT>
@@ -134,6 +134,9 @@ The new entry should take the following form:
 
 The release type should be either Current, LTS, or Maintenance, depending on the type of release being produced.
 
+Be sure that the `<a>` tag, as well as the two headings, are not
+indented at all.
+
 At the top of each `CHANGELOG_*.md` file, and in the root `CHANGELOG.md` file,
 there is a table indexing all releases in each major release line. A link to
 the new release needs to be added to each. Follow the existing examples and be
@@ -144,7 +147,7 @@ is shown in **bold** in the index. When updating the index, please make sure
 to update the display accordingly by removing the bold styling from the previous
 release.
 
-#### Step 3: Update any REPLACEME tags in the docs
+#### Step 3: Update any REPLACEME and DEP00XX tags in the docs
 
 If this release includes new APIs then it is necessary to document that they
 were first added in this version. The relevant commits should already include
@@ -153,6 +156,13 @@ were first added in this version. The relevant commits should already include
 `grep REPLACEME doc/api/*.md`, and substitute this node version with
 `sed -i "s/REPLACEME/$VERSION/g" doc/api/*.md` or
 `perl -pi -e "s/REPLACEME/$VERSION/g" doc/api/*.md`.
+
+If this release includes any new deprecations it is necessary to ensure that
+those are assigned a proper static deprecation code. These are listed in the
+docs (see `doc/api/deprecations.md`) and in the source as `DEP00XX`. The code
+must be assigned a number (e.g. `DEP0012`). Note that this assignment should
+occur when the PR is landed, but a check will be made when the release built
+is run.
 
 ### 4. Create Release Commit
 
@@ -194,17 +204,17 @@ This is particularly recommended if there has been recent work relating to the m
 
 Use **[iojs+release](https://ci-release.nodejs.org/job/iojs+release/)** to produce release artifacts. Enter the commit that you want to build from and select "release" for "disttype".
 
-Artifacts from each slave are uploaded to Jenkins and are available if further testing is required. Use this opportunity particularly to test macOS and Windows installers if there are any concerns. Click through to the individual slaves for a run to find the artifacts.
+Artifacts from each worker are uploaded to Jenkins and are available if further testing is required. Use this opportunity particularly to test macOS and Windows installers if there are any concerns. Click through to the individual workers for a run to find the artifacts.
 
-All release slaves should achieve "SUCCESS" (and be green, not red). A release with failures should not be promoted as there are likely problems to be investigated.
+All release workers should achieve "SUCCESS" (and be green, not red). A release with failures should not be promoted as there are likely problems to be investigated.
 
 You can rebuild the release as many times as you need prior to promoting them if you encounter problems.
 
-If you have an error on Windows and need to start again, be aware that you'll get immediate failure unless you wait up to 2 minutes for the linker to stop from previous jobs. i.e. if a build fails after having started compiling, that slave will still have a linker process that's running for another couple of minutes which will prevent Jenkins from clearing the workspace to start a new one. This isn't a big deal, it's just a hassle because it'll result in another failed build if you start again!
+If you have an error on Windows and need to start again, be aware that you'll get immediate failure unless you wait up to 2 minutes for the linker to stop from previous jobs. i.e. if a build fails after having started compiling, that worker will still have a linker process that's running for another couple of minutes which will prevent Jenkins from clearing the workspace to start a new one. This isn't a big deal, it's just a hassle because it'll result in another failed build if you start again!
 
 ARMv7 takes the longest to compile. Unfortunately ccache isn't as effective on release builds, I think it's because of the additional macro settings that go in to a release build that nullify previous builds. Also most of the release build machines are separate to the test build machines so they don't get any benefit from ongoing compiles between releases. You can expect 1.5 hours for the ARMv7 builder to complete and you should normally wait for this to finish. It is possible to rush a release out if you want and add additional builds later but we normally provide ARMv7 from initial promotion.
 
-You do not have to wait for the ARMv6 / Raspberry PI builds if they take longer than the others. It is only necessary to have the main Linux (x64 and x86), macOS .pkg and .tar.gz, Windows (x64 and x86) .msi and .exe, source, headers and docs (both produced currently by an macOS slave). **If you promote builds _before_ ARM builds have finished, you must repeat the promotion step for the ARM builds when they are ready**.
+You do not have to wait for the ARMv6 / Raspberry PI builds if they take longer than the others. It is only necessary to have the main Linux (x64 and x86), macOS .pkg and .tar.gz, Windows (x64 and x86) .msi and .exe, source, headers, and docs (both produced currently by an macOS worker). **If you promote builds _before_ ARM builds have finished, you must repeat the promotion step for the ARM builds when they are ready**. If the ARMv6 build failed for some reason you can use the [`iojs-release-arm6-only`](https://ci-release.nodejs.org/job/iojs+release-arm6-only/) build in the release CI to re-run the build only for ARMv6. When launching the build make sure to use the same commit hash as for the original release.
 
 ### 9. Test the Build
 
@@ -284,7 +294,7 @@ If you didn't wait for ARM builds in the previous step before promoting the rele
 
 ### 13. Check the Release
 
-Your release should be available at <https://nodejs.org/dist/vx.y.z/> and <https://nodejs.org/dist/latest/>. Check that the appropriate files are in place. You may want to check that the binaries are working as appropriate and have the right internal version strings. Check that the API docs are available at <https://nodejs.org/api/>. Check that the release catalog files are correct at <https://nodejs.org/dist/index.tab> and <https://nodejs.org/dist/index.json>.
+Your release should be available at `https://nodejs.org/dist/vx.y.z/` and <https://nodejs.org/dist/latest/>. Check that the appropriate files are in place. You may want to check that the binaries are working as appropriate and have the right internal version strings. Check that the API docs are available at <https://nodejs.org/api/>. Check that the release catalog files are correct at <https://nodejs.org/dist/index.tab> and <https://nodejs.org/dist/index.json>.
 
 ### 14. Create a Blog Post
 
@@ -305,7 +315,7 @@ Refs: <full URL to your release proposal PR>
 
 ### 15. Announce
 
-The nodejs.org website will automatically rebuild and include the new version. To announce the build on Twitter through the official @nodejs account, email [pr@nodejs.org](pr@nodejs.org) with a message such as:
+The nodejs.org website will automatically rebuild and include the new version. To announce the build on Twitter through the official @nodejs account, email [pr@nodejs.org](mailto:pr@nodejs.org) with a message such as:
 
 > v5.8.0 of @nodejs is out: https://nodejs.org/en/blog/release/v5.8.0/ … something here about notable changes
 

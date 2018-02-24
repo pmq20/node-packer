@@ -32,14 +32,14 @@ const marked = require('marked');
 // customized heading without id attribute
 const renderer = new marked.Renderer();
 renderer.heading = function(text, level) {
-  return '<h' + level + '>' + text + '</h' + level + '>\n';
+  return `<h${level}>${text}</h${level}>\n`;
 };
 marked.setOptions({
   renderer: renderer
 });
 
 function doJSON(input, filename, cb) {
-  const root = {source: filename};
+  const root = { source: filename };
   const stack = [root];
   var depth = 0;
   var current = root;
@@ -246,25 +246,24 @@ function processList(section) {
     } else if (type === 'list_item_end') {
       if (!current) {
         throw new Error('invalid list - end without current item\n' +
-                        JSON.stringify(tok) + '\n' +
+                        `${JSON.stringify(tok)}\n` +
                         JSON.stringify(list));
       }
       current = stack.pop();
     } else if (type === 'text') {
       if (!current) {
         throw new Error('invalid list - text without current item\n' +
-                        JSON.stringify(tok) + '\n' +
+                        `${JSON.stringify(tok)}\n` +
                         JSON.stringify(list));
       }
-      current.textRaw = current.textRaw || '';
-      current.textRaw += tok.text + ' ';
+      current.textRaw = `${current.textRaw || ''}${tok.text} `;
     }
   });
 
   // shove the name in there for properties, since they are always
   // just going to be the value etc.
   if (section.type === 'property' && values[0]) {
-    values[0].textRaw = '`' + section.name + '` ' + values[0].textRaw;
+    values[0].textRaw = `\`${section.name}\` ${values[0].textRaw}`;
   }
 
   // now pull the actual values out of the text bits.
@@ -329,7 +328,7 @@ function parseSignature(text, sig) {
   params = params[1];
   params = params.split(/,/);
   var optionalLevel = 0;
-  const optionalCharDict = {'[': 1, ' ': 0, ']': -1};
+  const optionalCharDict = { '[': 1, ' ': 0, ']': -1 };
   params.forEach(function(p, i) {
     p = p.trim();
     if (!p) return;
@@ -362,8 +361,8 @@ function parseSignature(text, sig) {
     // at this point, the name should match.
     if (p !== param.name) {
       console.error('Warning: invalid param "%s"', p);
-      console.error(' > ' + JSON.stringify(param));
-      console.error(' > ' + text);
+      console.error(` > ${JSON.stringify(param)}`);
+      console.error(` > ${text}`);
     }
     if (optional) param.optional = true;
     if (def !== undefined) param.default = def;
@@ -428,7 +427,7 @@ function parseListItem(item) {
 function finishSection(section, parent) {
   if (!section || !parent) {
     throw new Error('Invalid finishSection call\n' +
-                    JSON.stringify(section) + '\n' +
+                    `${JSON.stringify(section)}\n` +
                     JSON.stringify(parent));
   }
 
@@ -488,11 +487,11 @@ function finishSection(section, parent) {
 
   var plur;
   if (section.type.slice(-1) === 's') {
-    plur = section.type + 'es';
+    plur = `${section.type}es`;
   } else if (section.type.slice(-1) === 'y') {
     plur = section.type.replace(/y$/, 'ies');
   } else {
-    plur = section.type + 's';
+    plur = `${section.type}s`;
   }
 
   // if the parent's type is 'misc', then it's just a random

@@ -1,16 +1,18 @@
 {
   "source": "doc/api/cli.md",
+  "introduced_in": "v5.9.1",
   "miscs": [
     {
       "textRaw": "Command Line Options",
       "name": "Command Line Options",
+      "introduced_in": "v5.9.1",
       "type": "misc",
       "desc": "<p>Node.js comes with a variety of CLI options. These options expose built-in\ndebugging, multiple ways to execute scripts, and other helpful runtime options.</p>\n<p>To view this documentation as a manual page in a terminal, run <code>man node</code>.</p>\n",
       "miscs": [
         {
           "textRaw": "Synopsis",
           "name": "synopsis",
-          "desc": "<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot; | -] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
+          "desc": "<p><code>node [options] [V8 options] [script.js | -e &quot;script&quot; | -] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>\n",
           "type": "misc",
           "displayName": "Synopsis"
         },
@@ -59,7 +61,7 @@
                   }
                 ]
               },
-              "desc": "<p>Evaluate the following argument as JavaScript. The modules which are\npredefined in the REPL can also be used in <code>script</code>.</p>\n",
+              "desc": "<p>Evaluate the following argument as JavaScript. The modules which are\npredefined in the REPL can also be used in <code>script</code>.</p>\n<p><em>Note</em>: On Windows, using <code>cmd.exe</code> a single quote will not work correctly\nbecause it only recognizes double <code>&quot;</code> for quoting. In Powershell or\nGit bash, both <code>&#39;</code> and <code>&quot;</code> are usable.</p>\n",
               "type": "module",
               "displayName": "`-e`, `--eval \"script\"`"
             },
@@ -240,19 +242,6 @@
               "displayName": "`--expose-http2`"
             },
             {
-              "textRaw": "`--napi-modules`",
-              "name": "`--napi-modules`",
-              "meta": {
-                "added": [
-                  "v8.0.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Enable loading native modules compiled with the ABI-stable Node.js API (N-API)\n(experimental).</p>\n",
-              "type": "module",
-              "displayName": "`--napi-modules`"
-            },
-            {
               "textRaw": "`--abort-on-uncaught-exception`",
               "name": "`--abort-on-uncaught-exception`",
               "meta": {
@@ -303,6 +292,19 @@
               "desc": "<p>Prints a stack trace whenever synchronous I/O is detected after the first turn\nof the event loop.</p>\n",
               "type": "module",
               "displayName": "`--trace-sync-io`"
+            },
+            {
+              "textRaw": "`--force-async-hooks-checks`",
+              "name": "`--force-async-hooks-checks`",
+              "meta": {
+                "added": [
+                  "v8.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enables runtime checks for <code>async_hooks</code>. These can also be enabled dynamically\nby enabling one of the <code>async_hooks</code> hooks.</p>\n",
+              "type": "module",
+              "displayName": "`--force-async-hooks-checks`"
             },
             {
               "textRaw": "`--trace-events-enabled`",
@@ -378,7 +380,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>\n",
+              "desc": "<p>Process V8 profiler output generated using the V8 option <code>--prof</code>.</p>\n",
               "type": "module",
               "displayName": "`--prof-process`"
             },
@@ -391,7 +393,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Print v8 command line options.</p>\n<p><em>Note</em>: V8 options allow words to be separated by both dashes (<code>-</code>) or\nunderscores (<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>\n",
+              "desc": "<p>Print V8 command line options.</p>\n<p><em>Note</em>: V8 options allow words to be separated by both dashes (<code>-</code>) or\nunderscores (<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>\n",
               "type": "module",
               "displayName": "`--v8-options`"
             },
@@ -456,7 +458,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by\ncurrent NodeJS version. The default store is selectable at build-time.</p>\n<p>Using OpenSSL store allows for external modifications of the store. For most\nLinux and BSD distributions, this store is maintained by the distribution\nmaintainers and system administrators. OpenSSL CA store location is dependent on\nconfiguration of the OpenSSL library but this can be altered at runtime using\nenvironmental variables.</p>\n<p>The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store\nthat is fixed at release time. It is identical on all supported platforms.</p>\n<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>\n",
+              "desc": "<p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by\ncurrent Node.js version. The default store is selectable at build-time.</p>\n<p>Using OpenSSL store allows for external modifications of the store. For most\nLinux and BSD distributions, this store is maintained by the distribution\nmaintainers and system administrators. OpenSSL CA store location is dependent on\nconfiguration of the OpenSSL library but this can be altered at runtime using\nenvironment variables.</p>\n<p>The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store\nthat is fixed at release time. It is identical on all supported platforms.</p>\n<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>\n",
               "type": "module",
               "displayName": "`--use-openssl-ca`, `--use-bundled-ca`"
             },
@@ -573,6 +575,19 @@
               "displayName": "`NODE_NO_WARNINGS=1`"
             },
             {
+              "textRaw": "`NODE_NO_HTTP2=1`",
+              "name": "`node_no_http2=1`",
+              "meta": {
+                "added": [
+                  "v8.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set to <code>1</code>, the <code>http2</code> module is suppressed.</p>\n",
+              "type": "module",
+              "displayName": "`NODE_NO_HTTP2=1`"
+            },
+            {
               "textRaw": "`NODE_OPTIONS=options...`",
               "name": "`node_options=options...`",
               "meta": {
@@ -581,7 +596,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden).  Node will exit with an error if an option that is\nnot allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--inspect</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-events-categories</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n</ul>\n",
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden).  Node will exit with an error if an option that is\nnot allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--inspect</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-events-categories</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n</ul>\n",
               "type": "module",
               "displayName": "`NODE_OPTIONS=options...`"
             },
@@ -659,7 +674,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nenvironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
               "type": "module",
               "displayName": "`SSL_CERT_DIR=dir`"
             },
@@ -672,7 +687,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nevironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file\ncontaining trusted certificates.</p>\n<p><em>Note</em>: Be aware that unless the child environment is explicitly set, this\nenvironment variable will be inherited by any child processes, and if they use\nOpenSSL, it may cause them to trust the same CAs as node.</p>\n",
               "type": "module",
               "displayName": "`SSL_CERT_FILE=file`"
             },
@@ -688,6 +703,13 @@
               "desc": "<p>When set, process warnings will be emitted to the given file instead of\nprinting to stderr. The file will be created if it does not exist, and will be\nappended to if it does. If an error occurs while attempting to write the\nwarning to the file, the warning will be written to stderr instead. This is\nequivalent to using the <code>--redirect-warnings=file</code> command-line flag.</p>\n",
               "type": "module",
               "displayName": "`NODE_REDIRECT_WARNINGS=file`"
+            },
+            {
+              "textRaw": "`UV_THREADPOOL_SIZE=size`",
+              "name": "`uv_threadpool_size=size`",
+              "desc": "<p>Set the number of threads used in libuv&#39;s threadpool to <code>size</code> threads.</p>\n<p>Asynchronous system APIs are used by Node.js whenever possible, but where they\ndo not exist, libuv&#39;s threadpool is used to create asynchronous node APIs based\non synchronous system APIs. Node.js APIs that use the threadpool are:</p>\n<ul>\n<li>all <code>fs</code> APIs, other than the file watcher APIs and those that are explicitly\nsynchronous</li>\n<li><code>crypto.pbkdf2()</code></li>\n<li><code>crypto.randomBytes()</code>, unless it is used without a callback</li>\n<li><code>crypto.randomFill()</code></li>\n<li><code>dns.lookup()</code></li>\n<li>all <code>zlib</code> APIs, other than those that are explicitly synchronous</li>\n</ul>\n<p>Because libuv&#39;s threadpool has a fixed size, it means that if for whatever\nreason any of these APIs takes a long time, other (seemingly unrelated) APIs\nthat run in libuv&#39;s threadpool will experience degraded performance. In order to\nmitigate this issue, one potential solution is to increase the size of libuv&#39;s\nthreadpool by setting the <code>&#39;UV_THREADPOOL_SIZE&#39;</code> environment variable to a value\ngreater than <code>4</code> (its current default value).  For more information, see the\n<a href=\"http://docs.libuv.org/en/latest/threadpool.html\">libuv threadpool documentation</a>.</p>\n",
+              "type": "module",
+              "displayName": "`UV_THREADPOOL_SIZE=size`"
             }
           ],
           "type": "misc",

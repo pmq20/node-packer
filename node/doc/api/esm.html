@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>ECMAScript Modules | Node.js v8.9.4 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/esm.html">
+</head>
+<body class="alt apidoc" id="api-section-esm">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm active" href="esm.html">ECMAScript Modules</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="esm" class="interior">
+      <header>
+        <h1>Node.js v8.9.4 Documentation</h1>
+        <div id="gtoc">
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="esm.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/esm.html">9.x</a></li></ol>
+    </li>
+  
+          </ul>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><span class="stability_1"><a href="#esm_ecmascript_modules">ECMAScript Modules</a></span><ul>
+<li><span class="stability_undefined"><a href="#esm_enabling">Enabling</a></span></li>
+<li><span class="stability_undefined"><a href="#esm_features">Features</a></span><ul>
+<li><span class="stability_undefined"><a href="#esm_supported">Supported</a></span></li>
+<li><span class="stability_undefined"><a href="#esm_unsupported">Unsupported</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#esm_notable_differences_between_import_and_require">Notable differences between <code>import</code> and <code>require</code></a></span><ul>
+<li><span class="stability_undefined"><a href="#esm_no_node_path">No NODE_PATH</a></span></li>
+<li><span class="stability_undefined"><a href="#esm_no_require_extensions">No <code>require.extensions</code></a></span></li>
+<li><span class="stability_undefined"><a href="#esm_no_require_cache">No <code>require.cache</code></a></span></li>
+<li><span class="stability_undefined"><a href="#esm_url_based_paths">URL based paths</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#esm_interop_with_existing_modules">Interop with existing modules</a></span></li>
+<li><span class="stability_undefined"><a href="#esm_loader_hooks">Loader hooks</a></span><ul>
+<li><span class="stability_undefined"><a href="#esm_resolve_hook">Resolve hook</a></span></li>
+<li><span class="stability_undefined"><a href="#esm_dynamic_instantiate_hook">Dynamic instantiate hook</a></span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>ECMAScript Modules<span><a class="mark" href="#esm_ecmascript_modules" id="esm_ecmascript_modules">#</a></span></h1>
+<!--introduced_in=v8.5.0-->
+<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><!--name=esm-->
+<p>Node.js contains support for ES Modules based upon the
+<a href="https://github.com/nodejs/node-eps/blob/master/002-es-modules.md">Node.js EP for ES Modules</a>.</p>
+<p>Not all features of the EP are complete and will be landing as both VM support
+and implementation is ready. Error messages are still being polished.</p>
+<h2>Enabling<span><a class="mark" href="#esm_enabling" id="esm_enabling">#</a></span></h2>
+<!-- type=misc -->
+<p>The <code>--experimental-modules</code> flag can be used to enable features for loading
+ESM modules.</p>
+<p>Once this has been set, files ending with <code>.mjs</code> will be able to be loaded
+as ES Modules.</p>
+<pre><code class="lang-sh">node --experimental-modules my-app.mjs
+</code></pre>
+<h2>Features<span><a class="mark" href="#esm_features" id="esm_features">#</a></span></h2>
+<!-- type=misc -->
+<h3>Supported<span><a class="mark" href="#esm_supported" id="esm_supported">#</a></span></h3>
+<p>Only the CLI argument for the main entry point to the program can be an entry
+point into an ESM graph. In the future <code>import()</code> can be used to create entry
+points into ESM graphs at run time.</p>
+<h3>Unsupported<span><a class="mark" href="#esm_unsupported" id="esm_unsupported">#</a></span></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>require(&#39;./foo.mjs&#39;)</code></td>
+<td>ES Modules have differing resolution and timing, use language standard <code>import()</code></td>
+</tr>
+<tr>
+<td><code>import()</code></td>
+<td>pending newer V8 release used in Node.js</td>
+</tr>
+<tr>
+<td><code>import.meta</code></td>
+<td>pending V8 implementation</td>
+</tr>
+</tbody>
+</table>
+<h2>Notable differences between <code>import</code> and <code>require</code><span><a class="mark" href="#esm_notable_differences_between_import_and_require" id="esm_notable_differences_between_import_and_require">#</a></span></h2>
+<h3>No NODE_PATH<span><a class="mark" href="#esm_no_node_path" id="esm_no_node_path">#</a></span></h3>
+<p><code>NODE_PATH</code> is not part of resolving <code>import</code> specifiers. Please use symlinks
+if this behavior is desired.</p>
+<h3>No <code>require.extensions</code><span><a class="mark" href="#esm_no_require_extensions" id="esm_no_require_extensions">#</a></span></h3>
+<p><code>require.extensions</code> is not used by <code>import</code>. The expectation is that loader
+hooks can provide this workflow in the future.</p>
+<h3>No <code>require.cache</code><span><a class="mark" href="#esm_no_require_cache" id="esm_no_require_cache">#</a></span></h3>
+<p><code>require.cache</code> is not used by <code>import</code>. It has a separate cache.</p>
+<h3>URL based paths<span><a class="mark" href="#esm_url_based_paths" id="esm_url_based_paths">#</a></span></h3>
+<p>ESM are resolved and cached based upon <a href="https://url.spec.whatwg.org/">URL</a>
+semantics. This means that files containing special characters such as <code>#</code> and
+<code>?</code> need to be escaped.</p>
+<p>Modules will be loaded multiple times if the <code>import</code> specifier used to resolve
+them have a different query or fragment.</p>
+<pre><code class="lang-js">import &#39;./foo?query=1&#39;; // loads ./foo with query of &quot;?query=1&quot;
+import &#39;./foo?query=2&#39;; // loads ./foo with query of &quot;?query=2&quot;
+</code></pre>
+<p>For now, only modules using the <code>file:</code> protocol can be loaded.</p>
+<h2>Interop with existing modules<span><a class="mark" href="#esm_interop_with_existing_modules" id="esm_interop_with_existing_modules">#</a></span></h2>
+<p>All CommonJS, JSON, and C++ modules can be used with <code>import</code>.</p>
+<p>Modules loaded this way will only be loaded once, even if their query
+or fragment string differs between <code>import</code> statements.</p>
+<p>When loaded via <code>import</code> these modules will provide a single <code>default</code> export
+representing the value of <code>module.exports</code> at the time they finished evaluating.</p>
+<pre><code class="lang-js">import fs from &#39;fs&#39;;
+fs.readFile(&#39;./foo.txt&#39;, (err, body) =&gt; {
+  if (err) {
+    console.error(err);
+  } else {
+    console.log(body);
+  }
+});
+</code></pre>
+<h2>Loader hooks<span><a class="mark" href="#esm_loader_hooks" id="esm_loader_hooks">#</a></span></h2>
+<!-- type=misc -->
+<p>To customize the default module resolution, loader hooks can optionally be
+provided via a <code>--loader ./loader-name.mjs</code> argument to Node.</p>
+<p>When hooks are used they only apply to ES module loading and not to any
+CommonJS modules loaded.</p>
+<h3>Resolve hook<span><a class="mark" href="#esm_resolve_hook" id="esm_resolve_hook">#</a></span></h3>
+<p>The resolve hook returns the resolved file URL and module format for a
+given module specifier and parent file URL:</p>
+<pre><code class="lang-js">import url from &#39;url&#39;;
+
+export async function resolve(specifier, parentModuleURL, defaultResolver) {
+  return {
+    url: new URL(specifier, parentModuleURL).href,
+    format: &#39;esm&#39;
+  };
+}
+</code></pre>
+<p>The default NodeJS ES module resolution function is provided as a third
+argument to the resolver for easy compatibility workflows.</p>
+<p>In addition to returning the resolved file URL value, the resolve hook also
+returns a <code>format</code> property specifying the module format of the resolved
+module. This can be one of the following:</p>
+<table>
+<thead>
+<tr>
+<th><code>format</code></th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;esm&quot;</code></td>
+<td>Load a standard JavaScript module</td>
+</tr>
+<tr>
+<td><code>&quot;cjs&quot;</code></td>
+<td>Load a node-style CommonJS module</td>
+</tr>
+<tr>
+<td><code>&quot;builtin&quot;</code></td>
+<td>Load a node builtin CommonJS module</td>
+</tr>
+<tr>
+<td><code>&quot;json&quot;</code></td>
+<td>Load a JSON file</td>
+</tr>
+<tr>
+<td><code>&quot;addon&quot;</code></td>
+<td>Load a <a href="addons.html">C++ Addon</a></td>
+</tr>
+<tr>
+<td><code>&quot;dynamic&quot;</code></td>
+<td>Use a <a href="#esm_dynamic_instantiate_hook">dynamic instantiate hook</a></td>
+</tr>
+</tbody>
+</table>
+<p>For example, a dummy loader to load JavaScript restricted to browser resolution
+rules with only JS file extension and Node builtin modules support could
+be written:</p>
+<pre><code class="lang-js">import url from &#39;url&#39;;
+import path from &#39;path&#39;;
+import process from &#39;process&#39;;
+import Module from &#39;module&#39;;
+
+const builtins = Module.builtinModules;
+const JS_EXTENSIONS = new Set([&#39;.js&#39;, &#39;.mjs&#39;]);
+
+export function resolve(specifier, parentModuleURL/*, defaultResolve */) {
+  if (builtins.includes(specifier)) {
+    return {
+      url: specifier,
+      format: &#39;builtin&#39;
+    };
+  }
+  if (/^\.{0,2}[/]/.test(specifier) !== true &amp;&amp; !specifier.startsWith(&#39;file:&#39;)) {
+    // For node_modules support:
+    // return defaultResolve(specifier, parentModuleURL);
+    throw new Error(
+      `imports must begin with &#39;/&#39;, &#39;./&#39;, or &#39;../&#39;; &#39;${specifier}&#39; does not`);
+  }
+  const resolved = new url.URL(specifier, parentModuleURL);
+  const ext = path.extname(resolved.pathname);
+  if (!JS_EXTENSIONS.has(ext)) {
+    throw new Error(
+      `Cannot load file with non-JavaScript file extension ${ext}.`);
+  }
+  return {
+    url: resolved.href,
+    format: &#39;esm&#39;
+  };
+}
+</code></pre>
+<p>With this loader, running:</p>
+<pre><code class="lang-console">NODE_OPTIONS=&#39;--experimental-modules --loader ./custom-loader.mjs&#39; node x.js
+</code></pre>
+<p>would load the module <code>x.js</code> as an ES module with relative resolution support
+(with <code>node_modules</code> loading skipped in this example).</p>
+<h3>Dynamic instantiate hook<span><a class="mark" href="#esm_dynamic_instantiate_hook" id="esm_dynamic_instantiate_hook">#</a></span></h3>
+<p>To create a custom dynamic module that doesn&#39;t correspond to one of the
+existing <code>format</code> interpretations, the <code>dynamicInstantiate</code> hook can be used.
+This hook is called only for modules that return <code>format: &quot;dynamic&quot;</code> from
+the <code>resolve</code> hook.</p>
+<pre><code class="lang-js">export async function dynamicInstantiate(url) {
+  return {
+    exports: [&#39;customExportName&#39;],
+    execute: (exports) =&gt; {
+      // get and set functions provided for pre-allocated export names
+      exports.customExportName.set(&#39;value&#39;);
+    }
+  };
+}
+</code></pre>
+<p>With the list of module exports provided upfront, the <code>execute</code> function will
+then be called at the exact point of module evalutation order for that module
+in the import tree.</p>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
+</body>
+</html>
+

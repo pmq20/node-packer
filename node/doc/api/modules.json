@@ -4,9 +4,10 @@
     {
       "textRaw": "Modules",
       "name": "module",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>Node.js has a simple module loading system.  In Node.js, files and modules\nare in one-to-one correspondence (each file is treated as a separate module).</p>\n<p>As an example, consider a file named <code>foo.js</code>:</p>\n<pre><code class=\"lang-js\">const circle = require(&#39;./circle.js&#39;);\nconsole.log(`The area of a circle of radius 4 is ${circle.area(4)}`);\n</code></pre>\n<p>On the first line, <code>foo.js</code> loads the module <code>circle.js</code> that is in the same\ndirectory as <code>foo.js</code>.</p>\n<p>Here are the contents of <code>circle.js</code>:</p>\n<pre><code class=\"lang-js\">const { PI } = Math;\n\nexports.area = (r) =&gt; PI * r ** 2;\n\nexports.circumference = (r) =&gt; 2 * PI * r;\n</code></pre>\n<p>The module <code>circle.js</code> has exported the functions <code>area()</code> and\n<code>circumference()</code>. Functions and objects are added to the root of a module\nby specifying additional properties on the special <code>exports</code> object.</p>\n<p>Variables local to the module will be private, because the module is wrapped\nin a function by Node.js (see <a href=\"#modules_the_module_wrapper\">module wrapper</a>).\nIn this example, the variable <code>PI</code> is private to <code>circle.js</code>.</p>\n<p>The <code>module.exports</code> property can be assigned a new value (such as a function\nor object).</p>\n<p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a constructor:</p>\n<pre><code class=\"lang-js\">const square = require(&#39;./square.js&#39;);\nconst mySquare = square(2);\nconsole.log(`The area of my square is ${mySquare.area()}`);\n</code></pre>\n<p>The <code>square</code> module is defined in <code>square.js</code>:</p>\n<pre><code class=\"lang-js\">// assigning to exports will not modify module, must use module.exports\nmodule.exports = (width) =&gt; {\n  return {\n    area: () =&gt; width ** 2\n  };\n};\n</code></pre>\n<p>The module system is implemented in the <code>require(&#39;module&#39;)</code> module.</p>\n",
+      "desc": "<p>In the Node.js module system, each file is treated as a separate module. For\nexample, consider a file named <code>foo.js</code>:</p>\n<pre><code class=\"lang-js\">const circle = require(&#39;./circle.js&#39;);\nconsole.log(`The area of a circle of radius 4 is ${circle.area(4)}`);\n</code></pre>\n<p>On the first line, <code>foo.js</code> loads the module <code>circle.js</code> that is in the same\ndirectory as <code>foo.js</code>.</p>\n<p>Here are the contents of <code>circle.js</code>:</p>\n<pre><code class=\"lang-js\">const { PI } = Math;\n\nexports.area = (r) =&gt; PI * r ** 2;\n\nexports.circumference = (r) =&gt; 2 * PI * r;\n</code></pre>\n<p>The module <code>circle.js</code> has exported the functions <code>area()</code> and\n<code>circumference()</code>. Functions and objects are added to the root of a module\nby specifying additional properties on the special <code>exports</code> object.</p>\n<p>Variables local to the module will be private, because the module is wrapped\nin a function by Node.js (see <a href=\"#modules_the_module_wrapper\">module wrapper</a>).\nIn this example, the variable <code>PI</code> is private to <code>circle.js</code>.</p>\n<p>The <code>module.exports</code> property can be assigned a new value (such as a function\nor object).</p>\n<p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a Square class:</p>\n<pre><code class=\"lang-js\">const Square = require(&#39;./square.js&#39;);\nconst mySquare = new Square(2);\nconsole.log(`The area of mySquare is ${mySquare.area()}`);\n</code></pre>\n<p>The <code>square</code> module is defined in <code>square.js</code>:</p>\n<pre><code class=\"lang-js\">// assigning to exports will not modify module, must use module.exports\nmodule.exports = class Square {\n  constructor(width) {\n    this.width = width;\n  }\n\n  area() {\n    return this.width ** 2;\n  }\n};\n</code></pre>\n<p>The module system is implemented in the <code>require(&#39;module&#39;)</code> module.</p>\n",
       "miscs": [
         {
           "textRaw": "Accessing the main module",
@@ -180,21 +181,79 @@
               ],
               "methods": [
                 {
-                  "textRaw": "require.resolve()",
+                  "textRaw": "require.resolve(request[, options])",
                   "type": "method",
                   "name": "resolve",
                   "meta": {
                     "added": [
                       "v0.3.0"
                     ],
-                    "changes": []
+                    "changes": [
+                      {
+                        "version": "v8.9.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/16397",
+                        "description": "The `paths` option is now supported."
+                      }
+                    ]
                   },
-                  "desc": "<p>Use the internal <code>require()</code> machinery to look up the location of a module,\nbut rather than loading the module, just return the resolved filename.</p>\n",
                   "signatures": [
                     {
-                      "params": []
+                      "return": {
+                        "textRaw": "Returns: {string} ",
+                        "name": "return",
+                        "type": "string"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`request` {string} The module path to resolve. ",
+                          "name": "request",
+                          "type": "string",
+                          "desc": "The module path to resolve."
+                        },
+                        {
+                          "textRaw": "`options` {Object} ",
+                          "options": [
+                            {
+                              "textRaw": "`paths` {Array} Paths to resolve module location from. If present, these paths are used instead of the default resolution paths. Note that each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location. ",
+                              "name": "paths",
+                              "type": "Array",
+                              "desc": "Paths to resolve module location from. If present, these paths are used instead of the default resolution paths. Note that each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location."
+                            }
+                          ],
+                          "name": "options",
+                          "type": "Object",
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "params": [
+                        {
+                          "name": "request"
+                        },
+                        {
+                          "name": "options",
+                          "optional": true
+                        }
+                      ]
                     }
-                  ]
+                  ],
+                  "desc": "<p>Use the internal <code>require()</code> machinery to look up the location of a module,\nbut rather than loading the module, just return the resolved filename.</p>\n"
+                }
+              ],
+              "modules": [
+                {
+                  "textRaw": "require.resolve.paths(request)",
+                  "name": "require.resolve.paths(request)",
+                  "meta": {
+                    "added": [
+                      "v8.9.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<ul>\n<li><code>request</code> {string} The module path whose lookup paths are being retrieved.</li>\n<li>Returns: {Array}</li>\n</ul>\n<p>Returns an array containing the paths searched during resolution of <code>request</code>.</p>\n",
+                  "type": "module",
+                  "displayName": "require.resolve.paths(request)"
                 }
               ]
             }

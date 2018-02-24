@@ -26,9 +26,7 @@ Readable.ReadableState = ReadableState;
 
 const EE = require('events');
 const Stream = require('stream');
-// TODO(bmeurer): Change this back to const once hole checks are
-// properly optimized away early in Ignition+TurboFan.
-var Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const util = require('util');
 const debug = util.debuglog('stream');
 const BufferList = require('internal/streams/BufferList');
@@ -42,20 +40,19 @@ const kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
   // event emitter implementation with them.
-  if (typeof emitter.prependListener === 'function') {
+  if (typeof emitter.prependListener === 'function')
     return emitter.prependListener(event, fn);
-  } else {
-    // This is a hack to make sure that our error handler is attached before any
-    // userland ones.  NEVER DO THIS. This is here only because this code needs
-    // to continue to work with older versions of Node.js that do not include
-    // the prependListener() method. The goal is to eventually remove this hack.
-    if (!emitter._events || !emitter._events[event])
-      emitter.on(event, fn);
-    else if (Array.isArray(emitter._events[event]))
-      emitter._events[event].unshift(fn);
-    else
-      emitter._events[event] = [fn, emitter._events[event]];
-  }
+
+  // This is a hack to make sure that our error handler is attached before any
+  // userland ones.  NEVER DO THIS. This is here only because this code needs
+  // to continue to work with older versions of Node.js that do not include
+  // the prependListener() method. The goal is to eventually remove this hack.
+  if (!emitter._events || !emitter._events[event])
+    emitter.on(event, fn);
+  else if (Array.isArray(emitter._events[event]))
+    emitter._events[event].unshift(fn);
+  else
+    emitter._events[event] = [fn, emitter._events[event]];
 }
 
 function ReadableState(options, stream) {
@@ -856,19 +853,18 @@ Readable.prototype.wrap = function(stream) {
   var state = this._readableState;
   var paused = false;
 
-  var self = this;
-  stream.on('end', function() {
+  stream.on('end', () => {
     debug('wrapped end');
     if (state.decoder && !state.ended) {
       var chunk = state.decoder.end();
       if (chunk && chunk.length)
-        self.push(chunk);
+        this.push(chunk);
     }
 
-    self.push(null);
+    this.push(null);
   });
 
-  stream.on('data', function(chunk) {
+  stream.on('data', (chunk) => {
     debug('wrapped data');
     if (state.decoder)
       chunk = state.decoder.write(chunk);
@@ -879,7 +875,7 @@ Readable.prototype.wrap = function(stream) {
     else if (!state.objectMode && (!chunk || !chunk.length))
       return;
 
-    var ret = self.push(chunk);
+    var ret = this.push(chunk);
     if (!ret) {
       paused = true;
       stream.pause();
@@ -900,12 +896,12 @@ Readable.prototype.wrap = function(stream) {
 
   // proxy certain important events.
   for (var n = 0; n < kProxyEvents.length; n++) {
-    stream.on(kProxyEvents[n], self.emit.bind(self, kProxyEvents[n]));
+    stream.on(kProxyEvents[n], this.emit.bind(this, kProxyEvents[n]));
   }
 
   // when we try to consume some more bytes, simply unpause the
   // underlying stream.
-  self._read = function(n) {
+  this._read = (n) => {
     debug('wrapped _read', n);
     if (paused) {
       paused = false;
@@ -913,7 +909,7 @@ Readable.prototype.wrap = function(stream) {
     }
   };
 
-  return self;
+  return this;
 };
 
 

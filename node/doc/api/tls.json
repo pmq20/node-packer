@@ -4,6 +4,7 @@
     {
       "textRaw": "TLS (SSL)",
       "name": "tls_(ssl)",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>tls</code> module provides an implementation of the Transport Layer Security\n(TLS) and Secure Socket Layer (SSL) protocols that is built on top of OpenSSL.\nThe module can be accessed using:</p>\n<pre><code class=\"lang-js\">const tls = require(&#39;tls&#39;);\n</code></pre>\n",
@@ -17,11 +18,11 @@
               "textRaw": "Perfect Forward Secrecy",
               "name": "Perfect Forward Secrecy",
               "type": "misc",
-              "desc": "<p>The term &quot;<a href=\"https://en.wikipedia.org/wiki/Perfect_forward_secrecy\">Forward Secrecy</a>&quot; or &quot;Perfect Forward Secrecy&quot; describes a feature of\nkey-agreement (i.e., key-exchange) methods. That is, the server and client keys\nare used to negotiate new temporary keys that are used specifically and only for\nthe current communication session. Practically, this means that even if the\nserver&#39;s private key is compromised, communication can only be decrypted by\neavesdroppers if the attacker manages to obtain the key-pair specifically\ngenerated for the session.</p>\n<p>Perfect Forward Secrecy is achieved by randomly generating a key pair for\nkey-agreement on every TLS/SSL handshake (in contrast to using the same key for\nall sessions). Methods implementing this technique are called &quot;ephemeral&quot;.</p>\n<p>Currently two methods are commonly used to achieve Perfect Forward Secrecy (note\nthe character &quot;E&quot; appended to the traditional abbreviations):</p>\n<ul>\n<li><a href=\"https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange\">DHE</a> - An ephemeral version of the Diffie Hellman key-agreement protocol.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman\">ECDHE</a> - An ephemeral version of the Elliptic Curve Diffie Hellman\nkey-agreement protocol.</li>\n</ul>\n<p>Ephemeral methods may have some performance drawbacks, because key generation\nis expensive.</p>\n<p>To use Perfect Forward Secrecy using <code>DHE</code> with the <code>tls</code> module, it is required\nto generate Diffie-Hellman parameters and specify them with the <code>dhparam</code>\noption to <a href=\"#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a>. The following illustrates the use of\nthe OpenSSL command-line interface to generate such parameters:</p>\n<pre><code class=\"lang-sh\">openssl dhparam -outform PEM -out dhparam.pem 2048\n</code></pre>\n<p>If using Perfect Forward Secrecy using <code>ECDHE</code>, Diffie-Hellman parameters are\nnot required and a default ECDHE curve will be used. The <code>ecdhCurve</code> property\ncan be used when creating a TLS Server to specify the name of an alternative\ncurve to use, see <a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> for more info.</p>\n"
+              "desc": "<p>The term &quot;<a href=\"https://en.wikipedia.org/wiki/Perfect_forward_secrecy\">Forward Secrecy</a>&quot; or &quot;Perfect Forward Secrecy&quot; describes a feature of\nkey-agreement (i.e., key-exchange) methods. That is, the server and client keys\nare used to negotiate new temporary keys that are used specifically and only for\nthe current communication session. Practically, this means that even if the\nserver&#39;s private key is compromised, communication can only be decrypted by\neavesdroppers if the attacker manages to obtain the key-pair specifically\ngenerated for the session.</p>\n<p>Perfect Forward Secrecy is achieved by randomly generating a key pair for\nkey-agreement on every TLS/SSL handshake (in contrast to using the same key for\nall sessions). Methods implementing this technique are called &quot;ephemeral&quot;.</p>\n<p>Currently two methods are commonly used to achieve Perfect Forward Secrecy (note\nthe character &quot;E&quot; appended to the traditional abbreviations):</p>\n<ul>\n<li><a href=\"https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange\">DHE</a> - An ephemeral version of the Diffie Hellman key-agreement protocol.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman\">ECDHE</a> - An ephemeral version of the Elliptic Curve Diffie Hellman\nkey-agreement protocol.</li>\n</ul>\n<p>Ephemeral methods may have some performance drawbacks, because key generation\nis expensive.</p>\n<p>To use Perfect Forward Secrecy using <code>DHE</code> with the <code>tls</code> module, it is required\nto generate Diffie-Hellman parameters and specify them with the <code>dhparam</code>\noption to <a href=\"#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a>. The following illustrates the use of\nthe OpenSSL command-line interface to generate such parameters:</p>\n<pre><code class=\"lang-sh\">openssl dhparam -outform PEM -out dhparam.pem 2048\n</code></pre>\n<p>If using Perfect Forward Secrecy using <code>ECDHE</code>, Diffie-Hellman parameters are\nnot required and a default ECDHE curve will be used. The <code>ecdhCurve</code> property\ncan be used when creating a TLS Server to specify the list of names of supported\ncurves to use, see <a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> for more info.</p>\n"
             },
             {
-              "textRaw": "ALPN, NPN and SNI",
-              "name": "ALPN, NPN and SNI",
+              "textRaw": "ALPN, NPN, and SNI",
+              "name": "ALPN, NPN, and SNI",
               "type": "misc",
               "desc": "<p>ALPN (Application-Layer Protocol Negotiation Extension), NPN (Next\nProtocol Negotiation) and, SNI (Server Name Indication) are TLS\nhandshake extensions:</p>\n<ul>\n<li>ALPN/NPN - Allows the use of one TLS server for multiple protocols (HTTP,\nSPDY, HTTP/2)</li>\n<li>SNI - Allows the use of one TLS server for multiple hostnames with different\nSSL certificates.</li>\n</ul>\n<p><em>Note</em>: Use of ALPN is recommended over NPN. The NPN extension has never been\nformally defined or documented and generally not recommended for use.</p>\n"
             },
@@ -450,57 +451,15 @@
               ]
             },
             {
-              "textRaw": "server.listen(port[, hostname][, callback])",
+              "textRaw": "server.listen()",
               "type": "method",
               "name": "listen",
-              "meta": {
-                "added": [
-                  "v0.3.2"
-                ],
-                "changes": []
-              },
+              "desc": "<p>Starts the server listening for encrypted connections.\nThis method is identical to <a href=\"net.html#net_server_listen\"><code>server.listen()</code></a> from <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a>.</p>\n",
               "signatures": [
                 {
-                  "params": [
-                    {
-                      "textRaw": "`port` {number} The TCP/IP port on which to begin listening for connections. A value of `0` (zero) will assign a random port. ",
-                      "name": "port",
-                      "type": "number",
-                      "desc": "The TCP/IP port on which to begin listening for connections. A value of `0` (zero) will assign a random port."
-                    },
-                    {
-                      "textRaw": "`hostname` {string} The hostname, IPv4, or IPv6 address on which to begin listening for connections. If `undefined`, the server will accept connections on any IPv6 address (`::`) when IPv6 is available, or any IPv4 address (`0.0.0.0`) otherwise. ",
-                      "name": "hostname",
-                      "type": "string",
-                      "desc": "The hostname, IPv4, or IPv6 address on which to begin listening for connections. If `undefined`, the server will accept connections on any IPv6 address (`::`) when IPv6 is available, or any IPv4 address (`0.0.0.0`) otherwise.",
-                      "optional": true
-                    },
-                    {
-                      "textRaw": "`callback` {Function} A callback function to be invoked when the server has begun listening on the `port` and `hostname`. ",
-                      "name": "callback",
-                      "type": "Function",
-                      "desc": "A callback function to be invoked when the server has begun listening on the `port` and `hostname`.",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "port"
-                    },
-                    {
-                      "name": "hostname",
-                      "optional": true
-                    },
-                    {
-                      "name": "callback",
-                      "optional": true
-                    }
-                  ]
+                  "params": []
                 }
-              ],
-              "desc": "<p>The <code>server.listen()</code> methods instructs the server to begin accepting\nconnections on the specified <code>port</code> and <code>hostname</code>.</p>\n<p>This function operates asynchronously. If the <code>callback</code> is given, it will be\ncalled when the server has started listening.</p>\n<p>See <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a> for more information.</p>\n"
+              ]
             },
             {
               "textRaw": "server.setTicketKeys(keys)",
@@ -594,9 +553,9 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`isServer`: The SSL/TLS protocol is asymetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server.  Defaults to `false`. ",
+                          "textRaw": "`isServer`: The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server.  Defaults to `false`. ",
                           "name": "isServer",
-                          "desc": "The SSL/TLS protocol is asymetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server.  Defaults to `false`."
+                          "desc": "The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server.  Defaults to `false`."
                         },
                         {
                           "textRaw": "`server` {net.Server} An optional [`net.Server`][] instance. ",
@@ -1029,6 +988,46 @@
       ],
       "methods": [
         {
+          "textRaw": "tls.checkServerIdentity(host, cert)",
+          "type": "method",
+          "name": "checkServerIdentity",
+          "meta": {
+            "added": [
+              "v0.8.4"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`host` {string} The hostname to verify the certificate against ",
+                  "name": "host",
+                  "type": "string",
+                  "desc": "The hostname to verify the certificate against"
+                },
+                {
+                  "textRaw": "`cert` {Object} An object representing the peer's certificate. The returned object has some properties corresponding to the fields of the certificate. ",
+                  "name": "cert",
+                  "type": "Object",
+                  "desc": "An object representing the peer's certificate. The returned object has some properties corresponding to the fields of the certificate."
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "host"
+                },
+                {
+                  "name": "cert"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Verifies the certificate <code>cert</code> is issued to host <code>host</code>.</p>\n<p>Returns {Error} object, populating it with the reason, host, and cert on\nfailure. On success, returns {undefined}.</p>\n<p><em>Note</em>: This function can be overwritten by providing alternative function\nas part of the <code>options.checkServerIdentity</code> option passed to <code>tls.connect()</code>.\nThe overwriting function can call <code>tls.checkServerIdentity()</code> of course, to augment\nthe checks done with additional verification.</p>\n<p><em>Note</em>: This function is only called if the certificate passed all other checks, such as\nbeing issued by trusted CA (<code>options.ca</code>).</p>\n<p>The cert object contains the parsed certificate and will have a structure similar to:</p>\n<pre><code class=\"lang-text\">{ subject:\n   { OU: [ &#39;Domain Control Validated&#39;, &#39;PositiveSSL Wildcard&#39; ],\n     CN: &#39;*.nodejs.org&#39; },\n  issuer:\n   { C: &#39;GB&#39;,\n     ST: &#39;Greater Manchester&#39;,\n     L: &#39;Salford&#39;,\n     O: &#39;COMODO CA Limited&#39;,\n     CN: &#39;COMODO RSA Domain Validation Secure Server CA&#39; },\n  subjectaltname: &#39;DNS:*.nodejs.org, DNS:nodejs.org&#39;,\n  infoAccess:\n   { &#39;CA Issuers - URI&#39;:\n      [ &#39;http://crt.comodoca.com/COMODORSADomainValidationSecureServerCA.crt&#39; ],\n     &#39;OCSP - URI&#39;: [ &#39;http://ocsp.comodoca.com&#39; ] },\n  modulus: &#39;B56CE45CB740B09A13F64AC543B712FF9EE8E4C284B542A1708A27E82A8D151CA178153E12E6DDA15BF70FFD96CB8A88618641BDFCCA03527E665B70D779C8A349A6F88FD4EF6557180BD4C98192872BCFE3AF56E863C09DDD8BC1EC58DF9D94F914F0369102B2870BECFA1348A0838C9C49BD1C20124B442477572347047506B1FCD658A80D0C44BCC16BC5C5496CFE6E4A8428EF654CD3D8972BF6E5BFAD59C93006830B5EB1056BBB38B53D1464FA6E02BFDF2FF66CD949486F0775EC43034EC2602AEFBF1703AD221DAA2A88353C3B6A688EFE8387811F645CEED7B3FE46E1F8B9F59FAD028F349B9BC14211D5830994D055EEA3D547911E07A0ADDEB8A82B9188E58720D95CD478EEC9AF1F17BE8141BE80906F1A339445A7EB5B285F68039B0F294598A7D1C0005FC22B5271B0752F58CCDEF8C8FD856FB7AE21C80B8A2CE983AE94046E53EDE4CB89F42502D31B5360771C01C80155918637490550E3F555E2EE75CC8C636DDE3633CFEDD62E91BF0F7688273694EEEBA20C2FC9F14A2A435517BC1D7373922463409AB603295CEB0BB53787A334C9CA3CA8B30005C5A62FC0715083462E00719A8FA3ED0A9828C3871360A73F8B04A4FC1E71302844E9BB9940B77E745C9D91F226D71AFCAD4B113AAF68D92B24DDB4A2136B55A1CD1ADF39605B63CB639038ED0F4C987689866743A68769CC55847E4A06D6E2E3F1&#39;,\n  exponent: &#39;0x10001&#39;,\n  valid_from: &#39;Aug 14 00:00:00 2017 GMT&#39;,\n  valid_to: &#39;Nov 20 23:59:59 2019 GMT&#39;,\n  fingerprint: &#39;01:02:59:D9:C3:D2:0D:08:F7:82:4E:44:A4:B4:53:C5:E2:3A:87:4D&#39;,\n  ext_key_usage: [ &#39;1.3.6.1.5.5.7.3.1&#39;, &#39;1.3.6.1.5.5.7.3.2&#39; ],\n  serialNumber: &#39;66593D57F20CBC573E433381B5FEC280&#39;,\n  raw: &lt;Buffer ....&gt; }\n</code></pre>\n"
+        },
+        {
           "textRaw": "tls.connect(options[, callback])",
           "type": "method",
           "name": "connect",
@@ -1114,9 +1113,9 @@
                       "desc": "Server name for the SNI (Server Name Indication) TLS extension."
                     },
                     {
-                      "textRaw": "`checkServerIdentity(servername, cert)` {Function} A callback function to be used when checking the server's hostname against the certificate. This should throw an error if verification fails. The method should return `undefined` if the `servername` and `cert` are verified. ",
+                      "textRaw": "`checkServerIdentity(servername, cert)` {Function} A callback function to be used (instead of the builtin `tls.checkServerIdentity()` function) when checking the server's hostname (or the provided `servername` when explicitly set) against the certificate. This should return an {Error} if verification fails. The method should return `undefined` if the `servername` and `cert` are verified. ",
                       "name": "checkServerIdentity(servername,",
-                      "desc": "cert)` {Function} A callback function to be used when checking the server's hostname against the certificate. This should throw an error if verification fails. The method should return `undefined` if the `servername` and `cert` are verified."
+                      "desc": "cert)` {Function} A callback function to be used (instead of the builtin `tls.checkServerIdentity()` function) when checking the server's hostname (or the provided `servername` when explicitly set) against the certificate. This should return an {Error} if verification fails. The method should return `undefined` if the `servername` and `cert` are verified."
                     },
                     {
                       "textRaw": "`session` {Buffer} A `Buffer` instance, containing TLS session. ",
@@ -1317,10 +1316,10 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`pfx` {string|Buffer} Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. ",
+                      "textRaw": "`pfx` {string|string[]|Buffer|Buffer[]|Object[]} Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not. ",
                       "name": "pfx",
-                      "type": "string|Buffer",
-                      "desc": "Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it."
+                      "type": "string|string[]|Buffer|Buffer[]|Object[]",
+                      "desc": "Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not."
                     },
                     {
                       "textRaw": "`key` {string|string[]|Buffer|Buffer[]|Object[]} Optional private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with `options.passphrase`.  Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form `{pem: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted keys will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not. ",
@@ -1365,10 +1364,10 @@
                       "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information."
                     },
                     {
-                      "textRaw": "`ecdhCurve` {string} A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
+                      "textRaw": "`ecdhCurve` {string} A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Defaults to [`tls.DEFAULT_ECDH_CURVE`]. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
                       "name": "ecdhCurve",
                       "type": "string",
-                      "desc": "A string describing a named curve to use for ECDH key agreement or `false` to disable ECDH. Defaults to [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
+                      "desc": "A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Defaults to [`tls.DEFAULT_ECDH_CURVE`]. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
                     },
                     {
                       "textRaw": "`dhparam` {string|Buffer} Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available. ",
@@ -1408,7 +1407,7 @@
               ]
             }
           ],
-          "desc": "<p><em>Note</em>:</p>\n<ul>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> sets the default value of the\n<code>honorCipherOrder</code> option to <code>true</code>, other APIs that create secure contexts\nleave it unset.</p>\n</li>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> uses a 128 bit truncated SHA1 hash value\ngenerated from <code>process.argv</code> as the default value of the <code>sessionIdContext</code>\noption, other APIs that create secure contexts have no default value.</p>\n</li>\n</ul>\n<p>The <code>tls.createSecureContext()</code> method creates a credentials object.</p>\n<p>A key is <em>required</em> for ciphers that make use of certificates. Either <code>key</code> or\n<code>pfx</code> can be used to provide it.</p>\n<p>If the &#39;ca&#39; option is not given, then Node.js will use the default\npublicly trusted list of CAs as given in\n<a href=\"http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt\">http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt</a>.</p>\n"
+          "desc": "<p><em>Note</em>:</p>\n<ul>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> sets the default value of the\n<code>honorCipherOrder</code> option to <code>true</code>, other APIs that create secure contexts\nleave it unset.</p>\n</li>\n<li><p><a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a> uses a 128 bit truncated SHA1 hash value\ngenerated from <code>process.argv</code> as the default value of the <code>sessionIdContext</code>\noption, other APIs that create secure contexts have no default value.</p>\n</li>\n</ul>\n<p>The <code>tls.createSecureContext()</code> method creates a credentials object.</p>\n<p>A key is <em>required</em> for ciphers that make use of certificates. Either <code>key</code> or\n<code>pfx</code> can be used to provide it.</p>\n<p>If the &#39;ca&#39; option is not given, then Node.js will use the default\npublicly trusted list of CAs as given in\n<a href=\"https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt\">https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt</a>.</p>\n"
         },
         {
           "textRaw": "tls.createServer([options][, secureConnectionListener])",

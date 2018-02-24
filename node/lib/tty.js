@@ -23,15 +23,15 @@
 
 const util = require('util');
 const net = require('net');
-const TTY = process.binding('tty_wrap').TTY;
-const isTTY = process.binding('tty_wrap').isTTY;
-const inherits = util.inherits;
+const { TTY, isTTY } = process.binding('tty_wrap');
+const { inherits } = util;
 const errnoException = util._errnoException;
 const errors = require('internal/errors');
+const readline = require('readline');
 
-exports.isatty = function(fd) {
-  return isTTY(fd);
-};
+function isatty(fd) {
+  return Number.isInteger(fd) && fd >= 0 && isTTY(fd);
+}
 
 
 function ReadStream(fd, options) {
@@ -53,8 +53,6 @@ function ReadStream(fd, options) {
   this.isTTY = true;
 }
 inherits(ReadStream, net.Socket);
-
-exports.ReadStream = ReadStream;
 
 ReadStream.prototype.setRawMode = function(flag) {
   flag = !!flag;
@@ -90,7 +88,6 @@ function WriteStream(fd) {
   }
 }
 inherits(WriteStream, net.Socket);
-exports.WriteStream = WriteStream;
 
 
 WriteStream.prototype.isTTY = true;
@@ -117,17 +114,20 @@ WriteStream.prototype._refreshSize = function() {
 
 // backwards-compat
 WriteStream.prototype.cursorTo = function(x, y) {
-  require('readline').cursorTo(this, x, y);
+  readline.cursorTo(this, x, y);
 };
 WriteStream.prototype.moveCursor = function(dx, dy) {
-  require('readline').moveCursor(this, dx, dy);
+  readline.moveCursor(this, dx, dy);
 };
 WriteStream.prototype.clearLine = function(dir) {
-  require('readline').clearLine(this, dir);
+  readline.clearLine(this, dir);
 };
 WriteStream.prototype.clearScreenDown = function() {
-  require('readline').clearScreenDown(this);
+  readline.clearScreenDown(this);
 };
 WriteStream.prototype.getWindowSize = function() {
   return [this.columns, this.rows];
 };
+
+
+module.exports = { isatty, ReadStream, WriteStream };

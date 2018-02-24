@@ -1,9 +1,11 @@
 # Crypto
 
+<!--introduced_in=v0.3.6-->
+
 > Stability: 2 - Stable
 
 The `crypto` module provides cryptographic functionality that includes a set of
-wrappers for OpenSSL's hash, HMAC, cipher, decipher, sign and verify functions.
+wrappers for OpenSSL's hash, HMAC, cipher, decipher, sign, and verify functions.
 
 Use `require('crypto')` to access this module.
 
@@ -916,24 +918,45 @@ of two ways:
 - Using the [`sign.update()`][] and [`sign.sign()`][] methods to produce the
   signature.
 
-The [`crypto.createSign()`][] method is used to create `Sign` instances. `Sign`
-objects are not to be created directly using the `new` keyword.
+The [`crypto.createSign()`][] method is used to create `Sign` instances. The
+argument is the string name of the hash function to use. `Sign` objects are not
+to be created directly using the `new` keyword.
 
 Example: Using `Sign` objects as streams:
 
 ```js
 const crypto = require('crypto');
-const sign = crypto.createSign('RSA-SHA256');
+const sign = crypto.createSign('SHA256');
 
 sign.write('some data to sign');
 sign.end();
 
 const privateKey = getPrivateKeySomehow();
 console.log(sign.sign(privateKey, 'hex'));
-// Prints: the calculated signature
+// Prints: the calculated signature using the specified private key and
+// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding
+// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.
 ```
 
 Example: Using the [`sign.update()`][] and [`sign.sign()`][] methods:
+
+```js
+const crypto = require('crypto');
+const sign = crypto.createSign('SHA256');
+
+sign.update('some data to sign');
+
+const privateKey = getPrivateKeySomehow();
+console.log(sign.sign(privateKey, 'hex'));
+// Prints: the calculated signature
+```
+
+In some cases, a `Sign` instance can also be created by passing in a signature
+algorithm name, such as 'RSA-SHA256'. This will use the corresponding digest
+algorithm. This does not work for all signature algorithms, such as
+'ecdsa-with-SHA256'. Use digest names instead.
+
+Example: signing using legacy signature algorithm name
 
 ```js
 const crypto = require('crypto');
@@ -944,29 +967,6 @@ sign.update('some data to sign');
 const privateKey = getPrivateKeySomehow();
 console.log(sign.sign(privateKey, 'hex'));
 // Prints: the calculated signature
-```
-
-A `Sign` instance can also be created by just passing in the digest
-algorithm name, in which case OpenSSL will infer the full signature algorithm
-from the type of the PEM-formatted private key, including algorithms that
-do not have directly exposed name constants, e.g. 'ecdsa-with-SHA256'.
-
-Example: signing using ECDSA with SHA256
-
-```js
-const crypto = require('crypto');
-const sign = crypto.createSign('sha256');
-
-sign.update('some data to sign');
-
-const privateKey =
-`-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIF+jnWY1D5kbVYDNvxxo/Y+ku2uJPDwS0r/VuPZQrjjVoAoGCCqGSM49
-AwEHoUQDQgAEurOxfSxmqIRYzJVagdZfMMSjRNNhB8i3mXyIMq704m2m52FdfKZ2
-pQhByd5eyj3lgZ7m7jbchtdgyOF8Io/1ng==
------END EC PRIVATE KEY-----`;
-
-console.log(sign.sign(privateKey).toString('hex'));
 ```
 
 ### sign.sign(privateKey[, outputFormat])
@@ -1049,7 +1049,7 @@ Example: Using `Verify` objects as streams:
 
 ```js
 const crypto = require('crypto');
-const verify = crypto.createVerify('RSA-SHA256');
+const verify = crypto.createVerify('SHA256');
 
 verify.write('some data to sign');
 verify.end();
@@ -1064,7 +1064,7 @@ Example: Using the [`verify.update()`][] and [`verify.verify()`][] methods:
 
 ```js
 const crypto = require('crypto');
-const verify = crypto.createVerify('RSA-SHA256');
+const verify = crypto.createVerify('SHA256');
 
 verify.update('some data to sign');
 
@@ -1170,15 +1170,16 @@ added: v6.0.0
 Property for checking and controlling whether a FIPS compliant crypto provider is
 currently in use. Setting to true requires a FIPS build of Node.js.
 
-### crypto.createCipher(algorithm, password)
+### crypto.createCipher(algorithm, password[, options])
 <!-- YAML
 added: v0.1.94
 -->
 - `algorithm` {string}
 - `password` {string | Buffer | TypedArray | DataView}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns a `Cipher` object that uses the given `algorithm` and
-`password`.
+`password`. Optional `options` argument controls stream behavior.
 
 The `algorithm` is dependent on OpenSSL, examples are `'aes192'`, etc. On
 recent OpenSSL releases, `openssl list-cipher-algorithms` will display the
@@ -1198,15 +1199,20 @@ rapidly.
 In line with OpenSSL's recommendation to use pbkdf2 instead of
 [`EVP_BytesToKey`][] it is recommended that developers derive a key and IV on
 their own using [`crypto.pbkdf2()`][] and to use [`crypto.createCipheriv()`][]
-to create the `Cipher` object.
+to create the `Cipher` object. Users should not use ciphers with counter mode
+(e.g. CTR, GCM, or CCM) in `crypto.createCipher()`. A warning is emitted when
+they are used in order to avoid the risk of IV reuse that causes
+vulnerabilities. For the case when IV is reused in GCM, see [Nonce-Disrespecting
+Adversaries][] for details.
 
-### crypto.createCipheriv(algorithm, key, iv)
+### crypto.createCipheriv(algorithm, key, iv[, options])
 - `algorithm` {string}
 - `key` {string | Buffer | TypedArray | DataView}
 - `iv` {string | Buffer | TypedArray | DataView}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns a `Cipher` object, with the given `algorithm`, `key` and
-initialization vector (`iv`).
+initialization vector (`iv`). Optional `options` argument controls stream behavior.
 
 The `algorithm` is dependent on OpenSSL, examples are `'aes192'`, etc. On
 recent OpenSSL releases, `openssl list-cipher-algorithms` will display the
@@ -1234,15 +1240,16 @@ value.
 Returns a `tls.SecureContext`, as-if [`tls.createSecureContext()`][] had been
 called.
 
-### crypto.createDecipher(algorithm, password)
+### crypto.createDecipher(algorithm, password[, options])
 <!-- YAML
 added: v0.1.94
 -->
 - `algorithm` {string}
 - `password` {string | Buffer | TypedArray | DataView}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns a `Decipher` object that uses the given `algorithm` and
-`password` (key).
+`password` (key). Optional `options` argument controls stream behavior.
 
 The implementation of `crypto.createDecipher()` derives keys using the OpenSSL
 function [`EVP_BytesToKey`][] with the digest algorithm set to MD5, one
@@ -1256,16 +1263,18 @@ In line with OpenSSL's recommendation to use pbkdf2 instead of
 their own using [`crypto.pbkdf2()`][] and to use [`crypto.createDecipheriv()`][]
 to create the `Decipher` object.
 
-### crypto.createDecipheriv(algorithm, key, iv)
+### crypto.createDecipheriv(algorithm, key, iv[, options])
 <!-- YAML
 added: v0.1.94
 -->
 - `algorithm` {string}
 - `key` {string | Buffer | TypedArray | DataView}
 - `iv` {string | Buffer | TypedArray | DataView}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns a `Decipher` object that uses the given `algorithm`, `key`
-and initialization vector (`iv`).
+and initialization vector (`iv`). Optional `options` argument controls stream
+behavior.
 
 The `algorithm` is dependent on OpenSSL, examples are `'aes192'`, etc. On
 recent OpenSSL releases, `openssl list-cipher-algorithms` will display the
@@ -1333,14 +1342,16 @@ predefined curve specified by the `curveName` string. Use
 OpenSSL releases, `openssl ecparam -list_curves` will also display the name
 and description of each available elliptic curve.
 
-### crypto.createHash(algorithm)
+### crypto.createHash(algorithm[, options])
 <!-- YAML
 added: v0.1.92
 -->
 - `algorithm` {string}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns a `Hash` object that can be used to generate hash digests
-using the given `algorithm`.
+using the given `algorithm`. Optional `options` argument controls stream
+behavior.
 
 The `algorithm` is dependent on the available algorithms supported by the
 version of OpenSSL on the platform. Examples are `'sha256'`, `'sha512'`, etc.
@@ -1367,14 +1378,16 @@ input.on('readable', () => {
 });
 ```
 
-### crypto.createHmac(algorithm, key)
+### crypto.createHmac(algorithm, key[, options])
 <!-- YAML
 added: v0.1.94
 -->
 - `algorithm` {string}
 - `key` {string | Buffer | TypedArray | DataView}
+- `options` {Object} [`stream.transform` options][]
 
 Creates and returns an `Hmac` object that uses the given `algorithm` and `key`.
+Optional `options` argument controls stream behavior.
 
 The `algorithm` is dependent on the available algorithms supported by the
 version of OpenSSL on the platform. Examples are `'sha256'`, `'sha512'`, etc.
@@ -1403,25 +1416,29 @@ input.on('readable', () => {
 });
 ```
 
-### crypto.createSign(algorithm)
+### crypto.createSign(algorithm[, options])
 <!-- YAML
 added: v0.1.92
 -->
 - `algorithm` {string}
+- `options` {Object} [`stream.Writable` options][]
 
 Creates and returns a `Sign` object that uses the given `algorithm`.
 Use [`crypto.getHashes()`][] to obtain an array of names of the available
-signing algorithms.
+signing algorithms. Optional `options` argument controls the
+`stream.Writable` behavior.
 
-### crypto.createVerify(algorithm)
+### crypto.createVerify(algorithm[, options])
 <!-- YAML
 added: v0.1.92
 -->
 - `algorithm` {string}
+- `options` {Object} [`stream.Writable` options][]
 
 Creates and returns a `Verify` object that uses the given algorithm.
 Use [`crypto.getHashes()`][] to obtain an array of names of the available
-signing algorithms.
+signing algorithms. Optional `options` argument controls the
+`stream.Writable` behavior.
 
 ### crypto.getCiphers()
 <!-- YAML
@@ -1546,14 +1563,18 @@ Example:
 
 ```js
 const crypto = require('crypto');
-crypto.pbkdf2('secret', 'salt', 100000, 512, 'sha512', (err, derivedKey) => {
+crypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
   if (err) throw err;
-  console.log(derivedKey.toString('hex'));  // '3745e48...aa39b34'
+  console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'
 });
 ```
 
 An array of supported digest functions can be retrieved using
 [`crypto.getHashes()`][].
+
+Note that this API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications, see the
+[`UV_THREADPOOL_SIZE`][] documentation for more information.
 
 ### crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)
 <!-- YAML
@@ -1594,8 +1615,8 @@ Example:
 
 ```js
 const crypto = require('crypto');
-const key = crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512');
-console.log(key.toString('hex'));  // '3745e48...aa39b34'
+const key = crypto.pbkdf2Sync('secret', 'salt', 100000, 64, 'sha512');
+console.log(key.toString('hex'));  // '3745e48...08d59ae'
 ```
 
 An array of supported digest functions can be retrieved using
@@ -1612,6 +1633,7 @@ added: v0.11.14
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`,
     `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the decrypted content.
 
 Decrypts `buffer` with `privateKey`.
 
@@ -1629,49 +1651,52 @@ added: v1.1.0
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or
     `RSA_PKCS1_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the encrypted content.
 
 Encrypts `buffer` with `privateKey`.
 
 `privateKey` can be an object or a string. If `privateKey` is a string, it is
 treated as the key with no passphrase and will use `RSA_PKCS1_PADDING`.
 
-### crypto.publicDecrypt(publicKey, buffer)
+### crypto.publicDecrypt(key, buffer)
 <!-- YAML
 added: v1.1.0
 -->
-- `publicKey` {Object | string}
-  - `key` {string} A PEM encoded private key.
+- `key` {Object | string}
+  - `key` {string} A PEM encoded public or private key.
   - `passphrase` {string} An optional passphrase for the private key.
   - `padding` {crypto.constants} An optional padding value defined in
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or
     `RSA_PKCS1_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the decrypted content.
 
-Decrypts `buffer` with `publicKey`.
+Decrypts `buffer` with `key`.
 
-`publicKey` can be an object or a string. If `publicKey` is a string, it is
-treated as the key with no passphrase and will use `RSA_PKCS1_PADDING`.
+`key` can be an object or a string. If `key` is a string, it is treated as
+the key with no passphrase and will use `RSA_PKCS1_PADDING`.
 
 Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.
 
-### crypto.publicEncrypt(publicKey, buffer)
+### crypto.publicEncrypt(key, buffer)
 <!-- YAML
 added: v0.11.14
 -->
-- `publicKey` {Object | string}
-  - `key` {string} A PEM encoded private key.
+- `key` {Object | string}
+  - `key` {string} A PEM encoded public or private key.
   - `passphrase` {string} An optional passphrase for the private key.
   - `padding` {crypto.constants} An optional padding value defined in
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`,
     `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the encrypted content.
 
-Encrypts the content of `buffer` with `publicKey` and returns a new
+Encrypts the content of `buffer` with `key` and returns a new
 [`Buffer`][] with encrypted content.
 
-`publicKey` can be an object or a string. If `publicKey` is a string, it is
-treated as the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
+`key` can be an object or a string. If `key` is a string, it is treated as
+the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
 
 Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.
@@ -1713,10 +1738,20 @@ console.log(
   `${buf.length} bytes of random data: ${buf.toString('hex')}`);
 ```
 
-The `crypto.randomBytes()` method will block until there is sufficient entropy.
+The `crypto.randomBytes()` method will not complete until there is
+sufficient entropy available.
 This should normally never take longer than a few milliseconds. The only time
 when generating the random bytes may conceivably block for a longer period of
 time is right after boot, when the whole system is still low on entropy.
+
+Note that this API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications, see the
+[`UV_THREADPOOL_SIZE`][] documentation for more information.
+
+*Note*: The asynchronous version of `crypto.randomBytes()` is carried out
+in a single threadpool request. To minimize threadpool task length variation,
+partition large `randomBytes` requests when doing so as part of fulfilling a
+client request.
 
 ### crypto.randomFillSync(buffer[, offset][, size])
 <!-- YAML
@@ -1778,6 +1813,15 @@ crypto.randomFill(buf, 5, 5, (err, buf) => {
 });
 ```
 
+Note that this API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications, see the
+[`UV_THREADPOOL_SIZE`][] documentation for more information.
+
+*Note*: The asynchronous version of `crypto.randomFill()` is carried out
+in a single threadpool request. To minimize threadpool task length variation,
+partition large `randomFill` requests when doing so as part of fulfilling a
+client request.
+
 ### crypto.setEngine(engine[, flags])
 <!-- YAML
 added: v0.11.11
@@ -1814,6 +1858,7 @@ added: v6.6.0
 - `a` {Buffer | TypedArray | DataView}
 - `b` {Buffer | TypedArray | DataView}
 
+This function is based on a constant-time algorithm.
 Returns true if `a` is equal to `b`, without leaking timing information that
 would allow an attacker to guess one of the values. This is suitable for
 comparing HMAC digests or secret values like authentication cookies or
@@ -1868,7 +1913,7 @@ Based on the recommendations of [NIST SP 800-131A][]:
 
 - MD5 and SHA-1 are no longer acceptable where collision resistance is
   required such as digital signatures.
-- The key used with RSA, DSA and DH algorithms is recommended to have
+- The key used with RSA, DSA, and DH algorithms is recommended to have
   at least 2048 bits and that of the curve of ECDSA and ECDH at least
   224 bits, to be safe to use for several years.
 - The DH groups of `modp1`, `modp2` and `modp5` have a key size
@@ -2203,18 +2248,19 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 
 [`Buffer`]: buffer.html
 [`EVP_BytesToKey`]: https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html
+[`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
 [`cipher.final()`]: #crypto_cipher_final_outputencoding
 [`cipher.update()`]: #crypto_cipher_update_data_inputencoding_outputencoding
-[`crypto.createCipher()`]: #crypto_crypto_createcipher_algorithm_password
-[`crypto.createCipheriv()`]: #crypto_crypto_createcipheriv_algorithm_key_iv
-[`crypto.createDecipher()`]: #crypto_crypto_createdecipher_algorithm_password
-[`crypto.createDecipheriv()`]: #crypto_crypto_createdecipheriv_algorithm_key_iv
+[`crypto.createCipher()`]: #crypto_crypto_createcipher_algorithm_password_options
+[`crypto.createCipheriv()`]: #crypto_crypto_createcipheriv_algorithm_key_iv_options
+[`crypto.createDecipher()`]: #crypto_crypto_createdecipher_algorithm_password_options
+[`crypto.createDecipheriv()`]: #crypto_crypto_createdecipheriv_algorithm_key_iv_options
 [`crypto.createDiffieHellman()`]: #crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding
 [`crypto.createECDH()`]: #crypto_crypto_createecdh_curvename
-[`crypto.createHash()`]: #crypto_crypto_createhash_algorithm
-[`crypto.createHmac()`]: #crypto_crypto_createhmac_algorithm_key
-[`crypto.createSign()`]: #crypto_crypto_createsign_algorithm
-[`crypto.createVerify()`]: #crypto_crypto_createverify_algorithm
+[`crypto.createHash()`]: #crypto_crypto_createhash_algorithm_options
+[`crypto.createHmac()`]: #crypto_crypto_createhmac_algorithm_key_options
+[`crypto.createSign()`]: #crypto_crypto_createsign_algorithm_options
+[`crypto.createVerify()`]: #crypto_crypto_createverify_algorithm_options
 [`crypto.getCurves()`]: #crypto_crypto_getcurves
 [`crypto.getHashes()`]: #crypto_crypto_gethashes
 [`crypto.pbkdf2()`]: #crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback
@@ -2232,14 +2278,17 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 [`hmac.update()`]: #crypto_hmac_update_data_inputencoding
 [`sign.sign()`]: #crypto_sign_sign_privatekey_outputformat
 [`sign.update()`]: #crypto_sign_update_data_inputencoding
+[`stream.transform` options]: stream.html#stream_new_stream_transform_options
+[`stream.Writable` options]: stream.html#stream_constructor_new_stream_writable_options
 [`tls.createSecureContext()`]: tls.html#tls_tls_createsecurecontext_options
-[`verify.update()`]: #crypto_verifier_update_data_inputencoding
-[`verify.verify()`]: #crypto_verifier_verify_object_signature_signatureformat
+[`verify.update()`]: #crypto_verify_update_data_inputencoding
+[`verify.verify()`]: #crypto_verify_verify_object_signature_signatureformat
 [Caveats]: #crypto_support_for_weak_or_compromised_algorithms
 [Crypto Constants]: #crypto_crypto_constants_1
-[HTML5's `keygen` element]: http://www.w3.org/TR/html5/forms.html#the-keygen-element
+[HTML5's `keygen` element]: https://www.w3.org/TR/html5/forms.html#the-keygen-element
 [NIST SP 800-131A]: http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf
-[NIST SP 800-132]: http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf
+[NIST SP 800-132]: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf
+[Nonce-Disrespecting Adversaries]: https://github.com/nonce-disrespect/nonce-disrespect
 [OpenSSL's SPKAC implementation]: https://www.openssl.org/docs/man1.0.2/apps/spkac.html
 [RFC 2412]: https://www.rfc-editor.org/rfc/rfc2412.txt
 [RFC 3526]: https://www.rfc-editor.org/rfc/rfc3526.txt

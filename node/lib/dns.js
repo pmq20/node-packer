@@ -25,7 +25,7 @@ const util = require('util');
 
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
-const internalNet = require('internal/net');
+const { isLegalPort } = require('internal/net');
 const { customPromisifyArgs } = require('internal/util');
 
 const {
@@ -35,9 +35,6 @@ const {
   ChannelWrap,
   isIP
 } = cares;
-
-const isLegalPort = internalNet.isLegalPort;
-
 
 function errnoException(err, syscall, hostname) {
   // FIXME(bnoordhuis) Remove this backwards compatibility nonsense and pass
@@ -49,7 +46,7 @@ function errnoException(err, syscall, hostname) {
   }
   var ex = null;
   if (typeof err === 'string') {  // c-ares error code.
-    const errHost = hostname ? ' ' + hostname : '';
+    const errHost = hostname ? ` ${hostname}` : '';
     ex = new Error(`${syscall} ${err}${errHost}`);
     ex.code = err;
     ex.errno = err;
@@ -126,6 +123,7 @@ function lookup(hostname, options, callback) {
   var hints = 0;
   var family = -1;
   var all = false;
+  var verbatim = false;
 
   // Parse arguments
   if (hostname && typeof hostname !== 'string') {
@@ -140,6 +138,7 @@ function lookup(hostname, options, callback) {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
     all = options.all === true;
+    verbatim = options.verbatim === true;
 
     if (hints !== 0 &&
         hints !== cares.AI_ADDRCONFIG &&
@@ -167,7 +166,7 @@ function lookup(hostname, options, callback) {
   if (matchedFamily) {
     if (all) {
       process.nextTick(
-        callback, null, [{address: hostname, family: matchedFamily}]);
+        callback, null, [{ address: hostname, family: matchedFamily }]);
     } else {
       process.nextTick(callback, null, hostname, matchedFamily);
     }
@@ -180,7 +179,7 @@ function lookup(hostname, options, callback) {
   req.hostname = hostname;
   req.oncomplete = all ? onlookupall : onlookup;
 
-  var err = cares.getaddrinfo(req, hostname, family, hints);
+  var err = cares.getaddrinfo(req, hostname, family, hints, verbatim);
   if (err) {
     process.nextTick(callback, errnoException(err, 'getaddrinfo', hostname));
     return {};

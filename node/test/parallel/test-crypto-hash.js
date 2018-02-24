@@ -4,9 +4,13 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
+
+const fixtures = require('../common/fixtures');
+
+let cryptoType;
+let digest;
 
 // Test hashing
 const a1 = crypto.createHash('sha1').update('Test123').digest('hex');
@@ -36,16 +40,29 @@ a8.end();
 a8 = a8.read();
 
 if (!common.hasFipsCrypto) {
-  const a0 = crypto.createHash('md5').update('Test123').digest('latin1');
+  cryptoType = 'md5';
+  digest = 'latin1';
+  const a0 = crypto.createHash(cryptoType).update('Test123').digest(digest);
   assert.strictEqual(
     a0,
     'h\u00ea\u00cb\u0097\u00d8o\fF!\u00fa+\u000e\u0017\u00ca\u00bd\u008c',
-    'Test MD5 as latin1'
+    `${cryptoType} with ${digest} digest failed to evaluate to expected hash`
   );
 }
-assert.strictEqual(a1, '8308651804facb7b9af8ffc53a33a22d6a1c8ac2', 'Test SHA1');
-assert.strictEqual(a2, '2bX1jws4GYKTlxhloUB09Z66PoJZW+y+hq5R8dnx9l4=',
-                   'Test SHA256 as base64');
+cryptoType = 'md5';
+digest = 'hex';
+assert.strictEqual(
+  a1,
+  '8308651804facb7b9af8ffc53a33a22d6a1c8ac2',
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);
+cryptoType = 'sha256';
+digest = 'base64';
+assert.strictEqual(
+  a2,
+  '2bX1jws4GYKTlxhloUB09Z66PoJZW+y+hq5R8dnx9l4=',
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);
+cryptoType = 'sha512';
+digest = 'latin1';
 assert.deepStrictEqual(
   a3,
   Buffer.from(
@@ -55,11 +72,13 @@ assert.deepStrictEqual(
     '\u00d7\u00d6\u00a2\u00a8\u0085\u00e3<\u0083\u009c\u0093' +
     '\u00c2\u0006\u00da0\u00a1\u00879(G\u00ed\'',
     'latin1'),
-  'Test SHA512 as assumed buffer');
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);
+cryptoType = 'sha1';
+digest = 'hex';
 assert.deepStrictEqual(
   a4,
   Buffer.from('8308651804facb7b9af8ffc53a33a22d6a1c8ac2', 'hex'),
-  'Test SHA1'
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`
 );
 
 // stream interface should produce the same result.
@@ -74,17 +93,17 @@ const h2 = crypto.createHash('sha1').update('Test').update('123').digest('hex');
 assert.strictEqual(h1, h2, 'multipled updates');
 
 // Test hashing for binary files
-const fn = path.join(common.fixturesDir, 'sample.png');
+const fn = fixtures.path('sample.png');
 const sha1Hash = crypto.createHash('sha1');
 const fileStream = fs.createReadStream(fn);
 fileStream.on('data', function(data) {
   sha1Hash.update(data);
 });
-fileStream.on('close', function() {
+fileStream.on('close', common.mustCall(function() {
   assert.strictEqual(sha1Hash.digest('hex'),
                      '22723e553129a336ad96e10f6aecdf0f45e4149e',
                      'Test SHA1 of sample.png');
-});
+}));
 
 // Issue #2227: unknown digest method should throw an error.
 assert.throws(function() {

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TTY | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>TTY | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="tty" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="tty.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="tty.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/tty.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/tty.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/tty.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/tty.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/tty.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/tty.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/tty.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/tty.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -96,12 +118,14 @@
 <li><span class="stability_2"><a href="#tty_tty">TTY</a></span><ul>
 <li><span class="stability_undefined"><a href="#tty_class_tty_readstream">Class: tty.ReadStream</a></span><ul>
 <li><span class="stability_undefined"><a href="#tty_readstream_israw">readStream.isRaw</a></span></li>
+<li><span class="stability_undefined"><a href="#tty_readstream_istty">readStream.isTTY</a></span></li>
 <li><span class="stability_undefined"><a href="#tty_readstream_setrawmode_mode">readStream.setRawMode(mode)</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#tty_class_tty_writestream">Class: tty.WriteStream</a></span><ul>
 <li><span class="stability_undefined"><a href="#tty_event_resize">Event: &#39;resize&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#tty_writestream_columns">writeStream.columns</a></span></li>
+<li><span class="stability_undefined"><a href="#tty_writestream_istty">writeStream.isTTY</a></span></li>
 <li><span class="stability_undefined"><a href="#tty_writestream_rows">writeStream.rows</a></span></li>
 </ul>
 </li>
@@ -114,7 +138,8 @@
 
       <div id="apicontent">
         <h1>TTY<span><a class="mark" href="#tty_tty" id="tty_tty">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.
 In most cases, it will not be necessary or possible to use this module directly.
 However, it can be accessed using:</p>
 <pre><code class="lang-js">const tty = require(&#39;tty&#39;);
@@ -144,6 +169,10 @@ reason to create additional instances.</p>
 <span>Added in: v0.7.7</span>
 </div><p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a
 raw device. Defaults to <code>false</code>.</p>
+<h3>readStream.isTTY<span><a class="mark" href="#tty_readstream_istty" id="tty_readstream_istty">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div><p>A <code>boolean</code> that is always <code>true</code>.</p>
 <h3>readStream.setRawMode(mode)<span><a class="mark" href="#tty_readstream_setrawmode_mode" id="tty_readstream_setrawmode_mode">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -153,7 +182,8 @@ including modifiers. Additionally, all special processing of characters by the
 terminal is disabled, including echoing input characters.
 Note that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>
 <ul>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a
+<li><code>mode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a
 raw device. If <code>false</code>, configures the <code>tty.ReadStream</code> to operate in its
 default mode. The <code>readStream.isRaw</code> property will be set to the resulting
 mode.</li>
@@ -176,19 +206,15 @@ listener callback when called.</p>
   console.log(`${process.stdout.columns}x${process.stdout.rows}`);
 });
 </code></pre>
-<p><em>Note</em>: On Windows resize events will be emitted only if stdin is unpaused
-(by a call to <code>resume()</code> or by adding a data listener) and in raw mode. It can
-also be triggered if a terminal control sequence that moves the cursor is
-written to the screen. Also, the resize event will only be signaled if the
-console screen buffer height was also changed. For example shrinking the
-console window height will not cause the resize event to be emitted. Increasing
-the console window height will only be registered when the new console window
-height is greater than the current console buffer size.</p>
 <h3>writeStream.columns<span><a class="mark" href="#tty_writestream_columns" id="tty_writestream_columns">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div><p>A <code>number</code> specifying the number of columns the TTY currently has. This property
 is updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>
+<h3>writeStream.isTTY<span><a class="mark" href="#tty_writestream_istty" id="tty_writestream_istty">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div><p>A <code>boolean</code> that is always <code>true</code>.</p>
 <h3>writeStream.rows<span><a class="mark" href="#tty_writestream_rows" id="tty_writestream_rows">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -198,10 +224,12 @@ is updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div><ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A numeric file descriptor</li>
+<li><code>fd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A numeric file descriptor</li>
 </ul>
 <p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with
-a TTY and <code>false</code> if is not.</p>
+a TTY and <code>false</code> if it is not, including whenever <code>fd</code> is not a non-negative
+integer.</p>
 
       </div>
     </div>

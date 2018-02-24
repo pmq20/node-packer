@@ -44,15 +44,16 @@
 
 const internalModule = require('internal/module');
 const internalUtil = require('internal/util');
+const { isTypedArray } = require('internal/util/types');
 const util = require('util');
 const utilBinding = process.binding('util');
-const inherits = util.inherits;
+const { inherits } = util;
 const Stream = require('stream');
 const vm = require('vm');
 const path = require('path');
 const fs = require('fs');
-const Interface = require('readline').Interface;
-const Console = require('console').Console;
+const { Interface } = require('readline');
+const { Console } = require('console');
 const Module = require('module');
 const domain = require('domain');
 const debug = util.debuglog('repl');
@@ -254,12 +255,13 @@ function REPLServer(prompt,
         }
       } catch (e) {
         err = e;
-        if (err.message === 'Script execution interrupted.') {
+
+        if (err && err.message === 'Script execution interrupted.') {
           // The stack trace for this case is not very useful anyway.
           Object.defineProperty(err, 'stack', { value: '' });
         }
 
-        if (err && process.domain) {
+        if (process.domain) {
           debug('not recoverable, send to domain');
           process.domain.emit('error', err);
           process.domain.exit();
@@ -282,14 +284,16 @@ function REPLServer(prompt,
   self._domain.on('error', function debugDomainError(e) {
     debug('domain error');
     const top = replMap.get(self);
-
+    const pstrace = Error.prepareStackTrace;
+    Error.prepareStackTrace = prepareStackTrace(pstrace);
     internalUtil.decorateErrorStack(e);
+    Error.prepareStackTrace = pstrace;
     const isError = internalUtil.isError(e);
     if (e instanceof SyntaxError && e.stack) {
       // remove repl:line-number and stack trace
       e.stack = e.stack
-                 .replace(/^repl:\d+\r?\n/, '')
-                 .replace(/^\s+at\s.*\n?/gm, '');
+        .replace(/^repl:\d+\r?\n/, '')
+        .replace(/^\s+at\s.*\n?/gm, '');
     } else if (isError && self.replMode === exports.REPL_MODE_STRICT) {
       e.stack = e.stack.replace(/(\s+at\s+repl:)(\d+)/,
                                 (_, pre, line) => pre + (line - 1));
@@ -361,6 +365,30 @@ function REPLServer(prompt,
     // Turn on ANSI coloring.
     self.writer = function(obj, showHidden, depth) {
       return util.inspect(obj, showHidden, depth, true);
+    };
+  }
+
+  function filterInternalStackFrames(error, structuredStack) {
+    // search from the bottom of the call stack to
+    // find the first frame with a null function name
+    if (typeof structuredStack !== 'object')
+      return structuredStack;
+    const idx = structuredStack.reverse().findIndex(
+      (frame) => frame.getFunctionName() === null);
+
+    // if found, get rid of it and everything below it
+    structuredStack = structuredStack.splice(idx + 1);
+    return structuredStack;
+  }
+
+  function prepareStackTrace(fn) {
+    return (error, stackFrames) => {
+      const frames = filterInternalStackFrames(error, stackFrames);
+      if (fn) {
+        return fn(error, frames);
+      }
+      frames.push(error);
+      return frames.reverse().join('\n    at ');
     };
   }
 
@@ -700,7 +728,7 @@ const ARRAY_LENGTH_THRESHOLD = 1e6;
 function mayBeLargeObject(obj) {
   if (Array.isArray(obj)) {
     return obj.length > ARRAY_LENGTH_THRESHOLD ? ['length'] : null;
-  } else if (utilBinding.isTypedArray(obj)) {
+  } else if (isTypedArray(obj)) {
     return obj.length > ARRAY_LENGTH_THRESHOLD ? [] : null;
   }
 
@@ -914,8 +942,6 @@ function complete(line, callback) {
       } else {
         const evalExpr = `try { ${expr} } catch (e) {}`;
         this.eval(evalExpr, this.context, 'repl', (e, obj) => {
-          // if (e) console.log(e);
-
           if (obj != null) {
             if (typeof obj === 'object' || typeof obj === 'function') {
               try {
@@ -973,9 +999,7 @@ function complete(line, callback) {
 
   // Will be called when all completionGroups are in place
   // Useful for async autocompletion
-  function completionGroupsLoaded(err) {
-    if (err) throw err;
-
+  function completionGroupsLoaded() {
     // Filter, sort (within each group), uniq and merge the completion groups.
     if (completionGroups.length && filter) {
       var newCompletionGroups = [];
@@ -1069,7 +1093,7 @@ REPLServer.prototype.parseREPLKeyword = function(keyword, rest) {
 
 REPLServer.prototype.defineCommand = function(keyword, cmd) {
   if (typeof cmd === 'function') {
-    cmd = {action: cmd};
+    cmd = { action: cmd };
   } else if (typeof cmd.action !== 'function') {
     throw new Error('Bad argument, "action" command must be a function');
   }
@@ -1239,13 +1263,16 @@ function defineDefaultCommands(repl) {
       try {
         var stats = fs.statSync(file);
         if (stats && stats.isFile()) {
+          this.editorMode = true;
+          REPLServer.super_.prototype.setPrompt.call(this, '');
           var data = fs.readFileSync(file, 'utf8');
           var lines = data.split('\n');
-          this.displayPrompt();
           for (var n = 0; n < lines.length; n++) {
             if (lines[n])
               this.write(`${lines[n]}\n`);
           }
+          this.turnOffEditorMode();
+          this.write('\n');
         } else {
           this.outputStream.write('Failed to load:' + file +
                                   ' is not a valid file\n');

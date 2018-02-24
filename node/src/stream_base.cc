@@ -1,14 +1,11 @@
-#include "stream_base.h"
 #include "stream_base-inl.h"
 #include "stream_wrap.h"
 
 #include "node.h"
 #include "node_buffer.h"
-#include "env.h"
 #include "env-inl.h"
 #include "js_stream.h"
 #include "string_bytes.h"
-#include "util.h"
 #include "util-inl.h"
 #include "v8.h"
 
@@ -55,7 +52,7 @@ int StreamBase::Shutdown(const FunctionCallbackInfo<Value>& args) {
 
   AsyncWrap* wrap = GetAsyncWrap();
   CHECK_NE(wrap, nullptr);
-  env->set_init_trigger_id(wrap->get_id());
+  env->set_init_trigger_async_id(wrap->get_async_id());
   ShutdownWrap* req_wrap = new ShutdownWrap(env,
                                             req_wrap_obj,
                                             this,
@@ -160,7 +157,7 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
 
   wrap = GetAsyncWrap();
   CHECK_NE(wrap, nullptr);
-  env->set_init_trigger_id(wrap->get_id());
+  env->set_init_trigger_async_id(wrap->get_async_id());
   req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite, storage_size);
 
   offset = 0;
@@ -249,7 +246,7 @@ int StreamBase::WriteBuffer(const FunctionCallbackInfo<Value>& args) {
 
   wrap = GetAsyncWrap();
   if (wrap != nullptr)
-    env->set_init_trigger_id(wrap->get_id());
+    env->set_init_trigger_async_id(wrap->get_async_id());
   // Allocate, or write rest
   req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite);
 
@@ -334,7 +331,7 @@ int StreamBase::WriteString(const FunctionCallbackInfo<Value>& args) {
 
   wrap = GetAsyncWrap();
   if (wrap != nullptr)
-    env->set_init_trigger_id(wrap->get_id());
+    env->set_init_trigger_async_id(wrap->get_async_id());
   req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite, storage_size);
 
   data = req_wrap->Extra();
@@ -365,7 +362,7 @@ int StreamBase::WriteString(const FunctionCallbackInfo<Value>& args) {
       HandleWrap* wrap;
       ASSIGN_OR_RETURN_UNWRAP(&wrap, send_handle_obj, UV_EINVAL);
       send_handle = wrap->GetHandle();
-      // Reference StreamWrap instance to prevent it from being garbage
+      // Reference LibuvStreamWrap instance to prevent it from being garbage
       // collected before `AfterWrite` is called.
       CHECK_EQ(false, req_wrap->persistent().IsEmpty());
       req_wrap_obj->Set(env->handle_string(), send_handle_obj);

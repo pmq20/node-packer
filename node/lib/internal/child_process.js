@@ -1,27 +1,25 @@
 'use strict';
 
 const errors = require('internal/errors');
-const StringDecoder = require('string_decoder').StringDecoder;
+const { StringDecoder } = require('string_decoder');
 const EventEmitter = require('events');
 const net = require('net');
 const dgram = require('dgram');
 const util = require('util');
 const assert = require('assert');
-
-const Process = process.binding('process_wrap').Process;
-const WriteWrap = process.binding('stream_wrap').WriteWrap;
 const uv = process.binding('uv');
-const Pipe = process.binding('pipe_wrap').Pipe;
-const TTY = process.binding('tty_wrap').TTY;
-const TCP = process.binding('tcp_wrap').TCP;
-const UDP = process.binding('udp_wrap').UDP;
+const { Process } = process.binding('process_wrap');
+const { WriteWrap } = process.binding('stream_wrap');
+const { Pipe } = process.binding('pipe_wrap');
+const { TTY } = process.binding('tty_wrap');
+const { TCP } = process.binding('tcp_wrap');
+const { UDP } = process.binding('udp_wrap');
 const SocketList = require('internal/socket_list');
-const { isUint8Array } = process.binding('util');
 const { convertToValidSignal } = require('internal/util');
+const { isUint8Array } = require('internal/util/types');
 
 const errnoException = util._errnoException;
-const SocketListSend = SocketList.SocketListSend;
-const SocketListReceive = SocketList.SocketListReceive;
+const { SocketListSend, SocketListReceive } = SocketList;
 
 const MAX_HANDLE_RETRANSMISSIONS = 3;
 
@@ -109,7 +107,7 @@ const handleConversion = {
     },
 
     got: function(message, handle, emit) {
-      var socket = new net.Socket({handle: handle});
+      var socket = new net.Socket({ handle: handle });
       socket.readable = socket.writable = true;
 
       // if the socket was created by net.Server we will track the socket
@@ -582,7 +580,7 @@ function setupChannel(target, channel) {
       throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'Object');
     }
 
-    options = Object.assign({swallowErrors: false}, options);
+    options = Object.assign({ swallowErrors: false }, options);
 
     if (this.connected) {
       return this._send(message, handle, options, callback);
@@ -604,7 +602,7 @@ function setupChannel(target, channel) {
 
     // Support legacy function signature
     if (typeof options === 'boolean') {
-      options = {swallowErrors: options};
+      options = { swallowErrors: options };
     }
 
     // package messages with a handle object
@@ -838,7 +836,7 @@ function _validateStdio(stdio, sync) {
     }
 
     if (stdio === 'ignore') {
-      acc.push({type: 'ignore'});
+      acc.push({ type: 'ignore' });
     } else if (stdio === 'pipe' || typeof stdio === 'number' && stdio < 0) {
       var a = {
         type: 'pipe',

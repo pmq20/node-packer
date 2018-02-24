@@ -4,6 +4,7 @@
     {
       "textRaw": "REPL",
       "name": "repl",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>repl</code> module provides a Read-Eval-Print-Loop (REPL) implementation that\nis available both as a standalone program or includible in other applications.\nIt can be accessed using:</p>\n<pre><code class=\"lang-js\">const repl = require(&#39;repl&#39;);\n</code></pre>\n",
@@ -126,7 +127,7 @@
             {
               "textRaw": "Using the Node.js REPL with advanced line-editors",
               "name": "using_the_node.js_repl_with_advanced_line-editors",
-              "desc": "<p>For advanced line-editors, start Node.js with the environmental variable\n<code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical\nterminal settings, which will allow use with <code>rlwrap</code>.</p>\n<p>For example, the following can be added to a <code>.bashrc</code> file:</p>\n<pre><code class=\"lang-text\">alias node=&quot;env NODE_NO_READLINE=1 rlwrap node&quot;\n</code></pre>\n",
+              "desc": "<p>For advanced line-editors, start Node.js with the environment variable\n<code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical\nterminal settings, which will allow use with <code>rlwrap</code>.</p>\n<p>For example, the following can be added to a <code>.bashrc</code> file:</p>\n<pre><code class=\"lang-text\">alias node=&quot;env NODE_NO_READLINE=1 rlwrap node&quot;\n</code></pre>\n",
               "type": "module",
               "displayName": "Using the Node.js REPL with advanced line-editors"
             },
@@ -300,10 +301,10 @@
                       "desc": "The Writable stream to which REPL output will be written. Defaults to `process.stdout`."
                     },
                     {
-                      "textRaw": "`terminal` {boolean} If `true`, specifies that the `output` should be treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation. ",
+                      "textRaw": "`terminal` {boolean} If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation. ",
                       "name": "terminal",
                       "type": "boolean",
-                      "desc": "If `true`, specifies that the `output` should be treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation."
+                      "desc": "If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation."
                     },
                     {
                       "textRaw": "`eval` {Function} The function to be used when evaluating each given line of input. Defaults to an async wrapper for the JavaScript `eval()` function.  An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines. ",

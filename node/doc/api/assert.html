@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Assert | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Assert | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="assert" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="assert.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="assert.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/assert.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/assert.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/assert.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/assert.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/assert.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/assert.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/assert.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/assert.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -118,7 +140,8 @@
 
       <div id="apicontent">
         <h1>Assert<span><a class="mark" href="#assert_assert" id="assert_assert">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
 test invariants.</p>
 <h2>assert(value[, message])<span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
@@ -164,10 +187,10 @@ Primitive values are compared with the <a href="https://tc39.github.io/ecma262/#
 non-enumerable properties — for such checks, consider using
 <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a> instead. This can lead to some
 potentially surprising results. For example, the following example does not
-throw an <code>AssertionError</code> because the properties on the <a href="errors.html#errors_class_error"><code>Error</code></a> object are
+throw an <code>AssertionError</code> because the properties on the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a> object are
 not enumerable:</p>
 <pre><code class="lang-js">// WARNING: This does not throw an AssertionError!
-assert.deepEqual(Error(&#39;a&#39;), Error(&#39;b&#39;));
+assert.deepEqual(/a/gi, new Date());
 </code></pre>
 <p>An exception is made for <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map"><code>Map</code></a> and <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set"><code>Set</code></a>. Maps and Sets have their
 contained items compared too, as expected.</p>
@@ -214,6 +237,9 @@ parameter is undefined, a default error message is assigned.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.5.0</td>
+<td><p>Error names and messages are now properly compared</p>
+</td></tr>
 <tr><td>v8.0.0</td>
 <td><p>Set and Map content is also compared</p>
 </td></tr>
@@ -236,7 +262,7 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Generally identical to <code>assert.deepEqual()</code> with three exceptions:</p>
+<p>Generally identical to <code>assert.deepEqual()</code> with a few exceptions:</p>
 <ol>
 <li>Primitive values are compared using the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
 ( <code>===</code> ). Set values and Map keys are compared using the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a>
@@ -244,6 +270,7 @@ comparison. (Which means they are free of the <a href="#assert_caveats">caveats<
 <li><a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"><code>[[Prototype]]</code></a> of objects are compared using
 the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a> too.</li>
 <li><a href="https://tc39.github.io/ecma262/#sec-object.prototype.tostring">Type tags</a> of objects should be the same.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Primitive#Primitive_wrapper_objects_in_JavaScript">Object wrappers</a> are compared both as objects and unwrapped values.</li>
 </ol>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -272,6 +299,11 @@ assert.deepEqual(date, fakeDate);
 assert.deepStrictEqual(date, fakeDate);
 // AssertionError: 2017-03-11T14:25:31.849Z deepStrictEqual Date {}
 // Different type tags
+
+assert.deepStrictEqual(new Number(1), new Number(2));
+// Fails because the wrapped number is unwrapped and compared as well.
+assert.deepStrictEqual(new String(&#39;foo&#39;), Object(&#39;foo&#39;));
+// OK because the object and the string are identical when unwrapped.
 </code></pre>
 <p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
@@ -293,8 +325,11 @@ parameter is undefined, a default error message is assigned.</p>
 </table>
 </details>
 </div><ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>block</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Asserts that the function <code>block</code> does not throw an error. See
@@ -368,8 +403,9 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>actual</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>operator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> (default: &#39;!=&#39;)</li>
-<li><code>stackStartFunction</code> <span class="type">&lt;function&gt;</span> (default: <code>assert.fail</code>)</li>
+<li><code>operator</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> &#39;!=&#39;</li>
+<li><code>stackStartFunction</code> <span class="type">&lt;function&gt;</span> <strong>Default:</strong> <code>assert.fail</code></li>
 </ul>
 <p>Throws an <code>AssertionError</code>. If <code>message</code> is falsy, the error message is set as
 the values of <code>actual</code> and <code>expected</code> separated by the provided <code>operator</code>.
@@ -389,7 +425,7 @@ assert.fail(1, 2, &#39;fail&#39;);
 assert.fail(1, 2, &#39;whoops&#39;, &#39;&gt;&#39;);
 // AssertionError [ERR_ASSERTION]: whoops
 </code></pre>
-<p><em>Note</em>: Is the last two cases <code>actual</code>, <code>expected</code>, and <code>operator</code> have no
+<p><em>Note</em>: In the last two cases <code>actual</code>, <code>expected</code>, and <code>operator</code> have no
 influence on the error message.</p>
 <pre><code class="lang-js">assert.fail();
 // AssertionError [ERR_ASSERTION]: Failed
@@ -461,13 +497,13 @@ assert.notDeepEqual(obj1, obj1);
 // AssertionError: { a: { b: 1 } } notDeepEqual { a: { b: 1 } }
 
 assert.notDeepEqual(obj1, obj2);
-// OK, obj1 and obj2 are not deeply equal
+// OK: obj1 and obj2 are not deeply equal
 
 assert.notDeepEqual(obj1, obj3);
 // AssertionError: { a: { b: 1 } } notDeepEqual { a: { b: 1 } }
 
 assert.notDeepEqual(obj1, obj4);
-// OK, obj1 and obj2 are not deeply equal
+// OK: obj1 and obj4 are not deeply equal
 </code></pre>
 <p>If the values are deeply equal, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
@@ -603,8 +639,11 @@ assert.strictEqual(1, &#39;1&#39;);
 </table>
 </details>
 </div><ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>block</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Expects the function <code>block</code> to throw an error.</p>

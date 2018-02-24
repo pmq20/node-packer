@@ -1,5 +1,7 @@
 # Console
 
+<!--introduced_in=v0.10.13-->
+
 > Stability: 2 - Stable
 
 The `console` module provides a simple debugging console that is similar to the
@@ -79,10 +81,9 @@ const { Console } = console;
 * `stdout` {Writable}
 * `stderr` {Writable}
 
-Creates a new `Console` by passing one or two writable stream instances.
-`stdout` is a writable stream to print log or info output. `stderr`
-is used for warning or error output. If `stderr` is not passed, warning and error
-output will be sent to `stdout`.
+Creates a new `Console` with one or two writable stream instances. `stdout` is a
+writable stream to print log or info output. `stderr` is used for warning or
+error output. If `stderr` is not provided, `stdout` is used for `stderr`.
 
 ```js
 const output = fs.createWriteStream('./stdout.log');
@@ -214,7 +215,7 @@ undefined
 >
 ```
 
-### console.countReset([label = 'default'])
+### console.countReset([label='default'])
 <!-- YAML
 added: v8.3.0
 -->
@@ -285,6 +286,32 @@ console.error('error', code);
 If formatting elements (e.g. `%d`) are not found in the first string then
 [`util.inspect()`][] is called on each argument and the resulting string
 values are concatenated. See [`util.format()`][] for more information.
+
+### console.group([...label])
+<!-- YAML
+added: v8.5.0
+-->
+
+* `...label` {any}
+
+Increases indentation of subsequent lines by two spaces.
+
+If one or more `label`s are provided, those are printed first without the
+additional indentation.
+
+### console.groupCollapsed()
+<!-- YAML
+  added: v8.5.0
+-->
+
+An alias for [`console.group()`][].
+
+### console.groupEnd()
+<!-- YAML
+added: v8.5.0
+-->
+
+Decreases indentation of subsequent lines by two spaces.
 
 ### console.info([data][, ...args])
 <!-- YAML
@@ -390,6 +417,7 @@ added: v0.1.100
 The `console.warn()` function is an alias for [`console.error()`][].
 
 [`console.error()`]: #console_console_error_data_args
+[`console.group()`]: #console_console_group_label
 [`console.log()`]: #console_console_log_data_args
 [`console.time()`]: #console_console_time_label
 [`console.timeEnd()`]: #console_console_timeend_label

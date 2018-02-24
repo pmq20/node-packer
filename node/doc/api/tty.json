@@ -4,6 +4,7 @@
     {
       "textRaw": "TTY",
       "name": "tty",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"lang-js\">const tty = require(&#39;tty&#39;);\n</code></pre>\n<p>When Node.js detects that it is being run inside a text terminal (&quot;TTY&quot;)\ncontext, the <code>process.stdin</code> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <code>process.stdout</code> and <code>process.stderr</code> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"lang-sh\">$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot;\ntrue\n$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot; | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\ncreate instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.</p>\n",
@@ -30,6 +31,17 @@
                 "changes": []
               },
               "desc": "<p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a\nraw device. Defaults to <code>false</code>.</p>\n"
+            },
+            {
+              "textRaw": "readStream.isTTY",
+              "name": "isTTY",
+              "meta": {
+                "added": [
+                  "v0.5.8"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A <code>boolean</code> that is always <code>true</code>.</p>\n"
             }
           ],
           "methods": [
@@ -78,7 +90,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n<p><em>Note</em>: On Windows resize events will be emitted only if stdin is unpaused\n(by a call to <code>resume()</code> or by adding a data listener) and in raw mode. It can\nalso be triggered if a terminal control sequence that moves the cursor is\nwritten to the screen. Also, the resize event will only be signaled if the\nconsole screen buffer height was also changed. For example shrinking the\nconsole window height will not cause the resize event to be emitted. Increasing\nthe console window height will only be registered when the new console window\nheight is greater than the current console buffer size.</p>\n",
+              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n",
               "params": []
             }
           ],
@@ -93,6 +105,17 @@
                 "changes": []
               },
               "desc": "<p>A <code>number</code> specifying the number of columns the TTY currently has. This property\nis updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>\n"
+            },
+            {
+              "textRaw": "writeStream.isTTY",
+              "name": "isTTY",
+              "meta": {
+                "added": [
+                  "v0.5.8"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A <code>boolean</code> that is always <code>true</code>.</p>\n"
             },
             {
               "textRaw": "writeStream.rows",
@@ -138,7 +161,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with\na TTY and <code>false</code> if is not.</p>\n"
+          "desc": "<p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with\na TTY and <code>false</code> if it is not, including whenever <code>fd</code> is not a non-negative\ninteger.</p>\n"
         }
       ],
       "type": "module",

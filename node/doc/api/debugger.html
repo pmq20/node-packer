@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Debugger | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Debugger | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="debugger" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="debugger.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="debugger.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/debugger.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/debugger.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/debugger.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/debugger.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/debugger.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/debugger.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/debugger.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/debugger.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -115,9 +137,10 @@
 
       <div id="apicontent">
         <h1>Debugger<span><a class="mark" href="#debugger_debugger" id="debugger_debugger">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!-- type=misc -->
+<!--introduced_in=v0.9.12-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><!-- type=misc -->
 <p>Node.js includes an out-of-process debugging utility accessible via a
-<a href="#debugger_tcp_based_protocol">TCP-based protocol</a> and built-in debugging client. To use it, start Node.js
+<a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector</a> and built-in debugging client. To use it, start Node.js
 with the <code>inspect</code> argument followed by the path to the script to debug; a prompt
 will be displayed indicating successful launch of the debugger:</p>
 <pre><code class="lang-txt">$ node inspect myscript.js
@@ -217,18 +240,18 @@ on line 1</li>
 </ul>
 </div><p>It is also possible to set a breakpoint in a file (module) that
 is not loaded yet:</p>
-<pre><code class="lang-txt">$ node inspect test/fixtures/break-in-module/main.js
+<pre><code class="lang-txt">$ node inspect main.js
 &lt; Debugger listening on ws://127.0.0.1:9229/4e3db158-9791-4274-8909-914f7facf3bd
 &lt; For help see https://nodejs.org/en/docs/inspector
 &lt; Debugger attached.
-Break on start in test/fixtures/break-in-module/main.js:1
+Break on start in main.js:1
 &gt; 1 (function (exports, require, module, __filename, __dirname) { const mod = require(&#39;./mod.js&#39;);
   2 mod.hello();
   3 mod.hello();
 debug&gt; setBreakpoint(&#39;mod.js&#39;, 22)
 Warning: script &#39;mod.js&#39; was not loaded yet.
 debug&gt; c
-break in test/fixtures/break-in-module/mod.js:22
+break in mod.js:22
  20 // USE OR OTHER DEALINGS IN THE SOFTWARE.
  21
 &gt;22 exports.hello = function() {
@@ -239,7 +262,7 @@ debug&gt;
 <h3>Information<span><a class="mark" href="#debugger_information" id="debugger_information">#</a></span></h3>
 <div class="signature"><ul>
 <li><code>backtrace</code>, <code>bt</code> - Print backtrace of current execution frame</li>
-<li><code>list(5)</code> - List scripts source code with 5 line context (5 lines before and
+<li><code>&lt;a href=&quot;http://man7.org/linux/man-pages/man5/list.5.html&quot;&gt;list(5)&lt;/a&gt;</code> - List scripts source code with 5 line context (5 lines before and
 after)</li>
 <li><code>watch(expr)</code> - Add expression to watch list</li>
 <li><code>unwatch(expr)</code> - Remove expression from watch list</li>

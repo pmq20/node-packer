@@ -40,10 +40,10 @@ const { test, assert_equals, assert_array_equals } = require('../common/wpt');
       assert_array_equals(param, val.output[i])
       i++
     }
-  }, "Parse and sort: " + val.input)
+  }, `Parse and sort: ${val.input}`)
 
   test(() => {
-    let url = new URL("?" + val.input, "https://example/")
+    let url = new URL(`?${val.input}`, "https://example/")
     url.searchParams.sort()
     let params = new URLSearchParams(url.search),
         i = 0
@@ -51,7 +51,7 @@ const { test, assert_equals, assert_array_equals } = require('../common/wpt');
       assert_array_equals(param, val.output[i])
       i++
     }
-  }, "URL parse and sort: " + val.input)
+  }, `URL parse and sort: ${val.input}`)
 })
 
 test(function() {
@@ -65,7 +65,7 @@ test(function() {
 // Tests below are not from WPT.
 
 // Test bottom-up iterative stable merge sort
-const tests = [{input: '', output: []}];
+const tests = [{ input: '', output: [] }];
 const pairs = [];
 for (let i = 10; i < 100; i++) {
   pairs.push([`a${i}`, 'b']);
@@ -90,7 +90,7 @@ tests.forEach((val) => {
       assert_array_equals(param, val.output[i]);
       i++;
     }
-  }, 'Parse and sort: ' + val.input);
+  }, `Parse and sort: ${val.input}`);
 
   test(() => {
     const url = new URL(`?${val.input}`, 'https://example/');
@@ -101,5 +101,5 @@ tests.forEach((val) => {
       assert_array_equals(param, val.output[i]);
       i++;
     }
-  }, 'URL parse and sort: ' + val.input);
+  }, `URL parse and sort: ${val.input}`);
 });

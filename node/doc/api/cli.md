@@ -1,5 +1,6 @@
 # Command Line Options
 
+<!--introduced_in=v5.9.1-->
 <!--type=misc-->
 
 Node.js comes with a variety of CLI options. These options expose built-in
@@ -10,7 +11,7 @@ To view this documentation as a manual page in a terminal, run `man node`.
 
 ## Synopsis
 
-`node [options] [v8 options] [script.js | -e "script" | -] [--] [arguments]`
+`node [options] [V8 options] [script.js | -e "script" | -] [--] [arguments]`
 
 `node debug [script.js | -e "script" | <host>:<port>] …`
 
@@ -51,6 +52,10 @@ changes:
 
 Evaluate the following argument as JavaScript. The modules which are
 predefined in the REPL can also be used in `script`.
+
+*Note*: On Windows, using `cmd.exe` a single quote will not work correctly
+because it only recognizes double `"` for quoting. In Powershell or
+Git bash, both `'` and `"` are usable.
 
 
 ### `-p`, `--print "script"`
@@ -177,14 +182,6 @@ added: v8.4.0
 
 Enable the experimental `'http2'` module.
 
-### `--napi-modules`
-<!-- YAML
-added: v8.0.0
--->
-
-Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
-(experimental).
-
 ### `--abort-on-uncaught-exception`
 <!-- YAML
 added: v0.10
@@ -217,6 +214,14 @@ added: v2.1.0
 
 Prints a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.
+
+### `--force-async-hooks-checks`
+<!-- YAML
+added: v8.8.0
+-->
+
+Enables runtime checks for `async_hooks`. These can also be enabled dynamically
+by enabling one of the `async_hooks` hooks.
 
 ### `--trace-events-enabled`
 <!-- YAML
@@ -295,7 +300,7 @@ Track heap object allocations for heap snapshots.
 added: v5.2.0
 -->
 
-Process v8 profiler output generated using the v8 option `--prof`.
+Process V8 profiler output generated using the V8 option `--prof`.
 
 
 ### `--v8-options`
@@ -303,7 +308,7 @@ Process v8 profiler output generated using the v8 option `--prof`.
 added: v0.1.3
 -->
 
-Print v8 command line options.
+Print V8 command line options.
 
 *Note*: V8 options allow words to be separated by both dashes (`-`) or
 underscores (`_`).
@@ -352,15 +357,15 @@ added: v7.5.0
 -->
 
 Use OpenSSL's default CA store or use bundled Mozilla CA store as supplied by
-current NodeJS version. The default store is selectable at build-time.
+current Node.js version. The default store is selectable at build-time.
 
 Using OpenSSL store allows for external modifications of the store. For most
 Linux and BSD distributions, this store is maintained by the distribution
 maintainers and system administrators. OpenSSL CA store location is dependent on
 configuration of the OpenSSL library but this can be altered at runtime using
-environmental variables.
+environment variables.
 
-The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store
+The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store
 that is fixed at release time. It is identical on all supported platforms.
 
 See `SSL_CERT_DIR` and `SSL_CERT_FILE`.
@@ -435,6 +440,13 @@ added: v7.5.0
 
 When set to `1`, process warnings are silenced.
 
+### `NODE_NO_HTTP2=1`
+<!-- YAML
+added: v8.8.0
+-->
+
+When set to `1`, the `http2` module is suppressed.
+
 ### `NODE_OPTIONS=options...`
 <!-- YAML
 added: v8.0.0
@@ -452,7 +464,6 @@ Node options that are allowed are:
 - `--inspect-brk`
 - `--inspect-port`
 - `--inspect`
-- `--napi-modules`
 - `--no-deprecation`
 - `--no-warnings`
 - `--openssl-config`
@@ -542,7 +553,7 @@ If `--use-openssl-ca` is enabled, this overrides and sets OpenSSL's directory
 containing trusted certificates.
 
 *Note*: Be aware that unless the child environment is explicitly set, this
-evironment variable will be inherited by any child processes, and if they use
+environment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.
 
 ### `SSL_CERT_FILE=file`
@@ -554,7 +565,7 @@ If `--use-openssl-ca` is enabled, this overrides and sets OpenSSL's file
 containing trusted certificates.
 
 *Note*: Be aware that unless the child environment is explicitly set, this
-evironment variable will be inherited by any child processes, and if they use
+environment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.
 
 ### `NODE_REDIRECT_WARNINGS=file`
@@ -568,6 +579,30 @@ appended to if it does. If an error occurs while attempting to write the
 warning to the file, the warning will be written to stderr instead. This is
 equivalent to using the `--redirect-warnings=file` command-line flag.
 
+### `UV_THREADPOOL_SIZE=size`
+
+Set the number of threads used in libuv's threadpool to `size` threads.
+
+Asynchronous system APIs are used by Node.js whenever possible, but where they
+do not exist, libuv's threadpool is used to create asynchronous node APIs based
+on synchronous system APIs. Node.js APIs that use the threadpool are:
+
+- all `fs` APIs, other than the file watcher APIs and those that are explicitly
+  synchronous
+- `crypto.pbkdf2()`
+- `crypto.randomBytes()`, unless it is used without a callback
+- `crypto.randomFill()`
+- `dns.lookup()`
+- all `zlib` APIs, other than those that are explicitly synchronous
+
+Because libuv's threadpool has a fixed size, it means that if for whatever
+reason any of these APIs takes a long time, other (seemingly unrelated) APIs
+that run in libuv's threadpool will experience degraded performance. In order to
+mitigate this issue, one potential solution is to increase the size of libuv's
+threadpool by setting the `'UV_THREADPOOL_SIZE'` environment variable to a value
+greater than `4` (its current default value).  For more information, see the
+[libuv threadpool documentation][].
+
 [`--openssl-config`]: #cli_openssl_config_file
 [Buffer]: buffer.html#buffer_buffer
 [Chrome Debugging Protocol]: https://chromedevtools.github.io/debugger-protocol-viewer
@@ -575,3 +610,4 @@ equivalent to using the `--redirect-warnings=file` command-line flag.
 [SlowBuffer]: buffer.html#buffer_class_slowbuffer
 [debugger]: debugger.html
 [emit_warning]: process.html#process_process_emitwarning_warning_type_code_ctor
+[libuv threadpool documentation]: http://docs.libuv.org/en/latest/threadpool.html

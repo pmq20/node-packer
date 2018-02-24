@@ -1,13 +1,9 @@
 #include "inspector_agent.h"
 
 #include "inspector_io.h"
-#include "env.h"
-#include "env-inl.h"
-#include "node.h"
+#include "node_internals.h"
 #include "v8-inspector.h"
 #include "v8-platform.h"
-#include "util.h"
-#include "zlib.h"
 
 #include "libplatform/libplatform.h"
 
@@ -17,26 +13,24 @@
 #include <vector>
 
 #ifdef __POSIX__
-#include <unistd.h>  // setuid, getuid
+#include <limits.h>  // PTHREAD_STACK_MIN
+#include <pthread.h>
 #endif  // __POSIX__
 
 namespace node {
 namespace inspector {
 namespace {
+
+using node::FatalError;
+
 using v8::Array;
 using v8::Context;
-using v8::External;
 using v8::Function;
-using v8::FunctionCallbackInfo;
 using v8::HandleScope;
 using v8::Isolate;
 using v8::Local;
-using v8::Maybe;
-using v8::MaybeLocal;
-using v8::NewStringType;
 using v8::Object;
 using v8::Persistent;
-using v8::String;
 using v8::Value;
 
 using v8_inspector::StringBuffer;
@@ -115,7 +109,8 @@ static int StartDebugSignalHandler() {
   CHECK_EQ(0, pthread_sigmask(SIG_SETMASK, &sigmask, nullptr));
   CHECK_EQ(0, pthread_attr_destroy(&attr));
   if (err != 0) {
-    fprintf(stderr, "node[%d]: pthread_create: %s\n", getpid(), strerror(err));
+    fprintf(stderr, "node[%u]: pthread_create: %s\n",
+            GetProcessId(), strerror(err));
     fflush(stderr);
     // Leave SIGUSR1 blocked.  We don't install a signal handler,
     // receiving the signal would terminate the process.
@@ -187,199 +182,6 @@ static int StartDebugSignalHandler() {
 }
 #endif  // _WIN32
 
-class JsBindingsSessionDelegate : public InspectorSessionDelegate {
- public:
-  JsBindingsSessionDelegate(Environment* env,
-                            Local<Object> session,
-                            Local<Object> receiver,
-                            Local<Function> callback)
-                            : env_(env),
-                              session_(env->isolate(), session),
-                              receiver_(env->isolate(), receiver),
-                              callback_(env->isolate(), callback) {
-    session_.SetWeak(this, JsBindingsSessionDelegate::Release,
-                     v8::WeakCallbackType::kParameter);
-  }
-
-  ~JsBindingsSessionDelegate() override {
-    session_.Reset();
-    receiver_.Reset();
-    callback_.Reset();
-  }
-
-  bool WaitForFrontendMessageWhilePaused() override {
-    return false;
-  }
-
-  void SendMessageToFrontend(const v8_inspector::StringView& message) override {
-    Isolate* isolate = env_->isolate();
-    v8::HandleScope handle_scope(isolate);
-    Context::Scope context_scope(env_->context());
-    MaybeLocal<String> v8string =
-        String::NewFromTwoByte(isolate, message.characters16(),
-                               NewStringType::kNormal, message.length());
-    Local<Value> argument = v8string.ToLocalChecked().As<Value>();
-    Local<Function> callback = callback_.Get(isolate);
-    Local<Object> receiver = receiver_.Get(isolate);
-    callback->Call(env_->context(), receiver, 1, &argument)
-        .FromMaybe(Local<Value>());
-  }
-
-  void Disconnect() {
-    Agent* agent = env_->inspector_agent();
-    if (agent->delegate() == this)
-      agent->Disconnect();
-  }
-
- private:
-  static void Release(
-      const v8::WeakCallbackInfo<JsBindingsSessionDelegate>& info) {
-    info.SetSecondPassCallback(ReleaseSecondPass);
-    info.GetParameter()->session_.Reset();
-  }
-
-  static void ReleaseSecondPass(
-      const v8::WeakCallbackInfo<JsBindingsSessionDelegate>& info) {
-    JsBindingsSessionDelegate* delegate = info.GetParameter();
-    delegate->Disconnect();
-    delete delegate;
-  }
-
-  Environment* env_;
-  Persistent<Object> session_;
-  Persistent<Object> receiver_;
-  Persistent<Function> callback_;
-};
-
-void SetDelegate(Environment* env, Local<Object> inspector,
-                 JsBindingsSessionDelegate* delegate) {
-  inspector->SetPrivate(env->context(),
-                        env->inspector_delegate_private_symbol(),
-                        v8::External::New(env->isolate(), delegate));
-}
-
-Maybe<JsBindingsSessionDelegate*> GetDelegate(
-    const FunctionCallbackInfo<Value>& info) {
-  Environment* env = Environment::GetCurrent(info);
-  Local<Value> delegate;
-  MaybeLocal<Value> maybe_delegate =
-      info.This()->GetPrivate(env->context(),
-                              env->inspector_delegate_private_symbol());
-
-  if (maybe_delegate.ToLocal(&delegate)) {
-    CHECK(delegate->IsExternal());
-    void* value = delegate.As<External>()->Value();
-    if (value != nullptr) {
-      return v8::Just(static_cast<JsBindingsSessionDelegate*>(value));
-    }
-  }
-  env->ThrowError("Inspector is not connected");
-  return v8::Nothing<JsBindingsSessionDelegate*>();
-}
-
-void Dispatch(const FunctionCallbackInfo<Value>& info) {
-  Environment* env = Environment::GetCurrent(info);
-  if (!info[0]->IsString()) {
-    env->ThrowError("Inspector message must be a string");
-    return;
-  }
-  Maybe<JsBindingsSessionDelegate*> maybe_delegate = GetDelegate(info);
-  if (maybe_delegate.IsNothing())
-    return;
-  Agent* inspector = env->inspector_agent();
-  CHECK_EQ(maybe_delegate.ToChecked(), inspector->delegate());
-  inspector->Dispatch(ToProtocolString(env->isolate(), info[0])->string());
-}
-
-void Disconnect(const FunctionCallbackInfo<Value>& info) {
-  Environment* env = Environment::GetCurrent(info);
-  Maybe<JsBindingsSessionDelegate*> delegate = GetDelegate(info);
-  if (delegate.IsNothing()) {
-    return;
-  }
-  delegate.ToChecked()->Disconnect();
-  SetDelegate(env, info.This(), nullptr);
-  delete delegate.ToChecked();
-}
-
-void ConnectJSBindingsSession(const FunctionCallbackInfo<Value>& info) {
-  Environment* env = Environment::GetCurrent(info);
-  if (!info[0]->IsFunction()) {
-    env->ThrowError("Message callback is required");
-    return;
-  }
-  Agent* inspector = env->inspector_agent();
-  if (inspector->delegate() != nullptr) {
-    env->ThrowError("Session is already attached");
-    return;
-  }
-  Local<Object> session = Object::New(env->isolate());
-  env->SetMethod(session, "dispatch", Dispatch);
-  env->SetMethod(session, "disconnect", Disconnect);
-  info.GetReturnValue().Set(session);
-
-  JsBindingsSessionDelegate* delegate =
-      new JsBindingsSessionDelegate(env, session, info.Holder(),
-                                    info[0].As<Function>());
-  inspector->Connect(delegate);
-  SetDelegate(env, session, delegate);
-}
-
-void InspectorConsoleCall(const v8::FunctionCallbackInfo<Value>& info) {
-  Isolate* isolate = info.GetIsolate();
-  HandleScope handle_scope(isolate);
-  Local<Context> context = isolate->GetCurrentContext();
-  CHECK_LT(2, info.Length());
-  std::vector<Local<Value>> call_args;
-  for (int i = 3; i < info.Length(); ++i) {
-    call_args.push_back(info[i]);
-  }
-  Environment* env = Environment::GetCurrent(isolate);
-  if (env->inspector_agent()->enabled()) {
-    Local<Value> inspector_method = info[0];
-    CHECK(inspector_method->IsFunction());
-    Local<Value> config_value = info[2];
-    CHECK(config_value->IsObject());
-    Local<Object> config_object = config_value.As<Object>();
-    Local<String> in_call_key = FIXED_ONE_BYTE_STRING(isolate, "in_call");
-    if (!config_object->Has(context, in_call_key).FromMaybe(false)) {
-      CHECK(config_object->Set(context,
-                               in_call_key,
-                               v8::True(isolate)).FromJust());
-      CHECK(!inspector_method.As<Function>()->Call(context,
-                                                   info.Holder(),
-                                                   call_args.size(),
-                                                   call_args.data()).IsEmpty());
-    }
-    CHECK(config_object->Delete(context, in_call_key).FromJust());
-  }
-
-  Local<Value> node_method = info[1];
-  CHECK(node_method->IsFunction());
-  node_method.As<Function>()->Call(context,
-                                   info.Holder(),
-                                   call_args.size(),
-                                   call_args.data()).FromMaybe(Local<Value>());
-}
-
-void CallAndPauseOnStart(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  CHECK_GT(args.Length(), 1);
-  CHECK(args[0]->IsFunction());
-  std::vector<v8::Local<v8::Value>> call_args;
-  for (int i = 2; i < args.Length(); i++) {
-    call_args.push_back(args[i]);
-  }
-
-  env->inspector_agent()->PauseOnNextJavascriptStatement("Break on start");
-  v8::MaybeLocal<v8::Value> retval =
-      args[0].As<v8::Function>()->Call(env->context(), args[1],
-                                       call_args.size(), call_args.data());
-  if (!retval.IsEmpty()) {
-    args.GetReturnValue().Set(retval.ToLocalChecked());
-  }
-}
 
 // Used in NodeInspectorClient::currentTimeMS() below.
 const int NANOS_PER_MSEC = 1000000;
@@ -461,10 +263,10 @@ class InspectorTimer {
   }
 
   static void TimerClosedCb(uv_handle_t* uvtimer) {
-    InspectorTimer* timer =
+    std::unique_ptr<InspectorTimer> timer(
         node::ContainerOf(&InspectorTimer::timer_,
-                          reinterpret_cast<uv_timer_t*>(uvtimer));
-    delete timer;
+                          reinterpret_cast<uv_timer_t*>(uvtimer)));
+    // Unique_ptr goes out of scope here and pointer is deleted.
   }
 
   ~InspectorTimer() {}
@@ -472,6 +274,8 @@ class InspectorTimer {
   uv_timer_t timer_;
   V8InspectorClient::TimerCallback callback_;
   void* data_;
+
+  friend std::unique_ptr<InspectorTimer>::deleter_type;
 };
 
 class InspectorTimerHandle {
@@ -495,13 +299,12 @@ class InspectorTimerHandle {
 
 class NodeInspectorClient : public V8InspectorClient {
  public:
-  NodeInspectorClient(node::Environment* env,
-                      v8::Platform* platform) : env_(env),
-                                                platform_(platform),
-                                                terminated_(false),
-                                                running_nested_loop_(false) {
+  NodeInspectorClient(node::Environment* env, node::NodePlatform* platform)
+      : env_(env), platform_(platform), terminated_(false),
+        running_nested_loop_(false) {
     client_ = V8Inspector::create(env->isolate(), this);
-    contextCreated(env->context(), "Node.js Main Context");
+    // TODO(bnoordhuis) Make name configurable from src/node.cc.
+    contextCreated(env->context(), GetHumanReadableProcessName());
   }
 
   void runMessageLoopOnPause(int context_group_id) override {
@@ -511,8 +314,7 @@ class NodeInspectorClient : public V8InspectorClient {
     terminated_ = false;
     running_nested_loop_ = true;
     while (!terminated_ && channel_->waitForFrontendMessage()) {
-      while (v8::platform::PumpMessageLoop(platform_, env_->isolate()))
-        {}
+      platform_->FlushForegroundTasksInternal();
     }
     terminated_ = false;
     running_nested_loop_ = false;
@@ -520,6 +322,14 @@ class NodeInspectorClient : public V8InspectorClient {
 
   double currentTimeMS() override {
     return uv_hrtime() * 1.0 / NANOS_PER_MSEC;
+  }
+
+  void maxAsyncCallStackDepthChanged(int depth) override {
+    if (depth == 0) {
+      env_->inspector_agent()->DisableAsyncHook();
+    } else {
+      env_->inspector_agent()->EnableAsyncHook();
+    }
   }
 
   void contextCreated(Local<Context> context, const std::string& name) {
@@ -616,9 +426,31 @@ class NodeInspectorClient : public V8InspectorClient {
     timers_.erase(data);
   }
 
+  // Async stack traces instrumentation.
+  void AsyncTaskScheduled(const StringView& task_name, void* task,
+                          bool recurring) {
+    client_->asyncTaskScheduled(task_name, task, recurring);
+  }
+
+  void AsyncTaskCanceled(void* task) {
+    client_->asyncTaskCanceled(task);
+  }
+
+  void AsyncTaskStarted(void* task) {
+    client_->asyncTaskStarted(task);
+  }
+
+  void AsyncTaskFinished(void* task) {
+    client_->asyncTaskFinished(task);
+  }
+
+  void AllAsyncTasksCanceled() {
+    client_->allAsyncTasksCanceled();
+  }
+
  private:
   node::Environment* env_;
-  v8::Platform* platform_;
+  node::NodePlatform* platform_;
   bool terminated_;
   bool running_nested_loop_;
   std::unique_ptr<V8Inspector> client_;
@@ -630,14 +462,16 @@ Agent::Agent(Environment* env) : parent_env_(env),
                                  client_(nullptr),
                                  platform_(nullptr),
                                  enabled_(false),
-                                 next_context_number_(1) {}
+                                 next_context_number_(1),
+                                 pending_enable_async_hook_(false),
+                                 pending_disable_async_hook_(false) {}
 
 // Destructor needs to be defined here in implementation file as the header
 // does not have full definition of some classes.
 Agent::~Agent() {
 }
 
-bool Agent::Start(v8::Platform* platform, const char* path,
+bool Agent::Start(node::NodePlatform* platform, const char* path,
                   const DebugOptions& options) {
   path_ = path == nullptr ? "" : path;
   debug_options_ = options;
@@ -676,19 +510,21 @@ bool Agent::StartIoThread(bool wait_for_connect) {
   }
 
   v8::Isolate* isolate = parent_env_->isolate();
+  HandleScope handle_scope(isolate);
+  auto context = parent_env_->context();
 
   // Send message to enable debug in workers
-  HandleScope handle_scope(isolate);
   Local<Object> process_object = parent_env_->process_object();
   Local<Value> emit_fn =
-      process_object->Get(FIXED_ONE_BYTE_STRING(isolate, "emit"));
+      process_object->Get(context, FIXED_ONE_BYTE_STRING(isolate, "emit"))
+          .ToLocalChecked();
   // In case the thread started early during the startup
   if (!emit_fn->IsFunction())
     return true;
 
   Local<Object> message = Object::New(isolate);
-  message->Set(FIXED_ONE_BYTE_STRING(isolate, "cmd"),
-               FIXED_ONE_BYTE_STRING(isolate, "NODE_DEBUG_ENABLED"));
+  message->Set(context, FIXED_ONE_BYTE_STRING(isolate, "cmd"),
+               FIXED_ONE_BYTE_STRING(isolate, "NODE_DEBUG_ENABLED")).FromJust();
   Local<Value> argv[] = {
     FIXED_ONE_BYTE_STRING(isolate, "internalMessage"),
     message
@@ -699,24 +535,11 @@ bool Agent::StartIoThread(bool wait_for_connect) {
   return true;
 }
 
-static void AddCommandLineAPI(
-    const FunctionCallbackInfo<Value>& info) {
-  auto env = Environment::GetCurrent(info);
-  Local<Context> context = env->context();
-
-  if (info.Length() != 2 || !info[0]->IsString()) {
-    return env->ThrowTypeError("inspector.addCommandLineAPI takes "
-        "exactly 2 arguments: a string and a value.");
-  }
-
-  Local<Object> console_api = env->inspector_console_api_object();
-  console_api->Set(context, info[0], info[1]).FromJust();
-}
-
 void Agent::Stop() {
   if (io_ != nullptr) {
     io_->Stop();
     io_.reset();
+    enabled_ = false;
   }
 }
 
@@ -773,63 +596,75 @@ void Agent::PauseOnNextJavascriptStatement(const std::string& reason) {
     channel->schedulePauseOnNextStatement(reason);
 }
 
-void Open(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  inspector::Agent* agent = env->inspector_agent();
-  bool wait_for_connect = false;
-
-  if (args.Length() > 0 && args[0]->IsUint32()) {
-    uint32_t port = args[0]->Uint32Value();
-    agent->options().set_port(static_cast<int>(port));
+void Agent::RegisterAsyncHook(Isolate* isolate,
+                              v8::Local<v8::Function> enable_function,
+                              v8::Local<v8::Function> disable_function) {
+  enable_async_hook_function_.Reset(isolate, enable_function);
+  disable_async_hook_function_.Reset(isolate, disable_function);
+  if (pending_enable_async_hook_) {
+    CHECK(!pending_disable_async_hook_);
+    pending_enable_async_hook_ = false;
+    EnableAsyncHook();
+  } else if (pending_disable_async_hook_) {
+    CHECK(!pending_enable_async_hook_);
+    pending_disable_async_hook_ = false;
+    DisableAsyncHook();
   }
-
-  if (args.Length() > 1 && args[1]->IsString()) {
-    node::Utf8Value host(env->isolate(), args[1].As<String>());
-    agent->options().set_host_name(*host);
-  }
-
-  if (args.Length() > 2 && args[2]->IsBoolean()) {
-    wait_for_connect =  args[2]->BooleanValue();
-  }
-
-  agent->StartIoThread(wait_for_connect);
 }
 
-void Url(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  inspector::Agent* agent = env->inspector_agent();
-  inspector::InspectorIo* io = agent->io();
-
-  if (!io) return;
-
-  std::vector<std::string> ids = io->GetTargetIds();
-
-  if (ids.empty()) return;
-
-  std::string url = FormatWsAddress(io->host(), io->port(), ids[0], true);
-  args.GetReturnValue().Set(OneByteString(env->isolate(), url.c_str()));
+void Agent::EnableAsyncHook() {
+  if (!enable_async_hook_function_.IsEmpty()) {
+    ToggleAsyncHook(parent_env_->isolate(), enable_async_hook_function_);
+  } else if (pending_disable_async_hook_) {
+    CHECK(!pending_enable_async_hook_);
+    pending_disable_async_hook_ = false;
+  } else {
+    pending_enable_async_hook_ = true;
+  }
 }
 
-
-// static
-void Agent::InitInspector(Local<Object> target, Local<Value> unused,
-                          Local<Context> context, void* priv) {
-  Environment* env = Environment::GetCurrent(context);
-  {
-    auto obj = Object::New(env->isolate());
-    auto null = Null(env->isolate());
-    CHECK(obj->SetPrototype(context, null).FromJust());
-    env->set_inspector_console_api_object(obj);
+void Agent::DisableAsyncHook() {
+  if (!disable_async_hook_function_.IsEmpty()) {
+    ToggleAsyncHook(parent_env_->isolate(), disable_async_hook_function_);
+  } else if (pending_enable_async_hook_) {
+    CHECK(!pending_disable_async_hook_);
+    pending_enable_async_hook_ = false;
+  } else {
+    pending_disable_async_hook_ = true;
   }
+}
 
-  Agent* agent = env->inspector_agent();
-  env->SetMethod(target, "consoleCall", InspectorConsoleCall);
-  env->SetMethod(target, "addCommandLineAPI", AddCommandLineAPI);
-  if (agent->debug_options_.wait_for_connect())
-    env->SetMethod(target, "callAndPauseOnStart", CallAndPauseOnStart);
-  env->SetMethod(target, "connect", ConnectJSBindingsSession);
-  env->SetMethod(target, "open", Open);
-  env->SetMethod(target, "url", Url);
+void Agent::ToggleAsyncHook(Isolate* isolate, const Persistent<Function>& fn) {
+  HandleScope handle_scope(isolate);
+  CHECK(!fn.IsEmpty());
+  auto context = parent_env_->context();
+  auto result = fn.Get(isolate)->Call(context, Undefined(isolate), 0, nullptr);
+  if (result.IsEmpty()) {
+    FatalError(
+        "node::inspector::Agent::ToggleAsyncHook",
+        "Cannot toggle Inspector's AsyncHook, please report this.");
+  }
+}
+
+void Agent::AsyncTaskScheduled(const StringView& task_name, void* task,
+                               bool recurring) {
+  client_->AsyncTaskScheduled(task_name, task, recurring);
+}
+
+void Agent::AsyncTaskCanceled(void* task) {
+  client_->AsyncTaskCanceled(task);
+}
+
+void Agent::AsyncTaskStarted(void* task) {
+  client_->AsyncTaskStarted(task);
+}
+
+void Agent::AsyncTaskFinished(void* task) {
+  client_->AsyncTaskFinished(task);
+}
+
+void Agent::AllAsyncTasksCanceled() {
+  client_->AllAsyncTasksCanceled();
 }
 
 void Agent::RequestIoThreadStart() {
@@ -851,8 +686,10 @@ void Agent::ContextCreated(Local<Context> context) {
   client_->contextCreated(context, name.str());
 }
 
+bool Agent::IsWaitingForConnect() {
+  return debug_options_.wait_for_connect();
+}
+
 }  // namespace inspector
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(inspector,
-                                  node::inspector::Agent::InitInspector);

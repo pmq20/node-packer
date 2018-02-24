@@ -131,10 +131,6 @@ Emit pending deprecation warnings.
 Silence all process warnings (including deprecations).
 
 .TP
-.BR \-\-expose\-http2
-Enable the experimental `'http2'` module.
-
-.TP
 .BR \-\-napi\-modules
 Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
 (experimental).
@@ -155,6 +151,11 @@ Write process warnings to the given file instead of printing to stderr.
 .BR \-\-trace\-sync\-io
 Print a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.
+
+.TP
+.BR \-\-force\-async\-hooks\-checks
+Enables runtime checks for `async_hooks`. These can also be enabled dynamically
+by enabling one of the `async_hooks` hooks.
 
 .TP
 .BR \-\-trace\-events\-enabled
@@ -180,13 +181,13 @@ Track heap object allocations for heap snapshots.
 
 .TP
 .BR \-\-prof\-process
-Process v8 profiler output generated using the v8 option \fB\-\-prof\fR
+Process V8 profiler output generated using the V8 option \fB\-\-prof\fR
 
 .TP
 .BR \-\-v8\-options
-Print v8 command line options.
+Print V8 command line options.
 
-Note: v8 options allow words to be separated by both dashes (\fB-\fR) or
+Note: V8 options allow words to be separated by both dashes (\fB-\fR) or
 underscores (\fB_\fR).
 
 For example, \fB\-\-stack\-trace\-limit\fR is equivalent to
@@ -195,7 +196,7 @@ For example, \fB\-\-stack\-trace\-limit\fR is equivalent to
 .TP
 .BR \-\-v8\-pool\-size =\fInum\fR
 Set v8's thread pool size which will be used to allocate background jobs.
-If set to 0 then v8 will choose an appropriate size of the thread pool based
+If set to 0 then V8 will choose an appropriate size of the thread pool based
 on the number of online processors. If the value provided is larger than v8's
 max then the largest value will be chosen.
 
@@ -223,15 +224,15 @@ used to enable FIPS-compliant crypto if Node.js is built with
 .TP
 .BR \-\-use\-openssl\-ca,\-\-use\-bundled\-ca
 Use OpenSSL's default CA store or use bundled Mozilla CA store as supplied by
-current NodeJS version. The default store is selectable at build-time.
+current Node.js version. The default store is selectable at build-time.
 
 Using OpenSSL store allows for external modifications of the store. For most
 Linux and BSD distributions, this store is maintained by the distribution
 maintainers and system administrators. OpenSSL CA store location is dependent on
 configuration of the OpenSSL library but this can be altered at runtime using
-environmental variables.
+environment variables.
 
-The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store
+The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store
 that is fixed at release time. It is identical on all supported platforms.
 
 See \fBSSL_CERT_DIR\fR and \fBSSL_CERT_FILE\fR.
@@ -279,6 +280,10 @@ with small\-icu support.
 .TP
 .BR NODE_NO_WARNINGS =\fI1\fR
 When set to \fI1\fR, process warnings are silenced.
+
+.TP
+.BR NODE_NO_HTTP2 =\fI1\fR
+When set to \fI1\fR, the http2 module is suppressed.
 
 .TP
 .BR NODE_OPTIONS =\fIoptions...\fR

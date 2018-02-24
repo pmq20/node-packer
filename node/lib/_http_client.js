@@ -24,19 +24,21 @@
 const util = require('util');
 const net = require('net');
 const url = require('url');
-const HTTPParser = process.binding('http_parser').HTTPParser;
+const { HTTPParser } = process.binding('http_parser');
 const assert = require('assert').ok;
-const common = require('_http_common');
-const httpSocketSetup = common.httpSocketSetup;
-const parsers = common.parsers;
-const freeParser = common.freeParser;
-const debug = common.debug;
-const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
+const {
+  _checkIsHttpToken: checkIsHttpToken,
+  debug,
+  freeParser,
+  httpSocketSetup,
+  parsers
+} = require('_http_common');
+const { OutgoingMessage } = require('_http_outgoing');
 const Agent = require('_http_agent');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const { urlToOptions, searchParamsSymbol } = require('internal/url');
-const outHeadersKey = require('internal/http').outHeadersKey;
-const nextTick = require('internal/process/next_tick').nextTick;
+const { outHeadersKey } = require('internal/http');
+const { nextTick } = require('internal/process/next_tick');
 
 // The actual list of disallowed characters in regexp form is more like:
 //    /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
@@ -114,7 +116,7 @@ function ClientRequest(options, cb) {
 
   var path;
   if (options.path) {
-    path = '' + options.path;
+    path = String(options.path);
     var invalidPath;
     if (path.length <= 39) { // Determined experimentally in V8 5.4
       invalidPath = isInvalidPath(path);
@@ -149,7 +151,7 @@ function ClientRequest(options, cb) {
   }
 
   if (methodIsString && method) {
-    if (!common._checkIsHttpToken(method)) {
+    if (!checkIsHttpToken(method)) {
       throw new TypeError('Method must be a valid HTTP token');
     }
     method = this.method = method.toUpperCase();
@@ -241,23 +243,7 @@ function ClientRequest(options, cb) {
     this._deferToConnect(null, null, () => this._flush());
   };
 
-  var newSocket;
-  if (this.socketPath) {
-    this._last = true;
-    this.shouldKeepAlive = false;
-    var optionsPath = {
-      path: this.socketPath,
-      timeout: this.timeout,
-      rejectUnauthorized: !!options.rejectUnauthorized
-    };
-    newSocket = this.agent.createConnection(optionsPath, oncreate);
-    if (newSocket && !called) {
-      called = true;
-      this.onSocket(newSocket);
-    } else {
-      return;
-    }
-  } else if (this.agent) {
+  if (this.agent) {
     // If there is an agent we should default to Connection:keep-alive,
     // but only if the Agent will actually reuse the connection!
     // If it's not a keepAlive agent, and the maxSockets==Infinity, then
@@ -275,7 +261,7 @@ function ClientRequest(options, cb) {
     this._last = true;
     this.shouldKeepAlive = false;
     if (typeof options.createConnection === 'function') {
-      newSocket = options.createConnection(options, oncreate);
+      const newSocket = options.createConnection(options, oncreate);
       if (newSocket && !called) {
         called = true;
         this.onSocket(newSocket);
@@ -675,7 +661,7 @@ ClientRequest.prototype.onSocket = function onSocket(socket) {
 function onSocketNT(req, socket) {
   if (req.aborted) {
     // If we were aborted while waiting for a socket, skip the whole thing.
-    if (req.socketPath || !req.agent) {
+    if (!req.agent) {
       socket.destroy();
     } else {
       socket.emit('free');

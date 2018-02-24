@@ -4,9 +4,10 @@
     {
       "textRaw": "Crypto",
       "name": "crypto",
+      "introduced_in": "v0.3.6",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>crypto</code> module provides cryptographic functionality that includes a set of\nwrappers for OpenSSL&#39;s hash, HMAC, cipher, decipher, sign and verify functions.</p>\n<p>Use <code>require(&#39;crypto&#39;)</code> to access this module.</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\n\nconst secret = &#39;abcdefg&#39;;\nconst hash = crypto.createHmac(&#39;sha256&#39;, secret)\n                   .update(&#39;I love cupcakes&#39;)\n                   .digest(&#39;hex&#39;);\nconsole.log(hash);\n// Prints:\n//   c0fa1bc00531bd78ef38c628449c5102aeabd49b5dc3a2a516ea6ea959d6658e\n</code></pre>\n",
+      "desc": "<p>The <code>crypto</code> module provides cryptographic functionality that includes a set of\nwrappers for OpenSSL&#39;s hash, HMAC, cipher, decipher, sign, and verify functions.</p>\n<p>Use <code>require(&#39;crypto&#39;)</code> to access this module.</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\n\nconst secret = &#39;abcdefg&#39;;\nconst hash = crypto.createHmac(&#39;sha256&#39;, secret)\n                   .update(&#39;I love cupcakes&#39;)\n                   .digest(&#39;hex&#39;);\nconsole.log(hash);\n// Prints:\n//   c0fa1bc00531bd78ef38c628449c5102aeabd49b5dc3a2a516ea6ea959d6658e\n</code></pre>\n",
       "modules": [
         {
           "textRaw": "Determining if crypto support is unavailable",
@@ -55,7 +56,7 @@
           ],
           "methods": [
             {
-              "textRaw": "crypto.createCipher(algorithm, password)",
+              "textRaw": "crypto.createCipher(algorithm, password[, options])",
               "type": "method",
               "name": "createCipher",
               "meta": {
@@ -76,6 +77,13 @@
                       "textRaw": "`password` {string | Buffer | TypedArray | DataView} ",
                       "name": "password",
                       "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -86,14 +94,18 @@
                     },
                     {
                       "name": "password"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>&#39;latin1&#39;</code> encoded string, a <a href=\"buffer.html\"><code>Buffer</code></a>, a\n<code>TypedArray</code>, or a <code>DataView</code>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object.</p>\n"
+              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>. Optional <code>options</code> argument controls stream behavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>&#39;latin1&#39;</code> encoded string, a <a href=\"buffer.html\"><code>Buffer</code></a>, a\n<code>TypedArray</code>, or a <code>DataView</code>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object. Users should not use ciphers with counter mode\n(e.g. CTR, GCM, or CCM) in <code>crypto.createCipher()</code>. A warning is emitted when\nthey are used in order to avoid the risk of IV reuse that causes\nvulnerabilities. For the case when IV is reused in GCM, see <a href=\"https://github.com/nonce-disrespect/nonce-disrespect\">Nonce-Disrespecting\nAdversaries</a> for details.</p>\n"
             },
             {
-              "textRaw": "crypto.createCipheriv(algorithm, key, iv)",
+              "textRaw": "crypto.createCipheriv(algorithm, key, iv[, options])",
               "type": "method",
               "name": "createCipheriv",
               "signatures": [
@@ -113,6 +125,13 @@
                       "textRaw": "`iv` {string | Buffer | TypedArray | DataView} ",
                       "name": "iv",
                       "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -126,11 +145,15 @@
                     },
                     {
                       "name": "iv"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s.</p>\n"
+              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream behavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s.</p>\n"
             },
             {
               "textRaw": "crypto.createCredentials(details)",
@@ -169,7 +192,7 @@
               "desc": "<p>The <code>crypto.createCredentials()</code> method is a deprecated function for creating\nand returning a <code>tls.SecureContext</code>. It should not be used. Replace it with\n<a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a> which has the exact same arguments and return\nvalue.</p>\n<p>Returns a <code>tls.SecureContext</code>, as-if <a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a> had been\ncalled.</p>\n"
             },
             {
-              "textRaw": "crypto.createDecipher(algorithm, password)",
+              "textRaw": "crypto.createDecipher(algorithm, password[, options])",
               "type": "method",
               "name": "createDecipher",
               "meta": {
@@ -190,6 +213,13 @@
                       "textRaw": "`password` {string | Buffer | TypedArray | DataView} ",
                       "name": "password",
                       "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -200,14 +230,18 @@
                     },
                     {
                       "name": "password"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key).</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>\n"
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key). Optional <code>options</code> argument controls stream behavior.</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL&#39;s recommendation to use pbkdf2 instead of\n<a href=\"https://www.openssl.org/docs/man1.0.2/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>\n"
             },
             {
-              "textRaw": "crypto.createDecipheriv(algorithm, key, iv)",
+              "textRaw": "crypto.createDecipheriv(algorithm, key, iv[, options])",
               "type": "method",
               "name": "createDecipheriv",
               "meta": {
@@ -233,6 +267,13 @@
                       "textRaw": "`iv` {string | Buffer | TypedArray | DataView} ",
                       "name": "iv",
                       "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -246,11 +287,15 @@
                     },
                     {
                       "name": "iv"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>).</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings or\n<a href=\"buffer.html\">buffers</a>.</p>\n"
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream\nbehavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings or\n<a href=\"buffer.html\">buffers</a>.</p>\n"
             },
             {
               "textRaw": "crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])",
@@ -401,7 +446,7 @@
               "desc": "<p>Creates an Elliptic Curve Diffie-Hellman (<code>ECDH</code>) key exchange object using a\npredefined curve specified by the <code>curveName</code> string. Use\n<a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent\nOpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name\nand description of each available elliptic curve.</p>\n"
             },
             {
-              "textRaw": "crypto.createHash(algorithm)",
+              "textRaw": "crypto.createHash(algorithm[, options])",
               "type": "method",
               "name": "createHash",
               "meta": {
@@ -417,6 +462,13 @@
                       "textRaw": "`algorithm` {string} ",
                       "name": "algorithm",
                       "type": "string"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -424,14 +476,18 @@
                   "params": [
                     {
                       "name": "algorithm"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests\nusing the given <code>algorithm</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>Example: generating the sha256 sum of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hash.update(data);\n  else {\n    console.log(`${hash.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
+              "desc": "<p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests\nusing the given <code>algorithm</code>. Optional <code>options</code> argument controls stream\nbehavior.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>Example: generating the sha256 sum of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hash.update(data);\n  else {\n    console.log(`${hash.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
             },
             {
-              "textRaw": "crypto.createHmac(algorithm, key)",
+              "textRaw": "crypto.createHmac(algorithm, key[, options])",
               "type": "method",
               "name": "createHmac",
               "meta": {
@@ -452,6 +508,13 @@
                       "textRaw": "`key` {string | Buffer | TypedArray | DataView} ",
                       "name": "key",
                       "type": "string | Buffer | TypedArray | DataView"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.transform` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.transform` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -462,14 +525,18 @@
                     },
                     {
                       "name": "key"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash.</p>\n<p>Example: generating the sha256 HMAC of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hmac.update(data);\n  else {\n    console.log(`${hmac.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
+              "desc": "<p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.\nOptional <code>options</code> argument controls stream behavior.</p>\n<p>The <code>algorithm</code> is dependent on the available algorithms supported by the\nversion of OpenSSL on the platform. Examples are <code>&#39;sha256&#39;</code>, <code>&#39;sha512&#39;</code>, etc.\nOn recent releases of OpenSSL, <code>openssl list-message-digest-algorithms</code> will\ndisplay the available digest algorithms.</p>\n<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash.</p>\n<p>Example: generating the sha256 HMAC of a file</p>\n<pre><code class=\"lang-js\">const filename = process.argv[2];\nconst crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\n\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(filename);\ninput.on(&#39;readable&#39;, () =&gt; {\n  const data = input.read();\n  if (data)\n    hmac.update(data);\n  else {\n    console.log(`${hmac.digest(&#39;hex&#39;)} ${filename}`);\n  }\n});\n</code></pre>\n"
             },
             {
-              "textRaw": "crypto.createSign(algorithm)",
+              "textRaw": "crypto.createSign(algorithm[, options])",
               "type": "method",
               "name": "createSign",
               "meta": {
@@ -485,6 +552,13 @@
                       "textRaw": "`algorithm` {string} ",
                       "name": "algorithm",
                       "type": "string"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.Writable` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.Writable` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -492,14 +566,18 @@
                   "params": [
                     {
                       "name": "algorithm"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n"
+              "desc": "<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms. Optional <code>options</code> argument controls the\n<code>stream.Writable</code> behavior.</p>\n"
             },
             {
-              "textRaw": "crypto.createVerify(algorithm)",
+              "textRaw": "crypto.createVerify(algorithm[, options])",
               "type": "method",
               "name": "createVerify",
               "meta": {
@@ -515,6 +593,13 @@
                       "textRaw": "`algorithm` {string} ",
                       "name": "algorithm",
                       "type": "string"
+                    },
+                    {
+                      "textRaw": "`options` {Object} [`stream.Writable` options][] ",
+                      "name": "options",
+                      "type": "Object",
+                      "desc": "[`stream.Writable` options][]",
+                      "optional": true
                     }
                   ]
                 },
@@ -522,11 +607,15 @@
                   "params": [
                     {
                       "name": "algorithm"
+                    },
+                    {
+                      "name": "options",
+                      "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Verify</code> object that uses the given algorithm.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms.</p>\n"
+              "desc": "<p>Creates and returns a <code>Verify</code> object that uses the given algorithm.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms. Optional <code>options</code> argument controls the\n<code>stream.Writable</code> behavior.</p>\n"
             },
             {
               "textRaw": "crypto.getCiphers()",
@@ -705,7 +794,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs, <code>err</code> will be set; otherwise <code>err</code> will be\nnull. The successfully generated <code>derivedKey</code> will be passed as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\ncrypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;, (err, derivedKey) =&gt; {\n  if (err) throw err;\n  console.log(derivedKey.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n"
+              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs, <code>err</code> will be set; otherwise <code>err</code> will be\nnull. The successfully generated <code>derivedKey</code> will be passed as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\ncrypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;, (err, derivedKey) =&gt; {\n  if (err) throw err;\n  console.log(derivedKey.toString(&#39;hex&#39;));  // &#39;3745e48...08d59ae&#39;\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n<p>Note that this API uses libuv&#39;s threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>\n"
             },
             {
               "textRaw": "crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)",
@@ -778,7 +867,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an Error will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 512, &#39;sha512&#39;);\nconsole.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...aa39b34&#39;\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n"
+              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an Error will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should also be as unique as possible. It is recommended that the\nsalts are random and their lengths are greater than 16 bytes. See\n<a href=\"http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;);\nconsole.log(key.toString(&#39;hex&#39;));  // &#39;3745e48...08d59ae&#39;\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n"
             },
             {
               "textRaw": "crypto.privateDecrypt(privateKey, buffer)",
@@ -792,6 +881,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} A new `Buffer` with the decrypted content. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "A new `Buffer` with the decrypted content."
+                  },
                   "params": [
                     {
                       "textRaw": "`privateKey` {Object | string} ",
@@ -850,6 +945,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} A new `Buffer` with the encrypted content. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "A new `Buffer` with the encrypted content."
+                  },
                   "params": [
                     {
                       "textRaw": "`privateKey` {Object | string} ",
@@ -897,7 +998,7 @@
               "desc": "<p>Encrypts <code>buffer</code> with <code>privateKey</code>.</p>\n<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n"
             },
             {
-              "textRaw": "crypto.publicDecrypt(publicKey, buffer)",
+              "textRaw": "crypto.publicDecrypt(key, buffer)",
               "type": "method",
               "name": "publicDecrypt",
               "meta": {
@@ -908,15 +1009,21 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} A new `Buffer` with the decrypted content. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "A new `Buffer` with the decrypted content."
+                  },
                   "params": [
                     {
-                      "textRaw": "`publicKey` {Object | string} ",
+                      "textRaw": "`key` {Object | string} ",
                       "options": [
                         {
-                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "textRaw": "`key` {string} A PEM encoded public or private key. ",
                           "name": "key",
                           "type": "string",
-                          "desc": "A PEM encoded private key."
+                          "desc": "A PEM encoded public or private key."
                         },
                         {
                           "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
@@ -931,7 +1038,7 @@
                           "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or `RSA_PKCS1_PADDING`."
                         }
                       ],
-                      "name": "publicKey",
+                      "name": "key",
                       "type": "Object | string"
                     },
                     {
@@ -944,7 +1051,7 @@
                 {
                   "params": [
                     {
-                      "name": "publicKey"
+                      "name": "key"
                     },
                     {
                       "name": "buffer"
@@ -952,10 +1059,10 @@
                   ]
                 }
               ],
-              "desc": "<p>Decrypts <code>buffer</code> with <code>publicKey</code>.</p>\n<p><code>publicKey</code> can be an object or a string. If <code>publicKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
+              "desc": "<p>Decrypts <code>buffer</code> with <code>key</code>.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
             },
             {
-              "textRaw": "crypto.publicEncrypt(publicKey, buffer)",
+              "textRaw": "crypto.publicEncrypt(key, buffer)",
               "type": "method",
               "name": "publicEncrypt",
               "meta": {
@@ -966,15 +1073,21 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} A new `Buffer` with the encrypted content. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "A new `Buffer` with the encrypted content."
+                  },
                   "params": [
                     {
-                      "textRaw": "`publicKey` {Object | string} ",
+                      "textRaw": "`key` {Object | string} ",
                       "options": [
                         {
-                          "textRaw": "`key` {string} A PEM encoded private key. ",
+                          "textRaw": "`key` {string} A PEM encoded public or private key. ",
                           "name": "key",
                           "type": "string",
-                          "desc": "A PEM encoded private key."
+                          "desc": "A PEM encoded public or private key."
                         },
                         {
                           "textRaw": "`passphrase` {string} An optional passphrase for the private key. ",
@@ -989,7 +1102,7 @@
                           "desc": "An optional padding value defined in `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`, `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`."
                         }
                       ],
-                      "name": "publicKey",
+                      "name": "key",
                       "type": "Object | string"
                     },
                     {
@@ -1002,7 +1115,7 @@
                 {
                   "params": [
                     {
-                      "name": "publicKey"
+                      "name": "key"
                     },
                     {
                       "name": "buffer"
@@ -1010,7 +1123,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Encrypts the content of <code>buffer</code> with <code>publicKey</code> and returns a new\n<a href=\"buffer.html\"><code>Buffer</code></a> with encrypted content.</p>\n<p><code>publicKey</code> can be an object or a string. If <code>publicKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
+              "desc": "<p>Encrypts the content of <code>buffer</code> with <code>key</code> and returns a new\n<a href=\"buffer.html\"><code>Buffer</code></a> with encrypted content.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>\n"
             },
             {
               "textRaw": "crypto.randomBytes(size[, callback])",
@@ -1062,7 +1175,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument\nis a number indicating the number of bytes to generate.</p>\n<p>If a <code>callback</code> function is provided, the bytes are generated asynchronously\nand the <code>callback</code> function is invoked with two arguments: <code>err</code> and <code>buf</code>.\nIf an error occurs, <code>err</code> will be an Error object; otherwise it is null. The\n<code>buf</code> argument is a <a href=\"buffer.html\"><code>Buffer</code></a> containing the generated bytes.</p>\n<pre><code class=\"lang-js\">// Asynchronous\nconst crypto = require(&#39;crypto&#39;);\ncrypto.randomBytes(256, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(`${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n});\n</code></pre>\n<p>If the <code>callback</code> function is not provided, the random bytes are generated\nsynchronously and returned as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be thrown if\nthere is a problem generating the bytes.</p>\n<pre><code class=\"lang-js\">// Synchronous\nconst buf = crypto.randomBytes(256);\nconsole.log(\n  `${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n</code></pre>\n<p>The <code>crypto.randomBytes()</code> method will block until there is sufficient entropy.\nThis should normally never take longer than a few milliseconds. The only time\nwhen generating the random bytes may conceivably block for a longer period of\ntime is right after boot, when the whole system is still low on entropy.</p>\n"
+              "desc": "<p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument\nis a number indicating the number of bytes to generate.</p>\n<p>If a <code>callback</code> function is provided, the bytes are generated asynchronously\nand the <code>callback</code> function is invoked with two arguments: <code>err</code> and <code>buf</code>.\nIf an error occurs, <code>err</code> will be an Error object; otherwise it is null. The\n<code>buf</code> argument is a <a href=\"buffer.html\"><code>Buffer</code></a> containing the generated bytes.</p>\n<pre><code class=\"lang-js\">// Asynchronous\nconst crypto = require(&#39;crypto&#39;);\ncrypto.randomBytes(256, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(`${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n});\n</code></pre>\n<p>If the <code>callback</code> function is not provided, the random bytes are generated\nsynchronously and returned as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be thrown if\nthere is a problem generating the bytes.</p>\n<pre><code class=\"lang-js\">// Synchronous\nconst buf = crypto.randomBytes(256);\nconsole.log(\n  `${buf.length} bytes of random data: ${buf.toString(&#39;hex&#39;)}`);\n</code></pre>\n<p>The <code>crypto.randomBytes()</code> method will not complete until there is\nsufficient entropy available.\nThis should normally never take longer than a few milliseconds. The only time\nwhen generating the random bytes may conceivably block for a longer period of\ntime is right after boot, when the whole system is still low on entropy.</p>\n<p>Note that this API uses libuv&#39;s threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>\n<p><em>Note</em>: The asynchronous version of <code>crypto.randomBytes()</code> is carried out\nin a single threadpool request. To minimize threadpool task length variation,\npartition large <code>randomBytes</code> requests when doing so as part of fulfilling a\nclient request.</p>\n"
             },
             {
               "textRaw": "crypto.randomFillSync(buffer[, offset][, size])",
@@ -1177,7 +1290,7 @@
                   ]
                 }
               ],
-              "desc": "<p>This function is similar to <a href=\"#crypto_crypto_randombytes_size_callback\"><code>crypto.randomBytes()</code></a> but requires the first\nargument to be a <a href=\"buffer.html\"><code>Buffer</code></a> that will be filled. It also\nrequires that a callback is passed in.</p>\n<p>If the <code>callback</code> function is not provided, an error will be thrown.</p>\n<pre><code class=\"lang-js\">const buf = Buffer.alloc(10);\ncrypto.randomFill(buf, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n\ncrypto.randomFill(buf, 5, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n\n// The above is equivalent to the following:\ncrypto.randomFill(buf, 5, 5, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n</code></pre>\n"
+              "desc": "<p>This function is similar to <a href=\"#crypto_crypto_randombytes_size_callback\"><code>crypto.randomBytes()</code></a> but requires the first\nargument to be a <a href=\"buffer.html\"><code>Buffer</code></a> that will be filled. It also\nrequires that a callback is passed in.</p>\n<p>If the <code>callback</code> function is not provided, an error will be thrown.</p>\n<pre><code class=\"lang-js\">const buf = Buffer.alloc(10);\ncrypto.randomFill(buf, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n\ncrypto.randomFill(buf, 5, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n\n// The above is equivalent to the following:\ncrypto.randomFill(buf, 5, 5, (err, buf) =&gt; {\n  if (err) throw err;\n  console.log(buf.toString(&#39;hex&#39;));\n});\n</code></pre>\n<p>Note that this API uses libuv&#39;s threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>\n<p><em>Note</em>: The asynchronous version of <code>crypto.randomFill()</code> is carried out\nin a single threadpool request. To minimize threadpool task length variation,\npartition large <code>randomFill</code> requests when doing so as part of fulfilling a\nclient request.</p>\n"
             },
             {
               "textRaw": "crypto.setEngine(engine[, flags])",
@@ -1256,7 +1369,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that\nwould allow an attacker to guess one of the values. This is suitable for\ncomparing HMAC digests or secret values like authentication cookies or\n<a href=\"https://www.w3.org/TR/capability-urls/\">capability urls</a>.</p>\n<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, <code>TypedArray</code>s, or <code>DataView</code>s, and they\nmust have the same length.</p>\n<p><em>Note</em>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the\n<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the\nsurrounding code does not introduce timing vulnerabilities.</p>\n"
+              "desc": "<p>This function is based on a constant-time algorithm.\nReturns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that\nwould allow an attacker to guess one of the values. This is suitable for\ncomparing HMAC digests or secret values like authentication cookies or\n<a href=\"https://www.w3.org/TR/capability-urls/\">capability urls</a>.</p>\n<p><code>a</code> and <code>b</code> must both be <code>Buffer</code>s, <code>TypedArray</code>s, or <code>DataView</code>s, and they\nmust have the same length.</p>\n<p><em>Note</em>: Use of <code>crypto.timingSafeEqual</code> does not guarantee that the\n<em>surrounding</em> code is timing-safe. Care should be taken to ensure that the\nsurrounding code does not introduce timing vulnerabilities.</p>\n"
             }
           ],
           "type": "module",
@@ -1283,7 +1396,7 @@
             {
               "textRaw": "Support for weak or compromised algorithms",
               "name": "support_for_weak_or_compromised_algorithms",
-              "desc": "<p>The <code>crypto</code> module still supports some algorithms which are already\ncompromised and are not currently recommended for use. The API also allows\nthe use of ciphers and hashes with a small key size that are considered to be\ntoo weak for safe use.</p>\n<p>Users should take full responsibility for selecting the crypto\nalgorithm and key size according to their security requirements.</p>\n<p>Based on the recommendations of <a href=\"http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf\">NIST SP 800-131A</a>:</p>\n<ul>\n<li>MD5 and SHA-1 are no longer acceptable where collision resistance is\nrequired such as digital signatures.</li>\n<li>The key used with RSA, DSA and DH algorithms is recommended to have\nat least 2048 bits and that of the curve of ECDSA and ECDH at least\n224 bits, to be safe to use for several years.</li>\n<li>The DH groups of <code>modp1</code>, <code>modp2</code> and <code>modp5</code> have a key size\nsmaller than 2048 bits and are not recommended.</li>\n</ul>\n<p>See the reference for other recommendations and details.</p>\n",
+              "desc": "<p>The <code>crypto</code> module still supports some algorithms which are already\ncompromised and are not currently recommended for use. The API also allows\nthe use of ciphers and hashes with a small key size that are considered to be\ntoo weak for safe use.</p>\n<p>Users should take full responsibility for selecting the crypto\nalgorithm and key size according to their security requirements.</p>\n<p>Based on the recommendations of <a href=\"http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf\">NIST SP 800-131A</a>:</p>\n<ul>\n<li>MD5 and SHA-1 are no longer acceptable where collision resistance is\nrequired such as digital signatures.</li>\n<li>The key used with RSA, DSA, and DH algorithms is recommended to have\nat least 2048 bits and that of the curve of ECDSA and ECDH at least\n224 bits, to be safe to use for several years.</li>\n<li>The DH groups of <code>modp1</code>, <code>modp2</code> and <code>modp5</code> have a key size\nsmaller than 2048 bits and are not recommended.</li>\n</ul>\n<p>See the reference for other recommendations and details.</p>\n",
               "type": "module",
               "displayName": "Support for weak or compromised algorithms"
             }
@@ -1340,7 +1453,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>SPKAC is a Certificate Signing Request mechanism originally implemented by\nNetscape and now specified formally as part of <a href=\"http://www.w3.org/TR/html5/forms.html#the-keygen-element\">HTML5&#39;s <code>keygen</code> element</a>.</p>\n<p>The <code>crypto</code> module provides the <code>Certificate</code> class for working with SPKAC\ndata. The most common usage is handling output generated by the HTML5\n<code>&lt;keygen&gt;</code> element. Node.js uses <a href=\"https://www.openssl.org/docs/man1.0.2/apps/spkac.html\">OpenSSL&#39;s SPKAC implementation</a> internally.</p>\n",
+          "desc": "<p>SPKAC is a Certificate Signing Request mechanism originally implemented by\nNetscape and now specified formally as part of <a href=\"https://www.w3.org/TR/html5/forms.html#the-keygen-element\">HTML5&#39;s <code>keygen</code> element</a>.</p>\n<p>The <code>crypto</code> module provides the <code>Certificate</code> class for working with SPKAC\ndata. The most common usage is handling output generated by the HTML5\n<code>&lt;keygen&gt;</code> element. Node.js uses <a href=\"https://www.openssl.org/docs/man1.0.2/apps/spkac.html\">OpenSSL&#39;s SPKAC implementation</a> internally.</p>\n",
           "methods": [
             {
               "textRaw": "new crypto.Certificate()",
@@ -1473,7 +1586,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>Cipher</code> class are used to encrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain unencrypted\ndata is written to produce encrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods to produce\nthe encrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createcipher_algorithm_password\"><code>crypto.createCipher()</code></a> or <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv\"><code>crypto.createCipheriv()</code></a> methods are\nused to create <code>Cipher</code> instances. <code>Cipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Cipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet encrypted = &#39;&#39;;\ncipher.on(&#39;readable&#39;, () =&gt; {\n  const data = cipher.read();\n  if (data)\n    encrypted += data.toString(&#39;hex&#39;);\n});\ncipher.on(&#39;end&#39;, () =&gt; {\n  console.log(encrypted);\n  // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n});\n\ncipher.write(&#39;some clear text data&#39;);\ncipher.end();\n</code></pre>\n<p>Example: Using <code>Cipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\nconst output = fs.createWriteStream(&#39;test.enc&#39;);\n\ninput.pipe(cipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet encrypted = cipher.update(&#39;some clear text data&#39;, &#39;utf8&#39;, &#39;hex&#39;);\nencrypted += cipher.final(&#39;hex&#39;);\nconsole.log(encrypted);\n// Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n</code></pre>\n",
+          "desc": "<p>Instances of the <code>Cipher</code> class are used to encrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain unencrypted\ndata is written to produce encrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods to produce\nthe encrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createcipher_algorithm_password_options\"><code>crypto.createCipher()</code></a> or <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a> methods are\nused to create <code>Cipher</code> instances. <code>Cipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Cipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet encrypted = &#39;&#39;;\ncipher.on(&#39;readable&#39;, () =&gt; {\n  const data = cipher.read();\n  if (data)\n    encrypted += data.toString(&#39;hex&#39;);\n});\ncipher.on(&#39;end&#39;, () =&gt; {\n  console.log(encrypted);\n  // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n});\n\ncipher.write(&#39;some clear text data&#39;);\ncipher.end();\n</code></pre>\n<p>Example: Using <code>Cipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\nconst output = fs.createWriteStream(&#39;test.enc&#39;);\n\ninput.pipe(cipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst cipher = crypto.createCipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet encrypted = cipher.update(&#39;some clear text data&#39;, &#39;utf8&#39;, &#39;hex&#39;);\nencrypted += cipher.final(&#39;hex&#39;);\nconsole.log(encrypted);\n// Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "cipher.final([outputEncoding])",
@@ -1665,7 +1778,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet decrypted = &#39;&#39;;\ndecipher.on(&#39;readable&#39;, () =&gt; {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString(&#39;utf8&#39;);\n});\ndecipher.on(&#39;end&#39;, () =&gt; {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\ndecipher.write(encrypted, &#39;hex&#39;);\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.enc&#39;);\nconst output = fs.createWriteStream(&#39;test.js&#39;);\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\nlet decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);\ndecrypted += decipher.final(&#39;utf8&#39;);\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>\n",
+          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password_options\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nlet decrypted = &#39;&#39;;\ndecipher.on(&#39;readable&#39;, () =&gt; {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString(&#39;utf8&#39;);\n});\ndecipher.on(&#39;end&#39;, () =&gt; {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\ndecipher.write(encrypted, &#39;hex&#39;);\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst input = fs.createReadStream(&#39;test.enc&#39;);\nconst output = fs.createWriteStream(&#39;test.js&#39;);\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst decipher = crypto.createDecipher(&#39;aes192&#39;, &#39;a password&#39;);\n\nconst encrypted =\n    &#39;ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504&#39;;\nlet decrypted = decipher.update(encrypted, &#39;hex&#39;, &#39;utf8&#39;);\ndecrypted += decipher.final(&#39;utf8&#39;);\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "decipher.final([outputEncoding])",
@@ -2477,7 +2590,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Hash</code> class is a utility for creating hash digests of data. It can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where data is written\nto produce a computed hash digest on the readable side, or</li>\n<li>Using the <a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> and <a href=\"#crypto_hash_digest_encoding\"><code>hash.digest()</code></a> methods to produce the\ncomputed hash.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createhash_algorithm\"><code>crypto.createHash()</code></a> method is used to create <code>Hash</code> instances. <code>Hash</code>\nobjects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Hash</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nhash.on(&#39;readable&#39;, () =&gt; {\n  const data = hash.read();\n  if (data) {\n    console.log(data.toString(&#39;hex&#39;));\n    // Prints:\n    //   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50\n  }\n});\n\nhash.write(&#39;some data to hash&#39;);\nhash.end();\n</code></pre>\n<p>Example: Using <code>Hash</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\ninput.pipe(hash).pipe(process.stdout);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> and <a href=\"#crypto_hash_digest_encoding\"><code>hash.digest()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nhash.update(&#39;some data to hash&#39;);\nconsole.log(hash.digest(&#39;hex&#39;));\n// Prints:\n//   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50\n</code></pre>\n",
+          "desc": "<p>The <code>Hash</code> class is a utility for creating hash digests of data. It can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where data is written\nto produce a computed hash digest on the readable side, or</li>\n<li>Using the <a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> and <a href=\"#crypto_hash_digest_encoding\"><code>hash.digest()</code></a> methods to produce the\ncomputed hash.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createhash_algorithm_options\"><code>crypto.createHash()</code></a> method is used to create <code>Hash</code> instances. <code>Hash</code>\nobjects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Hash</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nhash.on(&#39;readable&#39;, () =&gt; {\n  const data = hash.read();\n  if (data) {\n    console.log(data.toString(&#39;hex&#39;));\n    // Prints:\n    //   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50\n  }\n});\n\nhash.write(&#39;some data to hash&#39;);\nhash.end();\n</code></pre>\n<p>Example: Using <code>Hash</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\ninput.pipe(hash).pipe(process.stdout);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> and <a href=\"#crypto_hash_digest_encoding\"><code>hash.digest()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hash = crypto.createHash(&#39;sha256&#39;);\n\nhash.update(&#39;some data to hash&#39;);\nconsole.log(hash.digest(&#39;hex&#39;));\n// Prints:\n//   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "hash.digest([encoding])",
@@ -2569,7 +2682,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Hmac</code> Class is a utility for creating cryptographic HMAC digests. It can\nbe used in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where data is written\nto produce a computed HMAC digest on the readable side, or</li>\n<li>Using the <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a> and <a href=\"#crypto_hmac_digest_encoding\"><code>hmac.digest()</code></a> methods to produce the\ncomputed HMAC digest.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createhmac_algorithm_key\"><code>crypto.createHmac()</code></a> method is used to create <code>Hmac</code> instances. <code>Hmac</code>\nobjects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Hmac</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nhmac.on(&#39;readable&#39;, () =&gt; {\n  const data = hmac.read();\n  if (data) {\n    console.log(data.toString(&#39;hex&#39;));\n    // Prints:\n    //   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e\n  }\n});\n\nhmac.write(&#39;some data to hash&#39;);\nhmac.end();\n</code></pre>\n<p>Example: Using <code>Hmac</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\ninput.pipe(hmac).pipe(process.stdout);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a> and <a href=\"#crypto_hmac_digest_encoding\"><code>hmac.digest()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nhmac.update(&#39;some data to hash&#39;);\nconsole.log(hmac.digest(&#39;hex&#39;));\n// Prints:\n//   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e\n</code></pre>\n",
+          "desc": "<p>The <code>Hmac</code> Class is a utility for creating cryptographic HMAC digests. It can\nbe used in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where data is written\nto produce a computed HMAC digest on the readable side, or</li>\n<li>Using the <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a> and <a href=\"#crypto_hmac_digest_encoding\"><code>hmac.digest()</code></a> methods to produce the\ncomputed HMAC digest.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createhmac_algorithm_key_options\"><code>crypto.createHmac()</code></a> method is used to create <code>Hmac</code> instances. <code>Hmac</code>\nobjects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Hmac</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nhmac.on(&#39;readable&#39;, () =&gt; {\n  const data = hmac.read();\n  if (data) {\n    console.log(data.toString(&#39;hex&#39;));\n    // Prints:\n    //   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e\n  }\n});\n\nhmac.write(&#39;some data to hash&#39;);\nhmac.end();\n</code></pre>\n<p>Example: Using <code>Hmac</code> and piped streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst fs = require(&#39;fs&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nconst input = fs.createReadStream(&#39;test.js&#39;);\ninput.pipe(hmac).pipe(process.stdout);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a> and <a href=\"#crypto_hmac_digest_encoding\"><code>hmac.digest()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst hmac = crypto.createHmac(&#39;sha256&#39;, &#39;a secret&#39;);\n\nhmac.update(&#39;some data to hash&#39;);\nconsole.log(hmac.digest(&#39;hex&#39;));\n// Prints:\n//   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "hmac.digest([encoding])",
@@ -2661,7 +2774,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Sign</code> Class is a utility for generating signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a>, where data to be signed is written and the\n<a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>\n<li>Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods to produce the\nsignature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createsign_algorithm\"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. <code>Sign</code>\nobjects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Sign</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;RSA-SHA256&#39;);\n\nsign.write(&#39;some data to sign&#39;);\nsign.end();\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, &#39;hex&#39;));\n// Prints: the calculated signature\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;RSA-SHA256&#39;);\n\nsign.update(&#39;some data to sign&#39;);\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, &#39;hex&#39;));\n// Prints: the calculated signature\n</code></pre>\n<p>A <code>Sign</code> instance can also be created by just passing in the digest\nalgorithm name, in which case OpenSSL will infer the full signature algorithm\nfrom the type of the PEM-formatted private key, including algorithms that\ndo not have directly exposed name constants, e.g. &#39;ecdsa-with-SHA256&#39;.</p>\n<p>Example: signing using ECDSA with SHA256</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;sha256&#39;);\n\nsign.update(&#39;some data to sign&#39;);\n\nconst privateKey =\n`-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIF+jnWY1D5kbVYDNvxxo/Y+ku2uJPDwS0r/VuPZQrjjVoAoGCCqGSM49\nAwEHoUQDQgAEurOxfSxmqIRYzJVagdZfMMSjRNNhB8i3mXyIMq704m2m52FdfKZ2\npQhByd5eyj3lgZ7m7jbchtdgyOF8Io/1ng==\n-----END EC PRIVATE KEY-----`;\n\nconsole.log(sign.sign(privateKey).toString(&#39;hex&#39;));\n</code></pre>\n",
+          "desc": "<p>The <code>Sign</code> Class is a utility for generating signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a>, where data to be signed is written and the\n<a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>\n<li>Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods to produce the\nsignature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createsign_algorithm_options\"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. The\nargument is the string name of the hash function to use. <code>Sign</code> objects are not\nto be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Sign</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;SHA256&#39;);\n\nsign.write(&#39;some data to sign&#39;);\nsign.end();\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, &#39;hex&#39;));\n// Prints: the calculated signature using the specified private key and\n// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding\n// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;SHA256&#39;);\n\nsign.update(&#39;some data to sign&#39;);\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, &#39;hex&#39;));\n// Prints: the calculated signature\n</code></pre>\n<p>In some cases, a <code>Sign</code> instance can also be created by passing in a signature\nalgorithm name, such as &#39;RSA-SHA256&#39;. This will use the corresponding digest\nalgorithm. This does not work for all signature algorithms, such as\n&#39;ecdsa-with-SHA256&#39;. Use digest names instead.</p>\n<p>Example: signing using legacy signature algorithm name</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst sign = crypto.createSign(&#39;RSA-SHA256&#39;);\n\nsign.update(&#39;some data to sign&#39;);\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, &#39;hex&#39;));\n// Prints: the calculated signature\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "sign.sign(privateKey[, outputFormat])",
@@ -2779,7 +2892,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Verify</code> class is a utility for verifying signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a> where written data is used to validate against the\nsupplied signature, or</li>\n<li>Using the <a href=\"#crypto_verifier_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verifier_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods to verify\nthe signature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createverify_algorithm\"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.\n<code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Verify</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst verify = crypto.createVerify(&#39;RSA-SHA256&#39;);\n\nverify.write(&#39;some data to sign&#39;);\nverify.end();\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_verifier_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verifier_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst verify = crypto.createVerify(&#39;RSA-SHA256&#39;);\n\nverify.update(&#39;some data to sign&#39;);\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n",
+          "desc": "<p>The <code>Verify</code> class is a utility for verifying signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a> where written data is used to validate against the\nsupplied signature, or</li>\n<li>Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods to verify\nthe signature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createverify_algorithm_options\"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.\n<code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Verify</code> objects as streams:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst verify = crypto.createVerify(&#39;SHA256&#39;);\n\nverify.write(&#39;some data to sign&#39;);\nverify.end();\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods:</p>\n<pre><code class=\"lang-js\">const crypto = require(&#39;crypto&#39;);\nconst verify = crypto.createVerify(&#39;SHA256&#39;);\n\nverify.update(&#39;some data to sign&#39;);\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n",
           "methods": [
             {
               "textRaw": "verify.update(data[, inputEncoding])",

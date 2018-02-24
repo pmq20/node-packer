@@ -1,5 +1,7 @@
 # Deprecated APIs
 
+<!--introduced_in=v7.7.0-->
+
 Node.js may deprecate APIs when either: (a) use of the API is considered to be
 unsafe, (b) an improved alternative API has been made available, or (c)
 breaking changes to the API are expected in a future major release.
@@ -118,7 +120,7 @@ to the `constants` property exposed by the relevant module. For instance,
 Type: End-of-life
 
 Use of the [`crypto.pbkdf2()`][] API without specifying a digest was deprecated
-in Node.js 6.0 because the method defaulted to using the non-recommendend
+in Node.js 6.0 because the method defaulted to using the non-recommended
 `'SHA1'` digest. Previously, a deprecation warning was printed. Starting in
 Node.js 8.0.0, calling `crypto.pbkdf2()` or `crypto.pbkdf2Sync()` with an
 undefined `digest` will throw a `TypeError`.
@@ -148,7 +150,7 @@ Type: Runtime
 explicitly via error event handlers set on the domain instead.
 
 <a id="DEP0013"></a>
-### DEP0013: fs async function without callback
+### DEP0013: fs asynchronous function without callback
 
 Type: Runtime
 
@@ -630,6 +632,39 @@ Type: Runtime
 
 *Note*: change was made while `async_hooks` was an experimental API.
 
+<a id="DEP0076"></a>
+### DEP0076: tls.parseCertString()
+
+Type: Documentation-only
+
+`tls.parseCertString()` is a trivial parsing helper that was made public by
+mistake. This function can usually be replaced with:
+
+```js
+const querystring = require('querystring');
+querystring.parse(str, '\n', '=');
+```
+
+*Note*: This function is not completely equivalent to `querystring.parse()`. One
+difference is that `querystring.parse()` does url decoding:
+
+```sh
+> querystring.parse('%E5%A5%BD=1', '\n', '=');
+{ '好': '1' }
+> tls.parseCertString('%E5%A5%BD=1');
+{ '%E5%A5%BD': '1' }
+```
+
+<a id="DEP0079"></a>
+### DEP0079: Custom inspection function on Objects via .inspect()
+
+Type: Documentation-only
+
+Using a property named `inspect` on an object to specify a custom inspection
+function for [`util.inspect()`][] is deprecated. Use [`util.inspect.custom`][]
+instead. For backwards compatibility with Node.js prior to version 6.4.0, both
+may be specified.
+
 [`Buffer.allocUnsafeSlow(size)`]: buffer.html#buffer_class_method_buffer_allocunsafeslow_size
 [`Buffer.from(array)`]: buffer.html#buffer_class_method_buffer_from_array
 [`Buffer.from(buffer)`]: buffer.html#buffer_class_method_buffer_from_buffer
@@ -660,7 +695,7 @@ Type: Runtime
 [`os.networkInterfaces`]: os.html#os_os_networkinterfaces
 [`os.tmpdir()`]: os.html#os_os_tmpdir
 [`punycode`]: punycode.html
-[`require.extensions`]: globals.html#globals_require_extensions
+[`require.extensions`]: modules.html#modules_require_extensions
 [`tls.CryptoStream`]: tls.html#tls_class_cryptostream
 [`tls.SecureContext`]: tls.html#tls_tls_createsecurecontext_options
 [`tls.SecurePair`]: tls.html#tls_class_securepair
@@ -669,6 +704,8 @@ Type: Runtime
 [`util._extend()`]: util.html#util_util_extend_target_source
 [`util.debug()`]: util.html#util_util_debug_string
 [`util.error()`]: util.html#util_util_error_strings
+[`util.inspect()`]: util.html#util_util_inspect_object_options
+[`util.inspect.custom`]: util.html#util_util_inspect_custom
 [`util.isArray()`]: util.html#util_util_isarray_object
 [`util.isBoolean()`]: util.html#util_util_isboolean_object
 [`util.isBuffer()`]: util.html#util_util_isbuffer_object

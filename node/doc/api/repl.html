@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>REPL | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>REPL | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="repl" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="repl.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="repl.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/repl.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/repl.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/repl.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/repl.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/repl.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/repl.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/repl.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/repl.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -136,7 +158,8 @@
 
       <div id="apicontent">
         <h1>REPL<span><a class="mark" href="#repl_repl" id="repl_repl">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>repl</code> module provides a Read-Eval-Print-Loop (REPL) implementation that
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>repl</code> module provides a Read-Eval-Print-Loop (REPL) implementation that
 is available both as a standalone program or includible in other applications.
 It can be accessed using:</p>
 <pre><code class="lang-js">const repl = require(&#39;repl&#39;);
@@ -382,16 +405,21 @@ Clearing context...
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
 </div><ul>
-<li><code>keyword</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The command keyword (<em>without</em> a leading <code>.</code> character).</li>
-<li><code>cmd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to invoke when the command is processed.</li>
+<li><code>keyword</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The command keyword (<em>without</em> a leading <code>.</code> character).</li>
+<li><code>cmd</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to invoke when the command is processed.</li>
 </ul>
 <p>The <code>replServer.defineCommand()</code> method is used to add new <code>.</code>-prefixed commands
 to the REPL instance. Such commands are invoked by typing a <code>.</code> followed by the
 <code>keyword</code>. The <code>cmd</code> is either a Function or an object with the following
 properties:</p>
 <ul>
-<li><code>help</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Help text to be displayed when <code>.help</code> is entered (Optional).</li>
-<li><code>action</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to execute, optionally accepting a single
+<li><code>help</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Help text to be displayed when <code>.help</code> is entered (Optional).</li>
+<li><code>action</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to execute, optionally accepting a single
 string argument.</li>
 </ul>
 <p>The following example shows two new commands added to the REPL instance:</p>
@@ -421,7 +449,8 @@ Goodbye!
 <div class="api_metadata">
 <span>Added in: v0.1.91</span>
 </div><ul>
-<li><code>preserveCursor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>preserveCursor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>The <code>replServer.displayPrompt()</code> method readies the REPL instance for input
 from the user, printing the configured <code>prompt</code> to a new line in the <code>output</code>
@@ -446,37 +475,48 @@ within the action function for commands registered using the
 </table>
 </details>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
-<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a><ul>
+<li><code>prompt</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input prompt to display. Defaults to <code>&gt;</code>
 (with a trailing space).</li>
 <li><code>input</code> <span class="type">&lt;Readable&gt;</span> The Readable stream from which REPL input will be read.
 Defaults to <code>process.stdin</code>.</li>
 <li><code>output</code> <span class="type">&lt;Writable&gt;</span> The Writable stream to which REPL output will be
 written. Defaults to <code>process.stdout</code>.</li>
-<li><code>terminal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the <code>output</code> should be
-treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it.
+<li><code>terminal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the <code>output</code> should be
+treated as a TTY terminal, and have ANSI/VT100 escape codes written to it.
 Defaults to checking the value of the <code>isTTY</code> property on the <code>output</code>
 stream upon instantiation.</li>
-<li><code>eval</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to be used when evaluating each given line
+<li><code>eval</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to be used when evaluating each given line
 of input. Defaults to an async wrapper for the JavaScript <code>eval()</code>
 function.  An <code>eval</code> function can error with <code>repl.Recoverable</code> to indicate
 the input was incomplete and prompt for additional lines.</li>
-<li><code>useColors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default <code>writer</code>
+<li><code>useColors</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default <code>writer</code>
 function should include ANSI color styling to REPL output. If a custom
 <code>writer</code> function is provided then this has no effect. Defaults to the
  REPL instances <code>terminal</code> value.</li>
-<li><code>useGlobal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default evaluation
+<li><code>useGlobal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default evaluation
  function will use the JavaScript <code>global</code> as the context as opposed to
  creating a new separate context for the REPL instance. The node CLI REPL
  sets this value to <code>true</code>. Defaults to <code>false</code>.</li>
-<li><code>ignoreUndefined</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default writer
+<li><code>ignoreUndefined</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, specifies that the default writer
  will not output the return value of a command if it evaluates to
  <code>undefined</code>. Defaults to <code>false</code>.</li>
-<li><code>writer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to invoke to format the output of each
+<li><code>writer</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to invoke to format the output of each
  command before writing to <code>output</code>. Defaults to <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a>.</li>
-<li><code>completer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An optional function used for custom Tab auto
+<li><code>completer</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An optional function used for custom Tab auto
  completion. See <a href="readline.html#readline_use_of_the_completer_function"><code>readline.InterfaceCompleter</code></a> for an example.</li>
-<li><code>replMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> A flag that specifies whether the default evaluator
+<li><code>replMode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a> A flag that specifies whether the default evaluator
 executes all JavaScript commands in strict mode or default (sloppy) mode.
 Acceptable values are:<ul>
 <li><code>repl.REPL_MODE_SLOPPY</code> - evaluates expressions in sloppy mode.</li>
@@ -539,7 +579,7 @@ directory. This can be disabled by setting the environment variable
 <h4>NODE_REPL_HISTORY_FILE<span><a class="mark" href="#repl_node_repl_history_file" id="repl_node_repl_history_file">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span><span>Deprecated since: v3.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <code>NODE_REPL_HISTORY</code> instead.</pre><p>Previously in Node.js/io.js v2.x, REPL history was controlled by using a
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <code>NODE_REPL_HISTORY</code> instead.</div><p>Previously in Node.js/io.js v2.x, REPL history was controlled by using a
 <code>NODE_REPL_HISTORY_FILE</code> environment variable, and the history was saved in JSON
 format. This variable has now been deprecated, and the old JSON REPL history
 file will be automatically converted to a simplified plain text format. This new
@@ -547,7 +587,7 @@ file will be saved to either the user&#39;s home directory, or a directory defin
 by the <code>NODE_REPL_HISTORY</code> variable, as documented in the
 <a href="#repl_environment_variable_options">Environment Variable Options</a>.</p>
 <h3>Using the Node.js REPL with advanced line-editors<span><a class="mark" href="#repl_using_the_node_js_repl_with_advanced_line_editors" id="repl_using_the_node_js_repl_with_advanced_line_editors">#</a></span></h3>
-<p>For advanced line-editors, start Node.js with the environmental variable
+<p>For advanced line-editors, start Node.js with the environment variable
 <code>NODE_NO_READLINE=1</code>. This will start the main and debugger REPL in canonical
 terminal settings, which will allow use with <code>rlwrap</code>.</p>
 <p>For example, the following can be added to a <code>.bashrc</code> file:</p>
@@ -599,7 +639,7 @@ to connect to both Unix and TCP sockets.</p>
 possible to connect to a long-running Node.js process without restarting it.</p>
 <p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over
 a <code>net.Server</code> and <code>net.Socket</code> instance, see: <a href="https://gist.github.com/2209310">https://gist.github.com/2209310</a></p>
-<p>For an example of running a REPL instance over <a href="https://curl.haxx.se/docs/manpage.html">curl(1)</a>,
+<p>For an example of running a REPL instance over [ <a href="http://man7.org/linux/man-pages/man1/curl.1.html">curl(1)</a>][],
 see: <a href="https://gist.github.com/2053342">https://gist.github.com/2053342</a></p>
 
       </div>

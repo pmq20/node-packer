@@ -1,20 +1,19 @@
 'use strict';
 
 const util = require('util');
+const constants = process.binding('constants').os.signals;
 
-var _lazyConstants = null;
-
-function lazyConstants() {
-  if (!_lazyConstants) {
-    _lazyConstants = process.binding('constants').os.signals;
-  }
-  return _lazyConstants;
-}
+const internalBinding = process._internalBinding;
+delete process._internalBinding;
 
 const assert = process.assert = function(x, msg) {
   if (!x) throw new Error(msg || 'assertion error');
 };
 
+
+function setup_performance() {
+  require('perf_hooks');
+}
 
 // Set up the process.cpuUsage() function.
 function setup_cpuUsage() {
@@ -173,8 +172,8 @@ function setupKillAndExit() {
       err = process._kill(pid, 0);
     } else {
       sig = sig || 'SIGTERM';
-      if (lazyConstants()[sig]) {
-        err = process._kill(pid, lazyConstants()[sig]);
+      if (constants[sig]) {
+        err = process._kill(pid, constants[sig]);
       } else {
         throw new Error(`Unknown signal: ${sig}`);
       }
@@ -194,7 +193,7 @@ function setupSignalHandlers() {
   const signalWraps = {};
 
   function isSignal(event) {
-    return typeof event === 'string' && lazyConstants()[event] !== undefined;
+    return typeof event === 'string' && constants[event] !== undefined;
   }
 
   // Detect presence of a listener for the special signal types
@@ -208,7 +207,7 @@ function setupSignalHandlers() {
 
       wrap.onsignal = function() { process.emit(type); };
 
-      const signum = lazyConstants()[type];
+      const signum = constants[type];
       const err = wrap.start(signum);
       if (err) {
         wrap.close();
@@ -259,6 +258,7 @@ function setupRawDebug() {
 }
 
 module.exports = {
+  setup_performance,
   setup_cpuUsage,
   setup_hrtime,
   setupMemoryUsage,
@@ -266,5 +266,6 @@ module.exports = {
   setupKillAndExit,
   setupSignalHandlers,
   setupChannel,
-  setupRawDebug
+  setupRawDebug,
+  internalBinding
 };

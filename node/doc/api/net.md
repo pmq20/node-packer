@@ -1,5 +1,7 @@
 # Net
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `net` module provides an asynchronous network API for creating stream-based
@@ -50,7 +52,7 @@ added: v0.1.90
 
 This class is used to create a TCP or [IPC][] server.
 
-## new net.Server([options][, connectionListener])
+### new net.Server([options][, connectionListener])
 
 * Returns: {net.Server}
 
@@ -162,7 +164,7 @@ connections use asynchronous [`server.getConnections()`][] instead.
 added: v0.9.7
 -->
 
-* Returns {net.Server}
+* Returns: {net.Server}
 
 Asynchronously get the number of concurrent connections on the server. Works
 when sockets were sent to forks.
@@ -248,10 +250,10 @@ added: v0.11.14
   * `path` {string} Will be ignored if `port` is specified. See
     [Identifying paths for IPC connections][].
   * `backlog` {number} Common parameter of [`server.listen()`][]
-    functions
-  * `exclusive` {boolean} Default to `false`
+    functions.
+  * `exclusive` {boolean} **Default:** `false`
 * `callback` {Function} Common parameter of [`server.listen()`][]
-  functions
+  functions.
 * Returns: {net.Server}
 
 If `port` is specified, it behaves the same as
@@ -281,8 +283,8 @@ added: v0.1.90
 
 * `path` {String} Path the server should listen to. See
   [Identifying paths for IPC connections][].
-* `backlog` {number} Common parameter of [`server.listen()`][] functions
-* `callback` {Function} Common parameter of [`server.listen()`][] functions
+* `backlog` {number} Common parameter of [`server.listen()`][] functions.
+* `callback` {Function} Common parameter of [`server.listen()`][] functions.
 * Returns: {net.Server}
 
 Start a [IPC][] server listening for connections on the given `path`.
@@ -293,8 +295,8 @@ added: v0.1.90
 -->
 * `port` {number}
 * `host` {string}
-* `backlog` {number} Common parameter of [`server.listen()`][] functions
-* `callback` {Function} Common parameter of [`server.listen()`][] functions
+* `backlog` {number} Common parameter of [`server.listen()`][] functions.
+* `callback` {Function} Common parameter of [`server.listen()`][] functions.
 * Returns: {net.Server}
 
 Start a TCP server listening for connections on the given `port` and `host`.
@@ -383,11 +385,11 @@ Creates a new socket object.
     the given file descriptor, otherwise a new socket will be created.
   * `allowHalfOpen` {boolean} Indicates whether half-opened TCP connections
     are allowed. See [`net.createServer()`][] and the [`'end'`][] event
-    for details. Defaults to `false`.
+    for details. **Default:** `false`
   * `readable` {boolean} Allow reads on the socket when an `fd` is passed,
-    otherwise ignored. Defaults to `false`.
+    otherwise ignored. **Default:** `false`
   * `writable` {boolean} Allow writes on the socket when an `fd` is passed,
-    otherwise ignored. Defaults to `false`.
+    otherwise ignored. **Default:** `false`
 * Returns: {net.Socket}
 
 The newly created socket can be either a TCP socket or a streaming [IPC][]
@@ -579,17 +581,18 @@ this only when implementing a custom Socket.
 For TCP connections, available `options` are:
 
 * `port` {number} Required. Port the socket should connect to.
-* `host` {string} Host the socket should connect to. Defaults to `'localhost'`.
+* `host` {string} Host the socket should connect to. **Default:** `'localhost'`
 * `localAddress` {string} Local address the socket should connect from.
 * `localPort` {number} Local port the socket should connect from.
-* `family` {number}: Version of IP stack, can be either 4 or 6. Defaults to 4.
+* `family` {number}: Version of IP stack, can be either 4 or 6. **Default:** `4`
 * `hints` {number} Optional [`dns.lookup()` hints][].
-* `lookup` {Function} Custom lookup function. Defaults to [`dns.lookup()`][].
+* `lookup` {Function} Custom lookup function. **Default:** [`dns.lookup()`][]
 
 For [IPC][] connections, available `options` are:
 
 * `path` {string} Required. Path the client should connect to.
-  See [Identifying paths for IPC connections][].
+  See [Identifying paths for IPC connections][]. If provided, the TCP-specific
+  options above are ignored.
 
 Returns `socket`.
 
@@ -799,7 +802,7 @@ socket.on('timeout', () => {
 
 If `timeout` is 0, then the existing idle timeout is disabled.
 
-The optional `callback` parameter will be added as a one time listener for the
+The optional `callback` parameter will be added as a one-time listener for the
 [`'timeout'`][] event.
 
 ### socket.unref()
@@ -962,9 +965,9 @@ added: v0.1.90
 
 * `port` {number} Port the socket should connect to. Will be passed to
   [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].
-* `host` {string} Host the socket should connect to. Defaults to `'localhost'`.
-  Will be passed to
+* `host` {string} Host the socket should connect to. Will be passed to
   [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].
+   **Default:** `'localhost'`
 * `connectListener` {Function} Common parameter of the
   [`net.createConnection()`][] functions, an "once" listener for the
   `'connect'` event on the initiating socket. Will be passed to
@@ -986,19 +989,19 @@ added: v0.5.0
 Creates a new TCP or [IPC][] server.
 
 * `options` {Object}
-  * `allowHalfOpen` {boolean} Default to `false`. Indicates whether half-opened
-    TCP connections are allowed.
-  * `pauseOnConnect` {boolean} Default to `false`. Indicates whether the socket
-    should be paused on incoming connections.
+  * `allowHalfOpen` {boolean} Indicates whether half-opened TCP
+    connections are allowed. **Default:** `false`
+  * `pauseOnConnect` {boolean} Indicates whether the socket should be
+    paused on incoming connections. **Default:** `false`
 * `connectionListener` {Function} Automatically set as a listener for the
-  [`'connection'`][] event
+  [`'connection'`][] event.
 * Returns: {net.Server}
 
 If `allowHalfOpen` is set to `true`, when the other end of the socket
 sends a FIN packet, the server will only send a FIN packet back when
 [`socket.end()`][] is explicitly called, until then the connection is
 half-closed (non-readable but still writable). See [`'end'`][] event
-and [RFC 1122][half-closed] for more information.
+and [RFC 1122][half-closed] (section 4.2.2.13) for more information.
 
 If `pauseOnConnect` is set to `true`, then the socket associated with each
 incoming connection will be paused, and no data will be read from its handle.
@@ -1123,7 +1126,7 @@ Returns true if input is a version 6 IP address, otherwise returns false.
 [Identifying paths for IPC connections]: #net_identifying_paths_for_ipc_connections
 [Readable Stream]: stream.html#stream_class_stream_readable
 [duplex stream]: stream.html#stream_class_stream_duplex
-[half-closed]: https://tools.ietf.org/html/rfc1122#section-4.2.2.13
+[half-closed]: https://tools.ietf.org/html/rfc1122
 [socket(7)]: http://man7.org/linux/man-pages/man7/socket.7.html
 [unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0
 [unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address

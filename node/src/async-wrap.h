@@ -42,7 +42,8 @@ namespace node {
   V(GETADDRINFOREQWRAP)                                                       \
   V(GETNAMEINFOREQWRAP)                                                       \
   V(HTTP2SESSION)                                                             \
-  V(HTTP2SESSIONSHUTDOWNWRAP)                                                 \
+  V(HTTP2STREAM)                                                              \
+  V(HTTP2PING)                                                                \
   V(HTTPPARSER)                                                               \
   V(JSSTREAM)                                                                 \
   V(PIPECONNECTWRAP)                                                          \
@@ -72,9 +73,17 @@ namespace node {
 #define NODE_ASYNC_CRYPTO_PROVIDER_TYPES(V)
 #endif  // HAVE_OPENSSL
 
+#if HAVE_INSPECTOR
+#define NODE_ASYNC_INSPECTOR_PROVIDER_TYPES(V)                                \
+  V(INSPECTORJSBINDING)
+#else
+#define NODE_ASYNC_INSPECTOR_PROVIDER_TYPES(V)
+#endif  // HAVE_INSPECTOR
+
 #define NODE_ASYNC_PROVIDER_TYPES(V)                                          \
   NODE_ASYNC_NON_CRYPTO_PROVIDER_TYPES(V)                                     \
-  NODE_ASYNC_CRYPTO_PROVIDER_TYPES(V)
+  NODE_ASYNC_CRYPTO_PROVIDER_TYPES(V)                                         \
+  NODE_ASYNC_INSPECTOR_PROVIDER_TYPES(V)
 
 class Environment;
 
@@ -88,12 +97,21 @@ class AsyncWrap : public BaseObject {
     PROVIDERS_LENGTH,
   };
 
+  enum Flags {
+    kFlagNone = 0x0,
+    kFlagHasReset = 0x1
+  };
+
   AsyncWrap(Environment* env,
             v8::Local<v8::Object> object,
             ProviderType provider,
-            bool silent = false);
+            double execution_async_id = -1);
 
   virtual ~AsyncWrap();
+
+  static void AddWrapMethods(Environment* env,
+                             v8::Local<v8::FunctionTemplate> constructor,
+                             int flags = kFlagNone);
 
   static void Initialize(v8::Local<v8::Object> target,
                          v8::Local<v8::Value> unused,
@@ -102,26 +120,30 @@ class AsyncWrap : public BaseObject {
   static void GetAsyncId(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void PushAsyncIds(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void PopAsyncIds(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ClearIdStack(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void AsyncIdStackSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void ClearAsyncIdStack(
+    const v8::FunctionCallbackInfo<v8::Value>& args);
   static void AsyncReset(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void QueueDestroyId(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void QueueDestroyAsyncId(
+    const v8::FunctionCallbackInfo<v8::Value>& args);
 
   static void EmitAsyncInit(Environment* env,
                             v8::Local<v8::Object> object,
                             v8::Local<v8::String> type,
                             double id,
-                            double trigger_id);
+                            double trigger_async_id);
 
-  static bool EmitBefore(Environment* env, double id);
-  static bool EmitAfter(Environment* env, double id);
+  static void EmitBefore(Environment* env, double id);
+  static void EmitAfter(Environment* env, double id);
+  static void EmitPromiseResolve(Environment* env, double id);
 
   inline ProviderType provider_type() const;
 
-  inline double get_id() const;
+  inline double get_async_id() const;
 
-  inline double get_trigger_id() const;
+  inline double get_trigger_async_id() const;
 
-  void AsyncReset(bool silent = false);
+  void AsyncReset(double execution_async_id = -1, bool silent = false);
 
   // Only call these within a valid HandleScope.
   v8::MaybeLocal<v8::Value> MakeCallback(const v8::Local<v8::Function> cb,
@@ -138,17 +160,18 @@ class AsyncWrap : public BaseObject {
   virtual size_t self_size() const = 0;
 
  private:
+  friend class PromiseWrap;
+
+  // This is specifically used by the PromiseWrap constructor.
+  AsyncWrap(Environment* env, v8::Local<v8::Object> promise, bool silent);
   inline AsyncWrap();
   const ProviderType provider_type_;
   // Because the values may be Reset(), cannot be made const.
   double async_id_;
-  double trigger_id_;
+  double trigger_async_id_;
 };
 
 void LoadAsyncWrapperInfo(Environment* env);
-
-bool DomainEnter(Environment* env, v8::Local<v8::Object> object);
-bool DomainExit(Environment* env, v8::Local<v8::Object> object);
 
 }  // namespace node
 

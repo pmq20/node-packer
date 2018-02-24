@@ -23,11 +23,12 @@
 
 const common = require('../common');
 const assert = require('assert');
+const fixtures = require('../common/fixtures');
 
 // We have to change the directory to ../fixtures before requiring repl
 // in order to make the tests for completion of node_modules work properly
 // since repl modifies module.paths.
-process.chdir(common.fixturesDir);
+process.chdir(fixtures.fixturesDir);
 
 const repl = require('repl');
 
@@ -518,8 +519,8 @@ const editor = repl.start({
 editorStream.run(['.clear']);
 editorStream.run(['.editor']);
 
-editor.completer('co', common.mustCall((error, data) => {
-  assert.deepStrictEqual(data, [['con'], 'co']);
+editor.completer('Uin', common.mustCall((error, data) => {
+  assert.deepStrictEqual(data, [['Uint'], 'Uin']);
 }));
 
 editorStream.run(['.clear']);

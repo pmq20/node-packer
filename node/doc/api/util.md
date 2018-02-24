@@ -1,5 +1,7 @@
 # Util
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `util` module is primarily designed to support the needs of Node.js' own
@@ -29,7 +31,7 @@ For example:
 const util = require('util');
 
 async function fn() {
-  return await Promise.resolve('hello world');
+  return 'hello world';
 }
 const callbackFunction = util.callbackify(fn);
 
@@ -375,8 +377,8 @@ terminals.
 <!-- type=misc -->
 
 Objects may also define their own `[util.inspect.custom](depth, opts)`
-(or, equivalently `inspect(depth, opts)`) function that `util.inspect()` will
-invoke and use the result of when inspecting the object:
+(or the equivalent but deprecated `inspect(depth, opts)`) function that
+`util.inspect()` will invoke and use the result of when inspecting the object:
 
 ```js
 const util = require('util');
@@ -386,7 +388,7 @@ class Box {
     this.value = value;
   }
 
-  inspect(depth, options) {
+  [util.inspect.custom](depth, options) {
     if (depth < 0) {
       return options.stylize('[Box]', 'special');
     }
@@ -417,22 +419,7 @@ but may return a value of any type that will be formatted accordingly by
 const util = require('util');
 
 const obj = { foo: 'this will not show up in the inspect() output' };
-obj[util.inspect.custom] = function(depth) {
-  return { bar: 'baz' };
-};
-
-util.inspect(obj);
-// Returns: "{ bar: 'baz' }"
-```
-
-A custom inspection method can alternatively be provided by exposing
-an `inspect(depth, opts)` method on the object:
-
-```js
-const util = require('util');
-
-const obj = { foo: 'this will not show up in the inspect() output' };
-obj.inspect = function(depth) {
+obj[util.inspect.custom] = (depth) => {
   return { bar: 'baz' };
 };
 
@@ -474,6 +461,7 @@ added: v8.0.0
 -->
 
 * `original` {Function}
+* Returns: {Function}
 
 Takes a function following the common Node.js callback style, i.e. taking a
 `(err, value) => ...` callback as the last argument, and returns a version
@@ -526,7 +514,7 @@ function doSomething(foo, callback) {
   // ...
 }
 
-doSomething[util.promisify.custom] = function(foo) {
+doSomething[util.promisify.custom] = (foo) => {
   return getPromiseSomehow();
 };
 
@@ -537,6 +525,16 @@ console.log(promisified === doSomething[util.promisify.custom]);
 
 This can be useful for cases where the original function does not follow the
 standard format of taking an error-first callback as the last argument.
+
+For example, with a function that takes in `(foo, onSuccessCallback, onErrorCallback)`:
+
+```js
+doSomething[util.promisify.custom] = (foo) => {
+  return new Promise((resolve, reject) => {
+    doSomething(foo, resolve, reject);
+  });
+};
+```
 
 ### util.promisify.custom
 <!-- YAML
@@ -552,8 +550,6 @@ see [Custom promisified functions][].
 <!-- YAML
 added: v8.3.0
 -->
-
-> Stability: 1 - Experimental
 
 An implementation of the [WHATWG Encoding Standard][] `TextDecoder` API.
 
@@ -661,7 +657,7 @@ supported encodings or an alias.
 * Returns: {string}
 
 Decodes the `input` and returns a string. If `options.stream` is `true`, any
-incomplete byte sequences occuring at the end of the `input` are buffered
+incomplete byte sequences occurring at the end of the `input` are buffered
 internally and emitted after the next call to `textDecoder.decode()`.
 
 If `textDecoder.fatal` is `true`, decoding errors that occur will result in a
@@ -691,8 +687,6 @@ mark.
 <!-- YAML
 added: v8.3.0
 -->
-
-> Stability: 1 - Experimental
 
 An implementation of the [WHATWG Encoding Standard][] `TextEncoder` API. All
 instances of `TextEncoder` only support UTF-8 encoding.

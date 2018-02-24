@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Console | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Console | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="console.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="console.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/console.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/console.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/console.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/console.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/console.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/console.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/console.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/console.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -99,9 +121,12 @@
 <li><span class="stability_undefined"><a href="#console_console_assert_value_message_args">console.assert(value[, message][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_clear">console.clear()</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_count_label">console.count([label])</a></span></li>
-<li><span class="stability_undefined"><a href="#console_console_countreset_label_default">console.countReset([label = &#39;default&#39;])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_countreset_label_default">console.countReset([label=&#39;default&#39;])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_dir_obj_options">console.dir(obj[, options])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_error_data_args">console.error([data][, ...args])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_group_label">console.group([...label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_groupcollapsed">console.groupCollapsed()</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_groupend">console.groupEnd()</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_info_data_args">console.info([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_log_data_args">console.log([data][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_time_label">console.time(label)</a></span></li>
@@ -118,7 +143,8 @@
 
       <div id="apicontent">
         <h1>Console<span><a class="mark" href="#console_console" id="console_console">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>console</code> module provides a simple debugging console that is similar to the
+<!--introduced_in=v0.10.13-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>console</code> module provides a simple debugging console that is similar to the
 JavaScript console mechanism provided by web browsers.</p>
 <p>The module exports two specific components:</p>
 <ul>
@@ -183,10 +209,9 @@ or <code>console.Console</code> (or their destructured counterparts):</p>
 <li><code>stdout</code> <span class="type">&lt;Writable&gt;</span></li>
 <li><code>stderr</code> <span class="type">&lt;Writable&gt;</span></li>
 </ul>
-</div><p>Creates a new <code>Console</code> by passing one or two writable stream instances.
-<code>stdout</code> is a writable stream to print log or info output. <code>stderr</code>
-is used for warning or error output. If <code>stderr</code> is not passed, warning and error
-output will be sent to <code>stdout</code>.</p>
+</div><p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a
+writable stream to print log or info output. <code>stderr</code> is used for warning or
+error output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>
 <pre><code class="lang-js">const output = fs.createWriteStream(&#39;./stdout.log&#39;);
 const errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);
 // custom simple logger
@@ -267,7 +292,8 @@ binary.</p>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><ul>
-<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+<li><code>label</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
 </ul>
 <p>Maintains an internal counter specific to <code>label</code> and outputs to <code>stdout</code> the
 number of times <code>console.count()</code> has been called with the given <code>label</code>.</p>
@@ -292,11 +318,12 @@ default: 3
 undefined
 &gt;
 </code></pre>
-<h3>console.countReset([label = &#39;default&#39;])<span><a class="mark" href="#console_console_countreset_label_default" id="console_console_countreset_label_default">#</a></span></h3>
+<h3>console.countReset([label=&#39;default&#39;])<span><a class="mark" href="#console_console_countreset_label_default" id="console_console_countreset_label_default">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><ul>
-<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+<li><code>label</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
 </ul>
 <p>Resets the internal counter specific to <code>label</code>.</p>
 <!-- eslint-skip -->
@@ -315,10 +342,14 @@ undefined
 <span>Added in: v0.1.101</span>
 </div><ul>
 <li><code>obj</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>showHidden</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
-<li><code>depth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>colors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>showHidden</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>depth</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>colors</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -348,7 +379,7 @@ Defaults to <code>false</code>. Colors are customizable; see
 </ul>
 <p>Prints to <code>stderr</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
-values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
+values similar to  <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
 <pre><code class="lang-js">const code = 5;
 console.error(&#39;error #%d&#39;, code);
@@ -359,6 +390,23 @@ console.error(&#39;error&#39;, code);
 <p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then
 <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> is called on each argument and the resulting string
 values are concatenated. See <a href="util.html#util_util_format_format_args"><code>util.format()</code></a> for more information.</p>
+<h3>console.group([...label])<span><a class="mark" href="#console_console_group_label" id="console_console_group_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>...label</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Increases indentation of subsequent lines by two spaces.</p>
+<p>If one or more <code>label</code>s are provided, those are printed first without the
+additional indentation.</p>
+<h3>console.groupCollapsed()<span><a class="mark" href="#console_console_groupcollapsed" id="console_console_groupcollapsed">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>An alias for <a href="#console_console_group_label"><code>console.group()</code></a>.</p>
+<h3>console.groupEnd()<span><a class="mark" href="#console_console_groupend" id="console_console_groupend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>Decreases indentation of subsequent lines by two spaces.</p>
 <h3>console.info([data][, ...args])<span><a class="mark" href="#console_console_info_data_args" id="console_console_info_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
@@ -376,7 +424,7 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 </ul>
 <p>Prints to <code>stdout</code> with newline. Multiple arguments can be passed, with the
 first used as the primary message and all additional used as substitution
-values similar to <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
+values similar to  <a href="http://man7.org/linux/man-pages/man3/printf.3.html">printf(3)</a> (the arguments are all passed to
 <a href="util.html#util_util_format_format_args"><code>util.format()</code></a>).</p>
 <pre><code class="lang-js">const count = 5;
 console.log(&#39;count: %d&#39;, count);
@@ -389,7 +437,8 @@ console.log(&#39;count:&#39;, count);
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div><ul>
-<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>label</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Starts a timer that can be used to compute the duration of an operation. Timers
 are identified by a unique <code>label</code>. Use the same <code>label</code> when calling
@@ -409,7 +458,8 @@ milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-mil
 </table>
 </details>
 </div><ul>
-<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>label</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>

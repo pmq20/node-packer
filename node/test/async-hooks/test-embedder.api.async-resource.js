@@ -12,10 +12,17 @@ const { checkInvocations } = require('./hook-checks');
 const hooks = initHooks();
 hooks.enable();
 
-assert.throws(() => new AsyncResource(),
-              /^TypeError: type must be a string with length > 0$/);
-assert.throws(() => new AsyncResource('invalid_trigger_id', null),
-              /^RangeError: triggerAsyncId must be an unsigned integer$/);
+common.expectsError(
+  () => new AsyncResource(), {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+  });
+assert.throws(() => {
+  new AsyncResource('invalid_trigger_id', null);
+}, common.expectsError({
+  code: 'ERR_INVALID_ASYNC_ID',
+  type: RangeError,
+}));
 
 assert.strictEqual(
   new AsyncResource('default_trigger_id').triggerAsyncId(),

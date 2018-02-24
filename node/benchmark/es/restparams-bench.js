@@ -9,8 +9,8 @@ const bench = common.createBenchmark(main, {
 });
 
 function copyArguments() {
-  var len = arguments.length;
-  var args = new Array(len);
+  const len = arguments.length;
+  const args = new Array(len);
   for (var i = 0; i < len; i++)
     args[i] = arguments[i];
   assert.strictEqual(args[0], 1);
@@ -64,6 +64,8 @@ function main(conf) {
   const n = +conf.millions * 1e6;
 
   switch (conf.method) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'copy':
       runCopyArguments(n);
       break;

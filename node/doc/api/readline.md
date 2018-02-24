@@ -1,5 +1,7 @@
 # Readline
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `readline` module provides an interface for reading data from a [Readable][]
@@ -345,6 +347,12 @@ the current position of the cursor down.
 <!-- YAML
 added: v0.1.98
 changes:
+  - version: v8.3.0, 6.11.4
+    pr-url: https://github.com/nodejs/node/pull/13497
+    description: Remove max limit of `crlfDelay` option.
+  - version: v6.6.0
+    pr-url: https://github.com/nodejs/node/pull/8109
+    description: The `crlfDelay` option is supported now.
   - version: v6.3.0
     pr-url: https://github.com/nodejs/node/pull/7125
     description: The `prompt` option is supported now.
@@ -361,20 +369,20 @@ changes:
   * `terminal` {boolean} `true` if the `input` and `output` streams should be
     treated like a TTY, and have ANSI/VT100 escape codes written to it.
     Defaults to checking `isTTY` on the `output` stream upon instantiation.
-  * `historySize` {number} maximum number of history lines retained. To disable
-    the history set this value to `0`. Defaults to `30`. This option makes sense
-    only if `terminal` is set to `true` by the user or by an internal `output`
-    check, otherwise the history caching mechanism is not initialized at all.
-  * `prompt` - the prompt string to use. Default: `'> '`
+  * `historySize` {number} Maximum number of history lines retained. To disable
+    the history set this value to `0`. This option makes sense only if `terminal`
+    is set to `true` by the user or by an internal `output` check, otherwise the
+    history caching mechanism is not initialized at all. **Default:** `30`
+  * `prompt` {string} The prompt string to use. **Default:** `'> '`
   * `crlfDelay` {number} If the delay between `\r` and `\n` exceeds
     `crlfDelay` milliseconds, both `\r` and `\n` will be treated as separate
-    end-of-line input. Default to `100` milliseconds.
-    `crlfDelay` will be coerced to a number no less than `100`. It can be set to
-    `Infinity`, in which case `\r` followed by `\n` will always be considered a
-    single newline.
+    end-of-line input. `crlfDelay` will be coerced to a number no less than `100`.
+    It can be set to `Infinity`, in which case `\r` followed by `\n` will always be
+    considered a single newline (which may be reasonable for [reading files][]
+    with `\r\n` line delimiter). **Default:** `100`
   * `removeHistoryDuplicates` {boolean} If `true`, when a new input line added
     to the history list duplicates an older one, this removes the older line
-    from the list. Defaults to `false`.
+    from the list. **Default:** `false`
 
 The `readline.createInterface()` method creates a new `readline.Interface`
 instance.
@@ -451,7 +459,7 @@ added: v0.7.7
 * `stream` {Readable}
 * `interface` {readline.Interface}
 
-The `readline.emitKeypressEvents()` method causes the given [Writable][]
+The `readline.emitKeypressEvents()` method causes the given [Readable][]
 `stream` to begin emitting `'keypress'` events corresponding to received input.
 
 Optionally, `interface` specifies a `readline.Interface` instance for which
@@ -524,7 +532,8 @@ const readline = require('readline');
 const fs = require('fs');
 
 const rl = readline.createInterface({
-  input: fs.createReadStream('sample.txt')
+  input: fs.createReadStream('sample.txt'),
+  crlfDelay: Infinity
 });
 
 rl.on('line', (line) => {
@@ -539,3 +548,4 @@ rl.on('line', (line) => {
 [Readable]: stream.html#stream_readable_streams
 [TTY]: tty.html
 [Writable]: stream.html#stream_writable_streams
+[reading files]: #readline_example_read_file_stream_line_by_line

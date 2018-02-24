@@ -1,5 +1,7 @@
 # DNS
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `dns` module contains functions belonging to two different categories:
@@ -139,7 +141,13 @@ changes:
   - `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
     flags may be passed by bitwise `OR`ing their values.
   - `all` {boolean} When `true`, the callback returns all resolved addresses in
-    an array. Otherwise, returns a single address. Defaults to `false`.
+    an array. Otherwise, returns a single address. **Default:** `false`
+  - `verbatim` {boolean} When `true`, the callback receives IPv4 and IPv6
+    addresses in the order the DNS resolver returned them.  When `false`,
+    IPv4 addresses are placed before IPv6 addresses.
+    **Default:** currently `false` (addresses are reordered) but this is expected
+    to change in the not too distant future.
+    New code should use `{ verbatim: true }`.
 - `callback` {Function}
   - `err` {Error}
   - `address` {string} A string representation of an IPv4 or IPv6 address.
@@ -237,7 +245,7 @@ Promise for an object with `hostname` and `service` properties.
 added: v0.1.27
 -->
 - `hostname` {string} Hostname to resolve.
-- `rrtype` {string} Resource record type. Default: `'A'`.
+- `rrtype` {string} Resource record type. **Default:** `'A'`
 - `callback` {Function}
   - `err` {Error}
   - `records` {string[] | Object[] | Object}
@@ -258,7 +266,7 @@ records. The type and structure of individual results varies based on `rrtype`:
 | `'PTR'`   | pointer records                | {string}    | [`dns.resolvePtr()`][]   |
 | `'SOA'`   | start of authority records     | {Object}    | [`dns.resolveSoa()`][]   |
 | `'SRV'`   | service records                | {Object}    | [`dns.resolveSrv()`][]   |
-| `'TXT'`   | text records                   | {string}    | [`dns.resolveTxt()`][]   |
+| `'TXT'`   | text records                   | {string[]}  | [`dns.resolveTxt()`][]   |
 | `'ANY'`   | any records                    | {Object}    | [`dns.resolveAny()`][]   |
 
 On error, `err` is an [`Error`][] object, where `err.code` is one of the
@@ -471,11 +479,11 @@ added: v0.1.27
 - `hostname` {string}
 - `callback` {Function}
   - `err` {Error}
-  - `addresses` {string[]}
+  - `records` {string[][]}
 
 Uses the DNS protocol to resolve text queries (`TXT` records) for the
-`hostname`. The `addresses` argument passed to the `callback` function is
-is a two-dimensional array of the text records available for `hostname` (e.g.,
+`hostname`. The `records` argument passed to the `callback` function is a
+two-dimensional array of the text records available for `hostname` (e.g.,
 `[ ['v=spf1 ip4:0.0.0.0 ', '~all' ] ]`). Each sub-array contains TXT chunks of
 one record. Depending on the use case, these could be either joined together or
 treated separately.
@@ -506,7 +514,7 @@ will be present on the object:
 | `"SRV"` | Refer to [`dns.resolveSrv()`][] |
 | `"TXT"` | This type of record contains an array property called `entries` which refers to [`dns.resolveTxt()`][], eg. `{ entries: ['...'], type: 'TXT' }` |
 
-Here is a example of the `ret` object passed to the callback:
+Here is an example of the `ret` object passed to the callback:
 
 <!-- eslint-disable semi -->
 ```js
@@ -614,15 +622,16 @@ but note that changing these files will change the behavior of _all other
 programs running on the same operating system_.
 
 Though the call to `dns.lookup()` will be asynchronous from JavaScript's
-perspective, it is implemented as a synchronous call to getaddrinfo(3) that
-runs on libuv's threadpool. Because libuv's threadpool has a fixed size, it
-means that if for whatever reason the call to getaddrinfo(3) takes a long
-time, other operations that could run on libuv's threadpool (such as filesystem
-operations) will experience degraded performance. In order to mitigate this
-issue, one potential solution is to increase the size of libuv's threadpool by
-setting the `'UV_THREADPOOL_SIZE'` environment variable to a value greater than
-`4` (its current default value). For more information on libuv's threadpool, see
-[the official libuv documentation][].
+perspective, it is implemented as a synchronous call to getaddrinfo(3) that runs
+on libuv's threadpool. This can have surprising negative performance
+implications for some applications, see the [`UV_THREADPOOL_SIZE`][]
+documentation for more information.
+
+Note that various networking APIs will call `dns.lookup()` internally to resolve
+host names. If that is an issue, consider resolving the hostname to and address
+using `dns.resolve()` and using the address instead of a host name. Also, some
+networking APIs (such as [`socket.connect()`][] and [`dgram.createSocket()`][])
+allow the default resolver, `dns.lookup()`, to be replaced.
 
 ### `dns.resolve()`, `dns.resolve*()` and `dns.reverse()`
 
@@ -638,10 +647,14 @@ They do not use the same set of configuration files than what [`dns.lookup()`][]
 uses. For instance, _they do not use the configuration from `/etc/hosts`_.
 
 [`Error`]: errors.html#errors_class_error
+[`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
+[`dgram.createSocket()`]: dgram.html#dgram_dgram_createsocket_options_callback
+[`dns.getServers()`]: #dns_dns_getservers
 [`dns.lookup()`]: #dns_dns_lookup_hostname_options_callback
 [`dns.resolve()`]: #dns_dns_resolve_hostname_rrtype_callback
 [`dns.resolve4()`]: #dns_dns_resolve4_hostname_options_callback
 [`dns.resolve6()`]: #dns_dns_resolve6_hostname_options_callback
+[`dns.resolveAny()`]: #dns_dns_resolveany_hostname_callback
 [`dns.resolveCname()`]: #dns_dns_resolvecname_hostname_callback
 [`dns.resolveMx()`]: #dns_dns_resolvemx_hostname_callback
 [`dns.resolveNaptr()`]: #dns_dns_resolvenaptr_hostname_callback
@@ -650,13 +663,11 @@ uses. For instance, _they do not use the configuration from `/etc/hosts`_.
 [`dns.resolveSoa()`]: #dns_dns_resolvesoa_hostname_callback
 [`dns.resolveSrv()`]: #dns_dns_resolvesrv_hostname_callback
 [`dns.resolveTxt()`]: #dns_dns_resolvetxt_hostname_callback
-[`dns.resolveAny()`]: #dns_dns_resolveany_hostname_callback
-[`dns.getServers()`]: #dns_dns_getservers
-[`dns.setServers()`]: #dns_dns_setservers_servers
 [`dns.reverse()`]: #dns_dns_reverse_ip_callback
+[`dns.setServers()`]: #dns_dns_setservers_servers
+[`socket.connect()`]: net.html#net_socket_connect_options_connectlistener
+[`util.promisify()`]: util.html#util_util_promisify_original
 [DNS error codes]: #dns_error_codes
 [Implementation considerations section]: #dns_implementation_considerations
-[supported `getaddrinfo` flags]: #dns_supported_getaddrinfo_flags
-[the official libuv documentation]: http://docs.libuv.org/en/latest/threadpool.html
-[`util.promisify()`]: util.html#util_util_promisify_original
 [rfc5952]: https://tools.ietf.org/html/rfc5952#section-6
+[supported `getaddrinfo` flags]: #dns_supported_getaddrinfo_flags

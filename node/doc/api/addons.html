@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>C++ Addons | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>C++ Addons | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="addons.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="addons.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/addons.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/addons.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/addons.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/addons.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/addons.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/addons.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/addons.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/addons.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -124,6 +146,7 @@
 
       <div id="apicontent">
         <h1>C++ Addons<span><a class="mark" href="#addons_c_addons" id="addons_c_addons">#</a></span></h1>
+<!--introduced_in=v0.10.0-->
 <p>Node.js Addons are dynamically-linked shared objects, written in C++, that
 can be loaded into Node.js using the <a href="modules.html#modules_require"><code>require()</code></a> function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
@@ -141,7 +164,7 @@ tree), which is also available <a href="https://v8docs.nodesource.com/">online</
 threads and all of the asynchronous behaviors of the platform. It also
 serves as a cross-platform abstraction library, giving easy, POSIX-like
 access across all major operating systems to many common system tasks, such
-as interacting with the filesystem, sockets, timers and system events. libuv
+as interacting with the filesystem, sockets, timers, and system events. libuv
 also provides a pthreads-like threading abstraction that may be used to
 power more sophisticated asynchronous Addons that need to move beyond the
 standard event loop. Addon authors are encouraged to think about how to
@@ -189,14 +212,14 @@ void init(Local&lt;Object&gt; exports) {
   NODE_SET_METHOD(exports, &quot;hello&quot;, Method);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)
 
 }  // namespace demo
 </code></pre>
 <p>Note that all Node.js Addons must export an initialization function following
 the pattern:</p>
 <pre><code class="lang-cpp">void Initialize(Local&lt;Object&gt; exports);
-NODE_MODULE(module_name, Initialize)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 </code></pre>
 <p>There is no semi-colon after <code>NODE_MODULE</code> as it&#39;s not a function (see
 <code>node.h</code>).</p>
@@ -302,8 +325,8 @@ Addon developers are recommended to use to keep compatibility between past and
 future releases of V8 and Node.js. See the <code>nan</code> <a href="https://github.com/nodejs/nan/tree/master/examples/">examples</a> for an
 illustration of how it can be used.</p>
 <h2>N-API<span><a class="mark" href="#addons_n_api" id="addons_n_api">#</a></span></h2>
-<pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>N-API is an API for building native Addons. It is independent from
-the underlying JavaScript runtime (ex V8) and is maintained as part of
+<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>N-API is an API for building native Addons. It is independent from
+the underlying JavaScript runtime (e.g., V8) and is maintained as part of
 Node.js itself. This API will be Application Binary Interface (ABI) stable
 across version of Node.js. It is intended to insulate Addons from
 changes in the underlying JavaScript engine and allow modules
@@ -313,6 +336,38 @@ outlined in this document (node-gyp, etc.). The only difference is the
 set of APIs that are used by the native code. Instead of using the V8
 or <a href="https://github.com/nodejs/nan">Native Abstractions for Node.js</a> APIs, the functions available
 in the N-API are used.</p>
+<p>To use N-API in the above &quot;Hello world&quot; example, replace the content of
+<code>hello.cc</code> with the following. All other instructions remain the same.</p>
+<pre><code class="lang-cpp">// hello.cc using N-API
+#include &lt;node_api.h&gt;
+
+namespace demo {
+
+napi_value Method(napi_env env, napi_callback_info args) {
+  napi_value greeting;
+  napi_status status;
+
+  status = napi_create_string_utf8(env, &quot;hello&quot;, 6, &amp;greeting);
+  if (status != napi_ok) return nullptr;
+  return greeting;
+}
+
+napi_value init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_value fn;
+
+  status = napi_create_function(env, nullptr, 0, Method, nullptr, &amp;fn);
+  if (status != napi_ok) return nullptr;
+
+  status = napi_set_named_property(env, exports, &quot;hello&quot;, fn);
+  if (status != napi_ok) return nullptr;
+  return exports;
+}
+
+NAPI_MODULE(NODE_GYP_MODULE_NAME, init)
+
+}  // namespace demo
+</code></pre>
 <p>The functions available and how to use them are documented in the
 section titled <a href="n-api.html">C/C++ Addons - N-API</a>.</p>
 <h2>Addon examples<span><a class="mark" href="#addons_addon_examples" id="addons_addon_examples">#</a></span></h2>
@@ -394,7 +449,7 @@ void Init(Local&lt;Object&gt; exports) {
   NODE_SET_METHOD(exports, &quot;add&quot;, Add);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 </code></pre>
@@ -434,7 +489,7 @@ void Init(Local&lt;Object&gt; exports, Local&lt;Object&gt; module) {
   NODE_SET_METHOD(module, &quot;exports&quot;, RunCallback);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 </code></pre>
@@ -481,7 +536,7 @@ void Init(Local&lt;Object&gt; exports, Local&lt;Object&gt; module) {
   NODE_SET_METHOD(module, &quot;exports&quot;, CreateObject);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 </code></pre>
@@ -532,7 +587,7 @@ void Init(Local&lt;Object&gt; exports, Local&lt;Object&gt; module) {
   NODE_SET_METHOD(module, &quot;exports&quot;, CreateFunction);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 </code></pre>
@@ -560,7 +615,7 @@ void InitAll(Local&lt;Object&gt; exports) {
   MyObject::Init(exports);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 </code></pre>
@@ -725,7 +780,7 @@ void InitAll(Local&lt;Object&gt; exports, Local&lt;Object&gt; module) {
   NODE_SET_METHOD(module, &quot;exports&quot;, CreateObject);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 </code></pre>
@@ -921,7 +976,7 @@ void InitAll(Local&lt;Object&gt; exports) {
   NODE_SET_METHOD(exports, &quot;add&quot;, Add);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 </code></pre>
@@ -1043,8 +1098,8 @@ has ended but before the JavaScript VM is terminated and Node.js shuts down.
 &quot;AtExit&quot; hooks are registered using the <code>node::AtExit</code> API.</p>
 <h4>void AtExit(callback, args)<span><a class="mark" href="#addons_void_atexit_callback_args" id="addons_void_atexit_callback_args">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>callback</code>: <code>void (*)(void*)</code> - A pointer to the function to call at exit.</li>
-<li><code>args</code>: <code>void*</code> - A pointer to pass to the callback at exit.</li>
+<li><code>callback</code> <span class="type">&lt;void (*)(void*)&gt;</span> A pointer to the function to call at exit.</li>
+<li><code>args</code> <span class="type">&lt;void*&gt;</span> A pointer to pass to the callback at exit.</li>
 </ul>
 </div><p>Registers exit hooks that run after the event loop has ended but before the VM
 is killed.</p>
@@ -1073,7 +1128,7 @@ static void at_exit_cb1(void* arg) {
   Isolate* isolate = static_cast&lt;Isolate*&gt;(arg);
   HandleScope scope(isolate);
   Local&lt;Object&gt; obj = Object::New(isolate);
-  assert(!obj.IsEmpty()); // assert VM is still alive
+  assert(!obj.IsEmpty());  // assert VM is still alive
   assert(obj-&gt;IsObject());
   at_exit_cb1_called++;
 }
@@ -1095,7 +1150,7 @@ void init(Local&lt;Object&gt; exports) {
   AtExit(sanity_check);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)
 
 }  // namespace demo
 </code></pre>

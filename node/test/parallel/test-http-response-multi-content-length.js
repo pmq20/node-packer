@@ -3,6 +3,7 @@
 const common = require('../common');
 const http = require('http');
 const assert = require('assert');
+const Countdown = require('../common/countdown');
 
 const MAX_COUNT = 2;
 
@@ -16,7 +17,7 @@ const server = http.createServer((req, res) => {
       res.setHeader('content-length', [2, 1]);
       break;
     case '2':
-      res.writeHead(200, {'content-length': [1, 2]});
+      res.writeHead(200, { 'content-length': [1, 2] });
       break;
     default:
       assert.fail('should never get here');
@@ -24,7 +25,7 @@ const server = http.createServer((req, res) => {
   res.end('ok');
 });
 
-let count = 0;
+const countdown = new Countdown(MAX_COUNT, () => server.close());
 
 server.listen(0, common.mustCall(() => {
   for (let n = 1; n <= MAX_COUNT; n++) {
@@ -33,20 +34,14 @@ server.listen(0, common.mustCall(() => {
     // case, the error handler must be called because the client
     // is not allowed to accept multiple content-length headers.
     http.get(
-      {port: server.address().port, headers: {'x-num': n}},
+      { port: server.address().port, headers: { 'x-num': n } },
       (res) => {
         assert.fail('client allowed multiple content-length headers.');
       }
     ).on('error', common.mustCall((err) => {
       assert(/^Parse Error/.test(err.message));
       assert.strictEqual(err.code, 'HPE_UNEXPECTED_CONTENT_LENGTH');
-      count++;
-      if (count === MAX_COUNT)
-        server.close();
+      countdown.dec();
     }));
   }
 }));
-
-process.on('exit', () => {
-  assert.strictEqual(count, MAX_COUNT);
-});

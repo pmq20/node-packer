@@ -20,9 +20,8 @@ const CLIENT_VARIANTS = 12;
   }, CLIENT_VARIANTS))
   .listen(serverPath, common.mustCall(function() {
     const getConnectCb = () => common.mustCall(function() {
-      const client = this;
-      client.end();
-      client.on('close', common.mustCall(function() {
+      this.end();
+      this.on('close', common.mustCall(function() {
         counter++;
         if (counter === CLIENT_VARIANTS) {
           server.close();
@@ -40,14 +39,14 @@ const CLIENT_VARIANTS = 12;
     new net.Socket().connect(serverPath, getConnectCb());
     new net.Socket().connect(serverPath)
       .on('connect', getConnectCb());
-    net.connect({path: serverPath}, getConnectCb());
-    net.connect({path: serverPath})
+    net.connect({ path: serverPath }, getConnectCb());
+    net.connect({ path: serverPath })
       .on('connect', getConnectCb());
-    net.createConnection({path: serverPath}, getConnectCb());
-    net.createConnection({path: serverPath})
+    net.createConnection({ path: serverPath }, getConnectCb());
+    net.createConnection({ path: serverPath })
       .on('connect', getConnectCb());
-    new net.Socket().connect({path: serverPath}, getConnectCb());
-    new net.Socket().connect({path: serverPath})
+    new net.Socket().connect({ path: serverPath }, getConnectCb());
+    new net.Socket().connect({ path: serverPath })
       .on('connect', getConnectCb());
   }));
 }

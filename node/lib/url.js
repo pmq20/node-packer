@@ -25,6 +25,7 @@ const { toASCII } = process.binding('config').hasIntl ?
   process.binding('icu') : require('punycode');
 
 const { hexTable } = require('internal/querystring');
+const { spliceOne } = require('internal/util');
 
 // WHATWG URL implementation provided by internal/url
 const {
@@ -92,9 +93,9 @@ const querystring = require('querystring');
 function urlParse(url, parseQueryString, slashesDenoteHost) {
   if (url instanceof Url) return url;
 
-  var u = new Url();
-  u.parse(url, parseQueryString, slashesDenoteHost);
-  return u;
+  var urlObject = new Url();
+  urlObject.parse(url, parseQueryString, slashesDenoteHost);
+  return urlObject;
 }
 
 Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
@@ -126,16 +127,14 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
       if (isWs)
         continue;
       lastPos = start = i;
-    } else {
-      if (inWs) {
-        if (!isWs) {
-          end = -1;
-          inWs = false;
-        }
-      } else if (isWs) {
-        end = i;
-        inWs = true;
+    } else if (inWs) {
+      if (!isWs) {
+        end = -1;
+        inWs = false;
       }
+    } else if (isWs) {
+      end = i;
+      inWs = true;
     }
 
     // Only convert backslashes while we haven't seen a split character
@@ -358,9 +357,7 @@ Url.prototype.parse = function parse(url, parseQueryString, slashesDenoteHost) {
     // First, make 100% sure that any "autoEscape" chars get
     // escaped, even if encodeURIComponent doesn't think they
     // need to be.
-    const result = autoEscapeStr(rest);
-    if (result !== undefined)
-      rest = result;
+    rest = autoEscapeStr(rest);
   }
 
   var questionIdx = -1;
@@ -441,8 +438,7 @@ function validateHostname(self, rest, hostname) {
 
 // Automatically escape all delimiters and unwise characters from RFC 2396.
 // Also escape single quotes in case of an XSS attack.
-// Return undefined if the string doesn't need escaping,
-// otherwise return the escaped string.
+// Return the escaped string.
 function autoEscapeStr(rest) {
   var escaped = '';
   var lastEscapedPos = 0;
@@ -538,12 +534,13 @@ function autoEscapeStr(rest) {
     }
   }
   if (lastEscapedPos === 0)  // Nothing has been escaped.
-    return;
+    return rest;
+
   // There are ordinary characters at the end.
   if (lastEscapedPos < rest.length)
-    return escaped + rest.slice(lastEscapedPos);
-  else  // The last character is escaped.
-    return escaped;
+    escaped += rest.slice(lastEscapedPos);
+
+  return escaped;
 }
 
 // format a parsed object into a url string
@@ -951,13 +948,6 @@ Url.prototype.parseHost = function parseHost() {
   }
   if (host) this.hostname = host;
 };
-
-// About 1.5x faster than the two-arg version of Array#splice().
-function spliceOne(list, index) {
-  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
-    list[i] = list[k];
-  list.pop();
-}
 
 // These characters do not need escaping:
 // ! - . _ ~

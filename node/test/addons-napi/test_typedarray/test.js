@@ -44,16 +44,14 @@ const arrayTypes = [ Int8Array, Uint8Array, Uint8ClampedArray, Int16Array,
                      Uint16Array, Int32Array, Uint32Array, Float32Array,
                      Float64Array ];
 
-arrayTypes.forEach((currentType, key) => {
+arrayTypes.forEach((currentType) => {
   const template = Reflect.construct(currentType, buffer);
   const theArray = test_typedarray.CreateTypedArray(template, buffer);
 
   assert.ok(theArray instanceof currentType,
-            'Type of new array should match that of the template');
-  assert.notStrictEqual(theArray,
-                        template,
-                        'the new array should not be a copy of the template');
-  assert.strictEqual(theArray.buffer,
-                     buffer,
-                     'Buffer for array should match the one passed in');
+            'Type of new array should match that of the template. ' +
+            `Expected type: ${currentType.name}, ` +
+            `actual type: ${template.constructor.name}`);
+  assert.notStrictEqual(theArray, template);
+  assert.strictEqual(theArray.buffer, buffer);
 });

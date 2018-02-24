@@ -4,6 +4,7 @@
     {
       "textRaw": "Util",
       "name": "util",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>util</code> module is primarily designed to support the needs of Node.js&#39; own\ninternal APIs. However, many of the utilities are useful for application and\nmodule developers as well. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n</code></pre>\n",
@@ -43,7 +44,7 @@
               ]
             }
           ],
-          "desc": "<p>Takes an <code>async</code> function (or a function that returns a Promise) and returns a\nfunction following the Node.js error first callback style. In the callback, the\nfirst argument will be the rejection reason (or <code>null</code> if the Promise resolved),\nand the second argument will be the resolved value.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nasync function fn() {\n  return await Promise.resolve(&#39;hello world&#39;);\n}\nconst callbackFunction = util.callbackify(fn);\n\ncallbackFunction((err, ret) =&gt; {\n  if (err) throw err;\n  console.log(ret);\n});\n</code></pre>\n<p>Will print:</p>\n<pre><code class=\"lang-txt\">hello world\n</code></pre>\n<p><em>Note</em>:</p>\n<ul>\n<li><p>The callback is executed asynchronously, and will have a limited stack trace.\nIf the callback throws, the process will emit an <a href=\"process.html#process_event_uncaughtexception\"><code>&#39;uncaughtException&#39;</code></a>\nevent, and if not handled will exit.</p>\n</li>\n<li><p>Since <code>null</code> has a special meaning as the first argument to a callback, if a\nwrapped function rejects a <code>Promise</code> with a falsy value as a reason, the value\nis wrapped in an <code>Error</code> with the original value stored in a field named\n<code>reason</code>.</p>\n<pre><code class=\"lang-js\">function fn() {\n  return Promise.reject(null);\n}\nconst callbackFunction = util.callbackify(fn);\n\ncallbackFunction((err, ret) =&gt; {\n  // When the Promise was rejected with `null` it is wrapped with an Error and\n  // the original value is stored in `reason`.\n  err &amp;&amp; err.hasOwnProperty(&#39;reason&#39;) &amp;&amp; err.reason === null;  // true\n});\n</code></pre>\n</li>\n</ul>\n"
+          "desc": "<p>Takes an <code>async</code> function (or a function that returns a Promise) and returns a\nfunction following the Node.js error first callback style. In the callback, the\nfirst argument will be the rejection reason (or <code>null</code> if the Promise resolved),\nand the second argument will be the resolved value.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nasync function fn() {\n  return &#39;hello world&#39;;\n}\nconst callbackFunction = util.callbackify(fn);\n\ncallbackFunction((err, ret) =&gt; {\n  if (err) throw err;\n  console.log(ret);\n});\n</code></pre>\n<p>Will print:</p>\n<pre><code class=\"lang-txt\">hello world\n</code></pre>\n<p><em>Note</em>:</p>\n<ul>\n<li><p>The callback is executed asynchronously, and will have a limited stack trace.\nIf the callback throws, the process will emit an <a href=\"process.html#process_event_uncaughtexception\"><code>&#39;uncaughtException&#39;</code></a>\nevent, and if not handled will exit.</p>\n</li>\n<li><p>Since <code>null</code> has a special meaning as the first argument to a callback, if a\nwrapped function rejects a <code>Promise</code> with a falsy value as a reason, the value\nis wrapped in an <code>Error</code> with the original value stored in a field named\n<code>reason</code>.</p>\n<pre><code class=\"lang-js\">function fn() {\n  return Promise.reject(null);\n}\nconst callbackFunction = util.callbackify(fn);\n\ncallbackFunction((err, ret) =&gt; {\n  // When the Promise was rejected with `null` it is wrapped with an Error and\n  // the original value is stored in `reason`.\n  err &amp;&amp; err.hasOwnProperty(&#39;reason&#39;) &amp;&amp; err.reason === null;  // true\n});\n</code></pre>\n</li>\n</ul>\n"
         },
         {
           "textRaw": "util.debuglog(section)",
@@ -297,7 +298,7 @@
               "textRaw": "Custom inspection functions on Objects",
               "name": "Custom inspection functions on Objects",
               "type": "misc",
-              "desc": "<p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>\n(or, equivalently <code>inspect(depth, opts)</code>) function that <code>util.inspect()</code> will\ninvoke and use the result of when inspecting the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  inspect(depth, options) {\n    if (depth &lt; 0) {\n      return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that&#39;s the size of &quot;Box&lt; &quot;.\n    const padding = &#39; &#39;.repeat(5);\n    const inner = util.inspect(this.value, newOptions)\n                      .replace(/\\n/g, `\\n${padding}`);\n    return `${options.stylize(&#39;Box&#39;, &#39;special&#39;)}&lt; ${inner} &gt;`;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: &quot;Box&lt; true &gt;&quot;\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj[util.inspect.custom] = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n<p>A custom inspection method can alternatively be provided by exposing\nan <code>inspect(depth, opts)</code> method on the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj.inspect = function(depth) {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n"
+              "desc": "<p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>\n(or the equivalent but deprecated <code>inspect(depth, opts)</code>) function that\n<code>util.inspect()</code> will invoke and use the result of when inspecting the object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  [util.inspect.custom](depth, options) {\n    if (depth &lt; 0) {\n      return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that&#39;s the size of &quot;Box&lt; &quot;.\n    const padding = &#39; &#39;.repeat(5);\n    const inner = util.inspect(this.value, newOptions)\n                      .replace(/\\n/g, `\\n${padding}`);\n    return `${options.stylize(&#39;Box&#39;, &#39;special&#39;)}&lt; ${inner} &gt;`;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: &quot;Box&lt; true &gt;&quot;\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nconst obj = { foo: &#39;this will not show up in the inspect() output&#39; };\nobj[util.inspect.custom] = (depth) =&gt; {\n  return { bar: &#39;baz&#39; };\n};\n\nutil.inspect(obj);\n// Returns: &quot;{ bar: &#39;baz&#39; }&quot;\n</code></pre>\n"
             }
           ],
           "modules": [
@@ -341,6 +342,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {Function} ",
+                "name": "return",
+                "type": "Function"
+              },
               "params": [
                 {
                   "textRaw": "`original` {Function} ",
@@ -362,7 +368,7 @@
             {
               "textRaw": "Custom promisified functions",
               "name": "custom_promisified_functions",
-              "desc": "<p>Using the <code>util.promisify.custom</code> symbol one can override the return value of\n<a href=\"#util_util_promisify_original\"><code>util.promisify()</code></a>:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction doSomething(foo, callback) {\n  // ...\n}\n\ndoSomething[util.promisify.custom] = function(foo) {\n  return getPromiseSomehow();\n};\n\nconst promisified = util.promisify(doSomething);\nconsole.log(promisified === doSomething[util.promisify.custom]);\n// prints &#39;true&#39;\n</code></pre>\n<p>This can be useful for cases where the original function does not follow the\nstandard format of taking an error-first callback as the last argument.</p>\n",
+              "desc": "<p>Using the <code>util.promisify.custom</code> symbol one can override the return value of\n<a href=\"#util_util_promisify_original\"><code>util.promisify()</code></a>:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\n\nfunction doSomething(foo, callback) {\n  // ...\n}\n\ndoSomething[util.promisify.custom] = (foo) =&gt; {\n  return getPromiseSomehow();\n};\n\nconst promisified = util.promisify(doSomething);\nconsole.log(promisified === doSomething[util.promisify.custom]);\n// prints &#39;true&#39;\n</code></pre>\n<p>This can be useful for cases where the original function does not follow the\nstandard format of taking an error-first callback as the last argument.</p>\n<p>For example, with a function that takes in <code>(foo, onSuccessCallback, onErrorCallback)</code>:</p>\n<pre><code class=\"lang-js\">doSomething[util.promisify.custom] = (foo) =&gt; {\n  return new Promise((resolve, reject) =&gt; {\n    doSomething(foo, resolve, reject);\n  });\n};\n</code></pre>\n",
               "type": "module",
               "displayName": "Custom promisified functions"
             },
@@ -393,8 +399,6 @@
             ],
             "changes": []
           },
-          "stability": 1,
-          "stabilityText": "Experimental",
           "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>\n<pre><code class=\"lang-js\">const decoder = new TextDecoder(&#39;shift_jis&#39;);\nlet string = &#39;&#39;;\nlet buffer;\nwhile (buffer = getNextChunkSomehow()) {\n  string += decoder.decode(buffer, { stream: true });\n}\nstring += decoder.decode(); // end-of-stream\n</code></pre>\n",
           "modules": [
             {
@@ -477,7 +481,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any\nincomplete byte sequences occuring at the end of the <code>input</code> are buffered\ninternally and emitted after the next call to <code>textDecoder.decode()</code>.</p>\n<p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a\n<code>TypeError</code> being thrown.</p>\n"
+              "desc": "<p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any\nincomplete byte sequences occurring at the end of the <code>input</code> are buffered\ninternally and emitted after the next call to <code>textDecoder.decode()</code>.</p>\n<p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a\n<code>TypeError</code> being thrown.</p>\n"
             }
           ],
           "properties": [
@@ -558,8 +562,6 @@
             ],
             "changes": []
           },
-          "stability": 1,
-          "stabilityText": "Experimental",
           "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All\ninstances of <code>TextEncoder</code> only support UTF-8 encoding.</p>\n<pre><code class=\"lang-js\">const encoder = new TextEncoder();\nconst uint8array = encoder.encode(&#39;this is some data&#39;);\n</code></pre>\n",
           "methods": [
             {

@@ -4,6 +4,7 @@
     {
       "textRaw": "Inspector",
       "name": "inspector",
+      "introduced_in": "v8.0.0",
       "stability": 1,
       "stabilityText": "Experimental",
       "desc": "<p>The <code>inspector</code> module provides an API for interacting with the V8 inspector.</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const inspector = require(&#39;inspector&#39;);\n</code></pre>\n",
@@ -216,7 +217,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({ params }) =&gt; {\n  console.log(params.hitBreakpoints);\n});\n// [ &#39;/node/test/inspector/test-bindings.js:11:0&#39; ]\n</code></pre>\n"
+              "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({ params }) =&gt; {\n  console.log(params.hitBreakpoints);\n});\n// [ &#39;/the/file/that/has/the/breakpoint.js:11:0&#39; ]\n</code></pre>\n"
             }
           ]
         }

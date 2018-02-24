@@ -25,14 +25,8 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "async-wrap.h"
-#include "base-object.h"
 #include "base-object-inl.h"
-#include "env.h"
-#include "env-inl.h"
 #include "node_internals.h"
-#include "util.h"
-#include "util-inl.h"
-#include "v8.h"
 
 namespace node {
 
@@ -41,13 +35,13 @@ inline AsyncWrap::ProviderType AsyncWrap::provider_type() const {
 }
 
 
-inline double AsyncWrap::get_id() const {
+inline double AsyncWrap::get_async_id() const {
   return async_id_;
 }
 
 
-inline double AsyncWrap::get_trigger_id() const {
-  return trigger_id_;
+inline double AsyncWrap::get_trigger_async_id() const {
+  return trigger_async_id_;
 }
 
 

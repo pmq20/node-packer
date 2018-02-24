@@ -4,24 +4,10 @@
 #include <stdlib.h>
 #include "gtest/gtest.h"
 #include "node.h"
+#include "node_platform.h"
 #include "env.h"
 #include "v8.h"
 #include "libplatform/libplatform.h"
-
-class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
- public:
-  virtual void* Allocate(size_t length) {
-    return AllocateUninitialized(length);
-  }
-
-  virtual void* AllocateUninitialized(size_t length) {
-    return calloc(length, 1);
-  }
-
-  virtual void Free(void* data, size_t) {
-    free(data);
-  }
-};
 
 struct Argv {
  public:
@@ -66,10 +52,13 @@ struct Argv {
   int nr_args_;
 };
 
+extern uv_loop_t current_loop;
+
 class NodeTestFixture : public ::testing::Test {
+ public:
+  static uv_loop_t* CurrentLoop() { return &current_loop; }
+
  protected:
-  v8::Isolate::CreateParams params_;
-  ArrayBufferAllocator allocator_;
   v8::Isolate* isolate_;
 
   ~NodeTestFixture() {
@@ -77,22 +66,31 @@ class NodeTestFixture : public ::testing::Test {
   }
 
   virtual void SetUp() {
-    platform_ = v8::platform::CreateDefaultPlatform();
+    CHECK_EQ(0, uv_loop_init(&current_loop));
+    platform_ = new node::NodePlatform(8, &current_loop, nullptr);
     v8::V8::InitializePlatform(platform_);
     v8::V8::Initialize();
-    params_.array_buffer_allocator = &allocator_;
+    v8::Isolate::CreateParams params_;
+    params_.array_buffer_allocator = allocator_.get();
     isolate_ = v8::Isolate::New(params_);
   }
 
   virtual void TearDown() {
     if (platform_ == nullptr) return;
+    platform_->Shutdown();
+    while (uv_loop_alive(&current_loop)) {
+      uv_run(&current_loop, UV_RUN_ONCE);
+    }
     v8::V8::ShutdownPlatform();
     delete platform_;
     platform_ = nullptr;
+    CHECK_EQ(0, uv_loop_close(&current_loop));
   }
 
  private:
-  v8::Platform* platform_ = nullptr;
+  node::NodePlatform* platform_ = nullptr;
+  std::unique_ptr<v8::ArrayBuffer::Allocator> allocator_{
+      v8::ArrayBuffer::Allocator::NewDefaultAllocator()};
 };
 
 #endif  // TEST_CCTEST_NODE_TEST_FIXTURE_H_

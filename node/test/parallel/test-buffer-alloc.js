@@ -266,10 +266,10 @@ assert.doesNotThrow(() => Buffer.alloc(1).write('', 1, 0));
 
 // Test construction from arrayish object
 {
-  const arrayIsh = {0: 0, 1: 1, 2: 2, 3: 3, length: 4};
+  const arrayIsh = { 0: 0, 1: 1, 2: 2, 3: 3, length: 4 };
   let g = Buffer.from(arrayIsh);
   assert.deepStrictEqual(g, Buffer.from([0, 1, 2, 3]));
-  const strArrayIsh = {0: '0', 1: '1', 2: '2', 3: '3', length: 4};
+  const strArrayIsh = { 0: '0', 1: '1', 2: '2', 3: '3', length: 4 };
   g = Buffer.from(strArrayIsh);
   assert.deepStrictEqual(g, Buffer.from([0, 1, 2, 3]));
 }
@@ -310,12 +310,12 @@ assert.strictEqual('TWFu', (Buffer.from('Man')).toString('base64'));
   assert.strictEqual(quote, b.toString('ascii', 0, quote.length));
 
   // check that the base64 decoder ignores whitespace
-  const expectedWhite = expected.slice(0, 60) + ' \n' +
-                        expected.slice(60, 120) + ' \n' +
-                        expected.slice(120, 180) + ' \n' +
-                        expected.slice(180, 240) + ' \n' +
-                        expected.slice(240, 300) + '\n' +
-                        expected.slice(300, 360) + '\n';
+  const expectedWhite = `${expected.slice(0, 60)} \n` +
+                        `${expected.slice(60, 120)} \n` +
+                        `${expected.slice(120, 180)} \n` +
+                        `${expected.slice(180, 240)} \n` +
+                        `${expected.slice(240, 300)}\n` +
+                        `${expected.slice(300, 360)}\n`;
   b = Buffer.allocUnsafe(1024);
   bytesWritten = b.write(expectedWhite, 0, 'base64');
   assert.strictEqual(quote.length, bytesWritten);
@@ -754,8 +754,8 @@ Buffer.allocUnsafe(3.3).fill().toString();
 Buffer.alloc(3.3).fill().toString();
 assert.strictEqual(Buffer.allocUnsafe(NaN).length, 0);
 assert.strictEqual(Buffer.allocUnsafe(3.3).length, 3);
-assert.strictEqual(Buffer.from({length: 3.3}).length, 3);
-assert.strictEqual(Buffer.from({length: 'BAM'}).length, 0);
+assert.strictEqual(Buffer.from({ length: 3.3 }).length, 3);
+assert.strictEqual(Buffer.from({ length: 'BAM' }).length, 0);
 
 // Make sure that strings are not coerced to numbers.
 assert.strictEqual(Buffer.from('99').length, 2);
@@ -905,7 +905,7 @@ assert.throws(() => Buffer.from('', 'buffer'),
   }
 }
 
-if (common.hasCrypto) {
+if (common.hasCrypto) { // eslint-disable-line crypto-check
   // Test truncation after decode
   const crypto = require('crypto');
 
@@ -992,4 +992,15 @@ assert.strictEqual(Buffer.prototype.toLocaleString, Buffer.prototype.toString);
 {
   const buf = Buffer.from('test');
   assert.strictEqual(buf.toLocaleString(), buf.toString());
+}
+
+{
+  // Ref: https://github.com/nodejs/node/issues/17423
+  const buf = Buffer.alloc(0x1000, 'This is not correctly encoded', 'hex');
+  assert(buf.every((byte) => byte === 0), `Buffer was not zeroed out: ${buf}`);
+}
+
+{
+  const buf = Buffer.alloc(0x1000, 'c', 'hex');
+  assert(buf.every((byte) => byte === 0), `Buffer was not zeroed out: ${buf}`);
 }

@@ -1,10 +1,21 @@
-#!/usr/bin/env python
+#!/bin/sh
+
+# Locate python2 interpreter and re-execute the script.  Note that the
+# mix of single and double quotes is intentional, as is the fact that
+# the ] goes on a new line.
+_=[ 'exec' '/bin/sh' '-c' '''
+which python2.7 >/dev/null && exec python2.7 "$0" "$@"
+which python2 >/dev/null && exec python2 "$0" "$@"
+exec python "$0" "$@"
+''' "$0" "$@"
+]
+del _
 
 import sys
+from distutils.spawn import find_executable as which
 if sys.version_info[0] != 2 or sys.version_info[1] not in (6, 7):
   sys.stderr.write('Please use either Python 2.6 or 2.7')
 
-  from distutils.spawn import find_executable as which
   python2 = which('python2') or which('python2.6') or which('python2.7')
 
   if python2:
@@ -24,21 +35,23 @@ import subprocess
 import shutil
 import string
 
+# If not run from node/, cd to node/.
+os.chdir(os.path.dirname(__file__) or '.')
+
 # gcc and g++ as defaults matches what GYP's Makefile generator does,
 # except on OS X.
 CC = os.environ.get('CC', 'cc' if sys.platform == 'darwin' else 'gcc')
 CXX = os.environ.get('CXX', 'c++' if sys.platform == 'darwin' else 'g++')
 
-root_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(root_dir, 'tools', 'gyp', 'pylib'))
+sys.path.insert(0, os.path.join('tools', 'gyp', 'pylib'))
 from gyp.common import GetFlavor
 
 # imports in tools/configure.d
-sys.path.insert(0, os.path.join(root_dir, 'tools', 'configure.d'))
+sys.path.insert(0, os.path.join('tools', 'configure.d'))
 import nodedownload
 
 # imports in tools/
-sys.path.insert(0, os.path.join(root_dir, 'tools'))
+sys.path.insert(0, 'tools')
 import getmoduleversion
 from gyp_node import run_gyp
 
@@ -133,17 +146,17 @@ parser.add_option("--partly-static",
 parser.add_option("--enable-vtune-profiling",
     action="store_true",
     dest="enable_vtune_profiling",
-    help="Enable profiling support for Intel VTune profiler to profile"
+    help="Enable profiling support for Intel VTune profiler to profile "
          "JavaScript code executed in nodejs. This feature is only available "
-         "for x32, x86 and x64 architectures.")
+         "for x32, x86, and x64 architectures.")
 
 
 parser.add_option("--link-module",
     action="append",
     dest="linked_module",
-    help="Path to a JS file to be bundled in the binary as a builtin."
-         "This module will be referenced by path without extension."
-         "e.g. /root/x/y.js will be referenced via require('root/x/y')."
+    help="Path to a JS file to be bundled in the binary as a builtin. "
+         "This module will be referenced by path without extension; "
+         "e.g. /root/x/y.js will be referenced via require('root/x/y'). "
          "Can be used multiple times")
 
 parser.add_option("--openssl-no-asm",
@@ -202,6 +215,27 @@ shared_optgroup.add_option('--shared-libuv-libpath',
     action='store',
     dest='shared_libuv_libpath',
     help='a directory to search for the shared libuv DLL')
+
+shared_optgroup.add_option('--shared-nghttp2',
+    action='store_true',
+    dest='shared_nghttp2',
+    help='link to a shared nghttp2 DLL instead of static linking')
+
+shared_optgroup.add_option('--shared-nghttp2-includes',
+    action='store',
+    dest='shared_nghttp2_includes',
+    help='directory containing nghttp2 header files')
+
+shared_optgroup.add_option('--shared-nghttp2-libname',
+    action='store',
+    dest='shared_nghttp2_libname',
+    default='nghttp2',
+    help='alternative lib name to link to [default: %default]')
+
+shared_optgroup.add_option('--shared-nghttp2-libpath',
+    action='store',
+    dest='shared_nghttp2_libpath',
+    help='a directory to search for the shared nghttp2 DLLs')
 
 shared_optgroup.add_option('--shared-openssl',
     action='store_true',
@@ -346,7 +380,7 @@ parser.add_option('--with-dtrace',
 parser.add_option('--with-lttng',
     action='store_true',
     dest='with_lttng',
-    help='build with Lttng (Only available to Linux)')
+    help='build with Lttng (Only supported on Linux)')
 
 parser.add_option('--with-etw',
     action='store_true',
@@ -394,7 +428,7 @@ intl_optgroup.add_option('--download',
 intl_optgroup.add_option('--download-path',
     action='store',
     dest='download_path',
-    default=os.path.join(root_dir, 'deps'),
+    default='deps',
     help='Download directory [default: %default]')
 
 parser.add_option_group(intl_optgroup)
@@ -408,6 +442,8 @@ http2_optgroup.add_option('--debug-nghttp2',
     action='store_true',
     dest='debug_nghttp2',
     help='build nghttp2 with DEBUGBUILD (default is false)')
+
+parser.add_option_group(http2_optgroup)
 
 parser.add_option('--with-perfctr',
     action='store_true',
@@ -437,12 +473,12 @@ parser.add_option('--without-perfctr',
 # Dummy option for backwards compatibility
 parser.add_option('--with-snapshot',
     action='store_true',
-    dest='with_snapshot',
+    dest='unused_with_snapshot',
     help=optparse.SUPPRESS_HELP)
 
 parser.add_option('--without-snapshot',
     action='store_true',
-    dest='unused_without_snapshot',
+    dest='without_snapshot',
     help=optparse.SUPPRESS_HELP)
 
 parser.add_option('--without-ssl',
@@ -640,8 +676,8 @@ def check_compiler(o):
   ok, is_clang, clang_version, gcc_version = try_check_compiler(CXX, 'c++')
   if not ok:
     warn('failed to autodetect C++ compiler version (CXX=%s)' % CXX)
-  elif clang_version < '3.4.2' if is_clang else gcc_version < '4.8.0':
-    warn('C++ compiler too old, need g++ 4.8 or clang++ 3.4.2 (CXX=%s)' % CXX)
+  elif clang_version < '3.4.2' if is_clang else gcc_version < '4.9.4':
+    warn('C++ compiler too old, need g++ 4.9.4 or clang++ 3.4.2 (CXX=%s)' % CXX)
 
   ok, is_clang, clang_version, gcc_version = try_check_compiler(CC, 'c')
   if not ok:
@@ -652,8 +688,7 @@ def check_compiler(o):
     # to a version that is not completely ancient.
     warn('C compiler too old, need gcc 4.2 or clang 3.2 (CC=%s)' % CC)
 
-  if is_clang:
-    o['variables']['llvm_version'] = get_llvm_version(CC)
+  o['variables']['llvm_version'] = get_llvm_version(CC) if is_clang else 0
 
   # Need xcode_version or gas_version when openssl asm files are compiled.
   if options.without_ssl or options.openssl_no_asm or options.shared_openssl:
@@ -827,11 +862,9 @@ def configure_node(o):
   cross_compiling = (options.cross_compiling
                      if options.cross_compiling is not None
                      else target_arch != host_arch)
-  want_snapshots = 1 if options.with_snapshot else 0
+  want_snapshots = not options.without_snapshot
   o['variables']['want_separate_host_toolset'] = int(
       cross_compiling and want_snapshots)
-  o['variables']['want_separate_host_toolset_mkpeephole'] = int(
-      cross_compiling)
 
   if target_arch == 'arm':
     configure_arm(o)
@@ -846,7 +879,7 @@ def configure_node(o):
     o['variables']['node_enable_v8_vtunejit'] = b(options.enable_vtune_profiling)
   elif options.enable_vtune_profiling:
     raise Exception(
-       'The VTune profiler for JavaScript is only supported on x32, x86 and x64 '
+       'The VTune profiler for JavaScript is only supported on x32, x86, and x64 '
        'architectures.')
   else:
     o['variables']['node_enable_v8_vtunejit'] = 'false'
@@ -984,7 +1017,7 @@ def configure_v8(o):
   o['variables']['v8_optimized_debug'] = 0  # Compile with -O0 in debug builds.
   o['variables']['v8_random_seed'] = 0  # Use a random seed for hash tables.
   o['variables']['v8_promise_internal_field_count'] = 1 # Add internal field to promises for async hooks.
-  o['variables']['v8_use_snapshot'] = b(options.with_snapshot)
+  o['variables']['v8_use_snapshot'] = 'false' if options.without_snapshot else 'true'
   o['variables']['v8_trace_maps'] = 1 if options.trace_maps else 0
   o['variables']['node_use_v8_platform'] = b(not options.without_v8_platform)
   o['variables']['node_use_bundled_v8'] = b(not options.without_bundled_v8)
@@ -1007,7 +1040,7 @@ def configure_openssl(o):
       o['defines'] += ['NODE_WITHOUT_NODE_OPTIONS']
   if options.openssl_fips:
     o['variables']['openssl_fips'] = options.openssl_fips
-    fips_dir = os.path.join(root_dir, 'deps', 'openssl', 'fips')
+    fips_dir = os.path.join('deps', 'openssl', 'fips')
     fips_ld = os.path.abspath(os.path.join(fips_dir, 'fipsld'))
     # LINK is for Makefiles, LD/LDXX is for ninja
     o['make_fips_settings'] = [
@@ -1052,7 +1085,7 @@ def configure_static(o):
 
 
 def write(filename, data):
-  filename = os.path.join(root_dir, filename)
+  filename = filename
   print('creating %s' % filename)
   f = open(filename, 'w+')
   f.write(data)
@@ -1174,7 +1207,7 @@ def configure_intl(o):
     return
 
   # this is just the 'deps' dir. Used for unpacking.
-  icu_parent_path = os.path.join(root_dir, 'deps')
+  icu_parent_path = 'deps'
 
   # The full path to the ICU source directory. Should not include './'.
   icu_full_path = 'deps/icu'
@@ -1339,6 +1372,40 @@ def configure_inspector(o):
                        options.without_ssl)
   o['variables']['v8_enable_inspector'] = 0 if disable_inspector else 1
 
+
+def make_bin_override():
+  if sys.platform == 'win32':
+    raise Exception('make_bin_override should not be called on win32.')
+  # If the system python is not the python we are running (which should be
+  # python 2), then create a directory with a symlink called `python` to our
+  # sys.executable. This directory will be prefixed to the PATH, so that
+  # other tools that shell out to `python` will use the appropriate python
+
+  which_python = which('python')
+  if (which_python and
+      os.path.realpath(which_python) == os.path.realpath(sys.executable)):
+    return
+
+  bin_override = os.path.abspath('out/tools/bin')
+  try:
+    os.makedirs(bin_override)
+  except OSError as e:
+    if e.errno != errno.EEXIST: raise e
+
+  python_link = os.path.join(bin_override, 'python')
+  try:
+    os.unlink(python_link)
+  except OSError as e:
+    if e.errno != errno.ENOENT: raise e
+  os.symlink(sys.executable, python_link)
+
+  # We need to set the environment right now so that when gyp (in run_gyp)
+  # shells out, it finds the right python (specifically at
+  # https://github.com/nodejs/node/blob/d82e107/deps/v8/gypfiles/toolchain.gypi#L43)
+  os.environ['PATH'] = bin_override + ':' + os.environ['PATH']
+
+  return bin_override
+
 output = {
   'variables': {},
   'include_dirs': [],
@@ -1362,6 +1429,7 @@ configure_library('zlib', output)
 configure_library('http_parser', output)
 configure_library('libuv', output)
 configure_library('libcares', output)
+configure_library('nghttp2', output)
 # stay backwards compatible with shared cares builds
 output['variables']['node_shared_cares'] = \
     output['variables'].pop('node_shared_libcares')
@@ -1408,12 +1476,19 @@ config = {
   'BUILDTYPE': 'Debug' if options.debug else 'Release',
   'USE_XCODE': str(int(options.use_xcode or 0)),
   'PYTHON': sys.executable,
+  'NODE_TARGET_TYPE': variables['node_target_type'] if options.enable_static \
+      else '',
 }
 
 if options.prefix:
   config['PREFIX'] = options.prefix
 
 config = '\n'.join(map('='.join, config.iteritems())) + '\n'
+
+# On Windows there's no reason to search for a different python binary.
+bin_override = None if sys.platform == 'win32' else make_bin_override()
+if bin_override:
+  config = 'export PATH:=' + bin_override + ':$(PATH)\n' + config
 
 write('config.mk', do_not_edit + config)
 

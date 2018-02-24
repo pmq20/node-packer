@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>URL | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>URL | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="url.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="url.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/url.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/url.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/url.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/url.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/url.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/url.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/url.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/url.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -173,7 +195,8 @@
 
       <div id="apicontent">
         <h1>URL<span><a class="mark" href="#url_url" id="url_url">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>url</code> module provides utilities for URL resolution and parsing. It can be
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>url</code> module provides utilities for URL resolution and parsing. It can be
 accessed using:</p>
 <pre><code class="lang-js">const url = require(&#39;url&#39;);
 </code></pre>
@@ -239,8 +262,11 @@ myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect bu
 return <code>true</code>.</p>
 <h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input URL to parse</li>
-<li><code>base</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> The base URL to resolve against if the <code>input</code> is not
+<li><code>input</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input URL to parse</li>
+<li><code>base</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> The base URL to resolve against if the <code>input</code> is not
 absolute.</li>
 </ul>
 </div><p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If
@@ -266,7 +292,8 @@ const myURL = new URL(&#39;https://你好你好&#39;);
 with <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the fragment portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -284,7 +311,8 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.host<span><a class="mark" href="#url_url_host" id="url_url_host">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the host portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -299,7 +327,8 @@ console.log(myURL.href);
 <p>Invalid host values assigned to the <code>host</code> property are ignored.</p>
 <h4>url.hostname<span><a class="mark" href="#url_url_hostname" id="url_url_hostname">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the hostname portion of the URL. The key difference between
 <code>url.host</code> and <code>url.hostname</code> is that <code>url.hostname</code> does <em>not</em> include the
@@ -316,7 +345,8 @@ console.log(myURL.href);
 <p>Invalid hostname values assigned to the <code>hostname</code> property are ignored.</p>
 <h4>url.href<span><a class="mark" href="#url_url_href" id="url_url_href">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the serialized URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -337,7 +367,8 @@ object&#39;s properties will be modified.</p>
 will be thrown.</p>
 <h4>url.origin<span><a class="mark" href="#url_url_origin" id="url_url_origin">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets the read-only serialization of the URL&#39;s origin.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -355,7 +386,8 @@ console.log(idnURL.hostname);
 </code></pre>
 <h4>url.password<span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the password portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -373,7 +405,8 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.pathname<span><a class="mark" href="#url_url_pathname" id="url_url_pathname">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the path portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -391,7 +424,8 @@ to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstr
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.port<span><a class="mark" href="#url_url_port" id="url_url_port">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the port portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -442,7 +476,8 @@ number, the leading number is assigned to <code>port</code>. Otherwise, or if th
 lies outside the range denoted above, it is ignored.</p>
 <h4>url.protocol<span><a class="mark" href="#url_url_protocol" id="url_url_protocol">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the protocol portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -457,7 +492,8 @@ console.log(myURL.href);
 <p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>
 <h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the serialized query portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -475,7 +511,8 @@ characters to percent-encode may vary somewhat from what the <a href="#url_url_p
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.searchParams<span><a class="mark" href="#url_url_searchparams" id="url_url_searchparams">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="url.html#url_class_urlsearchparams" class="type">&lt;URLSearchParams&gt;</a></li>
+<li>
+            <a href="url.html#url_class_urlsearchparams" class="type">&lt;URLSearchParams&gt;</a></li>
 </ul>
 </div><p>Gets the <a href="#url_class_urlsearchparams"><code>URLSearchParams</code></a> object representing the query parameters of the
 URL. This property is read-only; to replace the entirety of query parameters of
@@ -483,7 +520,8 @@ the URL, use the <a href="#url_url_search"><code>url.search</code></a> setter. S
 documentation for details.</p>
 <h4>url.username<span><a class="mark" href="#url_url_username" id="url_url_username">#</a></span></h4>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Gets and sets the username portion of the URL.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -501,7 +539,8 @@ characters to percent-encode may vary somewhat from what the <a href="#url_url_p
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.toString()<span><a class="mark" href="#url_url_tostring" id="url_url_tostring">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>toString()</code> method on the <code>URL</code> object returns the serialized URL. The
 value returned is equivalent to that of <a href="#url_url_href"><code>url.href</code></a> and <a href="#url_url_tojson"><code>url.toJSON()</code></a>.</p>
@@ -510,7 +549,8 @@ to customize the serialization process of the URL. For more flexibility,
 <a href="#url_url_format_url_options"><code>require(&#39;url&#39;).format()</code></a> method might be of interest.</p>
 <h4>url.toJSON()<span><a class="mark" href="#url_url_tojson" id="url_url_tojson">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>toJSON()</code> method on the <code>URL</code> object returns the serialized URL. The
 value returned is equivalent to that of <a href="#url_url_href"><code>url.href</code></a> and
@@ -572,7 +612,8 @@ console.log(myURL.href);
 <p>Instantiate a new empty <code>URLSearchParams</code> object.</p>
 <h4>Constructor: new URLSearchParams(string)<span><a class="mark" href="#url_constructor_new_urlsearchparams_string" id="url_constructor_new_urlsearchparams_string">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A query string</li>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A query string</li>
 </ul>
 </div><p>Parse the <code>string</code> as a query string, and use it to instantiate a new
 <code>URLSearchParams</code> object. A leading <code>&#39;?&#39;</code>, if present, is ignored.</p>
@@ -593,7 +634,8 @@ console.log(params.toString());
 <div class="api_metadata">
 <span>Added in: v7.10.0</span>
 </div><ul>
-<li><code>obj</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object representing a collection of key-value pairs</li>
+<li><code>obj</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object representing a collection of key-value pairs</li>
 </ul>
 <p>Instantiate a new <code>URLSearchParams</code> object with a query hash map. The key and
 value of each property of <code>obj</code> are always coerced to strings.</p>
@@ -614,7 +656,8 @@ console.log(params.toString());
 <div class="api_metadata">
 <span>Added in: v7.10.0</span>
 </div><ul>
-<li><code>iterable</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol" class="type">&lt;Iterable&gt;</a> An iterable object whose elements are key-value pairs</li>
+<li><code>iterable</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol" class="type">&lt;Iterable&gt;</a> An iterable object whose elements are key-value pairs</li>
 </ul>
 <p>Instantiate a new <code>URLSearchParams</code> object with an iterable map in a way that
 is similar to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map"><code>Map</code></a>&#39;s constructor. <code>iterable</code> can be an Array or any
@@ -662,18 +705,22 @@ new URLSearchParams([
 </code></pre>
 <h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>value</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Append a new name-value pair to the query string.</p>
 <h4>urlSearchParams.delete(name)<span><a class="mark" href="#url_urlsearchparams_delete_name" id="url_urlsearchparams_delete_name">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Remove all name-value pairs whose name is <code>name</code>.</p>
 <h4>urlSearchParams.entries()<span><a class="mark" href="#url_urlsearchparams_entries" id="url_urlsearchparams_entries">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 </div><p>Returns an ES6 Iterator over each of the name-value pairs in the query.
 Each item of the iterator is a JavaScript Array. The first item of the Array
@@ -681,8 +728,10 @@ is the <code>name</code>, the second item of the Array is the <code>value</code>
 <p>Alias for <a href="#url_urlsearchparams_iterator"><code>urlSearchParams[@@iterator]()</code></a>.</p>
 <h4>urlSearchParams.forEach(fn[, thisArg])<span><a class="mark" href="#url_urlsearchparams_foreach_fn_thisarg" id="url_urlsearchparams_foreach_fn_thisarg">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Function invoked for each name-value pair in the query.</li>
-<li><code>thisArg</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Object to be used as <code>this</code> value for when <code>fn</code> is called</li>
+<li><code>fn</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Function invoked for each name-value pair in the query.</li>
+<li><code>thisArg</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Object to be used as <code>this</code> value for when <code>fn</code> is called</li>
 </ul>
 </div><p>Iterates over each name-value pair in the query and invokes the given function.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
@@ -696,28 +745,35 @@ myURL.searchParams.forEach((value, name, searchParams) =&gt; {
 </code></pre>
 <h4>urlSearchParams.get(name)<span><a class="mark" href="#url_urlsearchparams_get_name" id="url_urlsearchparams_get_name">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> or <code>null</code> if there is no name-value pair with the given
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> or <code>null</code> if there is no name-value pair with the given
 <code>name</code>.</li>
 </ul>
 </div><p>Returns the value of the first name-value pair whose name is <code>name</code>. If there
 are no such pairs, <code>null</code> is returned.</p>
 <h4>urlSearchParams.getAll(name)<span><a class="mark" href="#url_urlsearchparams_getall_name" id="url_urlsearchparams_getall_name">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 </div><p>Returns the values of all name-value pairs whose name is <code>name</code>. If there are
 no such pairs, an empty array is returned.</p>
 <h4>urlSearchParams.has(name)<span><a class="mark" href="#url_urlsearchparams_has_name" id="url_urlsearchparams_has_name">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>Returns <code>true</code> if there is at least one name-value pair whose name is <code>name</code>.</p>
 <h4>urlSearchParams.keys()<span><a class="mark" href="#url_urlsearchparams_keys" id="url_urlsearchparams_keys">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 </div><p>Returns an ES6 Iterator over the names of each name-value pair.</p>
 <pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
@@ -731,8 +787,10 @@ for (const name of params.keys()) {
 </code></pre>
 <h4>urlSearchParams.set(name, value)<span><a class="mark" href="#url_urlsearchparams_set_name_value" id="url_urlsearchparams_set_name_value">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>value</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Sets the value in the <code>URLSearchParams</code> object associated with <code>name</code> to
 <code>value</code>. If there are any pre-existing name-value pairs whose names are <code>name</code>,
@@ -767,18 +825,21 @@ console.log(params.toString());
 </code></pre>
 <h4>urlSearchParams.toString()<span><a class="mark" href="#url_urlsearchparams_tostring" id="url_urlsearchparams_tostring">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Returns the search parameters serialized as a string, with characters
 percent-encoded where necessary.</p>
 <h4>urlSearchParams.values()<span><a class="mark" href="#url_urlsearchparams_values" id="url_urlsearchparams_values">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 </div><p>Returns an ES6 Iterator over the values of each name-value pair.</p>
 <h4>urlSearchParams[@@iterator]()<span><a class="mark" href="#url_urlsearchparams_iterator" id="url_urlsearchparams_iterator">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&lt;Iterator&gt;</a></li>
 </ul>
 </div><p>Returns an ES6 Iterator over each of the name-value pairs in the query string.
 Each item of the iterator is a JavaScript Array. The first item of the Array
@@ -797,8 +858,10 @@ for (const [name, value] of params) {
 <div class="api_metadata">
 <span>Added in: v7.4.0</span>
 </div><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>domain</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
 invalid domain, the empty string is returned.</p>
@@ -815,8 +878,10 @@ console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
 <div class="api_metadata">
 <span>Added in: v7.4.0</span>
 </div><ul>
-<li><code>domain</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>domain</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
 domain, the empty string is returned.</p>
@@ -833,15 +898,21 @@ console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
 </div><ul>
-<li><code>URL</code> <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> A <a href="#url_the_whatwg_url_api">WHATWG URL</a> object</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>auth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
+<li><code>URL</code> 
+            <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> A <a href="#url_the_whatwg_url_api">WHATWG URL</a> object</li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>auth</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
 username and password, <code>false</code> otherwise. Defaults to <code>true</code>.</li>
-<li><code>fragment</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
+<li><code>fragment</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
 fragment, <code>false</code> otherwise. Defaults to <code>true</code>.</li>
-<li><code>search</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
+<li><code>search</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the serialized URL string should include the
 search query, <code>false</code> otherwise. Defaults to <code>true</code>.</li>
-<li><code>unicode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if Unicode characters appearing in the host
+<li><code>unicode</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if Unicode characters appearing in the host
 component of the URL string should be encoded directly as opposed to being
 Punycode encoded. Defaults to <code>false</code>.</li>
 </ul>
@@ -942,13 +1013,15 @@ forward-slash characters (<code>/</code>) are required following the colon in th
 </table>
 </details>
 </div><ul>
-<li><code>urlObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A URL object (as returned by <code>url.parse()</code> or
+<li><code>urlObject</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A URL object (as returned by <code>url.parse()</code> or
 constructed otherwise). If a string, it is converted to an object by passing
 it to <code>url.parse()</code>.</li>
 </ul>
 <p>The <code>url.format()</code> method returns a formatted URL string derived from
 <code>urlObject</code>.</p>
-<p>If <code>urlObject</code> is not an object or a string, <code>url.parse()</code> will throw a
+<p>If <code>urlObject</code> is not an object or a string, <code>url.format()</code> will throw a
 <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a>.</p>
 <p>The formatting process operates as follows:</p>
 <ul>
@@ -1018,12 +1091,15 @@ string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is th
 <div class="api_metadata">
 <span>Added in: v0.1.25</span>
 </div><ul>
-<li><code>urlString</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The URL string to parse.</li>
-<li><code>parseQueryString</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the <code>query</code> property will always
+<li><code>urlString</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The URL string to parse.</li>
+<li><code>parseQueryString</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the <code>query</code> property will always
 be set to an object returned by the <a href="querystring.html"><code>querystring</code></a> module&#39;s <code>parse()</code>
 method. If <code>false</code>, the <code>query</code> property on the returned URL object will be an
 unparsed, undecoded string. Defaults to <code>false</code>.</li>
-<li><code>slashesDenoteHost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the first token after the literal
+<li><code>slashesDenoteHost</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the first token after the literal
 string <code>//</code> and preceding the next <code>/</code> will be interpreted as the <code>host</code>.
 For instance, given <code>//foo/bar</code>, the result would be
 <code>{host: &#39;foo&#39;, pathname: &#39;/bar&#39;}</code> rather than <code>{pathname: &#39;//foo/bar&#39;}</code>.
@@ -1053,8 +1129,10 @@ object.</p>
 </table>
 </details>
 </div><ul>
-<li><code>from</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The Base URL being resolved against.</li>
-<li><code>to</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The HREF URL being resolved.</li>
+<li><code>from</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The Base URL being resolved against.</li>
+<li><code>to</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The HREF URL being resolved.</li>
 </ul>
 <p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a
 manner similar to that of a Web browser resolving an anchor tag HREF.</p>

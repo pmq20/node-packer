@@ -25,11 +25,12 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "node.h"
-#include "util.h"
 #include "util-inl.h"
+#include "env-inl.h"
 #include "uv.h"
 #include "v8.h"
 #include "tracing/trace_event.h"
+#include "node_perf_common.h"
 #include "node_debug_options.h"
 
 #include <stdint.h>
@@ -68,6 +69,15 @@ extern bool config_preserve_symlinks;
 
 // Set in node.cc by ParseArgs when --expose-http2 is used.
 extern bool config_expose_http2;
+// Set in node.cc by ParseArgs when --experimental-modules is used.
+// Used in node_config.cc to set a constant on process.binding('config')
+// that is used by lib/module.js
+extern bool config_experimental_modules;
+
+// Set in node.cc by ParseArgs when --loader is used.
+// Used in node_config.cc to set a constant on process.binding('config')
+// that is used by lib/internal/bootstrap_node.js
+extern std::string config_userland_loader;
 
 // Set in node.cc by ParseArgs when --expose-internals or --expose_internals is
 // used.
@@ -133,7 +143,11 @@ void RegisterSignalHandler(int signal,
                            bool reset_handler = false);
 #endif
 
+uint32_t GetProcessId();
 bool SafeGetenv(const char* key, std::string* text);
+
+std::string GetHumanReadableProcessName();
+void GetHumanReadableProcessName(char (*name)[1024]);
 
 template <typename T, size_t N>
 constexpr size_t arraysize(const T(&)[N]) { return N; }
@@ -254,7 +268,48 @@ static v8::MaybeLocal<v8::Object> New(Environment* env,
 }
 }  // namespace Buffer
 
+v8::MaybeLocal<v8::Value> InternalMakeCallback(
+    Environment* env,
+    v8::Local<v8::Object> recv,
+    const v8::Local<v8::Function> callback,
+    int argc,
+    v8::Local<v8::Value> argv[],
+    async_context asyncContext);
+
+class InternalCallbackScope {
+ public:
+  // Tell the constructor whether its `object` parameter may be empty or not.
+  enum ResourceExpectation { kRequireResource, kAllowEmptyResource };
+  InternalCallbackScope(Environment* env,
+                        v8::Local<v8::Object> object,
+                        const async_context& asyncContext,
+                        ResourceExpectation expect = kRequireResource);
+  // Utility that can be used by AsyncWrap classes.
+  explicit InternalCallbackScope(AsyncWrap* async_wrap);
+  ~InternalCallbackScope();
+  void Close();
+
+  inline bool Failed() const { return failed_; }
+  inline void MarkAsFailed() { failed_ = true; }
+  inline bool IsInnerMakeCallback() const {
+    return callback_scope_.in_makecallback();
+  }
+
+ private:
+  Environment* env_;
+  async_context async_context_;
+  v8::Local<v8::Object> object_;
+  Environment::AsyncCallbackScope callback_scope_;
+  bool failed_ = false;
+  bool pushed_ids_ = false;
+  bool closed_ = false;
+};
+
+#define NODE_MODULE_CONTEXT_AWARE_INTERNAL(modname, regfunc)          \
+  NODE_MODULE_CONTEXT_AWARE_X(modname, regfunc, NULL, NM_F_INTERNAL)  \
+
 }  // namespace node
+
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 

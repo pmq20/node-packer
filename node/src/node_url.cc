@@ -1,12 +1,5 @@
 #include "node_url.h"
-#include "node.h"
 #include "node_internals.h"
-#include "env.h"
-#include "env-inl.h"
-#include "util.h"
-#include "util-inl.h"
-#include "v8.h"
-#include "base-object.h"
 #include "base-object-inl.h"
 #include "node_i18n.h"
 
@@ -521,10 +514,10 @@ static inline void PercentDecode(const char* input,
   dest->reserve(len);
   const char* pointer = input;
   const char* end = input + len;
-  size_t remaining = pointer - end - 1;
+
   while (pointer < end) {
     const char ch = pointer[0];
-    remaining = (end - pointer) + 1;
+    const size_t remaining = end - pointer - 1;
     if (ch != '%' || remaining < 2 ||
         (ch == '%' &&
          (!IsASCIIHexDigit(pointer[1]) ||
@@ -558,6 +551,19 @@ static inline bool IsSpecial(std::string scheme) {
   return false;
 }
 
+// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
+static inline bool StartsWithWindowsDriveLetter(const char* p,
+                                                const char* end) {
+  const size_t length = end - p;
+  return length >= 2 &&
+    IsWindowsDriveLetter(p[0], p[1]) &&
+    (length == 2 ||
+      p[2] == '/' ||
+      p[2] == '\\' ||
+      p[2] == '?' ||
+      p[2] == '#');
+}
+
 static inline int NormalizePort(std::string scheme, int p) {
 #define XX(name, port) if (scheme == name && p == port) return -1;
   SPECIALS(XX);
@@ -566,30 +572,30 @@ static inline int NormalizePort(std::string scheme, int p) {
 }
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
-static inline bool ToUnicode(std::string* input, std::string* output) {
+static inline bool ToUnicode(const std::string& input, std::string* output) {
   MaybeStackBuffer<char> buf;
-  if (i18n::ToUnicode(&buf, input->c_str(), input->length()) < 0)
+  if (i18n::ToUnicode(&buf, input.c_str(), input.length()) < 0)
     return false;
   output->assign(*buf, buf.length());
   return true;
 }
 
-static inline bool ToASCII(std::string* input, std::string* output) {
+static inline bool ToASCII(const std::string& input, std::string* output) {
   MaybeStackBuffer<char> buf;
-  if (i18n::ToASCII(&buf, input->c_str(), input->length()) < 0)
+  if (i18n::ToASCII(&buf, input.c_str(), input.length()) < 0)
     return false;
   output->assign(*buf, buf.length());
   return true;
 }
 #else
 // Intentional non-ops if ICU is not present.
-static inline bool ToUnicode(std::string* input, std::string* output) {
-  *output = *input;
+static inline bool ToUnicode(const std::string& input, std::string* output) {
+  *output = input;
   return true;
 }
 
-static inline bool ToASCII(std::string* input, std::string* output) {
-  *output = *input;
+static inline bool ToASCII(const std::string& input, std::string* output) {
+  *output = input;
   return true;
 }
 #endif
@@ -857,7 +863,7 @@ static url_host_type ParseHost(url_host* host,
   PercentDecode(input, length, &decoded);
 
   // Then we have to punycode toASCII
-  if (!ToASCII(&decoded, &decoded))
+  if (!ToASCII(decoded, &decoded))
     goto end;
 
   // If any of the following characters are still present, we have to fail
@@ -874,7 +880,7 @@ static url_host_type ParseHost(url_host* host,
     goto end;
 
   // If the unicode flag is set, run the result through punycode ToUnicode
-  if (unicode && !ToUnicode(&decoded, &decoded))
+  if (unicode && !ToUnicode(decoded, &decoded))
     goto end;
 
   // It's not an IPv4 or IPv6 address, it must be a domain
@@ -1007,7 +1013,7 @@ static inline void Copy(Environment* env,
 }
 
 static inline Local<Array> Copy(Environment* env,
-                                std::vector<std::string> vec) {
+                                const std::vector<std::string>& vec) {
   Isolate* isolate = env->isolate();
   Local<Array> ary = Array::New(isolate, vec.size());
   for (size_t n = 0; n < vec.size(); n++)
@@ -1199,11 +1205,10 @@ void URL::Parse(const char* input,
 
   while (p <= end) {
     const char ch = p < end ? p[0] : kEOL;
-    const size_t remaining = end == p ? 0 : (end - p - 1);
-
     bool special = (url->flags & URL_FLAGS_SPECIAL);
     bool cannot_be_base;
     const bool special_back_slash = (special && ch == '\\');
+
     switch (state) {
       case kSchemeStart:
         if (IsASCIIAlpha(ch)) {
@@ -1591,10 +1596,11 @@ void URL::Parse(const char* input,
                    ch == '#' ||
                    special_back_slash) {
           if (buffer.size() > 0) {
-            int port = 0;
-            for (size_t i = 0; i < buffer.size(); i++)
+            unsigned port = 0;
+            // the condition port <= 0xffff prevents integer overflow
+            for (size_t i = 0; port <= 0xffff && i < buffer.size(); i++)
               port = port * 10 + buffer[i] - '0';
-            if (port < 0 || port > 0xffff) {
+            if (port > 0xffff) {
               // TODO(TimothyGu): This hack is currently needed for the host
               // setter since it needs access to hostname if it is valid, and
               // if the FAILED flag is set the entire response to JS layer
@@ -1605,7 +1611,8 @@ void URL::Parse(const char* input,
                 url->flags |= URL_FLAGS_FAILED;
               return;
             }
-            url->port = NormalizePort(url->scheme, port);
+            // the port is valid
+            url->port = NormalizePort(url->scheme, static_cast<int>(port));
             buffer.clear();
           } else if (has_state_override) {
             // TODO(TimothyGu): Similar case as above.
@@ -1673,13 +1680,7 @@ void URL::Parse(const char* input,
               state = kFragment;
               break;
             default:
-              if ((remaining == 0 ||
-                   !IsWindowsDriveLetter(ch, p[1]) ||
-                   (remaining >= 2 &&
-                    p[2] != '/' &&
-                    p[2] != '\\' &&
-                    p[2] != '?' &&
-                    p[2] != '#'))) {
+              if (!StartsWithWindowsDriveLetter(p, end)) {
                 if (base->flags & URL_FLAGS_HAS_HOST) {
                   url->flags |= URL_FLAGS_HAS_HOST;
                   url->host = base->host;
@@ -1703,7 +1704,8 @@ void URL::Parse(const char* input,
           state = kFileHost;
         } else {
           if (has_base &&
-              base->scheme == "file:") {
+              base->scheme == "file:" &&
+              !StartsWithWindowsDriveLetter(p, end)) {
             if (IsNormalizedWindowsDriveLetter(base->path[0])) {
               url->flags |= URL_FLAGS_HAS_PATH;
               url->path.push_back(base->path[0]);
@@ -2078,6 +2080,69 @@ static void DomainToUnicode(const FunctionCallbackInfo<Value>& args) {
       String::NewFromUtf8(env->isolate(),
                           out.c_str(),
                           v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+std::string URL::ToFilePath() const {
+  if (context_.scheme != "file:") {
+    return "";
+  }
+
+#ifdef _WIN32
+  const char* slash = "\\";
+  auto is_slash = [] (char ch) {
+    return ch == '/' || ch == '\\';
+  };
+#else
+  const char* slash = "/";
+  auto is_slash = [] (char ch) {
+    return ch == '/';
+  };
+  if ((context_.flags & URL_FLAGS_HAS_HOST) &&
+      context_.host.length() > 0) {
+    return "";
+  }
+#endif
+  std::string decoded_path;
+  for (const std::string& part : context_.path) {
+    std::string decoded;
+    PercentDecode(part.c_str(), part.length(), &decoded);
+    for (char& ch : decoded) {
+      if (is_slash(ch)) {
+        return "";
+      }
+    }
+    decoded_path += slash + decoded;
+  }
+
+#ifdef _WIN32
+  // TODO(TimothyGu): Use "\\?\" long paths on Windows.
+
+  // If hostname is set, then we have a UNC path. Pass the hostname through
+  // ToUnicode just in case it is an IDN using punycode encoding. We do not
+  // need to worry about percent encoding because the URL parser will have
+  // already taken care of that for us. Note that this only causes IDNs with an
+  // appropriate `xn--` prefix to be decoded.
+  if ((context_.flags & URL_FLAGS_HAS_HOST) &&
+      context_.host.length() > 0) {
+    std::string unicode_host;
+    if (!ToUnicode(context_.host, &unicode_host)) {
+      return "";
+    }
+    return "\\\\" + unicode_host + decoded_path;
+  }
+  // Otherwise, it's a local path that requires a drive letter.
+  if (decoded_path.length() < 3) {
+    return "";
+  }
+  if (decoded_path[2] != ':' ||
+      !IsASCIIAlpha(decoded_path[1])) {
+    return "";
+  }
+  // Strip out the leading '\'.
+  return decoded_path.substr(1);
+#else
+  return decoded_path;
+#endif
 }
 
 // This function works by calling out to a JS function that creates and

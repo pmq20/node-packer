@@ -10,9 +10,10 @@ TEST_CI_ARGS ?=
 STAGINGSERVER ?= node-www
 LOGLEVEL ?= silent
 OSTYPE := $(shell uname -s | tr '[A-Z]' '[a-z]')
-COVTESTS ?= test
+COVTESTS ?= test-cov
 GTEST_FILTER ?= "*"
 GNUMAKEFLAGS += --no-print-directory
+GCOV ?= gcov
 
 ifdef JOBS
   PARALLEL_ARGS = -j $(JOBS)
@@ -32,6 +33,10 @@ V8_TEST_OPTIONS = $(V8_EXTRA_TEST_OPTIONS)
 ifdef DISABLE_V8_I18N
   V8_TEST_OPTIONS += --noi18n
   V8_BUILD_OPTIONS += i18nsupport=off
+endif
+
+ifeq ($(OSTYPE), darwin)
+  GCOV = xcrun llvm-cov gcov
 endif
 
 BUILDTYPE_LOWER := $(shell echo $(BUILDTYPE) | tr '[A-Z]' '[a-z]')
@@ -58,10 +63,16 @@ V ?= 1
 # BUILDTYPE=Debug builds both release and debug builds. If you want to compile
 # just the debug build, run `make -C out BUILDTYPE=Debug` instead.
 ifeq ($(BUILDTYPE),Release)
-all: out/Makefile $(NODE_EXE)
+all: out/Makefile $(NODE_EXE) ## Default target, builds node in out/Release/node.
 else
 all: out/Makefile $(NODE_EXE) $(NODE_G_EXE)
 endif
+
+# To add a target to the help, add a double comment (##) on the target line.
+help: ## Print help for targets with comments.
+	@printf "For more targets and info see the comments in the Makefile.\n\n"
+	@grep -E '^[a-zA-Z0-9._-]+:.*?## .*$$' Makefile | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # The .PHONY is needed to ensure that we recursively use the out/Makefile
 # to check for changes.
@@ -89,19 +100,23 @@ out/Makefile: common.gypi deps/uv/uv.gyp deps/http_parser/http_parser.gyp \
 config.gypi: configure
 	$(error Missing or stale $@, please run ./$<)
 
-install: all
+install: all ## Installs node into $PREFIX (default=/usr/local).
 	$(PYTHON) tools/install.py $@ '$(DESTDIR)' '$(PREFIX)'
 
-uninstall:
+uninstall: ## Uninstalls node from $PREFIX (default=/usr/local).
 	$(PYTHON) tools/install.py $@ '$(DESTDIR)' '$(PREFIX)'
 
-clean:
+clean: ## Remove build artifacts.
 	$(RM) -r out/Makefile $(NODE_EXE) $(NODE_G_EXE) out/$(BUILDTYPE)/$(NODE_EXE) \
-                out/$(BUILDTYPE)/node.exp
+		out/$(BUILDTYPE)/node.exp
 	@if [ -d out ]; then find out/ -name '*.o' -o -name '*.a' -o -name '*.d' | xargs $(RM) -r; fi
 	$(RM) -r node_modules
 	@if [ -d deps/icu ]; then echo deleting deps/icu; $(RM) -r deps/icu; fi
 	$(RM) test.tap
+	# Next one is legacy remove this at some point
+	$(RM) -r test/tmp*
+	$(RM) -r test/.tmp*
+	$(MAKE) test-addons-clean
 
 distclean:
 	$(RM) -r out
@@ -123,24 +138,27 @@ coverage-clean:
 	$(RM) -r node_modules
 	$(RM) -r gcovr testing
 	$(RM) -r out/$(BUILDTYPE)/.coverage
-	$(RM) -r .cov_tmp coverage
-	$(RM) out/$(BUILDTYPE)/obj.target/node/src/*.gcda
+	$(RM) -r .cov_tmp
+	$(RM) out/$(BUILDTYPE)/obj.target/node/{src,gen}/*.gcda
 	$(RM) out/$(BUILDTYPE)/obj.target/node/src/tracing/*.gcda
-	$(RM) out/$(BUILDTYPE)/obj.target/node/src/*.gcno
-	$(RM) out/$(BUILDTYPE)/obj.target/node/src/tracing*.gcno
+	$(RM) out/$(BUILDTYPE)/obj.target/node/{src,gen}/*.gcno
+	$(RM) out/$(BUILDTYPE)/obj.target/node/src/tracing/*.gcno
+	$(RM) out/$(BUILDTYPE)/obj.target/cctest/src/*.gcno
+	$(RM) out/$(BUILDTYPE)/obj.target/cctest/test/cctest/*.gcno
 
 # Build and test with code coverage reporting.  Leave the lib directory
 # instrumented for any additional runs the user may want to make.
 # For C++ coverage reporting, this needs to be run in conjunction with configure
 #  --coverage.  html coverage reports will be created under coverage/
 
-coverage: coverage-test
+coverage: coverage-test ## Run the tests and generate a coverage report.
 
 coverage-build: all
 	mkdir -p node_modules
 	if [ ! -d node_modules/istanbul-merge ]; then \
-		$(NODE) ./deps/npm install istanbul-merge; fi
-	if [ ! -d node_modules/nyc ]; then $(NODE) ./deps/npm install nyc; fi
+		$(NODE) ./deps/npm install istanbul-merge --no-save --no-package-lock; fi
+	if [ ! -d node_modules/nyc ]; then \
+		$(NODE) ./deps/npm install nyc --no-save --no-package-lock; fi
 	if [ ! -d gcovr ]; then git clone --depth=1 \
 		--single-branch git://github.com/gcovr/gcovr.git; fi
 	if [ ! -d testing ]; then git clone --depth=1 \
@@ -150,13 +168,13 @@ coverage-build: all
 		"$(CURDIR)/testing/coverage/gcovr-patches.diff"); fi
 	if [ -d lib_ ]; then $(RM) -r lib; mv lib_ lib; fi
 	mv lib lib_
-	$(NODE) ./node_modules/.bin/nyc instrument lib_/ lib/
+	$(NODE) ./node_modules/.bin/nyc instrument --extension .js --extension .mjs lib_/ lib/
 	$(MAKE)
 
 coverage-test: coverage-build
 	$(RM) -r out/$(BUILDTYPE)/.coverage
 	$(RM) -r .cov_tmp
-	$(RM) out/$(BUILDTYPE)/obj.target/node/src/*.gcda
+	$(RM) out/$(BUILDTYPE)/obj.target/node/{src,gen}/*.gcda
 	$(RM) out/$(BUILDTYPE)/obj.target/node/src/tracing/*.gcda
 	-$(MAKE) $(COVTESTS)
 	mv lib lib__
@@ -165,11 +183,12 @@ coverage-test: coverage-build
 	$(NODE) ./node_modules/.bin/istanbul-merge --out \
 		.cov_tmp/libcov.json 'out/Release/.coverage/coverage-*.json'
 	(cd lib && .$(NODE) ../node_modules/.bin/nyc report \
-		--temp-directory "$(CURDIR)/.cov_tmp" -r html \
+		--temp-directory "$(CURDIR)/.cov_tmp" \
 		--report-dir "../coverage")
 	-(cd out && "../gcovr/scripts/gcovr" --gcov-exclude='.*deps' \
 		--gcov-exclude='.*usr' -v -r Release/obj.target/node \
-		--html --html-detail -o ../coverage/cxxcoverage.html)
+		--html --html-detail -o ../coverage/cxxcoverage.html \
+		--gcov-executable="$(GCOV)")
 	mv lib lib_
 	mv lib__ lib
 	@echo -n "Javascript coverage %: "
@@ -192,10 +211,39 @@ v8:
 	tools/make-v8.sh
 	$(MAKE) -C deps/v8 $(V8_ARCH).$(BUILDTYPE_LOWER) $(V8_BUILD_OPTIONS)
 
+ifeq ($(NODE_TARGET_TYPE),static_library)
+test: all ## Default test target. Runs default tests, linters, and builds docs.
+	$(MAKE) cctest
+else
 test: all
+	$(MAKE) -s build-addons
+	$(MAKE) -s build-addons-napi
+	$(MAKE) -s doc-only
+	$(MAKE) -s lint
+	$(MAKE) -s cctest
+	$(PYTHON) tools/test.py --mode=release -J \
+		$(CI_ASYNC_HOOKS) \
+		$(CI_JS_SUITES) \
+		$(CI_NATIVE_SUITES) \
+		$(CI_DOC) \
+		known_issues
+endif
+
+# For a quick test, does not run linter or build doc
+test-only: all
 	$(MAKE) build-addons
 	$(MAKE) build-addons-napi
 	$(MAKE) cctest
+	$(PYTHON) tools/test.py --mode=release -J \
+		$(CI_ASYNC_HOOKS) \
+		$(CI_JS_SUITES) \
+		$(CI_NATIVE_SUITES) \
+		known_issues
+
+test-cov: all
+	$(MAKE) build-addons
+	$(MAKE) build-addons-napi
+	# $(MAKE) cctest
 	$(PYTHON) tools/test.py --mode=release -J \
 		$(CI_JS_SUITES) \
 		$(CI_NATIVE_SUITES)
@@ -210,6 +258,14 @@ test-valgrind: all
 test-check-deopts: all
 	$(PYTHON) tools/test.py --mode=release --check-deopts parallel sequential -J
 
+benchmark/misc/function_call/build/Release/binding.node: all \
+		benchmark/misc/function_call/binding.cc \
+		benchmark/misc/function_call/binding.gyp
+	$(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
+		--python="$(PYTHON)" \
+		--directory="$(shell pwd)/benchmark/misc/function_call" \
+		--nodedir="$(shell pwd)"
+
 # Implicitly depends on $(NODE_EXE).  We don't depend on it explicitly because
 # it always triggers a rebuild due to it being a .PHONY rule.  See the comment
 # near the build-addons rule for more background.
@@ -219,7 +275,6 @@ test/gc/build/Release/binding.node: test/gc/binding.cc test/gc/binding.gyp
 		--directory="$(shell pwd)/test/gc" \
 		--nodedir="$(shell pwd)"
 
-# Implicitly depends on $(NODE_EXE), see the build-addons rule for rationale.
 DOCBUILDSTAMP_PREREQS = tools/doc/addon-verify.js doc/api/addons.md
 
 ifeq ($(OSTYPE),aix)
@@ -228,7 +283,7 @@ endif
 
 test/addons/.docbuildstamp: $(DOCBUILDSTAMP_PREREQS)
 	$(RM) -r test/addons/??_*/
-	$(NODE) $<
+	[ -x $(NODE) ] && $(NODE) $< || node $<
 	touch $@
 
 ADDONS_BINDING_GYPS := \
@@ -250,7 +305,11 @@ test/addons/.buildstamp: config.gypi \
 	test/addons/.docbuildstamp
 #	Cannot use $(wildcard test/addons/*/) here, it's evaluated before
 #	embedded addons have been generated from the documentation.
+#	Ignore folders without binding.gyp
+#	(https://github.com/nodejs/node/issues/14843)
 	@for dirname in test/addons/*/; do \
+		if [ ! -f "$$PWD/$${dirname}binding.gyp" ]; then \
+			continue; fi ; \
 		printf "\nBuilding addon $$PWD/$$dirname\n" ; \
 		env MAKEFLAGS="-j1" $(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp \
 		        --loglevel=$(LOGLEVEL) rebuild \
@@ -260,13 +319,13 @@ test/addons/.buildstamp: config.gypi \
 	done
 	touch $@
 
-# .buildstamp and .docbuildstamp need $(NODE_EXE) but cannot depend on it
+# .buildstamp needs $(NODE_EXE) but cannot depend on it
 # directly because it calls make recursively.  The parent make cannot know
 # if the subprocess touched anything so it pessimistically assumes that
-# .buildstamp and .docbuildstamp are out of date and need a rebuild.
+# .buildstamp is out of date and need a rebuild.
 # Just goes to show that recursive make really is harmful...
 # TODO(bnoordhuis) Force rebuild after gyp update.
-build-addons: $(NODE_EXE) test/addons/.buildstamp
+build-addons: | $(NODE_EXE) test/addons/.buildstamp
 
 ADDONS_NAPI_BINDING_GYPS := \
 	$(filter-out test/addons-napi/??_*/binding.gyp, \
@@ -285,7 +344,11 @@ test/addons-napi/.buildstamp: config.gypi \
 	src/node_api.h src/node_api_types.h
 #	Cannot use $(wildcard test/addons-napi/*/) here, it's evaluated before
 #	embedded addons have been generated from the documentation.
+#	Ignore folders without binding.gyp
+#	(https://github.com/nodejs/node/issues/14843)
 	@for dirname in test/addons-napi/*/; do \
+		if [ ! -f "$$PWD/$${dirname}binding.gyp" ]; then \
+			continue; fi ; \
 		printf "\nBuilding addon $$PWD/$$dirname\n" ; \
 		env MAKEFLAGS="-j1" $(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp \
 		        --loglevel=$(LOGLEVEL) rebuild \
@@ -295,13 +358,13 @@ test/addons-napi/.buildstamp: config.gypi \
 	done
 	touch $@
 
-# .buildstamp and .docbuildstamp need $(NODE_EXE) but cannot depend on it
+# .buildstamp needs $(NODE_EXE) but cannot depend on it
 # directly because it calls make recursively.  The parent make cannot know
 # if the subprocess touched anything so it pessimistically assumes that
-# .buildstamp and .docbuildstamp are out of date and need a rebuild.
+# .buildstamp is out of date and need a rebuild.
 # Just goes to show that recursive make really is harmful...
 # TODO(bnoordhuis) Force rebuild after gyp or node-gyp update.
-build-addons-napi: $(NODE_EXE) test/addons-napi/.buildstamp
+build-addons-napi: | $(NODE_EXE) test/addons-napi/.buildstamp
 
 clear-stalled:
 	# Clean up any leftover processes but don't error if found.
@@ -321,14 +384,16 @@ test-build: | all build-addons build-addons-napi
 
 test-build-addons-napi: all build-addons-napi
 
-test-all: test-build test/gc/build/Release/binding.node
+test-all: test-build test/gc/build/Release/binding.node ## Run everything in test/.
 	$(PYTHON) tools/test.py --mode=debug,release
 
 test-all-valgrind: test-build
 	$(PYTHON) tools/test.py --mode=debug,release --valgrind
 
-CI_NATIVE_SUITES := addons addons-napi
-CI_JS_SUITES := async-hooks doctool inspector known_issues message parallel pseudo-tty sequential
+CI_NATIVE_SUITES ?= addons addons-napi
+CI_ASYNC_HOOKS := async-hooks
+CI_JS_SUITES ?= default
+CI_DOC := doctool
 
 # Build and test addons without building anything else
 test-ci-native: LOGLEVEL := info
@@ -341,7 +406,7 @@ test-ci-native: | test/addons/.buildstamp test/addons-napi/.buildstamp
 test-ci-js: | clear-stalled
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) -p tap --logfile test.tap \
 		--mode=release --flaky-tests=$(FLAKY_TESTS) \
-		$(TEST_CI_ARGS) $(CI_JS_SUITES)
+		$(TEST_CI_ARGS) $(CI_ASYNC_HOOKS) $(CI_JS_SUITES) known_issues
 	# Clean up any leftover processes, error if found.
 	ps awwx | grep Release/node | grep -v grep | cat
 	@PS_OUT=`ps awwx | grep Release/node | grep -v grep | awk '{print $$1}'`; \
@@ -350,11 +415,12 @@ test-ci-js: | clear-stalled
 	fi
 
 test-ci: LOGLEVEL := info
-test-ci: | clear-stalled build-addons build-addons-napi
+test-ci: | clear-stalled build-addons build-addons-napi doc-only
 	out/Release/cctest --gtest_output=tap:cctest.tap
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) -p tap --logfile test.tap \
 		--mode=release --flaky-tests=$(FLAKY_TESTS) \
-		$(TEST_CI_ARGS) $(CI_JS_SUITES) $(CI_NATIVE_SUITES)
+		$(TEST_CI_ARGS) $(CI_ASYNC_HOOKS) $(CI_JS_SUITES) $(CI_NATIVE_SUITES) \
+		$(CI_DOC) known_issues
 	# Clean up any leftover processes, error if found.
 	ps awwx | grep Release/node | grep -v grep | cat
 	@PS_OUT=`ps awwx | grep Release/node | grep -v grep | awk '{print $$1}'`; \
@@ -380,12 +446,6 @@ test-pummel: all
 test-internet: all
 	$(PYTHON) tools/test.py internet
 
-test-debugger: all
-	$(PYTHON) tools/test.py debugger
-
-test-inspector: all
-	$(PYTHON) tools/test.py inspector
-
 test-node-inspect: $(NODE_EXE)
 	USE_EMBEDDED_NODE_INSPECT=1 $(NODE) tools/test-npm-package \
 		--install deps/node-inspect test
@@ -396,11 +456,15 @@ test-tick-processor: all
 test-hash-seed: all
 	$(NODE) test/pummel/test-hash-seed.js
 
+test-doc: doc-only
+	$(MAKE) lint
+	$(PYTHON) tools/test.py $(CI_DOC)
+
 test-known-issues: all
 	$(PYTHON) tools/test.py known_issues
 
-test-npm: $(NODE_EXE)
-	NODE=$(NODE) tools/test-npm.sh
+test-npm: $(NODE_EXE) ## Run the npm test suite on deps/npm.
+	$(NODE) tools/test-npm-package --install --logfile=test-npm.tap deps/npm test-node
 
 test-npm-publish: $(NODE_EXE)
 	npm_package_config_publishtest=true $(NODE) deps/npm/test/run.js
@@ -431,15 +495,24 @@ test-timers-clean:
 test-async-hooks:
 	$(PYTHON) tools/test.py --mode=release async-hooks
 
+test-with-async-hooks:
+	$(MAKE) build-addons
+	$(MAKE) build-addons-napi
+	$(MAKE) cctest
+	NODE_TEST_WITH_ASYNC_HOOKS=1 $(PYTHON) tools/test.py --mode=release -J \
+		$(CI_JS_SUITES) \
+		$(CI_NATIVE_SUITES)
+
 
 ifneq ("","$(wildcard deps/v8/tools/run-tests.py)")
-test-v8: v8
+test-v8: v8  ## Runs the V8 test suite on deps/v8.
 #	note: performs full test unless QUICKCHECK is specified
 	deps/v8/tools/run-tests.py --arch=$(V8_ARCH) \
         --mode=$(BUILDTYPE_LOWER) $(V8_TEST_OPTIONS) $(QUICKCHECK_ARG) \
         --no-presubmit \
         --shell-dir=$(PWD)/deps/v8/out/$(V8_ARCH).$(BUILDTYPE_LOWER) \
 	 $(TAP_V8)
+	git clean -fdxq -- deps/v8
 	@echo Testing hash seed
 	$(MAKE) test-hash-seed
 
@@ -470,50 +543,68 @@ endif
 # generated .html files
 DOCS_ANALYTICS ?=
 
+apidoc_dirs = out/doc out/doc/api out/doc/api/assets
 apidoc_sources = $(wildcard doc/api/*.md)
-apidocs_html = $(apidoc_dirs) $(apiassets) $(addprefix out/,$(apidoc_sources:.md=.html))
-apidocs_json = $(apidoc_dirs) $(apiassets) $(addprefix out/,$(apidoc_sources:.md=.json))
-
-apidoc_dirs = out/doc out/doc/api/ out/doc/api/assets
+apidocs_html = $(addprefix out/,$(apidoc_sources:.md=.html))
+apidocs_json = $(addprefix out/,$(apidoc_sources:.md=.json))
 
 apiassets = $(subst api_assets,api/assets,$(addprefix out/,$(wildcard doc/api_assets/*)))
 
-doc-only: $(apidocs_html) $(apidocs_json)
+# This uses the locally built node if available, otherwise uses the global node
+doc-only: $(apidoc_dirs) $(apiassets)
+# If it's a source tarball, assets are already in doc/api/assets,
+# no need to install anything, we have already copied the docs over
+	if [ ! -d doc/api/assets ]; then \
+		$(MAKE) tools/doc/node_modules/js-yaml/package.json; \
+	fi;
+	@$(MAKE) -s $(apidocs_html) $(apidocs_json)
+
 doc: $(NODE_EXE) doc-only
 
-$(apidoc_dirs):
+out/doc:
 	mkdir -p $@
 
-out/doc/api/assets/%: doc/api_assets/% out/doc/api/assets/
-	cp $< $@
+# If it's a source tarball, doc/api already contains the generated docs.
+# Just copy everything under doc/api over.
+out/doc/api: doc/api
+	mkdir -p $@
+	cp -r doc/api out/doc
 
-out/doc/%: doc/%
-	cp -r $< $@
+# If it's a source tarball, assets are already in doc/api/assets
+out/doc/api/assets:
+	mkdir -p $@
+	if [ -d doc/api/assets ]; then cp -r doc/api/assets out/doc/api; fi;
 
-# check if ./node is actually set, else use user pre-installed binary
+# If it's not a source tarball, we need to copy assets from doc/api_assets
+out/doc/api/assets/%: doc/api_assets/% out/doc/api/assets
+	@cp $< $@
+
+# Use -e to double check in case it's a broken link
+# Use $(PWD) so we can cd to anywhere before calling this
+available-node = \
+  if [ -x $(PWD)/$(NODE) ] && [ -e $(PWD)/$(NODE) ]; then \
+		$(PWD)/$(NODE) $(1); \
+	elif [ -x `which node` ] && [ -e `which node` ]; then \
+		`which node` $(1); \
+	else \
+		echo "No available node, cannot run \"node $(1)\""; \
+		exit 1; \
+	fi;
+
+run-npm-install = $(PWD)/$(NPM) install --production
+
+tools/doc/node_modules/js-yaml/package.json:
+	cd tools/doc && $(call available-node,$(run-npm-install))
+
 gen-json = tools/doc/generate.js --format=json $< > $@
-out/doc/api/%.json: doc/api/%.md
-	@[ -e tools/doc/node_modules/js-yaml/package.json ] || \
-		[ -e tools/eslint/node_modules/js-yaml/package.json ] || \
-		if [ -x $(NODE) ]; then \
-			cd tools/doc && ../../$(NODE) ../../$(NPM) install; \
-		else \
-			cd tools/doc && node ../../$(NPM) install; \
-		fi
-	[ -x $(NODE) ] && $(NODE) $(gen-json) || node $(gen-json)
-
-# check if ./node is actually set, else use user pre-installed binary
 gen-html = tools/doc/generate.js --node-version=$(FULLVERSION) --format=html \
 			--template=doc/template.html --analytics=$(DOCS_ANALYTICS) $< > $@
+
+out/doc/api/%.json: doc/api/%.md
+	$(call available-node, $(gen-json))
+
 out/doc/api/%.html: doc/api/%.md
-	@[ -e tools/doc/node_modules/js-yaml/package.json ] || \
-		[ -e tools/eslint/node_modules/js-yaml/package.json ] || \
-		if [ -x $(NODE) ]; then \
-			cd tools/doc && ../../$(NODE) ../../$(NPM) install; \
-		else \
-			cd tools/doc && node ../../$(NPM) install; \
-		fi
-	[ -x $(NODE) ] && $(NODE) $(gen-html) || node $(gen-html)
+	$(call available-node, $(gen-html))
 
 docopen: $(apidocs_html)
 	@$(PYTHON) -mwebbrowser file://$(PWD)/out/doc/api/all.html
@@ -663,13 +754,17 @@ BINARYTAR=$(BINARYNAME).tar
 XZ=$(shell which xz > /dev/null 2>&1; echo $$?)
 XZ_COMPRESSION ?= 9e
 PKG=$(TARNAME).pkg
-PACKAGEMAKER ?= /Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
-PKGDIR=out/dist-osx
+MACOSOUTDIR=out/macos
 
 release-only:
 	@if [ "$(DISTTYPE)" != "nightly" ] && [ "$(DISTTYPE)" != "next-nightly" ] && \
 		`grep -q REPLACEME doc/api/*.md`; then \
 		echo 'Please update REPLACEME in Added: tags in doc/api/*.md (See doc/releases.md)' ; \
+		exit 1 ; \
+	fi
+	@if [ "$(DISTTYPE)" != "nightly" ] && [ "$(DISTTYPE)" != "next-nightly" ] && \
+		`grep -q DEP00XX doc/api/deprecations.md`; then \
+		echo 'Please update DEP00XX in doc/api/deprecations.md (See doc/releases.md)' ; \
 		exit 1 ; \
 	fi
 	@if [ "$(shell git status --porcelain | egrep -v '^\?\? ')" = "" ]; then \
@@ -694,24 +789,54 @@ release-only:
 	fi
 
 $(PKG): release-only
-	$(RM) -r $(PKGDIR)
-	$(RM) -r out/deps out/Release
+	$(RM) -r $(MACOSOUTDIR)
+	mkdir -p $(MACOSOUTDIR)/installer/productbuild
+	cat tools/macos-installer/productbuild/distribution.xml.tmpl  \
+		| sed -E "s/\\{nodeversion\\}/$(FULLVERSION)/g" \
+		| sed -E "s/\\{npmversion\\}/$(NPMVERSION)/g" \
+	>$(MACOSOUTDIR)/installer/productbuild/distribution.xml ; \
+
+	@for dirname in tools/macos-installer/productbuild/Resources/*/; do \
+		lang=$$(basename $$dirname) ; \
+		mkdir -p $(MACOSOUTDIR)/installer/productbuild/Resources/$$lang ; \
+		printf "Found localization directory $$dirname\n" ; \
+		cat $$dirname/welcome.html.tmpl  \
+			| sed -E "s/\\{nodeversion\\}/$(FULLVERSION)/g" \
+			| sed -E "s/\\{npmversion\\}/$(NPMVERSION)/g"  \
+		>$(MACOSOUTDIR)/installer/productbuild/Resources/$$lang/welcome.html ; \
+		cat $$dirname/conclusion.html.tmpl  \
+			| sed -E "s/\\{nodeversion\\}/$(FULLVERSION)/g" \
+			| sed -E "s/\\{npmversion\\}/$(NPMVERSION)/g"  \
+		>$(MACOSOUTDIR)/installer/productbuild/Resources/$$lang/conclusion.html ; \
+	done
 	$(PYTHON) ./configure \
 		--dest-cpu=x64 \
 		--tag=$(TAG) \
 		--release-urlbase=$(RELEASE_URLBASE) \
 		$(CONFIG_FLAGS) $(BUILD_RELEASE_FLAGS)
-	$(MAKE) install V=$(V) DESTDIR=$(PKGDIR)
-	SIGN="$(CODESIGN_CERT)" PKGDIR="$(PKGDIR)/usr/local" bash \
+	$(MAKE) install V=$(V) DESTDIR=$(MACOSOUTDIR)/dist/node
+	SIGN="$(CODESIGN_CERT)" PKGDIR="$(MACOSOUTDIR)/dist/node/usr/local" bash \
 		tools/osx-codesign.sh
-	cat tools/osx-pkg.pmdoc/index.xml.tmpl \
-		| sed -E "s/\\{nodeversion\\}/$(FULLVERSION)/g" \
-		| sed -E "s/\\{npmversion\\}/$(NPMVERSION)/g" \
-		> tools/osx-pkg.pmdoc/index.xml
-	$(PACKAGEMAKER) \
-		--id "org.nodejs.pkg" \
-		--doc tools/osx-pkg.pmdoc \
-		--out $(PKG)
+	mkdir -p $(MACOSOUTDIR)/dist/npm/usr/local/lib/node_modules
+	mkdir -p $(MACOSOUTDIR)/pkgs
+	mv $(MACOSOUTDIR)/dist/node/usr/local/lib/node_modules/npm \
+		$(MACOSOUTDIR)/dist/npm/usr/local/lib/node_modules
+	unlink $(MACOSOUTDIR)/dist/node/usr/local/bin/npm
+	unlink $(MACOSOUTDIR)/dist/node/usr/local/bin/npx
+	$(NODE) tools/license2rtf.js < LICENSE > \
+		$(MACOSOUTDIR)/installer/productbuild/Resources/license.rtf
+	cp doc/osx_installer_logo.png $(MACOSOUTDIR)/installer/productbuild/Resources
+	pkgbuild --version $(FULLVERSION) \
+		--identifier org.nodejs.node.pkg \
+		--root $(MACOSOUTDIR)/dist/node $(MACOSOUTDIR)/pkgs/node-$(FULLVERSION).pkg
+	pkgbuild --version $(NPMVERSION) \
+		--identifier org.nodejs.npm.pkg \
+		--root $(MACOSOUTDIR)/dist/npm \
+		--scripts ./tools/macos-installer/pkgbuild/npm/scripts \
+			$(MACOSOUTDIR)/pkgs/npm-$(NPMVERSION).pkg
+	productbuild --distribution $(MACOSOUTDIR)/installer/productbuild/distribution.xml \
+		--resources $(MACOSOUTDIR)/installer/productbuild/Resources \
+		--package-path $(MACOSOUTDIR)/pkgs ./$(PKG)
 	SIGN="$(PRODUCTSIGN_CERT)" PKG="$(PKG)" bash tools/osx-productsign.sh
 
 pkg: $(PKG)
@@ -733,7 +858,7 @@ $(TARBALL): release-only $(NODE_EXE) doc
 	$(RM) -r $(TARNAME)/deps/openssl/openssl/{doc,demos,test}
 	$(RM) -r $(TARNAME)/deps/zlib/contrib # too big, unused
 	$(RM) -r $(TARNAME)/.{editorconfig,git*,mailmap}
-	$(RM) -r $(TARNAME)/tools/{eslint,eslint-rules,osx-pkg.pmdoc,pkgsrc}
+	$(RM) -r $(TARNAME)/tools/{eslint,eslint-rules,osx-pkg.pmdoc,pkgsrc,remark-cli,remark-preset-lint-node}
 	$(RM) -r $(TARNAME)/tools/{osx-*,license-builder.sh,cpplint.py}
 	$(RM) -r $(TARNAME)/test*.tap
 	find $(TARNAME)/ -name ".eslint*" -maxdepth 2 | xargs $(RM)
@@ -746,7 +871,7 @@ ifeq ($(XZ), 0)
 endif
 	$(RM) $(TARNAME).tar
 
-tar: $(TARBALL)
+tar: $(TARBALL) ## Create a source tarball.
 
 tar-upload: tar
 	ssh $(STAGINGSERVER) "mkdir -p nodejs/$(DISTTYPEDIR)/$(FULLVERSION)"
@@ -782,7 +907,7 @@ ifeq ($(XZ), 0)
 endif
 	$(RM) $(TARNAME)-headers.tar
 
-tar-headers: $(TARBALL)-headers
+tar-headers: $(TARBALL)-headers ## Build the node header tarball.
 
 tar-headers-upload: tar-headers
 	ssh $(STAGINGSERVER) "mkdir -p nodejs/$(DISTTYPEDIR)/$(FULLVERSION)"
@@ -819,7 +944,7 @@ ifeq ($(XZ), 0)
 endif
 	$(RM) $(BINARYNAME).tar
 
-binary: $(BINARYTAR)
+binary: $(BINARYTAR) ## Build release binary tarballs.
 
 binary-upload: binary
 	ssh $(STAGINGSERVER) "mkdir -p nodejs/$(DISTTYPEDIR)/$(FULLVERSION)"
@@ -847,8 +972,7 @@ bench-http: all
 bench-fs: all
 	@$(NODE) benchmark/run.js fs
 
-bench-misc: all
-	@$(MAKE) -C benchmark/misc/function_call/
+bench-misc: benchmark/misc/function_call/build/Release/binding.node
 	@$(NODE) benchmark/run.js misc
 
 bench-array: all
@@ -871,30 +995,95 @@ bench-dgram: all
 
 bench-all: bench bench-misc bench-array bench-buffer bench-url bench-events bench-dgram bench-util
 
-bench: bench-net bench-http bench-fs bench-tls
+bench: bench-net bench-http bench-fs bench-tls ## Run node benchmarks.
 
 bench-ci: bench
 
-jslint:
-	@echo "Running JS linter..."
-	$(NODE) tools/eslint/bin/eslint.js --cache --rulesdir=tools/eslint-rules --ext=.js,.md \
-	  benchmark doc lib test tools
+lint-md-clean:
+	$(RM) -r tools/remark-cli/node_modules
+	$(RM) -r tools/remark-preset-lint-node/node_modules
+	$(RM) tools/.*mdlintstamp
 
-jslint-ci:
-	@echo "Running JS linter..."
-	$(NODE) tools/jslint.js $(PARALLEL_ARGS) -f tap -o test-eslint.tap \
-		benchmark doc lib test tools
+lint-md-build:
+	@if [ ! -d tools/remark-cli/node_modules ]; then \
+		echo "Markdown linter: installing remark-cli into tools/"; \
+		cd tools/remark-cli && ../../$(NODE) ../../$(NPM) install; fi
+	@if [ ! -d tools/remark-preset-lint-node/node_modules ]; then \
+		echo "Markdown linter: installing remark-preset-lint-node into tools/"; \
+		cd tools/remark-preset-lint-node && ../../$(NODE) ../../$(NPM) install; fi
 
-CPPLINT_EXCLUDE ?=
-CPPLINT_EXCLUDE += src/node_root_certs.h
-CPPLINT_EXCLUDE += src/queue.h
-CPPLINT_EXCLUDE += src/tree.h
-CPPLINT_EXCLUDE += $(wildcard test/addons/??_*/*.cc test/addons/??_*/*.h)
-CPPLINT_EXCLUDE += $(wildcard test/addons-napi/??_*/*.cc test/addons-napi/??_*/*.h)
+ifneq ("","$(wildcard tools/remark-cli/node_modules/)")
+LINT_MD_TARGETS = src lib benchmark tools/doc tools/icu
+LINT_MD_ROOT_DOCS := $(wildcard *.md)
+LINT_MD_FILES := $(shell find $(LINT_MD_TARGETS) -type f \
+  -not -path '*node_modules*' -name '*.md') $(LINT_MD_ROOT_DOCS)
+LINT_DOC_MD_FILES = $(shell ls doc/**/*.md)
+
+tools/.docmdlintstamp: $(LINT_DOC_MD_FILES)
+	@echo "Running Markdown linter on docs..."
+	@$(NODE) tools/remark-cli/cli.js -q -f $(LINT_DOC_MD_FILES)
+	@touch $@
+
+tools/.miscmdlintstamp: $(LINT_MD_FILES)
+	@echo "Running Markdown linter on misc docs..."
+	@$(NODE) tools/remark-cli/cli.js -q -f $(LINT_MD_FILES)
+	@touch $@
+
+tools/.mdlintstamp: tools/.miscmdlintstamp tools/.docmdlintstamp
+
+lint-md: | tools/.mdlintstamp
+else
+lint-md:
+	@echo "The markdown linter is not installed."
+	@echo "To install (requires internet access) run: $ make lint-md-build"
+endif
+
+LINT_JS_TARGETS = benchmark doc lib test tools
+LINT_JS_CMD = tools/eslint/bin/eslint.js --cache \
+	--rulesdir=tools/eslint-rules --ext=.js,.mjs,.md \
+	$(LINT_JS_TARGETS)
+
+lint-js-fix:
+	@if [ -x $(NODE) ]; then \
+		$(NODE) $(LINT_JS_CMD) --fix; \
+	else \
+		node $(LINT_JS_CMD) --fix; \
+	fi
+
+lint-js:
+	@echo "Running JS linter..."
+	@if [ -x $(NODE) ]; then \
+		$(NODE) $(LINT_JS_CMD); \
+	else \
+		node $(LINT_JS_CMD); \
+	fi
+
+jslint: lint-js
+	@echo "Please use lint-js instead of jslint"
+
+lint-js-ci:
+	@echo "Running JS linter..."
+	@if [ -x $(NODE) ]; then \
+		$(NODE) tools/lint-js.js $(PARALLEL_ARGS) -f tap -o test-eslint.tap \
+		$(LINT_JS_TARGETS); \
+	else \
+		node tools/lint-js.js $(PARALLEL_ARGS) -f tap -o test-eslint.tap \
+		$(LINT_JS_TARGETS); \
+	fi
+
+jslint-ci: lint-js-ci
+	@echo "Please use lint-js-ci instead of jslint-ci"
+
+LINT_CPP_ADDON_DOC_FILES = $(wildcard test/addons/??_*/*.cc test/addons/??_*/*.h)
+LINT_CPP_EXCLUDE ?=
+LINT_CPP_EXCLUDE += src/node_root_certs.h
+LINT_CPP_EXCLUDE += $(LINT_CPP_ADDON_DOC_FILES)
+LINT_CPP_EXCLUDE += $(wildcard test/addons-napi/??_*/*.cc test/addons-napi/??_*/*.h)
 # These files were copied more or less verbatim from V8.
-CPPLINT_EXCLUDE += src/tracing/trace_event.h src/tracing/trace_event_common.h
+LINT_CPP_EXCLUDE += src/tracing/trace_event.h src/tracing/trace_event_common.h
 
-CPPLINT_FILES = $(filter-out $(CPPLINT_EXCLUDE), $(wildcard \
+LINT_CPP_FILES = $(filter-out $(LINT_CPP_EXCLUDE), $(wildcard \
+	benchmark/misc/function_call/binding.cc \
 	src/*.c \
 	src/*.cc \
 	src/*.h \
@@ -912,19 +1101,35 @@ CPPLINT_FILES = $(filter-out $(CPPLINT_EXCLUDE), $(wildcard \
 	tools/icu/*.h \
 	))
 
-cpplint:
-	@echo "Running C++ linter..."
-	@$(PYTHON) tools/cpplint.py $(CPPLINT_FILES)
-	@$(PYTHON) tools/check-imports.py
+# Code blocks don't have newline at the end,
+# and the actual filename is generated so it won't match header guards
+ADDON_DOC_LINT_FLAGS=-whitespace/ending_newline,-build/header_guard
 
-ifneq ("","$(wildcard tools/eslint/bin/eslint.js)")
-lint:
+lint-cpp: tools/.cpplintstamp
+
+tools/.cpplintstamp: $(LINT_CPP_FILES)
+	@echo "Running C++ linter..."
+	@$(PYTHON) tools/cpplint.py $?
+	@$(PYTHON) tools/check-imports.py
+	@touch $@
+
+lint-addon-docs: test/addons/.docbuildstamp
+	@echo "Running C++ linter on addon docs..."
+	@$(PYTHON) tools/cpplint.py --filter=$(ADDON_DOC_LINT_FLAGS) $(LINT_CPP_ADDON_DOC_FILES)
+
+cpplint: lint-cpp
+	@echo "Please use lint-cpp instead of cpplint"
+
+ifneq ("","$(wildcard tools/eslint/)")
+lint: ## Run JS, C++, MD and doc linters.
 	@EXIT_STATUS=0 ; \
-	$(MAKE) jslint || EXIT_STATUS=$$? ; \
-	$(MAKE) cpplint || EXIT_STATUS=$$? ; \
+	$(MAKE) lint-js || EXIT_STATUS=$$? ; \
+	$(MAKE) lint-cpp || EXIT_STATUS=$$? ; \
+	$(MAKE) lint-md || EXIT_STATUS=$$? ; \
+	$(MAKE) lint-addon-docs || EXIT_STATUS=$$? ; \
 	exit $$EXIT_STATUS
 CONFLICT_RE=^>>>>>>> [0-9A-Fa-f]+|^<<<<<<< [A-Za-z]+
-lint-ci: jslint-ci cpplint
+lint-ci: lint-js-ci lint-cpp lint-md lint-addon-docs
 	@if ! ( grep -IEqrs "$(CONFLICT_RE)" benchmark deps doc lib src test tools ) \
 		&& ! ( find . -maxdepth 1 -type f | xargs grep -IEqs "$(CONFLICT_RE)" ); then \
 		exit 0 ; \
@@ -938,10 +1143,13 @@ lint:
 	@echo "Linting is not available through the source tarball."
 	@echo "Use the git repo instead:" \
 		"$ git clone https://github.com/nodejs/node.git"
-	exit 1
 
 lint-ci: lint
 endif
+
+lint-clean:
+	$(RM) tools/.*lintstamp
+	$(RM) .eslintcache
 
 .PHONY: $(TARBALL)-headers \
   all \
@@ -972,7 +1180,6 @@ endif
   coverage-build \
   coverage-clean \
   coverage-test \
-  cpplint \
   dist \
   distclean \
   doc \
@@ -980,14 +1187,21 @@ endif
   docclean \
   docopen \
   dynamiclib \
+  help \
   install \
   install-bin \
   install-includes \
-  jslint \
-  jslint-ci \
   lint \
+  lint-clean \
   lint-ci \
+  lint-cpp \
+  lint-js \
+  lint-js-ci \
+  lint-js-fix \
   list-gtests \
+  lint-md \
+  lint-md-build \
+  lint-md-clean \
   pkg \
   release-only \
   run-ci \
@@ -1002,9 +1216,11 @@ endif
   test-ci \
   test-ci-js \
   test-ci-native \
+  test-doc \
   test-gc \
   test-gc-clean \
   test-hash-seed \
+  test-only \
   test-v8 \
   test-v8-all \
   test-v8-benchmarks \

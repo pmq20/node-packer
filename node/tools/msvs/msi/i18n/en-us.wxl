@@ -9,8 +9,8 @@
     <String Id="MajorUpgrade_DowngradeErrorMessage">A later version of [ProductName] is already installed. Setup will now exit.</String>
 
     <!-- References like [ProductName] or $(var.ProductName) don't seem to work in Title attributes -->
-    <String Id="NodeRuntime_Title">Core executable</String>
-    <String Id="NodeRuntime_Description">Install the core [ProductName] executable.</String>
+    <String Id="NodeRuntime_Title">Node.js runtime</String>
+    <String Id="NodeRuntime_Description">Install the core [ProductName] runtime (node.exe).</String>
 
     <String Id="NodePerfCtrSupport_Title">Performance counters</String>
     <String Id="NodePerfCtrSupport_Description">Installs support for [ProductName]-specific performance counters.</String>
@@ -27,12 +27,12 @@
     <String Id="EnvironmentPath_Title">Add to PATH</String>
     <String Id="EnvironmentPath_Description">Add [ProductName], npm, and modules that were globally installed by npm to the PATH environment variable.</String>
 
-    <String Id="EnvironmentPathNode_Title">Core executable</String>
-    <String Id="EnvironmentPathNode_Description">Add [ProductName] to the PATH environment variable.</String>
+    <String Id="EnvironmentPathNode_Title">Node.js and npm</String>
+    <String Id="EnvironmentPathNode_Description">Add [ProductName] and npm (if installed) to the PATH environment variable.</String>
 
     <String Id="EnvironmentPathNpmModules_Title">npm modules</String>
     <String Id="EnvironmentPathNpmModules_Description">Add modules that are installed globally by npm to the PATH environment variable. This option works for the current user only; other users need to update their PATH manually.</String>
 
     <!-- References like [ProductName] are not resolved for Property tags -->
-    <String Id="WIXUI_EXITDIALOGOPTIONALTEXT">The product has been successfully installed.</String>
+    <String Id="WIXUI_EXITDIALOGOPTIONALTEXT">Node.js has been successfully installed.</String>
 </WixLocalization>

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Zlib | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Zlib | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="zlib" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="zlib.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="zlib.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/zlib.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/zlib.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/zlib.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/zlib.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/zlib.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/zlib.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/zlib.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/zlib.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -94,6 +116,7 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_2"><a href="#zlib_zlib">Zlib</a></span><ul>
+<li><span class="stability_undefined"><a href="#zlib_threadpool_usage">Threadpool Usage</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_compressing_http_requests_and_responses">Compressing HTTP requests and responses</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_memory_usage_tuning">Memory Usage Tuning</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_flushing">Flushing</a></span></li>
@@ -108,6 +131,7 @@
 <li><span class="stability_undefined"><a href="#zlib_class_zlib_unzip">Class: zlib.Unzip</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_class_zlib_zlib">Class: zlib.Zlib</a></span><ul>
 <li><span class="stability_undefined"><a href="#zlib_zlib_bytesread">zlib.bytesRead</a></span></li>
+<li><span class="stability_undefined"><a href="#zlib_zlib_close_callback">zlib.close([callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_zlib_flush_kind_callback">zlib.flush([kind], callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_zlib_params_level_strategy_callback">zlib.params(level, strategy, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#zlib_zlib_reset">zlib.reset()</a></span></li>
@@ -146,7 +170,8 @@
 
       <div id="apicontent">
         <h1>Zlib<span><a class="mark" href="#zlib_zlib" id="zlib_zlib">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>zlib</code> module provides compression functionality implemented using Gzip and
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>zlib</code> module provides compression functionality implemented using Gzip and
 Deflate/Inflate. It can be accessed using:</p>
 <pre><code class="lang-js">const zlib = require(&#39;zlib&#39;);
 </code></pre>
@@ -178,6 +203,11 @@ zlib.unzip(buffer, (err, buffer) =&gt; {
   }
 });
 </code></pre>
+<h2>Threadpool Usage<span><a class="mark" href="#zlib_threadpool_usage" id="zlib_threadpool_usage">#</a></span></h2>
+<p>Note that all zlib APIs except those that are explicitly synchronous use libuv&#39;s
+threadpool, which can have surprising and negative performance implications for
+some applications, see the <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more
+information.</p>
 <h2>Compressing HTTP requests and responses<span><a class="mark" href="#zlib_compressing_http_requests_and_responses" id="zlib_compressing_http_requests_and_responses">#</a></span></h2>
 <p>The <code>zlib</code> module can be used to implement support for the <code>gzip</code> and <code>deflate</code>
 content-encoding mechanisms defined by
@@ -229,7 +259,7 @@ http.createServer((request, response) =&gt; {
   }
 
   // Note: This is not a conformant accept-encoding parser.
-  // See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
+  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
   if (/\bdeflate\b/.test(acceptEncoding)) {
     response.writeHead(200, { &#39;Content-Encoding&#39;: &#39;deflate&#39; });
     raw.pipe(zlib.createDeflate()).pipe(response);
@@ -327,7 +357,7 @@ http.createServer((request, response) =&gt; {
 <code>require(&#39;zlib&#39;).constants</code>. In the normal course of operations, it will not be
 necessary to use these  constants. They are documented so that their presence is
 not surprising. This section is taken almost directly from the
-<a href="http://zlib.net/manual.html#Constants">zlib documentation</a>.  See <a href="http://zlib.net/manual.html#Constants">http://zlib.net/manual.html#Constants</a> for more
+<a href="https://zlib.net/manual.html#Constants">zlib documentation</a>.  See <a href="https://zlib.net/manual.html#Constants">https://zlib.net/manual.html#Constants</a> for more
 details.</p>
 <p><em>Note</em>: Previously, the constants were available directly from
 <code>require(&#39;zlib&#39;)</code>, for instance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants
@@ -393,19 +423,30 @@ events.</p>
 <p>Note that some options are only relevant when compressing, and are
 ignored by the decompression classes.</p>
 <ul>
-<li><code>flush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: <code>zlib.constants.Z_NO_FLUSH</code>)</li>
-<li><code>finishFlush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: <code>zlib.constants.Z_FINISH</code>)</li>
-<li><code>chunkSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: 16*1024)</li>
-<li><code>windowBits</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>level</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
-<li><code>memLevel</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
-<li><code>strategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
-<li><code>dictionary</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> (deflate/inflate only, empty dictionary by
+<li><code>flush</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: <code>zlib.constants.Z_NO_FLUSH</code>)</li>
+<li><code>finishFlush</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: <code>zlib.constants.Z_FINISH</code>)</li>
+<li><code>chunkSize</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (default: 16*1024)</li>
+<li><code>windowBits</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>level</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
+<li><code>memLevel</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
+<li><code>strategy</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> (compression only)</li>
+<li><code>dictionary</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> (deflate/inflate only, empty dictionary by
 default)</li>
-<li><code>info</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>)</li>
+<li><code>info</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>)</li>
 </ul>
 <p>See the description of <code>deflateInit2</code> and <code>inflateInit2</code> at
-<a href="http://zlib.net/manual.html#Advanced">http://zlib.net/manual.html#Advanced</a> for more information on these.</p>
+<a href="https://zlib.net/manual.html#Advanced">https://zlib.net/manual.html#Advanced</a> for more information on these.</p>
 <h2>Class: zlib.Deflate<span><a class="mark" href="#zlib_class_zlib_deflate" id="zlib_class_zlib_deflate">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
@@ -483,11 +524,16 @@ class of the compressor/decompressor classes.</p>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>zlib.bytesRead</code> property specifies the number of bytes read by the engine
 before the bytes are processed (compressed or decompressed, as appropriate for
 the derived class).</p>
+<h3>zlib.close([callback])<span><a class="mark" href="#zlib_zlib_close_callback" id="zlib_zlib_close_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.4</span>
+</div><p>Close the underlying handle.</p>
 <h3>zlib.flush([kind], callback)<span><a class="mark" href="#zlib_zlib_flush_kind_callback" id="zlib_zlib_flush_kind_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
@@ -520,9 +566,12 @@ the inflate and deflate algorithms.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div><p>Creates and returns a new <a href="#zlib_class_zlib_deflateraw">DeflateRaw</a> object with the given <a href="#zlib_class_options">options</a>.</p>
-<p><em>Note</em>: The zlib library rejects requests for 256-byte windows (i.e.,
-<code>{ windowBits: 8 }</code> in <code>options</code>). An <code>Error</code> will be thrown when creating
-a <a href="#zlib_class_zlib_deflateraw">DeflateRaw</a> object with this specific value of the <code>windowBits</code> option.</p>
+<p><em>Note</em>: An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when windowBits
+is set to 8 for raw deflate streams. zlib would automatically set windowBits
+to 9 if was initially set to 8. Newer versions of zlib will throw an exception,
+so Node.js restored the original behavior of upgrading a value of 8 to 9,
+since passing <code>windowBits = 9</code> to zlib actually results in a compressed stream
+that effectively uses an 8-bit window only.</p>
 <h2>zlib.createGunzip(<a href="#zlib_class_options">options</a>)<span><a class="mark" href="#zlib_zlib_creategunzip_options" id="zlib_zlib_creategunzip_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
@@ -583,7 +632,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Compress a chunk of data with <a href="#zlib_class_zlib_deflate">Deflate</a>.</p>
 <h3>zlib.deflateRaw(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_deflateraw_buffer_options_callback" id="zlib_zlib_deflateraw_buffer_options_callback">#</a></span></h3>
@@ -619,7 +672,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Compress a chunk of data with <a href="#zlib_class_zlib_deflateraw">DeflateRaw</a>.</p>
 <h3>zlib.gunzip(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_gunzip_buffer_options_callback" id="zlib_zlib_gunzip_buffer_options_callback">#</a></span></h3>
@@ -655,7 +712,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Decompress a chunk of data with <a href="#zlib_class_zlib_gunzip">Gunzip</a>.</p>
 <h3>zlib.gzip(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_gzip_buffer_options_callback" id="zlib_zlib_gzip_buffer_options_callback">#</a></span></h3>
@@ -691,7 +752,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Compress a chunk of data with <a href="#zlib_class_zlib_gzip">Gzip</a>.</p>
 <h3>zlib.inflate(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_inflate_buffer_options_callback" id="zlib_zlib_inflate_buffer_options_callback">#</a></span></h3>
@@ -727,7 +792,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Decompress a chunk of data with <a href="#zlib_class_zlib_inflate">Inflate</a>.</p>
 <h3>zlib.inflateRaw(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_inflateraw_buffer_options_callback" id="zlib_zlib_inflateraw_buffer_options_callback">#</a></span></h3>
@@ -763,7 +832,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Decompress a chunk of data with <a href="#zlib_class_zlib_inflateraw">InflateRaw</a>.</p>
 <h3>zlib.unzip(buffer[, options], callback)<span><a class="mark" href="#zlib_zlib_unzip_buffer_options_callback" id="zlib_zlib_unzip_buffer_options_callback">#</a></span></h3>
@@ -799,7 +872,11 @@ without a callback.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>buffer</code> 
+            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Decompress a chunk of data with <a href="#zlib_class_zlib_unzip">Unzip</a>.</p>
 

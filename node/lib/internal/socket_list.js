@@ -8,6 +8,7 @@ class SocketListSend extends EventEmitter {
     super();
     this.key = key;
     this.child = child;
+    child.once('exit', () => this.emit('exit', this));
   }
 
   _request(msg, cmd, callback) {
@@ -102,4 +103,4 @@ class SocketListReceive extends EventEmitter {
   }
 }
 
-module.exports = {SocketListSend, SocketListReceive};
+module.exports = { SocketListSend, SocketListReceive };

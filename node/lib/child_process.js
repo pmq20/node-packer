@@ -23,21 +23,24 @@
 
 const util = require('util');
 const { deprecate, convertToValidSignal } = require('internal/util');
+const { isUint8Array } = require('internal/util/types');
 const { createPromise,
         promiseResolve, promiseReject } = process.binding('util');
 const debug = util.debuglog('child_process');
 
 const uv = process.binding('uv');
 const spawn_sync = process.binding('spawn_sync');
-const Buffer = require('buffer').Buffer;
-const Pipe = process.binding('pipe_wrap').Pipe;
-const { isUint8Array } = process.binding('util');
+const { Buffer } = require('buffer');
+const { Pipe } = process.binding('pipe_wrap');
 const child_process = require('internal/child_process');
+const {
+  _validateStdio,
+  setupChannel,
+  ChildProcess
+} = child_process;
 
 const errnoException = util._errnoException;
-const _validateStdio = child_process._validateStdio;
-const setupChannel = child_process.setupChannel;
-const ChildProcess = exports.ChildProcess = child_process.ChildProcess;
+exports.ChildProcess = ChildProcess;
 
 function stdioStringToArray(option) {
   switch (option) {
@@ -95,6 +98,7 @@ exports.fork = function(modulePath /*, args, options*/) {
   }
 
   options.execPath = options.execPath || process.execPath;
+  options.shell = false;
 
   return spawn(options.execPath, args, options);
 };
@@ -211,6 +215,7 @@ exports.execFile = function(file /*, args, options, callback*/) {
     gid: options.gid,
     uid: options.uid,
     shell: options.shell,
+    windowsHide: !!options.windowsHide,
     windowsVerbatimArguments: !!options.windowsVerbatimArguments
   });
 
@@ -322,11 +327,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stdoutLen > options.maxBuffer) {
         ex = new Error('stdout maxBuffer exceeded');
         kill();
+      } else if (encoding) {
+        _stdout += chunk;
       } else {
-        if (encoding)
-          _stdout += chunk;
-        else
-          _stdout.push(chunk);
+        _stdout.push(chunk);
       }
     });
   }
@@ -341,11 +345,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stderrLen > options.maxBuffer) {
         ex = new Error('stderr maxBuffer exceeded');
         kill();
+      } else if (encoding) {
+        _stderr += chunk;
       } else {
-        if (encoding)
-          _stderr += chunk;
-        else
-          _stderr.push(chunk);
+        _stderr.push(chunk);
       }
     });
   }
@@ -375,45 +378,7 @@ function _convertCustomFds(options) {
   }
 }
 
-function __enclose_io_memfs__node_shebang(file) {
-  const fs = require('fs');
-  const fd = fs.openSync(file, 'r');
-  if (fd < 0) {
-    return false;
-  }
-  var buffer = new Buffer(2);
-  var bytesRead = fs.readSync(fd, buffer, 0, 2, 0);
-  if (2 != bytesRead) {
-    fs.closeSync(fd);
-    return false;
-  }
-  if ('#'.charCodeAt(0) === buffer[0] && '!'.charCodeAt(0) === buffer[1]) {
-    var line = '';
-    var index = 0;
-    do {
-      var bytesRead = fs.readSync(fd, buffer, 0, 1, index);
-      if (1 != bytesRead) {
-        fs.closeSync(fd);
-        return false;
-      }
-      ++index;
-      line += String.fromCharCode(buffer[0]);
-    } while ('\n' !== line[line.length - 1]);
-    var result = line.match(new RegExp("#!/usr/bin/env node(\\n|\\b.*\\n)"));
-    if (null !== result) {
-      fs.closeSync(fd);
-      return result[1];
-    }
-  }
-  fs.closeSync(fd);
-  return false;
-}
-
 function normalizeSpawnArguments(file, args, options) {
-  // --------- [Enclose.IO Hack start] ---------
-  debug('normalizeSpawnArguments started with', file, args, options);
-  // --------- [Enclose.IO Hack end] ---------
-
   if (typeof file !== 'string' || file.length === 0)
     throw new TypeError('"file" argument must be a non-empty string');
 
@@ -467,6 +432,12 @@ function normalizeSpawnArguments(file, args, options) {
     throw new TypeError('"argv0" must be a string');
   }
 
+  // Validate windowsHide, if present.
+  if (options.windowsHide != null &&
+      typeof options.windowsHide !== 'boolean') {
+    throw new TypeError('"windowsHide" must be a boolean');
+  }
+
   // Validate windowsVerbatimArguments, if present.
   if (options.windowsVerbatimArguments != null &&
       typeof options.windowsVerbatimArguments !== 'boolean') {
@@ -475,118 +446,6 @@ function normalizeSpawnArguments(file, args, options) {
 
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
-
-  // --------- [Enclose.IO Hack start] ---------
-  // allow executing files within the enclosed package
-  var will_extract = true;
-  var args_extract = function(obj) {
-    if (!will_extract) {
-      return obj;
-    }
-    if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-      var file_extracted = process.__enclose_io_memfs__extract(obj);
-      if (false === file_extracted) {
-        debug('process.__enclose_io_memfs__extract failed with', obj, file_extracted);
-        will_extract = false;
-        return obj;
-      } else {
-        debug('process.__enclose_io_memfs__extract succeeded with', obj, file_extracted);
-        return file_extracted;
-      }
-    } else {
-      return obj;
-    }
-  };
-  
-  if ('node' === file || process.execPath === file) {
-    will_extract = false;
-    file = process.execPath;
-  } else {
-    if (process.platform === 'win32') {
-      if (file && file.indexOf && 1 === file.indexOf(':\\__enclose_io_memfs__')) {
-        file = file.substr(2).replace(/\\/g, '/');
-      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\__enclose_io_memfs__')) {
-        file = file.substr(3).replace(/\\/g, '/');
-      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\') && 1 === file.substr(4).indexOf(':\\__enclose_io_memfs__')) {
-        file = file.substr(6).replace(/\\/g, '/');
-      }
-    }
-    if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-      // shebang: looking at the two bytes at the start of an executable file
-      var shebang_args = __enclose_io_memfs__node_shebang(file);
-      if (false === shebang_args) {
-        var file_extracted;
-        if (/^win/.test(process.platform)) {
-          file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
-        } else {
-          file_extracted = process.__enclose_io_memfs__extract(file);
-        }
-        if (false === file_extracted) {
-          debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
-          will_extract = false;
-        } else {
-          debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
-          file = file_extracted;
-          require('fs').chmodSync(file_extracted, '0755');
-        }
-      } else {
-        debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
-        args.unshift(file);
-        if ('' !== shebang_args.trim()) {
-          args.unshift(shebang_args.trim());
-        }
-        file = process.execPath;
-        will_extract = false;
-      }
-    } else if ('sh' === file && '-c' === args[0]) {
-      var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
-      if (null !== args1_matched) {
-        will_extract = false;
-        var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
-        if (false === shebang_args) {
-          var file_extracted;
-          if (/^win/.test(process.platform)) {
-            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
-          } else {
-            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
-          }
-          if (false === file_extracted) {
-            debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
-          } else {
-            debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
-            args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
-            require('fs').chmodSync(file_extracted, '0755');
-          }
-        } else {
-          debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
-          args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
-        }
-      }
-    }
-
-  }
-
-  args = args.map(args_extract);
-
-  // allow reusing the package itself as an Node.js interpreter
-  var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
-  var command_outer = [file].concat(args).join(' ');
-  var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
-  var command_regexp_json_execPath = (JSON.stringify(process.execPath)+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
-  [
-    new RegExp(`^${command_regexp_execPath}$`),
-    new RegExp(`^${command_regexp_execPath}\\s`),
-    new RegExp(`\\s${command_regexp_execPath}$`),
-    new RegExp(`\\s${command_regexp_execPath}\\s`),
-    new RegExp(`"${command_regexp_execPath}"`),
-    new RegExp(`'${command_regexp_execPath}'`),
-    new RegExp(command_regexp_json_execPath)
-  ].forEach(function(element) {
-    if (command_outer.match(element) !== null) {
-      flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
-    }
-  });
-  // --------- [Enclose.IO Hack end] ---------
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
@@ -624,21 +483,6 @@ function normalizeSpawnArguments(file, args, options) {
 
   _convertCustomFds(options);
 
-  // --------- [Enclose.IO Hack start] ---------
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
-    envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
-  if (options.cwd) { // TODO no need to do this for ordinary paths
-    envPairs.push(`ENCLOSE_IO_CHDIR=${options.cwd}`);
-  }
-  debug('normalizeSpawnArguments ends with', {
-    file: file,
-    args: args,
-    options: options,
-    envPairs: envPairs
-  });
-  // --------- [Enclose.IO Hack end] ---------
-
   return {
     file: file,
     args: args,
@@ -659,6 +503,7 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
     file: opts.file,
     args: opts.args,
     cwd: options.cwd,
+    windowsHide: !!options.windowsHide,
     windowsVerbatimArguments: !!options.windowsVerbatimArguments,
     detached: !!options.detached,
     envPairs: opts.envPairs,

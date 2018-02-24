@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Process | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Process | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process active" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="process.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="process.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/process.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/process.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/process.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/process.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/process.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/process.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/process.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/process.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -173,6 +195,7 @@
 
       <div id="apicontent">
         <h1>Process<span><a class="mark" href="#process_process" id="process_process">#</a></span></h1>
+<!-- introduced_in=v0.10.0 -->
 <!-- type=global -->
 <p>The <code>process</code> object is a <code>global</code> that provides information about, and control
 over, the current Node.js process. As a global, it is always available to
@@ -233,14 +256,17 @@ In the following example, for instance, the timeout will never occur:</p>
 <span>Added in: v0.5.10</span>
 </div><p>If the Node.js process is spawned with an IPC channel (see the <a href="child_process.html">Child Process</a>
 and <a href="cluster.html">Cluster</a> documentation), the <code>&#39;message&#39;</code> event is emitted whenever a
-message sent by a parent process using <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>childprocess.send()</code></a> is received by
+message sent by a parent process using <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>childprocess.send()</code></a> is received by
 the child process.</p>
 <p>The listener callback is invoked with the following arguments:</p>
 <ul>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> a parsed JSON object or primitive value</li>
+<li><code>message</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> a parsed JSON object or primitive value.</li>
 <li><code>sendHandle</code> <span class="type">&lt;Handle object&gt;</span> a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> or <a href="net.html#net_class_net_server"><code>net.Server</code></a> object, or
 undefined.</li>
 </ul>
+<p><em>Note</em>: The message goes through serialization and parsing. The resulting
+message might not be the same as what is originally sent.</p>
 <h3>Event: &#39;rejectionHandled&#39;<span><a class="mark" href="#process_event_rejectionhandled" id="process_event_rejectionhandled">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.4.1</span>
@@ -346,7 +372,8 @@ useful for detecting and keeping track of promises that were rejected whose
 rejections have not yet been handled.</p>
 <p>The listener function is called with the following arguments:</p>
 <ul>
-<li><code>reason</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> | <span class="type">&lt;any&gt;</span> The object with which the promise was rejected
+<li><code>reason</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> | <span class="type">&lt;any&gt;</span> The object with which the promise was rejected
 (typically an <a href="errors.html#errors_class_error"><code>Error</code></a> object).</li>
 <li><code>p</code> the <code>Promise</code> that was rejected.</li>
 </ul>
@@ -384,13 +411,16 @@ being emitted. Alternatively, the <a href="#process_event_rejectionhandled"><cod
 conditions that are being brought to the user&#39;s attention. However, warnings
 are not part of the normal Node.js and JavaScript error handling flow.
 Node.js can emit warnings whenever it detects bad coding practices that could
-lead to sub-optimal application performance, bugs or security vulnerabilities.</p>
+lead to sub-optimal application performance, bugs, or security vulnerabilities.</p>
 <p>The listener function is called with a single <code>warning</code> argument whose value is
 an <code>Error</code> object. There are three key properties that describe the warning:</p>
 <ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The name of the warning (currently <code>Warning</code> by default).</li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A system-provided description of the warning.</li>
-<li><code>stack</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A stack trace to the location in the code where the warning
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The name of the warning (currently <code>Warning</code> by default).</li>
+<li><code>message</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A system-provided description of the warning.</li>
+<li><code>stack</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A stack trace to the location in the code where the warning
 was issued.</li>
 </ul>
 <pre><code class="lang-js">process.on(&#39;warning&#39;, (warning) =&gt; {
@@ -437,7 +467,7 @@ custom or application-specific warnings.</p>
 <!--type=event-->
 <!--name=SIGINT, SIGHUP, etc.-->
 <p>Signal events will be emitted when the Node.js process receives a signal. Please
-refer to <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signal(7)</a> for a listing of standard POSIX signal names such as
+refer to  <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signal(7)</a> for a listing of standard POSIX signal names such as
 <code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>
 <p>The name of each event will be the uppercase common name for the signal (e.g.
 <code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>
@@ -453,7 +483,7 @@ process.on(&#39;SIGINT&#39;, () =&gt; {
 terminal programs.</p>
 <p>It is important to take note of the following:</p>
 <ul>
-<li><code>SIGUSR1</code> is reserved by Node.js to start the debugger.  It&#39;s possible to
+<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href="debugger.html">debugger</a>. It&#39;s possible to
 install a listener but doing so will <em>not</em> stop the debugger from starting.</li>
 <li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that
 resets the terminal mode before exiting with code <code>128 + signal number</code>. If
@@ -461,7 +491,7 @@ one of these signals has a listener installed, its default behavior will be
 removed (Node.js will no longer exit).</li>
 <li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>
 <li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on
-other platforms under various similar conditions, see <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signal(7)</a>. It can have a
+other platforms under various similar conditions, see  <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signal(7)</a>. It can have a
 listener installed, however Node.js will be unconditionally terminated by
 Windows about 10 seconds later. On non-Windows platforms, the default
 behavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been
@@ -480,13 +510,13 @@ when a readable tty is used in raw mode.</li>
 Node.js on all platforms.</li>
 <li><code>SIGSTOP</code> cannot have a listener installed.</li>
 <li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially
- using <a href="http://man7.org/linux/man-pages/man2/kill.2.html">kill(2)</a>, inherently leave the process in a state from which it is not
+ using  <a href="http://man7.org/linux/man-pages/man2/kill.2.html">kill(2)</a>, inherently leave the process in a state from which it is not
  safe to attempt to call JS listeners. Doing so might lead to the process
  hanging in an endless loop, since listeners attached using <code>process.on()</code> are
  called asynchronously and therefore unable to correct the underlying problem.</li>
 </ul>
 <p><em>Note</em>: Windows does not support sending signals, but Node.js offers some
-emulation with <a href="#process_process_kill_pid_signal"><code>process.kill()</code></a>, and <a href="child_process.html#child_process_child_kill_signal"><code>ChildProcess.kill()</code></a>. Sending
+emulation with <a href="#process_process_kill_pid_signal"><code>process.kill()</code></a>, and <a href="child_process.html#child_process_subprocess_kill_signal"><code>subprocess.kill()</code></a>. Sending
 signal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,
 <code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target
 process.</p>
@@ -499,7 +529,8 @@ generate a core file.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.arch</code> property returns a String identifying the processor
 architecture that the Node.js process is currently running on. For instance
@@ -510,7 +541,8 @@ architecture that the Node.js process is currently running on. For instance
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 <p>The <code>process.argv</code> property returns an array containing the command line
 arguments passed when the Node.js process was launched. The first element will
@@ -538,7 +570,8 @@ process.argv.forEach((val, index) =&gt; {
 <div class="api_metadata">
 <span>Added in: 6.4.0</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.argv0</code> property stores a read-only copy of the original value of
 <code>argv[0]</code> passed when Node.js starts.</p>
@@ -559,7 +592,8 @@ property is <code>undefined</code>.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
 </div><ul>
-<li><code>directory</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>directory</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.chdir()</code> method changes the current working directory of the
 Node.js process or throws an exception if doing so fails (for instance, if
@@ -576,7 +610,8 @@ try {
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.config</code> property returns an Object containing the JavaScript
 representation of the configure options used to compile the current Node.js
@@ -616,7 +651,8 @@ replace the value of <code>process.config</code>.</p>
 <div class="api_metadata">
 <span>Added in: v0.7.2</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>If the Node.js process is spawned with an IPC channel (see the <a href="child_process.html">Child Process</a>
 and <a href="cluster.html">Cluster</a> documentation), the <code>process.connected</code> property will return
@@ -628,11 +664,15 @@ over the IPC channel using <code>process.send()</code>.</p>
 <div class="api_metadata">
 <span>Added in: v6.1.0</span>
 </div><ul>
-<li><code>previousValue</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> A previous return value from calling
+<li><code>previousValue</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> A previous return value from calling
 <code>process.cpuUsage()</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>user</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>system</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>user</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>system</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -657,7 +697,8 @@ console.log(process.cpuUsage(startUsage));
 <div class="api_metadata">
 <span>Added in: v0.1.8</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.cwd()</code> method returns the current working directory of the Node.js
 process.</p>
@@ -671,22 +712,29 @@ and <a href="cluster.html">Cluster</a> documentation), the <code>process.disconn
 IPC channel to the parent process, allowing the child process to exit gracefully
 once there are no other connections keeping it alive.</p>
 <p>The effect of calling <code>process.disconnect()</code> is that same as calling the parent
-process&#39;s <a href="child_process.html#child_process_child_disconnect"><code>ChildProcess.disconnect()</code></a>.</p>
+process&#39;s <a href="child_process.html#child_process_subprocess_disconnect"><code>ChildProcess.disconnect()</code></a>.</p>
 <p>If the Node.js process was not spawned with an IPC channel,
 <code>process.disconnect()</code> will be <code>undefined</code>.</p>
 <h2>process.emitWarning(warning[, options])<span><a class="mark" href="#process_process_emitwarning_warning_options" id="process_process_emitwarning_warning_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: 8.0.0</span>
 </div><ul>
-<li><code>warning</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
+<li><code>warning</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
 for the <em>type</em> of warning being emitted. Default: <code>Warning</code>.</li>
-<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
-<li><code>ctor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
+<li><code>code</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
+<li><code>ctor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
 function used to limit the generated stack trace. Default
 <code>process.emitWarning</code></li>
-<li><code>detail</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Additional text to include with the error.</li>
+<li><code>detail</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Additional text to include with the error.</li>
 </ul>
 </li>
 </ul>
@@ -718,11 +766,16 @@ process.emitWarning(&#39;Something happened!&#39;, {
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><ul>
-<li><code>warning</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
+<li><code>warning</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> The warning to emit.</li>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> When <code>warning</code> is a String, <code>type</code> is the name to use
 for the <em>type</em> of warning being emitted. Default: <code>Warning</code>.</li>
-<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
-<li><code>ctor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
+<li><code>code</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A unique identifier for the warning instance being emitted.</li>
+<li><code>ctor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>warning</code> is a String, <code>ctor</code> is an optional
 function used to limit the generated stack trace. Default
 <code>process.emitWarning</code></li>
 </ul>
@@ -795,10 +848,11 @@ emitMyWarning();
 <div class="api_metadata">
 <span>Added in: v0.1.27</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.env</code> property returns an object containing the user environment.
-See <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
+See  <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
 <p>An example of this object looks like:</p>
 <!-- eslint-skip -->
 <pre><code class="lang-js">{
@@ -850,7 +904,8 @@ console.log(process.env.test);
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.execArgv</code> property returns the set of Node.js-specific command-line
 options passed when the Node.js process was launched. These options do not
@@ -873,7 +928,8 @@ the same execution environment as the parent.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.execPath</code> property returns the absolute pathname of the executable
 that started the Node.js process.</p>
@@ -885,7 +941,8 @@ that started the Node.js process.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.13</span>
 </div><ul>
-<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The exit code. Defaults to <code>0</code>.</li>
+<li><code>code</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The exit code. Defaults to <code>0</code>.</li>
 </ul>
 <p>The <code>process.exit()</code> method instructs Node.js to terminate the process
 synchronously with an exit status of <code>code</code>. If <code>code</code> is omitted, exit uses
@@ -934,7 +991,8 @@ is safer than calling <code>process.exit()</code>.</p>
 <div class="api_metadata">
 <span>Added in: v0.11.8</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>A number which will be the process exit code, when the process either
 exits gracefully, or is exited via <a href="#process_process_exit_code"><code>process.exit()</code></a> without specifying
@@ -945,7 +1003,7 @@ previous setting of <code>process.exitCode</code>.</p>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
 </div><p>The <code>process.getegid()</code> method returns the numerical effective group identity
-of the Node.js process. (See <a href="http://man7.org/linux/man-pages/man2/getegid.2.html">getegid(2)</a>.)</p>
+of the Node.js process. (See  <a href="http://man7.org/linux/man-pages/man2/getegid.2.html">getegid(2)</a>.)</p>
 <pre><code class="lang-js">if (process.getegid) {
   console.log(`Current gid: ${process.getegid()}`);
 }
@@ -956,10 +1014,11 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.geteuid()</code> method returns the numerical effective user identity of
-the process. (See <a href="http://man7.org/linux/man-pages/man2/geteuid.2.html">geteuid(2)</a>.)</p>
+the process. (See  <a href="http://man7.org/linux/man-pages/man2/geteuid.2.html">geteuid(2)</a>.)</p>
 <pre><code class="lang-js">if (process.geteuid) {
   console.log(`Current uid: ${process.geteuid()}`);
 }
@@ -970,10 +1029,11 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.getgid()</code> method returns the numerical group identity of the
-process. (See <a href="http://man7.org/linux/man-pages/man2/getgid.2.html">getgid(2)</a>.)</p>
+process. (See  <a href="http://man7.org/linux/man-pages/man2/getgid.2.html">getgid(2)</a>.)</p>
 <pre><code class="lang-js">if (process.getgid) {
   console.log(`Current gid: ${process.getgid()}`);
 }
@@ -984,7 +1044,8 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 <p>The <code>process.getgroups()</code> method returns an array with the supplementary group
 IDs. POSIX leaves it unspecified if the effective group ID is included but
@@ -995,10 +1056,11 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.1.28</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>The <code>process.getuid()</code> method returns the numeric user identity of the process.
-(See <a href="http://man7.org/linux/man-pages/man2/getuid.2.html">getuid(2)</a>.)</p>
+(See  <a href="http://man7.org/linux/man-pages/man2/getuid.2.html">getuid(2)</a>.)</p>
 <pre><code class="lang-js">if (process.getuid) {
   console.log(`Current uid: ${process.getuid()}`);
 }
@@ -1009,8 +1071,10 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.7.6</span>
 </div><ul>
-<li><code>time</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> The result of a previous call to <code>process.hrtime()</code></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li><code>time</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> The result of a previous call to <code>process.hrtime()</code></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 <p>The <code>process.hrtime()</code> method returns the current high-resolution real time
 in a <code>[seconds, nanoseconds]</code> tuple Array, where <code>nanoseconds</code> is the
@@ -1039,8 +1103,12 @@ setTimeout(() =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>user</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The user name or numeric identifier.</li>
-<li><code>extra_group</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A group name or numeric identifier.</li>
+<li><code>user</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The user name or numeric identifier.</li>
+<li><code>extra_group</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A group name or numeric identifier.</li>
 </ul>
 <p>The <code>process.initgroups()</code> method reads the <code>/etc/group</code> file and initializes
 the group access list, using all groups of which the user is a member. This is
@@ -1059,14 +1127,17 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.0.6</span>
 </div><ul>
-<li><code>pid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A process ID</li>
-<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The signal to send, either as a string or number.
+<li><code>pid</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A process ID</li>
+<li><code>signal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The signal to send, either as a string or number.
 Defaults to <code>&#39;SIGTERM&#39;</code>.</li>
 </ul>
 <p>The <code>process.kill()</code> method sends the <code>signal</code> to the process identified by
 <code>pid</code>.</p>
 <p>Signal names are strings such as <code>&#39;SIGINT&#39;</code> or <code>&#39;SIGHUP&#39;</code>. See <a href="#process_signal_events">Signal Events</a>
-and <a href="http://man7.org/linux/man-pages/man2/kill.2.html">kill(2)</a> for more information.</p>
+and  <a href="http://man7.org/linux/man-pages/man2/kill.2.html">kill(2)</a> for more information.</p>
 <p>This method will throw an error if the target <code>pid</code> does not exist. As a special
 case, a signal of <code>0</code> can be used to test for the existence of a process.
 Windows platforms will throw an error if the <code>pid</code> is used to kill a process
@@ -1112,11 +1183,16 @@ is no entry script.</p>
 </table>
 </details>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>rss</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>heapTotal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>heapUsed</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
-<li><code>external</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>rss</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>heapTotal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>heapUsed</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>external</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 </li>
 </ul>
@@ -1136,7 +1212,12 @@ of the Node.js process measured in bytes.</p>
 </code></pre>
 <p><code>heapTotal</code> and <code>heapUsed</code> refer to V8&#39;s memory usage.
 <code>external</code> refers to the memory usage of C++ objects bound to JavaScript
-objects managed by V8.</p>
+objects managed by V8. <code>rss</code>, Resident Set Size, is the amount of space
+occupied in the main memory device (that is a subset of the total allocated
+memory) for the process, which includes the <em>heap</em>, <em>code segment</em> and <em>stack</em>.</p>
+<p>The <em>heap</em> is where objects, strings, and closures are stored. Variables are
+stored in the <em>stack</em> and the actual JavaScript code resides in the
+<em>code segment</em>.</p>
 <h2>process.nextTick(callback[, ...args])<span><a class="mark" href="#process_process_nexttick_callback_args" id="process_process_nexttick_callback_args">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1151,7 +1232,8 @@ objects managed by V8.</p>
 </table>
 </details>
 </div><ul>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span> Additional arguments to pass when invoking the <code>callback</code></li>
 </ul>
 <p>The <code>process.nextTick()</code> method adds the <code>callback</code> to the &quot;next tick queue&quot;.
@@ -1226,7 +1308,8 @@ happening, just like a <code>while(true);</code> loop.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.15</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>The <code>process.pid</code> property returns the PID of the process.</p>
 <pre><code class="lang-js">console.log(`This process is pid ${process.pid}`);
@@ -1235,7 +1318,8 @@ happening, just like a <code>while(true);</code> loop.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.platform</code> property returns a string identifying the operating
 system platform on which the Node.js process is running. For instance
@@ -1260,20 +1344,31 @@ the current release, including URLs for the source tarball and headers-only
 tarball.</p>
 <p><code>process.release</code> contains the following properties:</p>
 <ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A value that will always be <code>&#39;node&#39;</code> for Node.js. For
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A value that will always be <code>&#39;node&#39;</code> for Node.js. For
 legacy io.js releases, this will be <code>&#39;io.js&#39;</code>.</li>
-<li><code>sourceUrl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>.tar.gz</code></em> file containing
+<li><code>sourceUrl</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>.tar.gz</code></em> file containing
 the source code of the current release.</li>
-<li><code>headersUrl</code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>.tar.gz</code></em> file containing
+<li><code>headersUrl</code>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>.tar.gz</code></em> file containing
 only the source header files for the current release. This file is
 significantly smaller than the full source file and can be used for compiling
 Node.js native add-ons.</li>
-<li><code>libUrl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>node.lib</code></em> file matching the
+<li><code>libUrl</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> an absolute URL pointing to a <em><code>node.lib</code></em> file matching the
 architecture and version of the current release. This file is used for
 compiling Node.js native add-ons. <em>This property is only present on Windows
 builds of Node.js and will be missing on all other platforms.</em></li>
-<li><code>lts</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> a string label identifying the <a href="https://github.com/nodejs/LTS/">LTS</a> label for this release.
-If the Node.js release is not an LTS release, this will be <code>undefined</code>.</li>
+<li><code>lts</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> a string label identifying the <a href="https://github.com/nodejs/LTS/">LTS</a> label for this release.
+This property only exists for LTS releases and is <code>undefined</code> for all other
+release types, including <em>Current</em> releases.  Currently the valid values are:<ul>
+<li><code>&#39;Argon&#39;</code> for the 4.x LTS line beginning with 4.2.0.</li>
+<li><code>&#39;Boron&#39;</code> for the 6.x LTS line beginning with 6.9.0.</li>
+<li><code>&#39;Carbon&#39;</code> for the 8.x LTS line beginning with 8.9.1.</li>
+</ul>
+</li>
 </ul>
 <p>For example:</p>
 <!-- eslint-skip -->
@@ -1292,27 +1387,33 @@ relied upon to exist.</p>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
 </div><ul>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>message</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 <li><code>sendHandle</code> <span class="type">&lt;Handle object&gt;</span></li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>If Node.js is spawned with an IPC channel, the <code>process.send()</code> method can be
 used to send messages to the parent process. Messages will be received as a
 <a href="child_process.html#child_process_event_message"><code>&#39;message&#39;</code></a> event on the parent&#39;s <a href="child_process.html#child_process_class_childprocess"><code>ChildProcess</code></a> object.</p>
 <p>If Node.js was not spawned with an IPC channel, <code>process.send()</code> will be
 <code>undefined</code>.</p>
-<p><em>Note</em>: This function uses <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a> internally to serialize the
-<code>message</code>.</p>
+<p><em>Note</em>: The message goes through serialization and parsing. The resulting
+message might not be the same as what is originally sent.</p>
 <h2>process.setegid(id)<span><a class="mark" href="#process_process_setegid_id" id="process_process_setegid_id">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
 </div><ul>
-<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A group name or ID</li>
+<li><code>id</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A group name or ID</li>
 </ul>
 <p>The <code>process.setegid()</code> method sets the effective group identity of the process.
-(See <a href="http://man7.org/linux/man-pages/man2/setegid.2.html">setegid(2)</a>.) The <code>id</code> can be passed as either a numeric ID or a group
+(See  <a href="http://man7.org/linux/man-pages/man2/setegid.2.html">setegid(2)</a>.) The <code>id</code> can be passed as either a numeric ID or a group
 name string. If a group name is specified, this method blocks while resolving
 the associated a numeric ID.</p>
 <pre><code class="lang-js">if (process.getegid &amp;&amp; process.setegid) {
@@ -1331,10 +1432,12 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v2.0.0</span>
 </div><ul>
-<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A user name or ID</li>
+<li><code>id</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A user name or ID</li>
 </ul>
 <p>The <code>process.seteuid()</code> method sets the effective user identity of the process.
-(See <a href="http://man7.org/linux/man-pages/man2/seteuid.2.html">seteuid(2)</a>.) The <code>id</code> can be passed as either a numeric ID or a username
+(See  <a href="http://man7.org/linux/man-pages/man2/seteuid.2.html">seteuid(2)</a>.) The <code>id</code> can be passed as either a numeric ID or a username
 string.  If a username is specified, the method blocks while resolving the
 associated numeric ID.</p>
 <pre><code class="lang-js">if (process.geteuid &amp;&amp; process.seteuid) {
@@ -1353,10 +1456,12 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
 </div><ul>
-<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The group name or ID</li>
+<li><code>id</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The group name or ID</li>
 </ul>
 <p>The <code>process.setgid()</code> method sets the group identity of the process. (See
-setgid(2).)  The <code>id</code> can be passed as either a numeric ID or a group name
+ <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)  The <code>id</code> can be passed as either a numeric ID or a group name
 string. If a group name is specified, this method blocks while resolving the
 associated numeric ID.</p>
 <pre><code class="lang-js">if (process.getgid &amp;&amp; process.setgid) {
@@ -1375,7 +1480,8 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div><ul>
-<li><code>groups</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li><code>groups</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 <p>The <code>process.setgroups()</code> method sets the supplementary group IDs for the
 Node.js process. This is a privileged operation that requires the Node.js process
@@ -1387,7 +1493,7 @@ or Android).</p>
 <div class="api_metadata">
 <span>Added in: v0.1.28</span>
 </div><p>The <code>process.setuid(id)</code> method sets the user identity of the process. (See
-setuid(2).)  The <code>id</code> can be passed as either a numeric ID or a username string.
+ <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)  The <code>id</code> can be passed as either a numeric ID or a username string.
 If a username is specified, the method blocks while resolving the associated
 numeric ID.</p>
 <pre><code class="lang-js">if (process.getuid &amp;&amp; process.setuid) {
@@ -1404,7 +1510,8 @@ numeric ID.</p>
 or Android).</p>
 <h2>process.stderr<span><a class="mark" href="#process_process_stderr" id="process_process_stderr">#</a></span></h2>
 <div class="signature"><ul>
-<li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
+<li>
+            <a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
 </div><p>The <code>process.stderr</code> property returns a stream connected to
 <code>stderr</code> (fd <code>2</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
@@ -1414,7 +1521,8 @@ a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 see <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <div class="signature"><ul>
-<li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
+<li>
+            <a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
 </div><p>The <code>process.stdin</code> property returns a stream connected to
 <code>stdin</code> (fd <code>0</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
@@ -1442,7 +1550,8 @@ must call <code>process.stdin.resume()</code> to read from it. Note also that ca
 <code>process.stdin.resume()</code> itself would switch stream to &quot;old&quot; mode.</p>
 <h2>process.stdout<span><a class="mark" href="#process_process_stdout" id="process_process_stdout">#</a></span></h2>
 <div class="signature"><ul>
-<li><a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
+<li>
+            <a href="stream.html#stream_stream" class="type">&lt;Stream&gt;</a></li>
 </ul>
 </div><p>The <code>process.stdout</code> property returns a stream connected to
 <code>stdout</code> (fd <code>1</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
@@ -1461,11 +1570,11 @@ important ways:</p>
 respectively.</li>
 <li>They cannot be closed (<a href="stream.html#stream_writable_end_chunk_encoding_callback"><code>end()</code></a> will throw).</li>
 <li>They will never emit the <a href="stream.html#stream_event_finish"><code>&#39;finish&#39;</code></a> event.</li>
-<li>Writes may be synchronous depending on the what the stream is connected to
-and whether the system is Windows or Unix:<ul>
-<li>Files: <em>synchronous</em> on Windows and Linux</li>
-<li>TTYs (Terminals): <em>asynchronous</em> on Windows, <em>synchronous</em> on Unix</li>
-<li>Pipes (and sockets): <em>synchronous</em> on Windows, <em>asynchronous</em> on Unix</li>
+<li>Writes may be synchronous depending on what the stream is connected to
+and whether the system is Windows or POSIX:<ul>
+<li>Files: <em>synchronous</em> on Windows and POSIX</li>
+<li>TTYs (Terminals): <em>asynchronous</em> on Windows, <em>synchronous</em> on POSIX</li>
+<li>Pipes (and sockets): <em>synchronous</em> on Windows, <em>asynchronous</em> on POSIX</li>
 </ul>
 </li>
 </ol>
@@ -1500,7 +1609,8 @@ false
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.title</code> property returns the current process title (i.e. returns
 the current value of <code>ps</code>). Assigning a new value to <code>process.title</code> modifies
@@ -1517,7 +1627,8 @@ confusing in some (rather obscure) cases.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.19</span>
 </div><ul>
-<li><code>mask</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>mask</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>process.umask()</code> method sets or returns the Node.js process&#39;s file mode
 creation mask. Child processes inherit the mask from the parent process. Invoked
@@ -1533,7 +1644,8 @@ console.log(
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div><ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>process.uptime()</code> method returns the number of seconds the current Node.js
 process has been running.</p>
@@ -1543,7 +1655,8 @@ to get whole seconds.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.3</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>process.version</code> property returns the Node.js version string.</p>
 <pre><code class="lang-js">console.log(`Version: ${process.version}`);
@@ -1562,7 +1675,8 @@ to get whole seconds.</p>
 </table>
 </details>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>The <code>process.versions</code> property returns an object listing the version strings of
 Node.js and its dependencies. <code>process.versions.modules</code> indicates the current
@@ -1626,7 +1740,7 @@ and generally can only happen during development of Node.js itself.</li>
 options were set, but the port number chosen was invalid or unavailable.</li>
 <li><code>&gt;128</code> <strong>Signal Exits</strong> - If Node.js receives a fatal signal such as
 <code>SIGKILL</code> or <code>SIGHUP</code>, then its exit code will be <code>128</code> plus the
-value of the signal code.  This is a standard Unix practice, since
+value of the signal code.  This is a standard POSIX practice, since
 exit codes are defined to be 7-bit integers, and signal exits set
 the high-order bit, and then contain the value of the signal code.</li>
 </ul>

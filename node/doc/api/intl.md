@@ -1,5 +1,7 @@
 # Internationalization Support
 
+<!--introduced_in=v8.2.0-->
+
 Node.js has many features that make it easier to write internationalized
 programs. Some of them are:
 
@@ -112,7 +114,7 @@ at runtime so that the JS methods would work for all ICU locales. Assuming the
 data file is stored at `/some/directory`, it can be made available to ICU
 through either:
 
-* The [`NODE_ICU_DATA`][] environmental variable:
+* The [`NODE_ICU_DATA`][] environment variable:
 
   ```shell
   env NODE_ICU_DATA=/some/directory node

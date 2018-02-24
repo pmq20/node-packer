@@ -24,7 +24,7 @@ const common = require('../common');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const msg = {test: 'this'};
+const msg = { test: 'this' };
 const nodePath = process.execPath;
 const copyPath = path.join(common.tmpDir, 'node-copy.exe');
 
@@ -46,7 +46,6 @@ if (process.env.FORK) {
   // slow but simple
   const envCopy = JSON.parse(JSON.stringify(process.env));
   envCopy.FORK = 'true';
-  envCopy.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
   const child = require('child_process').fork(__filename, {
     execPath: copyPath,
     env: envCopy

@@ -39,7 +39,7 @@ if (process.argv[2] === 'pipe') {
 } else if (process.argv[2] === 'parent') {
   // Parent | start child pipe test
 
-  const child = childProcess.fork(process.argv[1], ['pipe'], {silent: true});
+  const child = childProcess.fork(process.argv[1], ['pipe'], { silent: true });
 
   // Allow child process to self terminate
   child.channel.close();
@@ -62,29 +62,29 @@ if (process.argv[2] === 'pipe') {
     stdoutData = true;
   });
   let stderrData = false;
-  parent.stdout.on('data', function() {
+  parent.stderr.on('data', function() {
     stderrData = true;
   });
 
   // testing: do message system work when using silent
-  const child = childProcess.fork(process.argv[1], ['ipc'], {silent: true});
+  const child = childProcess.fork(process.argv[1], ['ipc'], { silent: true });
 
   // Manual pipe so we will get errors
-  child.stderr.pipe(process.stderr, {end: false});
-  child.stdout.pipe(process.stdout, {end: false});
+  child.stderr.pipe(process.stderr, { end: false });
+  child.stdout.pipe(process.stdout, { end: false });
 
   let childSending = false;
-  let childReciveing = false;
+  let childReceiving = false;
   child.on('message', function(message) {
     if (childSending === false) {
       childSending = (message === 'message from child');
     }
 
-    if (childReciveing === false) {
-      childReciveing = (message === 'got message from master');
+    if (childReceiving === false) {
+      childReceiving = (message === 'got message from master');
     }
 
-    if (childReciveing === true) {
+    if (childReceiving === true) {
       child.kill();
     }
   });
@@ -97,11 +97,11 @@ if (process.argv[2] === 'pipe') {
     parent.kill();
 
     // Check std(out|err) pipes
-    assert.ok(!stdoutData, 'The stdout socket was piped to parent');
-    assert.ok(!stderrData, 'The stderr socket was piped to parent');
+    assert.ok(!stdoutData);
+    assert.ok(!stderrData);
 
     // Check message system
-    assert.ok(childSending, 'The child was able to send a message');
-    assert.ok(childReciveing, 'The child was able to receive a message');
+    assert.ok(childSending);
+    assert.ok(childReceiving);
   });
 }

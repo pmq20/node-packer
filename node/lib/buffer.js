@@ -24,7 +24,11 @@
 const binding = process.binding('buffer');
 const config = process.binding('config');
 const { compare: compare_, compareOffset } = binding;
-const { isAnyArrayBuffer, isUint8Array } = process.binding('util');
+const { isAnyArrayBuffer } = process.binding('util');
+const {
+  isArrayBufferView,
+  isUint8Array
+} = require('internal/util/types');
 const bindingObj = {};
 const internalUtil = require('internal/util');
 const pendingDeprecation = !!config.pendingDeprecation;
@@ -47,7 +51,7 @@ exports.kMaxLength = binding.kMaxLength;
 
 const constants = Object.defineProperties({}, {
   MAX_LENGTH: {
-    value: binding.kStringMaxLength,
+    value: binding.kMaxLength,
     writable: false,
     enumerable: true
   },
@@ -175,14 +179,14 @@ Buffer.from = function(value, encodingOrOffset, length) {
   if (isAnyArrayBuffer(value))
     return fromArrayBuffer(value, encodingOrOffset, length);
 
-  if (value == null)
+  if (value === null || value === undefined)
     throw new TypeError(kFromErrorMsg);
 
   if (typeof value === 'number')
     throw new TypeError('"value" argument must not be a number');
 
   const valueOf = value.valueOf && value.valueOf();
-  if (valueOf != null && valueOf !== value)
+  if (valueOf !== null && valueOf !== undefined && valueOf !== value)
     return Buffer.from(valueOf, encodingOrOffset, length);
 
   var b = fromObject(value);
@@ -234,7 +238,9 @@ Buffer.alloc = function(size, fill, encoding) {
     // be interpreted as a start offset.
     if (typeof encoding !== 'string')
       encoding = undefined;
-    return createUnsafeBuffer(size).fill(fill, encoding);
+    const ret = createUnsafeBuffer(size);
+    if (fill_(ret, fill, encoding) > 0)
+      return ret;
   }
   return new FastBuffer(size);
 };
@@ -292,9 +298,9 @@ function allocate(size) {
 function fromString(string, encoding) {
   var length;
   if (typeof encoding !== 'string' || encoding.length === 0) {
-    encoding = 'utf8';
     if (string.length === 0)
       return new FastBuffer();
+    encoding = 'utf8';
     length = binding.byteLengthUtf8(string);
   } else {
     length = byteLength(string, encoding, true);
@@ -374,17 +380,15 @@ function fromObject(obj) {
     return b;
   }
 
-  if (obj != null) {
-    if (obj.length !== undefined || isAnyArrayBuffer(obj.buffer)) {
-      if (typeof obj.length !== 'number' || obj.length !== obj.length) {
-        return new FastBuffer();
-      }
-      return fromArrayLike(obj);
+  if (obj.length !== undefined || isAnyArrayBuffer(obj.buffer)) {
+    if (typeof obj.length !== 'number' || obj.length !== obj.length) {
+      return new FastBuffer();
     }
+    return fromArrayLike(obj);
+  }
 
-    if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
-      return fromArrayLike(obj.data);
-    }
+  if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
+    return fromArrayLike(obj.data);
   }
 }
 
@@ -470,7 +474,7 @@ function base64ByteLength(str, bytes) {
 
 function byteLength(string, encoding) {
   if (typeof string !== 'string') {
-    if (ArrayBuffer.isView(string) || isAnyArrayBuffer(string)) {
+    if (isArrayBufferView(string) || isAnyArrayBuffer(string)) {
       return string.byteLength;
     }
 
@@ -794,15 +798,20 @@ Buffer.prototype.includes = function includes(val, byteOffset, encoding) {
 //    buffer.fill(buffer[, offset[, end]])
 //    buffer.fill(string[, offset[, end]][, encoding])
 Buffer.prototype.fill = function fill(val, start, end, encoding) {
+  fill_(this, val, start, end, encoding);
+  return this;
+};
+
+function fill_(buf, val, start, end, encoding) {
   // Handle string cases:
   if (typeof val === 'string') {
     if (typeof start === 'string') {
       encoding = start;
       start = 0;
-      end = this.length;
+      end = buf.length;
     } else if (typeof end === 'string') {
       encoding = end;
-      end = this.length;
+      end = buf.length;
     }
 
     if (encoding !== undefined && typeof encoding !== 'string') {
@@ -830,19 +839,17 @@ Buffer.prototype.fill = function fill(val, start, end, encoding) {
   }
 
   // Invalid ranges are not set to a default, so can range check early.
-  if (start < 0 || end > this.length)
+  if (start < 0 || end > buf.length)
     throw new RangeError('Out of range index');
 
   if (end <= start)
-    return this;
+    return 0;
 
   start = start >>> 0;
-  end = end === undefined ? this.length : end >>> 0;
+  end = end === undefined ? buf.length : end >>> 0;
 
-  binding.fill(this, val, start, end, encoding);
-
-  return this;
-};
+  return binding.fill(buf, val, start, end, encoding);
+}
 
 
 Buffer.prototype.write = function(string, offset, length, encoding) {

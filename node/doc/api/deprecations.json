@@ -4,6 +4,7 @@
     {
       "textRaw": "Deprecated APIs",
       "name": "deprecated_apis",
+      "introduced_in": "v7.7.0",
       "desc": "<p>Node.js may deprecate APIs when either: (a) use of the API is considered to be\nunsafe, (b) an improved alternative API has been made available, or (c)\nbreaking changes to the API are expected in a future major release.</p>\n<p>Node.js utilizes three kinds of Deprecations:</p>\n<ul>\n<li>Documentation-only</li>\n<li>Runtime</li>\n<li>End-of-Life</li>\n</ul>\n<p>A Documentation-only deprecation is one that is expressed only within the\nNode.js API docs. These generate no side-effects while running Node.js.</p>\n<p>A Runtime deprecation will, by default, generate a process warning that will\nbe printed to <code>stderr</code> the first time the deprecated API is used. When the\n<code>--throw-deprecation</code> command-line flag is used, a Runtime deprecation will\ncause an error to be thrown.</p>\n<p>An End-of-Life deprecation is used to identify code that either has been\nremoved or will soon be removed from Node.js.</p>\n",
       "modules": [
         {
@@ -56,16 +57,16 @@
             {
               "textRaw": "DEP0009: crypto.pbkdf2 without digest",
               "name": "dep0009:_crypto.pbkdf2_without_digest",
-              "desc": "<p>Type: End-of-life</p>\n<p>Use of the <a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated\nin Node.js 6.0 because the method defaulted to using the non-recommendend\n<code>&#39;SHA1&#39;</code> digest. Previously, a deprecation warning was printed. Starting in\nNode.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with an\nundefined <code>digest</code> will throw a <code>TypeError</code>.</p>\n<p><a id=\"DEP0010\"></a></p>\n",
+              "desc": "<p>Type: End-of-life</p>\n<p>Use of the <a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated\nin Node.js 6.0 because the method defaulted to using the non-recommended\n<code>&#39;SHA1&#39;</code> digest. Previously, a deprecation warning was printed. Starting in\nNode.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with an\nundefined <code>digest</code> will throw a <code>TypeError</code>.</p>\n<p><a id=\"DEP0010\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0009: crypto.pbkdf2 without digest"
             },
             {
-              "textRaw": "DEP0013: fs async function without callback",
-              "name": "dep0013:_fs_async_function_without_callback",
+              "textRaw": "DEP0013: fs asynchronous function without callback",
+              "name": "dep0013:_fs_asynchronous_function_without_callback",
               "desc": "<p>Type: Runtime</p>\n<p>Calling an asynchronous function without a callback is deprecated.</p>\n<p><a id=\"DEP0014\"></a></p>\n",
               "type": "module",
-              "displayName": "DEP0013: fs async function without callback"
+              "displayName": "DEP0013: fs asynchronous function without callback"
             },
             {
               "textRaw": "DEP0014: fs.read legacy String interface",
@@ -189,7 +190,7 @@
             {
               "textRaw": "DEP0072: async_hooks.AsyncResource.triggerId()",
               "name": "dep0072:_async_hooks.asyncresource.triggerid()",
-              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0076\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0072: async_hooks.AsyncResource.triggerId()"
             }
@@ -243,7 +244,7 @@
             {
               "textRaw": "DEP0039: require.extensions",
               "name": "extensions",
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"globals.html#globals_require_extensions\"><code>require.extensions</code></a> property has been deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>\n"
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"modules.html#modules_require_extensions\"><code>require.extensions</code></a> property has been deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>\n"
             },
             {
               "textRaw": "DEP0042: tls.CryptoStream",
@@ -681,6 +682,28 @@
               "type": "method",
               "name": "triggerId",
               "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0072\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0076: tls.parseCertString()",
+              "type": "method",
+              "name": "parseCertString",
+              "desc": "<p>Type: Documentation-only</p>\n<p><code>tls.parseCertString()</code> is a trivial parsing helper that was made public by\nmistake. This function can usually be replaced with:</p>\n<pre><code class=\"lang-js\">const querystring = require(&#39;querystring&#39;);\nquerystring.parse(str, &#39;\\n&#39;, &#39;=&#39;);\n</code></pre>\n<p><em>Note</em>: This function is not completely equivalent to <code>querystring.parse()</code>. One\ndifference is that <code>querystring.parse()</code> does url decoding:</p>\n<pre><code class=\"lang-sh\">&gt; querystring.parse(&#39;%E5%A5%BD=1&#39;, &#39;\\n&#39;, &#39;=&#39;);\n{ &#39;好&#39;: &#39;1&#39; }\n&gt; tls.parseCertString(&#39;%E5%A5%BD=1&#39;);\n{ &#39;%E5%A5%BD&#39;: &#39;1&#39; }\n</code></pre>\n<p><a id=\"DEP0079\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0079: Custom inspection function on Objects via .inspect()",
+              "type": "method",
+              "name": "inspect",
+              "desc": "<p>Type: Documentation-only</p>\n<p>Using a property named <code>inspect</code> on an object to specify a custom inspection\nfunction for <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> is deprecated. Use <a href=\"util.html#util_util_inspect_custom\"><code>util.inspect.custom</code></a>\ninstead. For backwards compatibility with Node.js prior to version 6.4.0, both\nmay be specified.</p>\n",
               "signatures": [
                 {
                   "params": []

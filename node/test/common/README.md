@@ -4,8 +4,24 @@ This directory contains modules used to test the Node.js implementation.
 
 ## Table of Contents
 
+* [Benchmark module](#benchmark-module)
 * [Common module API](#common-module-api)
+* [Countdown module](#countdown-module)
+* [DNS module](#dns-module)
+* [Duplex pair helper](#duplex-pair-helper)
+* [Fixtures module](#fixtures-module)
 * [WPT module](#wpt-module)
+
+## Benchmark Module
+
+The `benchmark` module is used by tests to run benchmarks.
+
+### runBenchmark(name, args, env)
+
+* `name` [&lt;String>] Name of benchmark suite to be run.
+* `args` [&lt;Array>] Array of environment variable key/value pairs (ex:
+  `n=1`) to be applied via `--set`.
+* `env` [&lt;Object>] Environment variables to be applied during the run.
 
 ## Common Module API
 
@@ -26,12 +42,14 @@ A stream to push an array into a REPL
 
 Blocks for `time` amount of time.
 
-### canCreateSymLink
-API to indicate whether the current running process can create
-symlinks. On Windows, this returns false if the process running
-doesn't have privileges to create symlinks (specifically
-[SeCreateSymbolicLinkPrivilege](https://msdn.microsoft.com/en-us/library/windows/desktop/bb530716(v=vs.85).aspx)).
-On non-Windows platforms, this currently returns true.
+### canCreateSymLink()
+* return [&lt;Boolean>]
+
+Checks whether the current running process can create symlinks. On Windows, this
+returns `false` if the process running doesn't have privileges to create
+symlinks
+([SeCreateSymbolicLinkPrivilege](https://msdn.microsoft.com/en-us/library/windows/desktop/bb530716(v=vs.85).aspx)).
+On non-Windows platforms, this always returns `true`.
 
 ### crashOnUnhandledRejection()
 
@@ -46,9 +64,9 @@ failures.
 Platform normalizes the `dd` command
 
 ### enoughTestMem
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Check if there is more than 1gb of total memory.
+Indicates if there is more than 1gb of total memory.
 
 ### expectsError([fn, ]settings[, exact])
 * `fn` [&lt;Function>] a function that should throw.
@@ -99,10 +117,14 @@ Tests whether `name` and `expected` are part of a raised warning.
 
 Checks if `pathname` exists
 
-### fixturesDir
-* return [&lt;String>]
+### fires(promise, [error], [timeoutMs])
+* promise [&lt;Promise]
+* error [&lt;String] default = 'timeout'
+* timeoutMs [&lt;Number] default = 100
 
-Path to the 'fixtures' directory.
+Returns a new promise that will propagate `promise` resolution or rejection if
+that happens within the `timeoutMs` timespan, or rejects with `error` as
+a reason otherwise.
 
 ### getArrayBufferViews(buf)
 * `buf` [&lt;Buffer>]
@@ -110,40 +132,46 @@ Path to the 'fixtures' directory.
 
 Returns an instance of all possible `ArrayBufferView`s of the provided Buffer.
 
-### globalCheck
-* return [&lt;Boolean>]
+### getCallSite(func)
+* `func` [&lt;Function>]
+* return [&lt;String>]
 
-Turn this off if the test should not check for global leaks.
+Returns the file name and line number for the provided Function.
+
+### globalCheck
+* [&lt;Boolean>]
+
+Set to `false` if the test should not check for global leaks.
 
 ### hasCrypto
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks for 'openssl'.
+Indicates whether OpenSSL is available.
 
 ### hasFipsCrypto
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks `hasCrypto` and `crypto` with fips.
+Indicates `hasCrypto` and `crypto` with fips.
 
 ### hasIntl
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks if [internationalization] is supported.
+Indicates if [internationalization] is supported.
 
 ### hasSmallICU
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks `hasIntl` and `small-icu` is supported.
+Indicates `hasIntl` and `small-icu` are supported.
 
 ### hasIPv6
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks whether `IPv6` is supported on this platform.
+Indicates whether `IPv6` is supported on this platform.
 
 ### hasMultiLocalhost
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks if there are multiple localhosts available.
+Indicates if there are multiple localhosts available.
 
 ### hijackStderr(listener)
 * `listener` [&lt;Function>]: a listener with a single parameter
@@ -164,12 +192,12 @@ be passed to `listener`. What's more, `process.stdout.writeTimes` is a count of
 the number of calls.
 
 ### inFreeBSDJail
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Checks whether free BSD Jail is true or false.
 
 ### isAIX
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Advanced Interactive eXecutive (AIX).
 
@@ -180,54 +208,54 @@ Platform check for Advanced Interactive eXecutive (AIX).
 Attempts to 'kill' `pid`
 
 ### isFreeBSD
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Free BSD.
 
 ### isLinux
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Linux.
 
 ### isLinuxPPCBE
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Linux on PowerPC.
 
 ### isOSX
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for macOS.
 
 ### isSunOS
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for SunOS.
 
 ### isWindows
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Windows.
 
 ### isWOW64
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
 Platform check for Windows 32-bit on Windows 64-bit.
 
-### leakedGlobals
+### leakedGlobals()
 * return [&lt;Array>]
 
-Checks whether any globals are not on the `knownGlobals` list.
+Indicates whether any globals are not on the `knownGlobals` list.
 
 ### localhostIPv4
-* return [&lt;String>]
+* [&lt;String>]
 
-Gets IP of localhost
+IP of `localhost`.
 
 ### localIPv6Hosts
-* return [&lt;Array>]
+* [&lt;Array>]
 
-Array of IPV6 hosts.
+Array of IPV6 representations for `localhost`.
 
 ### mustCall([fn][, exact])
 * `fn` [&lt;Function>] default = () => {}
@@ -268,9 +296,9 @@ the exit code and/or signal name of a node process that aborted, `false`
 otherwise.
 
 ### opensslCli
-* return [&lt;Boolean>]
+* [&lt;Boolean>]
 
-Checks whether 'opensslCli' is supported.
+Indicates whether 'opensslCli' is supported.
 
 ### platformTimeout(ms)
 * `ms` [&lt;Number>]
@@ -279,42 +307,59 @@ Checks whether 'opensslCli' is supported.
 Platform normalizes timeout.
 
 ### PIPE
-* return [&lt;String>]
+* [&lt;String>]
 
-Path to the test sock.
+Path to the test socket.
 
 ### PORT
-* return [&lt;Number>] default = `12346`
+* [&lt;Number>]
 
-Port tests are running on.
+A port number for tests to use if one is needed.
 
 ### printSkipMessage(msg)
 * `msg` [&lt;String>]
 
 Logs '1..0 # Skipped: ' + `msg`
 
-### refreshTmpDir
+### refreshTmpDir()
 * return [&lt;String>]
 
-Deletes the 'tmp' dir and recreates it
+Deletes the testing 'tmp' directory and recreates it.
 
 ### restoreStderr()
 
-Restore the original `process.stderr.write`.
+Restore the original `process.stderr.write`. Used to restore `stderr` to its
+original state after calling [`common.hijackStdErr()`][].
 
 ### restoreStdout()
 
-Restore the original `process.stdout.write`.
+Restore the original `process.stdout.write`. Used to restore `stdout` to its
+original state after calling [`common.hijackStdOut()`][].
 
 ### rootDir
-* return [&lt;String>]
+* [&lt;String>]
 
 Path to the 'root' directory. either `/` or `c:\\` (windows)
+
+### projectDir
+* [&lt;String>]
+
+Path to the project directory.
 
 ### skip(msg)
 * `msg` [&lt;String>]
 
 Logs '1..0 # Skipped: ' + `msg` and exits with exit code `0`.
+
+### skipIfInspectorDisabled()
+
+Skip the rest of the tests in the current file when the Inspector
+was disabled at compile time.
+
+### skipIf32Bits()
+
+Skip the rest of the tests in the current file when the Node.js executable
+was compiled with a pointer size smaller than 64 bits.
 
 ### spawnPwd(options)
 * `options` [&lt;Object>]
@@ -329,14 +374,9 @@ Platform normalizes the `pwd` command.
 Synchronous version of `spawnPwd`.
 
 ### tmpDir
-* return [&lt;String>]
+* [&lt;String>]
 
 The realpath of the 'tmp' directory.
-
-### tmpDirName
-* return [&lt;String>]
-
-Name of the temp directory used by tests.
 
 ## Countdown Module
 
@@ -369,10 +409,92 @@ Creates a new `Countdown` instance.
 
 Decrements the `Countdown` counter.
 
-### Coutndown.prototype.remaining
+### Countdown.prototype.remaining
 
 Specifies the remaining number of times `Countdown.prototype.dec()` must be
 called before the callback is invoked.
+
+## DNS Module
+
+The `DNS` module provides a naïve DNS parser/serializer.
+
+### readDomainFromPacket(buffer, offset)
+
+* `buffer` [&lt;Buffer>]
+* `offset` [&lt;Number>]
+* return [&lt;Object>]
+
+Reads the domain string from a packet and returns an object containing the
+number of bytes read and the domain.
+
+### parseDNSPacket(buffer)
+
+* `buffer` [&lt;Buffer>]
+* return [&lt;Object>]
+
+Parses a DNS packet. Returns an object with the values of the various flags of
+the packet depending on the type of packet.
+
+### writeIPv6(ip)
+
+* `ip` [&lt;String>]
+* return [&lt;Buffer>]
+
+Reads an IPv6 String and returns a Buffer containing the parts.
+
+### writeDomainName(domain)
+
+* `domain` [&lt;String>]
+* return [&lt;Buffer>]
+
+Reads a Domain String and returns a Buffer containing the domain.
+
+### writeDNSPacket(parsed)
+
+* `parsed` [&lt;Object>]
+* return [&lt;Buffer>]
+
+Takes in a parsed Object and writes its fields to a DNS packet as a Buffer
+object.
+
+## Duplex pair helper
+
+The `common/duplexpair` module exports a single function `makeDuplexPair`,
+which returns an object `{ clientSide, serverSide }` where each side is a
+`Duplex` stream connected to the other side.
+
+There is no difference between client or server side beyond their names.
+
+## Fixtures Module
+
+The `common/fixtures` module provides convenience methods for working with
+files in the `test/fixtures` directory.
+
+### fixtures.fixturesDir
+
+* [&lt;String>]
+
+The absolute path to the `test/fixtures/` directory.
+
+### fixtures.path(...args)
+
+* `...args` [&lt;String>]
+
+Returns the result of `path.join(fixtures.fixturesDir, ...args)`.
+
+### fixtures.readSync(args[, enc])
+
+* `args` [&lt;String>] | [&lt;Array>]
+
+Returns the result of
+`fs.readFileSync(path.join(fixtures.fixturesDir, ...args), 'enc')`.
+
+### fixtures.readKey(arg[, enc])
+
+* `arg` [&lt;String>]
+
+Returns the result of
+`fs.readFileSync(path.join(fixtures.fixturesDir, 'keys', arg), 'enc')`.
 
 ## WPT Module
 
@@ -392,4 +514,6 @@ implementation with tests from
 [&lt;Object>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [&lt;RegExp>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 [&lt;String>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
+[`common.hijackStdErr()`]: #hijackstderrlistener
+[`common.hijackStdOut()`]: #hijackstdoutlistener
 [internationalization]: https://github.com/nodejs/node/wiki/Intl

@@ -1,5 +1,7 @@
 # REPL
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `repl` module provides a Read-Eval-Print-Loop (REPL) implementation that
@@ -392,7 +394,7 @@ changes:
   * `output` {Writable} The Writable stream to which REPL output will be
     written. Defaults to `process.stdout`.
   * `terminal` {boolean} If `true`, specifies that the `output` should be
-    treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it.
+    treated as a TTY terminal, and have ANSI/VT100 escape codes written to it.
     Defaults to checking the value of the `isTTY` property on the `output`
     stream upon instantiation.
   * `eval` {Function} The function to be used when evaluating each given line
@@ -499,7 +501,7 @@ by the `NODE_REPL_HISTORY` variable, as documented in the
 
 ### Using the Node.js REPL with advanced line-editors
 
-For advanced line-editors, start Node.js with the environmental variable
+For advanced line-editors, start Node.js with the environment variable
 `NODE_NO_READLINE=1`. This will start the main and debugger REPL in canonical
 terminal settings, which will allow use with `rlwrap`.
 

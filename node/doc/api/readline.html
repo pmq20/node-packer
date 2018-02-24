@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Readline | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Readline | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="readline" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="readline.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="readline.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/readline.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/readline.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/readline.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/readline.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/readline.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/readline.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/readline.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/readline.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -130,7 +152,8 @@
 
       <div id="apicontent">
         <h1>Readline<span><a class="mark" href="#readline_readline" id="readline_readline">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>readline</code> module provides an interface for reading data from a <a href="stream.html#stream_readable_streams">Readable</a>
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>readline</code> module provides an interface for reading data from a <a href="stream.html#stream_readable_streams">Readable</a>
 stream (such as <a href="process.html#process_process_stdin"><code>process.stdin</code></a>) one line at a time. It can be accessed using:</p>
 <pre><code class="lang-js">const readline = require(&#39;readline&#39;);
 </code></pre>
@@ -217,7 +240,7 @@ events <a href="readline.html#readline_event_sigtstp"><code>SIGTSTP</code></a> a
 <span>Added in: v0.7.5</span>
 </div><p>The <code>&#39;SIGCONT&#39;</code> event is emitted when a Node.js process previously moved into
 the background using <code>&lt;ctrl&gt;-Z</code> (i.e. <code>SIGTSTP</code>) is then brought back to the
-foreground using <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>.</p>
+foreground using  <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>.</p>
 <p>If the <code>input</code> stream was paused <em>before</em> the <code>SIGTSTP</code> request, this event will
 not be emitted.</p>
 <p>The listener function is invoked without passing any arguments.</p>
@@ -250,7 +273,7 @@ event will be emitted.</p>
 input, typically known as <code>SIGTSTP</code>. If there are no <code>SIGTSTP</code> event listeners
 registered when the <code>input</code> stream receives a <code>SIGTSTP</code>, the Node.js process
 will be sent to the background.</p>
-<p>When the program is resumed using <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>, the <code>&#39;pause&#39;</code> and <code>SIGCONT</code> events
+<p>When the program is resumed using  <a href="http://man7.org/linux/man-pages/man1/fg.1p.html">fg(1p)</a>, the <code>&#39;pause&#39;</code> and <code>SIGCONT</code> events
 will be emitted. These can be used to resume the <code>input</code> stream.</p>
 <p>The <code>&#39;pause&#39;</code> and <code>&#39;SIGCONT&#39;</code> events will not be emitted if the <code>input</code> was
 paused before the process was sent to the background.</p>
@@ -280,7 +303,8 @@ later if necessary.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.98</span>
 </div><ul>
-<li><code>preserveCursor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, prevents the cursor placement from
+<li><code>preserveCursor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, prevents the cursor placement from
 being reset to <code>0</code>.</li>
 </ul>
 <p>The <code>rl.prompt()</code> method writes the <code>readline.Interface</code> instances configured
@@ -294,9 +318,11 @@ paused.</p>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div><ul>
-<li><code>query</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A statement or query to write to <code>output</code>, prepended to the
+<li><code>query</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A statement or query to write to <code>output</code>, prepended to the
 prompt.</li>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function that is invoked with the user&#39;s
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A callback function that is invoked with the user&#39;s
 input in response to the <code>query</code>.</li>
 </ul>
 <p>The <code>rl.question()</code> method displays the <code>query</code> by writing it to the <code>output</code>,
@@ -322,7 +348,8 @@ The <code>callback</code> is called with the provided answer as the only argumen
 <div class="api_metadata">
 <span>Added in: v0.1.98</span>
 </div><ul>
-<li><code>prompt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>prompt</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>rl.setPrompt()</code> method sets the prompt that will be written to <code>output</code>
 whenever <code>rl.prompt()</code> is called.</p>
@@ -330,12 +357,18 @@ whenever <code>rl.prompt()</code> is called.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.98</span>
 </div><ul>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>ctrl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;ctrl&gt;</code> key.</li>
-<li><code>meta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;Meta&gt;</code> key.</li>
-<li><code>shift</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;Shift&gt;</code> key.</li>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The name of the a key.</li>
+<li><code>data</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>key</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>ctrl</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;ctrl&gt;</code> key.</li>
+<li><code>meta</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;Meta&gt;</code> key.</li>
+<li><code>shift</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> to indicate the <code>&lt;Shift&gt;</code> key.</li>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The name of the a key.</li>
 </ul>
 </li>
 </ul>
@@ -359,7 +392,8 @@ Interface&#39;s <code>input</code> <em>as if it were provided by the user</em>.<
 <span>Added in: v0.7.7</span>
 </div><ul>
 <li><code>stream</code> <span class="type">&lt;Writable&gt;</span></li>
-<li><code>dir</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a><ul>
+<li><code>dir</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a><ul>
 <li><code>-1</code> - to the left from cursor</li>
 <li><code>1</code> - to the right from cursor</li>
 <li><code>0</code> - the entire line</li>
@@ -381,6 +415,12 @@ the current position of the cursor down.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.3.0, 6.11.4</td>
+<td><p>Remove max limit of <code>crlfDelay</code> option.</p>
+</td></tr>
+<tr><td>v6.6.0</td>
+<td><p>The <code>crlfDelay</code> option is supported now.</p>
+</td></tr>
 <tr><td>v6.3.0</td>
 <td><p>The <code>prompt</code> option is supported now.</p>
 </td></tr>
@@ -393,28 +433,35 @@ the current position of the cursor down.</p>
 </table>
 </details>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>input</code> <span class="type">&lt;Readable&gt;</span> The <a href="stream.html#stream_readable_streams">Readable</a> stream to listen to. This option is
 <em>required</em>.</li>
 <li><code>output</code> <span class="type">&lt;Writable&gt;</span> The <a href="stream.html#stream_writable_streams">Writable</a> stream to write readline data to.</li>
-<li><code>completer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An optional function used for Tab autocompletion.</li>
-<li><code>terminal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the <code>input</code> and <code>output</code> streams should be
+<li><code>completer</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An optional function used for Tab autocompletion.</li>
+<li><code>terminal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the <code>input</code> and <code>output</code> streams should be
 treated like a TTY, and have ANSI/VT100 escape codes written to it.
 Defaults to checking <code>isTTY</code> on the <code>output</code> stream upon instantiation.</li>
-<li><code>historySize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> maximum number of history lines retained. To disable
-the history set this value to <code>0</code>. Defaults to <code>30</code>. This option makes sense
-only if <code>terminal</code> is set to <code>true</code> by the user or by an internal <code>output</code>
-check, otherwise the history caching mechanism is not initialized at all.</li>
-<li><code>prompt</code> - the prompt string to use. Default: <code>&#39;&gt; &#39;</code></li>
-<li><code>crlfDelay</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> If the delay between <code>\r</code> and <code>\n</code> exceeds
+<li><code>historySize</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Maximum number of history lines retained. To disable
+the history set this value to <code>0</code>. This option makes sense only if <code>terminal</code>
+is set to <code>true</code> by the user or by an internal <code>output</code> check, otherwise the
+history caching mechanism is not initialized at all. <strong>Default:</strong> <code>30</code></li>
+<li><code>prompt</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The prompt string to use. <strong>Default:</strong> <code>&#39;&gt; &#39;</code></li>
+<li><code>crlfDelay</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> If the delay between <code>\r</code> and <code>\n</code> exceeds
 <code>crlfDelay</code> milliseconds, both <code>\r</code> and <code>\n</code> will be treated as separate
-end-of-line input. Default to <code>100</code> milliseconds.
-<code>crlfDelay</code> will be coerced to a number no less than <code>100</code>. It can be set to
-<code>Infinity</code>, in which case <code>\r</code> followed by <code>\n</code> will always be considered a
-single newline.</li>
-<li><code>removeHistoryDuplicates</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, when a new input line added
+end-of-line input. <code>crlfDelay</code> will be coerced to a number no less than <code>100</code>.
+It can be set to <code>Infinity</code>, in which case <code>\r</code> followed by <code>\n</code> will always be
+considered a single newline (which may be reasonable for <a href="#readline_example_read_file_stream_line_by_line">reading files</a>
+with <code>\r\n</code> line delimiter). <strong>Default:</strong> <code>100</code></li>
+<li><code>removeHistoryDuplicates</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, when a new input line added
 to the history list duplicates an older one, this removes the older line
-from the list. Defaults to <code>false</code>.</li>
+from the list. <strong>Default:</strong> <code>false</code></li>
 </ul>
 </li>
 </ul>
@@ -463,8 +510,10 @@ arguments:</p>
 <span>Added in: v0.7.7</span>
 </div><ul>
 <li><code>stream</code> <span class="type">&lt;Writable&gt;</span></li>
-<li><code>x</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>y</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>x</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>y</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>readline.cursorTo()</code> method moves cursor to the specified position in a
 given <a href="tty.html">TTY</a> <code>stream</code>.</p>
@@ -475,7 +524,7 @@ given <a href="tty.html">TTY</a> <code>stream</code>.</p>
 <li><code>stream</code> <span class="type">&lt;Readable&gt;</span></li>
 <li><code>interface</code> <span class="type">&lt;readline.Interface&gt;</span></li>
 </ul>
-<p>The <code>readline.emitKeypressEvents()</code> method causes the given <a href="stream.html#stream_writable_streams">Writable</a>
+<p>The <code>readline.emitKeypressEvents()</code> method causes the given <a href="stream.html#stream_readable_streams">Readable</a>
 <code>stream</code> to begin emitting <code>&#39;keypress&#39;</code> events corresponding to received input.</p>
 <p>Optionally, <code>interface</code> specifies a <code>readline.Interface</code> instance for which
 autocompletion is disabled when copy-pasted input is detected.</p>
@@ -492,8 +541,10 @@ if (process.stdin.isTTY)
 <span>Added in: v0.7.7</span>
 </div><ul>
 <li><code>stream</code> <span class="type">&lt;Writable&gt;</span></li>
-<li><code>dx</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>dy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>dx</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>dy</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>readline.moveCursor()</code> method moves the cursor <em>relative</em> to its current
 position in a given <a href="tty.html">TTY</a> <code>stream</code>.</p>
@@ -532,7 +583,8 @@ example:</p>
 const fs = require(&#39;fs&#39;);
 
 const rl = readline.createInterface({
-  input: fs.createReadStream(&#39;sample.txt&#39;)
+  input: fs.createReadStream(&#39;sample.txt&#39;),
+  crlfDelay: Infinity
 });
 
 rl.on(&#39;line&#39;, (line) =&gt; {

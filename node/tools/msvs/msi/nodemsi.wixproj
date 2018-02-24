@@ -39,6 +39,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="product.wxs" />
+    <Compile Include="..\..\..\npm.wxs">
+      <Link>npm.wxs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUIExtension">
@@ -69,6 +72,10 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
+  <Target Name="BeforeBuild">
+    <HeatDirectory ToolPath="$(WixToolPath)" Directory="..\..\..\deps\npm" PreprocessorVariable="var.NpmSourceDir" DirectoryRefId="NodeModulesFolder" ComponentGroupName="NpmSourceFiles" GenerateGuidsNow="true" SuppressFragments="false" OutputFile="..\..\..\npm.wxs" RunAsSeparateProcess="true">
+    </HeatDirectory>
+  </Target>
   <PropertyGroup>
     <PostBuildEvent>move "!(TargetPath)" "$(TargetDir)\$(TargetFileName)"
     move "!(TargetPdbPath)" "$(TargetDir)\$(TargetPdbName)"</PostBuildEvent>

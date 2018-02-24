@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 // Verifies that write callbacks are called
@@ -31,7 +30,7 @@ server.listen(0, common.mustCall(() => {
   req.setEncoding('utf8');
   req.on('data', (chunk) => actual += chunk);
   req.on('end', common.mustCall(() => assert.strictEqual(actual, 'abcxyz')));
-  req.on('streamClosed', common.mustCall(() => {
+  req.on('close', common.mustCall(() => {
     client.destroy();
     server.close();
   }));

@@ -21,17 +21,17 @@
 
 'use strict';
 
-const binding = process.binding('http_parser');
-const methods = binding.methods;
-const HTTPParser = binding.HTTPParser;
+const { methods, HTTPParser } = process.binding('http_parser');
 
 const FreeList = require('internal/freelist');
-const ondrain = require('internal/http').ondrain;
+const { ondrain } = require('internal/http');
 const incoming = require('_http_incoming');
-const emitDestroy = require('async_hooks').emitDestroy;
-const IncomingMessage = incoming.IncomingMessage;
-const readStart = incoming.readStart;
-const readStop = incoming.readStop;
+const { emitDestroy } = require('async_hooks');
+const {
+  IncomingMessage,
+  readStart,
+  readStop
+} = incoming;
 
 const debug = require('util').debuglog('http');
 
@@ -77,7 +77,7 @@ function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
   parser.incoming = new IncomingMessage(parser.socket);
   parser.incoming.httpVersionMajor = versionMajor;
   parser.incoming.httpVersionMinor = versionMinor;
-  parser.incoming.httpVersion = versionMajor + '.' + versionMinor;
+  parser.incoming.httpVersion = `${versionMajor}.${versionMinor}`;
   parser.incoming.url = url;
 
   var n = headers.length;

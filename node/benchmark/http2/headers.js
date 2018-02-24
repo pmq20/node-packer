@@ -3,18 +3,30 @@
 const common = require('../common.js');
 const PORT = common.PORT;
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   n: [1e3],
-  nheaders: [100, 1000],
-}, { flags: ['--expose-http2', '--no-warnings'] });
+  nheaders: [0, 10, 100, 1000],
+  benchmarker: ['h2load']
+}, { flags: ['--no-warnings', '--expose-http2'] });
 
 function main(conf) {
   const n = +conf.n;
   const nheaders = +conf.nheaders;
   const http2 = require('http2');
-  const server = http2.createServer();
+  const server = http2.createServer({
+    maxHeaderListPairs: 20000
+  });
 
-  const headersObject = { ':path': '/' };
+  const headersObject = {
+    ':path': '/',
+    ':scheme': 'http',
+    'accept-encoding': 'gzip, deflate',
+    'accept-language': 'en',
+    'content-type': 'text/plain',
+    'referer': 'https://example.org/',
+    'user-agent': 'SuperBenchmarker 3000'
+  };
+
   for (var i = 0; i < nheaders; i++) {
     headersObject[`foo${i}`] = `some header value ${i}`;
   }
@@ -24,7 +36,9 @@ function main(conf) {
     stream.end('Hi!');
   });
   server.listen(PORT, () => {
-    const client = http2.connect(`http://localhost:${PORT}/`);
+    const client = http2.connect(`http://localhost:${PORT}/`, {
+      maxHeaderListPairs: 20000
+    });
 
     function doRequest(remaining) {
       const req = client.request(headersObject);

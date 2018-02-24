@@ -59,6 +59,20 @@ note1 - The gcc4.8-libs package needs to be installed, because node
   by Joyent. SmartOS images >= 16.4 are not supported because
   GCC 4.8 runtime libraries are not available in their pkgsrc repository
 
+*Note*: On Windows, running Node.js in windows terminal emulators like `mintty`
+  requires the usage of [winpty](https://github.com/rprichard/winpty) for
+  Node's tty channels to work correctly (e.g. `winpty node.exe script.js`).
+  In "Git bash" if you call the node shell alias (`node` without the `.exe`
+  extension), `winpty` is used automatically.
+
+The Windows Subsystem for Linux (WSL) is not directly supported, but the
+GNU/Linux build process and binaries should work. The community will only
+address issues that reproduce on native GNU/Linux systems. Issues that only
+reproduce on WSL should be reported in the
+[WSL issue tracker](https://github.com/Microsoft/WSL/issues). Running the
+Windows binary (`node.exe`) in WSL is not recommended, and will not work
+without adjustment (such as stdio redirection).
+
 ### Supported toolchains
 
 Depending on host platform, the selection of toolchains may vary.
@@ -76,6 +90,9 @@ Depending on host platform, the selection of toolchains may vary.
 
 ## Building Node.js on supported platforms
 
+*Note:* All prerequisites can be easily installed by following
+[this bootstrapping guide](https://github.com/nodejs/node/blob/master/tools/bootstrap/README.md).
+
 ### Unix / macOS
 
 Prerequisites:
@@ -90,8 +107,10 @@ On macOS you will need to install the `Xcode Command Line Tools` by running
 installed, you can find them under the menu `Xcode -> Open Developer Tool ->
 More Developer Tools...`. This step will install `clang`, `clang++`, and
 `make`.
-* You may want to setup [firewall rules](tools/macosx-firewall.sh)
+* After building, you may want to setup [firewall rules](tools/macosx-firewall.sh)
 to avoid popups asking to accept incoming network connections when running tests:
+
+If the path to your build directory contains a space, the build will likely fail.
 
 ```console
 $ sudo ./tools/macosx-firewall.sh
@@ -126,6 +145,28 @@ To run the tests:
 $ make test
 ```
 
+At this point you are ready to make code changes and re-run the tests!
+Optionally, continue below.
+
+To run the tests and generate code coverage reports:
+
+```console
+$ ./configure --coverage
+$ make coverage
+```
+
+This will generate coverage reports for both JavaScript and C++ tests (if you
+only want to run the JavaScript tests then you do not need to run the first
+command `./configure --coverage`).
+
+The `make coverage` command downloads some tools to the project root directory
+and overwrites the `lib/` directory. To clean up after generating the coverage
+reports:
+
+```console
+$ make coverage-clean
+```
+
 To build the documentation:
 
 This will build Node.js first (if necessary) and then use it to build the docs:
@@ -134,7 +175,7 @@ This will build Node.js first (if necessary) and then use it to build the docs:
 $ make doc
 ```
 
-If you have an existing Node.js you can build just the docs with:
+If you have an existing Node.js build, you can build just the docs with:
 
 ```console
 $ NODE=/path/to/node make doc-only
@@ -169,11 +210,16 @@ Prerequisites:
   * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
     including the Community edition (remember to select
     "Common Tools for Visual C++ 2015" feature during installation).
-  * [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
-    **Required Components:** "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+  * The "Desktop development with C++" workload from
+    [Visual Studio 2017](https://www.visualstudio.com/downloads/) or the
+    "Visual C++ build tools" workload from the
+    [Build Tools](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017),
+    with the default optional components.
 * Basic Unix tools required for some tests,
   [Git for Windows](http://git-scm.com/download/win) includes Git Bash
   and tools which can be included in the global `PATH`.
+
+If the path to your build directory contains a space, the build will likely fail.
 
 ```console
 > .\vcbuild
@@ -305,17 +351,13 @@ as `deps/icu` (You'll have: `deps/icu/source/...`)
 
 ## Building Node.js with FIPS-compliant OpenSSL
 
-NOTE: Windows is not yet supported
+It is possible to build Node.js with the
+[OpenSSL FIPS module](https://www.openssl.org/docs/fipsnotes.html) on POSIX
+systems. Windows is not supported.
 
-It is possible to build Node.js with
-[OpenSSL FIPS module](https://www.openssl.org/docs/fipsnotes.html).
-
-**Note**: building in this way does **not** allow you to claim that the
-runtime is FIPS 140-2 validated. Instead you can indicate that the runtime
-uses a validated module. See the
-[security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf)
-page 60 for more details. In addition, the validation for the underlying module
-is only valid if it is deployed in accordance with its
+Building in this way does not mean the runtime is FIPS 140-2 validated, but
+rather that the runtime uses a validated module. In addition, the validation for
+the underlying module is only valid if it is deployed in accordance with its
 [security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf).
 If you need FIPS validated cryptography it is recommended that you read both
 the [security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf)

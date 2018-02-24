@@ -24,14 +24,28 @@
 const NativeModule = require('native_module');
 const util = require('util');
 const internalModule = require('internal/module');
+const { getURLFromFilePath } = require('internal/url');
 const vm = require('vm');
 const assert = require('assert').ok;
 const fs = require('fs');
 const internalFS = require('internal/fs');
 const path = require('path');
-const internalModuleReadFile = process.binding('fs').internalModuleReadFile;
-const internalModuleStat = process.binding('fs').internalModuleStat;
+const {
+  internalModuleReadFile,
+  internalModuleStat
+} = process.binding('fs');
 const preserveSymlinks = !!process.binding('config').preserveSymlinks;
+const experimentalModules = !!process.binding('config').experimentalModules;
+
+const errors = require('internal/errors');
+
+module.exports = Module;
+
+// these are below module.exports for the circular reference
+const Loader = require('internal/loader/Loader');
+const ModuleJob = require('internal/loader/ModuleJob');
+const { createDynamicModule } = require('internal/loader/ModuleWrap');
+let ESMLoader;
 
 function stat(filename) {
   filename = path._makeLong(filename);
@@ -61,7 +75,6 @@ function Module(id, parent) {
   this.loaded = false;
   this.children = [];
 }
-module.exports = Module;
 
 Module._cache = Object.create(null);
 Module._pathCache = Object.create(null);
@@ -147,7 +160,7 @@ function toRealPath(requestPath) {
   });
 }
 
-// given a path check a the file exists with any of the set extensions
+// given a path, check if the file exists with any of the set extensions
 function tryExtensions(p, exts, isMain) {
   for (var i = 0; i < exts.length; i++) {
     const filename = tryFile(p + exts[i], isMain);
@@ -210,14 +223,9 @@ Module._findPath = function(request, paths, isMain) {
     if (!filename && rc === 1) {  // Directory.
       if (exts === undefined)
         exts = Object.keys(Module._extensions);
-      filename = tryPackage(basePath, exts, isMain);
-    }
-
-    if (!filename && rc === 1) {  // Directory.
-      // try it with each of the extensions at "index"
-      if (exts === undefined)
-        exts = Object.keys(Module._extensions);
-      filename = tryExtensions(path.resolve(basePath, 'index'), exts, isMain);
+      filename = tryPackage(basePath, exts, isMain) ||
+        // try it with each of the extensions at "index"
+        tryExtensions(path.resolve(basePath, 'index'), exts, isMain);
     }
 
     if (filename) {
@@ -436,6 +444,27 @@ Module._load = function(request, parent, isMain) {
     debug('Module._load REQUEST %s parent: %s', request, parent.id);
   }
 
+  if (isMain && experimentalModules) {
+    (async () => {
+      // loader setup
+      if (!ESMLoader) {
+        ESMLoader = new Loader();
+        const userLoader = process.binding('config').userLoader;
+        if (userLoader) {
+          const hooks = await ESMLoader.import(userLoader);
+          ESMLoader = new Loader();
+          ESMLoader.hook(hooks);
+        }
+      }
+      await ESMLoader.import(getURLFromFilePath(request).pathname);
+    })()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
+    return;
+  }
+
   var filename = Module._resolveFilename(request, parent, isMain);
 
   var cachedModule = Module._cache[filename];
@@ -476,12 +505,32 @@ function tryModuleLoad(module, filename) {
   }
 }
 
-Module._resolveFilename = function(request, parent, isMain) {
+Module._resolveFilename = function(request, parent, isMain, options) {
   if (NativeModule.nonInternalExists(request)) {
     return request;
   }
 
-  var paths = Module._resolveLookupPaths(request, parent, true);
+  var paths;
+
+  if (typeof options === 'object' && options !== null &&
+      Array.isArray(options.paths)) {
+    paths = [];
+
+    for (var i = 0; i < options.paths.length; i++) {
+      const path = options.paths[i];
+      const lookupPaths = Module._resolveLookupPaths(path, parent, true);
+
+      if (!paths.includes(path))
+        paths.push(path);
+
+      for (var j = 0; j < lookupPaths.length; j++) {
+        if (!paths.includes(lookupPaths[j]))
+          paths.push(lookupPaths[j]);
+      }
+    }
+  } else {
+    paths = Module._resolveLookupPaths(request, parent, true);
+  }
 
   // look up the filename first, since that's the cache key.
   var filename = Module._findPath(request, paths, isMain);
@@ -506,6 +555,27 @@ Module.prototype.load = function(filename) {
   if (!Module._extensions[extension]) extension = '.js';
   Module._extensions[extension](this, filename);
   this.loaded = true;
+
+  if (ESMLoader) {
+    const url = getURLFromFilePath(filename);
+    const urlString = `${url}`;
+    const exports = this.exports;
+    if (ESMLoader.moduleMap.has(urlString) !== true) {
+      ESMLoader.moduleMap.set(
+        urlString,
+        new ModuleJob(ESMLoader, url, async () => {
+          const ctx = createDynamicModule(
+            ['default'], url);
+          ctx.reflect.exports.default.set(exports);
+          return ctx;
+        })
+      );
+    } else {
+      const job = ESMLoader.moduleMap.get(urlString);
+      if (job.reflect)
+        job.reflect.exports.default.set(exports);
+    }
+  }
 };
 
 
@@ -602,6 +672,11 @@ Module._extensions['.node'] = function(module, filename) {
   return process.dlopen(module, path._makeLong(filename));
 };
 
+if (experimentalModules) {
+  Module._extensions['.mjs'] = function(module, filename) {
+    throw new errors.Error('ERR_REQUIRE_ESM', filename);
+  };
+}
 
 // bootstrap main module.
 Module.runMain = function() {

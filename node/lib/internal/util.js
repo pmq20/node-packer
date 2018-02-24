@@ -2,13 +2,15 @@
 
 const errors = require('internal/errors');
 const binding = process.binding('util');
-const signals = process.binding('constants').os.signals;
+const { signals } = process.binding('constants').os;
 
 const { createPromise, promiseResolve, promiseReject } = binding;
 
 const kArrowMessagePrivateSymbolIndex = binding['arrow_message_private_symbol'];
 const kDecoratedPrivateSymbolIndex = binding['decorated_private_symbol'];
 const noCrypto = !process.versions.openssl;
+
+const experimentalWarnings = new Set();
 
 function isError(e) {
   return objectToString(e) === '[object Error]' || e instanceof Error;
@@ -22,13 +24,6 @@ function objectToString(o) {
 // Returns a modified function which warns once by default.
 // If --no-deprecation is set, then it is a no-op.
 function deprecate(fn, msg, code) {
-  // Allow for deprecating things in the process of starting up.
-  if (global.process === undefined) {
-    return function(...args) {
-      return deprecate(fn, msg).apply(this, args);
-    };
-  }
-
   if (process.noDeprecation === true) {
     return fn;
   }
@@ -115,6 +110,14 @@ function normalizeEncoding(enc) {
   }
 }
 
+function emitExperimentalWarning(feature) {
+  if (experimentalWarnings.has(feature)) return;
+  const msg = `${feature} is an experimental feature. This feature could ` +
+       'change at any time';
+  experimentalWarnings.add(feature);
+  process.emitWarning(msg, 'ExperimentalWarning');
+}
+
 function filterDuplicateStrings(items, low) {
   const map = new Map();
   for (var i = 0; i < items.length; i++) {
@@ -150,8 +153,8 @@ function createClassWrapper(type) {
   }
   // Mask the wrapper function name and length values
   Object.defineProperties(fn, {
-    name: {value: type.name},
-    length: {value: type.length}
+    name: { value: type.name },
+    length: { value: type.length }
   });
   Object.setPrototypeOf(fn, type);
   fn.prototype = type.prototype;
@@ -252,6 +255,27 @@ function promisify(orig) {
 
 promisify.custom = kCustomPromisifiedSymbol;
 
+// The build-in Array#join is slower in v8 6.0
+function join(output, separator) {
+  var str = '';
+  if (output.length !== 0) {
+    for (var i = 0; i < output.length - 1; i++) {
+      // It is faster not to use a template string here
+      str += output[i];
+      str += separator;
+    }
+    str += output[i];
+  }
+  return str;
+}
+
+// About 1.5x faster than the two-arg version of Array#splice().
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    list[i] = list[k];
+  list.pop();
+}
+
 module.exports = {
   assertCrypto,
   cachedResult,
@@ -259,12 +283,15 @@ module.exports = {
   createClassWrapper,
   decorateErrorStack,
   deprecate,
+  emitExperimentalWarning,
   filterDuplicateStrings,
   getConstructorOf,
   isError,
+  join,
   normalizeEncoding,
   objectToString,
   promisify,
+  spliceOne,
 
   // Symbol used to customize promisify conversion
   customPromisifyArgs: kCustomPromisifyArgsSymbol,

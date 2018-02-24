@@ -1,135 +1,141 @@
 // Flags: --expose-internals
 'use strict';
-
 const common = require('../common');
-const errors = require('internal/errors');
-const assert = require('assert');
 
-const errMessages = {
-  objectString: /^'object' === 'string'$/,
-  booleanString: /^'boolean' === 'string'$/,
-  numberString: /^'number' === 'string'$/,
-  invalidKey: /^An invalid error message key was used: TEST_FOO_KEY\.$/,
-};
+const assert = require('assert');
+const errors = require('internal/errors');
+
+function invalidKey(key) {
+  return new RegExp(`^An invalid error message key was used: ${key}\\.$`);
+}
 
 errors.E('TEST_ERROR_1', 'Error for testing purposes: %s');
 errors.E('TEST_ERROR_2', (a, b) => `${a} ${b}`);
 
-const err1 = new errors.Error('TEST_ERROR_1', 'test');
-const err2 = new errors.TypeError('TEST_ERROR_1', 'test');
-const err3 = new errors.RangeError('TEST_ERROR_1', 'test');
-const err4 = new errors.Error('TEST_ERROR_2', 'abc', 'xyz');
-const err5 = new errors.Error('TEST_ERROR_1');
+{
+  const err = new errors.Error('TEST_ERROR_1', 'test');
+  assert(err instanceof Error);
+  assert.strictEqual(err.name, 'Error [TEST_ERROR_1]');
+  assert.strictEqual(err.message, 'Error for testing purposes: test');
+  assert.strictEqual(err.code, 'TEST_ERROR_1');
+}
 
-assert(err1 instanceof Error);
-assert.strictEqual(err1.name, 'Error [TEST_ERROR_1]');
-assert.strictEqual(err1.message, 'Error for testing purposes: test');
-assert.strictEqual(err1.code, 'TEST_ERROR_1');
+{
+  const err = new errors.TypeError('TEST_ERROR_1', 'test');
+  assert(err instanceof TypeError);
+  assert.strictEqual(err.name, 'TypeError [TEST_ERROR_1]');
+  assert.strictEqual(err.message, 'Error for testing purposes: test');
+  assert.strictEqual(err.code, 'TEST_ERROR_1');
+}
 
-assert(err2 instanceof TypeError);
-assert.strictEqual(err2.name, 'TypeError [TEST_ERROR_1]');
-assert.strictEqual(err2.message, 'Error for testing purposes: test');
-assert.strictEqual(err2.code, 'TEST_ERROR_1');
+{
+  const err = new errors.RangeError('TEST_ERROR_1', 'test');
+  assert(err instanceof RangeError);
+  assert.strictEqual(err.name, 'RangeError [TEST_ERROR_1]');
+  assert.strictEqual(err.message, 'Error for testing purposes: test');
+  assert.strictEqual(err.code, 'TEST_ERROR_1');
+}
 
-assert(err3 instanceof RangeError);
-assert.strictEqual(err3.name, 'RangeError [TEST_ERROR_1]');
-assert.strictEqual(err3.message, 'Error for testing purposes: test');
-assert.strictEqual(err3.code, 'TEST_ERROR_1');
+{
+  const err = new errors.Error('TEST_ERROR_2', 'abc', 'xyz');
+  assert(err instanceof Error);
+  assert.strictEqual(err.name, 'Error [TEST_ERROR_2]');
+  assert.strictEqual(err.message, 'abc xyz');
+  assert.strictEqual(err.code, 'TEST_ERROR_2');
+}
 
-assert(err4 instanceof Error);
-assert.strictEqual(err4.name, 'Error [TEST_ERROR_2]');
-assert.strictEqual(err4.message, 'abc xyz');
-assert.strictEqual(err4.code, 'TEST_ERROR_2');
-
-assert(err5 instanceof Error);
-assert.strictEqual(err5.name, 'Error [TEST_ERROR_1]');
-assert.strictEqual(err5.message, 'Error for testing purposes: %s');
-assert.strictEqual(err5.code, 'TEST_ERROR_1');
+{
+  const err = new errors.Error('TEST_ERROR_1');
+  assert(err instanceof Error);
+  assert.strictEqual(err.name, 'Error [TEST_ERROR_1]');
+  assert.strictEqual(err.message, 'Error for testing purposes: %s');
+  assert.strictEqual(err.code, 'TEST_ERROR_1');
+}
 
 assert.throws(
   () => new errors.Error('TEST_FOO_KEY'),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.invalidKey
+    message: invalidKey('TEST_FOO_KEY')
   }));
 // Calling it twice yields same result (using the key does not create it)
 assert.throws(
   () => new errors.Error('TEST_FOO_KEY'),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.invalidKey
+    message: invalidKey('TEST_FOO_KEY')
   }));
 assert.throws(
   () => new errors.Error(1),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.numberString
+    message: invalidKey(1)
   }));
 assert.throws(
   () => new errors.Error({}),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('\\[object Object\\]')
   }));
 assert.throws(
   () => new errors.Error([]),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('')
   }));
 assert.throws(
   () => new errors.Error(true),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.booleanString
+    message: invalidKey('true')
   }));
 assert.throws(
   () => new errors.TypeError(1),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.numberString
+    message: invalidKey(1)
   }));
 assert.throws(
   () => new errors.TypeError({}),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('\\[object Object\\]')
   }));
 assert.throws(
   () => new errors.TypeError([]),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('')
   }));
 assert.throws(
   () => new errors.TypeError(true),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.booleanString
+    message: invalidKey('true')
   }));
 assert.throws(
   () => new errors.RangeError(1),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.numberString
+    message: invalidKey(1)
   }));
 assert.throws(
   () => new errors.RangeError({}),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('\\[object Object\\]')
   }));
 assert.throws(
   () => new errors.RangeError([]),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.objectString
+    message: invalidKey('')
   }));
 assert.throws(
   () => new errors.RangeError(true),
   common.expectsError({
     code: 'ERR_ASSERTION',
-    message: errMessages.booleanString
+    message: invalidKey('true')
   }));
 
 
@@ -229,3 +235,77 @@ assert.throws(
     code: 'ERR_ASSERTION',
     message: /^At least one arg needs to be specified$/
   }));
+
+// Test ERR_ENCODING_NOT_SUPPORTED
+assert.strictEqual(
+  errors.message('ERR_ENCODING_NOT_SUPPORTED', ['enc']),
+  'The "enc" encoding is not supported');
+
+// Test ERR_HTTP2_HEADER_REQUIRED
+assert.strictEqual(
+  errors.message('ERR_HTTP2_HEADER_REQUIRED', ['test']),
+  'The test header is required');
+
+// Test ERR_HTTP2_FRAME_ERROR
+assert.strictEqual(
+  errors.message('ERR_HTTP2_FRAME_ERROR', ['foo', 'bar', 'baz']),
+  'Error sending frame type foo for stream baz with code bar');
+assert.strictEqual(
+  errors.message('ERR_HTTP2_FRAME_ERROR', ['foo', 'bar']),
+  'Error sending frame type foo with code bar');
+
+
+// Test that `code` property is mutable and that changing it does not change the
+// name.
+{
+  const myError = new errors.Error('ERR_MISSING_ARGS', ['Sterrance']);
+  assert.strictEqual(myError.code, 'ERR_MISSING_ARGS');
+  assert.strictEqual(myError.hasOwnProperty('code'), false);
+  assert.strictEqual(myError.hasOwnProperty('name'), false);
+  assert.deepStrictEqual(Object.keys(myError), []);
+  const initialName = myError.name;
+  myError.code = 'FHQWHGADS';
+  assert.strictEqual(myError.code, 'FHQWHGADS');
+  assert.strictEqual(myError.name, initialName);
+  assert.deepStrictEqual(Object.keys(myError), ['code']);
+  assert.ok(myError.name.includes('ERR_MISSING_ARGS'));
+  assert.ok(!myError.name.includes('FHQWHGADS'));
+}
+
+// Test that `name` is mutable and that changing it alters `toString()` but not
+// `console.log()` results, which is the behavior of `Error` objects in the
+// browser. Note that `name` becomes enumerable after being assigned.
+{
+  const myError = new errors.Error('ERR_MISSING_ARGS', ['Sterrance']);
+  assert.deepStrictEqual(Object.keys(myError), []);
+  const initialToString = myError.toString();
+
+  myError.name = 'Fhqwhgads';
+  assert.deepStrictEqual(Object.keys(myError), ['name']);
+  assert.notStrictEqual(myError.toString(), initialToString);
+}
+
+// Test that `message` is mutable and that changing it alters `toString()` but
+// not `console.log()` results, which is the behavior of `Error` objects in the
+// browser. Note that `message` remains non-enumerable after being assigned.
+{
+  let initialConsoleLog = '';
+  common.hijackStdout((data) => { initialConsoleLog += data; });
+  const myError = new errors.Error('ERR_MISSING_ARGS', ['Sterrance']);
+  assert.deepStrictEqual(Object.keys(myError), []);
+  const initialToString = myError.toString();
+  console.log(myError);
+  assert.notStrictEqual(initialConsoleLog, '');
+
+  common.restoreStdout();
+
+  let subsequentConsoleLog = '';
+  common.hijackStdout((data) => { subsequentConsoleLog += data; });
+  myError.message = 'Fhqwhgads';
+  assert.deepStrictEqual(Object.keys(myError), []);
+  assert.notStrictEqual(myError.toString(), initialToString);
+  console.log(myError);
+  assert.strictEqual(subsequentConsoleLog, initialConsoleLog);
+
+  common.restoreStdout();
+}

@@ -24,23 +24,17 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
+const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
 
-const dir = common.fixturesDir;
-const options = { key: fs.readFileSync(`${dir}/test_key.pem`),
-                  cert: fs.readFileSync(`${dir}/test_cert.pem`),
-                  ca: [ fs.readFileSync(`${dir}/test_ca.pem`) ] };
+const options = { key: fixtures.readSync('test_key.pem'),
+                  cert: fixtures.readSync('test_cert.pem'),
+                  ca: [ fixtures.readSync('test_ca.pem') ] };
 
 const server = tls.createServer(options, onconnection);
 let gotChunk = false;
 let gotDrain = false;
-
-setTimeout(function() {
-  console.log('not ok - timed out');
-  process.exit(1);
-}, common.platformTimeout(1000));
 
 function onconnection(conn) {
   conn.on('data', function(c) {

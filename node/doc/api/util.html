@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Util | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Util | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,39 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="util" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="util.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="util.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/util.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/util.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/util.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/util.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/util.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/util.html">4.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/util.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/util.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -111,7 +133,7 @@
 <li><span class="stability_undefined"><a href="#util_util_promisify_custom">util.promisify.custom</a></span></li>
 </ul>
 </li>
-<li><span class="stability_1"><a href="#util_class_util_textdecoder">Class: util.TextDecoder</a></span><ul>
+<li><span class="stability_undefined"><a href="#util_class_util_textdecoder">Class: util.TextDecoder</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_whatwg_supported_encodings">WHATWG Supported Encodings</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_encodings_supported_without_icu">Encodings Supported Without ICU</a></span></li>
 <li><span class="stability_undefined"><a href="#util_encodings_supported_by_default_with_icu">Encodings Supported by Default (With ICU)</a></span></li>
@@ -125,7 +147,7 @@
 <li><span class="stability_undefined"><a href="#util_textdecoder_ignorebom">textDecoder.ignoreBOM</a></span></li>
 </ul>
 </li>
-<li><span class="stability_1"><a href="#util_class_util_textencoder">Class: util.TextEncoder</a></span><ul>
+<li><span class="stability_undefined"><a href="#util_class_util_textencoder">Class: util.TextEncoder</a></span><ul>
 <li><span class="stability_undefined"><a href="#util_textencoder_encode_input">textEncoder.encode([input])</a></span></li>
 <li><span class="stability_undefined"><a href="#util_textdecoder_encoding_1">textDecoder.encoding</a></span></li>
 </ul>
@@ -162,7 +184,8 @@
 
       <div id="apicontent">
         <h1>Util<span><a class="mark" href="#util_util" id="util_util">#</a></span></h1>
-<pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><p>The <code>util</code> module is primarily designed to support the needs of Node.js&#39; own
+<!--introduced_in=v0.10.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>util</code> module is primarily designed to support the needs of Node.js&#39; own
 internal APIs. However, many of the utilities are useful for application and
 module developers as well. It can be accessed using:</p>
 <pre><code class="lang-js">const util = require(&#39;util&#39;);
@@ -171,8 +194,10 @@ module developers as well. It can be accessed using:</p>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
 </div><ul>
-<li><code>original</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>async</code> function</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> a callback style function</li>
+<li><code>original</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> An <code>async</code> function</li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> a callback style function</li>
 </ul>
 <p>Takes an <code>async</code> function (or a function that returns a Promise) and returns a
 function following the Node.js error first callback style. In the callback, the
@@ -182,7 +207,7 @@ and the second argument will be the resolved value.</p>
 <pre><code class="lang-js">const util = require(&#39;util&#39;);
 
 async function fn() {
-  return await Promise.resolve(&#39;hello world&#39;);
+  return &#39;hello world&#39;;
 }
 const callbackFunction = util.callbackify(fn);
 
@@ -221,9 +246,11 @@ callbackFunction((err, ret) =&gt; {
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div><ul>
-<li><code>section</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string identifying the portion of the application for
+<li><code>section</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string identifying the portion of the application for
 which the <code>debuglog</code> function is being created.</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The logging function</li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The logging function</li>
 </ul>
 <p>The <code>util.debuglog()</code> method is used to create a function that conditionally
 writes debug messages to <code>stderr</code> based on the existence of the <code>NODE_DEBUG</code>
@@ -290,7 +317,8 @@ property take precedence over <code>--trace-deprecation</code> and
 </table>
 </details>
 </div><ul>
-<li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A <code>printf</code>-like format string.</li>
+<li><code>format</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A <code>printf</code>-like format string.</li>
 </ul>
 <p>The <code>util.format()</code> method returns a formatted string using the first argument
 as a <code>printf</code>-like format.</p>
@@ -352,8 +380,10 @@ without any formatting.</p>
 and <code>extends</code> keywords to get language level inheritance support. Also note
 that the two styles are <a href="https://github.com/nodejs/node/issues/4179">semantically incompatible</a>.</p>
 <ul>
-<li><code>constructor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li><code>superConstructor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>constructor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>superConstructor</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Inherit the prototype methods from one <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/constructor">constructor</a> into another.  The
 prototype of <code>constructor</code> will be set to a new object created from
@@ -423,26 +453,34 @@ stream.write(&#39;With ES6&#39;);
 </details>
 </div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span> Any JavaScript primitive or Object.</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>showHidden</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the <code>object</code>&#39;s non-enumerable symbols and
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>showHidden</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the <code>object</code>&#39;s non-enumerable symbols and
 properties will be included in the formatted result. Defaults to <code>false</code>.</li>
-<li><code>depth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of times to recurse while formatting
+<li><code>depth</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the number of times to recurse while formatting
 the <code>object</code>. This is useful for inspecting large complicated objects.
 Defaults to <code>2</code>. To make it recurse indefinitely pass <code>null</code>.</li>
-<li><code>colors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the output will be styled with ANSI color
+<li><code>colors</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, the output will be styled with ANSI color
 codes. Defaults to <code>false</code>. Colors are customizable, see
 <a href="#util_customizing_util_inspect_colors">Customizing <code>util.inspect</code> colors</a>.</li>
-<li><code>customInspect</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>false</code>, then custom <code>inspect(depth, opts)</code>
+<li><code>customInspect</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>false</code>, then custom <code>inspect(depth, opts)</code>
 functions exported on the <code>object</code> being inspected will not be called.
 Defaults to <code>true</code>.</li>
-<li><code>showProxy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, then objects and functions that are
+<li><code>showProxy</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, then objects and functions that are
 <code>Proxy</code> objects will be introspected to show their <code>target</code> and <code>handler</code>
 objects. Defaults to <code>false</code>.</li>
-<li><code>maxArrayLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the maximum number of array and
+<li><code>maxArrayLength</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the maximum number of array and
 <code>TypedArray</code> elements to include when formatting. Defaults to <code>100</code>. Set to
 <code>null</code> to show all array elements. Set to <code>0</code> or negative to show no array
 elements.</li>
-<li><code>breakLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The length at which an object&#39;s keys are split
+<li><code>breakLength</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The length at which an object&#39;s keys are split
 across multiple lines. Set to <code>Infinity</code> to format an object as a single
 line. Defaults to 60 for legacy compatibility.</li>
 </ul>
@@ -485,8 +523,8 @@ terminals.</p>
 <h3>Custom inspection functions on Objects<span><a class="mark" href="#util_custom_inspection_functions_on_objects" id="util_custom_inspection_functions_on_objects">#</a></span></h3>
 <!-- type=misc -->
 <p>Objects may also define their own <code>[util.inspect.custom](depth, opts)</code>
-(or, equivalently <code>inspect(depth, opts)</code>) function that <code>util.inspect()</code> will
-invoke and use the result of when inspecting the object:</p>
+(or the equivalent but deprecated <code>inspect(depth, opts)</code>) function that
+<code>util.inspect()</code> will invoke and use the result of when inspecting the object:</p>
 <pre><code class="lang-js">const util = require(&#39;util&#39;);
 
 class Box {
@@ -494,7 +532,7 @@ class Box {
     this.value = value;
   }
 
-  inspect(depth, options) {
+  [util.inspect.custom](depth, options) {
     if (depth &lt; 0) {
       return options.stylize(&#39;[Box]&#39;, &#39;special&#39;);
     }
@@ -522,19 +560,7 @@ but may return a value of any type that will be formatted accordingly by
 <pre><code class="lang-js">const util = require(&#39;util&#39;);
 
 const obj = { foo: &#39;this will not show up in the inspect() output&#39; };
-obj[util.inspect.custom] = function(depth) {
-  return { bar: &#39;baz&#39; };
-};
-
-util.inspect(obj);
-// Returns: &quot;{ bar: &#39;baz&#39; }&quot;
-</code></pre>
-<p>A custom inspection method can alternatively be provided by exposing
-an <code>inspect(depth, opts)</code> method on the object:</p>
-<pre><code class="lang-js">const util = require(&#39;util&#39;);
-
-const obj = { foo: &#39;this will not show up in the inspect() output&#39; };
-obj.inspect = function(depth) {
+obj[util.inspect.custom] = (depth) =&gt; {
   return { bar: &#39;baz&#39; };
 };
 
@@ -565,7 +591,10 @@ console.log(arr); // logs the full array
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><ul>
-<li><code>original</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>original</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Takes a function following the common Node.js callback style, i.e. taking a
 <code>(err, value) =&gt; ...</code> callback as the last argument, and returns a version
@@ -606,7 +635,7 @@ function doSomething(foo, callback) {
   // ...
 }
 
-doSomething[util.promisify.custom] = function(foo) {
+doSomething[util.promisify.custom] = (foo) =&gt; {
   return getPromiseSomehow();
 };
 
@@ -616,18 +645,26 @@ console.log(promisified === doSomething[util.promisify.custom]);
 </code></pre>
 <p>This can be useful for cases where the original function does not follow the
 standard format of taking an error-first callback as the last argument.</p>
+<p>For example, with a function that takes in <code>(foo, onSuccessCallback, onErrorCallback)</code>:</p>
+<pre><code class="lang-js">doSomething[util.promisify.custom] = (foo) =&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    doSomething(foo, resolve, reject);
+  });
+};
+</code></pre>
 <h3>util.promisify.custom<span><a class="mark" href="#util_util_promisify_custom" id="util_util_promisify_custom">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type" class="type">&lt;symbol&gt;</a></li>
 </ul>
 <p>A Symbol that can be used to declare custom promisified variants of functions,
 see <a href="#util_custom_promisified_functions">Custom promisified functions</a>.</p>
 <h2>Class: util.TextDecoder<span><a class="mark" href="#util_class_util_textdecoder" id="util_class_util_textdecoder">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
-</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>
+</div><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextDecoder</code> API.</p>
 <pre><code class="lang-js">const decoder = new TextDecoder(&#39;shift_jis&#39;);
 let string = &#39;&#39;;
 let buffer;
@@ -836,13 +873,17 @@ with ICU and using the full ICU data (see <a href="intl.html">Internationalizati
 is not supported.</p>
 <h3>new TextDecoder([encoding[, options]])<span><a class="mark" href="#util_new_textdecoder_encoding_options" id="util_new_textdecoder_encoding_options">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Identifies the <code>encoding</code> that this <code>TextDecoder</code> instance
+<li><code>encoding</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Identifies the <code>encoding</code> that this <code>TextDecoder</code> instance
 supports. Defaults to <code>&#39;utf-8&#39;</code>.</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>fatal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if decoding failures are fatal. Defaults to
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>fatal</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if decoding failures are fatal. Defaults to
 <code>false</code>. This option is only supported when ICU is enabled (see
 <a href="intl.html">Internationalization</a>).</li>
-<li><code>ignoreBOM</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>TextDecoder</code> will include the byte
+<li><code>ignoreBOM</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>TextDecoder</code> will include the byte
  order mark in the decoded result. When <code>false</code>, the byte order mark will
  be removed from the output. This option is only used when <code>encoding</code> is
  <code>&#39;utf-8&#39;</code>, <code>&#39;utf-16be&#39;</code> or <code>&#39;utf-16le&#39;</code>. Defaults to <code>false</code>.</li>
@@ -853,55 +894,67 @@ supports. Defaults to <code>&#39;utf-8&#39;</code>.</li>
 supported encodings or an alias.</p>
 <h3>textDecoder.decode([input[, options]])<span><a class="mark" href="#util_textdecoder_decode_input_options" id="util_textdecoder_decode_input_options">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> An <code>ArrayBuffer</code>, <code>DataView</code> or
+<li><code>input</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&lt;ArrayBuffer&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> | 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> An <code>ArrayBuffer</code>, <code>DataView</code> or
 Typed Array instance containing the encoded data.</li>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>stream</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data are expected.
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>stream</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if additional chunks of data are expected.
 Defaults to <code>false</code>.</li>
 </ul>
 </li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Decodes the <code>input</code> and returns a string. If <code>options.stream</code> is <code>true</code>, any
-incomplete byte sequences occuring at the end of the <code>input</code> are buffered
+incomplete byte sequences occurring at the end of the <code>input</code> are buffered
 internally and emitted after the next call to <code>textDecoder.decode()</code>.</p>
 <p>If <code>textDecoder.fatal</code> is <code>true</code>, decoding errors that occur will result in a
 <code>TypeError</code> being thrown.</p>
 <h3>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding" id="util_textdecoder_encoding">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The encoding supported by the <code>TextDecoder</code> instance.</p>
 <h3>textDecoder.fatal<span><a class="mark" href="#util_textdecoder_fatal" id="util_textdecoder_fatal">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>The value will be <code>true</code> if decoding errors result in a <code>TypeError</code> being
 thrown.</p>
 <h3>textDecoder.ignoreBOM<span><a class="mark" href="#util_textdecoder_ignorebom" id="util_textdecoder_ignorebom">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>The value will be <code>true</code> if the decoding result will include the byte order
 mark.</p>
 <h2>Class: util.TextEncoder<span><a class="mark" href="#util_class_util_textencoder" id="util_class_util_textencoder">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
-</div><pre class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</pre><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All
+</div><p>An implementation of the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All
 instances of <code>TextEncoder</code> only support UTF-8 encoding.</p>
 <pre><code class="lang-js">const encoder = new TextEncoder();
 const uint8array = encoder.encode(&#39;this is some data&#39;);
 </code></pre>
 <h3>textEncoder.encode([input])<span><a class="mark" href="#util_textencoder_encode_input" id="util_textencoder_encode_input">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The text to encode. Defaults to an empty string.</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
+<li><code>input</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The text to encode. Defaults to an empty string.</li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a></li>
 </ul>
 </div><p>UTF-8 encodes the <code>input</code> string and returns a <code>Uint8Array</code> containing the
 encoded bytes.</p>
 <h3>textDecoder.encoding<span><a class="mark" href="#util_textdecoder_encoding_1" id="util_textdecoder_encoding_1">#</a></span></h3>
 <div class="signature"><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The encoding supported by the <code>TextEncoder</code> instance. Always set to <code>&#39;utf-8&#39;</code>.</p>
 <h2>Deprecated APIs<span><a class="mark" href="#util_deprecated_apis" id="util_deprecated_apis">#</a></span></h2>
@@ -910,28 +963,30 @@ applications and modules should be updated to find alternative approaches.</p>
 <h3>util._extend(target, source)<span><a class="mark" href="#util_util_extend_target_source" id="util_util_extend_target_source">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.5</span><span>Deprecated since: v6.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"><code>Object.assign()</code></a> instead.</pre><p>The <code>util._extend()</code> method was never intended to be used outside of internal
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"><code>Object.assign()</code></a> instead.</div><p>The <code>util._extend()</code> method was never intended to be used outside of internal
 Node.js modules. The community found and used it anyway.</p>
 <p>It is deprecated and should not be used in new code. JavaScript comes with very
 similar built-in functionality through <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"><code>Object.assign()</code></a>.</p>
 <h3>util.debug(string)<span><a class="mark" href="#util_util_debug_string" id="util_util_debug_string">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v0.11.3</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</pre><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The message to print to <code>stderr</code></li>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</div><ul>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The message to print to <code>stderr</code></li>
 </ul>
 <p>Deprecated predecessor of <code>console.error</code>.</p>
 <h3>util.error([...strings])<span><a class="mark" href="#util_util_error_strings" id="util_util_error_strings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v0.11.3</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</pre><ul>
-<li><code>...strings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The message to print to <code>stderr</code></li>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</div><ul>
+<li><code>...strings</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The message to print to <code>stderr</code></li>
 </ul>
 <p>Deprecated predecessor of <code>console.error</code>.</p>
 <h3>util.isArray(object)<span><a class="mark" href="#util_util_isarray_object" id="util_util_isarray_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Internal alias for <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray"><code>Array.isArray</code></a>.</p>
@@ -948,7 +1003,7 @@ util.isArray({});
 <h3>util.isBoolean(object)<span><a class="mark" href="#util_util_isboolean_object" id="util_util_isboolean_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Boolean</code>. Otherwise, returns <code>false</code>.</p>
@@ -964,7 +1019,7 @@ util.isBoolean(false);
 <h3>util.isBuffer(object)<span><a class="mark" href="#util_util_isbuffer_object" id="util_util_isbuffer_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="buffer.html#buffer_class_method_buffer_isbuffer_obj"><code>Buffer.isBuffer()</code></a> instead.</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="buffer.html#buffer_class_method_buffer_isbuffer_obj"><code>Buffer.isBuffer()</code></a> instead.</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Buffer</code>. Otherwise, returns <code>false</code>.</p>
@@ -980,7 +1035,7 @@ util.isBuffer(Buffer.from(&#39;hello world&#39;));
 <h3>util.isDate(object)<span><a class="mark" href="#util_util_isdate_object" id="util_util_isdate_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Date</code>. Otherwise, returns <code>false</code>.</p>
@@ -996,7 +1051,7 @@ util.isDate({});
 <h3>util.isError(object)<span><a class="mark" href="#util_util_iserror_object" id="util_util_iserror_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a>. Otherwise, returns
@@ -1025,7 +1080,7 @@ util.isError(obj);
 <h3>util.isFunction(object)<span><a class="mark" href="#util_util_isfunction_object" id="util_util_isfunction_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Function</code>. Otherwise, returns
@@ -1045,7 +1100,7 @@ util.isFunction(Bar);
 <h3>util.isNull(object)<span><a class="mark" href="#util_util_isnull_object" id="util_util_isnull_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is strictly <code>null</code>. Otherwise, returns
@@ -1062,7 +1117,7 @@ util.isNull(null);
 <h3>util.isNullOrUndefined(object)<span><a class="mark" href="#util_util_isnullorundefined_object" id="util_util_isnullorundefined_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is <code>null</code> or <code>undefined</code>. Otherwise,
@@ -1079,7 +1134,7 @@ util.isNullOrUndefined(null);
 <h3>util.isNumber(object)<span><a class="mark" href="#util_util_isnumber_object" id="util_util_isnumber_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Number</code>. Otherwise, returns <code>false</code>.</p>
@@ -1097,7 +1152,7 @@ util.isNumber(NaN);
 <h3>util.isObject(object)<span><a class="mark" href="#util_util_isobject_object" id="util_util_isobject_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is strictly an <code>Object</code> <strong>and</strong> not a
@@ -1116,7 +1171,7 @@ util.isObject(function() {});
 <h3>util.isPrimitive(object)<span><a class="mark" href="#util_util_isprimitive_object" id="util_util_isprimitive_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a primitive type. Otherwise, returns
@@ -1145,7 +1200,7 @@ util.isPrimitive(new Date());
 <h3>util.isRegExp(object)<span><a class="mark" href="#util_util_isregexp_object" id="util_util_isregexp_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>RegExp</code>. Otherwise, returns <code>false</code>.</p>
@@ -1161,7 +1216,7 @@ util.isRegExp({});
 <h3>util.isString(object)<span><a class="mark" href="#util_util_isstring_object" id="util_util_isstring_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>string</code>. Otherwise, returns <code>false</code>.</p>
@@ -1179,7 +1234,7 @@ util.isString(5);
 <h3>util.isSymbol(object)<span><a class="mark" href="#util_util_issymbol_object" id="util_util_issymbol_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is a <code>Symbol</code>. Otherwise, returns <code>false</code>.</p>
@@ -1195,7 +1250,7 @@ util.isSymbol(Symbol(&#39;foo&#39;));
 <h3>util.isUndefined(object)<span><a class="mark" href="#util_util_isundefined_object" id="util_util_isundefined_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><ul>
 <li><code>object</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Returns <code>true</code> if the given <code>object</code> is <code>undefined</code>. Otherwise, returns <code>false</code>.</p>
@@ -1212,8 +1267,9 @@ util.isUndefined(null);
 <h3>util.log(string)<span><a class="mark" href="#util_util_log_string" id="util_util_log_string">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v6.0.0</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use a third party module instead.</pre><ul>
-<li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use a third party module instead.</div><ul>
+<li><code>string</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>The <code>util.log()</code> method prints the given <code>string</code> to <code>stdout</code> with an included
 timestamp.</p>
@@ -1224,11 +1280,11 @@ util.log(&#39;Timestamped message.&#39;);
 <h3>util.print([...strings])<span><a class="mark" href="#util_util_print_strings" id="util_util_print_strings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v0.11.3</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</pre><p>Deprecated predecessor of <code>console.log</code>.</p>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</div><p>Deprecated predecessor of <code>console.log</code>.</p>
 <h3>util.puts([...strings])<span><a class="mark" href="#util_util_puts_strings" id="util_util_puts_strings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v0.11.3</span>
-</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</pre><p>Deprecated predecessor of <code>console.log</code>.</p>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</div><p>Deprecated predecessor of <code>console.log</code>.</p>
 
       </div>
     </div>

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Command Line Options | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Command Line Options | Node.js v8.9.4 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -37,6 +38,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +52,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -72,20 +75,35 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v8.9.4 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="cli.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="cli.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/cli.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/cli.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/cli.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/cli.html">6.x <b>LTS</b></a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -112,11 +130,11 @@
 <li><span class="stability_undefined"><a href="#cli_pending_deprecation"><code>--pending-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_no_warnings"><code>--no-warnings</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_expose_http2"><code>--expose-http2</code></a></span></li>
-<li><span class="stability_undefined"><a href="#cli_napi_modules"><code>--napi-modules</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_abort_on_uncaught_exception"><code>--abort-on-uncaught-exception</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_warnings"><code>--trace-warnings</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_redirect_warnings_file"><code>--redirect-warnings=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_sync_io"><code>--trace-sync-io</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_force_async_hooks_checks"><code>--force-async-hooks-checks</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_events_enabled"><code>--trace-events-enabled</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_event_categories"><code>--trace-event-categories</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_zero_fill_buffers"><code>--zero-fill-buffers</code></a></span></li>
@@ -140,6 +158,7 @@
 <li><span class="stability_undefined"><a href="#cli_node_disable_colors_1"><code>NODE_DISABLE_COLORS=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_icu_data_file"><code>NODE_ICU_DATA=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_no_warnings_1"><code>NODE_NO_WARNINGS=1</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_node_no_http2_1"><code>NODE_NO_HTTP2=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_options_options"><code>NODE_OPTIONS=options...</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_pending_deprecation_1"><code>NODE_PENDING_DEPRECATION=1</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_preserve_symlinks_1"><code>NODE_PRESERVE_SYMLINKS=1</code></a></span></li>
@@ -149,6 +168,7 @@
 <li><span class="stability_undefined"><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_ssl_cert_file_file"><code>SSL_CERT_FILE=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_node_redirect_warnings_file"><code>NODE_REDIRECT_WARNINGS=file</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE=size</code></a></span></li>
 </ul>
 </li>
 </ul>
@@ -159,12 +179,13 @@
 
       <div id="apicontent">
         <h1>Command Line Options<span><a class="mark" href="#cli_command_line_options" id="cli_command_line_options">#</a></span></h1>
+<!--introduced_in=v5.9.1-->
 <!--type=misc-->
 <p>Node.js comes with a variety of CLI options. These options expose built-in
 debugging, multiple ways to execute scripts, and other helpful runtime options.</p>
 <p>To view this documentation as a manual page in a terminal, run <code>man node</code>.</p>
 <h2>Synopsis<span><a class="mark" href="#cli_synopsis" id="cli_synopsis">#</a></span></h2>
-<p><code>node [options] [v8 options] [script.js | -e &quot;script&quot; | -] [--] [arguments]</code></p>
+<p><code>node [options] [V8 options] [script.js | -e &quot;script&quot; | -] [--] [arguments]</code></p>
 <p><code>node debug [script.js | -e &quot;script&quot; | &lt;host&gt;:&lt;port&gt;] …</code></p>
 <p><code>node --v8-options</code></p>
 <p>Execute without arguments to start the <a href="repl.html">REPL</a>.</p>
@@ -194,6 +215,9 @@ The output of this option is less detailed than this document.</p>
 </details>
 </div><p>Evaluate the following argument as JavaScript. The modules which are
 predefined in the REPL can also be used in <code>script</code>.</p>
+<p><em>Note</em>: On Windows, using <code>cmd.exe</code> a single quote will not work correctly
+because it only recognizes double <code>&quot;</code> for quoting. In Powershell or
+Git bash, both <code>&#39;</code> and <code>&quot;</code> are usable.</p>
 <h3><code>-p</code>, <code>--print &quot;script&quot;</code><span><a class="mark" href="#cli_p_print_script" id="cli_p_print_script">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -270,11 +294,6 @@ developers may leverage to detect deprecated API usage.</p>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div><p>Enable the experimental <code>&#39;http2&#39;</code> module.</p>
-<h3><code>--napi-modules</code><span><a class="mark" href="#cli_napi_modules" id="cli_napi_modules">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><p>Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
-(experimental).</p>
 <h3><code>--abort-on-uncaught-exception</code><span><a class="mark" href="#cli_abort_on_uncaught_exception" id="cli_abort_on_uncaught_exception">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.10</span>
@@ -296,6 +315,11 @@ warning will be written to stderr instead.</p>
 <span>Added in: v2.1.0</span>
 </div><p>Prints a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.</p>
+<h3><code>--force-async-hooks-checks</code><span><a class="mark" href="#cli_force_async_hooks_checks" id="cli_force_async_hooks_checks">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.8.0</span>
+</div><p>Enables runtime checks for <code>async_hooks</code>. These can also be enabled dynamically
+by enabling one of the <code>async_hooks</code> hooks.</p>
 <h3><code>--trace-events-enabled</code><span><a class="mark" href="#cli_trace_events_enabled" id="cli_trace_events_enabled">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.7.0</span>
@@ -349,11 +373,11 @@ times, causing an exception to be thrown).</p>
 <h3><code>--prof-process</code><span><a class="mark" href="#cli_prof_process" id="cli_prof_process">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.2.0</span>
-</div><p>Process v8 profiler output generated using the v8 option <code>--prof</code>.</p>
+</div><p>Process V8 profiler output generated using the V8 option <code>--prof</code>.</p>
 <h3><code>--v8-options</code><span><a class="mark" href="#cli_v8_options" id="cli_v8_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.3</span>
-</div><p>Print v8 command line options.</p>
+</div><p>Print V8 command line options.</p>
 <p><em>Note</em>: V8 options allow words to be separated by both dashes (<code>-</code>) or
 underscores (<code>_</code>).</p>
 <p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>
@@ -382,13 +406,13 @@ used to enable FIPS-compliant crypto if Node.js is built with
 <div class="api_metadata">
 <span>Added in: v7.5.0</span>
 </div><p>Use OpenSSL&#39;s default CA store or use bundled Mozilla CA store as supplied by
-current NodeJS version. The default store is selectable at build-time.</p>
+current Node.js version. The default store is selectable at build-time.</p>
 <p>Using OpenSSL store allows for external modifications of the store. For most
 Linux and BSD distributions, this store is maintained by the distribution
 maintainers and system administrators. OpenSSL CA store location is dependent on
 configuration of the OpenSSL library but this can be altered at runtime using
-environmental variables.</p>
-<p>The bundled CA store, as supplied by NodeJS, is a snapshot of Mozilla CA store
+environment variables.</p>
+<p>The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store
 that is fixed at release time. It is identical on all supported platforms.</p>
 <p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>
 <h3><code>--icu-data-dir=file</code><span><a class="mark" href="#cli_icu_data_dir_file" id="cli_icu_data_dir_file">#</a></span></h3>
@@ -430,6 +454,10 @@ with small-icu support.</p>
 <div class="api_metadata">
 <span>Added in: v7.5.0</span>
 </div><p>When set to <code>1</code>, process warnings are silenced.</p>
+<h3><code>NODE_NO_HTTP2=1</code><span><a class="mark" href="#cli_node_no_http2_1" id="cli_node_no_http2_1">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.8.0</span>
+</div><p>When set to <code>1</code>, the <code>http2</code> module is suppressed.</p>
 <h3><code>NODE_OPTIONS=options...</code><span><a class="mark" href="#cli_node_options_options" id="cli_node_options_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -445,7 +473,6 @@ not allowed in the environment is used, such as <code>-p</code> or a script file
 <li><code>--inspect-brk</code></li>
 <li><code>--inspect-port</code></li>
 <li><code>--inspect</code></li>
-<li><code>--napi-modules</code></li>
 <li><code>--no-deprecation</code></li>
 <li><code>--no-warnings</code></li>
 <li><code>--openssl-config</code></li>
@@ -514,7 +541,7 @@ variable is ignored.</p>
 </div><p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s directory
 containing trusted certificates.</p>
 <p><em>Note</em>: Be aware that unless the child environment is explicitly set, this
-evironment variable will be inherited by any child processes, and if they use
+environment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.</p>
 <h3><code>SSL_CERT_FILE=file</code><span><a class="mark" href="#cli_ssl_cert_file_file" id="cli_ssl_cert_file_file">#</a></span></h3>
 <div class="api_metadata">
@@ -522,7 +549,7 @@ OpenSSL, it may cause them to trust the same CAs as node.</p>
 </div><p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL&#39;s file
 containing trusted certificates.</p>
 <p><em>Note</em>: Be aware that unless the child environment is explicitly set, this
-evironment variable will be inherited by any child processes, and if they use
+environment variable will be inherited by any child processes, and if they use
 OpenSSL, it may cause them to trust the same CAs as node.</p>
 <h3><code>NODE_REDIRECT_WARNINGS=file</code><span><a class="mark" href="#cli_node_redirect_warnings_file" id="cli_node_redirect_warnings_file">#</a></span></h3>
 <div class="api_metadata">
@@ -532,6 +559,27 @@ printing to stderr. The file will be created if it does not exist, and will be
 appended to if it does. If an error occurs while attempting to write the
 warning to the file, the warning will be written to stderr instead. This is
 equivalent to using the <code>--redirect-warnings=file</code> command-line flag.</p>
+<h3><code>UV_THREADPOOL_SIZE=size</code><span><a class="mark" href="#cli_uv_threadpool_size_size" id="cli_uv_threadpool_size_size">#</a></span></h3>
+<p>Set the number of threads used in libuv&#39;s threadpool to <code>size</code> threads.</p>
+<p>Asynchronous system APIs are used by Node.js whenever possible, but where they
+do not exist, libuv&#39;s threadpool is used to create asynchronous node APIs based
+on synchronous system APIs. Node.js APIs that use the threadpool are:</p>
+<ul>
+<li>all <code>fs</code> APIs, other than the file watcher APIs and those that are explicitly
+synchronous</li>
+<li><code>crypto.pbkdf2()</code></li>
+<li><code>crypto.randomBytes()</code>, unless it is used without a callback</li>
+<li><code>crypto.randomFill()</code></li>
+<li><code>dns.lookup()</code></li>
+<li>all <code>zlib</code> APIs, other than those that are explicitly synchronous</li>
+</ul>
+<p>Because libuv&#39;s threadpool has a fixed size, it means that if for whatever
+reason any of these APIs takes a long time, other (seemingly unrelated) APIs
+that run in libuv&#39;s threadpool will experience degraded performance. In order to
+mitigate this issue, one potential solution is to increase the size of libuv&#39;s
+threadpool by setting the <code>&#39;UV_THREADPOOL_SIZE&#39;</code> environment variable to a value
+greater than <code>4</code> (its current default value).  For more information, see the
+<a href="http://docs.libuv.org/en/latest/threadpool.html">libuv threadpool documentation</a>.</p>
 
       </div>
     </div>

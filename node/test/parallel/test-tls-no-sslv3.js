@@ -8,12 +8,12 @@ if (common.opensslCli === false)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
 const spawn = require('child_process').spawn;
+const fixtures = require('../common/fixtures');
 
-const cert = fs.readFileSync(`${common.fixturesDir}/test_cert.pem`);
-const key = fs.readFileSync(`${common.fixturesDir}/test_key.pem`);
-const server = tls.createServer({ cert: cert, key: key }, common.mustNotCall());
+const cert = fixtures.readSync('test_cert.pem');
+const key = fixtures.readSync('test_key.pem');
+const server = tls.createServer({ cert, key }, common.mustNotCall());
 const errors = [];
 let stderr = '';
 
@@ -46,6 +46,8 @@ process.on('exit', function() {
     common.printSkipMessage('`openssl s_client -ssl3` not supported.');
   } else {
     assert.strictEqual(errors.length, 1);
-    assert(/:wrong version number/.test(errors[0].message));
+    // OpenSSL 1.0.x and 1.1.x report invalid client versions differently.
+    assert(/:wrong version number/.test(errors[0].message) ||
+           /:version too low/.test(errors[0].message));
   }
 });

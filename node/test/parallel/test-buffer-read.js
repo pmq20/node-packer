@@ -20,11 +20,11 @@ function read(buff, funx, args, expected) {
 
 }
 
-// testing basic functionality of readDoubleBE() and readDOubleLE()
+// testing basic functionality of readDoubleBE() and readDoubleLE()
 read(buf, 'readDoubleBE', [1], -3.1827727774563287e+295);
 read(buf, 'readDoubleLE', [1], -6.966010051009108e+144);
 
-// testing basic functionality of readFLoatBE() and readFloatLE()
+// testing basic functionality of readFloatBE() and readFloatLE()
 read(buf, 'readFloatBE', [1], -1.6691549692541768e+37);
 read(buf, 'readFloatLE', [1], -7861303808);
 
@@ -59,13 +59,13 @@ read(buf, 'readUIntBE', [2, 0], 0xfd);
 read(buf, 'readUIntLE', [2, 0], 0x48);
 
 // attempt to overflow buffers, similar to previous bug in array buffers
-assert.throws(() => Buffer.allocUnsafe(8).readFloatLE(0xffffffff),
+assert.throws(() => Buffer.allocUnsafe(8).readFloatBE(0xffffffff),
               RangeError);
 assert.throws(() => Buffer.allocUnsafe(8).readFloatLE(0xffffffff),
               RangeError);
 
 // ensure negative values can't get past offset
-assert.throws(() => Buffer.allocUnsafe(8).readFloatLE(-1), RangeError);
+assert.throws(() => Buffer.allocUnsafe(8).readFloatBE(-1), RangeError);
 assert.throws(() => Buffer.allocUnsafe(8).readFloatLE(-1), RangeError);
 
 // offset checks

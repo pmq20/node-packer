@@ -161,6 +161,11 @@ const int kInvalidMSARegister = -1;
 const int kInvalidMSAControlRegister = -1;
 const int kMSAIRRegister = 0;
 const int kMSACSRRegister = 1;
+const int kMSARegSize = 128;
+const int kMSALanesByte = kMSARegSize / 8;
+const int kMSALanesHalf = kMSARegSize / 16;
+const int kMSALanesWord = kMSARegSize / 32;
+const int kMSALanesDword = kMSARegSize / 64;
 
 // FPU (coprocessor 1) control registers. Currently only FCSR is implemented.
 const int kFCSRRegister = 31;
@@ -308,7 +313,13 @@ const int kFunctionBits  = 6;
 const int kLuiShift      = 16;
 const int kBp2Shift = 6;
 const int kBp2Bits = 2;
+const int kBaseShift = 21;
+const int kBaseBits = 5;
+const int kBit6Shift = 6;
+const int kBit6Bits = 1;
 
+const int kImm9Shift = 7;
+const int kImm9Bits = 9;
 const int kImm16Shift = 0;
 const int kImm16Bits  = 16;
 const int kImm18Shift = 0;
@@ -360,6 +371,7 @@ const int kWdShift = 6;
 // ----- Miscellaneous useful masks.
 // Instruction bit masks.
 const int kOpcodeMask = ((1 << kOpcodeBits) - 1) << kOpcodeShift;
+const int kImm9Mask = ((1 << kImm9Bits) - 1) << kImm9Shift;
 const int kImm16Mask = ((1 << kImm16Bits) - 1) << kImm16Shift;
 const int kImm18Mask = ((1 << kImm18Bits) - 1) << kImm18Shift;
 const int kImm19Mask = ((1 << kImm19Bits) - 1) << kImm19Shift;
@@ -370,6 +382,16 @@ const int kImm5Mask = ((1 << 5) - 1);
 const int kImm8Mask = ((1 << 8) - 1);
 const int kImm10Mask = ((1 << 10) - 1);
 const int kMsaI5I10Mask = ((7U << 23) | ((1 << 6) - 1));
+const int kMsaI8Mask = ((3U << 24) | ((1 << 6) - 1));
+const int kMsaI5Mask = ((7U << 23) | ((1 << 6) - 1));
+const int kMsaMI10Mask = (15U << 2);
+const int kMsaBITMask = ((7U << 23) | ((1 << 6) - 1));
+const int kMsaELMMask = (15U << 22);
+const int kMsa3RMask = ((7U << 23) | ((1 << 6) - 1));
+const int kMsa3RFMask = ((15U << 22) | ((1 << 6) - 1));
+const int kMsaVECMask = (23U << 21);
+const int kMsa2RMask = (7U << 18);
+const int kMsa2RFMask = (15U << 17);
 const int kRsFieldMask = ((1 << kRsBits) - 1) << kRsShift;
 const int kRtFieldMask = ((1 << kRtBits) - 1) << kRtShift;
 const int kRdFieldMask = ((1 << kRdBits) - 1) << kRdShift;
@@ -429,6 +451,7 @@ enum Opcode : uint32_t {
   SW = ((5U << 3) + 3) << kOpcodeShift,
   SWR = ((5U << 3) + 6) << kOpcodeShift,
 
+  LL = ((6U << 3) + 0) << kOpcodeShift,
   LWC1 = ((6U << 3) + 1) << kOpcodeShift,
   BC = ((6U << 3) + 2) << kOpcodeShift,
   LDC1 = ((6U << 3) + 5) << kOpcodeShift,
@@ -436,6 +459,7 @@ enum Opcode : uint32_t {
 
   PREF = ((6U << 3) + 3) << kOpcodeShift,
 
+  SC = ((7U << 3) + 0) << kOpcodeShift,
   SWC1 = ((7U << 3) + 1) << kOpcodeShift,
   BALC = ((7U << 3) + 2) << kOpcodeShift,
   PCREL = ((7U << 3) + 3) << kOpcodeShift,
@@ -524,6 +548,8 @@ enum SecondaryField : uint32_t {
   EXT = ((0U << 3) + 0),
   INS = ((0U << 3) + 4),
   BSHFL = ((4U << 3) + 0),
+  SC_R6 = ((4U << 3) + 6),
+  LL_R6 = ((6U << 3) + 6),
 
   // SPECIAL3 Encoding of sa Field.
   BITSWAP = ((0U << 3) + 0),
@@ -1046,6 +1072,36 @@ inline Condition NegateFpuCondition(Condition cc) {
   }
 }
 
+enum MSABranchCondition {
+  all_not_zero = 0,   // Branch If All Elements Are Not Zero
+  one_elem_not_zero,  // Branch If At Least One Element of Any Format Is Not
+                      // Zero
+  one_elem_zero,      // Branch If At Least One Element Is Zero
+  all_zero            // Branch If All Elements of Any Format Are Zero
+};
+
+inline MSABranchCondition NegateMSABranchCondition(MSABranchCondition cond) {
+  switch (cond) {
+    case all_not_zero:
+      return one_elem_zero;
+    case one_elem_not_zero:
+      return all_zero;
+    case one_elem_zero:
+      return all_not_zero;
+    case all_zero:
+      return one_elem_not_zero;
+    default:
+      return cond;
+  }
+}
+
+enum MSABranchDF {
+  MSA_BRANCH_B = 0,
+  MSA_BRANCH_H,
+  MSA_BRANCH_W,
+  MSA_BRANCH_D,
+  MSA_BRANCH_V
+};
 
 // Commute a condition such that {a cond b == b cond' a}.
 inline Condition CommuteCondition(Condition cc) {
@@ -1353,6 +1409,11 @@ class InstructionGetters : public T {
     return this->Bits(kRdShift + kRdBits - 1, kRdShift);
   }
 
+  inline int BaseValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kImmediateType);
+    return this->Bits(kBaseShift + kBaseBits - 1, kBaseShift);
+  }
+
   inline int SaValue() const {
     DCHECK(this->InstructionType() == InstructionBase::kRegisterType);
     return this->Bits(kSaShift + kSaBits - 1, kSaShift);
@@ -1466,6 +1527,11 @@ class InstructionGetters : public T {
   inline int32_t ImmValue(int bits) const {
     DCHECK(this->InstructionType() == InstructionBase::kImmediateType);
     return this->Bits(bits - 1, 0);
+  }
+
+  inline int32_t Imm9Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kImmediateType);
+    return this->Bits(kImm9Shift + kImm9Bits - 1, kImm9Shift);
   }
 
   inline int32_t Imm16Value() const {
@@ -1670,6 +1736,11 @@ InstructionBase::Type InstructionBase::InstructionType() const {
               return kUnsupported;
           }
         }
+        case LL_R6:
+        case SC_R6: {
+          DCHECK(IsMipsArchVariant(kMips32r6));
+          return kImmediateType;
+        }
         default:
           return kUnsupported;
       }
@@ -1825,6 +1896,16 @@ bool InstructionGetters<T>::IsForbiddenAfterBranchInstr(Instr instr) {
         case BC1:
         case BC1EQZ:
         case BC1NEZ:
+        case BZ_V:
+        case BZ_B:
+        case BZ_H:
+        case BZ_W:
+        case BZ_D:
+        case BNZ_V:
+        case BNZ_B:
+        case BNZ_H:
+        case BNZ_W:
+        case BNZ_D:
           return true;
           break;
         default:

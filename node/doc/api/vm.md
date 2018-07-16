@@ -1,18 +1,44 @@
 # VM (Executing JavaScript)
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--name=vm-->
 
 The `vm` module provides APIs for compiling and running code within V8 Virtual
-Machine contexts. It can be accessed using:
+Machine contexts.
+
+JavaScript code can be compiled and run immediately or
+compiled, saved, and run later.
+
+A common use case is to run the code in a sandboxed environment.
+The sandboxed code uses a different V8 Context, meaning that
+it has a different global object than the rest of the code.
+
+One can provide the context by ["contextifying"][contextified] a sandbox
+object. The sandboxed code treats any property on the sandbox like a
+global variable. Any changes on global variables caused by the sandboxed
+code are reflected in the sandbox object.
 
 ```js
 const vm = require('vm');
-```
 
-JavaScript code can be compiled and run immediately or compiled, saved, and run
-later.
+const x = 1;
+
+const sandbox = { x: 2 };
+vm.createContext(sandbox); // Contextify the sandbox.
+
+const code = 'x += 40; var y = 17;';
+// x and y are global variables in the sandboxed environment.
+// Initially, x has the value 2 because that is the value of sandbox.x.
+vm.runInContext(code, sandbox);
+
+console.log(sandbox.x); // 42
+console.log(sandbox.y); // 17
+
+console.log(x); // 1; y is not defined.
+```
 
 *Note*: The vm module is not a security mechanism.
 **Do not use it to run untrusted code**.
@@ -61,9 +87,8 @@ changes:
     depending on whether code cache data is produced successfully.
 
 Creating a new `vm.Script` object compiles `code` but does not run it. The
-compiled `vm.Script` can be run later multiple times. It is important to note
-that the `code` is not bound to any global object; rather, it is bound before
-each run, just for that run.
+compiled `vm.Script` can be run later multiple times. The `code` is not bound to
+any global object; rather, it is bound before each run, just for that run.
 
 ### script.runInContext(contextifiedSandbox[, options])
 <!-- YAML
@@ -91,7 +116,7 @@ changes:
     will be thrown.
   * `breakOnSigint`: if `true`, the execution will be terminated when
     `SIGINT` (Ctrl+C) is received. Existing handlers for the
-    event that have been attached via `process.on("SIGINT")` will be disabled
+    event that have been attached via `process.on('SIGINT')` will be disabled
     during script execution, but will continue to work after that.
     If execution is terminated, an [`Error`][] will be thrown.
 
@@ -115,7 +140,7 @@ const sandbox = {
 
 const script = new vm.Script('count += 1; name = "kitty";');
 
-const context = new vm.createContext(sandbox);
+const context = vm.createContext(sandbox);
 for (let i = 0; i < 10; ++i) {
   script.runInContext(context);
 }
@@ -443,7 +468,7 @@ to the `http` module passed to it. For instance:
 const vm = require('vm');
 
 const code = `
-(function(require) {
+((require) => {
   const http = require('http');
 
   http.createServer((request, response) => {

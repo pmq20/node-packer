@@ -3,7 +3,8 @@
 const common = require('../common');
 const net = require('net');
 
-common.refreshTmpDir();
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 
 function closeServer() {
   return common.mustCall(function() {
@@ -30,7 +31,7 @@ function randomPipePath() {
 {
   const handlePath = randomPipePath();
   net.createServer()
-    .listen({path: handlePath})
+    .listen({ path: handlePath })
     .on('listening', closeServer());
 }
 
@@ -45,5 +46,5 @@ function randomPipePath() {
 {
   const handlePath = randomPipePath();
   net.createServer()
-    .listen({path: handlePath}, closeServer());
+    .listen({ path: handlePath }, closeServer());
 }

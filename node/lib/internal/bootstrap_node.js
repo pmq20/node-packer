@@ -14,9 +14,7 @@
     process._eventsCount = 0;
 
     const origProcProto = Object.getPrototypeOf(process);
-    Object.setPrototypeOf(process, Object.create(EventEmitter.prototype, {
-      constructor: Object.getOwnPropertyDescriptor(origProcProto, 'constructor')
-    }));
+    Object.setPrototypeOf(origProcProto, EventEmitter.prototype);
 
     EventEmitter.call(process);
 
@@ -28,24 +26,37 @@
     setupProcessICUVersions();
 
     setupGlobalVariables();
-    if (!process._noBrowserGlobals) {
-      setupGlobalTimeouts();
-      setupGlobalConsole();
-    }
 
     const _process = NativeModule.require('internal/process');
-
-    _process.setup_hrtime();
-    _process.setup_cpuUsage();
-    _process.setupMemoryUsage();
     _process.setupConfig(NativeModule._source);
+    _process.setupSignalHandlers();
     NativeModule.require('internal/process/warning').setup();
     NativeModule.require('internal/process/next_tick').setup();
     NativeModule.require('internal/process/stdio').setup();
+
+    const perf = process.binding('performance');
+    const {
+      NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE,
+      NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_START,
+      NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_END,
+      NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_START,
+      NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_END,
+      NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START,
+      NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END,
+      NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START,
+      NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END
+    } = perf.constants;
+
+    _process.setup_hrtime();
+    _process.setup_performance();
+    _process.setup_cpuUsage();
+    _process.setupMemoryUsage();
     _process.setupKillAndExit();
-    _process.setupSignalHandlers();
     if (global.__coverage__)
       NativeModule.require('internal/process/write-coverage').setup();
+
+    NativeModule.require('internal/trace_events_async_hooks').setup();
+    NativeModule.require('internal/inspector_async_hook').setup();
 
     if (process.env.ENCLOSE_IO_USE_ORIGINAL_NODE) {
       delete process.env.ENCLOSE_IO_USE_ORIGINAL_NODE;
@@ -63,9 +74,24 @@
 
     _process.setupRawDebug();
 
+    const browserGlobals = !process._noBrowserGlobals;
+    if (browserGlobals) {
+      setupGlobalTimeouts();
+      setupGlobalConsole();
+    }
+
     // Ensure setURLConstructor() is called before the native
     // URL::ToObject() method is used.
     NativeModule.require('internal/url');
+
+    // On OpenBSD process.execPath will be relative unless we
+    // get the full path before process.execPath is used.
+    if (process.platform === 'openbsd') {
+      const {
+        realpathSync
+      } = NativeModule.require('fs');
+      process.execPath = realpathSync.native(process.execPath);
+    }
 
     Object.defineProperty(process, 'argv0', {
       enumerable: true,
@@ -88,6 +114,12 @@
         'DeprecationWarning', 'DEP0062', startup, true);
     }
 
+    if (process.binding('config').experimentalModules) {
+      process.emitWarning(
+        'The ESM module loader is experimental.',
+        'ExperimentalWarning', undefined);
+    }
+
     // There are various modes that Node can run in. The most common two
     // are running from a script and running the REPL - but there are a few
     // others like the debugger or running --eval arguments. Here we decide
@@ -98,7 +130,9 @@
       // one to drop a file lib/_third_party_main.js into the build
       // directory which will be executed instead of Node's normal loading.
       process.nextTick(function() {
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_START);
         NativeModule.require('_third_party_main');
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_END);
       });
 
     } else if (process.argv[1] === 'inspect' || process.argv[1] === 'debug') {
@@ -113,14 +147,6 @@
         NativeModule.require('node-inspect/lib/_inspect').start();
       });
 
-    } else if (process.argv[1] === '--remote_debugging_server') {
-      // Start the debugging server
-      NativeModule.require('internal/inspector/remote_debugging_server');
-
-    } else if (process.argv[1] === '--debug-agent') {
-      // Start the debugger agent
-      NativeModule.require('_debug_agent').start();
-
     } else if (process.profProcess) {
       NativeModule.require('internal/v8_prof_processor');
 
@@ -131,22 +157,30 @@
       // channel. This needs to be done before any user code gets executed
       // (including preload modules).
       if (process.argv[1] && process.env.NODE_UNIQUE_ID) {
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_START);
         const cluster = NativeModule.require('cluster');
         cluster._setupWorker();
-
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_END);
         // Make sure it's not accidentally inherited by child processes.
         delete process.env.NODE_UNIQUE_ID;
       }
 
       if (process._eval != null && !process._forceRepl) {
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START);
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END);
         // User passed '-e' or '--eval' arguments to Node without '-i' or
         // '--interactive'
+
+        perf.markMilestone(
+          NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START);
         preloadModules();
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
 
         const internalModule = NativeModule.require('internal/module');
         internalModule.addBuiltinLibsToObject(global);
         evalScript('[eval]');
       } else if (process.argv[1] && process.argv[1] !== '-') {
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START);
         // make process.argv[1] into a full path
         const path = NativeModule.require('path');
         process.argv[1] = path.resolve(process.argv[1]);
@@ -158,15 +192,25 @@
           const fs = NativeModule.require('fs');
           // read the source
           const filename = Module._resolveFilename(process.argv[1]);
-          var source = fs.readFileSync(filename, 'utf-8');
+          const source = fs.readFileSync(filename, 'utf-8');
           checkScriptSyntax(source, filename);
           process.exit(0);
         }
-
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END);
+        perf.markMilestone(
+          NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START);
         preloadModules();
+        perf.markMilestone(
+          NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
         Module.runMain();
       } else {
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START);
+        perf.markMilestone(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END);
+        perf.markMilestone(
+          NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START);
         preloadModules();
+        perf.markMilestone(
+          NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
         // If -i or --interactive were passed, or stdin is a TTY.
         if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
           // REPL
@@ -194,7 +238,7 @@
           // Read all of stdin - execute it.
           process.stdin.setEncoding('utf8');
 
-          var code = '';
+          let code = '';
           process.stdin.on('data', function(d) {
             code += d;
           });
@@ -210,6 +254,7 @@
         }
       }
     }
+    perf.markMilestone(NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE);
   }
 
   function setupProcessObject() {
@@ -278,78 +323,81 @@
 
   function setupGlobalConsole() {
     const originalConsole = global.console;
-    let console;
+    const Module = NativeModule.require('module');
+    // Setup Node.js global.console
+    const wrappedConsole = NativeModule.require('console');
     Object.defineProperty(global, 'console', {
       configurable: true,
       enumerable: true,
-      get: function() {
-        if (!console) {
-          console = (originalConsole === undefined) ?
-            NativeModule.require('console') :
-            installInspectorConsole(originalConsole);
-        }
-        return console;
+      get() {
+        return wrappedConsole;
       }
     });
-    setupInspectorCommandLineAPI();
+    setupInspector(originalConsole, wrappedConsole, Module);
   }
 
-  function installInspectorConsole(globalConsole) {
-    const wrappedConsole = NativeModule.require('console');
-    const inspector = process.binding('inspector');
-    if (!inspector.consoleCall) {
-      return wrappedConsole;
+  function setupInspector(originalConsole, wrappedConsole, Module) {
+    if (!process.config.variables.v8_enable_inspector) {
+      return;
     }
-    const config = {};
-    for (const key of Object.keys(wrappedConsole)) {
-      if (!globalConsole.hasOwnProperty(key))
-        continue;
-      // If global console has the same method as inspector console,
-      // then wrap these two methods into one. Native wrapper will preserve
-      // the original stack.
-      wrappedConsole[key] = inspector.consoleCall.bind(wrappedConsole,
-                                                       globalConsole[key],
-                                                       wrappedConsole[key],
-                                                       config);
-    }
-    for (const key of Object.keys(globalConsole)) {
-      if (wrappedConsole.hasOwnProperty(key))
-        continue;
-      wrappedConsole[key] = globalConsole[key];
-    }
-    return wrappedConsole;
-  }
-
-  function setupInspectorCommandLineAPI() {
-    const { addCommandLineAPI } = process.binding('inspector');
-    if (!addCommandLineAPI) return;
-
-    const Module = NativeModule.require('module');
-    const { makeRequireFunction } = NativeModule.require('internal/module');
+    const {
+      addCommandLineAPI,
+      consoleCall
+    } = process.binding('inspector');
+    // Setup inspector command line API
+    const {
+      makeRequireFunction
+    } = NativeModule.require('internal/module');
     const path = NativeModule.require('path');
     const cwd = tryGetCwd(path);
 
     const consoleAPIModule = new Module('<inspector console>');
     consoleAPIModule.paths =
-        Module._nodeModulePaths(cwd).concat(Module.globalPaths);
-
+      Module._nodeModulePaths(cwd).concat(Module.globalPaths);
     addCommandLineAPI('require', makeRequireFunction(consoleAPIModule));
+    const config = {};
+    for (const key of Object.keys(wrappedConsole)) {
+      if (!originalConsole.hasOwnProperty(key))
+        continue;
+      // If global console has the same method as inspector console,
+      // then wrap these two methods into one. Native wrapper will preserve
+      // the original stack.
+      wrappedConsole[key] = consoleCall.bind(wrappedConsole,
+        originalConsole[key],
+        wrappedConsole[key],
+        config);
+    }
+    for (const key of Object.keys(originalConsole)) {
+      if (wrappedConsole.hasOwnProperty(key))
+        continue;
+      wrappedConsole[key] = originalConsole[key];
+    }
   }
 
   function setupProcessFatal() {
     const async_wrap = process.binding('async_wrap');
     // Arrays containing hook flags and ids for async_hook calls.
-    const { async_hook_fields, async_uid_fields } = async_wrap;
+    const {
+      async_hook_fields,
+      async_id_fields
+    } = async_wrap;
     // Internal functions needed to manipulate the stack.
-    const { clearIdStack, popAsyncIds } = async_wrap;
-    const { kAfter, kCurrentAsyncId, kInitTriggerId } = async_wrap.constants;
+    const {
+      clearAsyncIdStack
+    } = async_wrap;
+    const {
+      kAfter,
+      kExecutionAsyncId,
+      kDefaultTriggerAsyncId,
+      kStackLength
+    } = async_wrap.constants;
 
     process._fatalException = function(er) {
       var caught;
 
-      // It's possible that kInitTriggerId was set for a constructor call that
-      // threw and was never cleared. So clear it now.
-      async_uid_fields[kInitTriggerId] = 0;
+      // It's possible that kDefaultTriggerAsyncId was set for a constructor
+      // call that threw and was never cleared. So clear it now.
+      async_id_fields[kDefaultTriggerAsyncId] = -1;
 
       if (process.domain && process.domain._errorHandler)
         caught = process.domain._errorHandler(er);
@@ -376,13 +424,12 @@
         // Emit the after() hooks now that the exception has been handled.
         if (async_hook_fields[kAfter] > 0) {
           do {
-            NativeModule.require('async_hooks').emitAfter(
-              async_uid_fields[kCurrentAsyncId]);
-          // popAsyncIds() returns true if there are more ids on the stack.
-          } while (popAsyncIds(async_uid_fields[kCurrentAsyncId]));
-        // Or completely empty the id stack.
+            NativeModule.require('internal/async_hooks').emitAfter(
+              async_id_fields[kExecutionAsyncId]);
+          } while (async_hook_fields[kStackLength] > 0);
+          // Or completely empty the id stack.
         } else {
-          clearIdStack();
+          clearAsyncIdStack();
         }
       }
 
@@ -393,52 +440,38 @@
   function setupProcessICUVersions() {
     const icu = process.binding('config').hasIntl ?
       process.binding('icu') : undefined;
-    if (!icu) return;  // no Intl/ICU: nothing to add here.
+    if (!icu) return; // no Intl/ICU: nothing to add here.
     // With no argument, getVersion() returns a comma separated list
     // of possible types.
     const versionTypes = icu.getVersion().split(',');
 
-    function makeGetter(name) {
-      return () => {
-        // With an argument, getVersion(type) returns
-        // the actual version string.
-        const version = icu.getVersion(name);
-        // Replace the current getter with a new property.
-        delete process.versions[name];
-        Object.defineProperty(process.versions, name, {
-          value: version,
-          writable: false,
-          enumerable: true
-        });
-        return version;
-      };
-    }
-
     for (var n = 0; n < versionTypes.length; n++) {
-      var name = versionTypes[n];
+      const name = versionTypes[n];
+      const version = icu.getVersion(name);
       Object.defineProperty(process.versions, name, {
-        configurable: true,
+        writable: false,
         enumerable: true,
-        get: makeGetter(name)
+        value: version
       });
     }
   }
 
   function tryGetCwd(path) {
-    var threw = true;
-    var cwd;
     try {
-      cwd = process.cwd();
-      threw = false;
-    } finally {
-      if (threw) {
-        // getcwd(3) can fail if the current working directory has been deleted.
-        // Fall back to the directory name of the (absolute) executable path.
-        // It's not really correct but what are the alternatives?
-        return path.dirname(process.execPath);
-      }
+      return process.cwd();
+    } catch (ex) {
+      // getcwd(3) can fail if the current working directory has been deleted.
+      // Fall back to the directory name of the (absolute) executable path.
+      // It's not really correct but what are the alternatives?
+      return path.dirname(process.execPath);
     }
-    return cwd;
+  }
+
+  function wrapForBreakOnFirstLine(source) {
+    if (!process._breakFirstLine)
+      return source;
+    const fn = `function() {\n\n${source};\n\n}`;
+    return `process.binding('inspector').callAndPauseOnStart(${fn}, {})`;
   }
 
   function evalScript(name) {
@@ -449,15 +482,15 @@
     const module = new Module(name);
     module.filename = path.join(cwd, name);
     module.paths = Module._nodeModulePaths(cwd);
-    const body = process._eval;
+    const body = wrapForBreakOnFirstLine(process._eval);
     const script = `global.__filename = ${JSON.stringify(name)};\n` +
-                   'global.exports = exports;\n' +
-                   'global.module = module;\n' +
-                   'global.__dirname = __dirname;\n' +
-                   'global.require = require;\n' +
-                   'return require("vm").runInThisContext(' +
-                   `${JSON.stringify(body)}, { filename: ` +
-                   `${JSON.stringify(name)}, displayErrors: true });\n`;
+      'global.exports = exports;\n' +
+      'global.module = module;\n' +
+      'global.__dirname = __dirname;\n' +
+      'global.require = require;\n' +
+      'return require("vm").runInThisContext(' +
+      `${JSON.stringify(body)}, { filename: ` +
+      `${JSON.stringify(name)}, displayErrors: true });\n`;
     const result = module._compile(script, `${name}-wrapper`);
     if (process._print_eval) console.log(result);
     // Handle any nextTicks added in the first tick of the program.
@@ -483,7 +516,10 @@
     // wrap it
     source = Module.wrap(source);
     // compile the script, this will throw if it fails
-    new vm.Script(source, {displayErrors: true, filename});
+    new vm.Script(source, {
+      displayErrors: true,
+      filename
+    });
   }
 
   // Below you find a minimal module system, which is used to load the node
@@ -491,6 +527,7 @@
   // node binary, so they can be loaded faster.
 
   const ContextifyScript = process.binding('contextify').ContextifyScript;
+
   function runInThisContext(code, options) {
     const script = new ContextifyScript(code, options);
     return script.runInThisContext();
@@ -566,7 +603,6 @@
     };
   }
 
-
   NativeModule.getSource = function(id) {
     return NativeModule._source[id];
   };
@@ -581,7 +617,7 @@
   ];
 
   NativeModule.prototype.compile = function() {
-    var source = NativeModule.getSource(this.id);
+    let source = NativeModule.getSource(this.id);
     source = NativeModule.wrap(source);
 
     this.loading = true;

@@ -27,13 +27,15 @@
 #include "node.h"
 #include "node_crypto.h"  // SSLWrap
 
-#include "async-wrap.h"
+#include "async_wrap.h"
 #include "env.h"
 #include "stream_wrap.h"
 #include "util.h"
 #include "v8.h"
 
 #include <openssl/ssl.h>
+
+#include <string>
 
 namespace node {
 
@@ -110,7 +112,7 @@ class TLSWrap : public AsyncWrap,
   static void SSLInfoCallback(const SSL* ssl_, int where, int ret);
   void InitSSL();
   void EncOut();
-  static void EncOutCb(WriteWrap* req_wrap, int status);
+  void EncOutAfterWrite(WriteWrap* req_wrap, int status);
   bool ClearIn();
   void ClearOut();
   void MakePending();
@@ -130,15 +132,15 @@ class TLSWrap : public AsyncWrap,
 
   AsyncWrap* GetAsyncWrap() override;
   bool IsIPCPipe() override;
+  uint32_t UpdateWriteQueueSize(uint32_t write_queue_size = 0);
 
   // Resource implementation
-  static void OnAfterWriteImpl(WriteWrap* w, void* ctx);
+  static void OnAfterWriteImpl(WriteWrap* w, int status, void* ctx);
   static void OnAllocImpl(size_t size, uv_buf_t* buf, void* ctx);
   static void OnReadImpl(ssize_t nread,
                          const uv_buf_t* buf,
                          uv_handle_type pending,
                          void* ctx);
-  static void OnAfterWriteSelf(WriteWrap* w, void* ctx);
   static void OnAllocSelf(size_t size, uv_buf_t* buf, void* ctx);
   static void OnReadSelf(ssize_t nread,
                          const uv_buf_t* buf,
@@ -148,8 +150,7 @@ class TLSWrap : public AsyncWrap,
 
   void DoRead(ssize_t nread, const uv_buf_t* buf, uv_handle_type pending);
 
-  // If |msg| is not nullptr, caller is responsible for calling `delete[] *msg`.
-  v8::Local<v8::Value> GetSSLError(int status, int* err, const char** msg);
+  v8::Local<v8::Value> GetSSLError(int status, int* err, std::string* msg);
 
   static void OnClientHelloParseEnd(void* arg);
   static void Wrap(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -180,12 +181,16 @@ class TLSWrap : public AsyncWrap,
   bool started_;
   bool established_;
   bool shutdown_;
-  const char* error_;
+  std::string error_;
   int cycle_depth_;
 
   // If true - delivered EOF to the js-land, either after `close_notify`, or
   // after the `UV_EOF` on socket.
   bool eof_;
+
+ private:
+  static void UpdateWriteQueueSize(
+      const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }  // namespace node

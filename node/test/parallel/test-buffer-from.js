@@ -2,7 +2,6 @@
 
 require('../common');
 const { deepStrictEqual, throws } = require('assert');
-const { Buffer } = require('buffer');
 const { runInNewContext } = require('vm');
 
 const checkString = 'test';
@@ -31,7 +30,7 @@ deepStrictEqual(Buffer.from(new String(checkString)), check);
 deepStrictEqual(Buffer.from(new MyString()), check);
 deepStrictEqual(Buffer.from(new MyPrimitive()), check);
 deepStrictEqual(Buffer.from(
-  runInNewContext('new String(checkString)', {checkString})),
+  runInNewContext('new String(checkString)', { checkString })),
                 check);
 
 const err = new RegExp('^TypeError: First argument must be a string, Buffer, ' +

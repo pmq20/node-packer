@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -43,13 +42,13 @@ server.listen(0, common.mustCall(() => {
                                options);
   const req = client.request({ ':path': '/' });
 
-  // Because push stream sre disabled, this must not be called.
+  // Because push streams are disabled, this must not be called.
   client.on('stream', common.mustNotCall());
 
   req.resume();
   req.on('end', common.mustCall(() => {
     server.close();
-    client.destroy();
+    client.close();
   }));
   req.end();
 }));

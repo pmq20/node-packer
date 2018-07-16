@@ -1,6 +1,6 @@
 'use strict';
 
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 
 function copyBuffer(src, target, offset) {
   Buffer.prototype.copy.call(src, target, offset);
@@ -61,8 +61,6 @@ module.exports = class BufferList {
   concat(n) {
     if (this.length === 0)
       return Buffer.alloc(0);
-    if (this.length === 1)
-      return this.head.data;
     const ret = Buffer.allocUnsafe(n >>> 0);
     var p = this.head;
     var i = 0;

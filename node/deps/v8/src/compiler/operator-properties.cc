@@ -62,6 +62,7 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op) {
     case IrOpcode::kJSLessThan:
     case IrOpcode::kJSLessThanOrEqual:
     case IrOpcode::kJSHasProperty:
+    case IrOpcode::kJSHasInPrototypeChain:
     case IrOpcode::kJSInstanceOf:
     case IrOpcode::kJSOrdinaryHasInstance:
 
@@ -98,9 +99,11 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op) {
     // Call operations
     case IrOpcode::kJSConstructForwardVarargs:
     case IrOpcode::kJSConstruct:
+    case IrOpcode::kJSConstructWithArrayLike:
     case IrOpcode::kJSConstructWithSpread:
     case IrOpcode::kJSCallForwardVarargs:
     case IrOpcode::kJSCall:
+    case IrOpcode::kJSCallWithArrayLike:
     case IrOpcode::kJSCallWithSpread:
 
     // Misc operations

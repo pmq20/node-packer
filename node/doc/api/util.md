@@ -1,5 +1,7 @@
 # Util
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `util` module is primarily designed to support the needs of Node.js' own
@@ -19,9 +21,10 @@ added: v8.2.0
 * Returns: {Function} a callback style function
 
 Takes an `async` function (or a function that returns a Promise) and returns a
-function following the Node.js error first callback style. In the callback, the
-first argument will be the rejection reason (or `null` if the Promise resolved),
-and the second argument will be the resolved value.
+function following the error-first callback style, i.e. taking
+a `(err, value) => ...` callback as the last argument. In the callback, the
+first argument will be the rejection reason (or `null` if the Promise
+resolved), and the second argument will be the resolved value.
 
 For example:
 
@@ -29,7 +32,7 @@ For example:
 const util = require('util');
 
 async function fn() {
-  return await Promise.resolve('hello world');
+  return 'hello world';
 }
 const callbackFunction = util.callbackify(fn);
 
@@ -79,9 +82,9 @@ added: v0.11.3
 
 The `util.debuglog()` method is used to create a function that conditionally
 writes debug messages to `stderr` based on the existence of the `NODE_DEBUG`
-environment variable.  If the `section` name appears within the value of that
+environment variable. If the `section` name appears within the value of that
 environment variable, then the returned function operates similar to
-[`console.error()`][].  If not, then the returned function is a no-op.
+[`console.error()`][]. If not, then the returned function is a no-op.
 
 For example:
 
@@ -99,7 +102,7 @@ it will output something like:
 FOO 3245: hello from foo [123]
 ```
 
-where `3245` is the process id.  If it is not run with that
+where `3245` is the process id. If it is not run with that
 environment variable set, then it will not print anything.
 
 Multiple comma-separated `section` names may be specified in the `NODE_DEBUG`
@@ -169,7 +172,7 @@ corresponding argument. Supported placeholders are:
 * `%d` - Number (integer or floating point value).
 * `%i` - Integer.
 * `%f` - Floating point value.
-* `%j` - JSON.  Replaced with the string `'[Circular]'` if the argument
+* `%j` - JSON. Replaced with the string `'[Circular]'` if the argument
 contains circular references.
 * `%o` - Object. A string representation of an object
   with generic JavaScript object formatting.
@@ -230,7 +233,7 @@ that the two styles are [semantically incompatible][].
 * `constructor` {Function}
 * `superConstructor` {Function}
 
-Inherit the prototype methods from one [constructor][] into another.  The
+Inherit the prototype methods from one [constructor][] into another. The
 prototype of `constructor` will be set to a new object created from
 `superConstructor`.
 
@@ -375,8 +378,8 @@ terminals.
 <!-- type=misc -->
 
 Objects may also define their own `[util.inspect.custom](depth, opts)`
-(or, equivalently `inspect(depth, opts)`) function that `util.inspect()` will
-invoke and use the result of when inspecting the object:
+(or the equivalent but deprecated `inspect(depth, opts)`) function that
+`util.inspect()` will invoke and use the result of when inspecting the object:
 
 ```js
 const util = require('util');
@@ -386,7 +389,7 @@ class Box {
     this.value = value;
   }
 
-  inspect(depth, options) {
+  [util.inspect.custom](depth, options) {
     if (depth < 0) {
       return options.stylize('[Box]', 'special');
     }
@@ -417,22 +420,7 @@ but may return a value of any type that will be formatted accordingly by
 const util = require('util');
 
 const obj = { foo: 'this will not show up in the inspect() output' };
-obj[util.inspect.custom] = function(depth) {
-  return { bar: 'baz' };
-};
-
-util.inspect(obj);
-// Returns: "{ bar: 'baz' }"
-```
-
-A custom inspection method can alternatively be provided by exposing
-an `inspect(depth, opts)` method on the object:
-
-```js
-const util = require('util');
-
-const obj = { foo: 'this will not show up in the inspect() output' };
-obj.inspect = function(depth) {
+obj[util.inspect.custom] = (depth) => {
   return { bar: 'baz' };
 };
 
@@ -474,9 +462,10 @@ added: v8.0.0
 -->
 
 * `original` {Function}
+* Returns: {Function}
 
-Takes a function following the common Node.js callback style, i.e. taking a
-`(err, value) => ...` callback as the last argument, and returns a version
+Takes a function following the common error-first callback style, i.e. taking
+a `(err, value) => ...` callback as the last argument, and returns a version
 that returns promises.
 
 For example:
@@ -511,8 +500,10 @@ If there is an `original[util.promisify.custom]` property present, `promisify`
 will return its value, see [Custom promisified functions][].
 
 `promisify()` assumes that `original` is a function taking a callback as its
-final argument in all cases, and the returned function will result in undefined
-behavior if it does not.
+final argument in all cases. If `original` is not a function, `promisify()`
+will throw an error. If `original` is a function but its last argument is not
+an error-first callback, it will still be passed an error-first
+callback as its last argument.
 
 ### Custom promisified functions
 
@@ -526,7 +517,7 @@ function doSomething(foo, callback) {
   // ...
 }
 
-doSomething[util.promisify.custom] = function(foo) {
+doSomething[util.promisify.custom] = (foo) => {
   return getPromiseSomehow();
 };
 
@@ -537,6 +528,18 @@ console.log(promisified === doSomething[util.promisify.custom]);
 
 This can be useful for cases where the original function does not follow the
 standard format of taking an error-first callback as the last argument.
+
+For example, with a function that takes in `(foo, onSuccessCallback, onErrorCallback)`:
+
+```js
+doSomething[util.promisify.custom] = (foo) => {
+  return new Promise((resolve, reject) => {
+    doSomething(foo, resolve, reject);
+  });
+};
+```
+If `promisify.custom` is defined but is not a function, `promisify()` will
+throw an error.
 
 ### util.promisify.custom
 <!-- YAML
@@ -552,8 +555,6 @@ see [Custom promisified functions][].
 <!-- YAML
 added: v8.3.0
 -->
-
-> Stability: 1 - Experimental
 
 An implementation of the [WHATWG Encoding Standard][] `TextDecoder` API.
 
@@ -661,7 +662,7 @@ supported encodings or an alias.
 * Returns: {string}
 
 Decodes the `input` and returns a string. If `options.stream` is `true`, any
-incomplete byte sequences occuring at the end of the `input` are buffered
+incomplete byte sequences occurring at the end of the `input` are buffered
 internally and emitted after the next call to `textDecoder.decode()`.
 
 If `textDecoder.fatal` is `true`, decoding errors that occur will result in a
@@ -692,8 +693,6 @@ mark.
 added: v8.3.0
 -->
 
-> Stability: 1 - Experimental
-
 An implementation of the [WHATWG Encoding Standard][] `TextEncoder` API. All
 instances of `TextEncoder` only support UTF-8 encoding.
 
@@ -710,7 +709,7 @@ const uint8array = encoder.encode('this is some data');
 UTF-8 encodes the `input` string and returns a `Uint8Array` containing the
 encoded bytes.
 
-### textDecoder.encoding
+### textEncoder.encoding
 
 * {string}
 
@@ -1192,7 +1191,7 @@ Deprecated predecessor of `console.log`.
 [`Array.isArray`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
 [`Buffer.isBuffer()`]: buffer.html#buffer_class_method_buffer_isbuffer_obj
 [`Error`]: errors.html#errors_class_error
-[`Object.assign()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+[`Object.assign()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 [`console.error()`]: console.html#console_console_error_data_args
 [`console.log()`]: console.html#console_console_log_data_args
 [`util.inspect()`]: #util_util_inspect_object_options
@@ -1202,5 +1201,5 @@ Deprecated predecessor of `console.log`.
 [Customizing `util.inspect` colors]: #util_customizing_util_inspect_colors
 [Internationalization]: intl.html
 [WHATWG Encoding Standard]: https://encoding.spec.whatwg.org/
-[constructor]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/constructor
+[constructor]: https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Object/constructor
 [semantically incompatible]: https://github.com/nodejs/node/issues/4179

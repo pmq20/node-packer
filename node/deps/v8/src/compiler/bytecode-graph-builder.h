@@ -8,7 +8,6 @@
 #include "src/compiler/bytecode-analysis.h"
 #include "src/compiler/js-graph.h"
 #include "src/compiler/js-type-hint-lowering.h"
-#include "src/compiler/liveness-analyzer.h"
 #include "src/compiler/state-values-utils.h"
 #include "src/interpreter/bytecode-array-iterator.h"
 #include "src/interpreter/bytecode-flags.h"
@@ -28,29 +27,32 @@ class BytecodeGraphBuilder {
  public:
   BytecodeGraphBuilder(
       Zone* local_zone, Handle<SharedFunctionInfo> shared,
-      Handle<FeedbackVector> feedback_vector, BailoutId osr_ast_id,
+      Handle<FeedbackVector> feedback_vector, BailoutId osr_offset,
       JSGraph* jsgraph, CallFrequency invocation_frequency,
       SourcePositionTable* source_positions,
       int inlining_id = SourcePosition::kNotInlined,
-      JSTypeHintLowering::Flags flags = JSTypeHintLowering::kNoFlags);
+      JSTypeHintLowering::Flags flags = JSTypeHintLowering::kNoFlags,
+      bool stack_check = true);
 
   // Creates a graph by visiting bytecodes.
-  bool CreateGraph(bool stack_check = true);
+  void CreateGraph();
 
  private:
   class Environment;
+  class OsrIteratorState;
   struct SubEnvironment;
 
-  void VisitBytecodes(bool stack_check);
+  void RemoveMergeEnvironmentsBeforeOffset(int limit_offset);
+  void AdvanceToOsrEntryAndPeelLoops(
+      interpreter::BytecodeArrayIterator* iterator,
+      SourcePositionTableIterator* source_position_iterator);
+
+  void VisitSingleBytecode(
+      SourcePositionTableIterator* source_position_iterator);
+  void VisitBytecodes();
 
   // Get or create the node that represents the outer function closure.
   Node* GetFunctionClosure();
-
-  // Get or create the node that represents the outer function context.
-  Node* GetFunctionContext();
-
-  // Get or create the node that represents the incoming new target value.
-  Node* GetNewTarget();
 
   // Builder for loading the a native context field.
   Node* BuildLoadNativeContextField(int index);
@@ -125,14 +127,11 @@ class BytecodeGraphBuilder {
                              int arg_count);
   Node* ProcessCallArguments(const Operator* call_op, Node* callee,
                              interpreter::Register receiver, size_t reg_count);
-  Node* ProcessConstructArguments(const Operator* call_new_op, Node* callee,
-                                  Node* new_target,
-                                  interpreter::Register receiver,
-                                  size_t reg_count);
-  Node* ProcessConstructWithSpreadArguments(const Operator* op, Node* callee,
-                                            Node* new_target,
-                                            interpreter::Register receiver,
-                                            size_t reg_count);
+  Node* const* GetConstructArgumentsFromRegister(
+      Node* target, Node* new_target, interpreter::Register first_arg,
+      int arg_count);
+  Node* ProcessConstructArguments(const Operator* op, Node* const* args,
+                                  int arg_count);
   Node* ProcessCallRuntimeArguments(const Operator* call_runtime_op,
                                     interpreter::Register receiver,
                                     size_t reg_count);
@@ -163,15 +162,12 @@ class BytecodeGraphBuilder {
   void BuildLdaLookupSlot(TypeofMode typeof_mode);
   void BuildLdaLookupContextSlot(TypeofMode typeof_mode);
   void BuildLdaLookupGlobalSlot(TypeofMode typeof_mode);
-  void BuildStaLookupSlot(LanguageMode language_mode);
-  void BuildCallVarArgs(TailCallMode tail_call_mode,
-                        ConvertReceiverMode receiver_mode);
-  void BuildCall(TailCallMode tail_call_mode, ConvertReceiverMode receiver_mode,
-                 Node* const* args, size_t arg_count, int slot_id);
-  void BuildCall(TailCallMode tail_call_mode, ConvertReceiverMode receiver_mode,
+  void BuildCallVarArgs(ConvertReceiverMode receiver_mode);
+  void BuildCall(ConvertReceiverMode receiver_mode, Node* const* args,
+                 size_t arg_count, int slot_id);
+  void BuildCall(ConvertReceiverMode receiver_mode,
                  std::initializer_list<Node*> args, int slot_id) {
-    BuildCall(tail_call_mode, receiver_mode, args.begin(), args.size(),
-              slot_id);
+    BuildCall(receiver_mode, args.begin(), args.size(), slot_id);
   }
   void BuildBinaryOp(const Operator* op);
   void BuildBinaryOpWithImmediate(const Operator* op);
@@ -179,6 +175,8 @@ class BytecodeGraphBuilder {
   void BuildTestingOp(const Operator* op);
   void BuildDelete(LanguageMode language_mode);
   void BuildCastOperator(const Operator* op);
+  void BuildHoleCheckAndThrow(Node* condition, Runtime::FunctionId runtime_id,
+                              Node* name = nullptr);
 
   // Optional early lowering to the simplified operator level. Returns the node
   // representing the lowered operation or {nullptr} if no lowering available.
@@ -186,7 +184,14 @@ class BytecodeGraphBuilder {
   // any other invocation of {NewNode} would do.
   Node* TryBuildSimplifiedBinaryOp(const Operator* op, Node* left, Node* right,
                                    FeedbackSlot slot);
+  Node* TryBuildSimplifiedForInNext(Node* receiver, Node* cache_array,
+                                    Node* cache_type, Node* index,
+                                    FeedbackSlot slot);
   Node* TryBuildSimplifiedToNumber(Node* input, FeedbackSlot slot);
+  Node* TryBuildSimplifiedCall(const Operator* op, Node* const* args,
+                               int arg_count, FeedbackSlot slot);
+  Node* TryBuildSimplifiedConstruct(const Operator* op, Node* const* args,
+                                    int arg_count, FeedbackSlot slot);
   Node* TryBuildSimplifiedLoadNamed(const Operator* op, Node* receiver,
                                     FeedbackSlot slot);
   Node* TryBuildSimplifiedLoadKeyed(const Operator* op, Node* receiver,
@@ -237,22 +242,19 @@ class BytecodeGraphBuilder {
   // Simulates control flow that exits the function body.
   void MergeControlToLeaveFunction(Node* exit);
 
-  // Builds entry points that are used by OSR deconstruction.
-  void BuildOSRLoopEntryPoint(int current_offset);
-  void BuildOSRNormalEntryPoint();
-
   // Builds loop exit nodes for every exited loop between the current bytecode
   // offset and {target_offset}.
   void BuildLoopExitsForBranch(int target_offset);
-  void BuildLoopExitsForFunctionExit();
-  void BuildLoopExitsUntilLoop(int loop_offset);
+  void BuildLoopExitsForFunctionExit(const BytecodeLivenessState* liveness);
+  void BuildLoopExitsUntilLoop(int loop_offset,
+                               const BytecodeLivenessState* liveness);
 
   // Simulates entry and exit of exception handlers.
-  void EnterAndExitExceptionHandlers(int current_offset);
+  void ExitThenEnterExceptionHandlers(int current_offset);
 
   // Update the current position of the {SourcePositionTable} to that of the
   // bytecode at {offset}, if any.
-  void UpdateCurrentSourcePosition(SourcePositionTableIterator* it, int offset);
+  void UpdateSourcePosition(SourcePositionTableIterator* it, int offset);
 
   // Growth increment for the temporary buffer used to construct input lists to
   // new nodes.
@@ -300,7 +302,7 @@ class BytecodeGraphBuilder {
   }
 
   void set_bytecode_iterator(
-      const interpreter::BytecodeArrayIterator* bytecode_iterator) {
+      interpreter::BytecodeArrayIterator* bytecode_iterator) {
     bytecode_iterator_ = bytecode_iterator;
   }
 
@@ -310,6 +312,24 @@ class BytecodeGraphBuilder {
 
   void set_bytecode_analysis(const BytecodeAnalysis* bytecode_analysis) {
     bytecode_analysis_ = bytecode_analysis;
+  }
+
+  int currently_peeled_loop_offset() const {
+    return currently_peeled_loop_offset_;
+  }
+
+  void set_currently_peeled_loop_offset(int offset) {
+    currently_peeled_loop_offset_ = offset;
+  }
+
+  bool stack_check() const { return stack_check_; }
+
+  void set_stack_check(bool stack_check) { stack_check_ = stack_check; }
+
+  int current_exception_handler() { return current_exception_handler_; }
+
+  void set_current_exception_handler(int index) {
+    current_exception_handler_ = index;
   }
 
   bool needs_eager_checkpoint() const { return needs_eager_checkpoint_; }
@@ -332,7 +352,9 @@ class BytecodeGraphBuilder {
   const interpreter::BytecodeArrayIterator* bytecode_iterator_;
   const BytecodeAnalysis* bytecode_analysis_;
   Environment* environment_;
-  BailoutId osr_ast_id_;
+  BailoutId osr_offset_;
+  int currently_peeled_loop_offset_;
+  bool stack_check_;
 
   // Merge environments are snapshots of the environment at points where the
   // control flow merges. This models a forward data flow propagation of all
@@ -353,9 +375,7 @@ class BytecodeGraphBuilder {
   bool needs_eager_checkpoint_;
 
   // Nodes representing values in the activation record.
-  SetOncePointer<Node> function_context_;
   SetOncePointer<Node> function_closure_;
-  SetOncePointer<Node> new_target_;
 
   // Control nodes that exit the function body.
   ZoneVector<Node*> exit_controls_;

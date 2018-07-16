@@ -24,6 +24,8 @@ class JSInliningHeuristic final : public AdvancedReducer {
         seen_(local_zone),
         jsgraph_(jsgraph) {}
 
+  const char* reducer_name() const override { return "JSInliningHeuristic"; }
+
   Reduction Reduce(Node* node) final;
 
   // Processes the list of candidates gathered while the reducer was running,
@@ -48,6 +50,7 @@ class JSInliningHeuristic final : public AdvancedReducer {
     int num_functions;
     Node* node = nullptr;     // The call site at which to inline.
     CallFrequency frequency;  // Relative frequency of this call site.
+    int total_size = 0;
   };
 
   // Comparator for candidates.

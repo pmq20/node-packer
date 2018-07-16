@@ -17,10 +17,9 @@ namespace compiler {
 
 TypedOptimization::TypedOptimization(Editor* editor,
                                      CompilationDependencies* dependencies,
-                                     Flags flags, JSGraph* jsgraph)
+                                     JSGraph* jsgraph)
     : AdvancedReducer(editor),
       dependencies_(dependencies),
-      flags_(flags),
       jsgraph_(jsgraph),
       true_type_(Type::HeapConstant(factory()->true_value(), graph()->zone())),
       false_type_(
@@ -76,12 +75,16 @@ Reduction TypedOptimization::Reduce(Node* node) {
   switch (node->opcode()) {
     case IrOpcode::kCheckHeapObject:
       return ReduceCheckHeapObject(node);
+    case IrOpcode::kCheckNotTaggedHole:
+      return ReduceCheckNotTaggedHole(node);
     case IrOpcode::kCheckMaps:
       return ReduceCheckMaps(node);
     case IrOpcode::kCheckNumber:
       return ReduceCheckNumber(node);
     case IrOpcode::kCheckString:
       return ReduceCheckString(node);
+    case IrOpcode::kCheckSeqString:
+      return ReduceCheckSeqString(node);
     case IrOpcode::kLoadField:
       return ReduceLoadField(node);
     case IrOpcode::kNumberCeil:
@@ -122,6 +125,16 @@ Reduction TypedOptimization::ReduceCheckHeapObject(Node* node) {
   Node* const input = NodeProperties::GetValueInput(node, 0);
   Type* const input_type = NodeProperties::GetType(input);
   if (!input_type->Maybe(Type::SignedSmall())) {
+    ReplaceWithValue(node, input);
+    return Replace(input);
+  }
+  return NoChange();
+}
+
+Reduction TypedOptimization::ReduceCheckNotTaggedHole(Node* node) {
+  Node* const input = NodeProperties::GetValueInput(node, 0);
+  Type* const input_type = NodeProperties::GetType(input);
+  if (!input_type->Maybe(Type::Hole())) {
     ReplaceWithValue(node, input);
     return Replace(input);
   }
@@ -174,6 +187,16 @@ Reduction TypedOptimization::ReduceCheckString(Node* node) {
   return NoChange();
 }
 
+Reduction TypedOptimization::ReduceCheckSeqString(Node* node) {
+  Node* const input = NodeProperties::GetValueInput(node, 0);
+  Type* const input_type = NodeProperties::GetType(input);
+  if (input_type->Is(Type::SeqString())) {
+    ReplaceWithValue(node, input);
+    return Replace(input);
+  }
+  return NoChange();
+}
+
 Reduction TypedOptimization::ReduceLoadField(Node* node) {
   Node* const object = NodeProperties::GetValueInput(node, 0);
   Type* const object_type = NodeProperties::GetType(object);
@@ -188,11 +211,7 @@ Reduction TypedOptimization::ReduceLoadField(Node* node) {
     Handle<Map> object_map;
     if (GetStableMapFromObjectType(object_type).ToHandle(&object_map)) {
       if (object_map->CanTransition()) {
-        if (flags() & kDeoptimizationEnabled) {
-          dependencies()->AssumeMapStable(object_map);
-        } else {
-          return NoChange();
-        }
+        dependencies()->AssumeMapStable(object_map);
       }
       Node* const value = jsgraph()->HeapConstant(object_map);
       ReplaceWithValue(node, value);
@@ -282,7 +301,12 @@ Reduction TypedOptimization::ReduceReferenceEqual(Node* node) {
   Type* const lhs_type = NodeProperties::GetType(lhs);
   Type* const rhs_type = NodeProperties::GetType(rhs);
   if (!lhs_type->Maybe(rhs_type)) {
-    return Replace(jsgraph()->FalseConstant());
+    Node* replacement = jsgraph()->FalseConstant();
+    // Make sure we do not widen the type.
+    if (NodeProperties::GetType(replacement)
+            ->Is(NodeProperties::GetType(node))) {
+      return Replace(jsgraph()->FalseConstant());
+    }
   }
   return NoChange();
 }

@@ -26,9 +26,9 @@ function createObj(source, add = '') {
 }
 
 function main(conf) {
-  const size = +conf.size;
+  const size = conf.size;
   // TODO: Fix this "hack"
-  const n = (+conf.n) / size;
+  const n = conf.n / size;
   var i;
 
   const source = Array.apply(null, Array(size));
@@ -37,6 +37,8 @@ function main(conf) {
   const expectedWrong = createObj(source, '4');
 
   switch (conf.method) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'deepEqual':
       bench.start();
       for (i = 0; i < n; ++i) {

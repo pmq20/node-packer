@@ -1,5 +1,7 @@
 # URL
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `url` module provides utilities for URL resolution and parsing. It can be
@@ -49,7 +51,7 @@ properties of a WHATWG `URL` object.
 ├─────────────┴─────────────────────┴─────────────────────┴──────────┴────────────────┴───────┤
 │                                            href                                             │
 └─────────────────────────────────────────────────────────────────────────────────────────────┘
-(all spaces in the "" line should be ignored -- they are purely for formatting)
+(all spaces in the "" line should be ignored — they are purely for formatting)
 ```
 
 Parsing the URL string using the WHATWG API:
@@ -554,7 +556,7 @@ Instantiate a new `URLSearchParams` object with an iterable map in a way that
 is similar to [`Map`][]'s constructor. `iterable` can be an Array or any
 iterable object. That means `iterable` can be another `URLSearchParams`, in
 which case the constructor will simply create a clone of the provided
-`URLSearchParams`.  Elements of `iterable` are key-value pairs, and can
+`URLSearchParams`. Elements of `iterable` are key-value pairs, and can
 themselves be any iterable object.
 
 Duplicate keys are allowed.
@@ -969,7 +971,7 @@ changes:
 The `url.format()` method returns a formatted URL string derived from
 `urlObject`.
 
-If `urlObject` is not an object or a string, `url.parse()` will throw a
+If `urlObject` is not an object or a string, `url.format()` will throw a
 [`TypeError`][].
 
 The formatting process operates as follows:
@@ -1028,6 +1030,11 @@ The formatting process operates as follows:
 ### url.parse(urlString[, parseQueryString[, slashesDenoteHost]])
 <!-- YAML
 added: v0.1.25
+changes:
+  - version: v9.0.0
+    pr-url: https://github.com/nodejs/node/pull/13606
+    description: The `search` property on the returned URL object is now `null`
+                 when no query string is present.
 -->
 
 * `urlString` {string} The URL string to parse.
@@ -1139,7 +1146,7 @@ console.log(myURL.origin);
 ```
 
 [`Error`]: errors.html#errors_class_error
-[`JSON.stringify()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+[`JSON.stringify()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 [`Map`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 [`TypeError`]: errors.html#errors_class_typeerror
 [`URLSearchParams`]: #url_class_urlsearchparams

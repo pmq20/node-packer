@@ -99,11 +99,49 @@ int InstructionScheduler::GetTargetInstructionFlags(
     case kIA32BitcastIF:
     case kIA32I32x4Splat:
     case kIA32I32x4ExtractLane:
-    case kIA32I32x4ReplaceLane:
+    case kSSEI32x4ReplaceLane:
+    case kAVXI32x4ReplaceLane:
+    case kIA32I32x4Neg:
+    case kSSEI32x4Shl:
+    case kAVXI32x4Shl:
+    case kSSEI32x4ShrS:
+    case kAVXI32x4ShrS:
     case kSSEI32x4Add:
-    case kSSEI32x4Sub:
     case kAVXI32x4Add:
+    case kSSEI32x4Sub:
     case kAVXI32x4Sub:
+    case kSSEI32x4Mul:
+    case kAVXI32x4Mul:
+    case kSSEI32x4MinS:
+    case kAVXI32x4MinS:
+    case kSSEI32x4MaxS:
+    case kAVXI32x4MaxS:
+    case kSSEI32x4Eq:
+    case kAVXI32x4Eq:
+    case kSSEI32x4Ne:
+    case kAVXI32x4Ne:
+    case kSSEI32x4GtS:
+    case kAVXI32x4GtS:
+    case kSSEI32x4GeS:
+    case kAVXI32x4GeS:
+    case kSSEI32x4ShrU:
+    case kAVXI32x4ShrU:
+    case kSSEI32x4MinU:
+    case kAVXI32x4MinU:
+    case kSSEI32x4MaxU:
+    case kAVXI32x4MaxU:
+    case kSSEI32x4GtU:
+    case kAVXI32x4GtU:
+    case kSSEI32x4GeU:
+    case kAVXI32x4GeU:
+    case kIA32I16x8Splat:
+    case kIA32I16x8ExtractLane:
+    case kSSEI16x8ReplaceLane:
+    case kAVXI16x8ReplaceLane:
+    case kIA32I8x16Splat:
+    case kIA32I8x16ExtractLane:
+    case kSSEI8x16ReplaceLane:
+    case kAVXI8x16ReplaceLane:
       return (instr->addressing_mode() == kMode_None)
           ? kNoOpcodeFlags
           : kIsLoadOperation | kHasSideEffect;
@@ -111,8 +149,8 @@ int InstructionScheduler::GetTargetInstructionFlags(
     case kIA32Idiv:
     case kIA32Udiv:
       return (instr->addressing_mode() == kMode_None)
-                 ? kMayNeedDeoptCheck
-                 : kMayNeedDeoptCheck | kIsLoadOperation | kHasSideEffect;
+                 ? kMayNeedDeoptOrTrapCheck
+                 : kMayNeedDeoptOrTrapCheck | kIsLoadOperation | kHasSideEffect;
 
     case kIA32Movsxbl:
     case kIA32Movzxbl:
@@ -143,7 +181,6 @@ int InstructionScheduler::GetTargetInstructionFlags(
   }
 
   UNREACHABLE();
-  return kNoOpcodeFlags;
 }
 
 

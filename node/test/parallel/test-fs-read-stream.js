@@ -22,12 +22,13 @@
 'use strict';
 const common = require('../common');
 
+const child_process = require('child_process');
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
-const fn = path.join(common.fixturesDir, 'elipses.txt');
-const rangeFile = path.join(common.fixturesDir, 'x.txt');
+const fn = fixtures.path('elipses.txt');
+const rangeFile = fixtures.path('x.txt');
 
 {
   let paused = false;
@@ -86,7 +87,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 {
-  const file = fs.createReadStream(fn, {encoding: 'utf8'});
+  const file = fs.createReadStream(fn, { encoding: 'utf8' });
   file.length = 0;
   file.on('data', function(data) {
     assert.strictEqual('string', typeof data);
@@ -107,7 +108,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
 {
   const file =
-    fs.createReadStream(rangeFile, {bufferSize: 1, start: 1, end: 2});
+    fs.createReadStream(rangeFile, { bufferSize: 1, start: 1, end: 2 });
   let contentRead = '';
   file.on('data', function(data) {
     contentRead += data.toString('utf-8');
@@ -118,7 +119,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 {
-  const file = fs.createReadStream(rangeFile, {bufferSize: 1, start: 1});
+  const file = fs.createReadStream(rangeFile, { bufferSize: 1, start: 1 });
   file.data = '';
   file.on('data', function(data) {
     file.data += data.toString('utf-8');
@@ -130,7 +131,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 
 {
   // Ref: https://github.com/nodejs/node-v0.x-archive/issues/2320
-  const file = fs.createReadStream(rangeFile, {bufferSize: 1.23, start: 1});
+  const file = fs.createReadStream(rangeFile, { bufferSize: 1.23, start: 1 });
   file.data = '';
   file.on('data', function(data) {
     file.data += data.toString('utf-8');
@@ -141,7 +142,7 @@ const rangeFile = path.join(common.fixturesDir, 'x.txt');
 }
 
 assert.throws(function() {
-  fs.createReadStream(rangeFile, {start: 10, end: 2});
+  fs.createReadStream(rangeFile, { start: 10, end: 2 });
 }, /"start" option must be <= "end" option/);
 
 {
@@ -158,6 +159,46 @@ assert.throws(function() {
 }
 
 {
+  // Verify that end works when start is not specified.
+  const stream = new fs.createReadStream(rangeFile, { end: 1 });
+  stream.data = '';
+
+  stream.on('data', function(chunk) {
+    stream.data += chunk;
+  });
+
+  stream.on('end', common.mustCall(function() {
+    assert.strictEqual('xy', stream.data);
+  }));
+}
+
+if (!common.isWindows) {
+  // Verify that end works when start is not specified, and we do not try to
+  // use positioned reads. This makes sure that this keeps working for
+  // non-seekable file descriptors.
+  const tmpdir = require('../common/tmpdir');
+  tmpdir.refresh();
+  const filename = `${tmpdir.path}/foo.pipe`;
+  const mkfifoResult = child_process.spawnSync('mkfifo', [filename]);
+  if (!mkfifoResult.error) {
+    child_process.exec(`echo "xyz foobar" > '${filename}'`);
+    const stream = new fs.createReadStream(filename, { end: 1 });
+    stream.data = '';
+
+    stream.on('data', function(chunk) {
+      stream.data += chunk;
+    });
+
+    stream.on('end', common.mustCall(function() {
+      assert.strictEqual('xy', stream.data);
+      fs.unlinkSync(filename);
+    }));
+  } else {
+    common.printSkipMessage('mkfifo not available');
+  }
+}
+
+{
   // pause and then resume immediately.
   const pauseRes = fs.createReadStream(rangeFile);
   pauseRes.pause();
@@ -165,7 +206,7 @@ assert.throws(function() {
 }
 
 {
-  let file = fs.createReadStream(rangeFile, {autoClose: false });
+  let file = fs.createReadStream(rangeFile, { autoClose: false });
   let data = '';
   file.on('data', function(chunk) { data += chunk; });
   file.on('end', common.mustCall(function() {
@@ -179,7 +220,7 @@ assert.throws(function() {
 
   function fileNext() {
     // This will tell us if the fd is usable again or not.
-    file = fs.createReadStream(null, {fd: file.fd, start: 0 });
+    file = fs.createReadStream(null, { fd: file.fd, start: 0 });
     file.data = '';
     file.on('data', function(data) {
       file.data += data;
@@ -196,7 +237,7 @@ assert.throws(function() {
 
 {
   // Just to make sure autoClose won't close the stream because of error.
-  const file = fs.createReadStream(null, {fd: 13337, autoClose: false });
+  const file = fs.createReadStream(null, { fd: 13337, autoClose: false });
   file.on('data', common.mustNotCall());
   file.on('error', common.mustCall());
   process.on('exit', function() {

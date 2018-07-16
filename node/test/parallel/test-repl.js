@@ -21,10 +21,12 @@
 
 'use strict';
 const common = require('../common');
+const fixtures = require('../common/fixtures');
+const tmpdir = require('../common/tmpdir');
 const assert = require('assert');
 
 common.globalCheck = false;
-common.refreshTmpDir();
+tmpdir.refresh();
 
 const net = require('net');
 const repl = require('repl');
@@ -40,7 +42,7 @@ let server_tcp, server_unix, client_tcp, client_unix, replServer;
 
 
 // absolute path to test/fixtures/a.js
-const moduleFilename = require('path').join(common.fixturesDir, 'a');
+const moduleFilename = fixtures.path('a');
 
 console.error('repl test');
 
@@ -71,7 +73,7 @@ function clean_up() {
 function strict_mode_error_test() {
   send_expect([
     { client: client_unix, send: 'ref = 1',
-      expect: /^ReferenceError:\sref\sis\snot\sdefined\n\s+at\srepl:1:5/ },
+      expect: /^ReferenceError:\sref\sis\snot\sdefined\nnode via Unix socket> $/ },
   ]);
 }
 
@@ -167,7 +169,7 @@ function error_test() {
       expect: '0.2' },
     // Can parse valid JSON
     { client: client_unix, send: 'JSON.parse(\'{"valid": "json"}\');',
-      expect: '{ valid: \'json\' }'},
+      expect: '{ valid: \'json\' }' },
     // invalid input to JSON.parse error is special case of syntax error,
     // should throw
     { client: client_unix, send: 'JSON.parse(\'{invalid: \\\'json\\\'}\');',
@@ -303,7 +305,7 @@ function error_test() {
     { client: client_unix,
       send: '/(.)(.)(.)(.)(.)(.)(.)(.)(.)/.test(\'123456789\')\n',
       expect: `true\n${prompt_unix}` },
-    // the following test's result depends on the RegEx's match from the above
+    // the following test's result depends on the RegExp's match from the above
     { client: client_unix,
       send: 'RegExp.$1\nRegExp.$2\nRegExp.$3\nRegExp.$4\nRegExp.$5\n' +
             'RegExp.$6\nRegExp.$7\nRegExp.$8\nRegExp.$9\n',

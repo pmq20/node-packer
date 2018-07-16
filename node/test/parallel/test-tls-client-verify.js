@@ -25,9 +25,8 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 const tls = require('tls');
+const fixtures = require('../common/fixtures');
 
 const hosterr = /Hostname\/IP doesn't match certificate's altnames/;
 const testCases =
@@ -62,13 +61,9 @@ const testCases =
    }
   ];
 
-function filenamePEM(n) {
-  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
-}
-
 
 function loadPEM(n) {
-  return fs.readFileSync(filenamePEM(n));
+  return fixtures.readKey(`${n}.pem`);
 }
 
 let successfulTests = 0;
@@ -148,6 +143,6 @@ runTest(0);
 
 
 process.on('exit', function() {
-  console.log('successful tests: %d', successfulTests);
+  console.log(`successful tests: ${successfulTests}`);
   assert.strictEqual(successfulTests, testCases.length);
 });

@@ -21,10 +21,9 @@
 'use strict';
 
 const { compare } = process.binding('buffer');
-const util = require('util');
-const { isSet, isMap } = process.binding('util');
+const { isSet, isMap, isDate, isRegExp } = process.binding('util');
 const { objectToString } = require('internal/util');
-const { Buffer } = require('buffer');
+const { isArrayBufferView } = require('internal/util/types');
 const errors = require('internal/errors');
 
 // The assert module provides functions that throw
@@ -108,8 +107,8 @@ function areSimilarRegExps(a, b) {
 }
 
 // For small buffers it's faster to compare the buffer in a loop. The c++
-// barrier including the Buffer.from operation takes the advantage of the faster
-// compare otherwise. 300 was the number after which compare became faster.
+// barrier including the Uint8Array operation takes the advantage of the faster
+// binary compare otherwise. The break even point was at about 300 characters.
 function areSimilarTypedArrays(a, b) {
   const len = a.byteLength;
   if (len !== b.byteLength) {
@@ -123,12 +122,8 @@ function areSimilarTypedArrays(a, b) {
     }
     return true;
   }
-  return compare(Buffer.from(a.buffer,
-                             a.byteOffset,
-                             len),
-                 Buffer.from(b.buffer,
-                             b.byteOffset,
-                             b.byteLength)) === 0;
+  return compare(new Uint8Array(a.buffer, a.byteOffset, len),
+                 new Uint8Array(b.buffer, b.byteOffset, b.byteLength)) === 0;
 }
 
 function isFloatTypedArrayTag(tag) {
@@ -178,28 +173,59 @@ function strictDeepEqual(actual, expected) {
   if (Object.getPrototypeOf(actual) !== Object.getPrototypeOf(expected)) {
     return false;
   }
-  if (isObjectOrArrayTag(actualTag)) {
+  if (actualTag === '[object Array]') {
+    // Check for sparse arrays and general fast path
+    if (actual.length !== expected.length)
+      return false;
     // Skip testing the part below and continue in the callee function.
     return;
   }
-  if (util.isDate(actual)) {
+  if (actualTag === '[object Object]') {
+    // Skip testing the part below and continue in the callee function.
+    return;
+  }
+  if (isDate(actual)) {
     if (actual.getTime() !== expected.getTime()) {
       return false;
     }
-  } else if (util.isRegExp(actual)) {
+  } else if (isRegExp(actual)) {
     if (!areSimilarRegExps(actual, expected)) {
       return false;
     }
-  } else if (!isFloatTypedArrayTag(actualTag) && ArrayBuffer.isView(actual)) {
+  } else if (actualTag === '[object Error]') {
+    // Do not compare the stack as it might differ even though the error itself
+    // is otherwise identical. The non-enumerable name should be identical as
+    // the prototype is also identical. Otherwise this is caught later on.
+    if (actual.message !== expected.message) {
+      return false;
+    }
+  } else if (!isFloatTypedArrayTag(actualTag) && isArrayBufferView(actual)) {
     if (!areSimilarTypedArrays(actual, expected)) {
       return false;
     }
-
     // Buffer.compare returns true, so actual.length === expected.length
     // if they both only contain numeric keys, we don't need to exam further
     if (Object.keys(actual).length === actual.length &&
         Object.keys(expected).length === expected.length) {
       return true;
+    }
+  } else if (typeof actual.valueOf === 'function') {
+    const actualValue = actual.valueOf();
+    // Note: Boxed string keys are going to be compared again by Object.keys
+    if (actualValue !== actual) {
+      if (!innerDeepEqual(actualValue, expected.valueOf(), true))
+        return false;
+      // Fast path for boxed primitives
+      var lengthActual = 0;
+      var lengthExpected = 0;
+      if (typeof actualValue === 'string') {
+        lengthActual = actual.length;
+        lengthExpected = expected.length;
+      }
+      if (Object.keys(actual).length === lengthActual &&
+        Object.keys(expected).length === lengthExpected) {
+        return true;
+      }
     }
   }
 }
@@ -215,17 +241,21 @@ function looseDeepEqual(actual, expected) {
   if (expected === null || typeof expected !== 'object') {
     return false;
   }
-  if (util.isDate(actual) && util.isDate(expected)) {
+  if (isDate(actual) && isDate(expected)) {
     return actual.getTime() === expected.getTime();
   }
-  if (util.isRegExp(actual) && util.isRegExp(expected)) {
+  if (isRegExp(actual) && isRegExp(expected)) {
     return areSimilarRegExps(actual, expected);
+  }
+  if (actual instanceof Error && expected instanceof Error) {
+    if (actual.message !== expected.message || actual.name !== expected.name)
+      return false;
   }
   const actualTag = objectToString(actual);
   const expectedTag = objectToString(expected);
   if (actualTag === expectedTag) {
     if (!isObjectOrArrayTag(actualTag) && !isFloatTypedArrayTag(actualTag) &&
-      ArrayBuffer.isView(actual)) {
+        isArrayBufferView(actual)) {
       return areSimilarTypedArrays(actual, expected);
     }
   // Ensure reflexivity of deepEqual with `arguments` objects.
@@ -267,8 +297,15 @@ function innerDeepEqual(actual, expected, strict, memos) {
       position: 0
     };
   } else {
-    if (memos.actual.has(actual)) {
-      return memos.actual.get(actual) === memos.expected.get(expected);
+    // We prevent up to two map.has(x) calls by directly retrieving the value
+    // and checking for undefined. The map can only contain numbers, so it is
+    // safe to check for undefined only.
+    const expectedMemoA = memos.actual.get(actual);
+    if (expectedMemoA !== undefined) {
+      const expectedMemoB = memos.expected.get(expected);
+      if (expectedMemoB !== undefined) {
+        return expectedMemoA === expectedMemoB;
+      }
     }
     memos.position++;
   }

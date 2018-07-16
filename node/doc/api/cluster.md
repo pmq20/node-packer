@@ -1,9 +1,11 @@
 # Cluster
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 A single instance of Node.js runs in a single thread. To take advantage of
-multi-core systems the user will sometimes want to launch a cluster of Node.js
+multi-core systems, the user will sometimes want to launch a cluster of Node.js
 processes to handle the load.
 
 The cluster module allows easy creation of child processes that all share
@@ -90,8 +92,8 @@ Node.js process and a cluster worker differs:
    the worker to use the supplied handle, rather than talk to the master
    process.
 3. `server.listen(0)` Normally, this will cause servers to listen on a
-   random port.  However, in a cluster, each worker will receive the
-   same "random" port each time they do `listen(0)`.  In essence, the
+   random port. However, in a cluster, each worker will receive the
+   same "random" port each time they do `listen(0)`. In essence, the
    port is random the first time, but predictable thereafter. To listen
    on a unique port, generate a port number based on the cluster worker ID.
 
@@ -101,13 +103,14 @@ objects for things like sessions and login.
 
 Because workers are all separate processes, they can be killed or
 re-spawned depending on a program's needs, without affecting other
-workers.  As long as there are some workers still alive, the server will
-continue to accept connections.  If no workers are alive, existing connections
+workers. As long as there are some workers still alive, the server will
+continue to accept connections. If no workers are alive, existing connections
 will be dropped and new connections will be refused. Node.js does not
 automatically manage the number of workers, however. It is the application's
 responsibility to manage the worker pool based on its own needs.
 
-
+Although a primary use case for the `cluster` module is networking, it can
+also be used for other use cases requiring worker processes.
 
 ## Class: Worker
 <!-- YAML
@@ -145,8 +148,8 @@ Within a worker, `process.on('error')` may also be used.
 added: v0.11.2
 -->
 
-* `code` {number} the exit code, if it exited normally.
-* `signal` {string} the name of the signal (e.g. `'SIGHUP'`) that caused
+* `code` {number} The exit code, if it exited normally.
+* `signal` {string} The name of the signal (e.g. `'SIGHUP'`) that caused
   the process to be killed.
 
 Similar to the `cluster.on('exit')` event, but specific to this worker.
@@ -264,7 +267,7 @@ changes:
     description: This method now returns a reference to `worker`.
 -->
 
-* Returns: {Worker} A reference to `worker`.
+* Returns: {cluster.Worker} A reference to `worker`.
 
 In a worker, this function will close all servers, wait for the `'close'` event on
 those servers, and then disconnect the IPC channel.
@@ -427,7 +430,7 @@ changes:
 * `message` {Object}
 * `sendHandle` {Handle}
 * `callback` {Function}
-* Returns: Boolean
+* Returns: {boolean}
 
 Send a message to a worker or master, optionally with a handle.
 
@@ -496,7 +499,7 @@ Emitted after the worker IPC channel has disconnected. This can occur when a
 worker exits gracefully, is killed, or is disconnected manually (such as with
 worker.disconnect()).
 
-There may be a delay between the `'disconnect'` and `'exit'` events.  These events
+There may be a delay between the `'disconnect'` and `'exit'` events. These events
 can be used to detect if the process is stuck in a cleanup or if there are
 long-living connections.
 
@@ -512,8 +515,8 @@ added: v0.7.9
 -->
 
 * `worker` {cluster.Worker}
-* `code` {number} the exit code, if it exited normally.
-* `signal` {string} the name of the signal (e.g. `'SIGHUP'`) that caused
+* `code` {number} The exit code, if it exited normally.
+* `signal` {string} The name of the signal (e.g. `'SIGHUP'`) that caused
   the process to be killed.
 
 When any of the workers die the cluster module will emit the `'exit'` event.
@@ -587,7 +590,7 @@ The `addressType` is one of:
 * `4` (TCPv4)
 * `6` (TCPv6)
 * `-1` (unix domain socket)
-* `"udp4"` or `"udp6"` (UDP v4 or v6)
+* `'udp4'` or `'udp6'` (UDP v4 or v6)
 
 ## Event: 'message'
 <!-- YAML
@@ -662,8 +665,8 @@ If accuracy is important, use `cluster.settings`.
 added: v0.7.7
 -->
 
-* `callback` {Function} called when all workers are disconnected and handles are
-  closed
+* `callback` {Function} Called when all workers are disconnected and handles are
+  closed.
 
 Calls `.disconnect()` on each worker in `cluster.workers`.
 
@@ -680,7 +683,7 @@ added: v0.6.0
 -->
 
 * `env` {Object} Key/value pairs to add to worker process environment.
-* return {cluster.Worker}
+* Returns: {cluster.Worker}
 
 Spawn a new worker process.
 
@@ -722,7 +725,7 @@ distribute IOCP handles without incurring a large performance hit.
 
 `cluster.schedulingPolicy` can also be set through the
 `NODE_CLUSTER_SCHED_POLICY` environment variable. Valid
-values are `"rr"` and `"none"`.
+values are `'rr'` and `'none'`.
 
 ## cluster.settings
 <!-- YAML
@@ -738,18 +741,18 @@ changes:
 
 * {Object}
   * `execArgv` {Array} List of string arguments passed to the Node.js
-    executable. (Default=`process.execArgv`)
-  * `exec` {string} File path to worker file.  (Default=`process.argv[1]`)
+    executable. **Default:** `process.execArgv`
+  * `exec` {string} File path to worker file. **Default:** `process.argv[1]`
   * `args` {Array} String arguments passed to worker.
-    (Default=`process.argv.slice(2)`)
+    **Default:** `process.argv.slice(2)`
   * `silent` {boolean} Whether or not to send output to parent's stdio.
-    (Default=`false`)
+    **Default:** `false`
   * `stdio` {Array} Configures the stdio of forked processes. Because the
     cluster module relies on IPC to function, this configuration must contain an
     `'ipc'` entry. When this option is provided, it overrides `silent`.
   * `uid` {number} Sets the user identity of the process. (See setuid(2).)
   * `gid` {number} Sets the group identity of the process. (See setgid(2).)
-  * `inspectPort` {number|function} Sets inspector port of worker.
+  * `inspectPort` {number|Function} Sets inspector port of worker.
     This can be a number, or a function that takes no arguments and returns a
     number. By default each worker gets its own port, incremented from the
     master's `process.debugPort`.
@@ -858,9 +861,9 @@ socket.on('data', (id) => {
 });
 ```
 
-[`ChildProcess.send()`]: child_process.html#child_process_child_send_message_sendhandle_options_callback
+[`ChildProcess.send()`]: child_process.html#child_process_subprocess_send_message_sendhandle_options_callback
 [`child_process.fork()`]: child_process.html#child_process_child_process_fork_modulepath_args_options
-[`disconnect`]: child_process.html#child_process_child_disconnect
+[`disconnect`]: child_process.html#child_process_subprocess_disconnect
 [`kill`]: process.html#process_process_kill_pid_signal
 [`process` event: `'message'`]: process.html#process_event_message
 [`server.close()`]: net.html#net_event_close
@@ -868,4 +871,4 @@ socket.on('data', (id) => {
 [Child Process module]: child_process.html#child_process_child_process_fork_modulepath_args_options
 [child_process event: 'exit']: child_process.html#child_process_event_exit
 [child_process event: 'message']: child_process.html#child_process_event_message
-[`cluster.settings`]: #clustersettings
+[`cluster.settings`]: #cluster_cluster_settings

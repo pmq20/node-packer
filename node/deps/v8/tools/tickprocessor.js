@@ -116,6 +116,12 @@ function TickProcessor(
           processor: this.processCodeMove },
       'code-delete': { parsers: [parseInt],
           processor: this.processCodeDelete },
+      'code-source-info': {
+          parsers: [parseInt, parseInt, parseInt, parseInt, null, null, null],
+          processor: this.processCodeSourceInfo },
+      'script': {
+          parsers: [parseInt, null, null],
+          processor: this.processCodeScript },
       'sfi-move': { parsers: [parseInt, parseInt],
           processor: this.processFunctionMove },
       'active-runtime-timer': {
@@ -213,7 +219,9 @@ TickProcessor.VmStates = {
   COMPILER: 2,
   OTHER: 3,
   EXTERNAL: 4,
-  IDLE: 5
+  IDLE: 5,
+  PARSER: 6,
+  BYTECODE_COMPILER: 7,
 };
 
 
@@ -313,11 +321,20 @@ TickProcessor.prototype.processCodeMove = function(from, to) {
   this.profile_.moveCode(from, to);
 };
 
-
 TickProcessor.prototype.processCodeDelete = function(start) {
   this.profile_.deleteCode(start);
 };
 
+TickProcessor.prototype.processCodeSourceInfo = function(
+    start, script, startPos, endPos, sourcePositions, inliningPositions,
+    inlinedFunctions) {
+  this.profile_.addSourcePositions(start, script, startPos,
+    endPos, sourcePositions, inliningPositions, inlinedFunctions);
+};
+
+TickProcessor.prototype.processCodeScript = function(script, url, source) {
+  this.profile_.addScriptSource(script, url, source);
+};
 
 TickProcessor.prototype.processFunctionMove = function(from, to) {
   this.profile_.moveFunc(from, to);
@@ -645,9 +662,11 @@ CppEntriesProvider.prototype.parseVmSymbols = function(
     } else if (funcInfo === false) {
       break;
     }
-    funcInfo.start += libASLRSlide;
-    if (funcInfo.start < libStart && funcInfo.start < libEnd - libStart) {
+    if (funcInfo.start < libStart - libASLRSlide &&
+        funcInfo.start < libEnd - libStart) {
       funcInfo.start += libStart;
+    } else {
+      funcInfo.start += libASLRSlide;
     }
     if (funcInfo.size) {
       funcInfo.end = funcInfo.start + funcInfo.size;
@@ -836,6 +855,10 @@ function ArgumentsProcessor(args) {
         'Show only ticks from JS VM state'],
     '-g': ['stateFilter', TickProcessor.VmStates.GC,
         'Show only ticks from GC VM state'],
+    '-p': ['stateFilter', TickProcessor.VmStates.PARSER,
+        'Show only ticks from PARSER VM state'],
+    '-b': ['stateFilter', TickProcessor.VmStates.BYTECODE_COMPILER,
+        'Show only ticks from BYTECODE_COMPILER VM state'],
     '-c': ['stateFilter', TickProcessor.VmStates.COMPILER,
         'Show only ticks from COMPILER VM state'],
     '-o': ['stateFilter', TickProcessor.VmStates.OTHER,

@@ -6,6 +6,7 @@
 #define V8_WASM_INTERPRETER_H_
 
 #include "src/wasm/wasm-opcodes.h"
+#include "src/wasm/wasm-value.h"
 #include "src/zone/zone-containers.h"
 
 namespace v8 {
@@ -19,7 +20,7 @@ class WasmInstanceObject;
 namespace wasm {
 
 // forward declarations.
-struct ModuleBytesEnv;
+struct ModuleWireBytes;
 struct WasmFunction;
 struct WasmModule;
 class WasmInterpreterInternals;
@@ -42,67 +43,6 @@ struct ControlTransferEntry {
 };
 
 using ControlTransferMap = ZoneMap<pc_t, ControlTransferEntry>;
-
-// Macro for defining union members.
-#define FOREACH_UNION_MEMBER(V) \
-  V(i32, kWasmI32, int32_t)     \
-  V(u32, kWasmI32, uint32_t)    \
-  V(i64, kWasmI64, int64_t)     \
-  V(u64, kWasmI64, uint64_t)    \
-  V(f32, kWasmF32, float)       \
-  V(f64, kWasmF64, double)
-
-// Representation of values within the interpreter.
-struct WasmVal {
-  ValueType type;
-  union {
-#define DECLARE_FIELD(field, localtype, ctype) ctype field;
-    FOREACH_UNION_MEMBER(DECLARE_FIELD)
-#undef DECLARE_FIELD
-  } val;
-
-  WasmVal() : type(kWasmStmt) {}
-
-#define DECLARE_CONSTRUCTOR(field, localtype, ctype) \
-  explicit WasmVal(ctype v) : type(localtype) { val.field = v; }
-  FOREACH_UNION_MEMBER(DECLARE_CONSTRUCTOR)
-#undef DECLARE_CONSTRUCTOR
-
-  bool operator==(const WasmVal& other) const {
-    if (type != other.type) return false;
-#define CHECK_VAL_EQ(field, localtype, ctype) \
-  if (type == localtype) {                    \
-    return val.field == other.val.field;      \
-  }
-    FOREACH_UNION_MEMBER(CHECK_VAL_EQ)
-#undef CHECK_VAL_EQ
-    UNREACHABLE();
-    return false;
-  }
-
-  template <typename T>
-  inline T to() const {
-    UNREACHABLE();
-  }
-
-  template <typename T>
-  inline T to_unchecked() const {
-    UNREACHABLE();
-  }
-};
-
-#define DECLARE_CAST(field, localtype, ctype)  \
-  template <>                                  \
-  inline ctype WasmVal::to_unchecked() const { \
-    return val.field;                          \
-  }                                            \
-  template <>                                  \
-  inline ctype WasmVal::to() const {           \
-    CHECK_EQ(localtype, type);                 \
-    return val.field;                          \
-  }
-FOREACH_UNION_MEMBER(DECLARE_CAST)
-#undef DECLARE_CAST
 
 // Representation of frames within the interpreter.
 //
@@ -127,8 +67,8 @@ class InterpretedFrame {
   int GetParameterCount() const;
   int GetLocalCount() const;
   int GetStackHeight() const;
-  WasmVal GetLocalValue(int index) const;
-  WasmVal GetStackValue(int index) const;
+  WasmValue GetLocalValue(int index) const;
+  WasmValue GetStackValue(int index) const;
 
  private:
   friend class WasmInterpreter;
@@ -138,9 +78,22 @@ class InterpretedFrame {
   DISALLOW_COPY_AND_ASSIGN(InterpretedFrame);
 };
 
-// An interpreter capable of executing WASM.
+// An interpreter capable of executing WebAssembly.
 class V8_EXPORT_PRIVATE WasmInterpreter {
  public:
+  // Open a HeapObjectsScope before running any code in the interpreter which
+  // needs access to the instance object or needs to call to JS functions.
+  class V8_EXPORT_PRIVATE HeapObjectsScope {
+   public:
+    HeapObjectsScope(WasmInterpreter* interpreter,
+                     Handle<WasmInstanceObject> instance);
+    ~HeapObjectsScope();
+
+   private:
+    char data[3 * sizeof(void*)];  // must match sizeof(HeapObjectsScopeImpl).
+    DISALLOW_COPY_AND_ASSIGN(HeapObjectsScope);
+  };
+
   // State machine for a Thread:
   //                         +---------Run()/Step()--------+
   //                         V                             |
@@ -170,7 +123,7 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
 
     // Execution control.
     State state();
-    void InitFrame(const WasmFunction* function, WasmVal* args);
+    void InitFrame(const WasmFunction* function, WasmValue* args);
     // Pass -1 as num_steps to run till completion, pause or breakpoint.
     State Run(int num_steps = -1);
     State Step() { return Run(1); }
@@ -186,7 +139,7 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
     int GetFrameCount();
     // The InterpretedFrame is only valid as long as the Thread is paused.
     std::unique_ptr<InterpretedFrame> GetFrame(int index);
-    WasmVal GetReturnValue(int index = 0);
+    WasmValue GetReturnValue(int index = 0);
     TrapReason GetTrapReason();
 
     // Returns true if the thread executed an instruction which may produce
@@ -218,7 +171,9 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
     uint32_t ActivationFrameBase(uint32_t activation_id);
   };
 
-  WasmInterpreter(Isolate* isolate, const ModuleBytesEnv& env);
+  WasmInterpreter(Isolate* isolate, const WasmModule* module,
+                  const ModuleWireBytes& wire_bytes, byte* globals_start,
+                  byte* mem_start, uint32_t mem_size);
   ~WasmInterpreter();
 
   //==========================================================================
@@ -237,13 +192,6 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
   // Enable or disable tracing for {function}. Return the previous state.
   bool SetTracing(const WasmFunction* function, bool enabled);
 
-  // Set the associated wasm instance object.
-  // If the instance object has been set, some tables stored inside it are used
-  // instead of the tables stored in the WasmModule struct. This allows to call
-  // back and forth between the interpreter and outside code (JS or wasm
-  // compiled) without repeatedly copying information.
-  void SetInstanceObject(WasmInstanceObject*);
-
   //==========================================================================
   // Thread iteration and inspection.
   //==========================================================================
@@ -251,12 +199,8 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
   Thread* GetThread(int id);
 
   //==========================================================================
-  // Memory access.
+  // Update the cached module env memory parameters after a grow memory event.
   //==========================================================================
-  size_t GetMemorySize();
-  WasmVal ReadMemory(size_t offset);
-  void WriteMemory(size_t offset, WasmVal val);
-  // Update the memory region, e.g. after external GrowMemory.
   void UpdateMemory(byte* mem_start, uint32_t mem_size);
 
   //==========================================================================
@@ -276,7 +220,7 @@ class V8_EXPORT_PRIVATE WasmInterpreter {
 
  private:
   Zone zone_;
-  WasmInterpreterInternals* internals_;
+  WasmInterpreterInternals* const internals_;
 };
 
 }  // namespace wasm

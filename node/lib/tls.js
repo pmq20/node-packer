@@ -23,12 +23,13 @@
 
 const internalUtil = require('internal/util');
 internalUtil.assertCrypto();
+const { isUint8Array } = require('internal/util/types');
 
 const net = require('net');
 const url = require('url');
 const binding = process.binding('crypto');
 const Buffer = require('buffer').Buffer;
-const { isUint8Array } = process.binding('util');
+const canonicalizeIP = process.binding('cares_wrap').canonicalizeIP;
 
 // Allow {CLIENT_RENEG_LIMIT} client-initiated session renegotiations
 // every {CLIENT_RENEG_WINDOW} seconds. An error event is emitted if more
@@ -179,7 +180,7 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
         const uri = url.parse(name.slice(4));
         uriNames.push(uri.hostname);  // TODO(bnoordhuis) Also use scheme.
       } else if (name.startsWith('IP Address:')) {
-        ips.push(name.slice(11));
+        ips.push(canonicalizeIP(name.slice(11)));
       }
     }
   }
@@ -188,7 +189,7 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
   let reason = 'Unknown reason';
 
   if (net.isIP(host)) {
-    valid = ips.includes(host);
+    valid = ips.includes(canonicalizeIP(host));
     if (!valid)
       reason = `IP: ${host} is not in the cert's list: ${ips.join(', ')}`;
     // TODO(bnoordhuis) Also check URI SANs that are IP addresses.
@@ -251,7 +252,6 @@ exports.parseCertString = function parseCertString(s) {
   return out;
 };
 
-// Public API
 exports.createSecureContext = require('_tls_common').createSecureContext;
 exports.SecureContext = require('_tls_common').SecureContext;
 exports.TLSSocket = require('_tls_wrap').TLSSocket;

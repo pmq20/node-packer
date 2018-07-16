@@ -56,7 +56,6 @@ std::ostream& operator<<(std::ostream& os, AccessMode access_mode) {
       return os << "StoreInLiteral";
   }
   UNREACHABLE();
-  return os;
 }
 
 ElementAccessInfo::ElementAccessInfo() {}
@@ -213,7 +212,6 @@ bool PropertyAccessInfo::Merge(PropertyAccessInfo const* that,
   }
 
   UNREACHABLE();
-  return false;
 }
 
 AccessInfoFactory::AccessInfoFactory(CompilationDependencies* dependencies,
@@ -411,9 +409,15 @@ bool AccessInfoFactory::ComputePropertyAccessInfo(
               isolate());
           if (!accessor->IsJSFunction()) {
             CallOptimization optimization(accessor);
-            if (!optimization.is_simple_api_call()) {
-              return false;
-            }
+            if (!optimization.is_simple_api_call()) return false;
+            CallOptimization::HolderLookup lookup;
+            holder =
+                optimization.LookupHolderOfExpectedType(receiver_map, &lookup);
+            if (lookup == CallOptimization::kHolderNotFound) return false;
+            DCHECK_IMPLIES(lookup == CallOptimization::kHolderIsReceiver,
+                           holder.is_null());
+            DCHECK_IMPLIES(lookup == CallOptimization::kHolderFound,
+                           !holder.is_null());
             if (V8_UNLIKELY(FLAG_runtime_stats)) return false;
           }
           if (access_mode == AccessMode::kLoad) {
@@ -433,7 +437,6 @@ bool AccessInfoFactory::ComputePropertyAccessInfo(
         }
       }
       UNREACHABLE();
-      return false;
     }
 
     // Don't search on the prototype chain for special indices in case of
@@ -516,14 +519,13 @@ namespace {
 
 Maybe<ElementsKind> GeneralizeElementsKind(ElementsKind this_kind,
                                            ElementsKind that_kind) {
-  if (IsHoleyElementsKind(this_kind)) {
+  if (IsHoleyOrDictionaryElementsKind(this_kind)) {
     that_kind = GetHoleyElementsKind(that_kind);
-  } else if (IsHoleyElementsKind(that_kind)) {
+  } else if (IsHoleyOrDictionaryElementsKind(that_kind)) {
     this_kind = GetHoleyElementsKind(this_kind);
   }
   if (this_kind == that_kind) return Just(this_kind);
-  if (IsFastDoubleElementsKind(that_kind) ==
-      IsFastDoubleElementsKind(this_kind)) {
+  if (IsDoubleElementsKind(that_kind) == IsDoubleElementsKind(this_kind)) {
     if (IsMoreGeneralElementsKindTransition(that_kind, this_kind)) {
       return Just(this_kind);
     }
@@ -575,7 +577,7 @@ bool AccessInfoFactory::LookupSpecialFieldAccessor(
       // elements, a smi in the range [0, FixedArray::kMaxLength]
       // in case of other fast elements, and [0, kMaxUInt32] in
       // case of other arrays.
-      if (IsFastDoubleElementsKind(map->elements_kind())) {
+      if (IsDoubleElementsKind(map->elements_kind())) {
         field_type = type_cache_.kFixedDoubleArrayLengthType;
         field_representation = MachineRepresentation::kTaggedSigned;
       } else if (IsFastElementsKind(map->elements_kind())) {
@@ -599,58 +601,58 @@ bool AccessInfoFactory::LookupTransition(Handle<Map> map, Handle<Name> name,
                                          MaybeHandle<JSObject> holder,
                                          PropertyAccessInfo* access_info) {
   // Check if the {map} has a data transition with the given {name}.
-  Handle<Map> transition_map;
-  if (TransitionArray::SearchTransition(map, kData, name, NONE)
-          .ToHandle(&transition_map)) {
-    int const number = transition_map->LastAdded();
-    PropertyDetails const details =
-        transition_map->instance_descriptors()->GetDetails(number);
-    // Don't bother optimizing stores to read-only properties.
-    if (details.IsReadOnly()) return false;
-    // TODO(bmeurer): Handle transition to data constant?
-    if (details.location() != kField) return false;
-    int const index = details.field_index();
-    Representation details_representation = details.representation();
-    FieldIndex field_index = FieldIndex::ForPropertyIndex(
-        *transition_map, index, details_representation.IsDouble());
-    Type* field_type = Type::NonInternal();
-    MaybeHandle<Map> field_map;
-    MachineRepresentation field_representation = MachineRepresentation::kTagged;
-    if (details_representation.IsSmi()) {
-      field_type = Type::SignedSmall();
-      field_representation = MachineRepresentation::kTaggedSigned;
-    } else if (details_representation.IsDouble()) {
-      field_type = type_cache_.kFloat64;
-      field_representation = MachineRepresentation::kFloat64;
-    } else if (details_representation.IsHeapObject()) {
-      // Extract the field type from the property details (make sure its
-      // representation is TaggedPointer to reflect the heap object case).
-      field_representation = MachineRepresentation::kTaggedPointer;
-      Handle<FieldType> descriptors_field_type(
-          transition_map->instance_descriptors()->GetFieldType(number),
-          isolate());
-      if (descriptors_field_type->IsNone()) {
-        // Store is not safe if the field type was cleared.
-        return false;
-      } else if (descriptors_field_type->IsClass()) {
-        // Add proper code dependencies in case of stable field map(s).
-        Handle<Map> field_owner_map(transition_map->FindFieldOwner(number),
-                                    isolate());
-        dependencies()->AssumeFieldOwner(field_owner_map);
+  Map* transition =
+      TransitionsAccessor(map).SearchTransition(*name, kData, NONE);
+  if (transition == nullptr) return false;
 
-        // Remember the field map, and try to infer a useful type.
-        field_type = Type::For(descriptors_field_type->AsClass());
-        field_map = descriptors_field_type->AsClass();
-      }
+  Handle<Map> transition_map(transition);
+  int const number = transition_map->LastAdded();
+  PropertyDetails const details =
+      transition_map->instance_descriptors()->GetDetails(number);
+  // Don't bother optimizing stores to read-only properties.
+  if (details.IsReadOnly()) return false;
+  // TODO(bmeurer): Handle transition to data constant?
+  if (details.location() != kField) return false;
+  int const index = details.field_index();
+  Representation details_representation = details.representation();
+  FieldIndex field_index = FieldIndex::ForPropertyIndex(
+      *transition_map, index, details_representation.IsDouble());
+  Type* field_type = Type::NonInternal();
+  MaybeHandle<Map> field_map;
+  MachineRepresentation field_representation = MachineRepresentation::kTagged;
+  if (details_representation.IsSmi()) {
+    field_type = Type::SignedSmall();
+    field_representation = MachineRepresentation::kTaggedSigned;
+  } else if (details_representation.IsDouble()) {
+    field_type = type_cache_.kFloat64;
+    field_representation = MachineRepresentation::kFloat64;
+  } else if (details_representation.IsHeapObject()) {
+    // Extract the field type from the property details (make sure its
+    // representation is TaggedPointer to reflect the heap object case).
+    field_representation = MachineRepresentation::kTaggedPointer;
+    Handle<FieldType> descriptors_field_type(
+        transition_map->instance_descriptors()->GetFieldType(number),
+        isolate());
+    if (descriptors_field_type->IsNone()) {
+      // Store is not safe if the field type was cleared.
+      return false;
+    } else if (descriptors_field_type->IsClass()) {
+      // Add proper code dependencies in case of stable field map(s).
+      Handle<Map> field_owner_map(transition_map->FindFieldOwner(number),
+                                  isolate());
+      dependencies()->AssumeFieldOwner(field_owner_map);
+
+      // Remember the field map, and try to infer a useful type.
+      field_type = Type::For(descriptors_field_type->AsClass());
+      field_map = descriptors_field_type->AsClass();
     }
-    dependencies()->AssumeMapNotDeprecated(transition_map);
-    // Transitioning stores are never stores to constant fields.
-    *access_info = PropertyAccessInfo::DataField(
-        kMutable, MapHandles{map}, field_index, field_representation,
-        field_type, field_map, holder, transition_map);
-    return true;
   }
-  return false;
+  dependencies()->AssumeMapNotDeprecated(transition_map);
+  // Transitioning stores are never stores to constant fields.
+  *access_info = PropertyAccessInfo::DataField(
+      kMutable, MapHandles{map}, field_index, field_representation, field_type,
+      field_map, holder, transition_map);
+  return true;
 }
 
 

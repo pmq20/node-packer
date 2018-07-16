@@ -5,6 +5,7 @@ const http = require('http');
 const net = require('net');
 const url = require('url');
 const assert = require('assert');
+const Countdown = require('../common/countdown');
 
 // Response splitting example, credit: Amit Klein, Safebreach
 const str = '/welcome?lang=bar%c4%8d%c4%8aContent­Length:%200%c4%8d%c4%8a%c' +
@@ -18,6 +19,7 @@ const x = 'fooഊSet-Cookie: foo=barഊഊ<script>alert("Hi!")</script>';
 const y = 'foo⠊Set-Cookie: foo=bar';
 
 let count = 0;
+const countdown = new Countdown(3, () => server.close());
 
 function test(res, code, header) {
   assert.throws(() => {
@@ -29,24 +31,23 @@ const server = http.createServer((req, res) => {
   switch (count++) {
     case 0:
       const loc = url.parse(req.url, true).query.lang;
-      test(res, 302, {Location: `/foo?lang=${loc}`});
+      test(res, 302, { Location: `/foo?lang=${loc}` });
       break;
     case 1:
-      test(res, 200, {'foo': x});
+      test(res, 200, { 'foo': x });
       break;
     case 2:
-      test(res, 200, {'foo': y});
+      test(res, 200, { 'foo': y });
       break;
     default:
       assert.fail('should not get to here.');
   }
-  if (count === 3)
-    server.close();
+  countdown.dec();
   res.end('ok');
 });
 server.listen(0, () => {
   const end = 'HTTP/1.1\r\n\r\n';
-  const client = net.connect({port: server.address().port}, () => {
+  const client = net.connect({ port: server.address().port }, () => {
     client.write(`GET ${str} ${end}`);
     client.write(`GET / ${end}`);
     client.write(`GET / ${end}`);

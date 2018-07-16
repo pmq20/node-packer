@@ -132,13 +132,20 @@ class V8_EXPORT_PRIVATE NodeProperties final {
   // Checks if two nodes are the same, looking past {CheckHeapObject}.
   static bool IsSame(Node* a, Node* b);
 
+  // Check if two nodes have equal operators and reference-equal inputs. Used
+  // for value numbering/hash-consing.
+  static bool Equals(Node* a, Node* b);
+  // A corresponding hash function.
+  static size_t HashCode(Node* node);
+
   // Walks up the {effect} chain to find a witness that provides map
   // information about the {receiver}. Can look through potentially
   // side effecting nodes.
   enum InferReceiverMapsResult {
     kNoReceiverMaps,         // No receiver maps inferred.
     kReliableReceiverMaps,   // Receiver maps can be trusted.
-    kUnreliableReceiverMaps  // Receiver maps might have changed (side-effect).
+    kUnreliableReceiverMaps  // Receiver maps might have changed (side-effect),
+                             // but instance type is reliable.
   };
   static InferReceiverMapsResult InferReceiverMaps(
       Node* receiver, Node* effect, ZoneHandleSet<Map>* maps_return);

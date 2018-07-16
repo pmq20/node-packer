@@ -80,6 +80,8 @@ MaybeHandle<Object> JsonParseInternalizer::InternalizeJsonProperty(
 
 bool JsonParseInternalizer::RecurseAndApply(Handle<JSReceiver> holder,
                                             Handle<String> name) {
+  STACK_CHECK(isolate_, false);
+
   Handle<Object> result;
   ASSIGN_RETURN_ON_EXCEPTION_VALUE(
       isolate_, result, InternalizeJsonProperty(holder, name), false);
@@ -366,19 +368,22 @@ Handle<Object> JsonParser<seq_one_byte>::ParseJsonObject() {
       bool follow_expected = false;
       Handle<Map> target;
       if (seq_one_byte) {
-        key = TransitionArray::ExpectedTransitionKey(map);
+        DisallowHeapAllocation no_gc;
+        TransitionsAccessor transitions(*map, &no_gc);
+        key = transitions.ExpectedTransitionKey();
         follow_expected = !key.is_null() && ParseJsonString(key);
+        // If the expected transition hits, follow it.
+        if (follow_expected) {
+          target = transitions.ExpectedTransitionTarget();
+        }
       }
-      // If the expected transition hits, follow it.
-      if (follow_expected) {
-        target = TransitionArray::ExpectedTransitionTarget(map);
-      } else {
+      if (!follow_expected) {
         // If the expected transition failed, parse an internalized string and
         // try to find a matching transition.
         key = ParseJsonInternalizedString();
         if (key.is_null()) return ReportUnexpectedCharacter();
 
-        target = TransitionArray::FindTransitionToField(map, key);
+        target = TransitionsAccessor(map).FindTransitionToField(key);
         // If a transition was found, follow it and continue.
         transitioning = !target.is_null();
       }
@@ -513,14 +518,14 @@ class ElementKindLattice {
   ElementsKind GetElementsKind() const {
     switch (value_) {
       case SMI_ELEMENTS:
-        return FAST_SMI_ELEMENTS;
+        return PACKED_SMI_ELEMENTS;
       case NUMBER_ELEMENTS:
-        return FAST_DOUBLE_ELEMENTS;
+        return PACKED_DOUBLE_ELEMENTS;
       case OBJECT_ELEMENTS:
-        return FAST_ELEMENTS;
+        return PACKED_ELEMENTS;
       default:
         UNREACHABLE();
-        return FAST_ELEMENTS;
+        return PACKED_ELEMENTS;
     }
   }
 
@@ -557,15 +562,15 @@ Handle<Object> JsonParser<seq_one_byte>::ParseJsonArray() {
   const ElementsKind kind = lattice.GetElementsKind();
 
   switch (kind) {
-    case FAST_ELEMENTS:
-    case FAST_SMI_ELEMENTS: {
+    case PACKED_ELEMENTS:
+    case PACKED_SMI_ELEMENTS: {
       Handle<FixedArray> elems =
           factory()->NewFixedArray(elements.length(), pretenure_);
       for (int i = 0; i < elements.length(); i++) elems->set(i, *elements[i]);
       json_array = factory()->NewJSArrayWithElements(elems, kind, pretenure_);
       break;
     }
-    case FAST_DOUBLE_ELEMENTS: {
+    case PACKED_DOUBLE_ELEMENTS: {
       Handle<FixedDoubleArray> elems = Handle<FixedDoubleArray>::cast(
           factory()->NewFixedDoubleArray(elements.length(), pretenure_));
       for (int i = 0; i < elements.length(); i++) {

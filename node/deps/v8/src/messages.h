@@ -13,7 +13,6 @@
 #include <memory>
 
 #include "src/handles.h"
-#include "src/list.h"
 
 namespace v8 {
 namespace internal {
@@ -25,6 +24,7 @@ class JSMessageObject;
 class LookupIterator;
 class SharedFunctionInfo;
 class SourceInfo;
+class WasmInstanceObject;
 
 class MessageLocation {
  public:
@@ -105,7 +105,7 @@ class JSStackFrame : public StackFrameBase {
 
   bool IsNative() override;
   bool IsToplevel() override;
-  bool IsConstructor() override;
+  bool IsConstructor() override { return is_constructor_; }
   bool IsStrict() const override { return is_strict_; }
 
   MaybeHandle<String> ToString() override;
@@ -122,7 +122,7 @@ class JSStackFrame : public StackFrameBase {
   Handle<AbstractCode> code_;
   int offset_;
 
-  bool force_constructor_;
+  bool is_constructor_;
   bool is_strict_;
 
   friend class FrameArrayIterator;
@@ -132,7 +132,7 @@ class WasmStackFrame : public StackFrameBase {
  public:
   virtual ~WasmStackFrame() {}
 
-  Handle<Object> GetReceiver() const override { return wasm_instance_; }
+  Handle<Object> GetReceiver() const override;
   Handle<Object> GetFunction() const override;
 
   Handle<Object> GetFileName() override { return Null(); }
@@ -159,8 +159,7 @@ class WasmStackFrame : public StackFrameBase {
   bool HasScript() const override;
   Handle<Script> GetScript() const override;
 
-  // TODO(wasm): Use proper typing.
-  Handle<Object> wasm_instance_;
+  Handle<WasmInstanceObject> wasm_instance_;
   uint32_t wasm_func_index_;
   Handle<AbstractCode> code_;  // null handle for interpreted frames.
   int offset_;
@@ -270,6 +269,7 @@ class ErrorUtils : public AllStatic {
     "ArrayBuffer subclass returned this from species constructor")             \
   T(ArrayFunctionsOnFrozen, "Cannot modify frozen array elements")             \
   T(ArrayFunctionsOnSealed, "Cannot add/remove sealed array elements")         \
+  T(AwaitNotInAsyncFunction, "await is only valid in async function")          \
   T(AtomicsWaitNotAllowed, "Atomics.wait cannot be called in this context")    \
   T(CalledNonCallable, "% is not a function")                                  \
   T(CalledOnNonObject, "% called on non-object")                               \
@@ -330,7 +330,9 @@ class ErrorUtils : public AllStatic {
   T(NoAccess, "no access")                                                     \
   T(NonCallableInInstanceOfCheck,                                              \
     "Right-hand side of 'instanceof' is not callable")                         \
-  T(NonCoercible, "Cannot match against 'undefined' or 'null'.")               \
+  T(NonCoercible, "Cannot destructure 'undefined' or 'null'.")                 \
+  T(NonCoercibleWithProperty,                                                  \
+    "Cannot destructure property `%` of 'undefined' or 'null'.")               \
   T(NonExtensibleProto, "% is not extensible")                                 \
   T(NonObjectInInstanceOfCheck,                                                \
     "Right-hand side of 'instanceof' is not an object")                        \
@@ -342,7 +344,12 @@ class ErrorUtils : public AllStatic {
   T(NotConstructor, "% is not a constructor")                                  \
   T(NotDateObject, "this is not a Date object.")                               \
   T(NotGeneric, "% requires that 'this' be a %")                               \
+  T(NotCallableOrIterable,                                                     \
+    "% is not a function or its return value is not iterable")                 \
+  T(NotCallableOrAsyncIterable,                                                \
+    "% is not a function or its return value is not async iterable")           \
   T(NotIterable, "% is not iterable")                                          \
+  T(NotAsyncIterable, "% is not async iterable")                               \
   T(NotPropertyName, "% is not a valid property name")                         \
   T(NotTypedArray, "this is not a typed array.")                               \
   T(NotSuperConstructor, "Super constructor % of % is not a constructor")      \
@@ -461,9 +468,6 @@ class ErrorUtils : public AllStatic {
   T(RegExpNonObject, "% getter called on non-object %")                        \
   T(RegExpNonRegExp, "% getter called on non-RegExp object")                   \
   T(ResolverNotAFunction, "Promise resolver % is not a function")              \
-  T(RestrictedFunctionProperties,                                              \
-    "'caller' and 'arguments' are restricted function properties and cannot "  \
-    "be accessed in this context.")                                            \
   T(ReturnMethodNotCallable, "The iterator's 'return' method is not callable") \
   T(SharedArrayBufferTooShort,                                                 \
     "Derived SharedArrayBuffer constructor created a buffer which was too "    \
@@ -471,7 +475,6 @@ class ErrorUtils : public AllStatic {
   T(SharedArrayBufferSpeciesThis,                                              \
     "SharedArrayBuffer subclass returned this from species constructor")       \
   T(StaticPrototype, "Classes may not have static property named prototype")   \
-  T(StrictCannotAssign, "Cannot assign to read only '%' in strict mode")       \
   T(StrictDeleteProperty, "Cannot delete property '%' of %")                   \
   T(StrictPoisonPill,                                                          \
     "'caller', 'callee', and 'arguments' properties may not be accessed on "   \
@@ -527,10 +530,11 @@ class ErrorUtils : public AllStatic {
   T(LetInLexicalBinding, "let is disallowed as a lexically bound name")        \
   T(LocaleMatcher, "Illegal value for localeMatcher:%")                        \
   T(NormalizationForm, "The normalization form should be one of %.")           \
-  T(NumberFormatRange, "% argument must be between 0 and 20")                  \
+  T(NumberFormatRange, "% argument must be between 0 and 100")                 \
   T(PropertyValueOutOfRange, "% value is out of range.")                       \
   T(StackOverflow, "Maximum call stack size exceeded")                         \
-  T(ToPrecisionFormatRange, "toPrecision() argument must be between 1 and 21") \
+  T(ToPrecisionFormatRange,                                                    \
+    "toPrecision() argument must be between 1 and 100")                        \
   T(ToRadixFormatRange, "toString() radix argument must be between 2 and 36")  \
   T(TypedArraySetNegativeOffset, "Start offset is negative")                   \
   T(TypedArraySetSourceTooLarge, "Source is too large")                        \
@@ -556,8 +560,11 @@ class ErrorUtils : public AllStatic {
     "% loop variable declaration may not have an initializer.")                \
   T(ForInOfLoopMultiBindings,                                                  \
     "Invalid left-hand side in % loop: Must have a single binding.")           \
-  T(GeneratorInLegacyContext,                                                  \
-    "Generator declarations are not allowed in legacy contexts.")              \
+  T(GeneratorInSingleStatementContext,                                         \
+    "Generators can only be declared at the top level or inside a block.")     \
+  T(AsyncFunctionInSingleStatementContext,                                     \
+    "Async functions can only be declared at the top level or inside a "       \
+    "block.")                                                                  \
   T(IllegalBreak, "Illegal break statement")                                   \
   T(NoIterationStatement,                                                      \
     "Illegal continue statement: no surrounding iteration statement")          \
@@ -566,6 +573,11 @@ class ErrorUtils : public AllStatic {
   T(IllegalLanguageModeDirective,                                              \
     "Illegal '%' directive in function with non-simple parameter list")        \
   T(IllegalReturn, "Illegal return statement")                                 \
+  T(InvalidRestBindingPattern,                                                 \
+    "`...` must be followed by an identifier in declaration contexts")         \
+  T(InvalidRestAssignmentPattern,                                              \
+    "`...` must be followed by an assignable reference in assignment "         \
+    "contexts")                                                                \
   T(InvalidEscapedReservedWord, "Keyword must not contain escaped characters") \
   T(InvalidEscapedMetaProperty, "'%' must not contain escaped characters")     \
   T(InvalidLhsInAssignment, "Invalid left-hand side in assignment")            \
@@ -690,6 +702,7 @@ class ErrorUtils : public AllStatic {
   T(WasmTrapFuncSigMismatch, "function signature mismatch")                    \
   T(WasmTrapInvalidIndex, "invalid index into function table")                 \
   T(WasmTrapTypeError, "invalid type")                                         \
+  T(WasmExceptionError, "wasm exception")                                      \
   /* Asm.js validation related */                                              \
   T(AsmJsInvalid, "Invalid asm.js: %")                                         \
   T(AsmJsCompiled, "Converted asm.js to WebAssembly: %")                       \

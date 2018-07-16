@@ -25,12 +25,12 @@ const internalUtil = require('internal/util');
 internalUtil.assertCrypto();
 
 const assert = require('assert');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const common = require('_tls_common');
-const Connection = process.binding('crypto').Connection;
+const { Connection } = process.binding('crypto');
 const EventEmitter = require('events');
 const stream = require('stream');
-const Timer = process.binding('timer_wrap').Timer;
+const { Timer } = process.binding('timer_wrap');
 const tls = require('tls');
 const util = require('util');
 
@@ -632,6 +632,8 @@ function onhandshakestart() {
     // state machine and OpenSSL is not re-entrant. We cannot allow the user's
     // callback to destroy the connection right now, it would crash and burn.
     setImmediate(function() {
+      // Old-style error is not being migrated to the newer style
+      // internal/errors.js because _tls_legacy.js has been deprecated.
       var err = new Error('TLS session renegotiation attack detected');
       if (self.cleartext) self.cleartext.emit('error', err);
     });
@@ -878,8 +880,8 @@ SecurePair.prototype.error = function(returnOnly) {
              /peer did not return a certificate/.test(err.message)) {
     // Not really an error.
     this.destroy();
-  } else {
-    if (!returnOnly) this.cleartext.emit('error', err);
+  } else if (!returnOnly) {
+    this.cleartext.emit('error', err);
   }
   return err;
 };

@@ -5,8 +5,6 @@
 #ifndef V8_WASM_FUNCTION_BODY_DECODER_H_
 #define V8_WASM_FUNCTION_BODY_DECODER_H_
 
-#include <iterator>
-
 #include "src/base/compiler-specific.h"
 #include "src/base/iterator.h"
 #include "src/globals.h"
@@ -19,6 +17,7 @@ namespace v8 {
 namespace internal {
 
 class BitVector;  // forward declaration
+class Counters;
 
 namespace compiler {  // external declarations from compiler.
 class WasmGraphBuilder;
@@ -32,27 +31,33 @@ struct WasmModule;  // forward declaration of module interface.
 // A wrapper around the signature and bytes of a function.
 struct FunctionBody {
   FunctionSig* sig;   // function signature
-  const byte* base;   // base of the module bytes, for error reporting
+  uint32_t offset;    // offset in the module bytes, for error reporting
   const byte* start;  // start of the function body
   const byte* end;    // end of the function body
 };
 
 static inline FunctionBody FunctionBodyForTesting(const byte* start,
                                                   const byte* end) {
-  return {nullptr, start, start, end};
+  return {nullptr, 0, start, end};
 }
 
-struct DecodeStruct {
-  int unused;
-};
-typedef Result<DecodeStruct*> DecodeResult;
-inline std::ostream& operator<<(std::ostream& os, const DecodeStruct& tree) {
-  return os;
-}
+// A {DecodeResult} only stores the failure / success status, but no data. Thus
+// we use {nullptr_t} as data value, such that the only valid data stored in
+// this type is a nullptr.
+// Storing {void} would require template specialization.
+using DecodeResult = Result<std::nullptr_t>;
 
 V8_EXPORT_PRIVATE DecodeResult VerifyWasmCode(AccountingAllocator* allocator,
                                               const wasm::WasmModule* module,
                                               FunctionBody& body);
+
+// Note: If run in the background thread, must follow protocol using
+// isolate::async_counters() to guarantee usability of counters argument.
+DecodeResult VerifyWasmCodeWithStats(AccountingAllocator* allocator,
+                                     const wasm::WasmModule* module,
+                                     FunctionBody& body, bool is_wasm,
+                                     Counters* counters);
+
 DecodeResult BuildTFGraph(AccountingAllocator* allocator, TFBuilder* builder,
                           FunctionBody& body);
 bool PrintRawWasmCode(AccountingAllocator* allocator, const FunctionBody& body,
@@ -64,14 +69,14 @@ void PrintRawWasmCode(const byte* start, const byte* end);
 inline DecodeResult VerifyWasmCode(AccountingAllocator* allocator,
                                    const WasmModule* module, FunctionSig* sig,
                                    const byte* start, const byte* end) {
-  FunctionBody body = {sig, nullptr, start, end};
+  FunctionBody body = {sig, 0, start, end};
   return VerifyWasmCode(allocator, module, body);
 }
 
 inline DecodeResult BuildTFGraph(AccountingAllocator* allocator,
                                  TFBuilder* builder, FunctionSig* sig,
                                  const byte* start, const byte* end) {
-  FunctionBody body = {sig, nullptr, start, end};
+  FunctionBody body = {sig, 0, start, end};
   return BuildTFGraph(allocator, builder, body);
 }
 
@@ -131,7 +136,7 @@ class V8_EXPORT_PRIVATE BytecodeIterator : public NON_EXPORTED_BASE(Decoder) {
   // If one wants to iterate over the bytecode without looking at {pc_offset()}.
   class opcode_iterator
       : public iterator_base,
-        public std::iterator<std::input_iterator_tag, WasmOpcode> {
+        public base::iterator<std::input_iterator_tag, WasmOpcode> {
    public:
     inline WasmOpcode operator*() {
       DCHECK_LT(ptr_, end_);
@@ -147,7 +152,7 @@ class V8_EXPORT_PRIVATE BytecodeIterator : public NON_EXPORTED_BASE(Decoder) {
   // opcodes.
   class offset_iterator
       : public iterator_base,
-        public std::iterator<std::input_iterator_tag, uint32_t> {
+        public base::iterator<std::input_iterator_tag, uint32_t> {
    public:
     inline uint32_t operator*() {
       DCHECK_LT(ptr_, end_);

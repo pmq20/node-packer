@@ -9,16 +9,18 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-const testDir = common.tmpDir;
+const tmpdir = require('../common/tmpdir');
+
+const testDir = tmpdir.path;
 const filenameOne = 'watch.txt';
 
-common.refreshTmpDir();
+tmpdir.refresh();
 
 const testsubdir = fs.mkdtempSync(testDir + path.sep);
 const relativePathOne = path.join(path.basename(testsubdir), filenameOne);
 const filepathOne = path.join(testsubdir, filenameOne);
 
-const watcher = fs.watch(testDir, {recursive: true});
+const watcher = fs.watch(testDir, { recursive: true });
 
 let watcherClosed = false;
 watcher.on('change', function(event, filename) {

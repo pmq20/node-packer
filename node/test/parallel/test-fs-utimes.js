@@ -25,6 +25,9 @@ const assert = require('assert');
 const util = require('util');
 const fs = require('fs');
 
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
+
 let tests_ok = 0;
 let tests_run = 0;
 
@@ -64,9 +67,6 @@ function expect_ok(syscall, resource, err, atime, mtime) {
   }
 }
 
-// the tests assume that __filename belongs to the user running the tests
-// this should be a fairly safe assumption; testing against a temp file
-// would be even better though (node doesn't have such functionality yet)
 function testIt(atime, mtime, callback) {
 
   let fd;
@@ -74,8 +74,8 @@ function testIt(atime, mtime, callback) {
   // test synchronized code paths, these functions throw on failure
   //
   function syncTests() {
-    fs.utimesSync(__filename, atime, mtime);
-    expect_ok('utimesSync', __filename, undefined, atime, mtime);
+    fs.utimesSync(tmpdir.path, atime, mtime);
+    expect_ok('utimesSync', tmpdir.path, undefined, atime, mtime);
     tests_run++;
 
     // some systems don't have futimes
@@ -110,17 +110,17 @@ function testIt(atime, mtime, callback) {
   //
   // test async code paths
   //
-  fs.utimes(__filename, atime, mtime, common.mustCall(function(err) {
-    expect_ok('utimes', __filename, err, atime, mtime);
+  fs.utimes(tmpdir.path, atime, mtime, common.mustCall(function(err) {
+    expect_ok('utimes', tmpdir.path, err, atime, mtime);
 
     fs.utimes('foobarbaz', atime, mtime, common.mustCall(function(err) {
       expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
 
       // don't close this fd
       if (common.isWindows) {
-        fd = fs.openSync(__filename, 'r+');
+        fd = fs.openSync(tmpdir.path, 'r+');
       } else {
-        fd = fs.openSync(__filename, 'r');
+        fd = fs.openSync(tmpdir.path, 'r');
       }
 
       fs.futimes(fd, atime, mtime, common.mustCall(function(err) {
@@ -140,7 +140,7 @@ function testIt(atime, mtime, callback) {
   tests_run++;
 }
 
-const stats = fs.statSync(__filename);
+const stats = fs.statSync(tmpdir.path);
 
 // run tests
 const runTest = common.mustCall(testIt, 6);
@@ -169,12 +169,11 @@ process.on('exit', function() {
 
 
 // Ref: https://github.com/nodejs/node/issues/13255
-common.refreshTmpDir();
-const path = `${common.tmpDir}/test-utimes-precision`;
+const path = `${tmpdir.path}/test-utimes-precision`;
 fs.writeFileSync(path, '');
 
-// test Y2K38 for all platforms [except 'arm', and 'SunOS']
-if (!process.arch.includes('arm') && !common.isSunOS) {
+// test Y2K38 for all platforms [except 'arm', 'OpenBSD' and 'SunOS']
+if (!process.arch.includes('arm') && !common.isOpenBSD && !common.isSunOS) {
   // because 2 ** 31 doesn't look right
   // eslint-disable-next-line space-infix-ops
   const Y2K38_mtime = 2**31;

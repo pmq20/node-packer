@@ -39,12 +39,13 @@ BUILTIN(NumberPrototypeToExponential) {
       isolate, fraction_digits, Object::ToInteger(isolate, fraction_digits));
   double const fraction_digits_number = fraction_digits->Number();
 
-  if (std::isnan(value_number)) return isolate->heap()->nan_string();
+  if (std::isnan(value_number)) return isolate->heap()->NaN_string();
   if (std::isinf(value_number)) {
-    return (value_number < 0.0) ? isolate->heap()->minus_infinity_string()
-                                : isolate->heap()->infinity_string();
+    return (value_number < 0.0) ? isolate->heap()->minus_Infinity_string()
+                                : isolate->heap()->Infinity_string();
   }
-  if (fraction_digits_number < 0.0 || fraction_digits_number > 20.0) {
+  if (fraction_digits_number < 0.0 ||
+      fraction_digits_number > kMaxFractionDigits) {
     THROW_NEW_ERROR_RETURN_FAILURE(
         isolate, NewRangeError(MessageTemplate::kNumberFormatRange,
                                isolate->factory()->NewStringFromAsciiChecked(
@@ -84,17 +85,18 @@ BUILTIN(NumberPrototypeToFixed) {
   double const fraction_digits_number = fraction_digits->Number();
 
   // Check if the {fraction_digits} are in the supported range.
-  if (fraction_digits_number < 0.0 || fraction_digits_number > 20.0) {
+  if (fraction_digits_number < 0.0 ||
+      fraction_digits_number > kMaxFractionDigits) {
     THROW_NEW_ERROR_RETURN_FAILURE(
         isolate, NewRangeError(MessageTemplate::kNumberFormatRange,
                                isolate->factory()->NewStringFromAsciiChecked(
                                    "toFixed() digits")));
   }
 
-  if (std::isnan(value_number)) return isolate->heap()->nan_string();
+  if (std::isnan(value_number)) return isolate->heap()->NaN_string();
   if (std::isinf(value_number)) {
-    return (value_number < 0.0) ? isolate->heap()->minus_infinity_string()
-                                : isolate->heap()->infinity_string();
+    return (value_number < 0.0) ? isolate->heap()->minus_Infinity_string()
+                                : isolate->heap()->Infinity_string();
   }
   char* const str = DoubleToFixedCString(
       value_number, static_cast<int>(fraction_digits_number));
@@ -153,12 +155,12 @@ BUILTIN(NumberPrototypeToPrecision) {
                                      Object::ToInteger(isolate, precision));
   double const precision_number = precision->Number();
 
-  if (std::isnan(value_number)) return isolate->heap()->nan_string();
+  if (std::isnan(value_number)) return isolate->heap()->NaN_string();
   if (std::isinf(value_number)) {
-    return (value_number < 0.0) ? isolate->heap()->minus_infinity_string()
-                                : isolate->heap()->infinity_string();
+    return (value_number < 0.0) ? isolate->heap()->minus_Infinity_string()
+                                : isolate->heap()->Infinity_string();
   }
-  if (precision_number < 1.0 || precision_number > 21.0) {
+  if (precision_number < 1.0 || precision_number > kMaxFractionDigits) {
     THROW_NEW_ERROR_RETURN_FAILURE(
         isolate, NewRangeError(MessageTemplate::kToPrecisionFormatRange));
   }
@@ -217,10 +219,10 @@ BUILTIN(NumberPrototypeToString) {
   }
 
   // Slow case.
-  if (std::isnan(value_number)) return isolate->heap()->nan_string();
+  if (std::isnan(value_number)) return isolate->heap()->NaN_string();
   if (std::isinf(value_number)) {
-    return (value_number < 0.0) ? isolate->heap()->minus_infinity_string()
-                                : isolate->heap()->infinity_string();
+    return (value_number < 0.0) ? isolate->heap()->minus_Infinity_string()
+                                : isolate->heap()->Infinity_string();
   }
   char* const str =
       DoubleToRadixCString(value_number, static_cast<int>(radix_number));

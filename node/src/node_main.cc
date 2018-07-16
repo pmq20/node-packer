@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "node.h"
+#include <stdio.h>
 
 // --------- [Enclose.IO Hack start] ---------
 extern "C" {
@@ -29,6 +30,7 @@ extern "C" {
 // --------- [Enclose.IO Hack end] ---------
 
 #ifdef _WIN32
+#include <windows.h>
 #include <VersionHelpers.h>
 #include <WinError.h>
 

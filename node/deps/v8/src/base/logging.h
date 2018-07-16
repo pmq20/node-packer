@@ -12,8 +12,9 @@
 #include "src/base/base-export.h"
 #include "src/base/build_config.h"
 #include "src/base/compiler-specific.h"
+#include "src/base/template-utils.h"
 
-extern "C" PRINTF_FORMAT(3, 4) V8_NORETURN V8_BASE_EXPORT
+[[noreturn]] PRINTF_FORMAT(3, 4) V8_BASE_EXPORT V8_NOINLINE
     void V8_Fatal(const char* file, int line, const char* format, ...);
 
 // The FATAL, UNREACHABLE and UNIMPLEMENTED macros are useful during
@@ -56,16 +57,36 @@ V8_BASE_EXPORT void SetPrintStackTrace(void (*print_stack_trace_)());
 
 #ifdef DEBUG
 
+#define DCHECK_WITH_MSG(condition, message)                             \
+  do {                                                                  \
+    if (V8_UNLIKELY(!(condition))) {                                    \
+      V8_Fatal(__FILE__, __LINE__, "Debug check failed: %s.", message); \
+    }                                                                   \
+  } while (0)
+#define DCHECK(condition) DCHECK_WITH_MSG(condition, #condition)
+
 // Helper macro for binary operators.
 // Don't use this macro directly in your code, use CHECK_EQ et al below.
-#define CHECK_OP(name, op, lhs, rhs)                                     \
-  do {                                                                   \
-    if (std::string* _msg =                                              \
-            ::v8::base::Check##name##Impl<decltype(lhs), decltype(rhs)>( \
-                (lhs), (rhs), #lhs " " #op " " #rhs)) {                  \
-      V8_Fatal(__FILE__, __LINE__, "Check failed: %s.", _msg->c_str());  \
-      delete _msg;                                                       \
-    }                                                                    \
+#define CHECK_OP(name, op, lhs, rhs)                                    \
+  do {                                                                  \
+    if (std::string* _msg = ::v8::base::Check##name##Impl<              \
+            typename v8::base::pass_value_or_ref<decltype(lhs)>::type,  \
+            typename v8::base::pass_value_or_ref<decltype(rhs)>::type>( \
+            (lhs), (rhs), #lhs " " #op " " #rhs)) {                     \
+      V8_Fatal(__FILE__, __LINE__, "Check failed: %s.", _msg->c_str()); \
+      delete _msg;                                                      \
+    }                                                                   \
+  } while (0)
+
+#define DCHECK_OP(name, op, lhs, rhs)                                         \
+  do {                                                                        \
+    if (std::string* _msg = ::v8::base::Check##name##Impl<                    \
+            typename v8::base::pass_value_or_ref<decltype(lhs)>::type,        \
+            typename v8::base::pass_value_or_ref<decltype(rhs)>::type>(       \
+            (lhs), (rhs), #lhs " " #op " " #rhs)) {                           \
+      V8_Fatal(__FILE__, __LINE__, "Debug check failed: %s.", _msg->c_str()); \
+      delete _msg;                                                            \
+    }                                                                         \
   } while (0)
 
 #else
@@ -73,62 +94,96 @@ V8_BASE_EXPORT void SetPrintStackTrace(void (*print_stack_trace_)());
 // Make all CHECK functions discard their log strings to reduce code
 // bloat for official release builds.
 
-#define CHECK_OP(name, op, lhs, rhs)                                         \
-  do {                                                                       \
-    bool _cmp =                                                              \
-        ::v8::base::Cmp##name##Impl<decltype(lhs), decltype(rhs)>(lhs, rhs); \
-    CHECK_WITH_MSG(_cmp, #lhs " " #op " " #rhs);                             \
+#define CHECK_OP(name, op, lhs, rhs)                                       \
+  do {                                                                     \
+    bool _cmp = ::v8::base::Cmp##name##Impl<                               \
+        typename v8::base::pass_value_or_ref<decltype(lhs)>::type,         \
+        typename v8::base::pass_value_or_ref<decltype(rhs)>::type>((lhs),  \
+                                                                   (rhs)); \
+    CHECK_WITH_MSG(_cmp, #lhs " " #op " " #rhs);                           \
   } while (0)
+
+#define DCHECK_WITH_MSG(condition, msg) void(0);
 
 #endif
 
-// Helper to determine how to pass values: Pass scalars and arrays by value,
-// others by const reference. std::decay<T> provides the type which should be
-// used to pass T by value, e.g. converts array to pointer and removes const,
-// volatile and reference.
-template <typename T>
-struct PassType : public std::conditional<
-                      std::is_scalar<typename std::decay<T>::type>::value,
-                      typename std::decay<T>::type, T const&> {};
+template <typename Op>
+void PrintCheckOperand(std::ostream& os, Op op) {
+  os << op;
+}
+
+// Define specializations for character types, defined in logging.cc.
+#define DEFINE_PRINT_CHECK_OPERAND_CHAR(type)                              \
+  template <>                                                              \
+  V8_BASE_EXPORT void PrintCheckOperand<type>(std::ostream & os, type ch); \
+  template <>                                                              \
+  V8_BASE_EXPORT void PrintCheckOperand<type*>(std::ostream & os,          \
+                                               type * cstr);               \
+  template <>                                                              \
+  V8_BASE_EXPORT void PrintCheckOperand<const type*>(std::ostream & os,    \
+                                                     const type* cstr);
+
+DEFINE_PRINT_CHECK_OPERAND_CHAR(char)
+DEFINE_PRINT_CHECK_OPERAND_CHAR(signed char)
+DEFINE_PRINT_CHECK_OPERAND_CHAR(unsigned char)
+#undef DEFINE_PRINT_CHECK_OPERAND_CHAR
 
 // Build the error message string.  This is separate from the "Impl"
 // function template because it is not performance critical and so can
 // be out of line, while the "Impl" code should be inline. Caller
 // takes ownership of the returned string.
 template <typename Lhs, typename Rhs>
-std::string* MakeCheckOpString(typename PassType<Lhs>::type lhs,
-                               typename PassType<Rhs>::type rhs,
-                               char const* msg) {
+std::string* MakeCheckOpString(Lhs lhs, Rhs rhs, char const* msg) {
   std::ostringstream ss;
-  ss << msg << " (" << lhs << " vs. " << rhs << ")";
+  ss << msg << " (";
+  PrintCheckOperand(ss, lhs);
+  ss << " vs. ";
+  PrintCheckOperand(ss, rhs);
+  ss << ")";
   return new std::string(ss.str());
 }
 
 // Commonly used instantiations of MakeCheckOpString<>. Explicitly instantiated
 // in logging.cc.
-#define DEFINE_MAKE_CHECK_OP_STRING(type)                                    \
+#define EXPLICIT_CHECK_OP_INSTANTIATION(type)                                \
   extern template V8_BASE_EXPORT std::string* MakeCheckOpString<type, type>( \
-      type, type, char const*);
-DEFINE_MAKE_CHECK_OP_STRING(int)
-DEFINE_MAKE_CHECK_OP_STRING(long)       // NOLINT(runtime/int)
-DEFINE_MAKE_CHECK_OP_STRING(long long)  // NOLINT(runtime/int)
-DEFINE_MAKE_CHECK_OP_STRING(unsigned int)
-DEFINE_MAKE_CHECK_OP_STRING(unsigned long)       // NOLINT(runtime/int)
-DEFINE_MAKE_CHECK_OP_STRING(unsigned long long)  // NOLINT(runtime/int)
-DEFINE_MAKE_CHECK_OP_STRING(char const*)
-DEFINE_MAKE_CHECK_OP_STRING(void const*)
-#undef DEFINE_MAKE_CHECK_OP_STRING
+      type, type, char const*);                                              \
+  extern template V8_BASE_EXPORT void PrintCheckOperand<type>(std::ostream&, \
+                                                              type);
+
+EXPLICIT_CHECK_OP_INSTANTIATION(int)
+EXPLICIT_CHECK_OP_INSTANTIATION(long)       // NOLINT(runtime/int)
+EXPLICIT_CHECK_OP_INSTANTIATION(long long)  // NOLINT(runtime/int)
+EXPLICIT_CHECK_OP_INSTANTIATION(unsigned int)
+EXPLICIT_CHECK_OP_INSTANTIATION(unsigned long)       // NOLINT(runtime/int)
+EXPLICIT_CHECK_OP_INSTANTIATION(unsigned long long)  // NOLINT(runtime/int)
+EXPLICIT_CHECK_OP_INSTANTIATION(void const*)
+#undef EXPLICIT_CHECK_OP_INSTANTIATION
+
+// comparison_underlying_type provides the underlying integral type of an enum,
+// or std::decay<T>::type if T is not an enum.
+template <typename T>
+struct comparison_underlying_type {
+  // std::underlying_type must only be used with enum types, thus use this
+  // {Dummy} type if the given type is not an enum.
+  enum Dummy {};
+  using decay = typename std::decay<T>::type;
+  static constexpr bool is_enum = std::is_enum<decay>::value;
+  using underlying = typename std::underlying_type<
+      typename std::conditional<is_enum, decay, Dummy>::type>::type;
+  using type = typename std::conditional<is_enum, underlying, decay>::type;
+};
 
 // is_signed_vs_unsigned::value is true if both types are integral, Lhs is
 // signed, and Rhs is unsigned. False in all other cases.
 template <typename Lhs, typename Rhs>
 struct is_signed_vs_unsigned {
-  enum : bool {
-    value = std::is_integral<typename std::decay<Lhs>::type>::value &&
-            std::is_integral<typename std::decay<Rhs>::type>::value &&
-            std::is_signed<typename std::decay<Lhs>::type>::value &&
-            std::is_unsigned<typename std::decay<Rhs>::type>::value
-  };
+  using lhs_underlying = typename comparison_underlying_type<Lhs>::type;
+  using rhs_underlying = typename comparison_underlying_type<Rhs>::type;
+  static constexpr bool value = std::is_integral<lhs_underlying>::value &&
+                                std::is_integral<rhs_underlying>::value &&
+                                std::is_signed<lhs_underlying>::value &&
+                                std::is_unsigned<rhs_underlying>::value;
 };
 // Same thing, other way around: Lhs is unsigned, Rhs signed.
 template <typename Lhs, typename Rhs>
@@ -137,14 +192,13 @@ struct is_unsigned_vs_signed : public is_signed_vs_unsigned<Rhs, Lhs> {};
 // Specialize the compare functions for signed vs. unsigned comparisons.
 // std::enable_if ensures that this template is only instantiable if both Lhs
 // and Rhs are integral types, and their signedness does not match.
-#define MAKE_UNSIGNED(Type, value)                                         \
-  static_cast<                                                             \
-      typename std::make_unsigned<typename std::decay<Type>::type>::type>( \
-      value)
+#define MAKE_UNSIGNED(Type, value)         \
+  static_cast<typename std::make_unsigned< \
+      typename comparison_underlying_type<Type>::type>::type>(value)
 #define DEFINE_SIGNED_MISMATCH_COMP(CHECK, NAME, IMPL)                  \
   template <typename Lhs, typename Rhs>                                 \
   V8_INLINE typename std::enable_if<CHECK<Lhs, Rhs>::value, bool>::type \
-      Cmp##NAME##Impl(Lhs const& lhs, Rhs const& rhs) {                 \
+      Cmp##NAME##Impl(Lhs lhs, Rhs rhs) {                               \
     return IMPL;                                                        \
   }
 DEFINE_SIGNED_MISMATCH_COMP(is_signed_vs_unsigned, EQ,
@@ -177,18 +231,18 @@ DEFINE_SIGNED_MISMATCH_COMP(is_unsigned_vs_signed, GE, CmpLEImpl(rhs, lhs))
   V8_INLINE                                                                    \
       typename std::enable_if<!is_signed_vs_unsigned<Lhs, Rhs>::value &&       \
                                   !is_unsigned_vs_signed<Lhs, Rhs>::value,     \
-                              bool>::type                                      \
-          Cmp##NAME##Impl(typename PassType<Lhs>::type lhs,                    \
-                          typename PassType<Rhs>::type rhs) {                  \
+                              bool>::type Cmp##NAME##Impl(Lhs lhs, Rhs rhs) {  \
     return lhs op rhs;                                                         \
   }                                                                            \
   template <typename Lhs, typename Rhs>                                        \
-  V8_INLINE std::string* Check##NAME##Impl(typename PassType<Lhs>::type lhs,   \
-                                           typename PassType<Rhs>::type rhs,   \
+  V8_INLINE std::string* Check##NAME##Impl(Lhs lhs, Rhs rhs,                   \
                                            char const* msg) {                  \
-    bool cmp = Cmp##NAME##Impl<Lhs, Rhs>(lhs, rhs);                            \
-    return V8_LIKELY(cmp) ? nullptr                                            \
-                          : MakeCheckOpString<Lhs, Rhs>(lhs, rhs, msg);        \
+    using LhsPassT = typename pass_value_or_ref<Lhs>::type;                    \
+    using RhsPassT = typename pass_value_or_ref<Rhs>::type;                    \
+    bool cmp = Cmp##NAME##Impl<LhsPassT, RhsPassT>(lhs, rhs);                  \
+    return V8_LIKELY(cmp)                                                      \
+               ? nullptr                                                       \
+               : MakeCheckOpString<LhsPassT, RhsPassT>(lhs, rhs, msg);         \
   }                                                                            \
   extern template V8_BASE_EXPORT std::string* Check##NAME##Impl<float, float>( \
       float lhs, float rhs, char const* msg);                                  \
@@ -221,16 +275,16 @@ DEFINE_CHECK_OP_IMPL(GT, > )
 // The DCHECK macro is equivalent to CHECK except that it only
 // generates code in debug builds.
 #ifdef DEBUG
-#define DCHECK(condition)      CHECK(condition)
-#define DCHECK_EQ(v1, v2)      CHECK_EQ(v1, v2)
-#define DCHECK_NE(v1, v2)      CHECK_NE(v1, v2)
-#define DCHECK_GT(v1, v2)      CHECK_GT(v1, v2)
-#define DCHECK_GE(v1, v2)      CHECK_GE(v1, v2)
-#define DCHECK_LT(v1, v2)      CHECK_LT(v1, v2)
-#define DCHECK_LE(v1, v2)      CHECK_LE(v1, v2)
-#define DCHECK_NULL(val)       CHECK_NULL(val)
-#define DCHECK_NOT_NULL(val)   CHECK_NOT_NULL(val)
-#define DCHECK_IMPLIES(v1, v2) CHECK_IMPLIES(v1, v2)
+#define DCHECK_EQ(lhs, rhs) DCHECK_OP(EQ, ==, lhs, rhs)
+#define DCHECK_NE(lhs, rhs) DCHECK_OP(NE, !=, lhs, rhs)
+#define DCHECK_GT(lhs, rhs) DCHECK_OP(GT, >, lhs, rhs)
+#define DCHECK_GE(lhs, rhs) DCHECK_OP(GE, >=, lhs, rhs)
+#define DCHECK_LT(lhs, rhs) DCHECK_OP(LT, <, lhs, rhs)
+#define DCHECK_LE(lhs, rhs) DCHECK_OP(LE, <=, lhs, rhs)
+#define DCHECK_NULL(val) DCHECK((val) == nullptr)
+#define DCHECK_NOT_NULL(val) DCHECK((val) != nullptr)
+#define DCHECK_IMPLIES(lhs, rhs) \
+  DCHECK_WITH_MSG(!(lhs) || (rhs), #lhs " implies " #rhs)
 #else
 #define DCHECK(condition)      ((void) 0)
 #define DCHECK_EQ(v1, v2)      ((void) 0)

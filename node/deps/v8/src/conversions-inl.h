@@ -153,18 +153,18 @@ bool DoubleToUint32IfEqualToSelf(double value, uint32_t* uint32_value) {
 }
 
 int32_t NumberToInt32(Object* number) {
-  if (number->IsSmi()) return Smi::cast(number)->value();
+  if (number->IsSmi()) return Smi::ToInt(number);
   return DoubleToInt32(number->Number());
 }
 
 uint32_t NumberToUint32(Object* number) {
-  if (number->IsSmi()) return Smi::cast(number)->value();
+  if (number->IsSmi()) return Smi::ToInt(number);
   return DoubleToUint32(number->Number());
 }
 
 uint32_t PositiveNumberToUint32(Object* number) {
   if (number->IsSmi()) {
-    int value = Smi::cast(number)->value();
+    int value = Smi::ToInt(number);
     if (value <= 0) return 0;
     return value;
   }
@@ -178,15 +178,23 @@ uint32_t PositiveNumberToUint32(Object* number) {
 }
 
 int64_t NumberToInt64(Object* number) {
-  if (number->IsSmi()) return Smi::cast(number)->value();
-  return static_cast<int64_t>(number->Number());
+  if (number->IsSmi()) return Smi::ToInt(number);
+  double d = number->Number();
+  if (std::isnan(d)) return 0;
+  if (d >= static_cast<double>(std::numeric_limits<int64_t>::max())) {
+    return std::numeric_limits<int64_t>::max();
+  }
+  if (d <= static_cast<double>(std::numeric_limits<int64_t>::min())) {
+    return std::numeric_limits<int64_t>::min();
+  }
+  return static_cast<int64_t>(d);
 }
 
 bool TryNumberToSize(Object* number, size_t* result) {
   // Do not create handles in this function! Don't use SealHandleScope because
   // the function can be used concurrently.
   if (number->IsSmi()) {
-    int value = Smi::cast(number)->value();
+    int value = Smi::ToInt(number);
     DCHECK(static_cast<unsigned>(Smi::kMaxValue) <=
            std::numeric_limits<size_t>::max());
     if (value >= 0) {
@@ -424,7 +432,7 @@ double InternalStringToInt(UnicodeCache* unicode_cache,
     return JunkStringValue();
   }
 
-  if (base::bits::IsPowerOfTwo32(radix)) {
+  if (base::bits::IsPowerOfTwo(radix)) {
     switch (radix) {
       case 2:
         return InternalStringToIntDouble<1>(
@@ -489,7 +497,7 @@ double InternalStringToInt(UnicodeCache* unicode_cache,
 
   // NOTE: The code for computing the value may seem a bit complex at
   // first glance. It is structured to use 32-bit multiply-and-add
-  // loops as long as possible to avoid loosing precision.
+  // loops as long as possible to avoid losing precision.
 
   double v = 0.0;
   bool done = false;

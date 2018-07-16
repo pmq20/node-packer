@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -7,9 +6,11 @@ if (!common.hasCrypto)
 const assert = require('assert');
 const http2 = require('http2');
 
-const check = Buffer.from([0x00, 0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x05,
-                           0x00, 0x00, 0x40, 0x00, 0x00, 0x04, 0x00, 0x00,
-                           0xff, 0xff, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01]);
+const check = Buffer.from([0x00, 0x01, 0x00, 0x00, 0x10, 0x00,
+                           0x00, 0x05, 0x00, 0x00, 0x40, 0x00,
+                           0x00, 0x04, 0x00, 0x00, 0xff, 0xff,
+                           0x00, 0x06, 0x00, 0x00, 0xff, 0xff,
+                           0x00, 0x02, 0x00, 0x00, 0x00, 0x01]);
 const val = http2.getPackedSettings(http2.getDefaultSettings());
 assert.deepStrictEqual(val, check);
 
@@ -103,7 +104,8 @@ assert.doesNotThrow(() => http2.getPackedSettings({ enablePush: false }));
     }, common.expectsError({
       code: 'ERR_INVALID_ARG_TYPE',
       type: TypeError,
-      message: 'The "buf" argument must be one of type Buffer or Uint8Array'
+      message:
+        'The "buf" argument must be one of type Buffer, TypedArray, or DataView'
     }));
   });
 
@@ -123,6 +125,21 @@ assert.doesNotThrow(() => http2.getPackedSettings({ enablePush: false }));
   assert.strictEqual(settings.maxFrameSize, 20000);
   assert.strictEqual(settings.maxConcurrentStreams, 200);
   assert.strictEqual(settings.maxHeaderListSize, 100);
+  assert.strictEqual(settings.enablePush, true);
+}
+
+{
+  const packed = Buffer.from([
+    0x00, 0x02, 0x00, 0x00, 0x00, 0x00]);
+
+  const settings = http2.getUnpackedSettings(packed, { validate: true });
+  assert.strictEqual(settings.enablePush, false);
+}
+{
+  const packed = Buffer.from([
+    0x00, 0x02, 0x00, 0x00, 0x00, 0x64]);
+
+  const settings = http2.getUnpackedSettings(packed, { validate: true });
   assert.strictEqual(settings.enablePush, true);
 }
 

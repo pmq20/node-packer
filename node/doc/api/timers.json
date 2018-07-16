@@ -4,6 +4,7 @@
     {
       "textRaw": "Timers",
       "name": "timers",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>timer</code> module exposes a global API for scheduling functions to\nbe called at some future period of time. Because the timer functions are\nglobals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>\n<p>The timer functions within Node.js implement a similar API as the timers API\nprovided by Web Browsers but use a different internal implementation that is\nbuilt around <a href=\"https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick\">the Node.js Event Loop</a>.</p>\n",

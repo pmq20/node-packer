@@ -1,12 +1,5 @@
 #include "node_url.h"
-#include "node.h"
 #include "node_internals.h"
-#include "env.h"
-#include "env-inl.h"
-#include "util.h"
-#include "util-inl.h"
-#include "v8.h"
-#include "base-object.h"
 #include "base-object-inl.h"
 #include "node_i18n.h"
 
@@ -53,33 +46,86 @@ using v8::Value;
 
 namespace url {
 
+namespace {
+
 // https://url.spec.whatwg.org/#eof-code-point
-static const char kEOL = -1;
+const char kEOL = -1;
 
 // Used in ToUSVString().
-static const char16_t kUnicodeReplacementCharacter = 0xFFFD;
+const char16_t kUnicodeReplacementCharacter = 0xFFFD;
 
 // https://url.spec.whatwg.org/#concept-host
-union url_host_value {
-  std::string domain;
-  uint32_t ipv4;
-  uint16_t ipv6[8];
-  std::string opaque;
-  ~url_host_value() {}
+class URLHost {
+ public:
+  ~URLHost();
+
+  void ParseIPv4Host(const char* input, size_t length, bool* is_ipv4);
+  void ParseIPv6Host(const char* input, size_t length);
+  void ParseOpaqueHost(const char* input, size_t length);
+  void ParseHost(const char* input,
+                 size_t length,
+                 bool is_special,
+                 bool unicode = false);
+
+  inline bool ParsingFailed() const { return type_ == HostType::H_FAILED; }
+  std::string ToString() const;
+
+ private:
+  enum class HostType {
+    H_FAILED,
+    H_DOMAIN,
+    H_IPV4,
+    H_IPV6,
+    H_OPAQUE,
+  };
+
+  union Value {
+    std::string domain;
+    uint32_t ipv4;
+    uint16_t ipv6[8];
+    std::string opaque;
+
+    ~Value() {}
+    Value() : ipv4(0) {}
+  };
+
+  Value value_;
+  HostType type_ = HostType::H_FAILED;
+
+  inline void Reset() {
+    using string = std::string;
+    switch (type_) {
+      case HostType::H_DOMAIN: value_.domain.~string(); break;
+      case HostType::H_OPAQUE: value_.opaque.~string(); break;
+      default: break;
+    }
+    type_ = HostType::H_FAILED;
+  }
+
+  // Setting the string members of the union with = is brittle because
+  // it relies on them being initialized to a state that requires no
+  // destruction of old data.
+  // For a long time, that worked well enough because ParseIPv6Host() happens
+  // to zero-fill `value_`, but that really is relying on standard library
+  // internals too much.
+  // These helpers are the easiest solution but we might want to consider
+  // just not forcing strings into an union.
+  inline void SetOpaque(std::string&& string) {
+    Reset();
+    type_ = HostType::H_OPAQUE;
+    new(&value_.opaque) std::string(std::move(string));
+  }
+
+  inline void SetDomain(std::string&& string) {
+    Reset();
+    type_ = HostType::H_DOMAIN;
+    new(&value_.domain) std::string(std::move(string));
+  }
 };
 
-enum url_host_type {
-  HOST_TYPE_FAILED = -1,
-  HOST_TYPE_DOMAIN = 0,
-  HOST_TYPE_IPV4 = 1,
-  HOST_TYPE_IPV6 = 2,
-  HOST_TYPE_OPAQUE = 3,
-};
-
-struct url_host {
-  url_host_value value;
-  enum url_host_type type;
-};
+URLHost::~URLHost() {
+  Reset();
+}
 
 #define ARGS(XX)                                                              \
   XX(ARG_FLAGS)                                                               \
@@ -110,7 +156,7 @@ enum url_error_cb_args {
 
 #define CHAR_TEST(bits, name, expr)                                           \
   template <typename T>                                                       \
-  static inline bool name(const T ch) {                                       \
+  inline bool name(const T ch) {                                              \
     static_assert(sizeof(ch) >= (bits) / 8,                                   \
                   "Character must be wider than " #bits " bits");             \
     return (expr);                                                            \
@@ -118,13 +164,13 @@ enum url_error_cb_args {
 
 #define TWO_CHAR_STRING_TEST(bits, name, expr)                                \
   template <typename T>                                                       \
-  static inline bool name(const T ch1, const T ch2) {                         \
+  inline bool name(const T ch1, const T ch2) {                                \
     static_assert(sizeof(ch1) >= (bits) / 8,                                  \
                   "Character must be wider than " #bits " bits");             \
     return (expr);                                                            \
   }                                                                           \
   template <typename T>                                                       \
-  static inline bool name(const std::basic_string<T>& str) {                  \
+  inline bool name(const std::basic_string<T>& str) {                         \
     static_assert(sizeof(str[0]) >= (bits) / 8,                               \
                   "Character must be wider than " #bits " bits");             \
     return str.length() >= 2 && name(str[0], str[1]);                         \
@@ -153,7 +199,7 @@ CHAR_TEST(8, IsASCIIAlphanumeric, (IsASCIIDigit(ch) || IsASCIIAlpha(ch)))
 
 // https://infra.spec.whatwg.org/#ascii-lowercase
 template <typename T>
-static inline T ASCIILowercase(T ch) {
+inline T ASCIILowercase(T ch) {
   return IsASCIIAlpha(ch) ? (ch | 0x20) : ch;
 }
 
@@ -184,7 +230,7 @@ CHAR_TEST(16, IsUnicodeSurrogateTrail, (ch & 0x400) != 0)
 #undef CHAR_TEST
 #undef TWO_CHAR_STRING_TEST
 
-static const char* hex[256] = {
+const char* hex[256] = {
   "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
   "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
   "%10", "%11", "%12", "%13", "%14", "%15", "%16", "%17",
@@ -219,7 +265,7 @@ static const char* hex[256] = {
   "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-static const uint8_t C0_CONTROL_ENCODE_SET[32] = {
+const uint8_t C0_CONTROL_ENCODE_SET[32] = {
   // 00     01     02     03     04     05     06     07
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80,
   // 08     09     0A     0B     0C     0D     0E     0F
@@ -286,7 +332,7 @@ static const uint8_t C0_CONTROL_ENCODE_SET[32] = {
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80
 };
 
-static const uint8_t PATH_ENCODE_SET[32] = {
+const uint8_t PATH_ENCODE_SET[32] = {
   // 00     01     02     03     04     05     06     07
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80,
   // 08     09     0A     0B     0C     0D     0E     0F
@@ -353,7 +399,7 @@ static const uint8_t PATH_ENCODE_SET[32] = {
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80
 };
 
-static const uint8_t USERINFO_ENCODE_SET[32] = {
+const uint8_t USERINFO_ENCODE_SET[32] = {
   // 00     01     02     03     04     05     06     07
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80,
   // 08     09     0A     0B     0C     0D     0E     0F
@@ -420,7 +466,7 @@ static const uint8_t USERINFO_ENCODE_SET[32] = {
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80
 };
 
-static const uint8_t QUERY_ENCODE_SET[32] = {
+const uint8_t QUERY_ENCODE_SET[32] = {
   // 00     01     02     03     04     05     06     07
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80,
   // 08     09     0A     0B     0C     0D     0E     0F
@@ -487,15 +533,15 @@ static const uint8_t QUERY_ENCODE_SET[32] = {
     0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80
 };
 
-static inline bool BitAt(const uint8_t a[], const uint8_t i) {
+inline bool BitAt(const uint8_t a[], const uint8_t i) {
   return !!(a[i >> 3] & (1 << (i & 7)));
 }
 
 // Appends ch to str. If ch position in encode_set is set, the ch will
 // be percent-encoded then appended.
-static inline void AppendOrEscape(std::string* str,
-                                  const unsigned char ch,
-                                  const uint8_t encode_set[]) {
+inline void AppendOrEscape(std::string* str,
+                           const unsigned char ch,
+                           const uint8_t encode_set[]) {
   if (BitAt(encode_set, ch))
     *str += hex[ch];
   else
@@ -503,7 +549,7 @@ static inline void AppendOrEscape(std::string* str,
 }
 
 template <typename T>
-static inline unsigned hex2bin(const T ch) {
+inline unsigned hex2bin(const T ch) {
   if (ch >= '0' && ch <= '9')
     return ch - '0';
   if (ch >= 'A' && ch <= 'F')
@@ -513,33 +559,33 @@ static inline unsigned hex2bin(const T ch) {
   return static_cast<unsigned>(-1);
 }
 
-static inline void PercentDecode(const char* input,
-                                 size_t len,
-                                 std::string* dest) {
+inline std::string PercentDecode(const char* input, size_t len) {
+  std::string dest;
   if (len == 0)
-    return;
-  dest->reserve(len);
+    return dest;
+  dest.reserve(len);
   const char* pointer = input;
   const char* end = input + len;
-  size_t remaining = pointer - end - 1;
+
   while (pointer < end) {
     const char ch = pointer[0];
-    remaining = (end - pointer) + 1;
+    const size_t remaining = end - pointer - 1;
     if (ch != '%' || remaining < 2 ||
         (ch == '%' &&
          (!IsASCIIHexDigit(pointer[1]) ||
           !IsASCIIHexDigit(pointer[2])))) {
-      *dest += ch;
+      dest += ch;
       pointer++;
       continue;
     } else {
       unsigned a = hex2bin(pointer[1]);
       unsigned b = hex2bin(pointer[2]);
       char c = static_cast<char>(a * 16 + b);
-      *dest += c;
+      dest += c;
       pointer += 3;
     }
   }
+  return dest;
 }
 
 #define SPECIALS(XX)                                                          \
@@ -551,14 +597,26 @@ static inline void PercentDecode(const char* input,
   XX("ws:", 80)                                                               \
   XX("wss:", 443)
 
-static inline bool IsSpecial(std::string scheme) {
+inline bool IsSpecial(std::string scheme) {
 #define XX(name, _) if (scheme == name) return true;
   SPECIALS(XX);
 #undef XX
   return false;
 }
 
-static inline int NormalizePort(std::string scheme, int p) {
+// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
+inline bool StartsWithWindowsDriveLetter(const char* p, const char* end) {
+  const size_t length = end - p;
+  return length >= 2 &&
+    IsWindowsDriveLetter(p[0], p[1]) &&
+    (length == 2 ||
+      p[2] == '/' ||
+      p[2] == '\\' ||
+      p[2] == '?' ||
+      p[2] == '#');
+}
+
+inline int NormalizePort(std::string scheme, int p) {
 #define XX(name, port) if (scheme == name && p == port) return -1;
   SPECIALS(XX);
 #undef XX
@@ -566,42 +624,40 @@ static inline int NormalizePort(std::string scheme, int p) {
 }
 
 #if defined(NODE_HAVE_I18N_SUPPORT)
-static inline bool ToUnicode(std::string* input, std::string* output) {
+inline bool ToUnicode(const std::string& input, std::string* output) {
   MaybeStackBuffer<char> buf;
-  if (i18n::ToUnicode(&buf, input->c_str(), input->length()) < 0)
+  if (i18n::ToUnicode(&buf, input.c_str(), input.length()) < 0)
     return false;
   output->assign(*buf, buf.length());
   return true;
 }
 
-static inline bool ToASCII(std::string* input, std::string* output) {
+inline bool ToASCII(const std::string& input, std::string* output) {
   MaybeStackBuffer<char> buf;
-  if (i18n::ToASCII(&buf, input->c_str(), input->length()) < 0)
+  if (i18n::ToASCII(&buf, input.c_str(), input.length()) < 0)
     return false;
   output->assign(*buf, buf.length());
   return true;
 }
 #else
 // Intentional non-ops if ICU is not present.
-static inline bool ToUnicode(std::string* input, std::string* output) {
-  *output = *input;
+inline bool ToUnicode(const std::string& input, std::string* output) {
+  *output = input;
   return true;
 }
 
-static inline bool ToASCII(std::string* input, std::string* output) {
-  *output = *input;
+inline bool ToASCII(const std::string& input, std::string* output) {
+  *output = input;
   return true;
 }
 #endif
 
-static url_host_type ParseIPv6Host(url_host* host,
-                                   const char* input,
-                                   size_t length) {
-  url_host_type type = HOST_TYPE_FAILED;
+void URLHost::ParseIPv6Host(const char* input, size_t length) {
+  CHECK_EQ(type_, HostType::H_FAILED);
   for (unsigned n = 0; n < 8; n++)
-    host->value.ipv6[n] = 0;
-  uint16_t* piece_pointer = &host->value.ipv6[0];
-  uint16_t* last_piece = piece_pointer + 8;
+    value_.ipv6[n] = 0;
+  uint16_t* piece_pointer = &value_.ipv6[0];
+  uint16_t* const buffer_end = piece_pointer + 8;
   uint16_t* compress_pointer = nullptr;
   const char* pointer = input;
   const char* end = pointer + length;
@@ -609,18 +665,18 @@ static url_host_type ParseIPv6Host(url_host* host,
   char ch = pointer < end ? pointer[0] : kEOL;
   if (ch == ':') {
     if (length < 2 || pointer[1] != ':')
-      goto end;
+      return;
     pointer += 2;
     ch = pointer < end ? pointer[0] : kEOL;
     piece_pointer++;
     compress_pointer = piece_pointer;
   }
   while (ch != kEOL) {
-    if (piece_pointer > last_piece)
-      goto end;
+    if (piece_pointer >= buffer_end)
+      return;
     if (ch == ':') {
       if (compress_pointer != nullptr)
-        goto end;
+        return;
       pointer++;
       ch = pointer < end ? pointer[0] : kEOL;
       piece_pointer++;
@@ -638,11 +694,11 @@ static url_host_type ParseIPv6Host(url_host* host,
     switch (ch) {
       case '.':
         if (len == 0)
-          goto end;
+          return;
         pointer -= len;
         ch = pointer < end ? pointer[0] : kEOL;
-        if (piece_pointer > last_piece - 2)
-          goto end;
+        if (piece_pointer > buffer_end - 2)
+          return;
         numbers_seen = 0;
         while (ch != kEOL) {
           value = 0xffffffff;
@@ -651,22 +707,22 @@ static url_host_type ParseIPv6Host(url_host* host,
               pointer++;
               ch = pointer < end ? pointer[0] : kEOL;
             } else {
-              goto end;
+              return;
             }
           }
           if (!IsASCIIDigit(ch))
-            goto end;
+            return;
           while (IsASCIIDigit(ch)) {
             unsigned number = ch - '0';
             if (value == 0xffffffff) {
               value = number;
             } else if (value == 0) {
-              goto end;
+              return;
             } else {
               value = value * 10 + number;
             }
             if (value > 255)
-              goto end;
+              return;
             pointer++;
             ch = pointer < end ? pointer[0] : kEOL;
           }
@@ -676,18 +732,18 @@ static url_host_type ParseIPv6Host(url_host* host,
             piece_pointer++;
         }
         if (numbers_seen != 4)
-          goto end;
+          return;
         continue;
       case ':':
         pointer++;
         ch = pointer < end ? pointer[0] : kEOL;
         if (ch == kEOL)
-          goto end;
+          return;
         break;
       case kEOL:
         break;
       default:
-        goto end;
+        return;
     }
     *piece_pointer = value;
     piece_pointer++;
@@ -695,8 +751,8 @@ static url_host_type ParseIPv6Host(url_host* host,
 
   if (compress_pointer != nullptr) {
     swaps = piece_pointer - compress_pointer;
-    piece_pointer = last_piece - 1;
-    while (piece_pointer != &host->value.ipv6[0] && swaps > 0) {
+    piece_pointer = buffer_end - 1;
+    while (piece_pointer != &value_.ipv6[0] && swaps > 0) {
       uint16_t temp = *piece_pointer;
       uint16_t* swap_piece = compress_pointer + swaps - 1;
       *piece_pointer = *swap_piece;
@@ -705,16 +761,13 @@ static url_host_type ParseIPv6Host(url_host* host,
        swaps--;
     }
   } else if (compress_pointer == nullptr &&
-             piece_pointer != last_piece) {
-    goto end;
+             piece_pointer != buffer_end) {
+    return;
   }
-  type = HOST_TYPE_IPV6;
- end:
-  host->type = type;
-  return type;
+  type_ = HostType::H_IPV6;
 }
 
-static inline int64_t ParseNumber(const char* start, const char* end) {
+inline int64_t ParseNumber(const char* start, const char* end) {
   unsigned R = 10;
   if (end - start >= 2 && start[0] == '0' && (start[1] | 0x20) == 'x') {
     start += 2;
@@ -746,13 +799,12 @@ static inline int64_t ParseNumber(const char* start, const char* end) {
     }
     p++;
   }
-  return strtoll(start, NULL, R);
+  return strtoll(start, nullptr, R);
 }
 
-static url_host_type ParseIPv4Host(url_host* host,
-                                   const char* input,
-                                   size_t length) {
-  url_host_type type = HOST_TYPE_DOMAIN;
+void URLHost::ParseIPv4Host(const char* input, size_t length, bool* is_ipv4) {
+  CHECK_EQ(type_, HostType::H_FAILED);
+  *is_ipv4 = false;
   const char* pointer = input;
   const char* mark = input;
   const char* end = pointer + length;
@@ -761,19 +813,19 @@ static url_host_type ParseIPv4Host(url_host* host,
   uint64_t numbers[4];
   int tooBigNumbers = 0;
   if (length == 0)
-    goto end;
+    return;
 
   while (pointer <= end) {
     const char ch = pointer < end ? pointer[0] : kEOL;
     const int remaining = end - pointer - 1;
     if (ch == '.' || ch == kEOL) {
       if (++parts > 4)
-        goto end;
+        return;
       if (pointer == mark)
-        goto end;
+        return;
       int64_t n = ParseNumber(mark, pointer);
       if (n < 0)
-        goto end;
+        return;
 
       if (n > 255) {
         tooBigNumbers++;
@@ -786,6 +838,7 @@ static url_host_type ParseIPv4Host(url_host* host,
     pointer++;
   }
   CHECK_GT(parts, 0);
+  *is_ipv4 = true;
 
   // If any but the last item in numbers is greater than 255, return failure.
   // If the last item in numbers is greater than or equal to
@@ -793,108 +846,92 @@ static url_host_type ParseIPv4Host(url_host* host,
   if (tooBigNumbers > 1 ||
       (tooBigNumbers == 1 && numbers[parts - 1] <= 255) ||
       numbers[parts - 1] >= pow(256, static_cast<double>(5 - parts))) {
-    type = HOST_TYPE_FAILED;
-    goto end;
+    return;
   }
 
-  type = HOST_TYPE_IPV4;
+  type_ = HostType::H_IPV4;
   val = numbers[parts - 1];
   for (int n = 0; n < parts - 1; n++) {
     double b = 3 - n;
     val += numbers[n] * pow(256, b);
   }
 
-  host->value.ipv4 = val;
- end:
-  host->type = type;
-  return type;
+  value_.ipv4 = val;
 }
 
-static url_host_type ParseOpaqueHost(url_host* host,
-                                     const char* input,
-                                     size_t length) {
-  url_host_type type = HOST_TYPE_OPAQUE;
+void URLHost::ParseOpaqueHost(const char* input, size_t length) {
+  CHECK_EQ(type_, HostType::H_FAILED);
   std::string output;
   output.reserve(length * 3);
   for (size_t i = 0; i < length; i++) {
     const char ch = input[i];
     if (ch != '%' && IsForbiddenHostCodePoint(ch)) {
-      type = HOST_TYPE_FAILED;
-      goto end;
+      return;
     } else {
       AppendOrEscape(&output, ch, C0_CONTROL_ENCODE_SET);
     }
   }
 
-  host->value.opaque = output;
- end:
-  host->type = type;
-  return type;
+  SetOpaque(std::move(output));
 }
 
-static url_host_type ParseHost(url_host* host,
-                               const char* input,
-                               size_t length,
-                               bool is_special,
-                               bool unicode = false) {
-  url_host_type type = HOST_TYPE_FAILED;
+void URLHost::ParseHost(const char* input,
+                        size_t length,
+                        bool is_special,
+                        bool unicode) {
+  CHECK_EQ(type_, HostType::H_FAILED);
   const char* pointer = input;
-  std::string decoded;
 
   if (length == 0)
-    goto end;
+    return;
 
   if (pointer[0] == '[') {
     if (pointer[length - 1] != ']')
-      goto end;
-    return ParseIPv6Host(host, ++pointer, length - 2);
+      return;
+    return ParseIPv6Host(++pointer, length - 2);
   }
 
   if (!is_special)
-    return ParseOpaqueHost(host, input, length);
+    return ParseOpaqueHost(input, length);
 
   // First, we have to percent decode
-  PercentDecode(input, length, &decoded);
+  std::string decoded = PercentDecode(input, length);
 
   // Then we have to punycode toASCII
-  if (!ToASCII(&decoded, &decoded))
-    goto end;
+  if (!ToASCII(decoded, &decoded))
+    return;
 
   // If any of the following characters are still present, we have to fail
   for (size_t n = 0; n < decoded.size(); n++) {
     const char ch = decoded[n];
     if (IsForbiddenHostCodePoint(ch)) {
-      goto end;
+      return;
     }
   }
 
   // Check to see if it's an IPv4 IP address
-  type = ParseIPv4Host(host, decoded.c_str(), decoded.length());
-  if (type == HOST_TYPE_IPV4 || type == HOST_TYPE_FAILED)
-    goto end;
+  bool is_ipv4;
+  ParseIPv4Host(decoded.c_str(), decoded.length(), &is_ipv4);
+  if (is_ipv4)
+    return;
 
   // If the unicode flag is set, run the result through punycode ToUnicode
-  if (unicode && !ToUnicode(&decoded, &decoded))
-    goto end;
+  if (unicode && !ToUnicode(decoded, &decoded))
+    return;
 
   // It's not an IPv4 or IPv6 address, it must be a domain
-  type = HOST_TYPE_DOMAIN;
-  host->value.domain = decoded;
-
- end:
-  host->type = type;
-  return type;
+  SetDomain(std::move(decoded));
 }
 
 // Locates the longest sequence of 0 segments in an IPv6 address
 // in order to use the :: compression when serializing
-static inline uint16_t* FindLongestZeroSequence(uint16_t* values,
-                                                size_t len) {
-  uint16_t* start = values;
-  uint16_t* end = start + len;
-  uint16_t* result = nullptr;
+template<typename T>
+inline T* FindLongestZeroSequence(T* values, size_t len) {
+  T* start = values;
+  T* end = start + len;
+  T* result = nullptr;
 
-  uint16_t* current = nullptr;
+  T* current = nullptr;
   unsigned counter = 0, longest = 1;
 
   while (start < end) {
@@ -917,82 +954,80 @@ static inline uint16_t* FindLongestZeroSequence(uint16_t* values,
   return result;
 }
 
-static url_host_type WriteHost(url_host* host, std::string* dest) {
-  dest->clear();
-  switch (host->type) {
-    case HOST_TYPE_DOMAIN:
-      *dest = host->value.domain;
+std::string URLHost::ToString() const {
+  std::string dest;
+  switch (type_) {
+    case HostType::H_DOMAIN:
+      return value_.domain;
       break;
-    case HOST_TYPE_IPV4: {
-      dest->reserve(15);
-      uint32_t value = host->value.ipv4;
+    case HostType::H_OPAQUE:
+      return value_.opaque;
+      break;
+    case HostType::H_IPV4: {
+      dest.reserve(15);
+      uint32_t value = value_.ipv4;
       for (int n = 0; n < 4; n++) {
         char buf[4];
-        char* buffer = buf;
-        snprintf(buffer, sizeof(buf), "%d", value % 256);
-        dest->insert(0, buf);
+        snprintf(buf, sizeof(buf), "%d", value % 256);
+        dest.insert(0, buf);
         if (n < 3)
-          dest->insert(0, 1, '.');
+          dest.insert(0, 1, '.');
         value /= 256;
       }
       break;
     }
-    case HOST_TYPE_IPV6: {
-      dest->reserve(41);
-      *dest+= '[';
-      uint16_t* start = &host->value.ipv6[0];
-      uint16_t* compress_pointer =
+    case HostType::H_IPV6: {
+      dest.reserve(41);
+      dest += '[';
+      const uint16_t* start = &value_.ipv6[0];
+      const uint16_t* compress_pointer =
           FindLongestZeroSequence(start, 8);
       bool ignore0 = false;
       for (int n = 0; n <= 7; n++) {
-        uint16_t* piece = &host->value.ipv6[n];
+        const uint16_t* piece = &value_.ipv6[n];
         if (ignore0 && *piece == 0)
           continue;
         else if (ignore0)
           ignore0 = false;
         if (compress_pointer == piece) {
-          *dest += n == 0 ? "::" : ":";
+          dest += n == 0 ? "::" : ":";
           ignore0 = true;
           continue;
         }
         char buf[5];
-        char* buffer = buf;
-        snprintf(buffer, sizeof(buf), "%x", *piece);
-        *dest += buf;
+        snprintf(buf, sizeof(buf), "%x", *piece);
+        dest += buf;
         if (n < 7)
-          *dest += ':';
+          dest += ':';
       }
-      *dest += ']';
+      dest += ']';
       break;
     }
-    case HOST_TYPE_OPAQUE:
-      *dest = host->value.opaque;
-      break;
-    case HOST_TYPE_FAILED:
+    case HostType::H_FAILED:
       break;
   }
-  return host->type;
+  return dest;
 }
 
-static bool ParseHost(std::string* input,
-                      std::string* output,
-                      bool is_special,
-                      bool unicode = false) {
-  if (input->length() == 0) {
+bool ParseHost(const std::string& input,
+               std::string* output,
+               bool is_special,
+               bool unicode = false) {
+  if (input.length() == 0) {
     output->clear();
     return true;
   }
-  url_host host{{""}, HOST_TYPE_DOMAIN};
-  ParseHost(&host, input->c_str(), input->length(), is_special, unicode);
-  if (host.type == HOST_TYPE_FAILED)
+  URLHost host;
+  host.ParseHost(input.c_str(), input.length(), is_special, unicode);
+  if (host.ParsingFailed())
     return false;
-  WriteHost(&host, output);
+  *output = host.ToString();
   return true;
 }
 
-static inline void Copy(Environment* env,
-                        Local<Array> ary,
-                        std::vector<std::string>* vec) {
+inline void Copy(Environment* env,
+                 Local<Array> ary,
+                 std::vector<std::string>* vec) {
   const int32_t len = ary->Length();
   if (len == 0)
     return;  // nothing to copy
@@ -1006,8 +1041,8 @@ static inline void Copy(Environment* env,
   }
 }
 
-static inline Local<Array> Copy(Environment* env,
-                                std::vector<std::string> vec) {
+inline Local<Array> Copy(Environment* env,
+                         const std::vector<std::string>& vec) {
   Isolate* isolate = env->isolate();
   Local<Array> ary = Array::New(isolate, vec.size());
   for (size_t n = 0; n < vec.size(); n++)
@@ -1015,9 +1050,9 @@ static inline Local<Array> Copy(Environment* env,
   return ary;
 }
 
-static inline void HarvestBase(Environment* env,
-                               struct url_data* base,
-                               Local<Object> base_obj) {
+inline void HarvestBase(Environment* env,
+                        struct url_data* base,
+                        Local<Object> base_obj) {
   Local<Context> context = env->context();
   Local<Value> flags = GET(env, base_obj, "flags");
   if (flags->IsInt32())
@@ -1041,9 +1076,9 @@ static inline void HarvestBase(Environment* env,
   }
 }
 
-static inline void HarvestContext(Environment* env,
-                                  struct url_data* context,
-                                  Local<Object> context_obj) {
+inline void HarvestContext(Environment* env,
+                           struct url_data* context,
+                           Local<Object> context_obj) {
   Local<Value> flags = GET(env, context_obj, "flags");
   if (flags->IsInt32()) {
     int32_t _flags = flags->Int32Value(env->context()).FromJust();
@@ -1086,7 +1121,7 @@ static inline void HarvestContext(Environment* env,
 }
 
 // Single dot segment can be ".", "%2e", or "%2E"
-static inline bool IsSingleDotSegment(std::string str) {
+inline bool IsSingleDotSegment(const std::string& str) {
   switch (str.size()) {
     case 1:
       return str == ".";
@@ -1102,7 +1137,7 @@ static inline bool IsSingleDotSegment(std::string str) {
 // Double dot segment can be:
 //   "..", ".%2e", ".%2E", "%2e.", "%2E.",
 //   "%2e%2e", "%2E%2E", "%2e%2E", or "%2E%2e"
-static inline bool IsDoubleDotSegment(std::string str) {
+inline bool IsDoubleDotSegment(const std::string& str) {
   switch (str.size()) {
     case 2:
       return str == "..";
@@ -1129,12 +1164,14 @@ static inline bool IsDoubleDotSegment(std::string str) {
   }
 }
 
-static inline void ShortenUrlPath(struct url_data* url) {
+inline void ShortenUrlPath(struct url_data* url) {
   if (url->path.empty()) return;
   if (url->path.size() == 1 && url->scheme == "file:" &&
       IsNormalizedWindowsDriveLetter(url->path[0])) return;
   url->path.pop_back();
 }
+
+}  // anonymous namespace
 
 void URL::Parse(const char* input,
                 size_t len,
@@ -1199,11 +1236,10 @@ void URL::Parse(const char* input,
 
   while (p <= end) {
     const char ch = p < end ? p[0] : kEOL;
-    const size_t remaining = end == p ? 0 : (end - p - 1);
-
     bool special = (url->flags & URL_FLAGS_SPECIAL);
     bool cannot_be_base;
     const bool special_back_slash = (special && ch == '\\');
+
     switch (state) {
       case kSchemeStart:
         if (IsASCIIAlpha(ch)) {
@@ -1537,7 +1573,7 @@ void URL::Parse(const char* input,
             return;
           }
           url->flags |= URL_FLAGS_HAS_HOST;
-          if (!ParseHost(&buffer, &url->host, special)) {
+          if (!ParseHost(buffer, &url->host, special)) {
             url->flags |= URL_FLAGS_FAILED;
             return;
           }
@@ -1564,7 +1600,7 @@ void URL::Parse(const char* input,
             return;
           }
           url->flags |= URL_FLAGS_HAS_HOST;
-          if (!ParseHost(&buffer, &url->host, special)) {
+          if (!ParseHost(buffer, &url->host, special)) {
             url->flags |= URL_FLAGS_FAILED;
             return;
           }
@@ -1591,10 +1627,11 @@ void URL::Parse(const char* input,
                    ch == '#' ||
                    special_back_slash) {
           if (buffer.size() > 0) {
-            int port = 0;
-            for (size_t i = 0; i < buffer.size(); i++)
+            unsigned port = 0;
+            // the condition port <= 0xffff prevents integer overflow
+            for (size_t i = 0; port <= 0xffff && i < buffer.size(); i++)
               port = port * 10 + buffer[i] - '0';
-            if (port < 0 || port > 0xffff) {
+            if (port > 0xffff) {
               // TODO(TimothyGu): This hack is currently needed for the host
               // setter since it needs access to hostname if it is valid, and
               // if the FAILED flag is set the entire response to JS layer
@@ -1605,7 +1642,8 @@ void URL::Parse(const char* input,
                 url->flags |= URL_FLAGS_FAILED;
               return;
             }
-            url->port = NormalizePort(url->scheme, port);
+            // the port is valid
+            url->port = NormalizePort(url->scheme, static_cast<int>(port));
             buffer.clear();
           } else if (has_state_override) {
             // TODO(TimothyGu): Similar case as above.
@@ -1673,13 +1711,7 @@ void URL::Parse(const char* input,
               state = kFragment;
               break;
             default:
-              if ((remaining == 0 ||
-                   !IsWindowsDriveLetter(ch, p[1]) ||
-                   (remaining >= 2 &&
-                    p[2] != '/' &&
-                    p[2] != '\\' &&
-                    p[2] != '?' &&
-                    p[2] != '#'))) {
+              if (!StartsWithWindowsDriveLetter(p, end)) {
                 if (base->flags & URL_FLAGS_HAS_HOST) {
                   url->flags |= URL_FLAGS_HAS_HOST;
                   url->host = base->host;
@@ -1703,7 +1735,8 @@ void URL::Parse(const char* input,
           state = kFileHost;
         } else {
           if (has_base &&
-              base->scheme == "file:") {
+              base->scheme == "file:" &&
+              !StartsWithWindowsDriveLetter(p, end)) {
             if (IsNormalizedWindowsDriveLetter(base->path[0])) {
               url->flags |= URL_FLAGS_HAS_PATH;
               url->path.push_back(base->path[0]);
@@ -1739,7 +1772,7 @@ void URL::Parse(const char* input,
             state = kPathStart;
           } else {
             std::string host;
-            if (!ParseHost(&buffer, &host, special)) {
+            if (!ParseHost(buffer, &host, special)) {
               url->flags |= URL_FLAGS_FAILED;
               return;
             }
@@ -2044,15 +2077,14 @@ static void DomainToASCII(const FunctionCallbackInfo<Value>& args) {
   CHECK(args[0]->IsString());
   Utf8Value value(env->isolate(), args[0]);
 
-  url_host host{{""}, HOST_TYPE_DOMAIN};
+  URLHost host;
   // Assuming the host is used for a special scheme.
-  ParseHost(&host, *value, value.length(), true);
-  if (host.type == HOST_TYPE_FAILED) {
+  host.ParseHost(*value, value.length(), true);
+  if (host.ParsingFailed()) {
     args.GetReturnValue().Set(FIXED_ONE_BYTE_STRING(env->isolate(), ""));
     return;
   }
-  std::string out;
-  WriteHost(&host, &out);
+  std::string out = host.ToString();
   args.GetReturnValue().Set(
       String::NewFromUtf8(env->isolate(),
                           out.c_str(),
@@ -2065,19 +2097,80 @@ static void DomainToUnicode(const FunctionCallbackInfo<Value>& args) {
   CHECK(args[0]->IsString());
   Utf8Value value(env->isolate(), args[0]);
 
-  url_host host{{""}, HOST_TYPE_DOMAIN};
+  URLHost host;
   // Assuming the host is used for a special scheme.
-  ParseHost(&host, *value, value.length(), true, true);
-  if (host.type == HOST_TYPE_FAILED) {
+  host.ParseHost(*value, value.length(), true, true);
+  if (host.ParsingFailed()) {
     args.GetReturnValue().Set(FIXED_ONE_BYTE_STRING(env->isolate(), ""));
     return;
   }
-  std::string out;
-  WriteHost(&host, &out);
+  std::string out = host.ToString();
   args.GetReturnValue().Set(
       String::NewFromUtf8(env->isolate(),
                           out.c_str(),
                           v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+std::string URL::ToFilePath() const {
+  if (context_.scheme != "file:") {
+    return "";
+  }
+
+#ifdef _WIN32
+  const char* slash = "\\";
+  auto is_slash = [] (char ch) {
+    return ch == '/' || ch == '\\';
+  };
+#else
+  const char* slash = "/";
+  auto is_slash = [] (char ch) {
+    return ch == '/';
+  };
+  if ((context_.flags & URL_FLAGS_HAS_HOST) &&
+      context_.host.length() > 0) {
+    return "";
+  }
+#endif
+  std::string decoded_path;
+  for (const std::string& part : context_.path) {
+    std::string decoded = PercentDecode(part.c_str(), part.length());
+    for (char& ch : decoded) {
+      if (is_slash(ch)) {
+        return "";
+      }
+    }
+    decoded_path += slash + decoded;
+  }
+
+#ifdef _WIN32
+  // TODO(TimothyGu): Use "\\?\" long paths on Windows.
+
+  // If hostname is set, then we have a UNC path. Pass the hostname through
+  // ToUnicode just in case it is an IDN using punycode encoding. We do not
+  // need to worry about percent encoding because the URL parser will have
+  // already taken care of that for us. Note that this only causes IDNs with an
+  // appropriate `xn--` prefix to be decoded.
+  if ((context_.flags & URL_FLAGS_HAS_HOST) &&
+      context_.host.length() > 0) {
+    std::string unicode_host;
+    if (!ToUnicode(context_.host, &unicode_host)) {
+      return "";
+    }
+    return "\\\\" + unicode_host + decoded_path;
+  }
+  // Otherwise, it's a local path that requires a drive letter.
+  if (decoded_path.length() < 3) {
+    return "";
+  }
+  if (decoded_path[2] != ':' ||
+      !IsASCIIAlpha(decoded_path[1])) {
+    return "";
+  }
+  // Strip out the leading '\'.
+  return decoded_path.substr(1);
+#else
+  return decoded_path;
+#endif
 }
 
 // This function works by calling out to a JS function that creates and
@@ -2155,4 +2248,4 @@ static void Init(Local<Object> target,
 }  // namespace url
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(url, node::url::Init)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(url, node::url::Init)

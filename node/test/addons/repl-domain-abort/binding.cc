@@ -35,11 +35,11 @@ void Method(const FunctionCallbackInfo<Value>& args) {
                      isolate->GetCurrentContext()->Global(),
                      args[0].As<Function>(),
                      0,
-                     NULL);
+                     nullptr);
 }
 
 void init(Local<Object> exports) {
   NODE_SET_METHOD(exports, "method", Method);
 }
 
-NODE_MODULE(binding, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)

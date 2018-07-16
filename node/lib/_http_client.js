@@ -24,19 +24,21 @@
 const util = require('util');
 const net = require('net');
 const url = require('url');
-const HTTPParser = process.binding('http_parser').HTTPParser;
+const { HTTPParser } = process.binding('http_parser');
 const assert = require('assert').ok;
-const common = require('_http_common');
-const httpSocketSetup = common.httpSocketSetup;
-const parsers = common.parsers;
-const freeParser = common.freeParser;
-const debug = common.debug;
-const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
+const {
+  _checkIsHttpToken: checkIsHttpToken,
+  debug,
+  freeParser,
+  httpSocketSetup,
+  parsers
+} = require('_http_common');
+const { OutgoingMessage } = require('_http_outgoing');
 const Agent = require('_http_agent');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const { urlToOptions, searchParamsSymbol } = require('internal/url');
-const outHeadersKey = require('internal/http').outHeadersKey;
-const nextTick = require('internal/process/next_tick').nextTick;
+const { outHeadersKey, ondrain } = require('internal/http');
+const { nextTick } = require('internal/process/next_tick');
 
 // The actual list of disallowed characters in regexp form is more like:
 //    /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
@@ -114,7 +116,7 @@ function ClientRequest(options, cb) {
 
   var path;
   if (options.path) {
-    path = '' + options.path;
+    path = String(options.path);
     var invalidPath;
     if (path.length <= 39) { // Determined experimentally in V8 5.4
       invalidPath = isInvalidPath(path);
@@ -149,7 +151,7 @@ function ClientRequest(options, cb) {
   }
 
   if (methodIsString && method) {
-    if (!common._checkIsHttpToken(method)) {
+    if (!checkIsHttpToken(method)) {
       throw new TypeError('Method must be a valid HTTP token');
     }
     method = this.method = method.toUpperCase();
@@ -241,23 +243,7 @@ function ClientRequest(options, cb) {
     this._deferToConnect(null, null, () => this._flush());
   };
 
-  var newSocket;
-  if (this.socketPath) {
-    this._last = true;
-    this.shouldKeepAlive = false;
-    var optionsPath = {
-      path: this.socketPath,
-      timeout: this.timeout,
-      rejectUnauthorized: !!options.rejectUnauthorized
-    };
-    newSocket = this.agent.createConnection(optionsPath, oncreate);
-    if (newSocket && !called) {
-      called = true;
-      this.onSocket(newSocket);
-    } else {
-      return;
-    }
-  } else if (this.agent) {
+  if (this.agent) {
     // If there is an agent we should default to Connection:keep-alive,
     // but only if the Agent will actually reuse the connection!
     // If it's not a keepAlive agent, and the maxSockets==Infinity, then
@@ -275,7 +261,7 @@ function ClientRequest(options, cb) {
     this._last = true;
     this.shouldKeepAlive = false;
     if (typeof options.createConnection === 'function') {
-      newSocket = options.createConnection(options, oncreate);
+      const newSocket = options.createConnection(options, oncreate);
       if (newSocket && !called) {
         called = true;
         this.onSocket(newSocket);
@@ -466,7 +452,9 @@ function socketOnData(d) {
 
     socket.removeListener('data', socketOnData);
     socket.removeListener('end', socketOnEnd);
+    socket.removeListener('drain', ondrain);
     parser.finish();
+    freeParser(parser, req, socket);
 
     var bodyHead = d.slice(bytesParsed, d.length);
 
@@ -489,7 +477,6 @@ function socketOnData(d) {
       // Got Upgrade header or CONNECT method, but have no handler.
       socket.destroy();
     }
-    freeParser(parser, req, socket);
   } else if (parser.incoming && parser.incoming.complete &&
              // When the status code is 100 (Continue), the server will
              // send a final response after this client sends a request
@@ -507,7 +494,6 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   var socket = this.socket;
   var req = socket._httpMessage;
 
-
   // propagate "domain" setting...
   if (req.domain && !res.domain) {
     debug('setting "res.domain"');
@@ -520,29 +506,22 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
     // We already have a response object, this means the server
     // sent a double response.
     socket.destroy();
-    return;
+    return 0;  // No special treatment.
   }
   req.res = res;
 
   // Responses to CONNECT request is handled as Upgrade.
-  if (req.method === 'CONNECT') {
+  const method = req.method;
+  if (method === 'CONNECT') {
     res.upgrade = true;
-    return 2; // skip body, and the rest
+    return 2;  // Skip body and treat as Upgrade.
   }
-
-  // Responses to HEAD requests are crazy.
-  // HEAD responses aren't allowed to have an entity-body
-  // but *can* have a content-length which actually corresponds
-  // to the content-length of the entity-body had the request
-  // been a GET.
-  var isHeadResponse = req.method === 'HEAD';
-  debug('AGENT isHeadResponse', isHeadResponse);
 
   if (res.statusCode === 100) {
     // restart the parser, as this is a continue message.
     req.res = null; // Clear res so that we don't hit double-responses.
     req.emit('continue');
-    return true;
+    return 1;  // Skip body but don't treat as Upgrade.
   }
 
   if (req.shouldKeepAlive && !shouldKeepAlive && !req.upgradeOrConnect) {
@@ -551,7 +530,6 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
     // keep the connection open.
     req.shouldKeepAlive = false;
   }
-
 
   DTRACE_HTTP_CLIENT_RESPONSE(socket, req);
   LTTNG_HTTP_CLIENT_RESPONSE(socket, req);
@@ -570,7 +548,10 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   if (!handled)
     res._dump();
 
-  return isHeadResponse;
+  if (method === 'HEAD')
+    return 1;  // Skip body but don't treat as Upgrade.
+
+  return 0;  // No special treatment.
 }
 
 // client
@@ -580,7 +561,10 @@ function responseKeepAlive(res, req) {
   if (!req.shouldKeepAlive) {
     if (socket.writable) {
       debug('AGENT socket.destroySoon()');
-      socket.destroySoon();
+      if (typeof socket.destroySoon === 'function')
+        socket.destroySoon();
+      else
+        socket.end();
     }
     assert(!socket.writable);
   } else {
@@ -593,7 +577,7 @@ function responseKeepAlive(res, req) {
     socket.removeListener('error', socketErrorListener);
     socket.once('error', freeSocketErrorListener);
     // There are cases where _handle === null. Avoid those. Passing null to
-    // nextTick() will call initTriggerId() to retrieve the id.
+    // nextTick() will call getDefaultTriggerAsyncId() to retrieve the id.
     const asyncId = socket._handle ? socket._handle.getAsyncId() : null;
     // Mark this socket as available, AFTER user-added end
     // handlers have a chance to run.
@@ -675,7 +659,7 @@ ClientRequest.prototype.onSocket = function onSocket(socket) {
 function onSocketNT(req, socket) {
   if (req.aborted) {
     // If we were aborted while waiting for a socket, skip the whole thing.
-    if (req.socketPath || !req.agent) {
+    if (!req.agent) {
       socket.destroy();
     } else {
       socket.emit('free');

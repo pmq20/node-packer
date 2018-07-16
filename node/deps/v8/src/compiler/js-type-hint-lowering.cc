@@ -4,6 +4,7 @@
 
 #include "src/compiler/js-type-hint-lowering.h"
 
+#include "src/compiler/access-builder.h"
 #include "src/compiler/js-graph.h"
 #include "src/compiler/operator-properties.h"
 #include "src/compiler/simplified-operator.h"
@@ -22,8 +23,14 @@ bool BinaryOperationHintToNumberOperationHint(
     case BinaryOperationHint::kSignedSmall:
       *number_hint = NumberOperationHint::kSignedSmall;
       return true;
+    case BinaryOperationHint::kSignedSmallInputs:
+      *number_hint = NumberOperationHint::kSignedSmallInputs;
+      return true;
     case BinaryOperationHint::kSigned32:
       *number_hint = NumberOperationHint::kSigned32;
+      return true;
+    case BinaryOperationHint::kNumber:
+      *number_hint = NumberOperationHint::kNumber;
       return true;
     case BinaryOperationHint::kNumberOrOddball:
       *number_hint = NumberOperationHint::kNumberOrOddball;
@@ -82,6 +89,7 @@ class JSSpeculativeBinopBuilder final {
       case CompareOperationHint::kAny:
       case CompareOperationHint::kNone:
       case CompareOperationHint::kString:
+      case CompareOperationHint::kSymbol:
       case CompareOperationHint::kReceiver:
       case CompareOperationHint::kInternalizedString:
         break;
@@ -92,9 +100,19 @@ class JSSpeculativeBinopBuilder final {
   const Operator* SpeculativeNumberOp(NumberOperationHint hint) {
     switch (op_->opcode()) {
       case IrOpcode::kJSAdd:
-        return simplified()->SpeculativeNumberAdd(hint);
+        if (hint == NumberOperationHint::kSignedSmall ||
+            hint == NumberOperationHint::kSigned32) {
+          return simplified()->SpeculativeSafeIntegerAdd(hint);
+        } else {
+          return simplified()->SpeculativeNumberAdd(hint);
+        }
       case IrOpcode::kJSSubtract:
-        return simplified()->SpeculativeNumberSubtract(hint);
+        if (hint == NumberOperationHint::kSignedSmall ||
+            hint == NumberOperationHint::kSigned32) {
+          return simplified()->SpeculativeSafeIntegerSubtract(hint);
+        } else {
+          return simplified()->SpeculativeNumberSubtract(hint);
+        }
       case IrOpcode::kJSMultiply:
         return simplified()->SpeculativeNumberMultiply(hint);
       case IrOpcode::kJSDivide:
@@ -117,7 +135,6 @@ class JSSpeculativeBinopBuilder final {
         break;
     }
     UNREACHABLE();
-    return nullptr;
   }
 
   const Operator* SpeculativeCompareOp(NumberOperationHint hint) {
@@ -138,7 +155,6 @@ class JSSpeculativeBinopBuilder final {
         break;
     }
     UNREACHABLE();
-    return nullptr;
   }
 
   Node* BuildSpeculativeOperation(const Operator* op) {
@@ -238,6 +254,29 @@ Reduction JSTypeHintLowering::ReduceBinaryOperation(const Operator* op,
   return Reduction();
 }
 
+Reduction JSTypeHintLowering::ReduceForInNextOperation(
+    Node* receiver, Node* cache_array, Node* cache_type, Node* index,
+    Node* effect, Node* control, FeedbackSlot slot) const {
+  DCHECK(!slot.IsInvalid());
+  ForInICNexus nexus(feedback_vector(), slot);
+  if (Node* node = TryBuildSoftDeopt(
+          nexus, effect, control,
+          DeoptimizeReason::kInsufficientTypeFeedbackForForIn)) {
+    return Reduction(node);
+  }
+  if (!nexus.IsGeneric()) {
+    effect =
+        jsgraph()->graph()->NewNode(jsgraph()->simplified()->CheckMapValue(),
+                                    receiver, cache_type, effect, control);
+    Node* node = jsgraph()->graph()->NewNode(
+        jsgraph()->simplified()->LoadElement(
+            AccessBuilder::ForDescriptorArrayEnumCacheBridgeCacheElement()),
+        cache_array, index, effect, control);
+    return Reduction(node);
+  }
+  return Reduction();
+}
+
 Reduction JSTypeHintLowering::ReduceToNumberOperation(Node* input, Node* effect,
                                                       Node* control,
                                                       FeedbackSlot slot) const {
@@ -249,6 +288,38 @@ Reduction JSTypeHintLowering::ReduceToNumberOperation(Node* input, Node* effect,
     Node* node = jsgraph()->graph()->NewNode(
         jsgraph()->simplified()->SpeculativeToNumber(hint), input, effect,
         control);
+    return Reduction(node);
+  }
+  return Reduction();
+}
+
+Reduction JSTypeHintLowering::ReduceCallOperation(const Operator* op,
+                                                  Node* const* args,
+                                                  int arg_count, Node* effect,
+                                                  Node* control,
+                                                  FeedbackSlot slot) const {
+  DCHECK(op->opcode() == IrOpcode::kJSCall ||
+         op->opcode() == IrOpcode::kJSCallWithSpread);
+  DCHECK(!slot.IsInvalid());
+  CallICNexus nexus(feedback_vector(), slot);
+  if (Node* node = TryBuildSoftDeopt(
+          nexus, effect, control,
+          DeoptimizeReason::kInsufficientTypeFeedbackForCall)) {
+    return Reduction(node);
+  }
+  return Reduction();
+}
+
+Reduction JSTypeHintLowering::ReduceConstructOperation(
+    const Operator* op, Node* const* args, int arg_count, Node* effect,
+    Node* control, FeedbackSlot slot) const {
+  DCHECK(op->opcode() == IrOpcode::kJSConstruct ||
+         op->opcode() == IrOpcode::kJSConstructWithSpread);
+  DCHECK(!slot.IsInvalid());
+  CallICNexus nexus(feedback_vector(), slot);
+  if (Node* node = TryBuildSoftDeopt(
+          nexus, effect, control,
+          DeoptimizeReason::kInsufficientTypeFeedbackForConstruct)) {
     return Reduction(node);
   }
   return Reduction();

@@ -46,11 +46,8 @@
 
 #include "node.h"
 #include "node_buffer.h"
-#include "env.h"
 #include "env-inl.h"
-#include "util.h"
 #include "util-inl.h"
-#include "base-object.h"
 #include "base-object-inl.h"
 #include "v8.h"
 
@@ -117,21 +114,21 @@ MaybeLocal<Object> ToBufferEndian(Environment* env, MaybeStackBuffer<T>* buf) {
 }
 
 struct Converter {
-  explicit Converter(const char* name, const char* sub = NULL)
+  explicit Converter(const char* name, const char* sub = nullptr)
       : conv(nullptr) {
     UErrorCode status = U_ZERO_ERROR;
     conv = ucnv_open(name, &status);
     CHECK(U_SUCCESS(status));
-    if (sub != NULL) {
+    if (sub != nullptr) {
       ucnv_setSubstChars(conv, sub, strlen(sub), &status);
     }
   }
 
   explicit Converter(UConverter* converter,
-                     const char* sub = NULL) : conv(converter) {
+                     const char* sub = nullptr) : conv(converter) {
     CHECK_NE(conv, nullptr);
     UErrorCode status = U_ZERO_ERROR;
-    if (sub != NULL) {
+    if (sub != nullptr) {
       ucnv_setSubstChars(conv, sub, strlen(sub), &status);
     }
   }
@@ -232,7 +229,7 @@ class ConverterObject : public BaseObject, Converter {
     ucnv_toUnicode(converter->conv,
                    &target, target + (limit * sizeof(UChar)),
                    &source, source + source_length,
-                   NULL, flush, &status);
+                   nullptr, flush, &status);
 
     if (U_SUCCESS(status)) {
       if (limit > 0)
@@ -257,7 +254,7 @@ class ConverterObject : public BaseObject, Converter {
                   v8::Local<v8::Object> wrap,
                   UConverter* converter,
                   bool ignoreBOM,
-                  const char* sub = NULL) :
+                  const char* sub = nullptr) :
                   BaseObject(env, wrap),
                   Converter(converter, sub),
                   ignoreBOM_(ignoreBOM) {
@@ -430,7 +427,7 @@ const char* EncodingName(const enum encoding encoding) {
     case LATIN1: return "iso8859-1";
     case UCS2: return "utf16le";
     case UTF8: return "utf-8";
-    default: return NULL;
+    default: return nullptr;
   }
 }
 
@@ -877,6 +874,6 @@ void Init(Local<Object> target,
 }  // namespace i18n
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(icu, node::i18n::Init)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(icu, node::i18n::Init)
 
 #endif  // NODE_HAVE_I18N_SUPPORT

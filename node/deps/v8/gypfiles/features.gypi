@@ -29,6 +29,10 @@
 
 {
   'variables': {
+    'variables': {
+      'v8_target_arch%': '<(target_arch)',
+    },
+
     'v8_enable_disassembler%': 0,
 
     'v8_promise_internal_field_count%': 0,
@@ -73,6 +77,12 @@
 
     # Enable/disable JavaScript API accessors.
     'v8_js_accessors%': 0,
+
+    # Temporary flag to allow embedders to update their microtasks scopes.
+    'v8_check_microtasks_scopes_consistency%': 'false',
+
+    # Enable concurrent marking.
+    'v8_enable_concurrent_marking%': 0,
   },
   'target_defaults': {
     'conditions': [
@@ -118,12 +128,18 @@
       ['dcheck_always_on!=0', {
         'defines': ['DEBUG',],
       }],
+      ['v8_check_microtasks_scopes_consistency=="true"', {
+        'defines': ['V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY',],
+      }],
+      ['v8_enable_concurrent_marking==1', {
+        'defines': ['V8_CONCURRENT_MARKING',],
+      }],
     ],  # conditions
     'configurations': {
       'DebugBaseCommon': {
         'abstract': 1,
         'variables': {
-          'v8_enable_handle_zapping%': 0,
+          'v8_enable_handle_zapping%': 1,
         },
         'conditions': [
           ['v8_enable_handle_zapping==1', {
@@ -133,7 +149,7 @@
       },  # Debug
       'Release': {
         'variables': {
-          'v8_enable_handle_zapping%': 1,
+          'v8_enable_handle_zapping%': 0,
         },
         'conditions': [
           ['v8_enable_handle_zapping==1', {

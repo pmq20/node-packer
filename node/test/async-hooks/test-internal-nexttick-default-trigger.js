@@ -3,7 +3,7 @@
 const common = require('../common');
 
 // This tests ensures that the triggerId of both the internal and external
-// nexTick function sets the triggerAsyncId correctly.
+// nextTick function sets the triggerAsyncId correctly.
 
 const assert = require('assert');
 const async_hooks = require('async_hooks');
@@ -23,11 +23,6 @@ process.nextTick(common.mustCall(function() {
 
 // internal default
 internal.nextTick(null, common.mustCall(function() {
-  assert.strictEqual(async_hooks.triggerAsyncId(), rootAsyncId);
-}));
-
-// internal default
-internal.nextTick(undefined, common.mustCall(function() {
   assert.strictEqual(async_hooks.triggerAsyncId(), rootAsyncId);
 }));
 

@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -16,6 +15,19 @@ const server = h2.createServer((request, response) => {
   assert.strictEqual(response.stream.id % 2, 1);
   response.write(servExpect);
 
+  // callback must be specified (and be a function)
+  common.expectsError(
+    () => response.createPushResponse({
+      ':path': '/pushed',
+      ':method': 'GET'
+    }, undefined),
+    {
+      code: 'ERR_INVALID_CALLBACK',
+      type: TypeError,
+      message: 'callback must be a function'
+    }
+  );
+
   response.createPushResponse({
     ':path': '/pushed',
     ':method': 'GET'
@@ -31,7 +43,7 @@ const server = h2.createServer((request, response) => {
         ':path': '/pushed',
         ':method': 'GET'
       }, common.mustCall((error) => {
-        assert.strictEqual(error.code, 'ERR_HTTP2_STREAM_CLOSED');
+        assert.strictEqual(error.code, 'ERR_HTTP2_INVALID_STREAM');
       }));
     });
   }));
@@ -49,7 +61,7 @@ server.listen(0, common.mustCall(() => {
     let remaining = 2;
     function maybeClose() {
       if (--remaining === 0) {
-        client.destroy();
+        client.close();
         server.close();
       }
     }

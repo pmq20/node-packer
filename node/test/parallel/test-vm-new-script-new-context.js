@@ -36,14 +36,14 @@ const Script = require('vm').Script;
 
 {
   const script = new Script('throw new Error(\'test\');');
-  assert.throws(function() {
+  assert.throws(() => {
     script.runInNewContext();
   }, /^Error: test$/);
 }
 
 {
   const script = new Script('foo.bar = 5;');
-  assert.throws(function() {
+  assert.throws(() => {
     script.runInNewContext();
   }, /^ReferenceError: foo is not defined$/);
 }
@@ -91,17 +91,17 @@ const Script = require('vm').Script;
 {
   const script = new Script('f.a = 2');
   const f = { a: 1 };
-  script.runInNewContext({ f: f });
+  script.runInNewContext({ f });
   assert.strictEqual(f.a, 2);
 
-  assert.throws(function() {
+  assert.throws(() => {
     script.runInNewContext();
   }, /^ReferenceError: f is not defined$/);
 }
 
 {
   const script = new Script('');
-  assert.throws(function() {
+  assert.throws(() => {
     script.runInNewContext.call('\'hello\';');
   }, /^TypeError: this\.runInContext is not a function$/);
 }

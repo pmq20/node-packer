@@ -1,5 +1,7 @@
 # Console
 
+<!--introduced_in=v0.10.13-->
+
 > Stability: 2 - Stable
 
 The `console` module provides a simple debugging console that is similar to the
@@ -10,7 +12,7 @@ The module exports two specific components:
 * A `Console` class with methods such as `console.log()`, `console.error()` and
   `console.warn()` that can be used to write to any Node.js stream.
 * A global `console` instance configured to write to [`process.stdout`][] and
-  [`process.stderr`][].  The global `console` can be used without calling
+  [`process.stderr`][]. The global `console` can be used without calling
   `require('console')`.
 
 ***Warning***: The global console object's methods are neither consistently
@@ -76,13 +78,12 @@ const { Console } = console;
 ```
 
 ### new Console(stdout[, stderr])
-* `stdout` {Writable}
-* `stderr` {Writable}
+* `stdout` {stream.Writable}
+* `stderr` {stream.Writable}
 
-Creates a new `Console` by passing one or two writable stream instances.
-`stdout` is a writable stream to print log or info output. `stderr`
-is used for warning or error output. If `stderr` is not passed, warning and error
-output will be sent to `stdout`.
+Creates a new `Console` with one or two writable stream instances. `stdout` is a
+writable stream to print log or info output. `stderr` is used for warning or
+error output. If `stderr` is not provided, `stdout` is used for `stderr`.
 
 ```js
 const output = fs.createWriteStream('./stdout.log');
@@ -214,7 +215,7 @@ undefined
 >
 ```
 
-### console.countReset([label = 'default'])
+### console.countReset([label='default'])
 <!-- YAML
 added: v8.3.0
 -->
@@ -235,6 +236,15 @@ abc: 1
 undefined
 >
 ```
+
+### console.debug(data[, ...args])
+<!-- YAML
+added: v8.0.0
+-->
+* `data` {any}
+* `...args` {any}
+
+The `console.debug()` function is an alias for [`console.log()`][].
 
 ### console.dir(obj[, options])
 <!-- YAML
@@ -285,6 +295,32 @@ console.error('error', code);
 If formatting elements (e.g. `%d`) are not found in the first string then
 [`util.inspect()`][] is called on each argument and the resulting string
 values are concatenated. See [`util.format()`][] for more information.
+
+### console.group([...label])
+<!-- YAML
+added: v8.5.0
+-->
+
+* `...label` {any}
+
+Increases indentation of subsequent lines by two spaces.
+
+If one or more `label`s are provided, those are printed first without the
+additional indentation.
+
+### console.groupCollapsed()
+<!-- YAML
+  added: v8.5.0
+-->
+
+An alias for [`console.group()`][].
+
+### console.groupEnd()
+<!-- YAML
+added: v8.5.0
+-->
+
+Decreases indentation of subsequent lines by two spaces.
 
 ### console.info([data][, ...args])
 <!-- YAML
@@ -390,6 +426,7 @@ added: v0.1.100
 The `console.warn()` function is an alias for [`console.error()`][].
 
 [`console.error()`]: #console_console_error_data_args
+[`console.group()`]: #console_console_group_label
 [`console.log()`]: #console_console_log_data_args
 [`console.time()`]: #console_console_time_label
 [`console.timeEnd()`]: #console_console_timeend_label

@@ -9,9 +9,10 @@
 #include "src/base/flags.h"
 #include "src/compiler/frame.h"
 #include "src/compiler/operator.h"
-#include "src/frames.h"
 #include "src/globals.h"
+#include "src/interface-descriptors.h"
 #include "src/machine-type.h"
+#include "src/reglist.h"
 #include "src/runtime/runtime.h"
 #include "src/zone/zone.h"
 
@@ -198,7 +199,8 @@ class V8_EXPORT_PRIVATE CallDescriptor final
                  Operator::Properties properties,
                  RegList callee_saved_registers,
                  RegList callee_saved_fp_registers, Flags flags,
-                 const char* debug_name = "")
+                 const char* debug_name = "",
+                 const RegList allocatable_registers = 0)
       : kind_(kind),
         target_type_(target_type),
         target_loc_(target_loc),
@@ -207,9 +209,9 @@ class V8_EXPORT_PRIVATE CallDescriptor final
         properties_(properties),
         callee_saved_registers_(callee_saved_registers),
         callee_saved_fp_registers_(callee_saved_fp_registers),
+        allocatable_registers_(allocatable_registers),
         flags_(flags),
-        debug_name_(debug_name) {
-  }
+        debug_name_(debug_name) {}
 
   // Returns the kind of this call.
   Kind kind() const { return kind_; }
@@ -301,6 +303,12 @@ class V8_EXPORT_PRIVATE CallDescriptor final
 
   int CalculateFixedFrameSize() const;
 
+  RegList AllocatableRegisters() const { return allocatable_registers_; }
+
+  bool HasRestrictedAllocatableRegisters() const {
+    return allocatable_registers_ != 0;
+  }
+
  private:
   friend class Linkage;
 
@@ -312,6 +320,9 @@ class V8_EXPORT_PRIVATE CallDescriptor final
   const Operator::Properties properties_;
   const RegList callee_saved_registers_;
   const RegList callee_saved_fp_registers_;
+  // Non-zero value means restricting the set of allocatable registers for
+  // register allocator to use.
+  const RegList allocatable_registers_;
   const Flags flags_;
   const char* const debug_name_;
 
@@ -340,6 +351,8 @@ V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
 // Call[BytecodeDispatch] address,    arg 1, arg 2, [...]
 class V8_EXPORT_PRIVATE Linkage : public NON_EXPORTED_BASE(ZoneObject) {
  public:
+  enum ContextSpecification { kNoContext, kPassContext };
+
   explicit Linkage(CallDescriptor* incoming) : incoming_(incoming) {}
 
   static CallDescriptor* ComputeIncoming(Zone* zone, CompilationInfo* info);
@@ -365,7 +378,8 @@ class V8_EXPORT_PRIVATE Linkage : public NON_EXPORTED_BASE(ZoneObject) {
       int stack_parameter_count, CallDescriptor::Flags flags,
       Operator::Properties properties = Operator::kNoProperties,
       MachineType return_type = MachineType::AnyTagged(),
-      size_t return_count = 1);
+      size_t return_count = 1,
+      ContextSpecification context_spec = kPassContext);
 
   static CallDescriptor* GetAllocateCallDescriptor(Zone* zone);
   static CallDescriptor* GetBytecodeDispatchCallDescriptor(

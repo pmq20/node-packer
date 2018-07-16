@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Performance Timing API | Node.js v8.11.3 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/perf_hooks.html">
+</head>
+<body class="alt apidoc" id="api-section-perf_hooks">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
+<li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-assert" href="assert.html">Assertion Testing</a></li>
+<li><a class="nav-async_hooks" href="async_hooks.html">Async Hooks</a></li>
+<li><a class="nav-buffer" href="buffer.html">Buffer</a></li>
+<li><a class="nav-addons" href="addons.html">C++ Addons</a></li>
+<li><a class="nav-n-api" href="n-api.html">C/C++ Addons - N-API</a></li>
+<li><a class="nav-child_process" href="child_process.html">Child Processes</a></li>
+<li><a class="nav-cluster" href="cluster.html">Cluster</a></li>
+<li><a class="nav-cli" href="cli.html">Command Line Options</a></li>
+<li><a class="nav-console" href="console.html">Console</a></li>
+<li><a class="nav-crypto" href="crypto.html">Crypto</a></li>
+<li><a class="nav-debugger" href="debugger.html">Debugger</a></li>
+<li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
+<li><a class="nav-dns" href="dns.html">DNS</a></li>
+<li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
+<li><a class="nav-errors" href="errors.html">Errors</a></li>
+<li><a class="nav-events" href="events.html">Events</a></li>
+<li><a class="nav-fs" href="fs.html">File System</a></li>
+<li><a class="nav-globals" href="globals.html">Globals</a></li>
+<li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
+<li><a class="nav-https" href="https.html">HTTPS</a></li>
+<li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
+<li><a class="nav-modules" href="modules.html">Modules</a></li>
+<li><a class="nav-net" href="net.html">Net</a></li>
+<li><a class="nav-os" href="os.html">OS</a></li>
+<li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks active" href="perf_hooks.html">Performance Hooks</a></li>
+<li><a class="nav-process" href="process.html">Process</a></li>
+<li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
+<li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
+<li><a class="nav-readline" href="readline.html">Readline</a></li>
+<li><a class="nav-repl" href="repl.html">REPL</a></li>
+<li><a class="nav-stream" href="stream.html">Stream</a></li>
+<li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
+<li><a class="nav-timers" href="timers.html">Timers</a></li>
+<li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
+<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
+<li><a class="nav-tty" href="tty.html">TTY</a></li>
+<li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
+<li><a class="nav-url" href="url.html">URL</a></li>
+<li><a class="nav-util" href="util.html">Utilities</a></li>
+<li><a class="nav-v8" href="v8.html">V8</a></li>
+<li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
+</ul>
+<div class="line"></div>
+
+<ul>
+<li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+</ul>
+
+    </div>
+
+    <div id="column1" data-id="perf_hooks" class="interior">
+      <header>
+        <h1>Node.js v8.11.3 Documentation</h1>
+        <div id="gtoc">
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="perf_hooks.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/perf_hooks.html">9.x</a></li></ol>
+    </li>
+  
+          </ul>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li><span class="stability_1"><a href="#perf_hooks_performance_timing_api">Performance Timing API</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_class_performance">Class: Performance</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_clearentries_name">performance.clearEntries(name)</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_clearfunctions_name">performance.clearFunctions([name])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_cleargc">performance.clearGC()</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_clearmarks_name">performance.clearMarks([name])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_clearmeasures_name">performance.clearMeasures([name])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_getentries">performance.getEntries()</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_getentriesbyname_name_type">performance.getEntriesByName(name[, type])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_getentriesbytype_type">performance.getEntriesByType(type)</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_mark_name">performance.mark([name])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_measure_name_startmark_endmark">performance.measure(name, startMark, endMark)</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_nodetiming">performance.nodeTiming</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_now">performance.now()</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_timeorigin">performance.timeOrigin</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performance_timerify_fn">performance.timerify(fn)</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#perf_hooks_class_performanceentry">Class: PerformanceEntry</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceentry_duration">performanceEntry.duration</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceentry_name">performanceEntry.name</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceentry_starttime">performanceEntry.startTime</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceentry_entrytype">performanceEntry.entryType</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceentry_kind">performanceEntry.kind</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#perf_hooks_class_performancenodetiming_extends_performanceentry">Class: PerformanceNodeTiming extends PerformanceEntry</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_bootstrapcomplete">performanceNodeTiming.bootstrapComplete</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_clustersetupend">performanceNodeTiming.clusterSetupEnd</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_clustersetupstart">performanceNodeTiming.clusterSetupStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_loopexit">performanceNodeTiming.loopExit</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_loopstart">performanceNodeTiming.loopStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_moduleloadend">performanceNodeTiming.moduleLoadEnd</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_moduleloadstart">performanceNodeTiming.moduleLoadStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_nodestart">performanceNodeTiming.nodeStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_preloadmoduleloadend">performanceNodeTiming.preloadModuleLoadEnd</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_preloadmoduleloadstart">performanceNodeTiming.preloadModuleLoadStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_thirdpartymainend">performanceNodeTiming.thirdPartyMainEnd</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_thirdpartymainstart">performanceNodeTiming.thirdPartyMainStart</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performancenodetiming_v8start">performanceNodeTiming.v8Start</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#perf_hooks_class_performanceobserver_callback">Class: PerformanceObserver(callback)</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_callback_performanceobservercallback_list_observer">Callback: PerformanceObserverCallback(list, observer)</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_class_performanceobserverentrylist">Class: PerformanceObserverEntryList</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceobserverentrylist_getentries">performanceObserverEntryList.getEntries()</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceobserverentrylist_getentriesbyname_name_type">performanceObserverEntryList.getEntriesByName(name[, type])</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceobserverentrylist_getentriesbytype_type">performanceObserverEntryList.getEntriesByType(type)</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceobserver_disconnect">performanceObserver.disconnect()</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_performanceobserver_observe_options">performanceObserver.observe(options)</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#perf_hooks_examples">Examples</a></span><ul>
+<li><span class="stability_undefined"><a href="#perf_hooks_measuring_the_duration_of_async_operations">Measuring the duration of async operations</a></span></li>
+<li><span class="stability_undefined"><a href="#perf_hooks_measuring_how_long_it_takes_to_load_dependencies">Measuring how long it takes to load dependencies</a></span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      </div>
+
+      <div id="apicontent">
+        <h1>Performance Timing API<span><a class="mark" href="#perf_hooks_performance_timing_api" id="perf_hooks_performance_timing_api">#</a></span></h1>
+<!--introduced_in=v8.5.0-->
+<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>The Performance Timing API provides an implementation of the
+<a href="https://w3c.github.io/performance-timeline/">W3C Performance Timeline</a> specification. The purpose of the API
+is to support collection of high resolution performance metrics.
+This is the same Performance API as implemented in modern Web browsers.</p>
+<pre><code class="lang-js">const { performance } = require(&#39;perf_hooks&#39;);
+performance.mark(&#39;A&#39;);
+doSomeLongRunningProcess(() =&gt; {
+  performance.mark(&#39;B&#39;);
+  performance.measure(&#39;A to B&#39;, &#39;A&#39;, &#39;B&#39;);
+  const measure = performance.getEntriesByName(&#39;A to B&#39;)[0];
+  console.log(measure.duration);
+  // Prints the number of milliseconds between Mark &#39;A&#39; and Mark &#39;B&#39;
+});
+</code></pre>
+<h2>Class: Performance<span><a class="mark" href="#perf_hooks_class_performance" id="perf_hooks_class_performance">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>The <code>Performance</code> provides access to performance metric data. A single
+instance of this class is provided via the <code>performance</code> property.</p>
+<h3>performance.clearEntries(name)<span><a class="mark" href="#perf_hooks_performance_clearentries_name" id="perf_hooks_performance_clearentries_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.11.2</span>
+</div><p>Remove all performance entry objects with <code>entryType</code> equal to <code>name</code> from the
+Performance Timeline.</p>
+<h3>performance.clearFunctions([name])<span><a class="mark" href="#perf_hooks_performance_clearfunctions_name" id="perf_hooks_performance_clearfunctions_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>If <code>name</code> is not provided, removes all <code>PerformanceFunction</code> objects from the
+Performance Timeline. If <code>name</code> is provided, removes entries with <code>name</code>.</p>
+<h3>performance.clearGC()<span><a class="mark" href="#perf_hooks_performance_cleargc" id="perf_hooks_performance_cleargc">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>Remove all performance entry objects with <code>entryType</code> equal to <code>gc</code> from the
+Performance Timeline.</p>
+<h3>performance.clearMarks([name])<span><a class="mark" href="#perf_hooks_performance_clearmarks_name" id="perf_hooks_performance_clearmarks_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>If <code>name</code> is not provided, removes all <code>PerformanceMark</code> objects from the
+Performance Timeline. If <code>name</code> is provided, removes only the named mark.</p>
+<h3>performance.clearMeasures([name])<span><a class="mark" href="#perf_hooks_performance_clearmeasures_name" id="perf_hooks_performance_clearmeasures_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>If <code>name</code> is not provided, removes all <code>PerformanceMeasure</code> objects from the
+Performance Timeline. If <code>name</code> is provided, removes only objects whose
+<code>performanceEntry.name</code> matches <code>name</code>.</p>
+<h3>performance.getEntries()<span><a class="mark" href="#perf_hooks_performance_getentries" id="perf_hooks_performance_getentries">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of all <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code>.</p>
+<h3>performance.getEntriesByName(name[, type])<span><a class="mark" href="#perf_hooks_performance_getentriesbyname_name_type" id="perf_hooks_performance_getentriesbyname_name_type">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of all <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.name</code> is
+equal to <code>name</code>, and optionally, whose <code>performanceEntry.entryType</code> is equal to
+<code>type</code>.</p>
+<h3>performance.getEntriesByType(type)<span><a class="mark" href="#perf_hooks_performance_getentriesbytype_type" id="perf_hooks_performance_getentriesbytype_type">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of all <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.entryType</code>
+is equal to <code>type</code>.</p>
+<h3>performance.mark([name])<span><a class="mark" href="#perf_hooks_performance_mark_name" id="perf_hooks_performance_mark_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>Creates a new <code>PerformanceMark</code> entry in the Performance Timeline. A
+<code>PerformanceMark</code> is a subclass of <code>PerformanceEntry</code> whose
+<code>performanceEntry.entryType</code> is always <code>&#39;mark&#39;</code>, and whose
+<code>performanceEntry.duration</code> is always <code>0</code>. Performance marks are used
+to mark specific significant moments in the Performance Timeline.</p>
+<h3>performance.measure(name, startMark, endMark)<span><a class="mark" href="#perf_hooks_performance_measure_name_startmark_endmark" id="perf_hooks_performance_measure_name_startmark_endmark">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>startMark</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>endMark</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>Creates a new <code>PerformanceMeasure</code> entry in the Performance Timeline. A
+<code>PerformanceMeasure</code> is a subclass of <code>PerformanceEntry</code> whose
+<code>performanceEntry.entryType</code> is always <code>&#39;measure&#39;</code>, and whose
+<code>performanceEntry.duration</code> measures the number of milliseconds elapsed since
+<code>startMark</code> and <code>endMark</code>.</p>
+<p>The <code>startMark</code> argument may identify any <em>existing</em> <code>PerformanceMark</code> in the
+Performance Timeline, or <em>may</em> identify any of the timestamp properties
+provided by the <code>PerformanceNodeTiming</code> class. If the named <code>startMark</code> does
+not exist, then <code>startMark</code> is set to <a href="https://w3c.github.io/hr-time/#dom-performance-timeorigin"><code>timeOrigin</code></a> by default.</p>
+<p>The <code>endMark</code> argument must identify any <em>existing</em> <code>PerformanceMark</code> in the
+Performance Timeline or any of the timestamp properties provided by the
+<code>PerformanceNodeTiming</code> class. If the named <code>endMark</code> does not exist, an
+error will be thrown.</p>
+<h3>performance.nodeTiming<span><a class="mark" href="#perf_hooks_performance_nodetiming" id="perf_hooks_performance_nodetiming">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><span class="type">&lt;PerformanceNodeTiming&gt;</span></li>
+</ul>
+<p>An instance of the <code>PerformanceNodeTiming</code> class that provides performance
+metrics for specific Node.js operational milestones.</p>
+<h3>performance.now()<span><a class="mark" href="#perf_hooks_performance_now" id="perf_hooks_performance_now">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>Returns the current high resolution millisecond timestamp.</p>
+<h3>performance.timeOrigin<span><a class="mark" href="#perf_hooks_performance_timeorigin" id="perf_hooks_performance_timeorigin">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The <a href="https://w3c.github.io/hr-time/#dom-performance-timeorigin"><code>timeOrigin</code></a> specifies the high resolution millisecond timestamp from
+which all performance metric durations are measured.</p>
+<h3>performance.timerify(fn)<span><a class="mark" href="#perf_hooks_performance_timerify_fn" id="perf_hooks_performance_timerify_fn">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>fn</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>Wraps a function within a new function that measures the running time of the
+wrapped function. A <code>PerformanceObserver</code> must be subscribed to the <code>&#39;function&#39;</code>
+event type in order for the timing details to be accessed.</p>
+<pre><code class="lang-js">const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+
+function someFunction() {
+  console.log(&#39;hello world&#39;);
+}
+
+const wrapped = performance.timerify(someFunction);
+
+const obs = new PerformanceObserver((list) =&gt; {
+  console.log(list.getEntries()[0].duration);
+  obs.disconnect();
+  performance.clearFunctions();
+});
+obs.observe({ entryTypes: [&#39;function&#39;] });
+
+// A performance timeline entry will be created
+wrapped();
+</code></pre>
+<h2>Class: PerformanceEntry<span><a class="mark" href="#perf_hooks_class_performanceentry" id="perf_hooks_class_performanceentry">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><h3>performanceEntry.duration<span><a class="mark" href="#perf_hooks_performanceentry_duration" id="perf_hooks_performanceentry_duration">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The total number of milliseconds elapsed for this entry. This value will not
+be meaningful for all Performance Entry types.</p>
+<h3>performanceEntry.name<span><a class="mark" href="#perf_hooks_performanceentry_name" id="perf_hooks_performanceentry_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>The name of the performance entry.</p>
+<h3>performanceEntry.startTime<span><a class="mark" href="#perf_hooks_performanceentry_starttime" id="perf_hooks_performanceentry_starttime">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp marking the starting time of the
+Performance Entry.</p>
+<h3>performanceEntry.entryType<span><a class="mark" href="#perf_hooks_performanceentry_entrytype" id="perf_hooks_performanceentry_entrytype">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>The type of the performance entry. Current it may be one of: <code>&#39;node&#39;</code>, <code>&#39;mark&#39;</code>,
+<code>&#39;measure&#39;</code>, <code>&#39;gc&#39;</code>, or <code>&#39;function&#39;</code>.</p>
+<h3>performanceEntry.kind<span><a class="mark" href="#perf_hooks_performanceentry_kind" id="perf_hooks_performanceentry_kind">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>When <code>performanceEntry.entryType</code> is equal to <code>&#39;gc&#39;</code>, the <code>performance.kind</code>
+property identifies the type of garbage collection operation that occurred.
+The value may be one of:</p>
+<ul>
+<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_MAJOR</code></li>
+<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_MINOR</code></li>
+<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_INCREMENTAL</code></li>
+<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_WEAKCB</code></li>
+</ul>
+<h2>Class: PerformanceNodeTiming extends PerformanceEntry<span><a class="mark" href="#perf_hooks_class_performancenodetiming_extends_performanceentry" id="perf_hooks_class_performancenodetiming_extends_performanceentry">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>Provides timing details for Node.js itself.</p>
+<h3>performanceNodeTiming.bootstrapComplete<span><a class="mark" href="#perf_hooks_performancenodetiming_bootstrapcomplete" id="perf_hooks_performancenodetiming_bootstrapcomplete">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the Node.js process
+completed bootstrap.</p>
+<h3>performanceNodeTiming.clusterSetupEnd<span><a class="mark" href="#perf_hooks_performancenodetiming_clustersetupend" id="perf_hooks_performancenodetiming_clustersetupend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which cluster processing ended.</p>
+<h3>performanceNodeTiming.clusterSetupStart<span><a class="mark" href="#perf_hooks_performancenodetiming_clustersetupstart" id="perf_hooks_performancenodetiming_clustersetupstart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which cluster processing started.</p>
+<h3>performanceNodeTiming.loopExit<span><a class="mark" href="#perf_hooks_performancenodetiming_loopexit" id="perf_hooks_performancenodetiming_loopexit">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the Node.js event loop
+exited.</p>
+<h3>performanceNodeTiming.loopStart<span><a class="mark" href="#perf_hooks_performancenodetiming_loopstart" id="perf_hooks_performancenodetiming_loopstart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the Node.js event loop
+started.</p>
+<h3>performanceNodeTiming.moduleLoadEnd<span><a class="mark" href="#perf_hooks_performancenodetiming_moduleloadend" id="perf_hooks_performancenodetiming_moduleloadend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which main module load ended.</p>
+<h3>performanceNodeTiming.moduleLoadStart<span><a class="mark" href="#perf_hooks_performancenodetiming_moduleloadstart" id="perf_hooks_performancenodetiming_moduleloadstart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which main module load started.</p>
+<h3>performanceNodeTiming.nodeStart<span><a class="mark" href="#perf_hooks_performancenodetiming_nodestart" id="perf_hooks_performancenodetiming_nodestart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the Node.js process was
+initialized.</p>
+<h3>performanceNodeTiming.preloadModuleLoadEnd<span><a class="mark" href="#perf_hooks_performancenodetiming_preloadmoduleloadend" id="perf_hooks_performancenodetiming_preloadmoduleloadend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which preload module load ended.</p>
+<h3>performanceNodeTiming.preloadModuleLoadStart<span><a class="mark" href="#perf_hooks_performancenodetiming_preloadmoduleloadstart" id="perf_hooks_performancenodetiming_preloadmoduleloadstart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which preload module load started.</p>
+<h3>performanceNodeTiming.thirdPartyMainEnd<span><a class="mark" href="#perf_hooks_performancenodetiming_thirdpartymainend" id="perf_hooks_performancenodetiming_thirdpartymainend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which third_party_main processing
+ended.</p>
+<h3>performanceNodeTiming.thirdPartyMainStart<span><a class="mark" href="#perf_hooks_performancenodetiming_thirdpartymainstart" id="perf_hooks_performancenodetiming_thirdpartymainstart">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which third_party_main processing
+started.</p>
+<h3>performanceNodeTiming.v8Start<span><a class="mark" href="#perf_hooks_performancenodetiming_v8start" id="perf_hooks_performancenodetiming_v8start">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the V8 platform was
+initialized.</p>
+<h2>Class: PerformanceObserver(callback)<span><a class="mark" href="#perf_hooks_class_performanceobserver_callback" id="perf_hooks_class_performanceobserver_callback">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>callback</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> A <code>PerformanceObserverCallback</code> callback function.</li>
+</ul>
+<p><code>PerformanceObserver</code> objects provide notifications when new
+<code>PerformanceEntry</code> instances have been added to the Performance Timeline.</p>
+<pre><code class="lang-js">const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+
+const obs = new PerformanceObserver((list, observer) =&gt; {
+  console.log(list.getEntries());
+  observer.disconnect();
+});
+obs.observe({ entryTypes: [&#39;mark&#39;], buffered: true });
+
+performance.mark(&#39;test&#39;);
+</code></pre>
+<p>Because <code>PerformanceObserver</code> instances introduce their own additional
+performance overhead, instances should not be left subscribed to notifications
+indefinitely. Users should disconnect observers as soon as they are no
+longer needed.</p>
+<h3>Callback: PerformanceObserverCallback(list, observer)<span><a class="mark" href="#perf_hooks_callback_performanceobservercallback_list_observer" id="perf_hooks_callback_performanceobservercallback_list_observer">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>list</code> 
+            <a href="perf_hooks.html#perf_hooks_class_performanceobserverentrylist" class="type">&lt;PerformanceObserverEntryList&gt;</a></li>
+<li><code>observer</code> 
+            <a href="perf_hooks.html#perf_hooks_class_performanceobserver_callback" class="type">&lt;PerformanceObserver&gt;</a></li>
+</ul>
+<p>The <code>PerformanceObserverCallback</code> is invoked when a <code>PerformanceObserver</code> is
+notified about new <code>PerformanceEntry</code> instances. The callback receives a
+<code>PerformanceObserverEntryList</code> instance and a reference to the
+<code>PerformanceObserver</code>.</p>
+<h3>Class: PerformanceObserverEntryList<span><a class="mark" href="#perf_hooks_class_performanceobserverentrylist" id="perf_hooks_class_performanceobserverentrylist">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>The <code>PerformanceObserverEntryList</code> class is used to provide access to the
+<code>PerformanceEntry</code> instances passed to a <code>PerformanceObserver</code>.</p>
+<h4>performanceObserverEntryList.getEntries()<span><a class="mark" href="#perf_hooks_performanceobserverentrylist_getentries" id="perf_hooks_performanceobserverentrylist_getentries">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code>.</p>
+<h4>performanceObserverEntryList.getEntriesByName(name[, type])<span><a class="mark" href="#perf_hooks_performanceobserverentrylist_getentriesbyname_name_type" id="perf_hooks_performanceobserverentrylist_getentriesbyname_name_type">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>name</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.name</code> is
+equal to <code>name</code>, and optionally, whose <code>performanceEntry.entryType</code> is equal to
+<code>type</code>.</p>
+<h4>performanceObserverEntryList.getEntriesByType(type)<span><a class="mark" href="#perf_hooks_performanceobserverentrylist_getentriesbytype_type" id="perf_hooks_performanceobserverentrylist_getentriesbytype_type">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>type</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order
+with respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.entryType</code>
+is equal to <code>type</code>.</p>
+<h3>performanceObserver.disconnect()<span><a class="mark" href="#perf_hooks_performanceobserver_disconnect" id="perf_hooks_performanceobserver_disconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><p>Disconnects the <code>PerformanceObserver</code> instance from all notifications.</p>
+<h3>performanceObserver.observe(options)<span><a class="mark" href="#perf_hooks_performanceobserver_observe_options" id="perf_hooks_performanceobserver_observe_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div><ul>
+<li><code>options</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>entryTypes</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> An array of strings identifying the types of
+<code>PerformanceEntry</code> instances the observer is interested in. If not
+provided an error will be thrown.</li>
+<li><code>buffered</code> 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If true, the notification callback will be
+called using <code>setImmediate()</code> and multiple <code>PerformanceEntry</code> instance
+notifications will be buffered internally. If <code>false</code>, notifications will
+be immediate and synchronous. Defaults to <code>false</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Subscribes the <code>PerformanceObserver</code> instance to notifications of new
+<code>PerformanceEntry</code> instances identified by <code>options.entryTypes</code>.</p>
+<p>When <code>options.buffered</code> is <code>false</code>, the <code>callback</code> will be invoked once for
+every <code>PerformanceEntry</code> instance:</p>
+<pre><code class="lang-js">const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+
+const obs = new PerformanceObserver((list, observer) =&gt; {
+  // called three times synchronously. list contains one item
+});
+obs.observe({ entryTypes: [&#39;mark&#39;] });
+
+for (let n = 0; n &lt; 3; n++)
+  performance.mark(`test${n}`);
+</code></pre>
+<pre><code class="lang-js">const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+
+const obs = new PerformanceObserver((list, observer) =&gt; {
+  // called once. list contains three items
+});
+obs.observe({ entryTypes: [&#39;mark&#39;], buffered: true });
+
+for (let n = 0; n &lt; 3; n++)
+  performance.mark(`test${n}`);
+</code></pre>
+<h2>Examples<span><a class="mark" href="#perf_hooks_examples" id="perf_hooks_examples">#</a></span></h2>
+<h3>Measuring the duration of async operations<span><a class="mark" href="#perf_hooks_measuring_the_duration_of_async_operations" id="perf_hooks_measuring_the_duration_of_async_operations">#</a></span></h3>
+<p>The following example uses the <a href="async_hooks.html">Async Hooks</a> and Performance APIs to measure
+the actual duration of a Timeout operation (including the amount of time it
+to execute the callback).</p>
+<pre><code class="lang-js">&#39;use strict&#39;;
+const async_hooks = require(&#39;async_hooks&#39;);
+const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+
+const set = new Set();
+const hook = async_hooks.createHook({
+  init(id, type) {
+    if (type === &#39;Timeout&#39;) {
+      performance.mark(`Timeout-${id}-Init`);
+      set.add(id);
+    }
+  },
+  destroy(id) {
+    if (set.has(id)) {
+      set.delete(id);
+      performance.mark(`Timeout-${id}-Destroy`);
+      performance.measure(`Timeout-${id}`,
+                          `Timeout-${id}-Init`,
+                          `Timeout-${id}-Destroy`);
+    }
+  }
+});
+hook.enable();
+
+const obs = new PerformanceObserver((list, observer) =&gt; {
+  console.log(list.getEntries()[0]);
+  performance.clearMarks();
+  performance.clearMeasures();
+  observer.disconnect();
+});
+obs.observe({ entryTypes: [&#39;measure&#39;], buffered: true });
+
+setTimeout(() =&gt; {}, 1000);
+</code></pre>
+<h3>Measuring how long it takes to load dependencies<span><a class="mark" href="#perf_hooks_measuring_how_long_it_takes_to_load_dependencies" id="perf_hooks_measuring_how_long_it_takes_to_load_dependencies">#</a></span></h3>
+<p>The following example measures the duration of <code>require()</code> operations to load
+dependencies:</p>
+<!-- eslint-disable no-global-assign -->
+<pre><code class="lang-js">&#39;use strict&#39;;
+const {
+  performance,
+  PerformanceObserver
+} = require(&#39;perf_hooks&#39;);
+const mod = require(&#39;module&#39;);
+
+// Monkey patch the require function
+mod.Module.prototype.require =
+  performance.timerify(mod.Module.prototype.require);
+require = performance.timerify(require);
+
+// Activate the observer
+const obs = new PerformanceObserver((list) =&gt; {
+  const entries = list.getEntries();
+  entries.forEach((entry) =&gt; {
+    console.log(`require(&#39;${entry[0]}&#39;)`, entry.duration);
+  });
+  obs.disconnect();
+  // Free memory
+  performance.clearFunctions();
+});
+obs.observe({ entryTypes: [&#39;function&#39;], buffered: true });
+
+require(&#39;some-module&#39;);
+</code></pre>
+
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+  <!-- __TRACKING__ -->
+</body>
+</html>
+

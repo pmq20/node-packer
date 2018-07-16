@@ -53,11 +53,11 @@ class Truncation final {
   bool IsUsedAsFloat64() const {
     return LessGeneral(kind_, TruncationKind::kFloat64);
   }
-  bool IdentifiesNaNAndZero() {
+  bool IdentifiesUndefinedAndZero() {
     return LessGeneral(kind_, TruncationKind::kWord32) ||
            LessGeneral(kind_, TruncationKind::kBool);
   }
-  bool IdentifiesUndefinedAndNaNAndZero() {
+  bool IdentifiesUndefinedAndNaN() {
     return LessGeneral(kind_, TruncationKind::kFloat64) ||
            LessGeneral(kind_, TruncationKind::kWord64);
   }
@@ -132,7 +132,6 @@ inline std::ostream& operator<<(std::ostream& os, TypeCheckKind type_check) {
       return os << "HeapObject";
   }
   UNREACHABLE();
-  return os;
 }
 
 // The {UseInfo} class is used to describe a use of an input of a node.

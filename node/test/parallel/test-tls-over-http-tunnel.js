@@ -26,19 +26,16 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const https = require('https');
-const fs = require('fs');
 const net = require('net');
 const http = require('http');
+const fixtures = require('../common/fixtures');
 
 let gotRequest = false;
 
-const key = fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`);
-const cert = fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`);
+const key = fixtures.readKey('agent1-key.pem');
+const cert = fixtures.readKey('agent1-cert.pem');
 
-const options = {
-  key: key,
-  cert: cert
-};
+const options = { key, cert };
 
 const server = https.createServer(options, function(req, res) {
   console.log('SERVER: got request');

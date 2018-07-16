@@ -25,8 +25,7 @@ Node* ForInBuiltinsAssembler::ForInFilter(Node* key, Node* object,
 
   VARIABLE(var_result, MachineRepresentation::kTagged, key);
 
-  Node* has_property =
-      HasProperty(object, key, context, Runtime::kForInHasProperty);
+  Node* has_property = HasProperty(object, key, context, kForInHasProperty);
 
   Label end(this);
   GotoIf(WordEqual(has_property, BooleanConstant(true)), &end);
@@ -82,7 +81,12 @@ void ForInBuiltinsAssembler::CheckPrototypeEnumCache(Node* receiver, Node* map,
   BIND(&loop);
   {
     Label if_elements(this), if_no_elements(this);
-    Node* elements = LoadElements(current_js_object.value());
+    TNode<JSReceiver> receiver = CAST(current_js_object.value());
+    // The following relies on the elements only aliasing with JSProxy::target,
+    // which is a Javascript value and hence cannot be confused with an elements
+    // backing store.
+    STATIC_ASSERT(JSObject::kElementsOffset == JSProxy::kTargetOffset);
+    Node* elements = LoadObjectField(receiver, JSObject::kElementsOffset);
     Node* empty_fixed_array = LoadRoot(Heap::kEmptyFixedArrayRootIndex);
     // Check that there are no elements.
     Branch(WordEqual(elements, empty_fixed_array), &if_no_elements,
@@ -111,7 +115,7 @@ void ForInBuiltinsAssembler::CheckPrototypeEnumCache(Node* receiver, Node* map,
     // For all objects but the receiver, check that the cache is empty.
     current_map.Bind(LoadMap(current_js_object.value()));
     Node* enum_length = EnumLength(current_map.value());
-    Node* zero_constant = SmiConstant(Smi::kZero);
+    Node* zero_constant = SmiConstant(0);
     Branch(WordEqual(enum_length, zero_constant), &loop, use_runtime);
   }
 }
@@ -127,8 +131,7 @@ void ForInBuiltinsAssembler::CheckEnumCache(Node* receiver, Label* use_cache,
   // Check if the enum length field is properly initialized, indicating that
   // there is an enum cache.
   {
-    Node* invalid_enum_cache_sentinel =
-        SmiConstant(Smi::FromInt(kInvalidEnumCacheSentinel));
+    Node* invalid_enum_cache_sentinel = SmiConstant(kInvalidEnumCacheSentinel);
     Node* enum_length = EnumLength(map);
     Branch(WordEqual(enum_length, invalid_enum_cache_sentinel),
            &check_dict_receiver, &check_empty_prototype);
@@ -144,7 +147,7 @@ void ForInBuiltinsAssembler::CheckEnumCache(Node* receiver, Label* use_cache,
   {
     // Avoid runtime-call for empty dictionary receivers.
     GotoIfNot(IsDictionaryMap(map), use_runtime);
-    Node* properties = LoadProperties(receiver);
+    Node* properties = LoadSlowProperties(receiver);
     Node* length = LoadFixedArrayElement(
         properties, NameDictionary::kNumberOfElementsIndex);
     GotoIfNot(WordEqual(length, SmiConstant(0)), use_runtime);

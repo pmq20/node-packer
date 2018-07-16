@@ -24,6 +24,9 @@
 const util = require('util');
 const kCounts = Symbol('counts');
 
+// Track amount of indentation required via `console.group()`.
+const kGroupIndent = Symbol('groupIndent');
+
 function Console(stdout, stderr, ignoreErrors = true) {
   if (!(this instanceof Console)) {
     return new Console(stdout, stderr, ignoreErrors);
@@ -57,6 +60,9 @@ function Console(stdout, stderr, ignoreErrors = true) {
 
   this[kCounts] = new Map();
 
+  Object.defineProperty(this, kGroupIndent, { writable: true });
+  this[kGroupIndent] = '';
+
   // bind the prototype functions to this Console instance
   var keys = Object.keys(Console.prototype);
   for (var v = 0; v < keys.length; v++) {
@@ -75,13 +81,24 @@ function createWriteErrorHandler(stream) {
       // If there was an error, it will be emitted on `stream` as
       // an `error` event. Adding a `once` listener will keep that error
       // from becoming an uncaught exception, but since the handler is
-      // removed after the event, non-console.* writes won’t be affected.
-      stream.once('error', noop);
+      // removed after the event, non-console.* writes won't be affected.
+      // we are only adding noop if there is no one else listening for 'error'
+      if (stream.listenerCount('error') === 0) {
+        stream.on('error', noop);
+      }
     }
   };
 }
 
-function write(ignoreErrors, stream, string, errorhandler) {
+function write(ignoreErrors, stream, string, errorhandler, groupIndent) {
+  if (groupIndent.length !== 0) {
+    if (string.indexOf('\n') !== -1) {
+      string = string.replace(/\n/g, `\n${groupIndent}`);
+    }
+    string = groupIndent + string;
+  }
+  string += '\n';
+
   if (!ignoreErrors) return stream.write(string);
 
   // There may be an error occurring synchronously (e.g. for files or TTYs
@@ -97,7 +114,7 @@ function write(ignoreErrors, stream, string, errorhandler) {
     // even in edge cases such as low stack space.
     if (e.message === 'Maximum call stack size exceeded')
       throw e;
-    // Sorry, there’s no proper way to pass along the error here.
+    // Sorry, there's no proper way to pass along the error here.
   } finally {
     stream.removeListener('error', noop);
   }
@@ -110,9 +127,13 @@ function write(ignoreErrors, stream, string, errorhandler) {
 Console.prototype.log = function log(...args) {
   write(this._ignoreErrors,
         this._stdout,
-        `${util.format.apply(null, args)}\n`,
-        this._stdoutErrorHandler);
+        util.format.apply(null, args),
+        this._stdoutErrorHandler,
+        this[kGroupIndent]);
 };
+
+
+Console.prototype.debug = Console.prototype.log;
 
 
 Console.prototype.info = Console.prototype.log;
@@ -121,8 +142,9 @@ Console.prototype.info = Console.prototype.log;
 Console.prototype.warn = function warn(...args) {
   write(this._ignoreErrors,
         this._stderr,
-        `${util.format.apply(null, args)}\n`,
-        this._stderrErrorHandler);
+        util.format.apply(null, args),
+        this._stderrErrorHandler,
+        this[kGroupIndent]);
 };
 
 
@@ -130,11 +152,12 @@ Console.prototype.error = Console.prototype.warn;
 
 
 Console.prototype.dir = function dir(object, options) {
-  options = Object.assign({customInspect: false}, options);
+  options = Object.assign({ customInspect: false }, options);
   write(this._ignoreErrors,
         this._stdout,
-        `${util.inspect(object, options)}\n`,
-        this._stdoutErrorHandler);
+        util.inspect(object, options),
+        this._stdoutErrorHandler,
+        this[kGroupIndent]);
 };
 
 
@@ -207,6 +230,20 @@ Console.prototype.count = function count(label = 'default') {
 Console.prototype.countReset = function countReset(label = 'default') {
   const counts = this[kCounts];
   counts.delete(`${label}`);
+};
+
+Console.prototype.group = function group(...data) {
+  if (data.length > 0) {
+    this.log(...data);
+  }
+  this[kGroupIndent] += '  ';
+};
+
+Console.prototype.groupCollapsed = Console.prototype.group;
+
+Console.prototype.groupEnd = function groupEnd() {
+  this[kGroupIndent] =
+    this[kGroupIndent].slice(0, this[kGroupIndent].length - 2);
 };
 
 module.exports = new Console(process.stdout, process.stderr);

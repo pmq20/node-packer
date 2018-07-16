@@ -4,10 +4,18 @@
     {
       "textRaw": "File System",
       "name": "fs",
+      "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>File I/O is provided by simple wrappers around standard POSIX functions.  To\nuse this module do <code>require(&#39;fs&#39;)</code>. All the methods have asynchronous and\nsynchronous forms.</p>\n<p>The asynchronous form always takes a completion callback as its last argument.\nThe arguments passed to the completion callback depend on the method, but the\nfirst argument is always reserved for an exception. If the operation was\ncompleted successfully, then the first argument will be <code>null</code> or <code>undefined</code>.</p>\n<p>When using the synchronous form any exceptions are immediately thrown.\nExceptions may be handled using <code>try</code>/<code>catch</code>, or they may be allowed to\nbubble up.</p>\n<p>Here is an example of the asynchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlink(&#39;/tmp/hello&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;successfully deleted /tmp/hello&#39;);\n});\n</code></pre>\n<p>Here is the synchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlinkSync(&#39;/tmp/hello&#39;);\nconsole.log(&#39;successfully deleted /tmp/hello&#39;);\n</code></pre>\n<p>With the asynchronous methods there is no guaranteed ordering. So the\nfollowing is prone to error:</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;renamed complete&#39;);\n});\nfs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n  if (err) throw err;\n  console.log(`stats: ${JSON.stringify(stats)}`);\n});\n</code></pre>\n<p>It could be that <code>fs.stat</code> is executed before <code>fs.rename</code>.\nThe correct way to do this is to chain the callbacks.</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  fs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>\n<p>In busy processes, the programmer is <em>strongly encouraged</em> to use the\nasynchronous versions of these calls. The synchronous versions will block\nthe entire process until they complete--halting all connections.</p>\n<p>The relative path to a filename can be used. Remember, however, that this path\nwill be relative to <code>process.cwd()</code>.</p>\n<p>While it is not recommended, most fs functions allow the callback argument to\nbe omitted, in which case a default callback is used that rethrows errors. To\nget a trace to the original call site, set the <code>NODE_DEBUG</code> environment\nvariable:</p>\n<p><em>Note</em>: Omitting the callback function on asynchronous fs functions is\ndeprecated and may result in an error being thrown in the future.</p>\n<pre><code class=\"lang-txt\">$ cat script.js\nfunction bad() {\n  require(&#39;fs&#39;).readFile(&#39;/&#39;);\n}\nbad();\n\n$ env NODE_DEBUG=fs node script.js\nfs.js:88\n        throw backtrace;\n        ^\nError: EISDIR: illegal operation on a directory, read\n    &lt;stack trace.&gt;\n</code></pre>\n<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.\nThis behavior can be observed when using a drive path without a backslash. For\nexample <code>fs.readdirSync(&#39;c:\\\\&#39;)</code> can potentially return a different result than\n<code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths\">this MSDN page</a>.</p>\n",
+      "desc": "<p>File I/O is provided by simple wrappers around standard POSIX functions. To\nuse this module do <code>require(&#39;fs&#39;)</code>. All the methods have asynchronous and\nsynchronous forms.</p>\n<p>The asynchronous form always takes a completion callback as its last argument.\nThe arguments passed to the completion callback depend on the method, but the\nfirst argument is always reserved for an exception. If the operation was\ncompleted successfully, then the first argument will be <code>null</code> or <code>undefined</code>.</p>\n<p>When using the synchronous form any exceptions are immediately thrown.\nExceptions may be handled using <code>try</code>/<code>catch</code>, or they may be allowed to\nbubble up.</p>\n<p>Here is an example of the asynchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlink(&#39;/tmp/hello&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;successfully deleted /tmp/hello&#39;);\n});\n</code></pre>\n<p>Here is the synchronous version:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\nfs.unlinkSync(&#39;/tmp/hello&#39;);\nconsole.log(&#39;successfully deleted /tmp/hello&#39;);\n</code></pre>\n<p>With the asynchronous methods there is no guaranteed ordering. So the\nfollowing is prone to error:</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;renamed complete&#39;);\n});\nfs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n  if (err) throw err;\n  console.log(`stats: ${JSON.stringify(stats)}`);\n});\n</code></pre>\n<p>It could be that <code>fs.stat</code> is executed before <code>fs.rename</code>.\nThe correct way to do this is to chain the callbacks.</p>\n<pre><code class=\"lang-js\">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {\n  if (err) throw err;\n  fs.stat(&#39;/tmp/world&#39;, (err, stats) =&gt; {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>\n<p>In busy processes, the programmer is <em>strongly encouraged</em> to use the\nasynchronous versions of these calls. The synchronous versions will block\nthe entire process until they complete — halting all connections.</p>\n<p>The relative path to a filename can be used. Remember, however, that this path\nwill be relative to <code>process.cwd()</code>.</p>\n<p>While it is not recommended, most fs functions allow the callback argument to\nbe omitted, in which case a default callback is used that rethrows errors. To\nget a trace to the original call site, set the <code>NODE_DEBUG</code> environment\nvariable:</p>\n<p><em>Note</em>: Omitting the callback function on asynchronous fs functions is\ndeprecated and may result in an error being thrown in the future.</p>\n<pre><code class=\"lang-txt\">$ cat script.js\nfunction bad() {\n  require(&#39;fs&#39;).readFile(&#39;/&#39;);\n}\nbad();\n\n$ env NODE_DEBUG=fs node script.js\nfs.js:88\n        throw backtrace;\n        ^\nError: EISDIR: illegal operation on a directory, read\n    &lt;stack trace.&gt;\n</code></pre>\n<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.\nThis behavior can be observed when using a drive path without a backslash. For\nexample <code>fs.readdirSync(&#39;c:\\\\&#39;)</code> can potentially return a different result than\n<code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths\">this MSDN page</a>.</p>\n<p><em>Note:</em> On Windows, opening an existing hidden file using the <code>w</code> flag (either\nthrough <code>fs.open</code> or <code>fs.writeFile</code>) will fail with <code>EPERM</code>. Existing hidden\nfiles can be opened for writing with the <code>r+</code> flag. A call to <code>fs.ftruncate</code> can\nbe used to reset the file contents.</p>\n",
       "modules": [
+        {
+          "textRaw": "Threadpool Usage",
+          "name": "threadpool_usage",
+          "desc": "<p>Note that all file system APIs except <code>fs.FSWatcher()</code> and those that are\nexplicitly synchronous use libuv&#39;s threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>\n",
+          "type": "module",
+          "displayName": "Threadpool Usage"
+        },
         {
           "textRaw": "WHATWG URL object support",
           "name": "whatwg_url_object_support",
@@ -51,7 +59,7 @@
             {
               "textRaw": "File Open Constants",
               "name": "file_open_constants",
-              "desc": "<p>The following constants are meant for use with <code>fs.open()</code>.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>O_RDONLY</code></td>\n    <td>Flag indicating to open a file for read-only access.</td>\n  </tr>\n  <tr>\n    <td><code>O_WRONLY</code></td>\n    <td>Flag indicating to open a file for write-only access.</td>\n  </tr>\n  <tr>\n    <td><code>O_RDWR</code></td>\n    <td>Flag indicating to open a file for read-write access.</td>\n  </tr>\n  <tr>\n    <td><code>O_CREAT</code></td>\n    <td>Flag indicating to create the file if it does not already exist.</td>\n  </tr>\n  <tr>\n    <td><code>O_EXCL</code></td>\n    <td>Flag indicating that opening a file should fail if the\n    <code>O_CREAT</code> flag is set and the file already exists.</td>\n  </tr>\n  <tr>\n    <td><code>O_NOCTTY</code></td>\n    <td>Flag indicating that if path identifies a terminal device, opening the\n    path shall not cause that terminal to become the controlling terminal for\n    the process (if the process does not already have one).</td>\n  </tr>\n  <tr>\n    <td><code>O_TRUNC</code></td>\n    <td>Flag indicating that if the file exists and is a regular file, and the\n    file is opened successfully for write access, its length shall be truncated\n    to zero.</td>\n  </tr>\n  <tr>\n    <td><code>O_APPEND</code></td>\n    <td>Flag indicating that data will be appended to the end of the file.</td>\n  </tr>\n  <tr>\n    <td><code>O_DIRECTORY</code></td>\n    <td>Flag indicating that the open should fail if the path is not a\n    directory.</td>\n  </tr>\n  <tr>\n  <td><code>O_NOATIME</code></td>\n    <td>Flag indicating reading accesses to the file system will no longer\n    result in an update to the <code>atime</code> information associated with the file.\n    This flag is available on Linux operating systems only.</td>\n  </tr>\n  <tr>\n    <td><code>O_NOFOLLOW</code></td>\n    <td>Flag indicating that the open should fail if the path is a symbolic\n    link.</td>\n  </tr>\n  <tr>\n    <td><code>O_SYNC</code></td>\n    <td>Flag indicating that the file is opened for synchronous I/O.</td>\n  </tr>\n  <tr>\n    <td><code>O_SYMLINK</code></td>\n    <td>Flag indicating to open the symbolic link itself rather than the\n    resource it is pointing to.</td>\n  </tr>\n  <tr>\n    <td><code>O_DIRECT</code></td>\n    <td>When set, an attempt will be made to minimize caching effects of file\n    I/O.</td>\n  </tr>\n  <tr>\n    <td><code>O_NONBLOCK</code></td>\n    <td>Flag indicating to open the file in nonblocking mode when possible.</td>\n  </tr>\n</table>\n\n",
+              "desc": "<p>The following constants are meant for use with <code>fs.open()</code>.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>O_RDONLY</code></td>\n    <td>Flag indicating to open a file for read-only access.</td>\n  </tr>\n  <tr>\n    <td><code>O_WRONLY</code></td>\n    <td>Flag indicating to open a file for write-only access.</td>\n  </tr>\n  <tr>\n    <td><code>O_RDWR</code></td>\n    <td>Flag indicating to open a file for read-write access.</td>\n  </tr>\n  <tr>\n    <td><code>O_CREAT</code></td>\n    <td>Flag indicating to create the file if it does not already exist.</td>\n  </tr>\n  <tr>\n    <td><code>O_EXCL</code></td>\n    <td>Flag indicating that opening a file should fail if the\n    <code>O_CREAT</code> flag is set and the file already exists.</td>\n  </tr>\n  <tr>\n    <td><code>O_NOCTTY</code></td>\n    <td>Flag indicating that if path identifies a terminal device, opening the\n    path shall not cause that terminal to become the controlling terminal for\n    the process (if the process does not already have one).</td>\n  </tr>\n  <tr>\n    <td><code>O_TRUNC</code></td>\n    <td>Flag indicating that if the file exists and is a regular file, and the\n    file is opened successfully for write access, its length shall be truncated\n    to zero.</td>\n  </tr>\n  <tr>\n    <td><code>O_APPEND</code></td>\n    <td>Flag indicating that data will be appended to the end of the file.</td>\n  </tr>\n  <tr>\n    <td><code>O_DIRECTORY</code></td>\n    <td>Flag indicating that the open should fail if the path is not a\n    directory.</td>\n  </tr>\n  <tr>\n  <td><code>O_NOATIME</code></td>\n    <td>Flag indicating reading accesses to the file system will no longer\n    result in an update to the <code>atime</code> information associated with the file.\n    This flag is available on Linux operating systems only.</td>\n  </tr>\n  <tr>\n    <td><code>O_NOFOLLOW</code></td>\n    <td>Flag indicating that the open should fail if the path is a symbolic\n    link.</td>\n  </tr>\n  <tr>\n    <td><code>O_SYNC</code></td>\n    <td>Flag indicating that the file is opened for synchronized I/O with write\n    operations waiting for file integrity.</td>\n  </tr>\n  <tr>\n    <td><code>O_DSYNC</code></td>\n    <td>Flag indicating that the file is opened for synchronized I/O with write\n    operations waiting for data integrity.</td>\n  </tr>\n  <tr>\n    <td><code>O_SYMLINK</code></td>\n    <td>Flag indicating to open the symbolic link itself rather than the\n    resource it is pointing to.</td>\n  </tr>\n  <tr>\n    <td><code>O_DIRECT</code></td>\n    <td>When set, an attempt will be made to minimize caching effects of file\n    I/O.</td>\n  </tr>\n  <tr>\n    <td><code>O_NONBLOCK</code></td>\n    <td>Flag indicating to open the file in nonblocking mode when possible.</td>\n  </tr>\n</table>\n\n",
               "type": "module",
               "displayName": "File Open Constants"
             },
@@ -65,7 +73,7 @@
             {
               "textRaw": "File Mode Constants",
               "name": "file_mode_constants",
-              "desc": "<p>The following constants are meant for use with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object&#39;s\n<code>mode</code> property for determining the access permissions for a file.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>S_IRWXU</code></td>\n    <td>File mode indicating readable, writable and executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRUSR</code></td>\n    <td>File mode indicating readable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWUSR</code></td>\n    <td>File mode indicating writable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXUSR</code></td>\n    <td>File mode indicating executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXG</code></td>\n    <td>File mode indicating readable, writable and executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRGRP</code></td>\n    <td>File mode indicating readable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWGRP</code></td>\n    <td>File mode indicating writable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXGRP</code></td>\n    <td>File mode indicating executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXO</code></td>\n    <td>File mode indicating readable, writable and executable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IROTH</code></td>\n    <td>File mode indicating readable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWOTH</code></td>\n    <td>File mode indicating writable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXOTH</code></td>\n    <td>File mode indicating executable by others.</td>\n  </tr>\n</table>\n\n\n",
+              "desc": "<p>The following constants are meant for use with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object&#39;s\n<code>mode</code> property for determining the access permissions for a file.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>S_IRWXU</code></td>\n    <td>File mode indicating readable, writable, and executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRUSR</code></td>\n    <td>File mode indicating readable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWUSR</code></td>\n    <td>File mode indicating writable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXUSR</code></td>\n    <td>File mode indicating executable by owner.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXG</code></td>\n    <td>File mode indicating readable, writable, and executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRGRP</code></td>\n    <td>File mode indicating readable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWGRP</code></td>\n    <td>File mode indicating writable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXGRP</code></td>\n    <td>File mode indicating executable by group.</td>\n  </tr>\n  <tr>\n    <td><code>S_IRWXO</code></td>\n    <td>File mode indicating readable, writable, and executable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IROTH</code></td>\n    <td>File mode indicating readable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IWOTH</code></td>\n    <td>File mode indicating writable by others.</td>\n  </tr>\n  <tr>\n    <td><code>S_IXOTH</code></td>\n    <td>File mode indicating executable by others.</td>\n  </tr>\n</table>\n\n\n",
               "type": "module",
               "displayName": "File Mode Constants"
             }
@@ -156,7 +164,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed\nusing the <code>fs.close()</code> method.</p>\n",
+              "desc": "<p>Emitted when the <code>ReadStream</code>&#39;s underlying file descriptor has been closed.</p>\n",
               "params": []
             },
             {
@@ -214,12 +222,12 @@
               }
             ]
           },
-          "desc": "<p>Objects returned from <a href=\"#fs_fs_stat_path_callback\"><code>fs.stat()</code></a>, <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a> and <a href=\"#fs_fs_fstat_fd_callback\"><code>fs.fstat()</code></a> and\ntheir synchronous counterparts are of this type.</p>\n<ul>\n<li><code>stats.isFile()</code></li>\n<li><code>stats.isDirectory()</code></li>\n<li><code>stats.isBlockDevice()</code></li>\n<li><code>stats.isCharacterDevice()</code></li>\n<li><code>stats.isSymbolicLink()</code> (only valid with <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a>)</li>\n<li><code>stats.isFIFO()</code></li>\n<li><code>stats.isSocket()</code></li>\n</ul>\n<p>For a regular file <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect(stats)</code></a> would return a string very\nsimilar to this:</p>\n<pre><code class=\"lang-console\">Stats {\n  dev: 2114,\n  ino: 48064969,\n  mode: 33188,\n  nlink: 1,\n  uid: 85,\n  gid: 100,\n  rdev: 0,\n  size: 527,\n  blksize: 4096,\n  blocks: 8,\n  atimeMs: 1318289051000.1,\n  mtimeMs: 1318289051000.1,\n  ctimeMs: 1318289051000.1,\n  birthtimeMs: 1318289051000.1,\n  atime: Mon, 10 Oct 2011 23:24:11 GMT,\n  mtime: Mon, 10 Oct 2011 23:24:11 GMT,\n  ctime: Mon, 10 Oct 2011 23:24:11 GMT,\n  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }\n</code></pre>\n<p><em>Note</em>: <code>atimeMs</code>, <code>mtimeMs</code>, <code>ctimeMs</code>, <code>birthtimeMs</code> are <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\">numbers</a>\nthat hold the corresponding times in milliseconds. Their precision is platform\nspecific. <code>atime</code>, <code>mtime</code>, <code>ctime</code>, and <code>birthtime</code> are <a href=\"https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date\"><code>Date</code></a>\nobject alternate representations of the various times. The <code>Date</code> and number\nvalues are not connected. Assigning a new number value, or mutating the <code>Date</code>\nvalue, will not be reflected in the corresponding alternate representation.</p>\n",
+          "desc": "<p>Objects returned from <a href=\"#fs_fs_stat_path_callback\"><code>fs.stat()</code></a>, <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a> and <a href=\"#fs_fs_fstat_fd_callback\"><code>fs.fstat()</code></a> and\ntheir synchronous counterparts are of this type.</p>\n<ul>\n<li><code>stats.isFile()</code></li>\n<li><code>stats.isDirectory()</code></li>\n<li><code>stats.isBlockDevice()</code></li>\n<li><code>stats.isCharacterDevice()</code></li>\n<li><code>stats.isSymbolicLink()</code> (only valid with <a href=\"#fs_fs_lstat_path_callback\"><code>fs.lstat()</code></a>)</li>\n<li><code>stats.isFIFO()</code></li>\n<li><code>stats.isSocket()</code></li>\n</ul>\n<p>For a regular file <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect(stats)</code></a> would return a string very\nsimilar to this:</p>\n<pre><code class=\"lang-console\">Stats {\n  dev: 2114,\n  ino: 48064969,\n  mode: 33188,\n  nlink: 1,\n  uid: 85,\n  gid: 100,\n  rdev: 0,\n  size: 527,\n  blksize: 4096,\n  blocks: 8,\n  atimeMs: 1318289051000.1,\n  mtimeMs: 1318289051000.1,\n  ctimeMs: 1318289051000.1,\n  birthtimeMs: 1318289051000.1,\n  atime: Mon, 10 Oct 2011 23:24:11 GMT,\n  mtime: Mon, 10 Oct 2011 23:24:11 GMT,\n  ctime: Mon, 10 Oct 2011 23:24:11 GMT,\n  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }\n</code></pre>\n<p><em>Note</em>: <code>atimeMs</code>, <code>mtimeMs</code>, <code>ctimeMs</code>, <code>birthtimeMs</code> are <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\">numbers</a>\nthat hold the corresponding times in milliseconds. Their precision is platform\nspecific. <code>atime</code>, <code>mtime</code>, <code>ctime</code>, and <code>birthtime</code> are <a href=\"https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Date\"><code>Date</code></a>\nobject alternate representations of the various times. The <code>Date</code> and number\nvalues are not connected. Assigning a new number value, or mutating the <code>Date</code>\nvalue, will not be reflected in the corresponding alternate representation.</p>\n",
           "modules": [
             {
               "textRaw": "Stat Time Values",
               "name": "stat_time_values",
-              "desc": "<p>The times in the stat object have the following semantics:</p>\n<ul>\n<li><code>atime</code> &quot;Access Time&quot; - Time when file data last accessed.  Changed\nby the mknod(2), utimes(2), and read(2) system calls.</li>\n<li><code>mtime</code> &quot;Modified Time&quot; - Time when file data last modified.\nChanged by the mknod(2), utimes(2), and write(2) system calls.</li>\n<li><code>ctime</code> &quot;Change Time&quot; - Time when file status was last changed\n(inode data modification).  Changed by the chmod(2), chown(2),\nlink(2), mknod(2), rename(2), unlink(2), utimes(2),\nread(2), and write(2) system calls.</li>\n<li><code>birthtime</code> &quot;Birth Time&quot; -  Time of file creation. Set once when the\nfile is created.  On filesystems where birthtime is not available,\nthis field may instead hold either the <code>ctime</code> or\n<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). Note that this\nvalue may be greater than <code>atime</code> or <code>mtime</code> in this case. On Darwin\nand other FreeBSD variants, also set if the <code>atime</code> is explicitly\nset to an earlier value than the current <code>birthtime</code> using the\nutimes(2) system call.</li>\n</ul>\n<p>Prior to Node v0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows\nsystems.  Note that as of v0.12, <code>ctime</code> is not &quot;creation time&quot;, and\non Unix systems, it never was.</p>\n",
+              "desc": "<p>The times in the stat object have the following semantics:</p>\n<ul>\n<li><code>atime</code> &quot;Access Time&quot; - Time when file data last accessed. Changed\nby the mknod(2), utimes(2), and read(2) system calls.</li>\n<li><code>mtime</code> &quot;Modified Time&quot; - Time when file data last modified.\nChanged by the mknod(2), utimes(2), and write(2) system calls.</li>\n<li><code>ctime</code> &quot;Change Time&quot; - Time when file status was last changed\n(inode data modification). Changed by the chmod(2), chown(2),\nlink(2), mknod(2), rename(2), unlink(2), utimes(2),\nread(2), and write(2) system calls.</li>\n<li><code>birthtime</code> &quot;Birth Time&quot; - Time of file creation. Set once when the\nfile is created. On filesystems where birthtime is not available,\nthis field may instead hold either the <code>ctime</code> or\n<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). Note that this\nvalue may be greater than <code>atime</code> or <code>mtime</code> in this case. On Darwin\nand other FreeBSD variants, also set if the <code>atime</code> is explicitly\nset to an earlier value than the current <code>birthtime</code> using the\nutimes(2) system call.</li>\n</ul>\n<p>Prior to Node v0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows\nsystems. Note that as of v0.12, <code>ctime</code> is not &quot;creation time&quot;, and\non Unix systems, it never was.</p>\n",
               "type": "module",
               "displayName": "Stat Time Values"
             }
@@ -247,7 +255,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed\nusing the <code>fs.close()</code> method.</p>\n",
+              "desc": "<p>Emitted when the <code>WriteStream</code>&#39;s underlying file descriptor has been closed.</p>\n",
               "params": []
             },
             {
@@ -329,6 +337,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -349,7 +364,7 @@
               ]
             }
           ],
-          "desc": "<p>Tests a user&#39;s permissions for the file or directory specified by <code>path</code>.\nThe <code>mode</code> argument is an optional integer that specifies the accessibility\nchecks to be performed. The following constants define the possible values of\n<code>mode</code>. It is possible to create a mask consisting of the bitwise OR of two or\nmore values.</p>\n<ul>\n<li><code>fs.constants.F_OK</code> - <code>path</code> is visible to the calling process. This is useful\nfor determining if a file exists, but says nothing about <code>rwx</code> permissions.\nDefault if no <code>mode</code> is specified.</li>\n<li><code>fs.constants.R_OK</code> - <code>path</code> can be read by the calling process.</li>\n<li><code>fs.constants.W_OK</code> - <code>path</code> can be written by the calling process.</li>\n<li><code>fs.constants.X_OK</code> - <code>path</code> can be executed by the calling process. This has\nno effect on Windows (will behave like <code>fs.constants.F_OK</code>).</li>\n</ul>\n<p>The final argument, <code>callback</code>, is a callback function that is invoked with\na possible error argument. If any of the accessibility checks fail, the error\nargument will be populated. The following example checks if the file\n<code>/etc/passwd</code> can be read and written by the current process.</p>\n<pre><code class=\"lang-js\">fs.access(&#39;/etc/passwd&#39;, fs.constants.R_OK | fs.constants.W_OK, (err) =&gt; {\n  console.log(err ? &#39;no access!&#39; : &#39;can read/write&#39;);\n});\n</code></pre>\n<p>Using <code>fs.access()</code> to check for the accessibility of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file is not accessible.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (!err) {\n    console.error(&#39;myfile already exists&#39;);\n    return;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    writeMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    readMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for accessibility and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the accessibility of a file only if the file won’t be\nused directly, for example when its accessibility is a signal from another\nprocess.</p>\n"
+          "desc": "<p>Tests a user&#39;s permissions for the file or directory specified by <code>path</code>.\nThe <code>mode</code> argument is an optional integer that specifies the accessibility\nchecks to be performed. The following constants define the possible values of\n<code>mode</code>. It is possible to create a mask consisting of the bitwise OR of two or\nmore values (e.g. <code>fs.constants.W_OK | fs.constants.R_OK</code>).</p>\n<ul>\n<li><code>fs.constants.F_OK</code> - <code>path</code> is visible to the calling process. This is useful\nfor determining if a file exists, but says nothing about <code>rwx</code> permissions.\nDefault if no <code>mode</code> is specified.</li>\n<li><code>fs.constants.R_OK</code> - <code>path</code> can be read by the calling process.</li>\n<li><code>fs.constants.W_OK</code> - <code>path</code> can be written by the calling process.</li>\n<li><code>fs.constants.X_OK</code> - <code>path</code> can be executed by the calling process. This has\nno effect on Windows (will behave like <code>fs.constants.F_OK</code>).</li>\n</ul>\n<p>The final argument, <code>callback</code>, is a callback function that is invoked with\na possible error argument. If any of the accessibility checks fail, the error\nargument will be an <code>Error</code> object. The following example checks if the file\n<code>/etc/passwd</code> can be read and written by the current process.</p>\n<pre><code class=\"lang-js\">fs.access(&#39;/etc/passwd&#39;, fs.constants.R_OK | fs.constants.W_OK, (err) =&gt; {\n  console.log(err ? &#39;no access!&#39; : &#39;can read/write&#39;);\n});\n</code></pre>\n<p>Using <code>fs.access()</code> to check for the accessibility of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file is not accessible.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (!err) {\n    console.error(&#39;myfile already exists&#39;);\n    return;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    writeMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    readMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for accessibility and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the accessibility of a file only if the file will not be\nused directly, for example when its accessibility is a signal from another\nprocess.</p>\n"
         },
         {
           "textRaw": "fs.accessSync(path[, mode])",
@@ -369,6 +384,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {undefined} ",
+                "name": "return",
+                "type": "undefined"
+              },
               "params": [
                 {
                   "textRaw": "`path` {string|Buffer|URL} ",
@@ -396,7 +416,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"#fs_fs_access_path_mode_callback\"><code>fs.access()</code></a>. This throws if any accessibility\nchecks fail, and does nothing otherwise.</p>\n"
+          "desc": "<p>Synchronously tests a user&#39;s permissions for the file or directory specified by\n<code>path</code>. The <code>mode</code> argument is an optional integer that specifies the\naccessibility checks to be performed. The following constants define the\npossible values of <code>mode</code>. It is possible to create a mask consisting of the\nbitwise OR of two or more values (e.g. <code>fs.constants.W_OK | fs.constants.R_OK</code>).</p>\n<ul>\n<li><code>fs.constants.F_OK</code> - <code>path</code> is visible to the calling process. This is useful\nfor determining if a file exists, but says nothing about <code>rwx</code> permissions.\nDefault if no <code>mode</code> is specified.</li>\n<li><code>fs.constants.R_OK</code> - <code>path</code> can be read by the calling process.</li>\n<li><code>fs.constants.W_OK</code> - <code>path</code> can be written by the calling process.</li>\n<li><code>fs.constants.X_OK</code> - <code>path</code> can be executed by the calling process. This has\nno effect on Windows (will behave like <code>fs.constants.F_OK</code>).</li>\n</ul>\n<p>If any of the accessibility checks fail, an <code>Error</code> will be thrown. Otherwise,\nthe method will return <code>undefined</code>.</p>\n<pre><code class=\"lang-js\">try {\n  fs.accessSync(&#39;etc/passwd&#39;, fs.constants.R_OK | fs.constants.W_OK);\n  console.log(&#39;can read/write&#39;);\n} catch (err) {\n  console.error(&#39;no access!&#39;);\n}\n</code></pre>\n"
         },
         {
           "textRaw": "fs.appendFile(file, data[, options], callback)",
@@ -428,9 +448,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|number} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|URL|number} filename or file descriptor ",
                   "name": "file",
-                  "type": "string|Buffer|number",
+                  "type": "string|Buffer|URL|number",
                   "desc": "filename or file descriptor"
                 },
                 {
@@ -466,6 +486,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -489,7 +516,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet exist.\n<code>data</code> can be a string or a buffer.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The &quot;data to append&quot; was appended to file!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>Any specified file descriptor has to have been opened for appending.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</p>\n"
+          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;The &quot;data to append&quot; was appended to file!&#39;);\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.appendFile(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p>The <code>file</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"lang-js\">fs.open(&#39;message.txt&#39;, &#39;a&#39;, (err, fd) =&gt; {\n  if (err) throw err;\n  fs.appendFile(fd, &#39;data to append&#39;, &#39;utf8&#39;, (err) =&gt; {\n    fs.close(fd, (err) =&gt; {\n      if (err) throw err;\n    });\n    if (err) throw err;\n  });\n});\n</code></pre>\n"
         },
         {
           "textRaw": "fs.appendFileSync(file, data[, options])",
@@ -516,9 +543,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|number} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|URL|number} filename or file descriptor ",
                   "name": "file",
-                  "type": "string|Buffer|number",
+                  "type": "string|Buffer|URL|number",
                   "desc": "filename or file descriptor"
                 },
                 {
@@ -569,7 +596,7 @@
               ]
             }
           ],
-          "desc": "<p>The synchronous version of <a href=\"fs.html#fs_fs_appendfile_file_data_options_callback\"><code>fs.appendFile()</code></a>. Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">try {\n  fs.appendFileSync(&#39;message.txt&#39;, &#39;data to append&#39;);\n  console.log(&#39;The &quot;data to append&quot; was appended to file!&#39;);\n} catch (err) {\n  /* Handle the error */\n}\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.appendFileSync(&#39;message.txt&#39;, &#39;data to append&#39;, &#39;utf8&#39;);\n</code></pre>\n<p>The <code>file</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"lang-js\">let fd;\n\ntry {\n  fd = fs.openSync(&#39;message.txt&#39;, &#39;a&#39;);\n  fs.appendFileSync(fd, &#39;data to append&#39;, &#39;utf8&#39;);\n} catch (err) {\n  /* Handle the error */\n} finally {\n  if (fd !== undefined)\n    fs.closeSync(fd);\n}\n</code></pre>\n"
         },
         {
           "textRaw": "fs.chmod(path, mode, callback)",
@@ -607,6 +634,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -626,7 +660,16 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous chmod(2). No arguments other than a possible exception are given\nto the completion callback.</p>\n"
+          "desc": "<p>Asynchronously changes the permissions of a file. No arguments other than a\npossible exception are given to the completion callback.</p>\n<p>See also: chmod(2)</p>\n",
+          "modules": [
+            {
+              "textRaw": "File modes",
+              "name": "file_modes",
+              "desc": "<p>The <code>mode</code> argument used in both the <code>fs.chmod()</code> and <code>fs.chmodSync()</code>\nmethods is a numeric bitmask created using a logical OR of the following\nconstants:</p>\n<table>\n<thead>\n<tr>\n<th>Constant</th>\n<th>Octal</th>\n<th>Description</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>fs.constants.S_IRUSR</code></td>\n<td><code>0o400</code></td>\n<td>read by owner</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IWUSR</code></td>\n<td><code>0o200</code></td>\n<td>write by owner</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IXUSR</code></td>\n<td><code>0o100</code></td>\n<td>execute/search by owner</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IRGRP</code></td>\n<td><code>0o40</code></td>\n<td>read by group</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IWGRP</code></td>\n<td><code>0o20</code></td>\n<td>write by group</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IXGRP</code></td>\n<td><code>0o10</code></td>\n<td>execute/search by group</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IROTH</code></td>\n<td><code>0o4</code></td>\n<td>read by others</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IWOTH</code></td>\n<td><code>0o2</code></td>\n<td>write by others</td>\n</tr>\n<tr>\n<td><code>fs.constants.S_IXOTH</code></td>\n<td><code>0o1</code></td>\n<td>execute/search by others</td>\n</tr>\n</tbody>\n</table>\n<p>An easier method of constructing the <code>mode</code> is to use a sequence of three\noctal digits (e.g. <code>765</code>). The left-most digit (<code>7</code> in the example), specifies\nthe permissions for the file owner. The middle digit (<code>6</code> in the example),\nspecifies permissions for the group. The right-most digit (<code>5</code> in the example),\nspecifies the permissions for others.</p>\n<table>\n<thead>\n<tr>\n<th>Number</th>\n<th>Description</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>7</code></td>\n<td>read, write, and execute</td>\n</tr>\n<tr>\n<td><code>6</code></td>\n<td>read and write</td>\n</tr>\n<tr>\n<td><code>5</code></td>\n<td>read and execute</td>\n</tr>\n<tr>\n<td><code>4</code></td>\n<td>read only</td>\n</tr>\n<tr>\n<td><code>3</code></td>\n<td>write and execute</td>\n</tr>\n<tr>\n<td><code>2</code></td>\n<td>write only</td>\n</tr>\n<tr>\n<td><code>1</code></td>\n<td>execute only</td>\n</tr>\n<tr>\n<td><code>0</code></td>\n<td>no permission</td>\n</tr>\n</tbody>\n</table>\n<p>For example, the octal value <code>0o765</code> means:</p>\n<ul>\n<li>The owner may read, write and execute the file.</li>\n<li>The group may read and write the file.</li>\n<li>Others may read and execute the file.</li>\n</ul>\n",
+              "type": "module",
+              "displayName": "File modes"
+            }
+          ]
         },
         {
           "textRaw": "fs.chmodSync(path, mode)",
@@ -670,7 +713,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous chmod(2). Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronously changes the permissions of a file. Returns <code>undefined</code>.\nThis is the synchronous version of <a href=\"#fs_fs_chmod_path_mode_callback\"><code>fs.chmod()</code></a>.</p>\n<p>See also: chmod(2)</p>\n"
         },
         {
           "textRaw": "fs.chown(path, uid, gid, callback)",
@@ -713,6 +756,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -735,7 +785,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous chown(2). No arguments other than a possible exception are given\nto the completion callback.</p>\n"
+          "desc": "<p>Asynchronously changes owner and group of a file. No arguments other than a\npossible exception are given to the completion callback.</p>\n<p>See also: chown(2)</p>\n"
         },
         {
           "textRaw": "fs.chownSync(path, uid, gid)",
@@ -787,7 +837,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous chown(2). Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronously changes owner and group of a file. Returns <code>undefined</code>.\nThis is the synchronous version of <a href=\"#fs_fs_chown_path_uid_gid_callback\"><code>fs.chown()</code></a>.</p>\n<p>See also: chown(2)</p>\n"
         },
         {
           "textRaw": "fs.close(fd, callback)",
@@ -815,6 +865,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -831,7 +888,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous close(2).  No arguments other than a possible exception are given\nto the completion callback.</p>\n"
+          "desc": "<p>Asynchronous close(2). No arguments other than a possible exception are given\nto the completion callback.</p>\n"
         },
         {
           "textRaw": "fs.closeSync(fd)",
@@ -862,6 +919,116 @@
             }
           ],
           "desc": "<p>Synchronous close(2). Returns <code>undefined</code>.</p>\n"
+        },
+        {
+          "textRaw": "fs.copyFile(src, dest[, flags], callback)",
+          "type": "method",
+          "name": "copyFile",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`src` {string|Buffer|URL} source filename to copy ",
+                  "name": "src",
+                  "type": "string|Buffer|URL",
+                  "desc": "source filename to copy"
+                },
+                {
+                  "textRaw": "`dest` {string|Buffer|URL} destination filename of the copy operation ",
+                  "name": "dest",
+                  "type": "string|Buffer|URL",
+                  "desc": "destination filename of the copy operation"
+                },
+                {
+                  "textRaw": "`flags` {number} modifiers for copy operation. **Default:** `0` ",
+                  "name": "flags",
+                  "type": "number",
+                  "desc": "modifiers for copy operation. **Default:** `0`",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "src"
+                },
+                {
+                  "name": "dest"
+                },
+                {
+                  "name": "flags",
+                  "optional": true
+                },
+                {
+                  "name": "callback"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. No arguments other than a possible exception are given to the\ncallback function. Node.js makes no guarantees about the atomicity of the copy\noperation. If an error occurs after the destination file has been opened for\nwriting, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. The only supported flag is <code>fs.constants.COPYFILE_EXCL</code>,\nwhich causes the copy operation to fail if <code>dest</code> already exists.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\n// destination.txt will be created or overwritten by default.\nfs.copyFile(&#39;source.txt&#39;, &#39;destination.txt&#39;, (err) =&gt; {\n  if (err) throw err;\n  console.log(&#39;source.txt was copied to destination.txt&#39;);\n});\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the\nfollowing example.</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFile(&#39;source.txt&#39;, &#39;destination.txt&#39;, COPYFILE_EXCL, callback);\n</code></pre>\n"
+        },
+        {
+          "textRaw": "fs.copyFileSync(src, dest[, flags])",
+          "type": "method",
+          "name": "copyFileSync",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`src` {string|Buffer|URL} source filename to copy ",
+                  "name": "src",
+                  "type": "string|Buffer|URL",
+                  "desc": "source filename to copy"
+                },
+                {
+                  "textRaw": "`dest` {string|Buffer|URL} destination filename of the copy operation ",
+                  "name": "dest",
+                  "type": "string|Buffer|URL",
+                  "desc": "destination filename of the copy operation"
+                },
+                {
+                  "textRaw": "`flags` {number} modifiers for copy operation. **Default:** `0` ",
+                  "name": "flags",
+                  "type": "number",
+                  "desc": "modifiers for copy operation. **Default:** `0`",
+                  "optional": true
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "src"
+                },
+                {
+                  "name": "dest"
+                },
+                {
+                  "name": "flags",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Synchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. Returns <code>undefined</code>. Node.js makes no guarantees about the\natomicity of the copy operation. If an error occurs after the destination file\nhas been opened for writing, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. The only supported flag is <code>fs.constants.COPYFILE_EXCL</code>,\nwhich causes the copy operation to fail if <code>dest</code> already exists.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\n\n// destination.txt will be created or overwritten by default.\nfs.copyFileSync(&#39;source.txt&#39;, &#39;destination.txt&#39;);\nconsole.log(&#39;source.txt was copied to destination.txt&#39;);\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the\nfollowing example.</p>\n<pre><code class=\"lang-js\">const fs = require(&#39;fs&#39;);\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFileSync(&#39;source.txt&#39;, &#39;destination.txt&#39;, COPYFILE_EXCL);\n</code></pre>\n"
         },
         {
           "textRaw": "fs.createReadStream(path[, options])",
@@ -934,6 +1101,11 @@
                       "textRaw": "`end` {integer} ",
                       "name": "end",
                       "type": "integer"
+                    },
+                    {
+                      "textRaw": "`highWaterMark` {integer} ",
+                      "name": "highWaterMark",
+                      "type": "integer"
                     }
                   ],
                   "name": "options",
@@ -954,7 +1126,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns a new <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_readable\">Readable Stream</a>).</p>\n<p>Be aware that, unlike the default value set for <code>highWaterMark</code> on a\nreadable stream (16 kb), the stream returned by this method has a\ndefault value of 64 kb for the same parameter.</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;r&#39;,\n  encoding: null,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file.  Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be\nemitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed\nto <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if\nthere&#39;s an error. It is the application&#39;s responsibility to close it and make\nsure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default\nbehavior), on <code>error</code> or <code>end</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"lang-js\">fs.createReadStream(&#39;sample.txt&#39;, { start: 90, end: 99 });\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
+          "desc": "<p>Returns a new <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_readable\">Readable Stream</a>).</p>\n<p>Be aware that, unlike the default value set for <code>highWaterMark</code> on a\nreadable stream (16 kb), the stream returned by this method has a\ndefault value of 64 kb for the same parameter.</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;r&#39;,\n  encoding: null,\n  fd: null,\n  mode: 0o666,\n  autoClose: true,\n  highWaterMark: 64 * 1024\n};\n</code></pre>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file. Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be\nemitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed\nto <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if\nthere&#39;s an error. It is the application&#39;s responsibility to close it and make\nsure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default\nbehavior), on <code>error</code> or <code>end</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"lang-js\">fs.createReadStream(&#39;sample.txt&#39;, { start: 90, end: 99 });\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
         },
         {
           "textRaw": "fs.createWriteStream(path[, options])",
@@ -1004,8 +1176,8 @@
                       "type": "string"
                     },
                     {
-                      "textRaw": "`defaultEncoding` {string} ",
-                      "name": "defaultEncoding",
+                      "textRaw": "`encoding` {string} ",
+                      "name": "encoding",
                       "type": "string"
                     },
                     {
@@ -1047,7 +1219,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns a new <a href=\"#fs_class_fs_writestream\"><code>WriteStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a>).</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;w&#39;,\n  defaultEncoding: &#39;utf8&#39;,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> may also include a <code>start</code> option to allow writing data at\nsome position past the beginning of the file.  Modifying a file rather\nthan replacing it may require a <code>flags</code> mode of <code>r+</code> rather than the\ndefault mode <code>w</code>. The <code>defaultEncoding</code> can be any one of those accepted by\n<a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>\nthe file descriptor will be closed automatically. If <code>autoClose</code> is false,\nthen the file descriptor won&#39;t be closed, even if there&#39;s an error.\nIt is the application&#39;s responsibility to close it and make sure there&#39;s no\nfile descriptor leak.</p>\n<p>Like <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a>, if <code>fd</code> is specified, <code>WriteStream</code> will ignore the\n<code>path</code> argument and will use the specified file descriptor. This means that no\n<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking\n<code>fd</code>s should be passed to <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
+          "desc": "<p>Returns a new <a href=\"#fs_class_fs_writestream\"><code>WriteStream</code></a> object. (See <a href=\"stream.html#stream_class_stream_writable\">Writable Stream</a>).</p>\n<p><code>options</code> is an object or string with the following defaults:</p>\n<pre><code class=\"lang-js\">const defaults = {\n  flags: &#39;w&#39;,\n  encoding: &#39;utf8&#39;,\n  fd: null,\n  mode: 0o666,\n  autoClose: true\n};\n</code></pre>\n<p><code>options</code> may also include a <code>start</code> option to allow writing data at\nsome position past the beginning of the file. Modifying a file rather\nthan replacing it may require a <code>flags</code> mode of <code>r+</code> rather than the\ndefault mode <code>w</code>. The <code>encoding</code> can be any one of those accepted by\n<a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>autoClose</code> is set to true (default behavior) on <code>error</code> or <code>end</code>\nthe file descriptor will be closed automatically. If <code>autoClose</code> is false,\nthen the file descriptor won&#39;t be closed, even if there&#39;s an error.\nIt is the application&#39;s responsibility to close it and make sure there&#39;s no\nfile descriptor leak.</p>\n<p>Like <a href=\"#fs_class_fs_readstream\"><code>ReadStream</code></a>, if <code>fd</code> is specified, <code>WriteStream</code> will ignore the\n<code>path</code> argument and will use the specified file descriptor. This means that no\n<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking\n<code>fd</code>s should be passed to <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n"
         },
         {
           "textRaw": "fs.exists(path, callback)",
@@ -1080,6 +1252,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`exists` {boolean} ",
+                      "name": "exists",
+                      "type": "boolean"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1096,7 +1275,7 @@
               ]
             }
           ],
-          "desc": "<p>Test whether or not the given path exists by checking with the file system.\nThen call the <code>callback</code> argument with either true or false.  Example:</p>\n<pre><code class=\"lang-js\">fs.exists(&#39;/etc/passwd&#39;, (exists) =&gt; {\n  console.log(exists ? &#39;it\\&#39;s there&#39; : &#39;no passwd!&#39;);\n});\n</code></pre>\n<p><strong>Note that the parameter to this callback is not consistent with other\nNode.js callbacks.</strong> Normally, the first parameter to a Node.js callback is\nan <code>err</code> parameter, optionally followed by other parameters. The\n<code>fs.exists()</code> callback has only one boolean parameter. This is one reason\n<code>fs.access()</code> is recommended instead of <code>fs.exists()</code>.</p>\n<p>Using <code>fs.exists()</code> to check for the existence of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file does not exist.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.exists(&#39;myfile&#39;, (exists) =&gt; {\n  if (exists) {\n    console.error(&#39;myfile already exists&#39;);\n  } else {\n    fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n      if (err) throw err;\n      writeMyData(fd);\n    });\n  }\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.exists(&#39;myfile&#39;, (exists) =&gt; {\n  if (exists) {\n    fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n      readMyData(fd);\n    });\n  } else {\n    console.error(&#39;myfile does not exist&#39;);\n  }\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for existence and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the existence of a file only if the file won’t be\nused directly, for example when its existence is a signal from another\nprocess.</p>\n"
+          "desc": "<p>Test whether or not the given path exists by checking with the file system.\nThen call the <code>callback</code> argument with either true or false. Example:</p>\n<pre><code class=\"lang-js\">fs.exists(&#39;/etc/passwd&#39;, (exists) =&gt; {\n  console.log(exists ? &#39;it\\&#39;s there&#39; : &#39;no passwd!&#39;);\n});\n</code></pre>\n<p><strong>Note that the parameter to this callback is not consistent with other\nNode.js callbacks.</strong> Normally, the first parameter to a Node.js callback is\nan <code>err</code> parameter, optionally followed by other parameters. The\n<code>fs.exists()</code> callback has only one boolean parameter. This is one reason\n<code>fs.access()</code> is recommended instead of <code>fs.exists()</code>.</p>\n<p>Using <code>fs.exists()</code> to check for the existence of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file does not exist.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.exists(&#39;myfile&#39;, (exists) =&gt; {\n  if (exists) {\n    console.error(&#39;myfile already exists&#39;);\n  } else {\n    fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n      if (err) throw err;\n      writeMyData(fd);\n    });\n  }\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.exists(&#39;myfile&#39;, (exists) =&gt; {\n  if (exists) {\n    fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n      readMyData(fd);\n    });\n  } else {\n    console.error(&#39;myfile does not exist&#39;);\n  }\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for existence and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the existence of a file only if the file won’t be\nused directly, for example when its existence is a signal from another\nprocess.</p>\n"
         },
         {
           "textRaw": "fs.existsSync(path)",
@@ -1132,7 +1311,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"fs.html#fs_fs_exists_path_callback\"><code>fs.exists()</code></a>.\nReturns <code>true</code> if the file exists, <code>false</code> otherwise.</p>\n<p>Note that <code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not.\n(The <code>callback</code> parameter to <code>fs.exists()</code> accepts parameters that are\ninconsistent with other Node.js callbacks. <code>fs.existsSync()</code> does not use\na callback.)</p>\n"
+          "desc": "<p>Synchronous version of <a href=\"fs.html#fs_fs_exists_path_callback\"><code>fs.exists()</code></a>.\nReturns <code>true</code> if the path exists, <code>false</code> otherwise.</p>\n<p>Note that <code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not.\n(The <code>callback</code> parameter to <code>fs.exists()</code> accepts parameters that are\ninconsistent with other Node.js callbacks. <code>fs.existsSync()</code> does not use\na callback.)</p>\n"
         },
         {
           "textRaw": "fs.fchmod(fd, mode, callback)",
@@ -1165,6 +1344,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1260,6 +1446,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1356,6 +1549,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1430,6 +1630,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`stats` {fs.Stats} ",
+                      "name": "stats",
+                      "type": "fs.Stats"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1504,6 +1716,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1585,6 +1804,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1605,7 +1831,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous ftruncate(2). No arguments other than a possible exception are\ngiven to the completion callback.</p>\n<p>If the file referred to by the file descriptor was larger than <code>len</code> bytes, only\nthe first <code>len</code> bytes will be retained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the file</p>\n<pre><code class=\"lang-js\">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync(&#39;temp.txt&#39;, &#39;r+&#39;);\n\n// truncate the file to first four bytes\nfs.ftruncate(fd, 4, (err) =&gt; {\n  assert.ifError(err);\n  console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));\n});\n// Prints: Node\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (&#39;\\0&#39;). For example,</p>\n<pre><code class=\"lang-js\">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf-8&#39;));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync(&#39;temp.txt&#39;, &#39;r+&#39;);\n\n// truncate the file to 10 bytes, whereas the actual size is 7 bytes\nfs.ftruncate(fd, 10, (err) =&gt; {\n  assert.ifError(err);\n  console.log(fs.readFileSync(&#39;temp.txt&#39;));\n});\n// Prints: &lt;Buffer 4e 6f 64 65 2e 6a 73 00 00 00&gt;\n// (&#39;Node.js\\0\\0\\0&#39; in UTF8)\n</code></pre>\n<p>The last three bytes are null bytes (&#39;\\0&#39;), to compensate the over-truncation.</p>\n"
+          "desc": "<p>Asynchronous ftruncate(2). No arguments other than a possible exception are\ngiven to the completion callback.</p>\n<p>If the file referred to by the file descriptor was larger than <code>len</code> bytes, only\nthe first <code>len</code> bytes will be retained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the file</p>\n<pre><code class=\"lang-js\">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync(&#39;temp.txt&#39;, &#39;r+&#39;);\n\n// truncate the file to first four bytes\nfs.ftruncate(fd, 4, (err) =&gt; {\n  assert.ifError(err);\n  console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));\n});\n// Prints: Node\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (&#39;\\0&#39;). For example,</p>\n<pre><code class=\"lang-js\">console.log(fs.readFileSync(&#39;temp.txt&#39;, &#39;utf8&#39;));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync(&#39;temp.txt&#39;, &#39;r+&#39;);\n\n// truncate the file to 10 bytes, whereas the actual size is 7 bytes\nfs.ftruncate(fd, 10, (err) =&gt; {\n  assert.ifError(err);\n  console.log(fs.readFileSync(&#39;temp.txt&#39;));\n});\n// Prints: &lt;Buffer 4e 6f 64 65 2e 6a 73 00 00 00&gt;\n// (&#39;Node.js\\0\\0\\0&#39; in UTF8)\n</code></pre>\n<p>The last three bytes are null bytes (&#39;\\0&#39;), to compensate the over-truncation.</p>\n"
         },
         {
           "textRaw": "fs.ftruncateSync(fd[, len])",
@@ -1678,17 +1904,24 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`atime` {integer} ",
+                  "textRaw": "`atime` {number|string|Date} ",
                   "name": "atime",
-                  "type": "integer"
+                  "type": "number|string|Date"
                 },
                 {
-                  "textRaw": "`mtime` {integer} ",
+                  "textRaw": "`mtime` {number|string|Date} ",
                   "name": "mtime",
-                  "type": "integer"
+                  "type": "number|string|Date"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1711,7 +1944,7 @@
               ]
             }
           ],
-          "desc": "<p>Change the file timestamps of a file referenced by the supplied file\ndescriptor.</p>\n<p><em>Note</em>: This function does not work on AIX versions before 7.1, it will return\nthe error <code>UV_ENOSYS</code>.</p>\n"
+          "desc": "<p>Change the file system timestamps of the object referenced by the supplied file\ndescriptor. See <a href=\"#fs_fs_utimes_path_atime_mtime_callback\"><code>fs.utimes()</code></a>.</p>\n<p><em>Note</em>: This function does not work on AIX versions before 7.1, it will return\nthe error <code>UV_ENOSYS</code>.</p>\n"
         },
         {
           "textRaw": "fs.futimesSync(fd, atime, mtime)",
@@ -1785,9 +2018,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -1796,6 +2029,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1831,9 +2071,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`mode` {integer} ",
@@ -1875,9 +2115,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`uid` {integer} ",
@@ -1891,6 +2131,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -1929,9 +2176,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`uid` {integer} ",
@@ -1997,6 +2244,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2093,6 +2347,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`stats` {fs.Stats} ",
+                      "name": "stats",
+                      "type": "fs.Stats"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2185,6 +2451,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2205,7 +2478,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous mkdir(2). No arguments other than a possible exception are given\nto the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p>\n"
+          "desc": "<p>Asynchronously creates a directory. No arguments other than a possible exception\nare given to the completion callback. <code>mode</code> defaults to <code>0o777</code>.</p>\n<p>See also: mkdir(2)</p>\n"
         },
         {
           "textRaw": "fs.mkdirSync(path[, mode])",
@@ -2252,7 +2525,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous mkdir(2). Returns <code>undefined</code>.</p>\n"
+          "desc": "<p>Synchronously creates a directory. Returns <code>undefined</code>.\nThis is the synchronous version of <a href=\"#fs_fs_mkdir_path_mode_callback\"><code>fs.mkdir()</code></a>.</p>\n<p>See also: mkdir(2)</p>\n"
         },
         {
           "textRaw": "fs.mkdtemp(prefix[, options], callback)",
@@ -2299,6 +2572,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`folder` {string} ",
+                      "name": "folder",
+                      "type": "string"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2319,7 +2604,7 @@
               ]
             }
           ],
-          "desc": "<p>Creates a unique temporary directory.</p>\n<p>Generates six random characters to be appended behind a required\n<code>prefix</code> to create a unique temporary directory.</p>\n<p>The created folder path is passed as a string to the callback&#39;s second\nparameter.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.mkdtemp(&#39;/tmp/foo-&#39;, (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Prints: /tmp/foo-itXde2\n});\n</code></pre>\n<p><em>Note</em>: The <code>fs.mkdtemp()</code> method will append the six randomly selected\ncharacters directly to the <code>prefix</code> string. For instance, given a directory\n<code>/tmp</code>, if the intention is to create a temporary directory <em>within</em> <code>/tmp</code>,\nthe <code>prefix</code> <em>must</em> end with a trailing platform-specific path separator\n(<code>require(&#39;path&#39;).sep</code>).</p>\n<pre><code class=\"lang-js\">// The parent directory for the new temporary directory\nconst tmpDir = &#39;/tmp&#39;;\n\n// This method is *INCORRECT*:\nfs.mkdtemp(tmpDir, (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Will print something similar to `/tmpabc123`.\n  // Note that a new temporary directory is created\n  // at the file system root rather than *within*\n  // the /tmp directory.\n});\n\n// This method is *CORRECT*:\nconst { sep } = require(&#39;path&#39;);\nfs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Will print something similar to `/tmp/abc123`.\n  // A new temporary directory is created within\n  // the /tmp directory.\n});\n</code></pre>\n"
+          "desc": "<p>Creates a unique temporary directory.</p>\n<p>Generates six random characters to be appended behind a required\n<code>prefix</code> to create a unique temporary directory.</p>\n<p>The created folder path is passed as a string to the callback&#39;s second\nparameter.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">fs.mkdtemp(path.join(os.tmpdir(), &#39;foo-&#39;), (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Prints: /tmp/foo-itXde2 or C:\\Users\\...\\AppData\\Local\\Temp\\foo-itXde2\n});\n</code></pre>\n<p><em>Note</em>: The <code>fs.mkdtemp()</code> method will append the six randomly selected\ncharacters directly to the <code>prefix</code> string. For instance, given a directory\n<code>/tmp</code>, if the intention is to create a temporary directory <em>within</em> <code>/tmp</code>,\nthe <code>prefix</code> <em>must</em> end with a trailing platform-specific path separator\n(<code>require(&#39;path&#39;).sep</code>).</p>\n<pre><code class=\"lang-js\">// The parent directory for the new temporary directory\nconst tmpDir = os.tmpdir();\n\n// This method is *INCORRECT*:\nfs.mkdtemp(tmpDir, (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Will print something similar to `/tmpabc123`.\n  // Note that a new temporary directory is created\n  // at the file system root rather than *within*\n  // the /tmp directory.\n});\n\n// This method is *CORRECT*:\nconst { sep } = require(&#39;path&#39;);\nfs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {\n  if (err) throw err;\n  console.log(folder);\n  // Will print something similar to `/tmp/abc123`.\n  // A new temporary directory is created within\n  // the /tmp directory.\n});\n</code></pre>\n"
         },
         {
           "textRaw": "fs.mkdtempSync(prefix[, options])",
@@ -2407,6 +2692,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`fd` {integer} ",
+                      "name": "fd",
+                      "type": "integer"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2430,7 +2727,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous file open. See open(2). <code>flags</code> can be:</p>\n<ul>\n<li><p><code>&#39;r&#39;</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;r+&#39;</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;rs+&#39;</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows skipping\nthe potentially stale local cache. It has a very real impact on I/O\nperformance so using this flag is not recommended unless it is needed.</p>\n<p>Note that this doesn&#39;t turn <code>fs.open()</code> into a synchronous blocking call.\nIf synchronous operation is desired <code>fs.openSync()</code> should be used.</p>\n</li>\n<li><p><code>&#39;w&#39;</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx&#39;</code> - Like <code>&#39;w&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;w+&#39;</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx+&#39;</code> - Like <code>&#39;w+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a&#39;</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax&#39;</code> - Like <code>&#39;a&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a+&#39;</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax+&#39;</code> - Like <code>&#39;a+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n</ul>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated. It defaults to <code>0o666</code>, readable and writable.</p>\n<p>The callback gets two arguments <code>(err, fd)</code>.</p>\n<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in open(2)) ensures that <code>path</code> is newly\ncreated. On POSIX systems, <code>path</code> is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network file\nsystems.</p>\n<p><code>flags</code> can also be a number as documented by open(2); commonly used constants\nare available from <code>fs.constants</code>.  On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by CreateFileW.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p><em>Note</em>: The behavior of <code>fs.open()</code> is platform-specific for some flags. As\nsuch, opening a directory on macOS and Linux with the <code>&#39;a+&#39;</code> flag - see example\nbelow - will return an error. In contrast, on Windows and FreeBSD, a file\ndescriptor will be returned.</p>\n<pre><code class=\"lang-js\">// macOS and Linux\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, open &lt;directory&gt;]\n});\n\n// Windows and FreeBSD\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; null, &lt;fd&gt;\n});\n</code></pre>\n<p>Some characters (<code>&lt; &gt; : &quot; / \\ | ? *</code>) are reserved under Windows as documented\nby <a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx\">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains\na colon, Node.js will open a file system stream, as described by\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx\">this MSDN page</a>.</p>\n<p>Functions based on <code>fs.open()</code> exhibit this behavior as well. eg.\n<code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>\n"
+          "desc": "<p>Asynchronous file open. See open(2). <code>flags</code> can be:</p>\n<ul>\n<li><p><code>&#39;r&#39;</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;r+&#39;</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li><p><code>&#39;rs+&#39;</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows skipping\nthe potentially stale local cache. It has a very real impact on I/O\nperformance so using this flag is not recommended unless it is needed.</p>\n<p>Note that this doesn&#39;t turn <code>fs.open()</code> into a synchronous blocking call.\nIf synchronous operation is desired <code>fs.openSync()</code> should be used.</p>\n</li>\n<li><p><code>&#39;w&#39;</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx&#39;</code> - Like <code>&#39;w&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;w+&#39;</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li><p><code>&#39;wx+&#39;</code> - Like <code>&#39;w+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a&#39;</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax&#39;</code> - Like <code>&#39;a&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n<li><p><code>&#39;a+&#39;</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li><p><code>&#39;ax+&#39;</code> - Like <code>&#39;a+&#39;</code> but fails if <code>path</code> exists.</p>\n</li>\n</ul>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated. It defaults to <code>0o666</code> (readable and writable).</p>\n<p>The callback gets two arguments <code>(err, fd)</code>.</p>\n<p>The exclusive flag <code>&#39;x&#39;</code> (<code>O_EXCL</code> flag in open(2)) ensures that <code>path</code> is newly\ncreated. On POSIX systems, <code>path</code> is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network file\nsystems.</p>\n<p><code>flags</code> can also be a number as documented by open(2); commonly used constants\nare available from <code>fs.constants</code>. On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by CreateFileW.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p><em>Note</em>: The behavior of <code>fs.open()</code> is platform-specific for some flags. As\nsuch, opening a directory on macOS and Linux with the <code>&#39;a+&#39;</code> flag - see example\nbelow - will return an error. In contrast, on Windows and FreeBSD, a file\ndescriptor will be returned.</p>\n<pre><code class=\"lang-js\">// macOS and Linux\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, open &lt;directory&gt;]\n});\n\n// Windows and FreeBSD\nfs.open(&#39;&lt;directory&gt;&#39;, &#39;a+&#39;, (err, fd) =&gt; {\n  // =&gt; null, &lt;fd&gt;\n});\n</code></pre>\n<p>Some characters (<code>&lt; &gt; : &quot; / \\ | ? *</code>) are reserved under Windows as documented\nby <a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx\">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains\na colon, Node.js will open a file system stream, as described by\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx\">this MSDN page</a>.</p>\n<p>Functions based on <code>fs.open()</code> exhibit this behavior as well. eg.\n<code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>\n"
         },
         {
           "textRaw": "fs.openSync(path, flags[, mode])",
@@ -2538,6 +2835,23 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`bytesRead` {integer} ",
+                      "name": "bytesRead",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer} ",
+                      "name": "buffer",
+                      "type": "Buffer"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2618,6 +2932,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`files` {string[]|Buffer[]} ",
+                      "name": "files",
+                      "type": "string[]|Buffer[]"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2638,7 +2964,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous readdir(3).  Reads the contents of a directory.\nThe callback gets two arguments <code>(err, files)</code> where <code>files</code> is an array of\nthe names of the files in the directory excluding <code>&#39;.&#39;</code> and <code>&#39;..&#39;</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>\n"
+          "desc": "<p>Asynchronous readdir(3). Reads the contents of a directory.\nThe callback gets two arguments <code>(err, files)</code> where <code>files</code> is an array of\nthe names of the files in the directory excluding <code>&#39;.&#39;</code> and <code>&#39;..&#39;</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames passed to the callback. If the <code>encoding</code> is set to <code>&#39;buffer&#39;</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>\n"
         },
         {
           "textRaw": "fs.readdirSync(path[, options])",
@@ -2756,6 +3082,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`data` {string|Buffer} ",
+                      "name": "data",
+                      "type": "string|Buffer"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2776,7 +3114,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p><em>Note</em>: When the path is a directory, the behavior of\n<code>fs.readFile()</code> and <a href=\"#fs_fs_readfilesync_path_options\"><code>fs.readFileSync()</code></a> is platform-specific. On macOS,\nLinux, and Windows, an error will be returned. On FreeBSD, a representation\nof the directory&#39;s contents will be returned.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n});\n\n//  FreeBSD\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; null, &lt;data&gt;\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n"
+          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, (err, data) =&gt; {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"lang-js\">fs.readFile(&#39;/etc/passwd&#39;, &#39;utf8&#39;, callback);\n</code></pre>\n<p><em>Note</em>: When the path is a directory, the behavior of\n<code>fs.readFile()</code> and <a href=\"#fs_fs_readfilesync_path_options\"><code>fs.readFileSync()</code></a> is platform-specific. On macOS,\nLinux, and Windows, an error will be returned. On FreeBSD, a representation\nof the directory&#39;s contents will be returned.</p>\n<pre><code class=\"lang-js\">// macOS, Linux, and Windows\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n});\n\n//  FreeBSD\nfs.readFile(&#39;&lt;directory&gt;&#39;, (err, data) =&gt; {\n  // =&gt; null, &lt;data&gt;\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p><em>Note</em>: If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n<p><em>Note</em>: <code>fs.readFile()</code> reads the entire file in a single threadpool request.\nTo minimize threadpool task length variation, prefer the partitioned APIs\n<code>fs.read()</code> and <code>fs.createReadStream()</code> when reading files as part of\nfulfilling a client request.</p>\n"
         },
         {
           "textRaw": "fs.readFileSync(path[, options])",
@@ -2842,7 +3180,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n<p><em>Note</em>: Similar to <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>, when the path is a directory, the\nbehavior of <code>fs.readFileSync()</code> is platform-specific.</p>\n<pre><code class=\"lang-js\">// macOS, Linux and Windows\nfs.readFileSync(&#39;&lt;directory&gt;&#39;);\n// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n\n//  FreeBSD\nfs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;\n</code></pre>\n"
+          "desc": "<p>Synchronous version of <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>\n<p>If the <code>encoding</code> option is specified then this function returns a\nstring. Otherwise it returns a buffer.</p>\n<p><em>Note</em>: Similar to <a href=\"#fs_fs_readfile_path_options_callback\"><code>fs.readFile()</code></a>, when the path is a directory, the\nbehavior of <code>fs.readFileSync()</code> is platform-specific.</p>\n<pre><code class=\"lang-js\">// macOS, Linux, and Windows\nfs.readFileSync(&#39;&lt;directory&gt;&#39;);\n// =&gt; [Error: EISDIR: illegal operation on a directory, read &lt;directory&gt;]\n\n//  FreeBSD\nfs.readFileSync(&#39;&lt;directory&gt;&#39;); // =&gt; null, &lt;data&gt;\n</code></pre>\n"
         },
         {
           "textRaw": "fs.readlink(path[, options], callback)",
@@ -2889,6 +3227,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`linkString` {string|Buffer} ",
+                      "name": "linkString",
+                      "type": "string|Buffer"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -2990,9 +3340,9 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {string|Buffer|Uint8Array} ",
+                  "textRaw": "`buffer` {Buffer|Uint8Array} ",
                   "name": "buffer",
-                  "type": "string|Buffer|Uint8Array"
+                  "type": "Buffer|Uint8Array"
                 },
                 {
                   "textRaw": "`offset` {integer} ",
@@ -3093,6 +3443,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`resolvedPath` {string|Buffer} ",
+                      "name": "resolvedPath",
+                      "type": "string|Buffer"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3220,6 +3582,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3316,6 +3685,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3401,6 +3777,18 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`stats` {fs.Stats} ",
+                      "name": "stats",
+                      "type": "fs.Stats"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3493,6 +3881,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3593,9 +3988,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`len` {integer} **Default:** `0` ",
@@ -3606,6 +4001,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3642,9 +4044,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`path` {string|Buffer} ",
+                  "textRaw": "`path` {string|Buffer|URL} ",
                   "name": "path",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
                   "textRaw": "`len` {integer} **Default:** `0` ",
@@ -3700,6 +4102,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3768,15 +4177,15 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {string|Buffer} ",
+                  "textRaw": "`filename` {string|Buffer|URL} ",
                   "name": "filename",
-                  "type": "string|Buffer"
+                  "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`listener` {Function|undefined} **Default:** `undefined` ",
+                  "textRaw": "`listener` {Function} Optional, a listener previously attached using `fs.watchFile()` ",
                   "name": "listener",
-                  "type": "Function|undefined",
-                  "desc": "**Default:** `undefined`",
+                  "type": "Function",
+                  "desc": "Optional, a listener previously attached using `fs.watchFile()`",
                   "optional": true
                 }
               ]
@@ -3793,7 +4202,7 @@
               ]
             }
           ],
-          "desc": "<p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that\nparticular listener is removed. Otherwise, <em>all</em> listeners are removed,\neffectively stopping watching of <code>filename</code>.</p>\n<p>Calling <code>fs.unwatchFile()</code> with a filename that is not being watched is a\nno-op, not an error.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and\n<code>fs.unwatchFile()</code>.  <code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code>\nand <code>fs.unwatchFile()</code> when possible.</p>\n"
+          "desc": "<p>Stop watching for changes on <code>filename</code>. If <code>listener</code> is specified, only that\nparticular listener is removed. Otherwise, <em>all</em> listeners are removed,\neffectively stopping watching of <code>filename</code>.</p>\n<p>Calling <code>fs.unwatchFile()</code> with a filename that is not being watched is a\nno-op, not an error.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and\n<code>fs.unwatchFile()</code>. <code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code>\nand <code>fs.unwatchFile()</code> when possible.</p>\n"
         },
         {
           "textRaw": "fs.utimes(path, atime, mtime, callback)",
@@ -3804,6 +4213,11 @@
               "v0.4.2"
             ],
             "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/11919",
+                "description": "`NaN`, `Infinity`, and `-Infinity` are no longer valid time specifiers."
+              },
               {
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",
@@ -3830,17 +4244,24 @@
                   "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`atime` {integer} ",
+                  "textRaw": "`atime` {number|string|Date} ",
                   "name": "atime",
-                  "type": "integer"
+                  "type": "number|string|Date"
                 },
                 {
-                  "textRaw": "`mtime` {integer} ",
+                  "textRaw": "`mtime` {number|string|Date} ",
                   "name": "mtime",
-                  "type": "integer"
+                  "type": "number|string|Date"
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -3863,7 +4284,7 @@
               ]
             }
           ],
-          "desc": "<p>Change file timestamps of the file referenced by the supplied path.</p>\n<p><em>Note</em>: The arguments <code>atime</code> and <code>mtime</code> of the following related functions\nfollow these rules:</p>\n<ul>\n<li>The value should be a Unix timestamp in seconds. For example, <code>Date.now()</code>\nreturns milliseconds, so it should be divided by 1000 before passing it in.</li>\n<li>If the value is a numeric string like <code>&#39;123456789&#39;</code>, the value will get\nconverted to the corresponding number.</li>\n<li>If the value is <code>NaN</code>, <code>Infinity</code> or <code>-Infinity</code>, an Error will be thrown.</li>\n</ul>\n"
+          "desc": "<p>Change the file system timestamps of the object referenced by <code>path</code>.</p>\n<p>The <code>atime</code> and <code>mtime</code> arguments follow these rules:</p>\n<ul>\n<li>Values can be either numbers representing Unix epoch time, <code>Date</code>s, or a\nnumeric string like <code>&#39;123456789.0&#39;</code>.</li>\n<li>If the value can not be converted to a number, or is <code>NaN</code>, <code>Infinity</code> or\n<code>-Infinity</code>, a <code>Error</code> will be thrown.</li>\n</ul>\n"
         },
         {
           "textRaw": "fs.utimesSync(path, atime, mtime)",
@@ -3874,6 +4295,11 @@
               "v0.4.2"
             ],
             "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/11919",
+                "description": "`NaN`, `Infinity`, and `-Infinity` are no longer valid time specifiers."
+              },
               {
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",
@@ -3979,6 +4405,18 @@
                 },
                 {
                   "textRaw": "`listener` {Function|undefined} **Default:** `undefined` ",
+                  "options": [
+                    {
+                      "textRaw": "`eventType` {string} ",
+                      "name": "eventType",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`filename` {string|Buffer} ",
+                      "name": "filename",
+                      "type": "string|Buffer"
+                    }
+                  ],
                   "name": "listener",
                   "type": "Function|undefined",
                   "desc": "**Default:** `undefined`",
@@ -4002,7 +4440,7 @@
               ]
             }
           ],
-          "desc": "<p>Watch for changes on <code>filename</code>, where <code>filename</code> is either a file or a\ndirectory.  The returned object is a <a href=\"#fs_class_fs_fswatcher\"><code>fs.FSWatcher</code></a>.</p>\n<p>The second argument is optional. If <code>options</code> is provided as a string, it\nspecifies the <code>encoding</code>. Otherwise <code>options</code> should be passed as an object.</p>\n<p>The listener callback gets two arguments <code>(eventType, filename)</code>.  <code>eventType</code> is either\n<code>&#39;rename&#39;</code> or <code>&#39;change&#39;</code>, and <code>filename</code> is the name of the file which triggered\nthe event.</p>\n<p>Note that on most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears\nor disappears in the directory.</p>\n<p>Also note the listener callback is attached to the <code>&#39;change&#39;</code> event fired by\n<a href=\"#fs_class_fs_fswatcher\"><code>fs.FSWatcher</code></a>, but it is not the same thing as the <code>&#39;change&#39;</code> value of\n<code>eventType</code>.</p>\n",
+          "desc": "<p>Watch for changes on <code>filename</code>, where <code>filename</code> is either a file or a\ndirectory. The returned object is a <a href=\"#fs_class_fs_fswatcher\"><code>fs.FSWatcher</code></a>.</p>\n<p>The second argument is optional. If <code>options</code> is provided as a string, it\nspecifies the <code>encoding</code>. Otherwise <code>options</code> should be passed as an object.</p>\n<p>The listener callback gets two arguments <code>(eventType, filename)</code>. <code>eventType</code> is either\n<code>&#39;rename&#39;</code> or <code>&#39;change&#39;</code>, and <code>filename</code> is the name of the file which triggered\nthe event.</p>\n<p>Note that on most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears\nor disappears in the directory.</p>\n<p>Also note the listener callback is attached to the <code>&#39;change&#39;</code> event fired by\n<a href=\"#fs_class_fs_fswatcher\"><code>fs.FSWatcher</code></a>, but it is not the same thing as the <code>&#39;change&#39;</code> value of\n<code>eventType</code>.</p>\n",
           "miscs": [
             {
               "textRaw": "Caveats",
@@ -4020,13 +4458,13 @@
                   "textRaw": "Inodes",
                   "name": "Inodes",
                   "type": "misc",
-                  "desc": "<p>On Linux and macOS systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>In AIX, save and close of a file being watched causes two notifications -\none for adding new content, and one for truncation. Moreover, save and\nclose operations on some platforms cause inode changes that force watch\noperations to become invalid and ineffective. AIX retains inode for the\nlifetime of a file, that way though this is different from Linux / macOS,\nthis improves the usability of file watching. This is expected behavior.</p>\n"
+                  "desc": "<p>On Linux and macOS systems, <code>fs.watch()</code> resolves the path to an <a href=\"https://en.wikipedia.org/wiki/Inode\">inode</a> and\nwatches the inode. If the watched path is deleted and recreated, it is assigned\na new inode. The watch will emit an event for the delete but will continue\nwatching the <em>original</em> inode. Events for the new inode will not be emitted.\nThis is expected behavior.</p>\n<p>AIX files retain the same inode for the lifetime of a file. Saving and closing a\nwatched file on AIX will result in two notifications (one for adding new\ncontent, and one for truncation).</p>\n"
                 },
                 {
                   "textRaw": "Filename Argument",
                   "name": "Filename Argument",
                   "type": "misc",
-                  "desc": "<p>Providing <code>filename</code> argument in the callback is only supported on Linux,\nmacOS, Windows, and AIX.  Even on supported platforms, <code>filename</code> is not always\nguaranteed to be provided. Therefore, don&#39;t assume that <code>filename</code> argument is\nalways provided in the callback, and have some fallback logic if it is null.</p>\n<pre><code class=\"lang-js\">fs.watch(&#39;somedir&#39;, (eventType, filename) =&gt; {\n  console.log(`event type is: ${eventType}`);\n  if (filename) {\n    console.log(`filename provided: ${filename}`);\n  } else {\n    console.log(&#39;filename not provided&#39;);\n  }\n});\n</code></pre>\n"
+                  "desc": "<p>Providing <code>filename</code> argument in the callback is only supported on Linux,\nmacOS, Windows, and AIX. Even on supported platforms, <code>filename</code> is not always\nguaranteed to be provided. Therefore, don&#39;t assume that <code>filename</code> argument is\nalways provided in the callback, and have some fallback logic if it is null.</p>\n<pre><code class=\"lang-js\">fs.watch(&#39;somedir&#39;, (eventType, filename) =&gt; {\n  console.log(`event type is: ${eventType}`);\n  if (filename) {\n    console.log(`filename provided: ${filename}`);\n  } else {\n    console.log(&#39;filename not provided&#39;);\n  }\n});\n</code></pre>\n"
                 }
               ]
             }
@@ -4078,6 +4516,18 @@
                 },
                 {
                   "textRaw": "`listener` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`current` {fs.Stats} ",
+                      "name": "current",
+                      "type": "fs.Stats"
+                    },
+                    {
+                      "textRaw": "`previous` {fs.Stats} ",
+                      "name": "previous",
+                      "type": "fs.Stats"
+                    }
+                  ],
                   "name": "listener",
                   "type": "Function"
                 }
@@ -4098,7 +4548,7 @@
               ]
             }
           ],
-          "desc": "<p>Watch for changes on <code>filename</code>. The callback <code>listener</code> will be called each\ntime the file is accessed.</p>\n<p>The <code>options</code> argument may be omitted. If provided, it should be an object. The\n<code>options</code> object may contain a boolean named <code>persistent</code> that indicates\nwhether the process should continue to run as long as files are being watched.\nThe <code>options</code> object may specify an <code>interval</code> property indicating how often the\ntarget should be polled in milliseconds. The default is\n<code>{ persistent: true, interval: 5007 }</code>.</p>\n<p>The <code>listener</code> gets two arguments the current stat object and the previous\nstat object:</p>\n<pre><code class=\"lang-js\">fs.watchFile(&#39;message.text&#39;, (curr, prev) =&gt; {\n  console.log(`the current mtime is: ${curr.mtime}`);\n  console.log(`the previous mtime was: ${prev.mtime}`);\n});\n</code></pre>\n<p>These stat objects are instances of <code>fs.Stat</code>.</p>\n<p>To be notified when the file was modified, not just accessed, it is necessary\nto compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>\n<p><em>Note</em>: When an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it\nwill invoke the listener once, with all the fields zeroed (or, for dates, the\nUnix Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>,\ninstead of zero. If the file is created later on, the listener will be called\nagain, with the latest stat objects. This is a change in functionality since\nv0.10.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code> when possible.</p>\n"
+          "desc": "<p>Watch for changes on <code>filename</code>. The callback <code>listener</code> will be called each\ntime the file is accessed.</p>\n<p>The <code>options</code> argument may be omitted. If provided, it should be an object. The\n<code>options</code> object may contain a boolean named <code>persistent</code> that indicates\nwhether the process should continue to run as long as files are being watched.\nThe <code>options</code> object may specify an <code>interval</code> property indicating how often the\ntarget should be polled in milliseconds. The default is\n<code>{ persistent: true, interval: 5007 }</code>.</p>\n<p>The <code>listener</code> gets two arguments the current stat object and the previous\nstat object:</p>\n<pre><code class=\"lang-js\">fs.watchFile(&#39;message.text&#39;, (curr, prev) =&gt; {\n  console.log(`the current mtime is: ${curr.mtime}`);\n  console.log(`the previous mtime was: ${prev.mtime}`);\n});\n</code></pre>\n<p>These stat objects are instances of <code>fs.Stat</code>.</p>\n<p>To be notified when the file was modified, not just accessed, it is necessary\nto compare <code>curr.mtime</code> and <code>prev.mtime</code>.</p>\n<p><em>Note</em>: When an <code>fs.watchFile</code> operation results in an <code>ENOENT</code> error, it\nwill invoke the listener once, with all the fields zeroed (or, for dates, the\nUnix Epoch). In Windows, <code>blksize</code> and <code>blocks</code> fields will be <code>undefined</code>,\ninstead of zero. If the file is created later on, the listener will be called\nagain, with the latest stat objects. This is a change in functionality since\nv0.10.</p>\n<p><em>Note</em>: <a href=\"#fs_fs_watch_filename_options_listener\"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code>. <code>fs.watch</code> should be used instead of <code>fs.watchFile</code> and\n<code>fs.unwatchFile</code> when possible.</p>\n<p><em>Note:</em> When a file being watched by <code>fs.watchFile()</code> disappears and reappears,\nthen the <code>previousStat</code> reported in the second callback event (the file&#39;s\nreappearance) will be the same as the <code>previousStat</code> of the first callback\nevent (its disappearance).</p>\n<p>This happens when:</p>\n<ul>\n<li>the file is deleted, followed by a restore</li>\n<li>the file is renamed twice - the second time back to its original name</li>\n</ul>\n"
         },
         {
           "textRaw": "fs.write(fd, buffer[, offset[, length[, position]]], callback)",
@@ -4159,6 +4609,23 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`bytesWritten` {integer} ",
+                      "name": "bytesWritten",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`buffer` {Buffer|Uint8Array} ",
+                      "name": "buffer",
+                      "type": "Buffer|Uint8Array"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -4240,6 +4707,23 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`written` {integer} ",
+                      "name": "written",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`string` {string} ",
+                      "name": "string",
+                      "type": "string"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -4267,7 +4751,7 @@
               ]
             }
           ],
-          "desc": "<p>Write <code>string</code> to the file specified by <code>fd</code>.  If <code>string</code> is not a string, then\nthe value will be coerced to one.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== &#39;number&#39;</code> the data will be written at\nthe current position. See pwrite(2).</p>\n<p><code>encoding</code> is the expected string encoding.</p>\n<p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>\nspecifies how many <em>bytes</em> the passed string required to be written. Note that\nbytes written is not the same as string characters. See <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\"><code>Buffer.byteLength</code></a>.</p>\n<p>Unlike when writing <code>buffer</code>, the entire string must be written. No substring\nmay be specified. This is because the byte offset of the resulting data may not\nbe the same as the string offset.</p>\n<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n"
+          "desc": "<p>Write <code>string</code> to the file specified by <code>fd</code>. If <code>string</code> is not a string, then\nthe value will be coerced to one.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== &#39;number&#39;</code> the data will be written at\nthe current position. See pwrite(2).</p>\n<p><code>encoding</code> is the expected string encoding.</p>\n<p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>\nspecifies how many <em>bytes</em> the passed string required to be written. Note that\nbytes written is not the same as string characters. See <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\"><code>Buffer.byteLength</code></a>.</p>\n<p>Unlike when writing <code>buffer</code>, the entire string must be written. No substring\nmay be specified. This is because the byte offset of the resulting data may not\nbe the same as the string offset.</p>\n<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file\nwithout waiting for the callback. For this scenario,\n<code>fs.createWriteStream</code> is strongly recommended.</p>\n<p>On Linux, positional writes don&#39;t work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n"
         },
         {
           "textRaw": "fs.writeFile(file, data[, options], callback)",
@@ -4299,9 +4783,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|URL|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "string|Buffer|integer",
+                  "type": "string|Buffer|URL|integer",
                   "desc": "filename or file descriptor"
                 },
                 {
@@ -4337,6 +4821,13 @@
                 },
                 {
                   "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    }
+                  ],
                   "name": "callback",
                   "type": "Function"
                 }
@@ -4387,9 +4878,9 @@
             {
               "params": [
                 {
-                  "textRaw": "`file` {string|Buffer|integer} filename or file descriptor ",
+                  "textRaw": "`file` {string|Buffer|URL|integer} filename or file descriptor ",
                   "name": "file",
-                  "type": "string|Buffer|integer",
+                  "type": "string|Buffer|URL|integer",
                   "desc": "filename or file descriptor"
                 },
                 {

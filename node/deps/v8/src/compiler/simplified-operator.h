@@ -34,30 +34,6 @@ size_t hash_value(BaseTaggedness);
 
 std::ostream& operator<<(std::ostream&, BaseTaggedness);
 
-
-// An access descriptor for loads/stores of array buffers.
-class BufferAccess final {
- public:
-  explicit BufferAccess(ExternalArrayType external_array_type)
-      : external_array_type_(external_array_type) {}
-
-  ExternalArrayType external_array_type() const { return external_array_type_; }
-  MachineType machine_type() const;
-
- private:
-  ExternalArrayType const external_array_type_;
-};
-
-V8_EXPORT_PRIVATE bool operator==(BufferAccess, BufferAccess);
-bool operator!=(BufferAccess, BufferAccess);
-
-size_t hash_value(BufferAccess);
-
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&, BufferAccess);
-
-V8_EXPORT_PRIVATE BufferAccess const BufferAccessOf(const Operator* op)
-    WARN_UNUSED_RESULT;
-
 // An access descriptor for loads/stores of fixed structures like field
 // accesses of heap objects. Accesses from either tagged or untagged base
 // pointers are supported; untagging is done automatically during lowering.
@@ -181,6 +157,10 @@ std::ostream& operator<<(std::ostream&, CheckMapsParameters const&);
 CheckMapsParameters const& CheckMapsParametersOf(Operator const*)
     WARN_UNUSED_RESULT;
 
+// Parameters for CompareMaps operator.
+ZoneHandleSet<Map> const& CompareMapsParametersOf(Operator const*)
+    WARN_UNUSED_RESULT;
+
 // A descriptor for growing elements backing stores.
 enum class GrowFastElementsFlag : uint8_t {
   kNone = 0u,
@@ -228,12 +208,17 @@ std::ostream& operator<<(std::ostream&, ElementsTransition);
 ElementsTransition const& ElementsTransitionOf(const Operator* op)
     WARN_UNUSED_RESULT;
 
+// Parameters for TransitionAndStoreElement.
+Handle<Map> DoubleMapParameterOf(const Operator* op);
+Handle<Map> FastMapParameterOf(const Operator* op);
+
 // A hint for speculative number operations.
 enum class NumberOperationHint : uint8_t {
-  kSignedSmall,      // Inputs were always Smi so far, output was in Smi range.
-  kSigned32,         // Inputs and output were Signed32 so far.
-  kNumber,           // Inputs were Number, output was Number.
-  kNumberOrOddball,  // Inputs were Number or Oddball, output was Number.
+  kSignedSmall,        // Inputs were Smi, output was in Smi.
+  kSignedSmallInputs,  // Inputs were Smi, output was Number.
+  kSigned32,           // Inputs were Signed32, output was Number.
+  kNumber,             // Inputs were Number, output was Number.
+  kNumberOrOddball,    // Inputs were Number or Oddball, output was Number.
 };
 
 size_t hash_value(NumberOperationHint);
@@ -355,6 +340,9 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
 
   const Operator* NumberSilenceNaN();
 
+  const Operator* SpeculativeSafeIntegerAdd(NumberOperationHint hint);
+  const Operator* SpeculativeSafeIntegerSubtract(NumberOperationHint hint);
+
   const Operator* SpeculativeNumberAdd(NumberOperationHint hint);
   const Operator* SpeculativeNumberSubtract(NumberOperationHint hint);
   const Operator* SpeculativeNumberMultiply(NumberOperationHint hint);
@@ -378,9 +366,15 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* StringLessThanOrEqual();
   const Operator* StringCharAt();
   const Operator* StringCharCodeAt();
+  const Operator* SeqStringCharCodeAt();
   const Operator* StringFromCharCode();
   const Operator* StringFromCodePoint(UnicodeEncoding encoding);
   const Operator* StringIndexOf();
+  const Operator* StringToLowerCaseIntl();
+  const Operator* StringToUpperCaseIntl();
+
+  const Operator* LookupHashStorageIndex();
+  const Operator* LoadHashMapValue();
 
   const Operator* SpeculativeToNumber(NumberOperationHint hint);
 
@@ -408,12 +402,16 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* CheckIf();
   const Operator* CheckBounds();
   const Operator* CheckMaps(CheckMapsFlags, ZoneHandleSet<Map>);
+  const Operator* CheckMapValue();
+  const Operator* CompareMaps(ZoneHandleSet<Map>);
 
   const Operator* CheckHeapObject();
   const Operator* CheckInternalizedString();
   const Operator* CheckNumber();
   const Operator* CheckSmi();
   const Operator* CheckString();
+  const Operator* CheckSeqString();
+  const Operator* CheckSymbol();
   const Operator* CheckReceiver();
 
   const Operator* CheckedInt32Add();
@@ -432,12 +430,13 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* CheckedTaggedToFloat64(CheckTaggedInputMode);
   const Operator* CheckedTaggedToTaggedSigned();
   const Operator* CheckedTaggedToTaggedPointer();
-  const Operator* CheckedTruncateTaggedToWord32();
+  const Operator* CheckedTruncateTaggedToWord32(CheckTaggedInputMode);
 
   const Operator* CheckFloat64Hole(CheckFloat64HoleMode);
-  const Operator* CheckTaggedHole();
+  const Operator* CheckNotTaggedHole();
   const Operator* ConvertTaggedHoleToUndefined();
 
+  const Operator* ObjectIsCallable();
   const Operator* ObjectIsDetectableCallable();
   const Operator* ObjectIsNaN();
   const Operator* ObjectIsNonCallable();
@@ -472,17 +471,15 @@ class V8_EXPORT_PRIVATE SimplifiedOperatorBuilder final
   const Operator* LoadField(FieldAccess const&);
   const Operator* StoreField(FieldAccess const&);
 
-  // load-buffer buffer, offset, length
-  const Operator* LoadBuffer(BufferAccess);
-
-  // store-buffer buffer, offset, length, value
-  const Operator* StoreBuffer(BufferAccess);
-
   // load-element [base + index]
   const Operator* LoadElement(ElementAccess const&);
 
   // store-element [base + index], value
   const Operator* StoreElement(ElementAccess const&);
+
+  // store-element [base + index], value, only with fast arrays.
+  const Operator* TransitionAndStoreElement(Handle<Map> double_map,
+                                            Handle<Map> fast_map);
 
   // load-typed-element buffer, [base + external + index]
   const Operator* LoadTypedElement(ExternalArrayType const&);

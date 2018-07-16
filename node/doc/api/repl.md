@@ -1,5 +1,7 @@
 # REPL
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `repl` module provides a Read-Eval-Print-Loop (REPL) implementation that
@@ -94,7 +96,7 @@ are declared at the global scope.
 
 The default evaluator provides access to any variables that exist in the global
 scope. It is possible to expose a variable to the REPL explicitly by assigning
-it to the `context` object associated with each `REPLServer`.  For example:
+it to the `context` object associated with each `REPLServer`. For example:
 
 ```js
 const repl = require('repl');
@@ -112,9 +114,8 @@ $ node repl_test.js
 'message'
 ```
 
-It is important to note that context properties are *not* read-only by default.
-To specify read-only globals, context properties must be defined using
-`Object.defineProperty()`:
+Context properties are not read-only by default. To specify read-only globals,
+context properties must be defined using `Object.defineProperty()`:
 
 ```js
 const repl = require('repl');
@@ -387,17 +388,17 @@ changes:
 * `options` {Object|string}
   * `prompt` {string} The input prompt to display. Defaults to `> `
     (with a trailing space).
-  * `input` {Readable} The Readable stream from which REPL input will be read.
+  * `input` {stream.Readable} The Readable stream from which REPL input will be read.
     Defaults to `process.stdin`.
-  * `output` {Writable} The Writable stream to which REPL output will be
+  * `output` {stream.Writable} The Writable stream to which REPL output will be
     written. Defaults to `process.stdout`.
   * `terminal` {boolean} If `true`, specifies that the `output` should be
-    treated as a a TTY terminal, and have ANSI/VT100 escape codes written to it.
+    treated as a TTY terminal, and have ANSI/VT100 escape codes written to it.
     Defaults to checking the value of the `isTTY` property on the `output`
     stream upon instantiation.
   * `eval` {Function} The function to be used when evaluating each given line
     of input. Defaults to an async wrapper for the JavaScript `eval()`
-    function.  An `eval` function can error with `repl.Recoverable` to indicate
+    function. An `eval` function can error with `repl.Recoverable` to indicate
     the input was incomplete and prompt for additional lines.
   * `useColors` {boolean} If `true`, specifies that the default `writer`
     function should include ANSI color styling to REPL output. If a custom
@@ -466,7 +467,7 @@ environment variables:
 
  - `NODE_REPL_HISTORY` - When a valid path is given, persistent REPL history
    will be saved to the specified file rather than `.node_repl_history` in the
-   user's home directory. Setting this value to `""` will disable persistent
+   user's home directory. Setting this value to `''` will disable persistent
    REPL history. Whitespace will be trimmed from the value.
  - `NODE_REPL_HISTORY_SIZE` - Defaults to `1000`. Controls how many lines of
    history will be persisted if history is available. Must be a positive number.
@@ -499,7 +500,7 @@ by the `NODE_REPL_HISTORY` variable, as documented in the
 
 ### Using the Node.js REPL with advanced line-editors
 
-For advanced line-editors, start Node.js with the environmental variable
+For advanced line-editors, start Node.js with the environment variable
 `NODE_NO_READLINE=1`. This will start the main and debugger REPL in canonical
 terminal settings, which will allow use with `rlwrap`.
 

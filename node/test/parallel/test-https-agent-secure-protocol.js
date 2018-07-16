@@ -5,12 +5,12 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const https = require('https');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`),
-  ca: fs.readFileSync(`${common.fixturesDir}/keys/ca1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem'),
+  ca: fixtures.readKey('ca1-cert.pem')
 };
 
 const server = https.Server(options, function(req, res) {
@@ -42,7 +42,7 @@ server.listen(0, common.mustCall(function() {
       }, common.mustCall(function(res) {
         res.resume();
         globalAgent.once('free', common.mustCall(function() {
-          // Verify that two keep-alived connections are created
+          // Verify that two keep-alive connections are created
           // due to the different secureProtocol settings:
           const keys = Object.keys(globalAgent.freeSockets);
           assert.strictEqual(keys.length, 2);

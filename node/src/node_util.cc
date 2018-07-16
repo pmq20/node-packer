@@ -1,8 +1,5 @@
-#include "node.h"
+#include "node_internals.h"
 #include "node_watchdog.h"
-#include "v8.h"
-#include "env.h"
-#include "env-inl.h"
 
 namespace node {
 namespace util {
@@ -39,7 +36,6 @@ using v8::Value;
 
 #define V(_, ucname) \
   static void ucname(const FunctionCallbackInfo<Value>& args) {               \
-    CHECK_EQ(1, args.Length());                                               \
     args.GetReturnValue().Set(args[0]->ucname());                             \
   }
 
@@ -47,7 +43,6 @@ using v8::Value;
 #undef V
 
 static void IsAnyArrayBuffer(const FunctionCallbackInfo<Value>& args) {
-  CHECK_EQ(1, args.Length());
   args.GetReturnValue().Set(
     args[0]->IsArrayBuffer() || args[0]->IsSharedArrayBuffer());
 }
@@ -82,6 +77,12 @@ static void GetProxyDetails(const FunctionCallbackInfo<Value>& args) {
   ret->Set(1, proxy->GetHandler());
 
   args.GetReturnValue().Set(ret);
+}
+
+// Side effect-free stringification that will never throw exceptions.
+static void SafeToString(const FunctionCallbackInfo<Value>& args) {
+  auto context = args.GetIsolate()->GetCurrentContext();
+  args.GetReturnValue().Set(args[0]->ToDetailString(context).ToLocalChecked());
 }
 
 inline Local<Private> IndexToPrivateSymbol(Environment* env, uint32_t index) {
@@ -221,6 +222,7 @@ void Initialize(Local<Object> target,
   env->SetMethod(target, "setHiddenValue", SetHiddenValue);
   env->SetMethod(target, "getPromiseDetails", GetPromiseDetails);
   env->SetMethod(target, "getProxyDetails", GetProxyDetails);
+  env->SetMethod(target, "safeToString", SafeToString);
 
   env->SetMethod(target, "startSigintWatchdog", StartSigintWatchdog);
   env->SetMethod(target, "stopSigintWatchdog", StopSigintWatchdog);
@@ -234,4 +236,4 @@ void Initialize(Local<Object> target,
 }  // namespace util
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(util, node::util::Initialize)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(util, node::util::Initialize)

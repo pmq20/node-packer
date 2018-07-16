@@ -38,6 +38,7 @@
 #define V8_X64_ASSEMBLER_X64_H_
 
 #include <deque>
+#include <forward_list>
 
 #include "src/assembler.h"
 #include "src/x64/sse-instr.h"
@@ -81,6 +82,19 @@ namespace internal {
 
 // The length of pushq(rbp), movp(rbp, rsp), Push(rsi) and Push(rdi).
 constexpr int kNoCodeAgeSequenceLength = kPointerSize == kInt64Size ? 6 : 17;
+
+const int kNumRegs = 16;
+const RegList kJSCallerSaved =
+    1 << 0 |  // rax
+    1 << 1 |  // rcx
+    1 << 2 |  // rdx
+    1 << 3 |  // rbx - used as a caller-saved register in JavaScript code
+    1 << 7;   // rdi - callee function
+
+const int kNumJSCallerSaved = 5;
+
+// Number of registers for which space is reserved in safepoints.
+const int kNumSafepointRegisters = 16;
 
 // CPU Registers.
 //
@@ -448,15 +462,14 @@ class Operand BASE_EMBEDDED {
 
 // Shift instructions on operands/registers with kPointerSize, kInt32Size and
 // kInt64Size.
-#define SHIFT_INSTRUCTION_LIST(V)       \
-  V(rol, 0x0)                           \
-  V(ror, 0x1)                           \
-  V(rcl, 0x2)                           \
-  V(rcr, 0x3)                           \
-  V(shl, 0x4)                           \
-  V(shr, 0x5)                           \
-  V(sar, 0x7)                           \
-
+#define SHIFT_INSTRUCTION_LIST(V) \
+  V(rol, 0x0)                     \
+  V(ror, 0x1)                     \
+  V(rcl, 0x2)                     \
+  V(rcr, 0x3)                     \
+  V(shl, 0x4)                     \
+  V(shr, 0x5)                     \
+  V(sar, 0x7)
 
 class Assembler : public AssemblerBase {
  private:
@@ -488,12 +501,12 @@ class Assembler : public AssemblerBase {
   Assembler(Isolate* isolate, void* buffer, int buffer_size)
       : Assembler(IsolateData(isolate), buffer, buffer_size) {}
   Assembler(IsolateData isolate_data, void* buffer, int buffer_size);
-  virtual ~Assembler() { }
+  virtual ~Assembler() {}
 
   // GetCode emits any pending (non-emitted) code and fills the descriptor
   // desc. GetCode() is idempotent; it returns the same result if no other
   // Assembler functions are invoked in between GetCode() calls.
-  void GetCode(CodeDesc* desc);
+  void GetCode(Isolate* isolate, CodeDesc* desc);
 
   // Read/Modify the code target in the relative branch/call instruction at pc.
   // On the x64 architecture, we use relative jumps with a 32-bit displacement
@@ -554,13 +567,6 @@ class Assembler : public AssemblerBase {
   static constexpr int kCallSequenceLength =
       kMoveAddressIntoScratchRegisterInstructionLength +
       kCallScratchRegisterInstructionLength;
-
-  // The debug break slot must be able to contain an indirect call sequence.
-  static constexpr int kDebugBreakSlotLength = kCallSequenceLength;
-  // Distance between start of patched debug break slot and the emitted address
-  // to jump to.
-  static constexpr int kPatchDebugBreakSlotAddressOffset =
-      kMoveAddressIntoScratchRegisterInstructionLength - kPointerSize;
 
   // One byte opcode for test eax,0xXXXXXXXX.
   static constexpr byte kTestEaxByte = 0xA9;
@@ -695,6 +701,15 @@ class Assembler : public AssemblerBase {
 
   // Loads a pointer into a register with a relocation mode.
   void movp(Register dst, void* ptr, RelocInfo::Mode rmode);
+
+  // Load a heap number into a register.
+  // The heap number will not be allocated and embedded into the code right
+  // away. Instead, we emit the load of a dummy object. Later, when calling
+  // Assembler::GetCode, the heap number will be allocated and the code will be
+  // patched by replacing the dummy with the actual object. The RelocInfo for
+  // the embedded object gets already recorded correctly when emitting the dummy
+  // move.
+  void movp_heap_number(Register dst, double value);
 
   // Loads a 64-bit immediate into a register.
   void movq(Register dst, int64_t value,
@@ -913,9 +928,9 @@ class Assembler : public AssemblerBase {
   // Call near relative 32-bit displacement, relative to next instruction.
   void call(Label* L);
   void call(Address entry, RelocInfo::Mode rmode);
+  void call(CodeStub* stub);
   void call(Handle<Code> target,
-            RelocInfo::Mode rmode = RelocInfo::CODE_TARGET,
-            TypeFeedbackId ast_id = TypeFeedbackId::None());
+            RelocInfo::Mode rmode = RelocInfo::CODE_TARGET);
 
   // Calls directly to the given address using a relative offset.
   // Should only ever be used in Code objects for calls within the
@@ -1980,9 +1995,6 @@ class Assembler : public AssemblerBase {
     return pc_offset() - label->pos();
   }
 
-  // Mark address of a debug break slot.
-  void RecordDebugBreakSlot(RelocInfo::Mode mode);
-
   // Record a comment relocation entry that can be used by a disassembler.
   // Use --code-comments to enable.
   void RecordComment(const char* msg);
@@ -2052,9 +2064,7 @@ class Assembler : public AssemblerBase {
   inline void emitp(void* x, RelocInfo::Mode rmode);
   inline void emitq(uint64_t x);
   inline void emitw(uint16_t x);
-  inline void emit_code_target(Handle<Code> target,
-                               RelocInfo::Mode rmode,
-                               TypeFeedbackId ast_id = TypeFeedbackId::None());
+  inline void emit_code_target(Handle<Code> target, RelocInfo::Mode rmode);
   inline void emit_runtime_entry(Address entry, RelocInfo::Mode rmode);
   inline void emit(Immediate x);
 
@@ -2472,7 +2482,7 @@ class Assembler : public AssemblerBase {
     arithmetic_op(0x31, src, dst, size);
   }
 
-  // Most BMI instructions are similiar.
+  // Most BMI instructions are similar.
   void bmi1q(byte op, Register reg, Register vreg, Register rm);
   void bmi1q(byte op, Register reg, Register vreg, const Operand& rm);
   void bmi1l(byte op, Register reg, Register vreg, Register rm);
@@ -2483,6 +2493,11 @@ class Assembler : public AssemblerBase {
   void bmi2l(SIMDPrefix pp, byte op, Register reg, Register vreg, Register rm);
   void bmi2l(SIMDPrefix pp, byte op, Register reg, Register vreg,
              const Operand& rm);
+
+  // record the position of jmp/jcc instruction
+  void record_farjmp_position(Label* L, int pos);
+
+  bool is_optimizable_farjmp(int idx);
 
   friend class CodePatcher;
   friend class EnsureSpace;
@@ -2497,6 +2512,24 @@ class Assembler : public AssemblerBase {
   std::deque<int> internal_reference_positions_;
 
   List< Handle<Code> > code_targets_;
+
+  // The following functions help with avoiding allocations of embedded heap
+  // objects during the code assembly phase. {RequestHeapObject} records the
+  // need for a future heap number allocation or code stub generation. After
+  // code assembly, {AllocateAndInstallRequestedHeapObjects} will allocate these
+  // objects and place them where they are expected (determined by the pc offset
+  // associated with each request). That is, for each request, it will patch the
+  // dummy heap object handle that we emitted during code assembly with the
+  // actual heap object handle.
+  void RequestHeapObject(HeapObjectRequest request);
+  void AllocateAndInstallRequestedHeapObjects(Isolate* isolate);
+
+  std::forward_list<HeapObjectRequest> heap_object_requests_;
+
+  // Variables for this instance of assembler
+  int farjmp_num_ = 0;
+  std::deque<int> farjmp_positions_;
+  std::map<Label*, std::vector<int>> label_farjmp_maps_;
 };
 
 

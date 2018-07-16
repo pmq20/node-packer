@@ -144,7 +144,7 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(Uint64LessThan, Operator::kNoProperties, 2, 0, 1)                    \
   V(Uint64LessThanOrEqual, Operator::kNoProperties, 2, 0, 1)
 
-#define PURE_OP_LIST(V)                                                   \
+#define MACHINE_PURE_OP_LIST(V)                                           \
   PURE_BINARY_OP_LIST_32(V)                                               \
   PURE_BINARY_OP_LIST_64(V)                                               \
   V(Word32Clz, Operator::kNoProperties, 1, 0, 1)                          \
@@ -270,15 +270,15 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(I32x4MaxS, Operator::kCommutative, 2, 0, 1)                           \
   V(I32x4Eq, Operator::kCommutative, 2, 0, 1)                             \
   V(I32x4Ne, Operator::kCommutative, 2, 0, 1)                             \
-  V(I32x4LtS, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I32x4LeS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I32x4GtS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I32x4GeS, Operator::kNoProperties, 2, 0, 1)                           \
   V(I32x4UConvertF32x4, Operator::kNoProperties, 1, 0, 1)                 \
   V(I32x4UConvertI16x8Low, Operator::kNoProperties, 1, 0, 1)              \
   V(I32x4UConvertI16x8High, Operator::kNoProperties, 1, 0, 1)             \
   V(I32x4MinU, Operator::kCommutative, 2, 0, 1)                           \
   V(I32x4MaxU, Operator::kCommutative, 2, 0, 1)                           \
-  V(I32x4LtU, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I32x4LeU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I32x4GtU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I32x4GeU, Operator::kNoProperties, 2, 0, 1)                           \
   V(I16x8Splat, Operator::kNoProperties, 1, 0, 1)                         \
   V(I16x8SConvertI8x16Low, Operator::kNoProperties, 1, 0, 1)              \
   V(I16x8SConvertI8x16High, Operator::kNoProperties, 1, 0, 1)             \
@@ -294,8 +294,8 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(I16x8MaxS, Operator::kCommutative, 2, 0, 1)                           \
   V(I16x8Eq, Operator::kCommutative, 2, 0, 1)                             \
   V(I16x8Ne, Operator::kCommutative, 2, 0, 1)                             \
-  V(I16x8LtS, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I16x8LeS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I16x8GtS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I16x8GeS, Operator::kNoProperties, 2, 0, 1)                           \
   V(I16x8UConvertI8x16Low, Operator::kNoProperties, 1, 0, 1)              \
   V(I16x8UConvertI8x16High, Operator::kNoProperties, 1, 0, 1)             \
   V(I16x8UConvertI32x4, Operator::kNoProperties, 2, 0, 1)                 \
@@ -303,8 +303,8 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(I16x8SubSaturateU, Operator::kNoProperties, 2, 0, 1)                  \
   V(I16x8MinU, Operator::kCommutative, 2, 0, 1)                           \
   V(I16x8MaxU, Operator::kCommutative, 2, 0, 1)                           \
-  V(I16x8LtU, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I16x8LeU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I16x8GtU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I16x8GeU, Operator::kNoProperties, 2, 0, 1)                           \
   V(I8x16Splat, Operator::kNoProperties, 1, 0, 1)                         \
   V(I8x16Neg, Operator::kNoProperties, 1, 0, 1)                           \
   V(I8x16SConvertI16x8, Operator::kNoProperties, 2, 0, 1)                 \
@@ -317,15 +317,15 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(I8x16MaxS, Operator::kCommutative, 2, 0, 1)                           \
   V(I8x16Eq, Operator::kCommutative, 2, 0, 1)                             \
   V(I8x16Ne, Operator::kCommutative, 2, 0, 1)                             \
-  V(I8x16LtS, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I8x16LeS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I8x16GtS, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I8x16GeS, Operator::kNoProperties, 2, 0, 1)                           \
   V(I8x16UConvertI16x8, Operator::kNoProperties, 2, 0, 1)                 \
   V(I8x16AddSaturateU, Operator::kCommutative, 2, 0, 1)                   \
   V(I8x16SubSaturateU, Operator::kNoProperties, 2, 0, 1)                  \
   V(I8x16MinU, Operator::kCommutative, 2, 0, 1)                           \
   V(I8x16MaxU, Operator::kCommutative, 2, 0, 1)                           \
-  V(I8x16LtU, Operator::kNoProperties, 2, 0, 1)                           \
-  V(I8x16LeU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I8x16GtU, Operator::kNoProperties, 2, 0, 1)                           \
+  V(I8x16GeU, Operator::kNoProperties, 2, 0, 1)                           \
   V(S128Load, Operator::kNoProperties, 2, 0, 1)                           \
   V(S128Store, Operator::kNoProperties, 3, 0, 1)                          \
   V(S128Zero, Operator::kNoProperties, 0, 0, 1)                           \
@@ -333,28 +333,11 @@ MachineType AtomicOpRepresentationOf(Operator const* op) {
   V(S128Or, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)     \
   V(S128Xor, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
   V(S128Not, Operator::kNoProperties, 1, 0, 1)                            \
-  V(S32x4Select, Operator::kNoProperties, 3, 0, 1)                        \
-  V(S16x8Select, Operator::kNoProperties, 3, 0, 1)                        \
-  V(S8x16Select, Operator::kNoProperties, 3, 0, 1)                        \
-  V(S1x4Zero, Operator::kNoProperties, 0, 0, 1)                           \
-  V(S1x4And, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
-  V(S1x4Or, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)     \
-  V(S1x4Xor, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
-  V(S1x4Not, Operator::kNoProperties, 1, 0, 1)                            \
+  V(S128Select, Operator::kNoProperties, 3, 0, 1)                         \
   V(S1x4AnyTrue, Operator::kNoProperties, 1, 0, 1)                        \
   V(S1x4AllTrue, Operator::kNoProperties, 1, 0, 1)                        \
-  V(S1x8Zero, Operator::kNoProperties, 0, 0, 1)                           \
-  V(S1x8And, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
-  V(S1x8Or, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)     \
-  V(S1x8Xor, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
-  V(S1x8Not, Operator::kNoProperties, 1, 0, 1)                            \
   V(S1x8AnyTrue, Operator::kNoProperties, 1, 0, 1)                        \
   V(S1x8AllTrue, Operator::kNoProperties, 1, 0, 1)                        \
-  V(S1x16Zero, Operator::kNoProperties, 0, 0, 1)                          \
-  V(S1x16And, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)   \
-  V(S1x16Or, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)    \
-  V(S1x16Xor, Operator::kAssociative | Operator::kCommutative, 2, 0, 1)   \
-  V(S1x16Not, Operator::kNoProperties, 1, 0, 1)                           \
   V(S1x16AnyTrue, Operator::kNoProperties, 1, 0, 1)                       \
   V(S1x16AllTrue, Operator::kNoProperties, 1, 0, 1)
 
@@ -460,7 +443,7 @@ struct MachineOperatorGlobalCache {
                    0) {}                                                       \
   };                                                                           \
   Name##Operator k##Name;
-  PURE_OP_LIST(PURE)
+  MACHINE_PURE_OP_LIST(PURE)
   PURE_OPTIONAL_OP_LIST(PURE)
 #undef PURE
 
@@ -665,10 +648,17 @@ struct MachineOperatorGlobalCache {
   };
   BitcastWordToTaggedOperator kBitcastWordToTagged;
 
+  struct DebugAbortOperator : public Operator {
+    DebugAbortOperator()
+        : Operator(IrOpcode::kDebugAbort, Operator::kNoThrow, "DebugAbort", 1,
+                   1, 1, 0, 1, 0) {}
+  };
+  DebugAbortOperator kDebugAbort;
+
   struct DebugBreakOperator : public Operator {
     DebugBreakOperator()
         : Operator(IrOpcode::kDebugBreak, Operator::kNoThrow, "DebugBreak", 0,
-                   0, 0, 0, 0, 0) {}
+                   1, 1, 0, 1, 0) {}
   };
   DebugBreakOperator kDebugBreak;
 
@@ -686,14 +676,14 @@ struct CommentOperator : public Operator1<const char*> {
                                "Comment", 0, 0, 0, 0, 0, 0, msg) {}
 };
 
-static base::LazyInstance<MachineOperatorGlobalCache>::type kCache =
-    LAZY_INSTANCE_INITIALIZER;
+static base::LazyInstance<MachineOperatorGlobalCache>::type
+    kMachineOperatorGlobalCache = LAZY_INSTANCE_INITIALIZER;
 
 MachineOperatorBuilder::MachineOperatorBuilder(
     Zone* zone, MachineRepresentation word, Flags flags,
     AlignmentRequirements alignmentRequirements)
     : zone_(zone),
-      cache_(kCache.Get()),
+      cache_(kMachineOperatorGlobalCache.Get()),
       word_(word),
       flags_(flags),
       alignment_requirements_(alignmentRequirements) {
@@ -710,7 +700,6 @@ const Operator* MachineOperatorBuilder::UnalignedLoad(
   MACHINE_TYPE_LIST(LOAD)
 #undef LOAD
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::UnalignedStore(
@@ -722,20 +711,16 @@ const Operator* MachineOperatorBuilder::UnalignedStore(
     MACHINE_REPRESENTATION_LIST(STORE)
 #undef STORE
     case MachineRepresentation::kBit:
-    case MachineRepresentation::kSimd1x4:
-    case MachineRepresentation::kSimd1x8:
-    case MachineRepresentation::kSimd1x16:
     case MachineRepresentation::kNone:
       break;
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 #define PURE(Name, properties, value_input_count, control_input_count, \
              output_count)                                             \
   const Operator* MachineOperatorBuilder::Name() { return &cache_.k##Name; }
-PURE_OP_LIST(PURE)
+MACHINE_PURE_OP_LIST(PURE)
 #undef PURE
 
 #define PURE(Name, properties, value_input_count, control_input_count, \
@@ -759,7 +744,6 @@ const Operator* MachineOperatorBuilder::Load(LoadRepresentation rep) {
     MACHINE_TYPE_LIST(LOAD)
 #undef LOAD
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::ProtectedLoad(LoadRepresentation rep) {
@@ -770,7 +754,6 @@ const Operator* MachineOperatorBuilder::ProtectedLoad(LoadRepresentation rep) {
   MACHINE_TYPE_LIST(LOAD)
 #undef LOAD
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::StackSlot(int size, int alignment) {
@@ -810,14 +793,10 @@ const Operator* MachineOperatorBuilder::Store(StoreRepresentation store_rep) {
     MACHINE_REPRESENTATION_LIST(STORE)
 #undef STORE
     case MachineRepresentation::kBit:
-    case MachineRepresentation::kSimd1x4:
-    case MachineRepresentation::kSimd1x8:
-    case MachineRepresentation::kSimd1x16:
     case MachineRepresentation::kNone:
       break;
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::ProtectedStore(
@@ -830,14 +809,10 @@ const Operator* MachineOperatorBuilder::ProtectedStore(
     MACHINE_REPRESENTATION_LIST(STORE)
 #undef STORE
     case MachineRepresentation::kBit:
-    case MachineRepresentation::kSimd1x4:
-    case MachineRepresentation::kSimd1x8:
-    case MachineRepresentation::kSimd1x16:
     case MachineRepresentation::kNone:
       break;
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::UnsafePointerAdd() {
@@ -846,6 +821,10 @@ const Operator* MachineOperatorBuilder::UnsafePointerAdd() {
 
 const Operator* MachineOperatorBuilder::BitcastWordToTagged() {
   return &cache_.kBitcastWordToTagged;
+}
+
+const Operator* MachineOperatorBuilder::DebugAbort() {
+  return &cache_.kDebugAbort;
 }
 
 const Operator* MachineOperatorBuilder::DebugBreak() {
@@ -865,7 +844,6 @@ const Operator* MachineOperatorBuilder::CheckedLoad(
     MACHINE_TYPE_LIST(LOAD)
 #undef LOAD
   UNREACHABLE();
-  return nullptr;
 }
 
 
@@ -878,14 +856,10 @@ const Operator* MachineOperatorBuilder::CheckedStore(
     MACHINE_REPRESENTATION_LIST(STORE)
 #undef STORE
     case MachineRepresentation::kBit:
-    case MachineRepresentation::kSimd1x4:
-    case MachineRepresentation::kSimd1x8:
-    case MachineRepresentation::kSimd1x16:
     case MachineRepresentation::kNone:
       break;
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicLoad(LoadRepresentation rep) {
@@ -896,7 +870,6 @@ const Operator* MachineOperatorBuilder::AtomicLoad(LoadRepresentation rep) {
   ATOMIC_TYPE_LIST(LOAD)
 #undef LOAD
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicStore(MachineRepresentation rep) {
@@ -907,7 +880,6 @@ const Operator* MachineOperatorBuilder::AtomicStore(MachineRepresentation rep) {
   ATOMIC_REPRESENTATION_LIST(STORE)
 #undef STORE
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicExchange(MachineType rep) {
@@ -918,7 +890,6 @@ const Operator* MachineOperatorBuilder::AtomicExchange(MachineType rep) {
   ATOMIC_TYPE_LIST(EXCHANGE)
 #undef EXCHANGE
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicCompareExchange(MachineType rep) {
@@ -929,7 +900,6 @@ const Operator* MachineOperatorBuilder::AtomicCompareExchange(MachineType rep) {
   ATOMIC_TYPE_LIST(COMPARE_EXCHANGE)
 #undef COMPARE_EXCHANGE
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicAdd(MachineType rep) {
@@ -940,7 +910,6 @@ const Operator* MachineOperatorBuilder::AtomicAdd(MachineType rep) {
   ATOMIC_TYPE_LIST(ADD)
 #undef ADD
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicSub(MachineType rep) {
@@ -951,7 +920,6 @@ const Operator* MachineOperatorBuilder::AtomicSub(MachineType rep) {
   ATOMIC_TYPE_LIST(SUB)
 #undef SUB
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicAnd(MachineType rep) {
@@ -962,7 +930,6 @@ const Operator* MachineOperatorBuilder::AtomicAnd(MachineType rep) {
   ATOMIC_TYPE_LIST(AND)
 #undef AND
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicOr(MachineType rep) {
@@ -973,7 +940,6 @@ const Operator* MachineOperatorBuilder::AtomicOr(MachineType rep) {
   ATOMIC_TYPE_LIST(OR)
 #undef OR
   UNREACHABLE();
-  return nullptr;
 }
 
 const Operator* MachineOperatorBuilder::AtomicXor(MachineType rep) {
@@ -984,7 +950,6 @@ const Operator* MachineOperatorBuilder::AtomicXor(MachineType rep) {
   ATOMIC_TYPE_LIST(XOR)
 #undef XOR
   UNREACHABLE();
-  return nullptr;
 }
 
 #define SIMD_LANE_OPS(Type, lane_count)                                     \
@@ -1027,23 +992,8 @@ SIMD_LANE_OP_LIST(SIMD_LANE_OPS)
 SIMD_FORMAT_LIST(SIMD_SHIFT_OPS)
 #undef SIMD_SHIFT_OPS
 
-const Operator* MachineOperatorBuilder::S32x4Shuffle(uint8_t shuffle[16]) {
-  uint8_t* array = zone_->NewArray<uint8_t>(4);
-  memcpy(array, shuffle, 4);
-  return new (zone_)
-      Operator1<uint8_t*>(IrOpcode::kS32x4Shuffle, Operator::kPure, "Shuffle",
-                          2, 0, 0, 1, 0, 0, array);
-}
-
-const Operator* MachineOperatorBuilder::S16x8Shuffle(uint8_t shuffle[16]) {
-  uint8_t* array = zone_->NewArray<uint8_t>(8);
-  memcpy(array, shuffle, 8);
-  return new (zone_)
-      Operator1<uint8_t*>(IrOpcode::kS16x8Shuffle, Operator::kPure, "Shuffle",
-                          2, 0, 0, 1, 0, 0, array);
-}
-
-const Operator* MachineOperatorBuilder::S8x16Shuffle(uint8_t shuffle[16]) {
+const Operator* MachineOperatorBuilder::S8x16Shuffle(
+    const uint8_t shuffle[16]) {
   uint8_t* array = zone_->NewArray<uint8_t>(16);
   memcpy(array, shuffle, 16);
   return new (zone_)

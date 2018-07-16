@@ -128,7 +128,8 @@ void PropertyHandlerCompiler::GenerateDictionaryNegativeLookup(
 
   // Load properties array.
   Register properties = scratch0;
-  __ LoadP(properties, FieldMemOperand(receiver, JSObject::kPropertiesOffset));
+  __ LoadP(properties,
+           FieldMemOperand(receiver, JSObject::kPropertiesOrHashOffset));
   // Check that the properties array is a dictionary.
   __ LoadP(map, FieldMemOperand(properties, HeapObject::kMapOffset));
   Register tmp = properties;
@@ -137,8 +138,8 @@ void PropertyHandlerCompiler::GenerateDictionaryNegativeLookup(
   __ bne(miss_label);
 
   // Restore the temporarily used register.
-  __ LoadP(properties, FieldMemOperand(receiver, JSObject::kPropertiesOffset));
-
+  __ LoadP(properties,
+           FieldMemOperand(receiver, JSObject::kPropertiesOrHashOffset));
 
   NameDictionaryLookupStub::GenerateNegativeLookup(
       masm, miss_label, &done, receiver, properties, name, scratch1);
@@ -173,6 +174,7 @@ void PropertyHandlerCompiler::GenerateApiAccessorCall(
     int accessor_index) {
   DCHECK(!accessor_holder.is(scratch_in));
   DCHECK(!receiver.is(scratch_in));
+  __ push(accessor_holder);
   __ push(receiver);
   // Write the arguments to stack frame.
   if (is_store) {
@@ -194,9 +196,7 @@ void PropertyHandlerCompiler::GenerateApiAccessorCall(
 
   // Put holder in place.
   CallOptimization::HolderLookup holder_lookup;
-  int holder_depth = 0;
-  optimization.LookupHolderOfExpectedType(receiver_map, &holder_lookup,
-                                          &holder_depth);
+  optimization.LookupHolderOfExpectedType(receiver_map, &holder_lookup);
   switch (holder_lookup) {
     case CallOptimization::kHolderIsReceiver:
       __ Move(holder, receiver);
@@ -204,10 +204,6 @@ void PropertyHandlerCompiler::GenerateApiAccessorCall(
     case CallOptimization::kHolderFound:
       __ LoadP(holder, FieldMemOperand(receiver, HeapObject::kMapOffset));
       __ LoadP(holder, FieldMemOperand(holder, Map::kPrototypeOffset));
-      for (int i = 1; i < holder_depth; i++) {
-        __ LoadP(holder, FieldMemOperand(holder, HeapObject::kMapOffset));
-        __ LoadP(holder, FieldMemOperand(holder, Map::kPrototypeOffset));
-      }
       break;
     case CallOptimization::kHolderNotFound:
       UNREACHABLE();

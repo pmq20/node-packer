@@ -10,7 +10,6 @@
 
 #include "src/base/macros.h"
 #include "src/debug/debug-interface.h"
-#include "src/inspector/java-script-call-frame.h"
 #include "src/inspector/protocol/Debugger.h"
 #include "src/inspector/protocol/Forward.h"
 #include "src/inspector/protocol/Runtime.h"
@@ -41,17 +40,14 @@ class V8Debugger : public v8::debug::DebugDelegate {
   bool enabled() const;
   v8::Isolate* isolate() const { return m_isolate; }
 
-  String16 setBreakpoint(const ScriptBreakpoint&, int* actualLineNumber,
-                         int* actualColumnNumber);
-  void removeBreakpoint(const String16& breakpointId);
-  void setBreakpointsActivated(bool);
-  bool breakpointsActivated() const { return m_breakpointsActivated; }
+  void setBreakpointsActive(bool);
 
   v8::debug::ExceptionBreakState getPauseOnExceptionsState();
   void setPauseOnExceptionsState(v8::debug::ExceptionBreakState);
   bool canBreakProgram();
-  bool breakProgram(int targetContextGroupId);
+  void breakProgram(int targetContextGroupId);
   void continueProgram(int targetContextGroupId);
+  void breakProgramOnAssert(int targetContextGroupId);
 
   void setPauseOnNextStatement(bool, int targetContextGroupId);
   void stepIntoStatement(int targetContextGroupId);
@@ -62,15 +58,9 @@ class V8Debugger : public v8::debug::DebugDelegate {
       int targetContextGroupId);
 
   Response continueToLocation(int targetContextGroupId,
+                              V8DebuggerScript* script,
                               std::unique_ptr<protocol::Debugger::Location>,
                               const String16& targetCallFramess);
-
-  Response setScriptSource(
-      const String16& sourceID, v8::Local<v8::String> newSource, bool dryRun,
-      protocol::Maybe<protocol::Runtime::ExceptionDetails>*,
-      JavaScriptCallFrames* newCallFrames, protocol::Maybe<bool>* stackChanged,
-      bool* compileError);
-  JavaScriptCallFrames currentCallFrames(int limit = 0);
 
   // Each script inherits debug data from v8::Context where it has been
   // compiled.
@@ -82,7 +72,7 @@ class V8Debugger : public v8::debug::DebugDelegate {
   void disable();
 
   bool isPaused() const { return m_pausedContextGroupId; }
-  v8::Local<v8::Context> pausedContext() { return m_pausedContext; }
+  bool isPausedInContextGroup(int contextGroupId) const;
 
   int maxAsyncCallChainDepth() { return m_maxAsyncCallStackDepth; }
   void setAsyncCallStackDepth(V8DebuggerAgentImpl*, int);
@@ -97,6 +87,9 @@ class V8Debugger : public v8::debug::DebugDelegate {
 
   v8::MaybeLocal<v8::Array> internalProperties(v8::Local<v8::Context>,
                                                v8::Local<v8::Value>);
+
+  v8::Local<v8::Array> queryObjects(v8::Local<v8::Context> context,
+                                    v8::Local<v8::Object> prototype);
 
   void asyncTaskScheduled(const StringView& taskName, void* task,
                           bool recurring);
@@ -116,24 +109,15 @@ class V8Debugger : public v8::debug::DebugDelegate {
   void dumpAsyncTaskStacksStateForTest();
 
  private:
-  void compileDebuggerScript();
-  v8::MaybeLocal<v8::Value> callDebuggerMethod(const char* functionName,
-                                               int argc,
-                                               v8::Local<v8::Value> argv[],
-                                               bool catchExceptions);
-  v8::Local<v8::Context> debuggerContext() const;
-  void clearBreakpoints();
   void clearContinueToLocation();
   bool shouldContinueToCurrentLocation();
 
   static void v8OOMCallback(void* data);
 
-  void handleProgramBreak(v8::Local<v8::Context> pausedContext,
-                          v8::Local<v8::Object> executionState,
-                          v8::Local<v8::Value> exception,
-                          v8::Local<v8::Array> hitBreakpoints,
-                          bool isPromiseRejection = false,
-                          bool isUncaught = false);
+  void handleProgramBreak(
+      v8::Local<v8::Context> pausedContext, v8::Local<v8::Value> exception,
+      const std::vector<v8::debug::BreakpointId>& hitBreakpoints,
+      bool isPromiseRejection = false, bool isUncaught = false);
 
   enum ScopeTargetKind {
     FUNCTION,
@@ -163,14 +147,14 @@ class V8Debugger : public v8::debug::DebugDelegate {
   // v8::debug::DebugEventListener implementation.
   void PromiseEventOccurred(v8::debug::PromiseDebugActionType type, int id,
                             int parentId, bool createdByUser) override;
-  void ScriptCompiled(v8::Local<v8::debug::Script> script,
+  void ScriptCompiled(v8::Local<v8::debug::Script> script, bool is_live_edited,
                       bool has_compile_error) override;
-  void BreakProgramRequested(v8::Local<v8::Context> paused_context,
-                             v8::Local<v8::Object> exec_state,
-                             v8::Local<v8::Value> break_points_hit) override;
+  void BreakProgramRequested(
+      v8::Local<v8::Context> paused_context, v8::Local<v8::Object>,
+      v8::Local<v8::Value>,
+      const std::vector<v8::debug::BreakpointId>& break_points_hit) override;
   void ExceptionThrown(v8::Local<v8::Context> paused_context,
-                       v8::Local<v8::Object> exec_state,
-                       v8::Local<v8::Value> exception,
+                       v8::Local<v8::Object>, v8::Local<v8::Value> exception,
                        v8::Local<v8::Value> promise, bool is_uncaught) override;
   bool IsFunctionBlackboxed(v8::Local<v8::debug::Script> script,
                             const v8::debug::Location& start,
@@ -181,16 +165,13 @@ class V8Debugger : public v8::debug::DebugDelegate {
   v8::Isolate* m_isolate;
   V8InspectorImpl* m_inspector;
   int m_enableCount;
-  bool m_breakpointsActivated;
-  v8::Global<v8::Object> m_debuggerScript;
-  v8::Global<v8::Context> m_debuggerContext;
-  v8::Local<v8::Object> m_executionState;
-  v8::Local<v8::Context> m_pausedContext;
+  int m_breakpointsActiveCount = 0;
   int m_ignoreScriptParsedEventsCounter;
   bool m_scheduledOOMBreak = false;
+  bool m_scheduledAssertBreak = false;
   int m_targetContextGroupId = 0;
   int m_pausedContextGroupId = 0;
-  String16 m_continueToLocationBreakpointId;
+  int m_continueToLocationBreakpointId;
   String16 m_continueToLocationTargetCallFrames;
   std::unique_ptr<V8StackTraceImpl> m_continueToLocationStack;
 

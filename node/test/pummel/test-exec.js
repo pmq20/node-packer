@@ -79,7 +79,7 @@ exec('thisisnotavalidcommand', function(err, stdout, stderr) {
 const sleeperStart = new Date();
 exec(SLEEP3_COMMAND, { timeout: 50 }, function(err, stdout, stderr) {
   const diff = (new Date()) - sleeperStart;
-  console.log('\'sleep 3\' with timeout 50 took %d ms', diff);
+  console.log(`'sleep 3' with timeout 50 took ${diff} ms`);
   assert.ok(diff < 500);
   assert.ok(err);
   assert.ok(err.killed);
@@ -90,10 +90,11 @@ exec(SLEEP3_COMMAND, { timeout: 50 }, function(err, stdout, stderr) {
 
 
 const startSleep3 = new Date();
-const killMeTwice = exec(SLEEP3_COMMAND, {timeout: 1000}, killMeTwiceCallback);
+const killMeTwice =
+  exec(SLEEP3_COMMAND, { timeout: 1000 }, killMeTwiceCallback);
 
 process.nextTick(function() {
-  console.log('kill pid %d', killMeTwice.pid);
+  console.log(`kill pid ${killMeTwice.pid}`);
   // make sure there is no race condition in starting the process
   // the PID SHOULD exist directly following the exec() call.
   assert.strictEqual('number', typeof killMeTwice._handle.pid);
@@ -112,12 +113,12 @@ function killMeTwiceCallback(err, stdout, stderr) {
   assert.strictEqual(stderr, '');
 
   // the timeout should still be in effect
-  console.log('\'sleep 3\' was already killed. Took %d ms', diff);
+  console.log(`'sleep 3' was already killed. Took ${diff} ms`);
   assert.ok(diff < 1500);
 }
 
 
-exec('python -c "print 200000*\'C\'"', {maxBuffer: 1000},
+exec('python -c "print 200000*\'C\'"', { maxBuffer: 1000 },
      function(err, stdout, stderr) {
        assert.ok(err);
        assert.ok(/maxBuffer/.test(err.message));

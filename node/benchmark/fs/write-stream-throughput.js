@@ -1,25 +1,26 @@
 // test the throughput of the fs.WriteStream class.
 'use strict';
 
-var path = require('path');
-var common = require('../common.js');
-var filename = path.resolve(__dirname, '.removeme-benchmark-garbage');
-var fs = require('fs');
+const path = require('path');
+const common = require('../common.js');
+const filename = path.resolve(process.env.NODE_TMPDIR || __dirname,
+                              `.removeme-benchmark-garbage-${process.pid}`);
+const fs = require('fs');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   dur: [5],
-  type: ['buf', 'asc', 'utf'],
+  encodingType: ['buf', 'asc', 'utf'],
   size: [2, 1024, 65535, 1024 * 1024]
 });
 
 function main(conf) {
-  var dur = +conf.dur;
-  var type = conf.type;
-  var size = +conf.size;
+  const dur = +conf.dur;
+  const encodingType = conf.encodingType;
+  const size = +conf.size;
   var encoding;
 
   var chunk;
-  switch (type) {
+  switch (encodingType) {
     case 'buf':
       chunk = Buffer.alloc(size, 'b');
       break;
@@ -32,7 +33,7 @@ function main(conf) {
       encoding = 'utf8';
       break;
     default:
-      throw new Error('invalid type');
+      throw new Error(`invalid encodingType: ${encodingType}`);
   }
 
   try { fs.unlinkSync(filename); } catch (e) {}
@@ -40,10 +41,6 @@ function main(conf) {
   var started = false;
   var ending = false;
   var ended = false;
-  setTimeout(function() {
-    ending = true;
-    f.end();
-  }, dur * 1000);
 
   var f = fs.createWriteStream(filename);
   f.on('drain', write);
@@ -51,7 +48,7 @@ function main(conf) {
   f.on('close', done);
   f.on('finish', function() {
     ended = true;
-    var written = fs.statSync(filename).size / 1024;
+    const written = fs.statSync(filename).size / 1024;
     try { fs.unlinkSync(filename); } catch (e) {}
     bench.end(written / 1024);
   });
@@ -65,6 +62,10 @@ function main(conf) {
 
     if (!started) {
       started = true;
+      setTimeout(function() {
+        ending = true;
+        f.end();
+      }, dur * 1000);
       bench.start();
     }
 

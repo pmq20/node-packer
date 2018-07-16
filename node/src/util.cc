@@ -19,10 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "util.h"
 #include "string_bytes.h"
 #include "node_buffer.h"
 #include "node_internals.h"
+#include "uv.h"
 #include <stdio.h>
 
 namespace node {
@@ -104,6 +104,18 @@ void LowMemoryNotification() {
       isolate->LowMemoryNotification();
     }
   }
+}
+
+std::string GetHumanReadableProcessName() {
+  char name[1024];
+  GetHumanReadableProcessName(&name);
+  return name;
+}
+
+void GetHumanReadableProcessName(char (*name)[1024]) {
+  char title[1024] = "Node.js";
+  uv_get_process_title(title, sizeof(title));
+  snprintf(*name, sizeof(*name), "%s[%u]", title, uv_os_getpid());
 }
 
 }  // namespace node

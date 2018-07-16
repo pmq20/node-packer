@@ -1,5 +1,7 @@
 # Internationalization Support
 
+<!--introduced_in=v8.2.0-->
+
 Node.js has many features that make it easier to write internationalized
 programs. Some of them are:
 
@@ -112,7 +114,7 @@ at runtime so that the JS methods would work for all ICU locales. Assuming the
 data file is stored at `/some/directory`, it can be made available to ICU
 through either:
 
-* The [`NODE_ICU_DATA`][] environmental variable:
+* The [`NODE_ICU_DATA`][] environment variable:
 
   ```shell
   env NODE_ICU_DATA=/some/directory node
@@ -188,17 +190,17 @@ to be helpful:
 
 ["ICU Data"]: http://userguide.icu-project.org/icudata
 [`--icu-data-dir`]: cli.html#cli_icu_data_dir_file
-[`Date.prototype.toLocaleString()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
-[`Intl`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Intl
+[`Date.prototype.toLocaleString()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+[`Intl`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl
 [`Intl.DateTimeFormat`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
 [`NODE_ICU_DATA`]: cli.html#cli_node_icu_data_file
-[`Number.prototype.toLocaleString()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
+[`Number.prototype.toLocaleString()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
 [`require('buffer').transcode()`]: buffer.html#buffer_buffer_transcode_source_fromenc_toenc
 [`require('util').TextDecoder`]: util.html#util_class_util_textdecoder
-[`String.prototype.localeCompare()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-[`String.prototype.normalize()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
-[`String.prototype.toLowerCase()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
-[`String.prototype.toUpperCase()`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
+[`String.prototype.localeCompare()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+[`String.prototype.normalize()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
+[`String.prototype.toLowerCase()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
+[`String.prototype.toUpperCase()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
 [BUILDING.md]: https://github.com/nodejs/node/blob/master/BUILDING.md
 [BUILDING.md#full-icu]: https://github.com/nodejs/node/blob/master/BUILDING.md#build-with-full-icu-support-all-locales-supported-by-icu
 [ECMA-262]: https://tc39.github.io/ecma262/

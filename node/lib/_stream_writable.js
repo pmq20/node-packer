@@ -31,7 +31,7 @@ Writable.WritableState = WritableState;
 const util = require('util');
 const internalUtil = require('internal/util');
 const Stream = require('stream');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const destroyImpl = require('internal/streams/destroy');
 
 util.inherits(Writable, Stream);
@@ -179,6 +179,8 @@ if (typeof Symbol === 'function' && Symbol.hasInstance) {
     value: function(object) {
       if (realHasInstance.call(this, object))
         return true;
+      if (this !== Writable)
+        return false;
 
       return object && object._writableState instanceof WritableState;
     }
@@ -330,6 +332,16 @@ function decodeChunk(state, chunk, encoding) {
   }
   return chunk;
 }
+
+Object.defineProperty(Writable.prototype, 'writableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function() {
+    return this._writableState.highWaterMark;
+  }
+});
 
 // if we're already writing something, then just put this
 // in the queue, and wait our turn.  Otherwise, call _write
@@ -500,6 +512,7 @@ function clearBuffer(stream, state) {
       corkReq.finish = onCorkedFinish.bind(undefined, corkReq, state);
       state.corkedRequestsFree = corkReq;
     }
+    state.bufferedRequestCount = 0;
   } else {
     // Slow case, write chunks one-by-one
     while (entry) {
@@ -510,6 +523,7 @@ function clearBuffer(stream, state) {
 
       doWrite(stream, state, false, len, chunk, encoding, cb);
       entry = entry.next;
+      state.bufferedRequestCount--;
       // if we didn't call the onwrite immediately, then
       // it means that we need to wait until it does.
       // also, that means that the chunk and cb are currently
@@ -523,7 +537,6 @@ function clearBuffer(stream, state) {
       state.lastBufferedRequest = null;
   }
 
-  state.bufferedRequestCount = 0;
   state.bufferedRequest = entry;
   state.bufferProcessing = false;
 }

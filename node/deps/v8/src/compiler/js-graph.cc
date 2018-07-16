@@ -18,17 +18,22 @@ namespace compiler {
 
 Node* JSGraph::AllocateInNewSpaceStubConstant() {
   return CACHED(kAllocateInNewSpaceStubConstant,
-                HeapConstant(isolate()->builtins()->AllocateInNewSpace()));
+                HeapConstant(BUILTIN_CODE(isolate(), AllocateInNewSpace)));
 }
 
 Node* JSGraph::AllocateInOldSpaceStubConstant() {
   return CACHED(kAllocateInOldSpaceStubConstant,
-                HeapConstant(isolate()->builtins()->AllocateInOldSpace()));
+                HeapConstant(BUILTIN_CODE(isolate(), AllocateInOldSpace)));
+}
+
+Node* JSGraph::ArrayConstructorStubConstant() {
+  return CACHED(kArrayConstructorStubConstant,
+                HeapConstant(ArrayConstructorStub(isolate()).GetCode()));
 }
 
 Node* JSGraph::ToNumberBuiltinConstant() {
   return CACHED(kToNumberBuiltinConstant,
-                HeapConstant(isolate()->builtins()->ToNumber()));
+                HeapConstant(BUILTIN_CODE(isolate(), ToNumber)));
 }
 
 Node* JSGraph::CEntryStubConstant(int result_size, SaveFPRegsMode save_doubles,
@@ -75,6 +80,11 @@ Node* JSGraph::EmptyStringConstant() {
 Node* JSGraph::FixedArrayMapConstant() {
   return CACHED(kFixedArrayMapConstant,
                 HeapConstant(factory()->fixed_array_map()));
+}
+
+Node* JSGraph::PropertyArrayMapConstant() {
+  return CACHED(kPropertyArrayMapConstant,
+                HeapConstant(factory()->property_array_map()));
 }
 
 Node* JSGraph::FixedDoubleArrayMapConstant() {
@@ -130,6 +140,9 @@ Node* JSGraph::OneConstant() {
   return CACHED(kOneConstant, NumberConstant(1.0));
 }
 
+Node* JSGraph::MinusOneConstant() {
+  return CACHED(kMinusOneConstant, NumberConstant(-1.0));
+}
 
 Node* JSGraph::NaNConstant() {
   return CACHED(kNaNConstant,

@@ -26,38 +26,47 @@ const stream = require('stream');
 const timers = require('timers');
 const util = require('util');
 const internalUtil = require('internal/util');
-const internalNet = require('internal/net');
+const { isLegalPort, normalizedArgsSymbol } = require('internal/net');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
 
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const TTYWrap = process.binding('tty_wrap');
-const TCP = process.binding('tcp_wrap').TCP;
-const Pipe = process.binding('pipe_wrap').Pipe;
-const TCPConnectWrap = process.binding('tcp_wrap').TCPConnectWrap;
-const PipeConnectWrap = process.binding('pipe_wrap').PipeConnectWrap;
-const ShutdownWrap = process.binding('stream_wrap').ShutdownWrap;
-const WriteWrap = process.binding('stream_wrap').WriteWrap;
-const async_id_symbol = process.binding('async_wrap').async_id_symbol;
-const { newUid, setInitTriggerId } = require('async_hooks');
-const nextTick = require('internal/process/next_tick').nextTick;
+const { TCP, constants: TCPConstants } = process.binding('tcp_wrap');
+const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+const { TCPConnectWrap } = process.binding('tcp_wrap');
+const { PipeConnectWrap } = process.binding('pipe_wrap');
+const { ShutdownWrap, WriteWrap } = process.binding('stream_wrap');
+const { async_id_symbol } = process.binding('async_wrap');
+const { newUid, defaultTriggerAsyncIdScope } = require('internal/async_hooks');
+const { nextTick } = require('internal/process/next_tick');
 const errors = require('internal/errors');
+const dns = require('dns');
 
-var cluster;
-var dns;
+// `cluster` is only used by `listenInCluster` so for startup performance
+// reasons it's lazy loaded.
+var cluster = null;
 
 const errnoException = util._errnoException;
 const exceptionWithHostPort = util._exceptionWithHostPort;
-const isLegalPort = internalNet.isLegalPort;
-const normalizedArgsSymbol = internalNet.normalizedArgsSymbol;
 
 function noop() {}
 
-function createHandle(fd) {
-  var type = TTYWrap.guessHandleType(fd);
-  if (type === 'PIPE') return new Pipe();
-  if (type === 'TCP') return new TCP();
+function createHandle(fd, is_server) {
+  const type = TTYWrap.guessHandleType(fd);
+  if (type === 'PIPE') {
+    return new Pipe(
+      is_server ? PipeConstants.SERVER : PipeConstants.SOCKET
+    );
+  }
+
+  if (type === 'TCP') {
+    return new TCP(
+      is_server ? TCPConstants.SERVER : TCPConstants.SOCKET
+    );
+  }
+
   throw new TypeError('Unsupported fd type: ' + type);
 }
 
@@ -197,7 +206,7 @@ function Socket(options) {
     this._handle = options.handle; // private
     this[async_id_symbol] = getNewAsyncId(this._handle);
   } else if (options.fd !== undefined) {
-    this._handle = createHandle(options.fd);
+    this._handle = createHandle(options.fd, false);
     this._handle.open(options.fd);
     this[async_id_symbol] = this._handle.getAsyncId();
     // options.fd can be string (since it is user-defined),
@@ -242,7 +251,7 @@ function Socket(options) {
       this._handle.reading = false;
       this._handle.readStop();
       this._readableState.flowing = false;
-    } else {
+    } else if (!options.manualStart) {
       this.read(0);
     }
   }
@@ -260,6 +269,14 @@ Socket.prototype._unrefTimer = function _unrefTimer() {
   for (var s = this; s !== null; s = s._parent)
     timers._unrefActive(s);
 };
+
+
+function shutdownSocket(self, callback) {
+  var req = new ShutdownWrap();
+  req.oncomplete = callback;
+  req.handle = self._handle;
+  return self._handle.shutdown(req);
+}
 
 // the user has called .end(), and all the bytes have been
 // sent out to the other side.
@@ -282,14 +299,9 @@ function onSocketFinish() {
   if (!this._handle || !this._handle.shutdown)
     return this.destroy();
 
-  var req = new ShutdownWrap();
-  req.oncomplete = afterShutdown;
-  req.handle = this._handle;
-  // node::ShutdownWrap isn't instantiated and attached to the JS instance of
-  // ShutdownWrap above until shutdown() is called. So don't set the init
-  // trigger id until now.
-  setInitTriggerId(this[async_id_symbol]);
-  var err = this._handle.shutdown(req);
+  var err = defaultTriggerAsyncIdScope(
+    this[async_id_symbol], shutdownSocket, this, afterShutdown
+  );
 
   if (err)
     return this.destroy(errnoException(err, 'shutdown'));
@@ -318,7 +330,7 @@ function afterShutdown(status, handle, req) {
 // if the writable side has ended already, then clean everything
 // up.
 function onSocketEnd() {
-  // XXX Should not have to do as much crap in this function.
+  // XXX Should not have to do as much in this function.
   // ended should already be true, since this is called *after*
   // the EOF errno and onread has eof'ed
   debug('onSocketEnd', this._readableState);
@@ -358,16 +370,6 @@ function writeAfterFIN(chunk, encoding, cb) {
   }
 }
 
-Socket.prototype.read = function(n) {
-  if (n === 0)
-    return stream.Readable.prototype.read.call(this, n);
-
-  this.read = stream.Readable.prototype.read;
-  this._consuming = true;
-  return this.read(n);
-};
-
-
 // FIXME(joyeecheung): this method is neither documented nor tested
 Socket.prototype.listen = function() {
   debug('socket.listen');
@@ -394,6 +396,16 @@ Socket.prototype.setTimeout = function(msecs, callback) {
 
 
 Socket.prototype._onTimeout = function() {
+  if (this._handle) {
+    // `.prevWriteQueueSize` !== `.updateWriteQueueSize()` means there is
+    // an active write in progress, so we suppress the timeout.
+    const prevWriteQueueSize = this._handle.writeQueueSize;
+    if (prevWriteQueueSize > 0 &&
+        prevWriteQueueSize !== this._handle.updateWriteQueueSize()) {
+      this._unrefTimer();
+      return;
+    }
+  }
   debug('_onTimeout');
   this.emit('timeout');
 };
@@ -745,13 +757,7 @@ Socket.prototype._writeGeneric = function(writev, data, encoding, cb) {
     // Retain chunks
     if (err === 0) req._chunks = chunks;
   } else {
-    var enc;
-    if (data instanceof Buffer) {
-      enc = 'buffer';
-    } else {
-      enc = encoding;
-    }
-    err = createWriteReq(req, this._handle, data, enc);
+    err = createWriteReq(req, this._handle, data, encoding);
   }
 
   if (err)
@@ -871,19 +877,37 @@ function afterWrite(status, handle, req, err) {
 }
 
 
+function checkBindError(err, port, handle) {
+  // EADDRINUSE may not be reported until we call listen() or connect().
+  // To complicate matters, a failed bind() followed by listen() or connect()
+  // will implicitly bind to a random port. Ergo, check that the socket is
+  // bound to the expected port before calling listen() or connect().
+  //
+  // FIXME(bnoordhuis) Doesn't work for pipe handles, they don't have a
+  // getsockname() method. Non-issue for now, the cluster module doesn't
+  // really support pipes anyway.
+  if (err === 0 && port > 0 && handle.getsockname) {
+    var out = {};
+    err = handle.getsockname(out);
+    if (err === 0 && port !== out.port) {
+      debug(`checkBindError, bound to ${out.port} instead of ${port}`);
+      err = uv.UV_EADDRINUSE;
+    }
+  }
+  return err;
+}
+
+
 function internalConnect(
   self, address, port, addressType, localAddress, localPort) {
   // TODO return promise from Socket.prototype.connect which
   // wraps _connectReq.
 
-  assert.ok(self.connecting);
+  assert(self.connecting);
 
   var err;
 
   if (localAddress || localPort) {
-    debug('binding to localAddress: %s and localPort: %d (addressType: %d)',
-          localAddress, localPort, addressType);
-
     if (addressType === 4) {
       localAddress = localAddress || '0.0.0.0';
       err = self._handle.bind(localAddress, localPort);
@@ -894,7 +918,10 @@ function internalConnect(
       self.destroy(new TypeError('Invalid addressType: ' + addressType));
       return;
     }
+    debug('binding to localAddress: %s and localPort: %d (addressType: %d)',
+          localAddress, localPort, addressType);
 
+    err = checkBindError(err, localPort, self._handle);
     if (err) {
       const ex = exceptionWithHostPort(err, 'bind', localAddress, localPort);
       self.destroy(ex);
@@ -910,23 +937,15 @@ function internalConnect(
     req.localAddress = localAddress;
     req.localPort = localPort;
 
-    // node::TCPConnectWrap isn't instantiated and attached to the JS instance
-    // of TCPConnectWrap above until connect() is called. So don't set the init
-    // trigger id until now.
-    setInitTriggerId(self[async_id_symbol]);
     if (addressType === 4)
       err = self._handle.connect(req, address, port);
     else
       err = self._handle.connect6(req, address, port);
-
   } else {
     const req = new PipeConnectWrap();
     req.address = address;
     req.oncomplete = afterConnect;
-    // node::PipeConnectWrap isn't instantiated and attached to the JS instance
-    // of PipeConnectWrap above until connect() is called. So don't set the
-    // init trigger id until now.
-    setInitTriggerId(self[async_id_symbol]);
+
     err = self._handle.connect(req, address, afterConnect);
   }
 
@@ -973,7 +992,9 @@ Socket.prototype.connect = function(...args) {
   debug('pipe', pipe, path);
 
   if (!this._handle) {
-    this._handle = pipe ? new Pipe() : new TCP();
+    this._handle = pipe ?
+      new Pipe(PipeConstants.SOCKET) :
+      new TCP(TCPConstants.SOCKET);
     initSocketHandle(this);
   }
 
@@ -993,7 +1014,9 @@ Socket.prototype.connect = function(...args) {
                                  'string',
                                  path);
     }
-    internalConnect(this, path);
+    defaultTriggerAsyncIdScope(
+      this[async_id_symbol], internalConnect, this, path
+    );
   } else {
     lookupAndConnect(this, options);
   }
@@ -1002,7 +1025,6 @@ Socket.prototype.connect = function(...args) {
 
 
 function lookupAndConnect(self, options) {
-  const dns = lazyDns();
   var host = options.host || 'localhost';
   var port = options.port;
   var localAddress = options.localAddress;
@@ -1033,7 +1055,11 @@ function lookupAndConnect(self, options) {
   if (addressType) {
     nextTick(self[async_id_symbol], function() {
       if (self.connecting)
-        internalConnect(self, host, port, addressType, localAddress, localPort);
+        defaultTriggerAsyncIdScope(
+          self[async_id_symbol],
+          internalConnect,
+          self, host, port, addressType, localAddress, localPort
+        );
     });
     return;
   }
@@ -1046,7 +1072,10 @@ function lookupAndConnect(self, options) {
     hints: options.hints || 0
   };
 
-  if (dnsopts.family !== 4 && dnsopts.family !== 6 && dnsopts.hints === 0) {
+  if (process.platform !== 'win32' &&
+      dnsopts.family !== 4 &&
+      dnsopts.family !== 6 &&
+      dnsopts.hints === 0) {
     dnsopts.hints = dns.ADDRCONFIG;
   }
 
@@ -1054,33 +1083,33 @@ function lookupAndConnect(self, options) {
   debug('connect: dns options', dnsopts);
   self._host = host;
   var lookup = options.lookup || dns.lookup;
-  setInitTriggerId(self[async_id_symbol]);
-  lookup(host, dnsopts, function emitLookup(err, ip, addressType) {
-    self.emit('lookup', err, ip, addressType, host);
+  defaultTriggerAsyncIdScope(self[async_id_symbol], function() {
+    lookup(host, dnsopts, function emitLookup(err, ip, addressType) {
+      self.emit('lookup', err, ip, addressType, host);
 
-    // It's possible we were destroyed while looking this up.
-    // XXX it would be great if we could cancel the promise returned by
-    // the look up.
-    if (!self.connecting) return;
+      // It's possible we were destroyed while looking this up.
+      // XXX it would be great if we could cancel the promise returned by
+      // the look up.
+      if (!self.connecting) return;
 
-    if (err) {
-      // net.createConnection() creates a net.Socket object and
-      // immediately calls net.Socket.connect() on it (that's us).
-      // There are no event listeners registered yet so defer the
-      // error event to the next tick.
-      err.host = options.host;
-      err.port = options.port;
-      err.message = err.message + ' ' + options.host + ':' + options.port;
-      process.nextTick(connectErrorNT, self, err);
-    } else {
-      self._unrefTimer();
-      internalConnect(self,
-                      ip,
-                      port,
-                      addressType,
-                      localAddress,
-                      localPort);
-    }
+      if (err) {
+        // net.createConnection() creates a net.Socket object and
+        // immediately calls net.Socket.connect() on it (that's us).
+        // There are no event listeners registered yet so defer the
+        // error event to the next tick.
+        err.host = options.host;
+        err.port = options.port;
+        err.message = err.message + ' ' + options.host + ':' + options.port;
+        process.nextTick(connectErrorNT, self, err);
+      } else {
+        self._unrefTimer();
+        defaultTriggerAsyncIdScope(
+          self[async_id_symbol],
+          internalConnect,
+          self, ip, port, addressType, localAddress, localPort
+        );
+      }
+    });
   });
 }
 
@@ -1096,7 +1125,9 @@ Socket.prototype.ref = function() {
     return this;
   }
 
-  this._handle.ref();
+  if (typeof this._handle.ref === 'function') {
+    this._handle.ref();
+  }
 
   return this;
 };
@@ -1108,7 +1139,9 @@ Socket.prototype.unref = function() {
     return this;
   }
 
-  this._handle.unref();
+  if (typeof this._handle.unref === 'function') {
+    this._handle.unref();
+  }
 
   return this;
 };
@@ -1128,7 +1161,7 @@ function afterConnect(status, handle, req, readable, writable) {
 
   debug('afterConnect');
 
-  assert.ok(self.connecting);
+  assert(self.connecting);
   self.connecting = false;
   self._sockname = null;
 
@@ -1224,7 +1257,7 @@ function createServerHandle(address, port, addressType, fd) {
   var isTCP = false;
   if (typeof fd === 'number' && fd >= 0) {
     try {
-      handle = createHandle(fd);
+      handle = createHandle(fd, true);
     } catch (e) {
       // Not a fd we can listen on.  This will trigger an error.
       debug('listen invalid fd=%d:', fd, e.message);
@@ -1235,7 +1268,7 @@ function createServerHandle(address, port, addressType, fd) {
     handle.writable = true;
     assert(!address && !port);
   } else if (port === -1 && addressType === -1) {
-    handle = new Pipe();
+    handle = new Pipe(PipeConstants.SERVER);
     if (process.platform === 'win32') {
       var instances = parseInt(process.env.NODE_PENDING_PIPE_INSTANCES);
       if (!isNaN(instances)) {
@@ -1243,7 +1276,7 @@ function createServerHandle(address, port, addressType, fd) {
       }
     }
   } else {
-    handle = new TCP();
+    handle = new TCP(TCPConstants.SERVER);
     isTCP = true;
   }
 
@@ -1350,18 +1383,11 @@ function emitListeningNT(self) {
 }
 
 
-function lazyDns() {
-  if (dns === undefined)
-    dns = require('dns');
-  return dns;
-}
-
-
 function listenInCluster(server, address, port, addressType,
                          backlog, fd, exclusive) {
   exclusive = !!exclusive;
 
-  if (!cluster) cluster = require('cluster');
+  if (cluster === null) cluster = require('cluster');
 
   if (cluster.isMaster || exclusive) {
     // Will create a new handle
@@ -1383,20 +1409,7 @@ function listenInCluster(server, address, port, addressType,
   cluster._getServer(server, serverQuery, listenOnMasterHandle);
 
   function listenOnMasterHandle(err, handle) {
-    // EADDRINUSE may not be reported until we call listen(). To complicate
-    // matters, a failed bind() followed by listen() will implicitly bind to
-    // a random port. Ergo, check that the socket is bound to the expected
-    // port before calling listen().
-    //
-    // FIXME(bnoordhuis) Doesn't work for pipe handles, they don't have a
-    // getsockname() method. Non-issue for now, the cluster module doesn't
-    // really support pipes anyway.
-    if (err === 0 && port > 0 && handle.getsockname) {
-      var out = {};
-      err = handle.getsockname(out);
-      if (err === 0 && port !== out.port)
-        err = uv.UV_EADDRINUSE;
-    }
+    err = checkBindError(err, port, handle);
 
     if (err) {
       var ex = exceptionWithHostPort(err, 'bind', address, port);
@@ -1441,11 +1454,12 @@ Server.prototype.listen = function(...args) {
   }
 
   // ([port][, host][, backlog][, cb]) where port is omitted,
-  // that is, listen() or listen(cb),
-  // or (options[, cb]) where options.port is explicitly set as undefined,
-  // bind to an arbitrary unused port
+  // that is, listen(), listen(null), listen(cb), or listen(null, cb)
+  // or (options[, cb]) where options.port is explicitly set as undefined or
+  // null, bind to an arbitrary unused port
   if (args.length === 0 || typeof args[0] === 'function' ||
-    (typeof options.port === 'undefined' && 'port' in options)) {
+      (typeof options.port === 'undefined' && 'port' in options) ||
+      options.port === null) {
     options.port = 0;
   }
   // ([port][, host][, backlog][, cb]) where port is specified
@@ -1483,7 +1497,6 @@ Server.prototype.listen = function(...args) {
 };
 
 function lookupAndListen(self, port, address, backlog, exclusive) {
-  const dns = lazyDns();
   dns.lookup(address, function doListen(err, ip, addressType) {
     if (err) {
       self.emit('error', err);
@@ -1655,6 +1668,10 @@ Server.prototype.listenFD = internalUtil.deprecate(function(fd, type) {
 Server.prototype._setupSlave = function(socketList) {
   this._usingSlaves = true;
   this._slaves.push(socketList);
+  socketList.once('exit', (socketList) => {
+    const index = this._slaves.indexOf(socketList);
+    this._slaves.splice(index, 1);
+  });
 };
 
 Server.prototype.ref = function() {

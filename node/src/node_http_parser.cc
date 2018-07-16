@@ -22,12 +22,10 @@
 #include "node.h"
 #include "node_buffer.h"
 
-#include "async-wrap.h"
-#include "async-wrap-inl.h"
+#include "async_wrap-inl.h"
 #include "env.h"
 #include "env-inl.h"
 #include "http_parser.h"
-#include "stream_base.h"
 #include "stream_base-inl.h"
 #include "util.h"
 #include "util-inl.h"
@@ -401,6 +399,18 @@ class Parser : public AsyncWrap {
   }
 
 
+  static void Free(const FunctionCallbackInfo<Value>& args) {
+    Environment* env = Environment::GetCurrent(args);
+    Parser* parser;
+    ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
+
+    // Since the Parser destructor isn't going to run the destroy() callbacks
+    // it needs to be triggered manually.
+    parser->EmitTraceEventDestroy();
+    parser->EmitDestroy(env, parser->get_async_id());
+  }
+
+
   void Save() {
     url_.Save();
     status_message_.Save();
@@ -479,7 +489,7 @@ class Parser : public AsyncWrap {
     ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
     // Should always be called from the same context.
     CHECK_EQ(env, parser->env());
-    // The parser is being reused. Reset the uid and call init() callbacks.
+    // The parser is being reused. Reset the async id and call init() callbacks.
     parser->AsyncReset();
     parser->Init(type);
   }
@@ -794,8 +804,9 @@ void InitHttpParser(Local<Object> target,
 #undef V
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "methods"), methods);
 
-  env->SetProtoMethod(t, "getAsyncId", AsyncWrap::GetAsyncId);
+  AsyncWrap::AddWrapMethods(env, t);
   env->SetProtoMethod(t, "close", Parser::Close);
+  env->SetProtoMethod(t, "free", Parser::Free);
   env->SetProtoMethod(t, "execute", Parser::Execute);
   env->SetProtoMethod(t, "finish", Parser::Finish);
   env->SetProtoMethod(t, "reinitialize", Parser::Reinitialize);
@@ -812,4 +823,4 @@ void InitHttpParser(Local<Object> target,
 }  // anonymous namespace
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(http_parser, node::InitHttpParser)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(http_parser, node::InitHttpParser)

@@ -11,9 +11,8 @@
 
 #include "src/asmjs/asm-js.h"
 #include "src/asmjs/asm-types.h"
-#include "src/objects-inl.h"
-#include "src/objects.h"
-#include "src/parsing/scanner-character-streams.h"
+#include "src/base/optional.h"
+#include "src/objects-inl.h"  // TODO(mstarzinger): Temporary cycle breaker.
 #include "src/parsing/scanner.h"
 #include "src/wasm/wasm-opcodes.h"
 
@@ -68,16 +67,17 @@ namespace wasm {
 
 #define TOK(name) AsmJsScanner::kToken_##name
 
-AsmJsParser::AsmJsParser(Isolate* isolate, Zone* zone, Handle<Script> script,
-                         int start, int end)
+AsmJsParser::AsmJsParser(Zone* zone, uintptr_t stack_limit,
+                         Utf16CharacterStream* stream)
     : zone_(zone),
+      scanner_(stream),
       module_builder_(new (zone) WasmModuleBuilder(zone)),
       return_type_(nullptr),
-      stack_limit_(isolate->stack_guard()->real_climit()),
+      stack_limit_(stack_limit),
       global_var_info_(zone),
       local_var_info_(zone),
       failed_(false),
-      failure_location_(start),
+      failure_location_(kNoSourcePosition),
       stdlib_name_(kTokenNone),
       foreign_name_(kTokenNone),
       heap_name_(kTokenNone),
@@ -88,11 +88,8 @@ AsmJsParser::AsmJsParser(Isolate* isolate, Zone* zone, Handle<Script> script,
       call_coercion_deferred_(nullptr),
       pending_label_(0),
       global_imports_(zone) {
+  module_builder_->SetMinMemorySize(0);
   InitializeStdlibTypes();
-  Handle<String> source(String::cast(script->source()), isolate);
-  std::unique_ptr<Utf16CharacterStream> stream(
-      ScannerStream::For(source, start, end));
-  scanner_.SetStream(std::move(stream));
 }
 
 void AsmJsParser::InitializeStdlibTypes() {
@@ -144,8 +141,8 @@ void AsmJsParser::InitializeStdlibTypes() {
   stdlib_fround_ = AsmType::FroundType(zone());
 }
 
-FunctionSig* AsmJsParser::ConvertSignature(
-    AsmType* return_type, const std::vector<AsmType*>& params) {
+FunctionSig* AsmJsParser::ConvertSignature(AsmType* return_type,
+                                           const ZoneVector<AsmType*>& params) {
   FunctionSig::Builder sig_builder(
       zone(), !return_type->IsA(AsmType::Void()) ? 1 : 0, params.size());
   for (auto param : params) {
@@ -215,7 +212,6 @@ wasm::AsmJsParser::VarInfo* AsmJsParser::GetVarInfo(
     return &local_var_info_[index];
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 uint32_t AsmJsParser::VarIndex(VarInfo* info) {
@@ -348,9 +344,15 @@ void AsmJsParser::ValidateModule() {
     if (info.kind == VarKind::kTable && !info.function_defined) {
       FAIL("Undefined function table");
     }
+    if (info.kind == VarKind::kImportedFunction && !info.function_defined) {
+      // For imported functions without a single call site, we insert a dummy
+      // import here to preserve the fact that there actually was an import.
+      FunctionSig* void_void_sig = FunctionSig::Builder(zone(), 0, 0).Build();
+      module_builder_->AddImport(info.import->function_name, void_void_sig);
+    }
   }
 
-  // Add start function to init things.
+  // Add start function to initialize things.
   WasmFunctionBuilder* start = module_builder_->AddFunction();
   module_builder_->MarkStartFunction(start);
   for (auto& global_import : global_imports_) {
@@ -549,7 +551,7 @@ void AsmJsParser::ValidateModuleVarNewStdlib(VarInfo* info) {
 #define V(name, _junk1, _junk2, _junk3)                          \
   case TOK(name):                                                \
     DeclareStdlibFunc(info, VarKind::kSpecial, AsmType::name()); \
-    stdlib_uses_.insert(StandardMember::k##name);                \
+    stdlib_uses_.Add(StandardMember::k##name);                   \
     break;
     STDLIB_ARRAY_TYPE_LIST(V)
 #undef V
@@ -572,14 +574,14 @@ void AsmJsParser::ValidateModuleVarStdlib(VarInfo* info) {
   case TOK(name):                                           \
     DeclareGlobal(info, false, AsmType::Double(), kWasmF64, \
                   WasmInitExpr(const_value));               \
-    stdlib_uses_.insert(StandardMember::kMath##name);       \
+    stdlib_uses_.Add(StandardMember::kMath##name);          \
     break;
       STDLIB_MATH_VALUE_LIST(V)
 #undef V
 #define V(name, Name, op, sig)                                      \
   case TOK(name):                                                   \
     DeclareStdlibFunc(info, VarKind::kMath##Name, stdlib_##sig##_); \
-    stdlib_uses_.insert(StandardMember::kMath##Name);               \
+    stdlib_uses_.Add(StandardMember::kMath##Name);                  \
     break;
       STDLIB_MATH_FUNCTION_LIST(V)
 #undef V
@@ -589,11 +591,11 @@ void AsmJsParser::ValidateModuleVarStdlib(VarInfo* info) {
   } else if (Check(TOK(Infinity))) {
     DeclareGlobal(info, false, AsmType::Double(), kWasmF64,
                   WasmInitExpr(std::numeric_limits<double>::infinity()));
-    stdlib_uses_.insert(StandardMember::kInfinity);
+    stdlib_uses_.Add(StandardMember::kInfinity);
   } else if (Check(TOK(NaN))) {
     DeclareGlobal(info, false, AsmType::Double(), kWasmF64,
                   WasmInitExpr(std::numeric_limits<double>::quiet_NaN()));
-    stdlib_uses_.insert(StandardMember::kNaN);
+    stdlib_uses_.Add(StandardMember::kNaN);
   } else {
     FAIL("Invalid member of stdlib");
   }
@@ -725,9 +727,9 @@ void AsmJsParser::ValidateFunction() {
   int start_position = static_cast<int>(scanner_.Position());
   current_function_builder_->SetAsmFunctionStartPosition(start_position);
 
-  std::vector<AsmType*> params;
+  CachedVector<AsmType*> params(cached_asm_type_p_vectors_);
   ValidateFunctionParams(&params);
-  std::vector<ValueType> locals;
+  CachedVector<ValueType> locals(cached_valuetype_vectors_);
   ValidateFunctionLocals(params.size(), &locals);
 
   function_temp_locals_offset_ = static_cast<uint32_t>(
@@ -787,13 +789,14 @@ void AsmJsParser::ValidateFunction() {
 }
 
 // 6.4 ValidateFunction
-void AsmJsParser::ValidateFunctionParams(std::vector<AsmType*>* params) {
+void AsmJsParser::ValidateFunctionParams(ZoneVector<AsmType*>* params) {
   // TODO(bradnelson): Do this differently so that the scanner doesn't need to
   // have a state transition that needs knowledge of how the scanner works
   // inside.
   scanner_.EnterLocalScope();
   EXPECT_TOKEN('(');
-  std::vector<AsmJsScanner::token_t> function_parameters;
+  CachedVector<AsmJsScanner::token_t> function_parameters(
+      cached_token_t_vectors_);
   while (!failed_ && !Peek(')')) {
     if (!scanner_.IsLocal()) {
       FAIL("Expected parameter name");
@@ -847,8 +850,8 @@ void AsmJsParser::ValidateFunctionParams(std::vector<AsmType*>* params) {
 }
 
 // 6.4 ValidateFunction - locals
-void AsmJsParser::ValidateFunctionLocals(
-    size_t param_count, std::vector<ValueType>* locals) {
+void AsmJsParser::ValidateFunctionLocals(size_t param_count,
+                                         ZoneVector<ValueType>* locals) {
   // Local Variables.
   while (Peek(TOK(var))) {
     scanner_.EnterLocalScope();
@@ -1262,7 +1265,7 @@ void AsmJsParser::SwitchStatement() {
   Begin(pending_label_);
   pending_label_ = 0;
   // TODO(bradnelson): Make less weird.
-  std::vector<int32_t> cases;
+  CachedVector<int32_t> cases(cached_int_vectors_);
   GatherCases(&cases);
   EXPECT_TOKEN('{');
   size_t count = cases.size() + 1;
@@ -1398,7 +1401,6 @@ AsmType* AsmJsParser::Identifier() {
     return info->type;
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 // 6.8.4 CallExpression
@@ -1677,7 +1679,7 @@ AsmType* AsmJsParser::MultiplicativeExpression() {
       }
     } else if (Check('/')) {
       AsmType* b;
-      RECURSEn(b = MultiplicativeExpression());
+      RECURSEn(b = UnaryExpression());
       if (a->IsA(AsmType::DoubleQ()) && b->IsA(AsmType::DoubleQ())) {
         current_function_builder_->Emit(kExprF64Div);
         a = AsmType::Double();
@@ -1695,7 +1697,7 @@ AsmType* AsmJsParser::MultiplicativeExpression() {
       }
     } else if (Check('%')) {
       AsmType* b;
-      RECURSEn(b = MultiplicativeExpression());
+      RECURSEn(b = UnaryExpression());
       if (a->IsA(AsmType::DoubleQ()) && b->IsA(AsmType::DoubleQ())) {
         current_function_builder_->Emit(kExprF64Mod);
         a = AsmType::Double();
@@ -1780,13 +1782,44 @@ AsmType* AsmJsParser::AdditiveExpression() {
 AsmType* AsmJsParser::ShiftExpression() {
   AsmType* a = nullptr;
   RECURSEn(a = AdditiveExpression());
+  heap_access_shift_position_ = kNoHeapAccessShift;
+  // TODO(bradnelson): Implement backtracking to avoid emitting code
+  // for the x >>> 0 case (similar to what's there for |0).
   for (;;) {
     switch (scanner_.Token()) {
-// TODO(bradnelson): Implement backtracking to avoid emitting code
-// for the x >>> 0 case (similar to what's there for |0).
+      case TOK(SAR): {
+        EXPECT_TOKENn(TOK(SAR));
+        heap_access_shift_position_ = kNoHeapAccessShift;
+        // Remember position allowing this shift-expression to be used as part
+        // of a heap access operation expecting `a >> n:NumericLiteral`.
+        bool imm = false;
+        size_t old_pos;
+        size_t old_code;
+        uint32_t shift_imm;
+        if (a->IsA(AsmType::Intish()) && CheckForUnsigned(&shift_imm)) {
+          old_pos = scanner_.Position();
+          old_code = current_function_builder_->GetPosition();
+          scanner_.Rewind();
+          imm = true;
+        }
+        AsmType* b = nullptr;
+        RECURSEn(b = AdditiveExpression());
+        // Check for `a >> n:NumericLiteral` pattern.
+        if (imm && old_pos == scanner_.Position()) {
+          heap_access_shift_position_ = old_code;
+          heap_access_shift_value_ = shift_imm;
+        }
+        if (!(a->IsA(AsmType::Intish()) && b->IsA(AsmType::Intish()))) {
+          FAILn("Expected intish for operator >>.");
+        }
+        current_function_builder_->Emit(kExprI32ShrS);
+        a = AsmType::Signed();
+        continue;
+      }
 #define HANDLE_CASE(op, opcode, name, result)                        \
   case TOK(op): {                                                    \
     EXPECT_TOKENn(TOK(op));                                          \
+    heap_access_shift_position_ = kNoHeapAccessShift;                \
     AsmType* b = nullptr;                                            \
     RECURSEn(b = AdditiveExpression());                              \
     if (!(a->IsA(AsmType::Intish()) && b->IsA(AsmType::Intish()))) { \
@@ -1796,9 +1829,8 @@ AsmType* AsmJsParser::ShiftExpression() {
     a = AsmType::result();                                           \
     continue;                                                        \
   }
-      HANDLE_CASE(SHL, I32Shl, "<<", Signed);
-      HANDLE_CASE(SAR, I32ShrS, ">>", Signed);
-      HANDLE_CASE(SHR, I32ShrU, ">>>", Unsigned);
+        HANDLE_CASE(SHL, I32Shl, "<<", Signed);
+        HANDLE_CASE(SHR, I32ShrU, ">>>", Unsigned);
 #undef HANDLE_CASE
       default:
         return a;
@@ -2014,8 +2046,7 @@ AsmType* AsmJsParser::ValidateCall() {
   // both cases we might be seeing the {function_name} for the first time and
   // hence allocate a {VarInfo} here, all subsequent uses of the same name then
   // need to match the information stored at this point.
-  // TODO(mstarzinger): Consider using Chromiums base::Optional instead.
-  std::unique_ptr<TemporaryVariableScope> tmp;
+  base::Optional<TemporaryVariableScope> tmp;
   if (Check('[')) {
     RECURSEn(EqualityExpression());
     EXPECT_TOKENn('&');
@@ -2023,7 +2054,7 @@ AsmType* AsmJsParser::ValidateCall() {
     if (!CheckForUnsigned(&mask)) {
       FAILn("Expected mask literal");
     }
-    if (!base::bits::IsPowerOfTwo32(mask + 1)) {
+    if (!base::bits::IsPowerOfTwo(mask + 1)) {
       FAILn("Expected power of 2 mask");
     }
     current_function_builder_->EmitI32Const(mask);
@@ -2050,8 +2081,8 @@ AsmType* AsmJsParser::ValidateCall() {
     current_function_builder_->EmitI32Const(function_info->index);
     current_function_builder_->Emit(kExprI32Add);
     // We have to use a temporary for the correct order of evaluation.
-    tmp.reset(new TemporaryVariableScope(this));
-    current_function_builder_->EmitSetLocal(tmp.get()->get());
+    tmp.emplace(this);
+    current_function_builder_->EmitSetLocal(tmp->get());
     // The position of function table calls is after the table lookup.
     call_pos = static_cast<int>(scanner_.Position());
   } else {
@@ -2070,8 +2101,8 @@ AsmType* AsmJsParser::ValidateCall() {
   }
 
   // Parse argument list and gather types.
-  std::vector<AsmType*> param_types;
-  ZoneVector<AsmType*> param_specific_types(zone());
+  CachedVector<AsmType*> param_types(cached_asm_type_p_vectors_);
+  CachedVector<AsmType*> param_specific_types(cached_asm_type_p_vectors_);
   EXPECT_TOKENn('(');
   while (!failed_ && !Peek(')')) {
     AsmType* t;
@@ -2149,10 +2180,12 @@ AsmType* AsmJsParser::ValidateCall() {
     auto it = function_info->import->cache.find(sig);
     if (it != function_info->import->cache.end()) {
       index = it->second;
+      DCHECK(function_info->function_defined);
     } else {
       index =
           module_builder_->AddImport(function_info->import->function_name, sig);
       function_info->import->cache[sig] = index;
+      function_info->function_defined = true;
     }
     current_function_builder_->AddAsmWasmOffset(call_pos, to_number_pos);
     current_function_builder_->EmitWithU32V(kExprCallFunction, index);
@@ -2283,7 +2316,7 @@ AsmType* AsmJsParser::ValidateCall() {
       }
     }
     if (function_info->kind == VarKind::kTable) {
-      current_function_builder_->EmitGetLocal(tmp.get()->get());
+      current_function_builder_->EmitGetLocal(tmp->get());
       current_function_builder_->AddAsmWasmOffset(call_pos, to_number_pos);
       current_function_builder_->Emit(kExprCallIndirect);
       current_function_builder_->EmitU32V(signature_index);
@@ -2351,18 +2384,18 @@ void AsmJsParser::ValidateHeapAccess() {
       info->type->IsA(AsmType::Uint8Array())) {
     RECURSE(index_type = Expression(nullptr));
   } else {
-    RECURSE(index_type = AdditiveExpression());
-    EXPECT_TOKEN(TOK(SAR));
-    uint32_t shift;
-    if (!CheckForUnsigned(&shift)) {
+    RECURSE(index_type = ShiftExpression());
+    if (heap_access_shift_position_ == kNoHeapAccessShift) {
       FAIL("Expected shift of word size");
     }
-    if (shift > 3) {
+    if (heap_access_shift_value_ > 3) {
       FAIL("Expected valid heap access shift");
     }
-    if ((1 << shift) != size) {
+    if ((1 << heap_access_shift_value_) != size) {
       FAIL("Expected heap access shift to match heap view");
     }
+    // Delete the code of the actual shift operation.
+    current_function_builder_->DeleteCodeAfter(heap_access_shift_position_);
     // Mask bottom bits to match asm.js behavior.
     current_function_builder_->EmitI32Const(~(size - 1));
     current_function_builder_->Emit(kExprI32And);
@@ -2420,7 +2453,7 @@ void AsmJsParser::ScanToClosingParenthesis() {
   }
 }
 
-void AsmJsParser::GatherCases(std::vector<int32_t>* cases) {
+void AsmJsParser::GatherCases(ZoneVector<int32_t>* cases) {
   size_t start = scanner_.Position();
   int depth = 0;
   for (;;) {
@@ -2447,7 +2480,8 @@ void AsmJsParser::GatherCases(std::vector<int32_t>* cases) {
         value = static_cast<int32_t>(uvalue);
       }
       cases->push_back(value);
-    } else if (Peek(AsmJsScanner::kEndOfInput)) {
+    } else if (Peek(AsmJsScanner::kEndOfInput) ||
+               Peek(AsmJsScanner::kParseError)) {
       break;
     }
     scanner_.Next();
@@ -2458,3 +2492,5 @@ void AsmJsParser::GatherCases(std::vector<int32_t>* cases) {
 }  // namespace wasm
 }  // namespace internal
 }  // namespace v8
+
+#undef RECURSE

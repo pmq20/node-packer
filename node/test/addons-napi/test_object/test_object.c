@@ -1,7 +1,6 @@
 #include <node_api.h>
 #include "../common.h"
 #include <string.h>
-#include <stdlib.h>
 
 static int test_value = 3;
 
@@ -16,13 +15,13 @@ napi_value Get(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
 
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   napi_valuetype valuetype1;
   NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
 
   NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
-    "Wrong type of arguments. Expects a string or symbol as second.");
+      "Wrong type of arguments. Expects a string or symbol as second.");
 
   napi_value object = args[0];
   napi_value output;
@@ -42,13 +41,13 @@ napi_value Set(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
 
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   napi_valuetype valuetype1;
   NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
 
   NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
-    "Wrong type of arguments. Expects a string or symbol as second.");
+      "Wrong type of arguments. Expects a string or symbol as second.");
 
   NAPI_CALL(env, napi_set_property(env, args[0], args[1], args[2]));
 
@@ -69,13 +68,13 @@ napi_value Has(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
 
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   napi_valuetype valuetype1;
   NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
 
   NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
-    "Wrong type of arguments. Expects a string or symbol as second.");
+      "Wrong type of arguments. Expects a string or symbol as second.");
 
   bool has_property;
   NAPI_CALL(env, napi_has_property(env, args[0], args[1], &has_property));
@@ -97,7 +96,7 @@ napi_value HasOwn(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
 
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   // napi_valuetype valuetype1;
   // NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
@@ -124,12 +123,12 @@ napi_value Delete(napi_env env, napi_callback_info info) {
   napi_valuetype valuetype0;
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   napi_valuetype valuetype1;
   NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
   NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
-    "Wrong type of arguments. Expects a string or symbol as second.");
+      "Wrong type of arguments. Expects a string or symbol as second.");
 
   bool result;
   napi_value ret;
@@ -169,7 +168,7 @@ napi_value Inflate(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
 
   NAPI_ASSERT(env, valuetype0 == napi_object,
-    "Wrong type of arguments. Expects an object as first argument.");
+      "Wrong type of arguments. Expects an object as first argument.");
 
   napi_value obj = args[0];
   napi_value propertynames;
@@ -199,9 +198,7 @@ napi_value Wrap(napi_env env, napi_callback_info info) {
   napi_value arg;
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &arg, NULL, NULL));
 
-  int32_t* data = malloc(sizeof(int32_t));
-  *data = test_value;
-  NAPI_CALL(env, napi_wrap(env, arg, data, NULL, NULL, NULL));
+  NAPI_CALL(env, napi_wrap(env, arg, &test_value, NULL, NULL, NULL));
   return NULL;
 }
 
@@ -219,7 +216,7 @@ napi_value Unwrap(napi_env env, napi_callback_info info) {
   return result;
 }
 
-void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+napi_value Init(napi_env env, napi_value exports) {
   napi_property_descriptor descriptors[] = {
     DECLARE_NAPI_PROPERTY("Get", Get),
     DECLARE_NAPI_PROPERTY("Set", Set),
@@ -232,8 +229,10 @@ void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
     DECLARE_NAPI_PROPERTY("Unwrap", Unwrap),
   };
 
-  NAPI_CALL_RETURN_VOID(env, napi_define_properties(
-    env, exports, sizeof(descriptors) / sizeof(*descriptors), descriptors));
+  NAPI_CALL(env, napi_define_properties(
+      env, exports, sizeof(descriptors) / sizeof(*descriptors), descriptors));
+
+  return exports;
 }
 
-NAPI_MODULE(addon, Init)
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)

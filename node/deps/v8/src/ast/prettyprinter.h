@@ -20,6 +20,14 @@ class CallPrinter final : public AstVisitor<CallPrinter> {
   // The following routine prints the node with position |position| into a
   // string.
   Handle<String> Print(FunctionLiteral* program, int position);
+  enum ErrorHint {
+    kNone,
+    kNormalIterator,
+    kAsyncIterator,
+    kCallAndNormalIterator,
+    kCallAndAsyncIterator
+  };
+  ErrorHint GetErrorHint() const;
 
 // Individual nodes
 #define DECLARE_VISIT(type) void Visit##type(type* node);
@@ -39,7 +47,9 @@ class CallPrinter final : public AstVisitor<CallPrinter> {
   bool found_;
   bool done_;
   bool is_user_js_;
-
+  bool is_iterator_error_;
+  bool is_async_iterator_error_;
+  bool is_call_error_;
   DEFINE_AST_VISITOR_SUBCLASS_MEMBERS();
 
  protected:
@@ -79,7 +89,7 @@ class AstPrinter final : public AstVisitor<AstPrinter> {
 
   void PrintLabels(ZoneList<const AstRawString*>* labels);
   void PrintLiteral(const AstRawString* value, bool quote);
-  void PrintLiteral(Handle<Object> value, bool quote);
+  void PrintLiteral(MaybeHandle<Object> maybe_value, bool quote);
   void PrintIndented(const char* txt);
   void PrintIndentedVisit(const char* s, AstNode* node);
 
@@ -88,14 +98,14 @@ class AstPrinter final : public AstVisitor<AstPrinter> {
   void PrintParameters(DeclarationScope* scope);
   void PrintArguments(ZoneList<Expression*>* arguments);
   void PrintCaseClause(CaseClause* clause);
-  void PrintLiteralIndented(const char* info, Handle<Object> value, bool quote);
+  void PrintLiteralIndented(const char* info, MaybeHandle<Object> maybe_value,
+                            bool quote);
   void PrintLiteralWithModeIndented(const char* info,
                                     Variable* var,
                                     Handle<Object> value);
   void PrintLabelsIndented(ZoneList<const AstRawString*>* labels);
   void PrintObjectProperties(ZoneList<ObjectLiteral::Property*>* properties);
   void PrintClassProperties(ZoneList<ClassLiteral::Property*>* properties);
-  void PrintTryStatement(TryStatement* try_statement);
 
   void inc_indent() { indent_++; }
   void dec_indent() { indent_--; }

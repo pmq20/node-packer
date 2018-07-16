@@ -21,6 +21,7 @@
 
 'use strict';
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
@@ -29,15 +30,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const assert = require('assert');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
-
-function file(fname) {
-  return path.resolve(common.fixturesDir, 'keys', fname);
-}
 
 function read(fname) {
-  return fs.readFileSync(file(fname));
+  return fixtures.readKey(fname);
 }
 
 // key1 is signed by ca1.
@@ -117,11 +112,7 @@ function listening() {
 
 function makeReq(path, port, error, host, ca) {
   pending++;
-  const options = {
-    port: port,
-    path: path,
-    ca: ca
-  };
+  const options = { port, path, ca };
 
   if (!ca) {
     options.agent = agent0;
@@ -139,7 +130,7 @@ function makeReq(path, port, error, host, ca) {
   }
 
   if (host) {
-    options.headers = { host: host };
+    options.headers = { host };
   }
   const req = https.get(options);
   const server = port === server1.address().port ? server1 :

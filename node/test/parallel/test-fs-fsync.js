@@ -22,13 +22,20 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
+const fixtures = require('../common/fixtures');
+const tmpdir = require('../common/tmpdir');
 
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
-const file = path.join(common.fixturesDir, 'a.js');
+const fileFixture = fixtures.path('a.js');
+const fileTemp = path.join(tmpdir.path, 'a.js');
 
-fs.open(file, 'a', 0o777, common.mustCall(function(err, fd) {
+// Copy fixtures to temp.
+tmpdir.refresh();
+fs.copyFileSync(fileFixture, fileTemp);
+
+fs.open(fileTemp, 'a', 0o777, common.mustCall(function(err, fd) {
   assert.ifError(err);
 
   fs.fdatasyncSync(fd);

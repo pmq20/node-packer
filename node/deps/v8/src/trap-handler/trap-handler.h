@@ -21,12 +21,7 @@ namespace v8 {
 namespace internal {
 namespace trap_handler {
 
-// TODO(eholk): Support trap handlers on other platforms.
-#if V8_TARGET_ARCH_X64 && V8_OS_LINUX && !V8_OS_ANDROID
-#define V8_TRAP_HANDLER_SUPPORTED 1
-#else
 #define V8_TRAP_HANDLER_SUPPORTED 0
-#endif
 
 struct ProtectedInstructionData {
   // The offset of this instruction from the start of its code object.
@@ -65,7 +60,7 @@ inline bool UseTrapHandler() {
   return FLAG_wasm_trap_handler && V8_TRAP_HANDLER_SUPPORTED;
 }
 
-extern THREAD_LOCAL bool g_thread_in_wasm_code;
+extern THREAD_LOCAL int g_thread_in_wasm_code;
 
 inline bool IsThreadInWasm() { return g_thread_in_wasm_code; }
 

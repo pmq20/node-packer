@@ -21,6 +21,7 @@
 
 'use strict';
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
@@ -29,20 +30,19 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const assert = require('assert');
 const https = require('https');
-const fs = require('fs');
 const url = require('url');
 
 const URL = url.URL;
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem')
 };
 
 const server = https.createServer(options, common.mustCall((req, res) => {
   assert.strictEqual('GET', req.method);
   assert.strictEqual('/foo?bar', req.url);
-  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.write('hello\n');
   res.end();
 }, 3));

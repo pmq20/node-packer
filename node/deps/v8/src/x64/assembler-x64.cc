@@ -18,6 +18,7 @@
 #include "src/assembler-inl.h"
 #include "src/base/bits.h"
 #include "src/base/cpu.h"
+#include "src/code-stubs.h"
 #include "src/macro-assembler.h"
 #include "src/v8.h"
 
@@ -122,36 +123,20 @@ void CpuFeatures::PrintFeatures() {
 // -----------------------------------------------------------------------------
 // Implementation of RelocInfo
 
-Address RelocInfo::wasm_memory_reference() {
-  DCHECK(IsWasmMemoryReference(rmode_));
-  return Memory::Address_at(pc_);
-}
+Address RelocInfo::embedded_address() const { return Memory::Address_at(pc_); }
 
-Address RelocInfo::wasm_global_reference() {
-  DCHECK(IsWasmGlobalReference(rmode_));
-  return Memory::Address_at(pc_);
-}
+uint32_t RelocInfo::embedded_size() const { return Memory::uint32_at(pc_); }
 
-uint32_t RelocInfo::wasm_memory_size_reference() {
-  DCHECK(IsWasmMemorySizeReference(rmode_));
-  return Memory::uint32_at(pc_);
-}
-
-uint32_t RelocInfo::wasm_function_table_size_reference() {
-  DCHECK(IsWasmFunctionTableSizeReference(rmode_));
-  return Memory::uint32_at(pc_);
-}
-
-void RelocInfo::unchecked_update_wasm_memory_reference(
-    Isolate* isolate, Address address, ICacheFlushMode icache_flush_mode) {
+void RelocInfo::set_embedded_address(Isolate* isolate, Address address,
+                                     ICacheFlushMode icache_flush_mode) {
   Memory::Address_at(pc_) = address;
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
     Assembler::FlushICache(isolate, pc_, sizeof(Address));
   }
 }
 
-void RelocInfo::unchecked_update_wasm_size(Isolate* isolate, uint32_t size,
-                                           ICacheFlushMode icache_flush_mode) {
+void RelocInfo::set_embedded_size(Isolate* isolate, uint32_t size,
+                                  ICacheFlushMode icache_flush_mode) {
   Memory::uint32_at(pc_) = size;
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
     Assembler::FlushICache(isolate, pc_, sizeof(uint32_t));
@@ -292,6 +277,25 @@ bool Operand::AddressUsesRegister(Register reg) const {
   }
 }
 
+void Assembler::AllocateAndInstallRequestedHeapObjects(Isolate* isolate) {
+  for (auto& request : heap_object_requests_) {
+    Address pc = buffer_ + request.offset();
+    switch (request.kind()) {
+      case HeapObjectRequest::kHeapNumber: {
+        Handle<HeapNumber> object = isolate->factory()->NewHeapNumber(
+            request.heap_number(), IMMUTABLE, TENURED);
+        Memory::Object_Handle_at(pc) = object;
+        break;
+      }
+      case HeapObjectRequest::kCodeStub: {
+        request.code_stub()->set_isolate(isolate);
+        code_targets_[Memory::int32_at(pc)] = request.code_stub()->GetCode();
+        break;
+      }
+    }
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Implementation of Assembler.
 
@@ -309,11 +313,13 @@ Assembler::Assembler(IsolateData isolate_data, void* buffer, int buffer_size)
   reloc_info_writer.Reposition(buffer_ + buffer_size_, pc_);
 }
 
-
-void Assembler::GetCode(CodeDesc* desc) {
-  // Finalize code (at this point overflow() may be true, but the gap ensures
-  // that we are still not overlapping instructions and relocation info).
+void Assembler::GetCode(Isolate* isolate, CodeDesc* desc) {
+  // At this point overflow() may be true, but the gap ensures
+  // that we are still not overlapping instructions and relocation info.
   DCHECK(pc_ <= reloc_info_writer.pos());  // No overlap.
+
+  AllocateAndInstallRequestedHeapObjects(isolate);
+
   // Set up code descriptor.
   desc->buffer = buffer_;
   desc->buffer_size = buffer_size_;
@@ -325,11 +331,34 @@ void Assembler::GetCode(CodeDesc* desc) {
   desc->constant_pool_size = 0;
   desc->unwinding_info_size = 0;
   desc->unwinding_info = nullptr;
+
+  // Collection stage
+  auto jump_opt = jump_optimization_info();
+  if (jump_opt && jump_opt->is_collecting()) {
+    auto& bitmap = jump_opt->farjmp_bitmap();
+    int num = static_cast<int>(farjmp_positions_.size());
+    if (num && bitmap.empty()) {
+      bool can_opt = false;
+
+      bitmap.resize((num + 31) / 32, 0);
+      for (int i = 0; i < num; i++) {
+        int disp_pos = farjmp_positions_[i];
+        int disp = long_at(disp_pos);
+        if (is_int8(disp)) {
+          bitmap[i / 32] |= 1 << (i & 31);
+          can_opt = true;
+        }
+      }
+      if (can_opt) {
+        jump_opt->set_optimizable();
+      }
+    }
+  }
 }
 
 
 void Assembler::Align(int m) {
-  DCHECK(base::bits::IsPowerOfTwo32(m));
+  DCHECK(base::bits::IsPowerOfTwo(m));
   int delta = (m - (pc_offset() & (m - 1))) & (m - 1);
   Nop(delta);
 }
@@ -395,6 +424,21 @@ void Assembler::bind_to(Label* L, int pos) {
       L->UnuseNear();
     }
   }
+
+  // Optimization stage
+  auto jump_opt = jump_optimization_info();
+  if (jump_opt && jump_opt->is_optimizing()) {
+    auto it = label_farjmp_maps_.find(L);
+    if (it != label_farjmp_maps_.end()) {
+      auto& pos_vector = it->second;
+      for (auto fixup_pos : pos_vector) {
+        int disp = pos - (fixup_pos + sizeof(int8_t));
+        CHECK(is_int8(disp));
+        set_byte_at(fixup_pos, disp);
+      }
+      label_farjmp_maps_.erase(it);
+    }
+  }
   L->bind_to(pos);
 }
 
@@ -403,6 +447,21 @@ void Assembler::bind(Label* L) {
   bind_to(L, pc_offset());
 }
 
+void Assembler::record_farjmp_position(Label* L, int pos) {
+  auto& pos_vector = label_farjmp_maps_[L];
+  pos_vector.push_back(pos);
+}
+
+bool Assembler::is_optimizable_farjmp(int idx) {
+  if (predictable_code_size()) return false;
+
+  auto jump_opt = jump_optimization_info();
+  CHECK(jump_opt->is_optimizing());
+
+  auto& bitmap = jump_opt->farjmp_bitmap();
+  CHECK(idx < static_cast<int>(bitmap.size() * 32));
+  return !!(bitmap[idx / 32] & (1 << (idx & 31)));
+}
 
 void Assembler::GrowBuffer() {
   DCHECK(buffer_overflow());
@@ -414,9 +473,7 @@ void Assembler::GrowBuffer() {
 
   // Some internal data structures overflow for very large buffers,
   // they must ensure that kMaximalBufferSize is not too large.
-  if (desc.buffer_size > kMaximalBufferSize ||
-      static_cast<size_t>(desc.buffer_size) >
-          isolate_data().max_old_generation_size_) {
+  if (desc.buffer_size > kMaximalBufferSize) {
     V8::FatalProcessOutOfMemory("Assembler::GrowBuffer");
   }
 
@@ -880,14 +937,19 @@ void Assembler::call(Address entry, RelocInfo::Mode rmode) {
   emit_runtime_entry(entry, rmode);
 }
 
-
-void Assembler::call(Handle<Code> target,
-                     RelocInfo::Mode rmode,
-                     TypeFeedbackId ast_id) {
+void Assembler::call(CodeStub* stub) {
   EnsureSpace ensure_space(this);
   // 1110 1000 #32-bit disp.
   emit(0xE8);
-  emit_code_target(target, rmode, ast_id);
+  RequestHeapObject(HeapObjectRequest(stub));
+  emit_code_target(Handle<Code>(), RelocInfo::CODE_TARGET);
+}
+
+void Assembler::call(Handle<Code> target, RelocInfo::Mode rmode) {
+  EnsureSpace ensure_space(this);
+  // 1110 1000 #32-bit disp.
+  emit(0xE8);
+  emit_code_target(target, rmode);
 }
 
 
@@ -1259,19 +1321,34 @@ void Assembler::j(Condition cc, Label* L, Label::Distance distance) {
     }
     L->link_to(pc_offset(), Label::kNear);
     emit(disp);
-  } else if (L->is_linked()) {
-    // 0000 1111 1000 tttn #32-bit disp.
-    emit(0x0F);
-    emit(0x80 | cc);
-    emitl(L->pos());
-    L->link_to(pc_offset() - sizeof(int32_t));
   } else {
-    DCHECK(L->is_unused());
-    emit(0x0F);
-    emit(0x80 | cc);
-    int32_t current = pc_offset();
-    emitl(current);
-    L->link_to(current);
+    auto jump_opt = jump_optimization_info();
+    if (V8_UNLIKELY(jump_opt)) {
+      if (jump_opt->is_optimizing() && is_optimizable_farjmp(farjmp_num_++)) {
+        // 0111 tttn #8-bit disp
+        emit(0x70 | cc);
+        record_farjmp_position(L, pc_offset());
+        emit(0);
+        return;
+      }
+      if (jump_opt->is_collecting()) {
+        farjmp_positions_.push_back(pc_offset() + 2);
+      }
+    }
+    if (L->is_linked()) {
+      // 0000 1111 1000 tttn #32-bit disp.
+      emit(0x0F);
+      emit(0x80 | cc);
+      emitl(L->pos());
+      L->link_to(pc_offset() - sizeof(int32_t));
+    } else {
+      DCHECK(L->is_unused());
+      emit(0x0F);
+      emit(0x80 | cc);
+      int32_t current = pc_offset();
+      emitl(current);
+      L->link_to(current);
+    }
   }
 }
 
@@ -1324,18 +1401,32 @@ void Assembler::jmp(Label* L, Label::Distance distance) {
     }
     L->link_to(pc_offset(), Label::kNear);
     emit(disp);
-  } else if (L->is_linked()) {
-    // 1110 1001 #32-bit disp.
-    emit(0xE9);
-    emitl(L->pos());
-    L->link_to(pc_offset() - long_size);
   } else {
-    // 1110 1001 #32-bit disp.
-    DCHECK(L->is_unused());
-    emit(0xE9);
-    int32_t current = pc_offset();
-    emitl(current);
-    L->link_to(current);
+    auto jump_opt = jump_optimization_info();
+    if (V8_UNLIKELY(jump_opt)) {
+      if (jump_opt->is_optimizing() && is_optimizable_farjmp(farjmp_num_++)) {
+        emit(0xEB);
+        record_farjmp_position(L, pc_offset());
+        emit(0);
+        return;
+      }
+      if (jump_opt->is_collecting()) {
+        farjmp_positions_.push_back(pc_offset() + 1);
+      }
+    }
+    if (L->is_linked()) {
+      // 1110 1001 #32-bit disp.
+      emit(0xE9);
+      emitl(L->pos());
+      L->link_to(pc_offset() - long_size);
+    } else {
+      // 1110 1001 #32-bit disp.
+      DCHECK(L->is_unused());
+      emit(0xE9);
+      int32_t current = pc_offset();
+      emitl(current);
+      L->link_to(current);
+    }
   }
 }
 
@@ -1536,6 +1627,14 @@ void Assembler::movp(Register dst, void* value, RelocInfo::Mode rmode) {
   emit_rex(dst, kPointerSize);
   emit(0xB8 | dst.low_bits());
   emitp(value, rmode);
+}
+
+void Assembler::movp_heap_number(Register dst, double value) {
+  EnsureSpace ensure_space(this);
+  emit_rex(dst, kPointerSize);
+  emit(0xB8 | dst.low_bits());
+  RequestHeapObject(HeapObjectRequest(value));
+  emitp(nullptr, RelocInfo::EMBEDDED_OBJECT);
 }
 
 void Assembler::movq(Register dst, int64_t value, RelocInfo::Mode rmode) {
@@ -4760,20 +4859,14 @@ void Assembler::RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data) {
   if (rmode == RelocInfo::EXTERNAL_REFERENCE &&
       !serializer_enabled() && !emit_debug_code()) {
     return;
-  } else if (rmode == RelocInfo::CODE_AGE_SEQUENCE) {
-    // Don't record psuedo relocation info for code age sequence mode.
-    return;
   }
   RelocInfo rinfo(pc_, rmode, data, NULL);
   reloc_info_writer.Write(&rinfo);
 }
 
-
 const int RelocInfo::kApplyMask = RelocInfo::kCodeTargetMask |
-    1 << RelocInfo::RUNTIME_ENTRY |
-    1 << RelocInfo::INTERNAL_REFERENCE |
-    1 << RelocInfo::CODE_AGE_SEQUENCE;
-
+                                  1 << RelocInfo::RUNTIME_ENTRY |
+                                  1 << RelocInfo::INTERNAL_REFERENCE;
 
 bool RelocInfo::IsCodedSpecially() {
   // The deserializer needs to know whether a pointer is specially coded.  Being

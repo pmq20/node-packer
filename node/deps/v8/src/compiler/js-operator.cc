@@ -22,6 +22,12 @@ std::ostream& operator<<(std::ostream& os, CallFrequency f) {
   return os << f.value();
 }
 
+CallFrequency CallFrequencyOf(Operator const* op) {
+  DCHECK(op->opcode() == IrOpcode::kJSCallWithArrayLike ||
+         op->opcode() == IrOpcode::kJSConstructWithArrayLike);
+  return OpParameter<CallFrequency>(op);
+}
+
 VectorSlotPair::VectorSlotPair() {}
 
 
@@ -88,49 +94,24 @@ std::ostream& operator<<(std::ostream& os, ConstructParameters const& p) {
 }
 
 ConstructParameters const& ConstructParametersOf(Operator const* op) {
-  DCHECK_EQ(IrOpcode::kJSConstruct, op->opcode());
+  DCHECK(op->opcode() == IrOpcode::kJSConstruct ||
+         op->opcode() == IrOpcode::kJSConstructWithSpread);
   return OpParameter<ConstructParameters>(op);
 }
 
-bool operator==(SpreadWithArityParameter const& lhs,
-                SpreadWithArityParameter const& rhs) {
-  return lhs.arity() == rhs.arity();
-}
-
-bool operator!=(SpreadWithArityParameter const& lhs,
-                SpreadWithArityParameter const& rhs) {
-  return !(lhs == rhs);
-}
-
-size_t hash_value(SpreadWithArityParameter const& p) {
-  return base::hash_combine(p.arity());
-}
-
-std::ostream& operator<<(std::ostream& os, SpreadWithArityParameter const& p) {
-  return os << p.arity();
-}
-
-SpreadWithArityParameter const& SpreadWithArityParameterOf(Operator const* op) {
-  DCHECK(op->opcode() == IrOpcode::kJSConstructWithSpread ||
-         op->opcode() == IrOpcode::kJSCallWithSpread);
-  return OpParameter<SpreadWithArityParameter>(op);
-}
-
 std::ostream& operator<<(std::ostream& os, CallParameters const& p) {
-  os << p.arity() << ", " << p.frequency() << ", " << p.convert_mode() << ", "
-     << p.tail_call_mode();
-  return os;
+  return os << p.arity() << ", " << p.frequency() << ", " << p.convert_mode();
 }
 
 const CallParameters& CallParametersOf(const Operator* op) {
-  DCHECK_EQ(IrOpcode::kJSCall, op->opcode());
+  DCHECK(op->opcode() == IrOpcode::kJSCall ||
+         op->opcode() == IrOpcode::kJSCallWithSpread);
   return OpParameter<CallParameters>(op);
 }
 
 std::ostream& operator<<(std::ostream& os,
                          CallForwardVarargsParameters const& p) {
-  return os << p.arity() << ", " << p.start_index() << ", "
-            << p.tail_call_mode();
+  return os << p.arity() << ", " << p.start_index();
 }
 
 CallForwardVarargsParameters const& CallForwardVarargsParametersOf(
@@ -533,31 +514,6 @@ const CreateLiteralParameters& CreateLiteralParametersOf(const Operator* op) {
   return OpParameter<CreateLiteralParameters>(op);
 }
 
-bool operator==(GeneratorStoreParameters const& lhs,
-                GeneratorStoreParameters const& rhs) {
-  return lhs.register_count() == rhs.register_count() &&
-         lhs.suspend_type() == rhs.suspend_type();
-}
-bool operator!=(GeneratorStoreParameters const& lhs,
-                GeneratorStoreParameters const& rhs) {
-  return !(lhs == rhs);
-}
-
-size_t hash_value(GeneratorStoreParameters const& p) {
-  return base::hash_combine(p.register_count(),
-                            static_cast<int>(p.suspend_type()));
-}
-
-std::ostream& operator<<(std::ostream& os, GeneratorStoreParameters const& p) {
-  const char* suspend_type = SuspendTypeFor(p.suspend_type());
-  return os << p.register_count() << " (" << suspend_type << ")";
-}
-
-const GeneratorStoreParameters& GeneratorStoreParametersOf(const Operator* op) {
-  DCHECK_EQ(op->opcode(), IrOpcode::kJSGeneratorStore);
-  return OpParameter<GeneratorStoreParameters>(op);
-}
-
 BinaryOperationHint BinaryOperationHintOf(const Operator* op) {
   DCHECK_EQ(IrOpcode::kJSAdd, op->opcode());
   return OpParameter<BinaryOperationHint>(op);
@@ -596,6 +552,7 @@ CompareOperationHint CompareOperationHintOf(const Operator* op) {
   V(HasProperty, Operator::kNoProperties, 2, 1)                 \
   V(ClassOf, Operator::kPure, 1, 1)                             \
   V(TypeOf, Operator::kPure, 1, 1)                              \
+  V(HasInPrototypeChain, Operator::kNoProperties, 2, 1)         \
   V(InstanceOf, Operator::kNoProperties, 2, 1)                  \
   V(OrdinaryHasInstance, Operator::kNoProperties, 2, 1)         \
   V(ForInNext, Operator::kNoProperties, 4, 1)                   \
@@ -642,7 +599,10 @@ struct JSOperatorGlobalCache final {
   Name##Operator<BinaryOperationHint::kNone> k##Name##NoneOperator;           \
   Name##Operator<BinaryOperationHint::kSignedSmall>                           \
       k##Name##SignedSmallOperator;                                           \
+  Name##Operator<BinaryOperationHint::kSignedSmallInputs>                     \
+      k##Name##SignedSmallInputsOperator;                                     \
   Name##Operator<BinaryOperationHint::kSigned32> k##Name##Signed32Operator;   \
+  Name##Operator<BinaryOperationHint::kNumber> k##Name##NumberOperator;       \
   Name##Operator<BinaryOperationHint::kNumberOrOddball>                       \
       k##Name##NumberOrOddballOperator;                                       \
   Name##Operator<BinaryOperationHint::kString> k##Name##StringOperator;       \
@@ -667,17 +627,18 @@ struct JSOperatorGlobalCache final {
   Name##Operator<CompareOperationHint::kInternalizedString>                  \
       k##Name##InternalizedStringOperator;                                   \
   Name##Operator<CompareOperationHint::kString> k##Name##StringOperator;     \
+  Name##Operator<CompareOperationHint::kSymbol> k##Name##SymbolOperator;     \
   Name##Operator<CompareOperationHint::kReceiver> k##Name##ReceiverOperator; \
   Name##Operator<CompareOperationHint::kAny> k##Name##AnyOperator;
   COMPARE_OP_LIST(COMPARE_OP)
 #undef COMPARE_OP
 };
 
-static base::LazyInstance<JSOperatorGlobalCache>::type kCache =
+static base::LazyInstance<JSOperatorGlobalCache>::type kJSOperatorGlobalCache =
     LAZY_INSTANCE_INITIALIZER;
 
 JSOperatorBuilder::JSOperatorBuilder(Zone* zone)
-    : cache_(kCache.Get()), zone_(zone) {}
+    : cache_(kJSOperatorGlobalCache.Get()), zone_(zone) {}
 
 #define CACHED_OP(Name, properties, value_input_count, value_output_count) \
   const Operator* JSOperatorBuilder::Name() {                              \
@@ -693,8 +654,12 @@ CACHED_OP_LIST(CACHED_OP)
         return &cache_.k##Name##NoneOperator;                         \
       case BinaryOperationHint::kSignedSmall:                         \
         return &cache_.k##Name##SignedSmallOperator;                  \
+      case BinaryOperationHint::kSignedSmallInputs:                   \
+        return &cache_.k##Name##SignedSmallInputsOperator;            \
       case BinaryOperationHint::kSigned32:                            \
         return &cache_.k##Name##Signed32Operator;                     \
+      case BinaryOperationHint::kNumber:                              \
+        return &cache_.k##Name##NumberOperator;                       \
       case BinaryOperationHint::kNumberOrOddball:                     \
         return &cache_.k##Name##NumberOrOddballOperator;              \
       case BinaryOperationHint::kString:                              \
@@ -723,6 +688,8 @@ BINARY_OP_LIST(BINARY_OP)
         return &cache_.k##Name##InternalizedStringOperator;            \
       case CompareOperationHint::kString:                              \
         return &cache_.k##Name##StringOperator;                        \
+      case CompareOperationHint::kSymbol:                              \
+        return &cache_.k##Name##SymbolOperator;                        \
       case CompareOperationHint::kReceiver:                            \
         return &cache_.k##Name##ReceiverOperator;                      \
       case CompareOperationHint::kAny:                                 \
@@ -754,9 +721,9 @@ const Operator* JSOperatorBuilder::ToBoolean(ToBooleanHints hints) {
       hints);                                     // parameter
 }
 
-const Operator* JSOperatorBuilder::CallForwardVarargs(
-    size_t arity, uint32_t start_index, TailCallMode tail_call_mode) {
-  CallForwardVarargsParameters parameters(arity, start_index, tail_call_mode);
+const Operator* JSOperatorBuilder::CallForwardVarargs(size_t arity,
+                                                      uint32_t start_index) {
+  CallForwardVarargsParameters parameters(arity, start_index);
   return new (zone()) Operator1<CallForwardVarargsParameters>(   // --
       IrOpcode::kJSCallForwardVarargs, Operator::kNoProperties,  // opcode
       "JSCallForwardVarargs",                                    // name
@@ -766,10 +733,8 @@ const Operator* JSOperatorBuilder::CallForwardVarargs(
 
 const Operator* JSOperatorBuilder::Call(size_t arity, CallFrequency frequency,
                                         VectorSlotPair const& feedback,
-                                        ConvertReceiverMode convert_mode,
-                                        TailCallMode tail_call_mode) {
-  CallParameters parameters(arity, frequency, feedback, tail_call_mode,
-                            convert_mode);
+                                        ConvertReceiverMode convert_mode) {
+  CallParameters parameters(arity, frequency, feedback, convert_mode);
   return new (zone()) Operator1<CallParameters>(   // --
       IrOpcode::kJSCall, Operator::kNoProperties,  // opcode
       "JSCall",                                    // name
@@ -777,9 +742,19 @@ const Operator* JSOperatorBuilder::Call(size_t arity, CallFrequency frequency,
       parameters);                                 // parameter
 }
 
-const Operator* JSOperatorBuilder::CallWithSpread(uint32_t arity) {
-  SpreadWithArityParameter parameters(arity);
-  return new (zone()) Operator1<SpreadWithArityParameter>(   // --
+const Operator* JSOperatorBuilder::CallWithArrayLike(CallFrequency frequency) {
+  return new (zone()) Operator1<CallFrequency>(                 // --
+      IrOpcode::kJSCallWithArrayLike, Operator::kNoProperties,  // opcode
+      "JSCallWithArrayLike",                                    // name
+      3, 1, 1, 1, 1, 2,                                         // counts
+      frequency);                                               // parameter
+}
+
+const Operator* JSOperatorBuilder::CallWithSpread(
+    uint32_t arity, CallFrequency frequency, VectorSlotPair const& feedback) {
+  CallParameters parameters(arity, frequency, feedback,
+                            ConvertReceiverMode::kAny);
+  return new (zone()) Operator1<CallParameters>(             // --
       IrOpcode::kJSCallWithSpread, Operator::kNoProperties,  // opcode
       "JSCallWithSpread",                                    // name
       parameters.arity(), 1, 1, 1, 1, 2,                     // counts
@@ -831,9 +806,20 @@ const Operator* JSOperatorBuilder::Construct(uint32_t arity,
       parameters);                                      // parameter
 }
 
-const Operator* JSOperatorBuilder::ConstructWithSpread(uint32_t arity) {
-  SpreadWithArityParameter parameters(arity);
-  return new (zone()) Operator1<SpreadWithArityParameter>(        // --
+const Operator* JSOperatorBuilder::ConstructWithArrayLike(
+    CallFrequency frequency) {
+  return new (zone()) Operator1<CallFrequency>(  // --
+      IrOpcode::kJSConstructWithArrayLike,       // opcode
+      Operator::kNoProperties,                   // properties
+      "JSConstructWithArrayLike",                // name
+      3, 1, 1, 1, 1, 2,                          // counts
+      frequency);                                // parameter
+}
+
+const Operator* JSOperatorBuilder::ConstructWithSpread(
+    uint32_t arity, CallFrequency frequency, VectorSlotPair const& feedback) {
+  ConstructParameters parameters(arity, frequency, feedback);
+  return new (zone()) Operator1<ConstructParameters>(             // --
       IrOpcode::kJSConstructWithSpread, Operator::kNoProperties,  // opcode
       "JSConstructWithSpread",                                    // name
       parameters.arity(), 1, 1, 1, 1, 2,                          // counts
@@ -869,14 +855,12 @@ const Operator* JSOperatorBuilder::LoadProperty(
       access);                                             // parameter
 }
 
-const Operator* JSOperatorBuilder::GeneratorStore(int register_count,
-                                                  SuspendFlags suspend_flags) {
-  GeneratorStoreParameters parameters(register_count, suspend_flags);
-  return new (zone()) Operator1<GeneratorStoreParameters>(  // --
-      IrOpcode::kJSGeneratorStore, Operator::kNoThrow,      // opcode
-      "JSGeneratorStore",                                   // name
-      3 + register_count, 1, 1, 0, 1, 0,                    // counts
-      parameters);                                          // parameter
+const Operator* JSOperatorBuilder::GeneratorStore(int register_count) {
+  return new (zone()) Operator1<int>(                   // --
+      IrOpcode::kJSGeneratorStore, Operator::kNoThrow,  // opcode
+      "JSGeneratorStore",                               // name
+      3 + register_count, 1, 1, 0, 1, 0,                // counts
+      register_count);                                  // parameter
 }
 
 const Operator* JSOperatorBuilder::GeneratorRestoreRegister(int index) {
@@ -1005,7 +989,6 @@ const Operator* JSOperatorBuilder::CreateArguments(CreateArgumentsType type) {
       type);                                                  // parameter
 }
 
-
 const Operator* JSOperatorBuilder::CreateArray(size_t arity,
                                                Handle<AllocationSite> site) {
   // constructor, new_target, arg1, ..., argN
@@ -1022,11 +1005,11 @@ const Operator* JSOperatorBuilder::CreateClosure(
     Handle<SharedFunctionInfo> shared_info, VectorSlotPair const& feedback,
     PretenureFlag pretenure) {
   CreateClosureParameters parameters(shared_info, feedback, pretenure);
-  return new (zone()) Operator1<CreateClosureParameters>(  // --
-      IrOpcode::kJSCreateClosure, Operator::kNoThrow,      // opcode
-      "JSCreateClosure",                                   // name
-      0, 1, 1, 1, 1, 0,                                    // counts
-      parameters);                                         // parameter
+  return new (zone()) Operator1<CreateClosureParameters>(   // --
+      IrOpcode::kJSCreateClosure, Operator::kEliminatable,  // opcode
+      "JSCreateClosure",                                    // name
+      0, 1, 1, 1, 1, 0,                                     // counts
+      parameters);                                          // parameter
 }
 
 const Operator* JSOperatorBuilder::CreateLiteralArray(
@@ -1041,6 +1024,15 @@ const Operator* JSOperatorBuilder::CreateLiteralArray(
       parameters);                                               // parameter
 }
 
+const Operator* JSOperatorBuilder::CreateEmptyLiteralArray(int literal_index) {
+  return new (zone()) Operator1<int>(        // --
+      IrOpcode::kJSCreateEmptyLiteralArray,  // opcode
+      Operator::kNoProperties,               // properties
+      "JSCreateEmptyLiteralArray",           // name
+      1, 1, 1, 1, 1, 2,                      // counts
+      literal_index);                        // parameter
+}
+
 const Operator* JSOperatorBuilder::CreateLiteralObject(
     Handle<BoilerplateDescription> constant_properties, int literal_flags,
     int literal_index, int number_of_properties) {
@@ -1053,6 +1045,13 @@ const Operator* JSOperatorBuilder::CreateLiteralObject(
       parameters);                                                // parameter
 }
 
+const Operator* JSOperatorBuilder::CreateEmptyLiteralObject() {
+  return new (zone()) Operator(               // --
+      IrOpcode::kJSCreateEmptyLiteralObject,  // opcode
+      Operator::kNoProperties,                // properties
+      "JSCreateEmptyLiteralObject",           // name
+      1, 1, 1, 1, 1, 2);                      // counts
+}
 
 const Operator* JSOperatorBuilder::CreateLiteralRegExp(
     Handle<String> constant_pattern, int literal_flags, int literal_index) {

@@ -42,12 +42,16 @@ server.on('connect', common.mustCall((req, socket, firstBodyChunk) => {
   }));
 }));
 
-server.listen(0, common.mustCall(function() {
+server.listen(0, common.mustCall(() => {
   const req = http.request({
-    port: this.address().port,
+    port: server.address().port,
     method: 'CONNECT',
     path: 'google.com:443'
   }, common.mustNotCall());
+
+  req.on('socket', common.mustCall((socket) => {
+    assert.strictEqual(socket._httpMessage, req);
+  }));
 
   req.on('close', common.mustCall());
 
@@ -60,8 +64,10 @@ server.listen(0, common.mustCall(function() {
     // Make sure this socket has detached.
     assert(!socket.ondata);
     assert(!socket.onend);
+    assert.strictEqual(socket._httpMessage, null);
     assert.strictEqual(socket.listeners('connect').length, 0);
     assert.strictEqual(socket.listeners('data').length, 0);
+    assert.strictEqual(socket.listeners('drain').length, 0);
 
     // the stream.Duplex onend listener
     // allow 0 here, so that i can run the same test on streams1 impl

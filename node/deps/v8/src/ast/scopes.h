@@ -5,6 +5,7 @@
 #ifndef V8_AST_SCOPES_H_
 #define V8_AST_SCOPES_H_
 
+#include "src/ast/ast.h"
 #include "src/base/compiler-specific.h"
 #include "src/base/hashmap.h"
 #include "src/globals.h"
@@ -20,6 +21,7 @@ class AstRawString;
 class Declaration;
 class ParseInfo;
 class PreParsedScopeData;
+class ProducedPreParsedScopeData;
 class SloppyBlockFunctionStatement;
 class Statement;
 class StringSet;
@@ -208,8 +210,18 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   // Create a new unresolved variable.
   VariableProxy* NewUnresolved(AstNodeFactory* factory,
                                const AstRawString* name,
-                               int start_position = kNoSourcePosition,
-                               VariableKind kind = NORMAL_VARIABLE);
+                               int start_pos = kNoSourcePosition,
+                               VariableKind kind = NORMAL_VARIABLE) {
+    // Note that we must not share the unresolved variables with
+    // the same name because they may be removed selectively via
+    // RemoveUnresolved().
+    DCHECK(!already_resolved_);
+    DCHECK_EQ(factory->zone(), zone());
+    VariableProxy* proxy = factory->NewVariableProxy(name, kind, start_pos);
+    proxy->set_next_unresolved(unresolved_);
+    unresolved_ = proxy;
+    return proxy;
+  }
 
   void AddUnresolved(VariableProxy* proxy);
 
@@ -252,9 +264,15 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   // eval call.
   void RecordEvalCall() {
     scope_calls_eval_ = true;
+  }
+
+  void RecordInnerScopeEvalCall() {
     inner_scope_calls_eval_ = true;
     for (Scope* scope = outer_scope(); scope != nullptr;
          scope = scope->outer_scope()) {
+      if (scope->inner_scope_calls_eval_) {
+        return;
+      }
       scope->inner_scope_calls_eval_ = true;
     }
   }
@@ -323,6 +341,13 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   bool has_forced_context_allocation() const {
     return force_context_allocation_;
   }
+  void ForceContextAllocationForParameters() {
+    DCHECK(!already_resolved_);
+    force_context_allocation_for_parameters_ = true;
+  }
+  bool has_forced_context_allocation_for_parameters() const {
+    return force_context_allocation_for_parameters_;
+  }
 
   // ---------------------------------------------------------------------------
   // Predicates.
@@ -337,14 +362,11 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   bool is_with_scope() const { return scope_type_ == WITH_SCOPE; }
   bool is_declaration_scope() const { return is_declaration_scope_; }
 
-  // Information about which scopes calls eval.
-  bool calls_eval() const { return scope_calls_eval_; }
-  bool calls_sloppy_eval() const {
-    return scope_calls_eval_ && is_sloppy(language_mode());
-  }
   bool inner_scope_calls_eval() const { return inner_scope_calls_eval_; }
   bool IsAsmModule() const;
-  bool IsAsmFunction() const;
+  // Returns true if this scope or any inner scopes that might be eagerly
+  // compiled are asm modules.
+  bool ContainsAsmModule() const;
   // Does this scope have the potential to execute declarations non-linearly?
   bool is_nonlinear() const { return scope_nonlinear_; }
 
@@ -428,17 +450,6 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
     return scope_info_;
   }
 
-  // ---------------------------------------------------------------------------
-  // Strict mode support.
-  bool IsDeclared(const AstRawString* name) {
-    // During formal parameter list parsing the scope only contains
-    // two variables inserted at initialization: "this" and "arguments".
-    // "this" is an invalid parameter name and "arguments" is invalid parameter
-    // name in strict mode. Therefore looking up with the map which includes
-    // "this" and "arguments" in addition to all formal parameters is safe.
-    return variables_.Lookup(name) != NULL;
-  }
-
   int num_var() const { return variables_.occupancy(); }
 
   // ---------------------------------------------------------------------------
@@ -452,11 +463,6 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
 
   // Check that all Scopes in the scope tree use the same Zone.
   void CheckZones();
-
-  bool replaced_from_parse_task() const { return replaced_from_parse_task_; }
-  void set_replaced_from_parse_task(bool replaced_from_parse_task) {
-    replaced_from_parse_task_ = replaced_from_parse_task;
-  }
 #endif
 
   // Retrieve `IsSimpleParameterList` of current or outer function.
@@ -502,6 +508,11 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
 
   Variable* NewTemporary(const AstRawString* name,
                          MaybeAssignedFlag maybe_assigned);
+
+  // Walk the scope chain to find DeclarationScopes; call
+  // SavePreParsedScopeDataForDeclarationScope for each.
+  void SavePreParsedScopeData();
+
   Zone* zone_;
 
   // Scope tree.
@@ -536,10 +547,6 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   // True if this scope may contain objects from a temp zone that needs to be
   // fixed up.
   bool needs_migration_;
-
-  // True if scope comes from other zone - as a result of being created in a
-  // parse tasks.
-  bool replaced_from_parse_task_ = false;
 #endif
 
   // Source positions.
@@ -570,6 +577,7 @@ class V8_EXPORT_PRIVATE Scope : public NON_EXPORTED_BASE(ZoneObject) {
   // True if one of the inner scopes or the scope itself calls eval.
   bool inner_scope_calls_eval_ : 1;
   bool force_context_allocation_ : 1;
+  bool force_context_allocation_for_parameters_ : 1;
 
   // True if it holds 'var' declarations.
   bool is_declaration_scope_ : 1;
@@ -672,6 +680,10 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
                                         IsClassConstructor(function_kind())));
   }
 
+  bool calls_sloppy_eval() const {
+    return scope_calls_eval_ && is_sloppy(language_mode());
+  }
+
   bool was_lazily_parsed() const { return was_lazily_parsed_; }
 
 #ifdef DEBUG
@@ -692,8 +704,6 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
 
   bool asm_module() const { return asm_module_; }
   void set_asm_module();
-  bool asm_function() const { return asm_function_; }
-  void set_asm_function() { asm_function_ = true; }
 
   void DeclareThis(AstValueFactory* ast_value_factory);
   void DeclareArguments(AstValueFactory* ast_value_factory);
@@ -713,7 +723,6 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   // Ignition without ScopeInfo.
   Variable* DeclareGeneratorObjectVar(const AstRawString* name);
   Variable* DeclarePromiseVar(const AstRawString* name);
-  Variable* DeclareAsyncGeneratorAwaitVar(const AstRawString* name);
 
   // Declare a parameter in this scope.  When there are duplicated
   // parameters the rightmost one 'wins'.  However, the implementation
@@ -725,7 +734,8 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   // Declares that a parameter with the name exists. Creates a Variable and
   // returns it if FLAG_preparser_scope_analysis is on.
   Variable* DeclareParameterName(const AstRawString* name, bool is_rest,
-                                 AstValueFactory* ast_value_factory);
+                                 AstValueFactory* ast_value_factory,
+                                 bool declare_local, bool add_parameter);
 
   // Declare an implicit global variable in this scope which must be a
   // script scope.  The variable was introduced (possibly from an inner
@@ -768,12 +778,6 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
     DCHECK(IsAsyncFunction(function_kind_));
     if (IsAsyncGeneratorFunction(function_kind_)) return nullptr;
     return GetRareVariable(RareVariable::kPromise);
-  }
-
-  Variable* async_generator_await_var() const {
-    DCHECK(is_function_scope());
-    DCHECK(IsAsyncGeneratorFunction(function_kind_));
-    return GetRareVariable(RareVariable::kAsyncGeneratorAwaitResult);
   }
 
   // Parameters. The left-most parameter has index 0.
@@ -843,18 +847,26 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
     return sloppy_block_function_map_;
   }
 
+  // Replaces the outer scope with the outer_scope_info in |info| if there is
+  // one.
+  void AttachOuterScopeInfo(ParseInfo* info, Isolate* isolate);
+
   // Compute top scope and allocate variables. For lazy compilation the top
   // scope only contains the single lazily compiled function, so this
   // doesn't re-allocate variables repeatedly.
-  static void Analyze(ParseInfo* info, Isolate* isolate, AnalyzeMode mode);
+  static void Analyze(ParseInfo* info);
 
   // To be called during parsing. Do just enough scope analysis that we can
-  // discard the Scope for lazily compiled functions. In particular, this
-  // records variables which cannot be resolved inside the Scope (we don't yet
-  // know what they will resolve to since the outer Scopes are incomplete) and
-  // migrates them into migrate_to.
-  void AnalyzePartially(AstNodeFactory* ast_node_factory,
-                        PreParsedScopeData* preparsed_scope_data);
+  // discard the Scope contents for lazily compiled functions. In particular,
+  // this records variables which cannot be resolved inside the Scope (we don't
+  // yet know what they will resolve to since the outer Scopes are incomplete)
+  // and recreates them with the correct Zone with ast_node_factory.
+  void AnalyzePartially(AstNodeFactory* ast_node_factory);
+
+  // Allocate ScopeInfos for top scope and any inner scopes that need them.
+  // Does nothing if ScopeInfo is already allocated.
+  static void AllocateScopeInfos(ParseInfo* info, Isolate* isolate,
+                                 AnalyzeMode mode);
 
   Handle<StringSet> CollectNonLocals(ParseInfo* info,
                                      Handle<StringSet> non_locals);
@@ -888,6 +900,20 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
     is_skipped_function_ = is_skipped_function;
   }
 
+  // Save data describing the context allocation of the variables in this scope
+  // and its subscopes (except scopes at the laziness boundary). The data is
+  // saved in produced_preparsed_scope_data_.
+  void SavePreParsedScopeDataForDeclarationScope();
+
+  void set_produced_preparsed_scope_data(
+      ProducedPreParsedScopeData* produced_preparsed_scope_data) {
+    produced_preparsed_scope_data_ = produced_preparsed_scope_data;
+  }
+
+  ProducedPreParsedScopeData* produced_preparsed_scope_data() const {
+    return produced_preparsed_scope_data_;
+  }
+
  private:
   void AllocateParameter(Variable* var, int index);
 
@@ -899,7 +925,7 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   // In the case of code compiled and run using 'eval', the context
   // parameter is the context in which eval was called.  In all other
   // cases the context parameter is an empty handle.
-  void AllocateVariables(ParseInfo* info, Isolate* isolate, AnalyzeMode mode);
+  void AllocateVariables(ParseInfo* info);
 
   void SetDefaults();
 
@@ -909,8 +935,6 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   bool has_simple_parameters_ : 1;
   // This scope contains an "use asm" annotation.
   bool asm_module_ : 1;
-  // This scope's outer context is an asm module.
-  bool asm_function_ : 1;
   bool force_eager_compilation_ : 1;
   // This function scope has a rest parameter.
   bool has_rest_ : 1;
@@ -939,6 +963,9 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   // Convenience variable; function scopes only.
   Variable* arguments_;
 
+  // For producing the scope allocation data during preparsing.
+  ProducedPreParsedScopeData* produced_preparsed_scope_data_;
+
   struct RareData : public ZoneObject {
     // Convenience variable; Subclass constructor only
     Variable* this_function = nullptr;
@@ -953,8 +980,7 @@ class V8_EXPORT_PRIVATE DeclarationScope : public Scope {
   enum class RareVariable {
     kThisFunction = offsetof(RareData, this_function),
     kGeneratorObject = offsetof(RareData, generator_object),
-    kPromise = offsetof(RareData, promise),
-    kAsyncGeneratorAwaitResult = kPromise
+    kPromise = offsetof(RareData, promise)
   };
 
   V8_INLINE RareData* EnsureRareData() {

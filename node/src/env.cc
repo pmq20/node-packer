@@ -1,14 +1,6 @@
-#include "env.h"
-#include "env-inl.h"
-#include "async-wrap.h"
-#include "v8.h"
+#include "node_internals.h"
+#include "async_wrap.h"
 #include "v8-profiler.h"
-
-#if defined(_MSC_VER)
-#define getpid GetCurrentProcessId
-#else
-#include <unistd.h>
-#endif
 
 #include <stdio.h>
 #include <algorithm>
@@ -50,8 +42,6 @@ void Environment::Start(int argc,
   uv_unref(reinterpret_cast<uv_handle_t*>(&idle_prepare_handle_));
   uv_unref(reinterpret_cast<uv_handle_t*>(&idle_check_handle_));
 
-  uv_timer_init(event_loop(), destroy_ids_timer_handle());
-
   auto close_and_finish = [](Environment* env, uv_handle_t* handle, void* arg) {
     handle->data = env;
 
@@ -74,10 +64,6 @@ void Environment::Start(int argc,
       nullptr);
   RegisterHandleCleanup(
       reinterpret_cast<uv_handle_t*>(&idle_check_handle_),
-      close_and_finish,
-      nullptr);
-  RegisterHandleCleanup(
-      reinterpret_cast<uv_handle_t*>(&destroy_ids_timer_handle_),
       close_and_finish,
       nullptr);
 
@@ -132,7 +118,8 @@ void Environment::PrintSyncTrace() const {
   Local<v8::StackTrace> stack =
       StackTrace::CurrentStackTrace(isolate(), 10, StackTrace::kDetailed);
 
-  fprintf(stderr, "(node:%d) WARNING: Detected use of sync API\n", getpid());
+  fprintf(stderr, "(node:%u) WARNING: Detected use of sync API\n",
+          uv_os_getpid());
 
   for (int i = 0; i < stack->GetFrameCount() - 1; i++) {
     Local<StackFrame> stack_frame = stack->GetFrame(i);
@@ -215,6 +202,12 @@ bool Environment::RemovePromiseHook(promise_hook_func fn, void* arg) {
   return true;
 }
 
+bool Environment::EmitNapiWarning() {
+  bool current_value = emit_napi_warning_;
+  emit_napi_warning_ = false;
+  return current_value;
+}
+
 void Environment::EnvPromiseHook(v8::PromiseHookType type,
                                  v8::Local<v8::Promise> promise,
                                  v8::Local<v8::Value> parent) {
@@ -222,6 +215,77 @@ void Environment::EnvPromiseHook(v8::PromiseHookType type,
   for (const PromiseHookCallback& hook : env->promise_hooks_) {
     hook.cb_(type, promise, parent, hook.arg_);
   }
+}
+
+void Environment::RunAndClearNativeImmediates() {
+  size_t count = native_immediate_callbacks_.size();
+  if (count > 0) {
+    std::vector<NativeImmediateCallback> list;
+    native_immediate_callbacks_.swap(list);
+    for (const auto& cb : list) {
+      cb.cb_(this, cb.data_);
+      if (cb.keep_alive_)
+        cb.keep_alive_->Reset();
+    }
+
+#ifdef DEBUG
+    CHECK_GE(scheduled_immediate_count_[0], count);
+#endif
+    scheduled_immediate_count_[0] = scheduled_immediate_count_[0] - count;
+  }
+}
+
+static bool MaybeStopImmediate(Environment* env) {
+  if (env->scheduled_immediate_count()[0] == 0) {
+    uv_check_stop(env->immediate_check_handle());
+    uv_idle_stop(env->immediate_idle_handle());
+    return true;
+  }
+  return false;
+}
+
+
+void Environment::CheckImmediate(uv_check_t* handle) {
+  Environment* env = Environment::from_immediate_check_handle(handle);
+  HandleScope scope(env->isolate());
+  Context::Scope context_scope(env->context());
+
+  if (MaybeStopImmediate(env))
+    return;
+
+  env->RunAndClearNativeImmediates();
+
+  MakeCallback(env->isolate(),
+               env->process_object(),
+               env->immediate_callback_string(),
+               0,
+               nullptr,
+               {0, 0}).ToLocalChecked();
+
+  MaybeStopImmediate(env);
+}
+
+void Environment::ActivateImmediateCheck() {
+  uv_check_start(&immediate_check_handle_, CheckImmediate);
+  // Idle handle is needed only to stop the event loop from blocking in poll.
+  uv_idle_start(&immediate_idle_handle_, [](uv_idle_t*){ });
+}
+
+
+void Environment::AsyncHooks::grow_async_ids_stack() {
+  const uint32_t old_capacity = async_ids_stack_.Length() / 2;
+  const uint32_t new_capacity = old_capacity * 1.5;
+  AliasedBuffer<double, v8::Float64Array> new_buffer(
+      env()->isolate(), new_capacity * 2);
+
+  for (uint32_t i = 0; i < old_capacity * 2; ++i)
+    new_buffer[i] = async_ids_stack_[i];
+  async_ids_stack_ = std::move(new_buffer);
+
+  env()->async_hooks_binding()->Set(
+      env()->context(),
+      env()->async_ids_stack_string(),
+      async_ids_stack_.GetJSArray()).FromJust();
 }
 
 }  // namespace node

@@ -6,16 +6,11 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 const tls = require('tls');
-
-function filenamePEM(n) {
-  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
-}
+const fixtures = require('../common/fixtures');
 
 function loadPEM(n) {
-  return fs.readFileSync(filenamePEM(n));
+  return fixtures.readKey(`${n}.pem`);
 }
 
 const testCases = [
@@ -33,10 +28,10 @@ const testCases = [
       rejectUnauthorized: true,
       ca: [loadPEM('fake-cnnic-root-cert')]
     },
-    errorCode: 'CERT_REVOKED'
+    errorCode: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
   },
   // Test 1: for the fix of node#2061
-  // agent6-cert.pem is signed by intermidate cert of ca3.
+  // agent6-cert.pem is signed by intermediate cert of ca3.
   // The server has a cert chain of agent6->ca3->ca1(root) but
   // tls.connect should be failed with an error of
   // UNABLE_TO_GET_ISSUER_CERT_LOCALLY since the root CA of ca1 is not

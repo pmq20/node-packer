@@ -33,17 +33,15 @@ if (cluster.isMaster) {
   const unbound = cluster.fork().on('online', bind);
 
   function bind() {
-    cluster.fork({BOUND: 'y'}).on('listening', disconnect);
+    cluster.fork({ BOUND: 'y' }).on('listening', disconnect);
   }
 
   function disconnect() {
     unbound.disconnect();
     unbound.on('disconnect', cluster.disconnect);
   }
-} else {
-  if (process.env.BOUND === 'y') {
-    const source = dgram.createSocket('udp4');
+} else if (process.env.BOUND === 'y') {
+  const source = dgram.createSocket('udp4');
 
-    source.bind(0);
-  }
+  source.bind(0);
 }

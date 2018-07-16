@@ -25,7 +25,7 @@ const util = require('util');
 
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
-const internalNet = require('internal/net');
+const { isLegalPort } = require('internal/net');
 const { customPromisifyArgs } = require('internal/util');
 
 const {
@@ -35,9 +35,6 @@ const {
   ChannelWrap,
   isIP
 } = cares;
-
-const isLegalPort = internalNet.isLegalPort;
-
 
 function errnoException(err, syscall, hostname) {
   // FIXME(bnoordhuis) Remove this backwards compatibility nonsense and pass
@@ -49,7 +46,7 @@ function errnoException(err, syscall, hostname) {
   }
   var ex = null;
   if (typeof err === 'string') {  // c-ares error code.
-    const errHost = hostname ? ' ' + hostname : '';
+    const errHost = hostname ? ` ${hostname}` : '';
     ex = new Error(`${syscall} ${err}${errHost}`);
     ex.code = err;
     ex.errno = err;
@@ -126,6 +123,7 @@ function lookup(hostname, options, callback) {
   var hints = 0;
   var family = -1;
   var all = false;
+  var verbatim = false;
 
   // Parse arguments
   if (hostname && typeof hostname !== 'string') {
@@ -140,6 +138,7 @@ function lookup(hostname, options, callback) {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
     all = options.all === true;
+    verbatim = options.verbatim === true;
 
     if (hints !== 0 &&
         hints !== cares.AI_ADDRCONFIG &&
@@ -167,7 +166,7 @@ function lookup(hostname, options, callback) {
   if (matchedFamily) {
     if (all) {
       process.nextTick(
-        callback, null, [{address: hostname, family: matchedFamily}]);
+        callback, null, [{ address: hostname, family: matchedFamily }]);
     } else {
       process.nextTick(callback, null, hostname, matchedFamily);
     }
@@ -180,7 +179,7 @@ function lookup(hostname, options, callback) {
   req.hostname = hostname;
   req.oncomplete = all ? onlookupall : onlookup;
 
-  var err = cares.getaddrinfo(req, hostname, family, hints);
+  var err = cares.getaddrinfo(req, hostname, family, hints, verbatim);
   if (err) {
     process.nextTick(callback, errnoException(err, 'getaddrinfo', hostname));
     return {};
@@ -375,28 +374,44 @@ function setServers(servers) {
   }
 }
 
-const defaultResolver = new Resolver();
+let defaultResolver = new Resolver();
+
+const resolverKeys = [
+  'getServers',
+  'resolve',
+  'resolveAny',
+  'resolve4',
+  'resolve6',
+  'resolveCname',
+  'resolveMx',
+  'resolveNs',
+  'resolveTxt',
+  'resolveSrv',
+  'resolvePtr',
+  'resolveNaptr',
+  'resolveSoa',
+  'reverse'
+];
+
+function setExportsFunctions() {
+  resolverKeys.forEach((key) => {
+    module.exports[key] = defaultResolver[key].bind(defaultResolver);
+  });
+}
+
+function defaultResolverSetServers(servers) {
+  const resolver = new Resolver();
+  resolver.setServers(servers);
+  defaultResolver = resolver;
+  setExportsFunctions();
+}
 
 module.exports = {
   lookup,
   lookupService,
 
   Resolver,
-  getServers: defaultResolver.getServers.bind(defaultResolver),
-  setServers: defaultResolver.setServers.bind(defaultResolver),
-  resolve: defaultResolver.resolve.bind(defaultResolver),
-  resolveAny: defaultResolver.resolveAny.bind(defaultResolver),
-  resolve4: defaultResolver.resolve4.bind(defaultResolver),
-  resolve6: defaultResolver.resolve6.bind(defaultResolver),
-  resolveCname: defaultResolver.resolveCname.bind(defaultResolver),
-  resolveMx: defaultResolver.resolveMx.bind(defaultResolver),
-  resolveNs: defaultResolver.resolveNs.bind(defaultResolver),
-  resolveTxt: defaultResolver.resolveTxt.bind(defaultResolver),
-  resolveSrv: defaultResolver.resolveSrv.bind(defaultResolver),
-  resolvePtr: defaultResolver.resolvePtr.bind(defaultResolver),
-  resolveNaptr: defaultResolver.resolveNaptr.bind(defaultResolver),
-  resolveSoa: defaultResolver.resolveSoa.bind(defaultResolver),
-  reverse: defaultResolver.reverse.bind(defaultResolver),
+  setServers: defaultResolverSetServers,
 
   // uv_getaddrinfo flags
   ADDRCONFIG: cares.AI_ADDRCONFIG,
@@ -428,3 +443,5 @@ module.exports = {
   ADDRGETNETWORKPARAMS: 'EADDRGETNETWORKPARAMS',
   CANCELLED: 'ECANCELLED'
 };
+
+setExportsFunctions();

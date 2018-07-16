@@ -75,6 +75,11 @@ class ScopeIterator {
   // Populate the set with collected non-local variable names.
   Handle<StringSet> GetNonLocals();
 
+  // Return function which represents closure for current scope.
+  Handle<JSFunction> GetClosure();
+  int start_position();
+  int end_position();
+
 #ifdef DEBUG
   // Debug print of the content of the current scope.
   void DebugPrint();
@@ -93,7 +98,8 @@ class ScopeIterator {
   };
 
   Isolate* isolate_;
-  FrameInspector* const frame_inspector_;
+  FrameInspector* const frame_inspector_ = nullptr;
+  Handle<JSGeneratorObject> generator_;
   Handle<Context> context_;
   List<ExtendedScopeInfo> nested_scope_chain_;
   Handle<StringSet> non_locals_;
@@ -103,9 +109,14 @@ class ScopeIterator {
     return frame_inspector_->GetArgumentsFrame();
   }
 
-  inline Handle<JSFunction> GetFunction() {
-    return frame_inspector_->GetFunction();
-  }
+  Handle<Context> GetContext();
+  Handle<JSFunction> GetFunction();
+  int GetSourcePosition();
+
+  void MaterializeStackLocals(Handle<JSObject> local_scope,
+                              Handle<ScopeInfo> scope_info);
+
+  void TryParseAndRetrieveScopes(ScopeIterator::Option option);
 
   void RetrieveScopeChain(DeclarationScope* scope);
 
@@ -131,9 +142,11 @@ class ScopeIterator {
                               Handle<Object> new_value);
   bool SetCatchVariableValue(Handle<String> variable_name,
                              Handle<Object> new_value);
+  bool SetModuleVariableValue(Handle<String> variable_name,
+                              Handle<Object> new_value);
 
   // Helper functions.
-  bool SetParameterValue(Handle<ScopeInfo> scope_info, JavaScriptFrame* frame,
+  bool SetParameterValue(Handle<ScopeInfo> scope_info,
                          Handle<String> parameter_name,
                          Handle<Object> new_value);
   bool SetStackVariableValue(Handle<ScopeInfo> scope_info,
@@ -160,6 +173,9 @@ class ScopeIterator {
   // and will be returned, but no inner function scopes.
   void GetNestedScopeChain(Isolate* isolate, Scope* scope,
                            int statement_position);
+
+  bool HasNestedScopeChain();
+  ExtendedScopeInfo& LastNestedScopeChain();
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ScopeIterator);
 };

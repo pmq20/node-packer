@@ -216,7 +216,7 @@ MaybeHandle<Object> JsonStringifier::ApplyReplacerFunction(
 
 Handle<JSReceiver> JsonStringifier::CurrentHolder(
     Handle<Object> value, Handle<Object> initial_holder) {
-  int length = Smi::cast(stack_->length())->value();
+  int length = Smi::ToInt(stack_->length());
   if (length == 0) {
     Handle<JSObject> holder =
         factory()->NewJSObject(isolate_->object_function());
@@ -237,7 +237,7 @@ JsonStringifier::Result JsonStringifier::StackPush(Handle<Object> object) {
     return EXCEPTION;
   }
 
-  int length = Smi::cast(stack_->length())->value();
+  int length = Smi::ToInt(stack_->length());
   {
     DisallowHeapAllocation no_allocation;
     FixedArray* elements = FixedArray::cast(stack_->elements());
@@ -257,7 +257,7 @@ JsonStringifier::Result JsonStringifier::StackPush(Handle<Object> object) {
 }
 
 void JsonStringifier::StackPop() {
-  int length = Smi::cast(stack_->length())->value();
+  int length = Smi::ToInt(stack_->length());
   stack_->set_length(Smi::FromInt(length - 1));
 }
 
@@ -334,7 +334,6 @@ JsonStringifier::Result JsonStringifier::Serialize_(Handle<Object> object,
   }
 
   UNREACHABLE();
-  return UNCHANGED;
 }
 
 JsonStringifier::Result JsonStringifier::SerializeJSValue(
@@ -395,7 +394,7 @@ JsonStringifier::Result JsonStringifier::SerializeJSArray(
   uint32_t i = 0;
   if (replacer_function_.is_null()) {
     switch (object->GetElementsKind()) {
-      case FAST_SMI_ELEMENTS: {
+      case PACKED_SMI_ELEMENTS: {
         Handle<FixedArray> elements(FixedArray::cast(object->elements()),
                                     isolate_);
         StackLimitCheck interrupt_check(isolate_);
@@ -411,7 +410,7 @@ JsonStringifier::Result JsonStringifier::SerializeJSArray(
         }
         break;
       }
-      case FAST_DOUBLE_ELEMENTS: {
+      case PACKED_DOUBLE_ELEMENTS: {
         // Empty array is FixedArray but not FixedDoubleArray.
         if (length == 0) break;
         Handle<FixedDoubleArray> elements(
@@ -429,11 +428,11 @@ JsonStringifier::Result JsonStringifier::SerializeJSArray(
         }
         break;
       }
-      case FAST_ELEMENTS: {
+      case PACKED_ELEMENTS: {
         Handle<Object> old_length(object->length(), isolate_);
         while (i < length) {
           if (object->length() != *old_length ||
-              object->GetElementsKind() != FAST_ELEMENTS) {
+              object->GetElementsKind() != PACKED_ELEMENTS) {
             // Fall back to slow path.
             break;
           }
@@ -636,12 +635,9 @@ template <typename SrcChar, typename DestChar>
 void JsonStringifier::SerializeString_(Handle<String> string) {
   int length = string->length();
   builder_.Append<uint8_t, DestChar>('"');
-  // We make a rough estimate to find out if the current string can be
-  // serialized without allocating a new string part. The worst case length of
-  // an escaped character is 6.  Shifting the remainin string length right by 3
-  // is a more pessimistic estimate, but faster to calculate.
-  int worst_case_length = length << 3;
-  if (builder_.CurrentPartCanFit(worst_case_length)) {
+  // We might be able to fit the whole escaped string in the current string
+  // part, or we might need to allocate.
+  if (int worst_case_length = builder_.EscapedLengthIfCurrentPartFits(length)) {
     DisallowHeapAllocation no_gc;
     Vector<const SrcChar> vector = string->GetCharVector<SrcChar>();
     IncrementalStringBuilder::NoExtendBuilder<DestChar> no_extend(
@@ -658,7 +654,6 @@ void JsonStringifier::SerializeString_(Handle<String> string) {
       }
     }
   }
-
   builder_.Append<uint8_t, DestChar>('"');
 }
 

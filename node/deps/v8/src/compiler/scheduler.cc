@@ -340,6 +340,7 @@ class CFGBuilder : public ZoneObject {
 // JS opcodes are just like calls => fall through.
 #undef BUILD_BLOCK_JS_CASE
       case IrOpcode::kCall:
+      case IrOpcode::kCallWithCallerSavedRegisters:
         if (NodeProperties::IsExceptionalCall(node)) {
           BuildBlocksForSuccessors(node);
         }
@@ -384,6 +385,7 @@ class CFGBuilder : public ZoneObject {
 // JS opcodes are just like calls => fall through.
 #undef CONNECT_BLOCK_JS_CASE
       case IrOpcode::kCall:
+      case IrOpcode::kCallWithCallerSavedRegisters:
         if (NodeProperties::IsExceptionalCall(node)) {
           scheduler_->UpdatePlacement(node, Scheduler::kFixed);
           ConnectCall(node);
@@ -940,10 +942,8 @@ class SpecialRPONumberer : public ZoneObject {
                        size_t num_loops, ZoneVector<Backedge>* backedges) {
     // Extend existing loop membership vectors.
     for (LoopInfo& loop : loops_) {
-      BitVector* new_members = new (zone_)
-          BitVector(static_cast<int>(schedule_->BasicBlockCount()), zone_);
-      new_members->CopyFrom(*loop.members);
-      loop.members = new_members;
+      loop.members->Resize(static_cast<int>(schedule_->BasicBlockCount()),
+                           zone_);
     }
 
     // Extend loop information vector.
@@ -1398,7 +1398,7 @@ class ScheduleLateNodeVisitor {
         block->loop_depth(), min_block->id().ToInt());
 
     // Hoist nodes out of loops if possible. Nodes can be hoisted iteratively
-    // into enclosing loop pre-headers until they would preceed their schedule
+    // into enclosing loop pre-headers until they would precede their schedule
     // early position.
     BasicBlock* hoist_block = GetHoistBlock(block);
     if (hoist_block &&
@@ -1778,6 +1778,8 @@ void Scheduler::MovePlannedNodes(BasicBlock* from, BasicBlock* to) {
               scheduled_nodes_[to->id().ToSize()]);
   }
 }
+
+#undef TRACE
 
 }  // namespace compiler
 }  // namespace internal

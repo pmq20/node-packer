@@ -76,7 +76,7 @@ class OperandSet {
           UNREACHABLE();
           break;
       }
-      const RegisterConfiguration* config = RegisterConfiguration::Turbofan();
+      const RegisterConfiguration* config = RegisterConfiguration::Default();
       int base = -1;
       int aliases =
           config->GetAliases(rep, loc.register_code(), other_rep1, &base);
@@ -105,7 +105,7 @@ class OperandSet {
   }
 
   static bool HasMixedFPReps(int reps) {
-    return reps && !base::bits::IsPowerOfTwo32(reps);
+    return reps && !base::bits::IsPowerOfTwo(reps);
   }
 
   ZoneVector<InstructionOperand>* set_;

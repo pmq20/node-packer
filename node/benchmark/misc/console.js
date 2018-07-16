@@ -12,7 +12,7 @@ const methods = [
   'restAndConcat'
 ];
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   method: methods,
   concat: [1, 0],
   n: [1000000]
@@ -93,6 +93,8 @@ function runUsingArgumentsAndApply(n, concat) {
 function main(conf) {
   const n = +conf.n;
   switch (conf.method) {
+    // '' is a default case for tests
+    case '':
     case 'restAndSpread':
       runUsingRestAndSpread(n, conf.concat);
       break;

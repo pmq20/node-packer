@@ -5,19 +5,22 @@ const assert = require('assert');
 const async_hooks = require('async_hooks');
 const binding = require(`./build/${common.buildType}/binding`);
 
+if (process.env.NODE_TEST_WITH_ASYNC_HOOKS) {
+  common.skip('cannot test with env var NODE_TEST_WITH_ASYNC_HOOKS');
+  return;
+}
+
 // Baseline to make sure the internal field isn't being set.
 assert.strictEqual(
   binding.getPromiseField(Promise.resolve(1)),
-  0,
-  'Promise internal field used despite missing enabled AsyncHook');
+  0);
 
 const hook0 = async_hooks.createHook({}).enable();
 
 // Check that no PromiseWrap is created when there are no hook callbacks.
 assert.strictEqual(
   binding.getPromiseField(Promise.resolve(1)),
-  0,
-  'Promise internal field used despite missing enabled AsyncHook');
+  0);
 
 hook0.disable();
 
@@ -31,8 +34,7 @@ const hook1 = async_hooks.createHook({
 // Check that the internal field returns the same PromiseWrap passed to init().
 assert.strictEqual(
   binding.getPromiseField(Promise.resolve(1)),
-  pwrap,
-  'Unexpected PromiseWrap');
+  pwrap);
 
 hook1.disable();
 
@@ -42,6 +44,5 @@ hook1.disable();
 setImmediate(() => {
   assert.strictEqual(
     binding.getPromiseField(Promise.resolve(1)),
-    0,
-    'Promise internal field used despite missing enabled AsyncHook');
+    0);
 });

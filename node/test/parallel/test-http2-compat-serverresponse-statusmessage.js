@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -46,7 +45,7 @@ server.listen(0, common.mustCall(function() {
       assert.strictEqual(headers['foo-bar'], 'abc123');
     }, 1));
     request.on('end', common.mustCall(function() {
-      client.destroy();
+      client.close();
     }));
     request.end();
     request.resume();

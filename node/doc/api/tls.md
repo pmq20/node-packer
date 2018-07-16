@@ -1,5 +1,7 @@
 # TLS (SSL)
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `tls` module provides an implementation of the Transport Layer Security
@@ -99,10 +101,10 @@ openssl dhparam -outform PEM -out dhparam.pem 2048
 
 If using Perfect Forward Secrecy using `ECDHE`, Diffie-Hellman parameters are
 not required and a default ECDHE curve will be used. The `ecdhCurve` property
-can be used when creating a TLS Server to specify the name of an alternative
-curve to use, see [`tls.createServer()`] for more info.
+can be used when creating a TLS Server to specify the list of names of supported
+curves to use, see [`tls.createServer()`] for more info.
 
-### ALPN, NPN and SNI
+### ALPN, NPN, and SNI
 
 <!-- type=misc -->
 
@@ -372,7 +374,7 @@ added: v0.6.0
 -->
 
 Returns the bound address, the address family name, and port of the
-server as reported by the operating system.  See [`net.Server.address()`][] for
+server as reported by the operating system. See [`net.Server.address()`][] for
 more information.
 
 ### server.close([callback])
@@ -406,27 +408,10 @@ added: v3.0.0
 Returns a `Buffer` instance holding the keys currently used for
 encryption/decryption of the [TLS Session Tickets][]
 
-### server.listen(port[, hostname][, callback])
-<!-- YAML
-added: v0.3.2
--->
+### server.listen()
 
-* `port` {number} The TCP/IP port on which to begin listening for connections.
-  A value of `0` (zero) will assign a random port.
-* `hostname` {string} The hostname, IPv4, or IPv6 address on which to begin
-  listening for connections. If `undefined`, the server will accept connections
-  on any IPv6 address (`::`) when IPv6 is available, or any IPv4 address
-  (`0.0.0.0`) otherwise.
-* `callback` {Function} A callback function to be invoked when the server has
-  begun listening on the `port` and `hostname`.
-
-The `server.listen()` methods instructs the server to begin accepting
-connections on the specified `port` and `hostname`.
-
-This function operates asynchronously. If the `callback` is given, it will be
-called when the server has started listening.
-
-See [`net.Server`][] for more information.
+Starts the server listening for encrypted connections.
+This method is identical to [`server.listen()`][] from [`net.Server`][].
 
 ### server.setTicketKeys(keys)
 <!-- YAML
@@ -470,11 +455,14 @@ changes:
     description: ALPN options are supported now.
 -->
 
-* `socket` {net.Socket} An instance of [`net.Socket`][]
+* `socket` {net.Socket|stream.Duplex}
+  On the server side, any `Duplex` stream. On the client side, any
+  instance of [`net.Socket`][] (for generic `Duplex` stream support
+  on the client side, [`tls.connect()`][] must be used).
 * `options` {Object}
-  * `isServer`: The SSL/TLS protocol is asymetrical, TLSSockets must know if
+  * `isServer`: The SSL/TLS protocol is asymmetrical, TLSSockets must know if
     they are to behave as a server or a client. If `true` the TLS socket will be
-    instantiated as a server.  Defaults to `false`.
+    instantiated as a server. Defaults to `false`.
   * `server` {net.Server} An optional [`net.Server`][] instance.
   * `requestCert`: Whether to authenticate the remote peer by requesting a
      certificate. Clients always request a server certificate. Servers
@@ -533,7 +521,7 @@ added: v0.11.4
 
 Returns the bound address, the address family name, and port of the
 underlying socket as reported by the operating system. Returns an
-object with three properties, e.g.,
+object with three properties, e.g.
 `{ port: 12346, family: 'IPv4', address: '127.0.0.1' }`
 
 ### tlsSocket.authorizationError
@@ -573,12 +561,12 @@ Always returns `true`. This may be used to distinguish TLS sockets from regular
 added: v0.11.4
 -->
 
-Returns an object representing the cipher name and the SSL/TLS protocol version
-that first defined the cipher.
+Returns an object representing the cipher name. The `version` key is a legacy
+field which always contains the value `'TLSv1/SSLv3'`.
 
 For example: `{ name: 'AES256-SHA', version: 'TLSv1/SSLv3' }`
 
-See `SSL_CIPHER_get_name()` and `SSL_CIPHER_get_version()` in
+See `SSL_CIPHER_get_name()` in
 https://www.openssl.org/docs/man1.0.2/ssl/SSL_CIPHER_get_name.html for more
 information.
 
@@ -632,7 +620,7 @@ For example:
    { ... another certificate, possibly with a .issuerCertificate ... },
   raw: < RAW DER buffer >,
   valid_from: 'Nov 11 09:52:22 2009 GMT',
-  valid_to: 'Nov  6 09:52:22 2029 GMT',
+  valid_to: 'Nov 6 09:52:22 2029 GMT',
   fingerprint: '2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF',
   serialNumber: 'B9B0D332A1AA5635' }
 ```
@@ -757,6 +745,55 @@ and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.
 
+## tls.checkServerIdentity(host, cert)
+<!-- YAML
+added: v0.8.4
+-->
+
+* `host` {string} The hostname to verify the certificate against
+* `cert` {Object} An object representing the peer's certificate. The returned
+  object has some properties corresponding to the fields of the certificate.
+
+Verifies the certificate `cert` is issued to host `host`.
+
+Returns {Error} object, populating it with the reason, host, and cert on
+failure. On success, returns {undefined}.
+
+*Note*: This function can be overwritten by providing alternative function
+as part of the `options.checkServerIdentity` option passed to `tls.connect()`.
+The overwriting function can call `tls.checkServerIdentity()` of course, to augment
+the checks done with additional verification.
+
+*Note*: This function is only called if the certificate passed all other checks, such as
+being issued by trusted CA (`options.ca`).
+
+The cert object contains the parsed certificate and will have a structure similar to:
+
+```text
+{ subject:
+   { OU: [ 'Domain Control Validated', 'PositiveSSL Wildcard' ],
+     CN: '*.nodejs.org' },
+  issuer:
+   { C: 'GB',
+     ST: 'Greater Manchester',
+     L: 'Salford',
+     O: 'COMODO CA Limited',
+     CN: 'COMODO RSA Domain Validation Secure Server CA' },
+  subjectaltname: 'DNS:*.nodejs.org, DNS:nodejs.org',
+  infoAccess:
+   { 'CA Issuers - URI':
+      [ 'http://crt.comodoca.com/COMODORSADomainValidationSecureServerCA.crt' ],
+     'OCSP - URI': [ 'http://ocsp.comodoca.com' ] },
+  modulus: 'B56CE45CB740B09A13F64AC543B712FF9EE8E4C284B542A1708A27E82A8D151CA178153E12E6DDA15BF70FFD96CB8A88618641BDFCCA03527E665B70D779C8A349A6F88FD4EF6557180BD4C98192872BCFE3AF56E863C09DDD8BC1EC58DF9D94F914F0369102B2870BECFA1348A0838C9C49BD1C20124B442477572347047506B1FCD658A80D0C44BCC16BC5C5496CFE6E4A8428EF654CD3D8972BF6E5BFAD59C93006830B5EB1056BBB38B53D1464FA6E02BFDF2FF66CD949486F0775EC43034EC2602AEFBF1703AD221DAA2A88353C3B6A688EFE8387811F645CEED7B3FE46E1F8B9F59FAD028F349B9BC14211D5830994D055EEA3D547911E07A0ADDEB8A82B9188E58720D95CD478EEC9AF1F17BE8141BE80906F1A339445A7EB5B285F68039B0F294598A7D1C0005FC22B5271B0752F58CCDEF8C8FD856FB7AE21C80B8A2CE983AE94046E53EDE4CB89F42502D31B5360771C01C80155918637490550E3F555E2EE75CC8C636DDE3633CFEDD62E91BF0F7688273694EEEBA20C2FC9F14A2A435517BC1D7373922463409AB603295CEB0BB53787A334C9CA3CA8B30005C5A62FC0715083462E00719A8FA3ED0A9828C3871360A73F8B04A4FC1E71302844E9BB9940B77E745C9D91F226D71AFCAD4B113AAF68D92B24DDB4A2136B55A1CD1ADF39605B63CB639038ED0F4C987689866743A68769CC55847E4A06D6E2E3F1',
+  exponent: '0x10001',
+  valid_from: 'Aug 14 00:00:00 2017 GMT',
+  valid_to: 'Nov 20 23:59:59 2019 GMT',
+  fingerprint: '01:02:59:D9:C3:D2:0D:08:F7:82:4E:44:A4:B4:53:C5:E2:3A:87:4D',
+  ext_key_usage: [ '1.3.6.1.5.5.7.3.1', '1.3.6.1.5.5.7.3.2' ],
+  serialNumber: '66593D57F20CBC573E433381B5FEC280',
+  raw: <Buffer ....> }
+```
+
 ## tls.connect(options[, callback])
 <!-- YAML
 added: v0.11.3
@@ -781,10 +818,12 @@ changes:
   * `port` {number} Port the client should connect to.
   * `path` {string} Creates unix socket connection to path. If this option is
     specified, `host` and `port` are ignored.
-  * `socket` {net.Socket} Establish secure connection on a given socket rather
-    than creating a new socket. If this option is specified, `path`, `host` and
-    `port` are ignored.  Usually, a socket is already connected when passed to
-    `tls.connect()`, but it can be connected later. Note that
+  * `socket` {stream.Duplex} Establish secure connection on a given socket
+    rather than creating a new socket. Typically, this is an instance of
+    [`net.Socket`][], but any `Duplex` stream is allowed.
+    If this option is specified, `path`, `host` and `port` are ignored,
+    except for certificate validation. Usually, a socket is already connected
+    when passed to `tls.connect()`, but it can be connected later. Note that
     connection/disconnection/destruction of `socket` is the user's
     responsibility, calling `tls.connect()` will not cause `net.connect()` to be
     called.
@@ -807,9 +846,11 @@ changes:
   * `servername`: {string} Server name for the SNI (Server Name Indication) TLS
     extension.
   * `checkServerIdentity(servername, cert)` {Function} A callback function
-    to be used when checking the server's hostname against the certificate.
-    This should throw an error if verification fails. The method should return
-    `undefined` if the `servername` and `cert` are verified.
+    to be used (instead of the builtin `tls.checkServerIdentity()` function)
+    when checking the server's hostname (or the provided `servername` when
+    explicitly set) against the certificate. This should return an {Error} if
+    verification fails. The method should return `undefined` if the `servername`
+    and `cert` are verified.
   * `session` {Buffer} A `Buffer` instance, containing TLS session.
   * `minDHSize` {number} Minimum size of the DH parameter in bits to accept a
     TLS connection. When a server offers a DH parameter with a size less
@@ -932,13 +973,17 @@ changes:
 -->
 
 * `options` {Object}
-  * `pfx` {string|Buffer} Optional PFX or PKCS12 encoded private key and
-    certificate chain. `pfx` is an alternative to providing `key` and `cert`
-    individually. PFX is usually encrypted, if it is, `passphrase` will be used
-    to decrypt it.
+  * `pfx` {string|string[]|Buffer|Buffer[]|Object[]} Optional PFX or PKCS12
+    encoded private key and certificate chain. `pfx` is an alternative to
+    providing `key` and `cert` individually. PFX is usually encrypted, if it is,
+    `passphrase` will be used to decrypt it. Multiple PFX can be provided either
+    as an array of unencrypted PFX buffers, or an array of objects in the form
+    `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only
+    occur in an array. `object.passphrase` is optional. Encrypted PFX will be
+    decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not.
   * `key` {string|string[]|Buffer|Buffer[]|Object[]} Optional private keys in
     PEM format. PEM allows the option of private keys being encrypted. Encrypted
-    keys will be decrypted with `options.passphrase`.  Multiple keys using
+    keys will be decrypted with `options.passphrase`. Multiple keys using
     different algorithms can be provided either as an array of unencrypted key
     strings or buffers, or an array of objects in the form `{pem:
     <string|buffer>[, passphrase: <string>]}`. The object form can only occur in
@@ -951,7 +996,7 @@ changes:
     consist of the PEM formatted certificate for a provided private `key`,
     followed by the PEM formatted intermediate certificates (if any), in order,
     and not including the root CA (the root CA must be pre-known to the peer,
-    see `ca`).  When providing multiple cert chains, they do not have to be in
+    see `ca`). When providing multiple cert chains, they do not have to be in
     the same order as their private keys in `key`. If the intermediate
     certificates are not provided, the peer will not be able to validate the
     certificate, and the handshake will fail.
@@ -961,7 +1006,7 @@ changes:
     using this option. The value can be a string or Buffer, or an Array of
     strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs
     concatenated together. The peer's certificate must be chainable to a CA
-    trusted by the server for the connection to be authenticated.  When using
+    trusted by the server for the connection to be authenticated. When using
     certificates that are not chainable to a well-known CA, the certificate's CA
     must be explicitly specified as a trusted or the connection will fail to
     authenticate.
@@ -973,16 +1018,18 @@ changes:
   * `crl` {string|string[]|Buffer|Buffer[]} Optional PEM formatted
     CRLs (Certificate Revocation Lists).
   * `ciphers` {string} Optional cipher suite specification, replacing the
-    default.  For more information, see [modifying the default cipher suite][].
+    default. For more information, see [modifying the default cipher suite][].
   * `honorCipherOrder` {boolean} Attempt to use the server's cipher suite
     preferences instead of the client's. When `true`, causes
     `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see
     [OpenSSL Options][] for more information.
-  * `ecdhCurve` {string} A string describing a named curve to use for ECDH key
-    agreement or `false` to disable ECDH. Defaults to
-    [`tls.DEFAULT_ECDH_CURVE`].  Use [`crypto.getCurves()`][] to obtain a list
-    of available curve names. On recent releases, `openssl ecparam -list_curves`
-    will also display the name and description of each available elliptic curve.
+  * `ecdhCurve` {string} A string describing a named curve or a colon separated
+    list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for
+    ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the
+    curve automatically. Defaults to [`tls.DEFAULT_ECDH_CURVE`]. Use
+    [`crypto.getCurves()`][] to obtain a list of available curve names. On
+    recent releases, `openssl ecparam -list_curves` will also display the name
+    and description of each available elliptic curve.
   * `dhparam` {string|Buffer} Diffie Hellman parameters, required for
     [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters.
     The key length must be greater than or equal to 1024 bits, otherwise an
@@ -990,8 +1037,8 @@ changes:
     for stronger security. If omitted or invalid, the parameters are silently
     discarded and DHE ciphers will not be available.
   * `secureProtocol` {string} Optional SSL method to use, default is
-    `"SSLv23_method"`. The possible values are listed as [SSL_METHODS][], use
-    the function names as strings. For example, `"SSLv3_method"` to force SSL
+    `'SSLv23_method'`. The possible values are listed as [SSL_METHODS][], use
+    the function names as strings. For example, `'SSLv3_method'` to force SSL
     version 3.
   * `secureOptions` {number} Optionally affect the OpenSSL protocol behavior,
     which is not usually necessary. This should be used carefully if at all!
@@ -1017,7 +1064,7 @@ A key is *required* for ciphers that make use of certificates. Either `key` or
 
 If the 'ca' option is not given, then Node.js will use the default
 publicly trusted list of CAs as given in
-<http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt>.
+<https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt>.
 
 
 ## tls.createServer([options][, secureConnectionListener])
@@ -1077,7 +1124,7 @@ changes:
     servers, the identity options (`pfx` or `key`/`cert`) are usually required.
 * `secureConnectionListener` {Function}
 
-Creates a new [tls.Server][].  The `secureConnectionListener`, if provided, is
+Creates a new [tls.Server][]. The `secureConnectionListener`, if provided, is
 automatically set as a listener for the [`'secureConnection'`][] event.
 
 *Note*: The `ticketKeys` options is automatically shared between `cluster`
@@ -1284,6 +1331,7 @@ where `secure_socket` has the same API as `pair.cleartext`.
 [`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
 [`server.getConnections()`]: net.html#net_server_getconnections_callback
+[`server.listen()`]: net.html#net_server_listen
 [`tls.DEFAULT_ECDH_CURVE`]: #tls_tls_default_ecdh_curve
 [`tls.TLSSocket.getPeerCertificate()`]: #tls_tlssocket_getpeercertificate_detailed
 [`tls.TLSSocket`]: #tls_class_tls_tlssocket

@@ -1,5 +1,7 @@
 'use strict';
 
+const { safeToString } = process.binding('util');
+
 const promiseRejectEvent = process._promiseRejectEvent;
 const hasBeenNotifiedProperty = new WeakMap();
 const promiseToGuidProperty = new WeakMap();
@@ -58,12 +60,31 @@ function setupPromises(scheduleMicrotasks) {
   }
 
   function emitWarning(uid, reason) {
-    const warning = new Error('Unhandled promise rejection ' +
-                              `(rejection id: ${uid}): ${String(reason)}`);
+    try {
+      if (reason instanceof Error) {
+        process.emitWarning(reason.stack, 'UnhandledPromiseRejectionWarning');
+      } else {
+        process.emitWarning(
+          safeToString(reason), 'UnhandledPromiseRejectionWarning'
+        );
+      }
+    } catch (e) {
+      // ignored
+    }
+
+    const warning = new Error(
+      'Unhandled promise rejection. This error originated either by ' +
+      'throwing inside of an async function without a catch block, ' +
+      'or by rejecting a promise which was not handled with .catch(). ' +
+      `(rejection id: ${uid})`
+    );
     warning.name = 'UnhandledPromiseRejectionWarning';
-    warning.id = uid;
-    if (reason instanceof Error) {
-      warning.stack = reason.stack;
+    try {
+      if (reason instanceof Error) {
+        warning.stack = reason.stack;
+      }
+    } catch (err) {
+      // ignored
     }
     process.emitWarning(warning);
     if (!deprecationWarned) {

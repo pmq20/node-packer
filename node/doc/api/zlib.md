@@ -1,5 +1,7 @@
 # Zlib
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `zlib` module provides compression functionality implemented using Gzip and
@@ -43,6 +45,13 @@ zlib.unzip(buffer, (err, buffer) => {
 });
 ```
 
+## Threadpool Usage
+
+Note that all zlib APIs except those that are explicitly synchronous use libuv's
+threadpool, which can have surprising and negative performance implications for
+some applications, see the [`UV_THREADPOOL_SIZE`][] documentation for more
+information.
+
 ## Compressing HTTP requests and responses
 
 The `zlib` module can be used to implement support for the `gzip` and `deflate`
@@ -55,8 +64,8 @@ header is used to identify the compression encodings actually applied to a
 message.
 
 *Note*: the examples given below are drastically simplified to show
-the basic concept.  Using `zlib` encoding can be expensive, and the results
-ought to be cached.  See [Memory Usage Tuning][] for more information
+the basic concept. Using `zlib` encoding can be expensive, and the results
+ought to be cached. See [Memory Usage Tuning][] for more information
 on the speed/memory/compression tradeoffs involved in `zlib` usage.
 
 ```js
@@ -101,7 +110,7 @@ http.createServer((request, response) => {
   }
 
   // Note: This is not a conformant accept-encoding parser.
-  // See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
+  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
   if (/\bdeflate\b/.test(acceptEncoding)) {
     response.writeHead(200, { 'Content-Encoding': 'deflate' });
     raw.pipe(zlib.createDeflate()).pipe(response);
@@ -156,7 +165,7 @@ The memory requirements for deflate are (in bytes):
 (1 << (windowBits + 2)) + (1 << (memLevel + 9))
 ```
 
-That is: 128K for windowBits=15  +  128K for memLevel = 8
+That is: 128K for windowBits = 15 + 128K for memLevel = 8
 (default values) plus a few kilobytes for small objects.
 
 For example, to reduce the default memory requirements from 256K to 128K, the
@@ -169,20 +178,20 @@ const options = { windowBits: 14, memLevel: 7 };
 This will, however, generally degrade compression.
 
 The memory requirements for inflate are (in bytes) `1 << windowBits`.
-That is, 32K for windowBits=15 (default value) plus a few kilobytes
+That is, 32K for windowBits = 15 (default value) plus a few kilobytes
 for small objects.
 
 This is in addition to a single internal output slab buffer of size
 `chunkSize`, which defaults to 16K.
 
 The speed of `zlib` compression is affected most dramatically by the
-`level` setting.  A higher level will result in better compression, but
-will take longer to complete.  A lower level will result in less
+`level` setting. A higher level will result in better compression, but
+will take longer to complete. A lower level will result in less
 compression, but will be much faster.
 
 In general, greater memory usage options will mean that Node.js has to make
 fewer calls to `zlib` because it will be able to process more data on
-each `write` operation.  So, this is another factor that affects the
+each `write` operation. So, this is another factor that affects the
 speed, at the cost of memory usage.
 
 ## Flushing
@@ -224,9 +233,9 @@ added: v0.5.8
 
 All of the constants defined in `zlib.h` are also defined on
 `require('zlib').constants`. In the normal course of operations, it will not be
-necessary to use these  constants. They are documented so that their presence is
+necessary to use these constants. They are documented so that their presence is
 not surprising. This section is taken almost directly from the
-[zlib documentation][].  See <http://zlib.net/manual.html#Constants> for more
+[zlib documentation][]. See <https://zlib.net/manual.html#Constants> for more
 details.
 
 *Note*: Previously, the constants were available directly from
@@ -287,7 +296,7 @@ changes:
 
 <!--type=misc-->
 
-Each class takes an `options` object.  All options are optional.
+Each class takes an `options` object. All options are optional.
 
 Note that some options are only relevant when compressing, and are
 ignored by the decompression classes.
@@ -304,7 +313,7 @@ ignored by the decompression classes.
 * `info` {boolean} (If `true`, returns an object with `buffer` and `engine`)
 
 See the description of `deflateInit2` and `inflateInit2` at
-<http://zlib.net/manual.html#Advanced> for more information on these.
+<https://zlib.net/manual.html#Advanced> for more information on these.
 
 ## Class: zlib.Deflate
 <!-- YAML
@@ -397,6 +406,13 @@ The `zlib.bytesRead` property specifies the number of bytes read by the engine
 before the bytes are processed (compressed or decompressed, as appropriate for
 the derived class).
 
+### zlib.close([callback])
+<!-- YAML
+added: v0.9.4
+-->
+
+Close the underlying handle.
+
 ### zlib.flush([kind], callback)
 <!-- YAML
 added: v0.5.8
@@ -449,9 +465,12 @@ added: v0.5.8
 
 Creates and returns a new [DeflateRaw][] object with the given [options][].
 
-*Note*: The zlib library rejects requests for 256-byte windows (i.e.,
-`{ windowBits: 8 }` in `options`). An `Error` will be thrown when creating
-a [DeflateRaw][] object with this specific value of the `windowBits` option.
+*Note*: An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when windowBits
+is set to 8 for raw deflate streams. zlib would automatically set windowBits
+to 9 if was initially set to 8. Newer versions of zlib will throw an exception,
+so Node.js restored the original behavior of upgrading a value of 8 to 9,
+since passing `windowBits = 9` to zlib actually results in a compressed stream
+that effectively uses an 8-bit window only.
 
 ## zlib.createGunzip([options])
 <!-- YAML
@@ -702,5 +721,6 @@ Decompress a chunk of data with [Unzip][].
 [Inflate]: #zlib_class_zlib_inflate
 [Memory Usage Tuning]: #zlib_memory_usage_tuning
 [Unzip]: #zlib_class_zlib_unzip
+[`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
 [options]: #zlib_class_options
-[zlib documentation]: http://zlib.net/manual.html#Constants
+[zlib documentation]: https://zlib.net/manual.html#Constants

@@ -18,8 +18,9 @@ namespace {
 static const int kMaxIdentifierCount = 0xf000000;
 };
 
-AsmJsScanner::AsmJsScanner()
-    : token_(kUninitialized),
+AsmJsScanner::AsmJsScanner(Utf16CharacterStream* stream)
+    : stream_(stream),
+      token_(kUninitialized),
       preceding_token_(kUninitialized),
       next_token_(kUninitialized),
       position_(0),
@@ -44,10 +45,6 @@ AsmJsScanner::AsmJsScanner()
 #define V(name) global_names_[#name] = kToken_##name;
   KEYWORD_NAME_LIST(V)
 #undef V
-}
-
-void AsmJsScanner::SetStream(std::unique_ptr<Utf16CharacterStream> stream) {
-  stream_ = std::move(stream);
   Next();
 }
 
@@ -208,7 +205,6 @@ std::string AsmJsScanner::Name(token_t token) const {
       break;
   }
   UNREACHABLE();
-  return "{unreachable}";
 }
 #endif
 

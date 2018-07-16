@@ -4,6 +4,7 @@
     {
       "textRaw": "V8",
       "name": "v8",
+      "introduced_in": "v4.0.0",
       "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>\n",
       "methods": [
         {
@@ -84,7 +85,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>.  An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n",
+          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>. An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n",
           "signatures": [
             {
               "params": [
@@ -363,7 +364,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>This method is called to generate error objects that will be thrown when an\nobject can not be cloned.</p>\n<p>This method defaults to the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> constructor and can be be overridden on\nsubclasses.</p>\n"
+                  "desc": "<p>This method is called to generate error objects that will be thrown when an\nobject can not be cloned.</p>\n<p>This method defaults to the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> constructor and can be overridden on\nsubclasses.</p>\n"
                 },
                 {
                   "textRaw": "serializer.\\_getSharedArrayBufferId(sharedArrayBuffer)",

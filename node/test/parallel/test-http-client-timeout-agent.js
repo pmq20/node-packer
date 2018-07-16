@@ -40,7 +40,7 @@ const server = http.createServer(function(req, res) {
   if (reqid % 2) {
     // do not reply the request
   } else {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write(reqid.toString());
     res.end();
   }
@@ -90,7 +90,7 @@ server.listen(0, options.host, function() {
 });
 
 process.on('exit', function() {
-  console.error('done=%j sent=%j', requests_done, requests_sent);
+  console.error(`done=${requests_done} sent=${requests_sent}`);
   assert.strictEqual(requests_done, requests_sent,
                      'timeout on http request called too much');
 });

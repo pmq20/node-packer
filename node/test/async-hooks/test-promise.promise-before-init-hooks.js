@@ -10,13 +10,13 @@ const p = new Promise(common.mustCall(function executor(resolve, reject) {
 }));
 
 // init hooks after promise was created
-const hooks = initHooks({allowNoInit: true});
+const hooks = initHooks({ allowNoInit: true });
 hooks.enable();
 
 p.then(function afterresolution(val) {
   assert.strictEqual(val, 5);
   const as = hooks.activitiesOfTypes('PROMISE');
-  assert.strictEqual(as.length, 1, 'one activity');
+  assert.strictEqual(as.length, 1);
   checkInvocations(as[0], { init: 1, before: 1 },
                    'after resolution child promise');
   return val;

@@ -56,20 +56,6 @@ function IcProcessor() {
       'KeyedStoreIC': {
         parsers : propertyICParser,
         processor: this.processPropertyIC.bind(this, "KeyedStoreIC") },
-      'CompareIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null, null,
-                   null, null, null, null],
-        processor: this.processCompareIC },
-      'BinaryOpIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null,
-                   parseInt],
-        processor: this.processBinaryOpIC },
-      'ToBooleanIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null],
-        processor: this.processToBooleanIC },
-      'PatchIC': {
-        parsers : [parseInt, parseInt, parseInt],
-        processor: this.processPatchIC },
       });
   this.deserializedEntriesNames_ = [];
   this.profile_ = new Profile();
@@ -78,10 +64,6 @@ function IcProcessor() {
   this.StoreIC = 0;
   this.KeyedLoadIC = 0;
   this.KeyedStoreIC = 0;
-  this.CompareIC = 0;
-  this.BinaryOpIC = 0;
-  this.ToBooleanIC = 0;
-  this.PatchIC = 0;
 }
 inherits(IcProcessor, LogReader);
 
@@ -122,10 +104,6 @@ IcProcessor.prototype.processLogFile = function(fileName) {
   print("Store: " + this.StoreIC);
   print("KeyedLoad: " + this.KeyedLoadIC);
   print("KeyedStore: " + this.KeyedStoreIC);
-  print("CompareIC: " + this.CompareIC);
-  print("BinaryOpIC: " + this.BinaryOpIC);
-  print("ToBooleanIC: " + this.ToBooleanIC);
-  print("PatchIC: " + this.PatchIC);
 };
 
 IcProcessor.prototype.addEntry = function(entry) {
@@ -179,40 +157,6 @@ IcProcessor.prototype.processPropertyIC = function (
   print(type + " (" + old_state + "->" + new_state + modifier + ") at " +
         this.formatName(entry) + ":" + line + ":" + column + " " + name +
         " (map 0x" + map.toString(16) + ")");
-}
-
-IcProcessor.prototype.processCompareIC = function (
-    pc, line, column, stub, op, old_left, old_right, old_state, new_left,
-    new_right, new_state) {
-  var entry = this.profile_.findEntry(pc);
-  this.CompareIC++;
-  print("CompareIC[" + op + "] ((" +
-        old_left + "+" + old_right + "=" + old_state + ")->(" +
-        new_left + "+" + new_right + "=" + new_state + ")) at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
-
-IcProcessor.prototype.processBinaryOpIC = function (
-    pc, line, column, stub, old_state, new_state, allocation_site) {
-  var entry = this.profile_.findEntry(pc);
-  this.BinaryOpIC++;
-  print("BinaryOpIC (" + old_state + "->" + new_state + ") at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
-
-IcProcessor.prototype.processToBooleanIC = function (
-    pc, line, column, stub, old_state, new_state) {
-  var entry = this.profile_.findEntry(pc);
-  this.ToBooleanIC++;
-  print("ToBooleanIC (" + old_state + "->" + new_state + ") at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
-
-IcProcessor.prototype.processPatchIC = function (pc, test, delta) {
-  var entry = this.profile_.findEntry(pc);
-  this.PatchIC++;
-  print("PatchIC (0x" + test.toString(16) + ", " + delta + ") at " +
-        this.formatName(entry));
 }
 
 function padLeft(s, len) {

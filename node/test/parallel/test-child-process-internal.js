@@ -25,14 +25,14 @@ const assert = require('assert');
 
 //messages
 const PREFIX = 'NODE_';
-const normal = {cmd: `foo${PREFIX}`};
-const internal = {cmd: `${PREFIX}bar`};
+const normal = { cmd: `foo${PREFIX}` };
+const internal = { cmd: `${PREFIX}bar` };
 
 if (process.argv[2] === 'child') {
   //send non-internal message containing PREFIX at a non prefix position
   process.send(normal);
 
-  //send inernal message
+  //send internal message
   process.send(internal);
 
   process.exit(0);

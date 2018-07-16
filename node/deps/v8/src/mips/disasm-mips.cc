@@ -59,17 +59,6 @@ class Decoder {
   int InstructionDecode(byte* instruction);
 
  private:
-  const uint32_t kMsaI8Mask = ((3U << 24) | ((1 << 6) - 1));
-  const uint32_t kMsaI5Mask = ((7U << 23) | ((1 << 6) - 1));
-  const uint32_t kMsaMI10Mask = (15U << 2);
-  const uint32_t kMsaBITMask = ((7U << 23) | ((1 << 6) - 1));
-  const uint32_t kMsaELMMask = (15U << 22);
-  const uint32_t kMsa3RMask = ((7U << 23) | ((1 << 6) - 1));
-  const uint32_t kMsa3RFMask = ((15U << 22) | ((1 << 6) - 1));
-  const uint32_t kMsaVECMask = (23U << 21);
-  const uint32_t kMsa2RMask = (7U << 18);
-  const uint32_t kMsa2RFMask = (15U << 17);
-
   // Bottleneck functions to print into the out_buffer.
   void PrintChar(const char ch);
   void Print(const char* str);
@@ -96,6 +85,8 @@ class Decoder {
   void PrintBp2(Instruction* instr);
   void PrintFunction(Instruction* instr);
   void PrintSecondaryField(Instruction* instr);
+  void PrintUImm9(Instruction* instr);
+  void PrintSImm9(Instruction* instr);
   void PrintUImm16(Instruction* instr);
   void PrintSImm16(Instruction* instr);
   void PrintXImm16(Instruction* instr);
@@ -145,6 +136,7 @@ class Decoder {
   void DecodeTypeRegisterSPECIAL3(Instruction* instr);
   void DecodeTypeRegister(Instruction* instr);
   void DecodeTypeImmediate(Instruction* instr);
+  void DecodeTypeImmediateSPECIAL3(Instruction* instr);
   void DecodeTypeJump(Instruction* instr);
   void DecodeTypeMsaI8(Instruction* instr);
   void DecodeTypeMsaI5(Instruction* instr);
@@ -316,6 +308,17 @@ void Decoder::PrintBp2(Instruction* instr) {
   out_buffer_pos_ += SNPrintF(out_buffer_ + out_buffer_pos_, "%d", bp2);
 }
 
+// Print 9-bit unsigned immediate value.
+void Decoder::PrintUImm9(Instruction* instr) {
+  int32_t imm = instr->Imm9Value();
+  out_buffer_pos_ += SNPrintF(out_buffer_ + out_buffer_pos_, "%u", imm);
+}
+
+// Print 9-bit signed immediate value.
+void Decoder::PrintSImm9(Instruction* instr) {
+  int32_t imm = ((instr->Imm9Value()) << 23) >> 23;
+  out_buffer_pos_ += SNPrintF(out_buffer_ + out_buffer_pos_, "%d", imm);
+}
 
 // Print 16-bit unsigned immediate value.
 void Decoder::PrintUImm16(Instruction* instr) {
@@ -660,7 +663,6 @@ int Decoder::FormatRegister(Instruction* instr, const char* format) {
     return 2;
   }
   UNREACHABLE();
-  return -1;
 }
 
 
@@ -706,7 +708,6 @@ int Decoder::FormatFPURegister(Instruction* instr, const char* format) {
     }
   }
   UNREACHABLE();
-  return -1;
 }
 
 // Handle all MSARegister based formatting in this function to reduce the
@@ -728,7 +729,6 @@ int Decoder::FormatMSARegister(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
-  return -1;
 }
 
 // FormatOption takes a formatting string and interprets it based on
@@ -898,6 +898,16 @@ int Decoder::FormatOption(Instruction* instr, const char* format) {
         DCHECK(STRING_STARTS_WITH(format, "imm8"));
         PrintMsaImm8(instr);
         return 4;
+      } else if (format[3] == '9') {
+        DCHECK(STRING_STARTS_WITH(format, "imm9"));
+        if (format[4] == 'u') {
+          DCHECK(STRING_STARTS_WITH(format, "imm9u"));
+          PrintUImm9(instr);
+        } else if (format[4] == 's') {
+          DCHECK(STRING_STARTS_WITH(format, "imm9s"));
+          PrintSImm9(instr);
+        }
+        return 5;
       } else if (format[3] == 'b') {
         DCHECK(STRING_STARTS_WITH(format, "immb"));
         PrintMsaImmBit(instr);
@@ -980,7 +990,6 @@ int Decoder::FormatOption(Instruction* instr, const char* format) {
       return 1;
   }
   UNREACHABLE();
-  return -1;
 }
 
 
@@ -1659,6 +1668,28 @@ void Decoder::DecodeTypeRegister(Instruction* instr) {
   }
 }
 
+void Decoder::DecodeTypeImmediateSPECIAL3(Instruction* instr) {
+  switch (instr->FunctionFieldRaw()) {
+    case LL_R6: {
+      if (IsMipsArchVariant(kMips32r6)) {
+        Format(instr, "ll     'rt, 'imm9s('rs)");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SC_R6: {
+      if (IsMipsArchVariant(kMips32r6)) {
+        Format(instr, "sc     'rt, 'imm9s('rs)");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
 
 void Decoder::DecodeTypeImmediate(Instruction* instr) {
   switch (instr->OpcodeFieldRaw()) {
@@ -1909,6 +1940,20 @@ void Decoder::DecodeTypeImmediate(Instruction* instr) {
     case SWR:
       Format(instr, "swr     'rt, 'imm16s('rs)");
       break;
+    case LL:
+      if (IsMipsArchVariant(kMips32r6)) {
+        Unknown(instr);
+      } else {
+        Format(instr, "ll     'rt, 'imm16s('rs)");
+      }
+      break;
+    case SC:
+      if (IsMipsArchVariant(kMips32r6)) {
+        Unknown(instr);
+      } else {
+        Format(instr, "sc     'rt, 'imm16s('rs)");
+      }
+      break;
     case LWC1:
       Format(instr, "lwc1    'ft, 'imm16s('rs)");
       break;
@@ -1950,6 +1995,9 @@ void Decoder::DecodeTypeImmediate(Instruction* instr) {
       }
       break;
     }
+    case SPECIAL3:
+      DecodeTypeImmediateSPECIAL3(instr);
+      break;
     case MSA:
       switch (instr->MSAMinorOpcodeField()) {
         case kMsaMinorI8:

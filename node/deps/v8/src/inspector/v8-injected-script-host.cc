@@ -5,12 +5,12 @@
 #include "src/inspector/v8-injected-script-host.h"
 
 #include "src/base/macros.h"
-#include "src/inspector/injected-script-native.h"
+#include "src/inspector/injected-script.h"
 #include "src/inspector/string-util.h"
 #include "src/inspector/v8-debugger.h"
 #include "src/inspector/v8-inspector-impl.h"
 #include "src/inspector/v8-internal-value-type.h"
-#include "src/inspector/v8-value-copier.h"
+#include "src/inspector/v8-value-utils.h"
 
 #include "include/v8-inspector.h"
 
@@ -219,6 +219,14 @@ void V8InjectedScriptHost::subtypeCallback(
     info.GetReturnValue().Set(toV8StringInternalized(isolate, "promise"));
     return;
   }
+  if (value->IsArrayBuffer() || value->IsSharedArrayBuffer()) {
+    info.GetReturnValue().Set(toV8StringInternalized(isolate, "arraybuffer"));
+    return;
+  }
+  if (value->IsDataView()) {
+    info.GetReturnValue().Set(toV8StringInternalized(isolate, "dataview"));
+    return;
+  }
   std::unique_ptr<StringBuffer> subtype =
       unwrapInspector(info)->client()->valueSubtype(value);
   if (subtype) {
@@ -240,13 +248,9 @@ void V8InjectedScriptHost::getInternalPropertiesCallback(
     allowedProperties.insert(String16("[[PromiseValue]]"));
   } else if (info[0]->IsGeneratorObject()) {
     allowedProperties.insert(String16("[[GeneratorStatus]]"));
-  } else if (info[0]->IsMapIterator() || info[0]->IsSetIterator()) {
-    allowedProperties.insert(String16("[[IteratorHasMore]]"));
-    allowedProperties.insert(String16("[[IteratorIndex]]"));
-    allowedProperties.insert(String16("[[IteratorKind]]"));
-    allowedProperties.insert(String16("[[Entries]]"));
   } else if (info[0]->IsMap() || info[0]->IsWeakMap() || info[0]->IsSet() ||
-             info[0]->IsWeakSet()) {
+             info[0]->IsWeakSet() || info[0]->IsMapIterator() ||
+             info[0]->IsSetIterator()) {
     allowedProperties.insert(String16("[[Entries]]"));
   }
   if (!allowedProperties.size()) return;
@@ -309,16 +313,15 @@ void V8InjectedScriptHost::objectHasOwnPropertyCallback(
 void V8InjectedScriptHost::bindCallback(
     const v8::FunctionCallbackInfo<v8::Value>& info) {
   if (info.Length() < 2 || !info[1]->IsString()) return;
-  InjectedScriptNative* injectedScriptNative =
-      InjectedScriptNative::fromInjectedScriptHost(info.GetIsolate(),
-                                                   info.Holder());
-  if (!injectedScriptNative) return;
+  InjectedScript* injectedScript =
+      InjectedScript::fromInjectedScriptHost(info.GetIsolate(), info.Holder());
+  if (!injectedScript) return;
 
   v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
   v8::Local<v8::String> v8groupName =
       info[1]->ToString(context).ToLocalChecked();
   String16 groupName = toProtocolStringWithTypeCheck(v8groupName);
-  int id = injectedScriptNative->bind(info[0], groupName);
+  int id = injectedScript->bindObject(info[0], groupName);
   info.GetReturnValue().Set(id);
 }
 

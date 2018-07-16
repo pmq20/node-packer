@@ -46,7 +46,7 @@ CompilerDispatcherTracer::Scope::~Scope() {
       tracer_->RecordPrepareToCompile(elapsed);
       break;
     case ScopeID::kCompile:
-      tracer_->RecordCompile(elapsed, num_);
+      tracer_->RecordCompile(elapsed);
       break;
     case ScopeID::kFinalizeCompiling:
       tracer_->RecordFinalizeCompiling(elapsed);
@@ -73,7 +73,6 @@ const char* CompilerDispatcherTracer::Scope::Name(ScopeID scope_id) {
       return "V8.BackgroundCompile_FinalizeCompiling";
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 CompilerDispatcherTracer::CompilerDispatcherTracer(Isolate* isolate)
@@ -112,10 +111,9 @@ void CompilerDispatcherTracer::RecordPrepareToCompile(double duration_ms) {
   prepare_compile_events_.Push(duration_ms);
 }
 
-void CompilerDispatcherTracer::RecordCompile(double duration_ms,
-                                             size_t ast_size_in_bytes) {
+void CompilerDispatcherTracer::RecordCompile(double duration_ms) {
   base::LockGuard<base::Mutex> lock(&mutex_);
-  compile_events_.Push(std::make_pair(ast_size_in_bytes, duration_ms));
+  compile_events_.Push(duration_ms);
 }
 
 void CompilerDispatcherTracer::RecordFinalizeCompiling(double duration_ms) {
@@ -148,10 +146,9 @@ double CompilerDispatcherTracer::EstimatePrepareToCompileInMs() const {
   return Average(prepare_compile_events_);
 }
 
-double CompilerDispatcherTracer::EstimateCompileInMs(
-    size_t ast_size_in_bytes) const {
+double CompilerDispatcherTracer::EstimateCompileInMs() const {
   base::LockGuard<base::Mutex> lock(&mutex_);
-  return Estimate(compile_events_, ast_size_in_bytes);
+  return Average(compile_events_);
 }
 
 double CompilerDispatcherTracer::EstimateFinalizeCompilingInMs() const {
@@ -167,7 +164,7 @@ void CompilerDispatcherTracer::DumpStatistics() const {
       "finalize_compiling=%.2lfms\n",
       EstimatePrepareToParseInMs(), EstimateParseInMs(1 * KB),
       EstimateFinalizeParsingInMs(), EstimateAnalyzeInMs(),
-      EstimatePrepareToCompileInMs(), EstimateCompileInMs(1 * KB),
+      EstimatePrepareToCompileInMs(), EstimateCompileInMs(),
       EstimateFinalizeCompilingInMs());
 }
 

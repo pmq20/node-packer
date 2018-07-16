@@ -44,6 +44,7 @@
 #include <vector>
 
 #include "src/assembler.h"
+#include "src/double.h"
 #include "src/ppc/constants-ppc.h"
 
 #if V8_HOST_ARCH_PPC && \
@@ -118,6 +119,136 @@ namespace internal {
   V(d16) V(d17) V(d18) V(d19) V(d20) V(d21) V(d22) V(d23) \
   V(d24) V(d25) V(d26) V(d27) V(d28) V(d29) V(d30) V(d31)
 // clang-format on
+
+// Register list in load/store instructions
+// Note that the bit values must match those used in actual instruction encoding
+const int kNumRegs = 32;
+
+// Caller-saved/arguments registers
+const RegList kJSCallerSaved = 1 << 3 |   // r3  a1
+                               1 << 4 |   // r4  a2
+                               1 << 5 |   // r5  a3
+                               1 << 6 |   // r6  a4
+                               1 << 7 |   // r7  a5
+                               1 << 8 |   // r8  a6
+                               1 << 9 |   // r9  a7
+                               1 << 10 |  // r10 a8
+                               1 << 11;
+
+const int kNumJSCallerSaved = 9;
+
+// Return the code of the n-th caller-saved register available to JavaScript
+// e.g. JSCallerSavedReg(0) returns r0.code() == 0
+int JSCallerSavedCode(int n);
+
+// Callee-saved registers preserved when switching from C to JavaScript
+const RegList kCalleeSaved = 1 << 14 |  // r14
+                             1 << 15 |  // r15
+                             1 << 16 |  // r16
+                             1 << 17 |  // r17
+                             1 << 18 |  // r18
+                             1 << 19 |  // r19
+                             1 << 20 |  // r20
+                             1 << 21 |  // r21
+                             1 << 22 |  // r22
+                             1 << 23 |  // r23
+                             1 << 24 |  // r24
+                             1 << 25 |  // r25
+                             1 << 26 |  // r26
+                             1 << 27 |  // r27
+                             1 << 28 |  // r28
+                             1 << 29 |  // r29
+                             1 << 30 |  // r20
+                             1 << 31;   // r31
+
+const int kNumCalleeSaved = 18;
+
+const RegList kCallerSavedDoubles = 1 << 0 |   // d0
+                                    1 << 1 |   // d1
+                                    1 << 2 |   // d2
+                                    1 << 3 |   // d3
+                                    1 << 4 |   // d4
+                                    1 << 5 |   // d5
+                                    1 << 6 |   // d6
+                                    1 << 7 |   // d7
+                                    1 << 8 |   // d8
+                                    1 << 9 |   // d9
+                                    1 << 10 |  // d10
+                                    1 << 11 |  // d11
+                                    1 << 12 |  // d12
+                                    1 << 13;   // d13
+
+const int kNumCallerSavedDoubles = 14;
+
+const RegList kCalleeSavedDoubles = 1 << 14 |  // d14
+                                    1 << 15 |  // d15
+                                    1 << 16 |  // d16
+                                    1 << 17 |  // d17
+                                    1 << 18 |  // d18
+                                    1 << 19 |  // d19
+                                    1 << 20 |  // d20
+                                    1 << 21 |  // d21
+                                    1 << 22 |  // d22
+                                    1 << 23 |  // d23
+                                    1 << 24 |  // d24
+                                    1 << 25 |  // d25
+                                    1 << 26 |  // d26
+                                    1 << 27 |  // d27
+                                    1 << 28 |  // d28
+                                    1 << 29 |  // d29
+                                    1 << 30 |  // d30
+                                    1 << 31;   // d31
+
+const int kNumCalleeSavedDoubles = 18;
+
+// Number of registers for which space is reserved in safepoints. Must be a
+// multiple of 8.
+const int kNumSafepointRegisters = 32;
+
+// The following constants describe the stack frame linkage area as
+// defined by the ABI.  Note that kNumRequiredStackFrameSlots must
+// satisfy alignment requirements (rounding up if required).
+#if V8_TARGET_ARCH_PPC64 && V8_TARGET_LITTLE_ENDIAN
+// [0] back chain
+// [1] condition register save area
+// [2] link register save area
+// [3] TOC save area
+// [4] Parameter1 save area
+// ...
+// [11] Parameter8 save area
+// [12] Parameter9 slot (if necessary)
+// ...
+const int kNumRequiredStackFrameSlots = 12;
+const int kStackFrameLRSlot = 2;
+const int kStackFrameExtraParamSlot = 12;
+#elif V8_OS_AIX || V8_TARGET_ARCH_PPC64
+// [0] back chain
+// [1] condition register save area
+// [2] link register save area
+// [3] reserved for compiler
+// [4] reserved by binder
+// [5] TOC save area
+// [6] Parameter1 save area
+// ...
+// [13] Parameter8 save area
+// [14] Parameter9 slot (if necessary)
+// ...
+#if V8_TARGET_ARCH_PPC64
+const int kNumRequiredStackFrameSlots = 14;
+#else
+const int kNumRequiredStackFrameSlots = 16;
+#endif
+const int kStackFrameLRSlot = 2;
+const int kStackFrameExtraParamSlot = 14;
+#else
+// [0] back chain
+// [1] link register save area
+// [2] Parameter9 slot (if necessary)
+// ...
+const int kNumRequiredStackFrameSlots = 4;
+const int kStackFrameLRSlot = 1;
+const int kStackFrameExtraParamSlot = 2;
+#endif
 
 // CPU Registers.
 //
@@ -303,11 +434,14 @@ class Operand BASE_EMBEDDED {
                           RelocInfo::Mode rmode = kRelocInfo_NONEPTR));
   INLINE(static Operand Zero()) { return Operand(static_cast<intptr_t>(0)); }
   INLINE(explicit Operand(const ExternalReference& f));
-  explicit Operand(Handle<Object> handle);
+  explicit Operand(Handle<HeapObject> handle);
   INLINE(explicit Operand(Smi* value));
 
   // rm
   INLINE(explicit Operand(Register rm));
+
+  static Operand EmbeddedNumber(double number);  // Smi or HeapNumber.
+  static Operand EmbeddedCode(CodeStub* stub);
 
   // Return true if this is a register operand.
   INLINE(bool is_reg() const);
@@ -315,15 +449,36 @@ class Operand BASE_EMBEDDED {
   bool must_output_reloc_info(const Assembler* assembler) const;
 
   inline intptr_t immediate() const {
-    DCHECK(!rm_.is_valid());
-    return imm_;
+    DCHECK(IsImmediate());
+    DCHECK(!IsHeapObjectRequest());
+    return value_.immediate;
+  }
+  bool IsImmediate() const { return !rm_.is_valid(); }
+
+  HeapObjectRequest heap_object_request() const {
+    DCHECK(IsHeapObjectRequest());
+    return value_.heap_object_request;
   }
 
   Register rm() const { return rm_; }
 
+  bool IsHeapObjectRequest() const {
+    DCHECK_IMPLIES(is_heap_object_request_, IsImmediate());
+    DCHECK_IMPLIES(is_heap_object_request_,
+                   rmode_ == RelocInfo::EMBEDDED_OBJECT ||
+                       rmode_ == RelocInfo::CODE_TARGET);
+    return is_heap_object_request_;
+  }
+
  private:
   Register rm_;
-  intptr_t imm_;  // valid if rm_ == no_reg
+  union Value {
+    Value() {}
+    HeapObjectRequest heap_object_request;  // if is_heap_object_request_
+    intptr_t immediate;                     // otherwise
+  } value_;                                 // valid if rm_ == no_reg
+  bool is_heap_object_request_ = false;
+
   RelocInfo::Mode rmode_;
 
   friend class Assembler;
@@ -405,7 +560,7 @@ class Assembler : public AssemblerBase {
   // GetCode emits any pending (non-emitted) code and fills the descriptor
   // desc. GetCode() is idempotent; it returns the same result if no other
   // Assembler functions are invoked in between GetCode() calls.
-  void GetCode(CodeDesc* desc);
+  void GetCode(Isolate* isolate, CodeDesc* desc);
 
   // Label operations & relative jumps (PPUM Appendix D)
   //
@@ -532,21 +687,6 @@ class Assembler : public AssemblerBase {
   //                      @ return address
   static constexpr int kCallTargetAddressOffset =
       (kMovInstructions + 2) * kInstrSize;
-
-  // Distance between start of patched debug break slot and the emitted address
-  // to jump to.
-  // Patched debug break slot code is a FIXED_SEQUENCE:
-  //   mov r0, <address>
-  //   mtlr r0
-  //   blrl
-  static constexpr int kPatchDebugBreakSlotAddressOffset = 0 * kInstrSize;
-
-  // This is the length of the code sequence from SetDebugBreakAtSlot()
-  // FIXED_SEQUENCE
-  static constexpr int kDebugBreakSlotInstructions =
-      kMovInstructionsNoConstantPool + 2;
-  static constexpr int kDebugBreakSlotLength =
-      kDebugBreakSlotInstructions * kInstrSize;
 
   static inline int encode_crbit(const CRegister& cr, enum CRBit crbit) {
     return ((cr.code() * CRWIDTH) + crbit);
@@ -716,8 +856,8 @@ class Assembler : public AssemblerBase {
   void b(Label* L, LKBit lk = LeaveLK) { b(branch_offset(L), lk); }
 
   inline CRegister cmpi_optimization(CRegister cr) {
-    // Check whether the branch is preceeded by an optimizable cmpi against 0.
-    // The cmpi can be deleted if it is also preceeded by an instruction that
+    // Check whether the branch is preceded by an optimizable cmpi against 0.
+    // The cmpi can be deleted if it is also preceded by an instruction that
     // sets the register used by the compare and supports a dot form.
     unsigned int sradi_mask = kOpcodeMask | kExt2OpcodeVariant2Mask;
     unsigned int srawi_mask = kOpcodeMask | kExt2OpcodeMask;
@@ -1258,27 +1398,6 @@ class Assembler : public AssemblerBase {
     DISALLOW_IMPLICIT_CONSTRUCTORS(BlockConstantPoolEntrySharingScope);
   };
 
-  // Debugging
-
-  // Mark address of a debug break slot.
-  void RecordDebugBreakSlot(RelocInfo::Mode mode);
-
-  // Record the AST id of the CallIC being compiled, so that it can be placed
-  // in the relocation information.
-  void SetRecordedAstId(TypeFeedbackId ast_id) {
-    // Causes compiler to fail
-    // DCHECK(recorded_ast_id_.IsNone());
-    recorded_ast_id_ = ast_id;
-  }
-
-  TypeFeedbackId RecordedAstId() {
-    // Causes compiler to fail
-    // DCHECK(!recorded_ast_id_.IsNone());
-    return recorded_ast_id_;
-  }
-
-  void ClearRecordedAstId() { recorded_ast_id_ = TypeFeedbackId::None(); }
-
   // Record a comment relocation entry that can be used by a disassembler.
   // Use --code-comments to enable.
   void RecordComment(const char* msg);
@@ -1372,11 +1491,6 @@ class Assembler : public AssemblerBase {
   void EmitRelocations();
 
  protected:
-  // Relocation for a type-recording IC has the AST id added to it.  This
-  // member variable is a way to pass the information from the call site to
-  // the relocation info.
-  TypeFeedbackId recorded_ast_id_;
-
   int buffer_space() const { return reloc_info_writer.pos() - pc_; }
 
   // Decode instruction(s) at pos and return backchain to previous
@@ -1391,11 +1505,12 @@ class Assembler : public AssemblerBase {
   ConstantPoolEntry::Access ConstantPoolAddEntry(RelocInfo::Mode rmode,
                                                  intptr_t value) {
     bool sharing_ok = RelocInfo::IsNone(rmode) ||
-                      !(serializer_enabled() || rmode < RelocInfo::CELL ||
+                      !(serializer_enabled() ||
+                        rmode < RelocInfo::FIRST_SHAREABLE_RELOC_MODE ||
                         is_constant_pool_entry_sharing_blocked());
     return constant_pool_builder_.AddEntry(pc_offset(), value, sharing_ok);
   }
-  ConstantPoolEntry::Access ConstantPoolAddEntry(double value) {
+  ConstantPoolEntry::Access ConstantPoolAddEntry(Double value) {
     return constant_pool_builder_.AddEntry(pc_offset(), value);
   }
 
@@ -1544,6 +1659,19 @@ class Assembler : public AssemblerBase {
   friend class CodePatcher;
   friend class BlockTrampolinePoolScope;
   friend class EnsureSpace;
+
+  // The following functions help with avoiding allocations of embedded heap
+  // objects during the code assembly phase. {RequestHeapObject} records the
+  // need for a future heap number allocation or code stub generation. After
+  // code assembly, {AllocateAndInstallRequestedHeapObjects} will allocate these
+  // objects and place them where they are expected (determined by the pc offset
+  // associated with each request). That is, for each request, it will patch the
+  // dummy heap object handle that we emitted during code assembly with the
+  // actual heap object handle.
+  void RequestHeapObject(HeapObjectRequest request);
+  void AllocateAndInstallRequestedHeapObjects(Isolate* isolate);
+
+  std::forward_list<HeapObjectRequest> heap_object_requests_;
 };
 
 

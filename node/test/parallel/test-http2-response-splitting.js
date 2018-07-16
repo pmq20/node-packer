@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 // Response splitting is no longer an issue with HTTP/2. The underlying
@@ -56,7 +55,7 @@ server.listen(0, common.mustCall(() => {
   function maybeClose() {
     if (remaining === 0) {
       server.close();
-      client.destroy();
+      client.close();
     }
   }
 
@@ -68,7 +67,7 @@ server.listen(0, common.mustCall(() => {
     }));
     req.resume();
     req.on('end', common.mustCall());
-    req.on('streamClosed', common.mustCall(maybeClose));
+    req.on('close', common.mustCall(maybeClose));
   }
 
   doTest(str, 'location', str);

@@ -19,7 +19,7 @@ class Factory;
 
 namespace compiler {
 
-// Foward declarations.
+// Forward declarations.
 class CommonOperatorBuilder;
 struct FieldAccess;
 class Graph;
@@ -31,6 +31,8 @@ class V8_EXPORT_PRIVATE LoadElimination final
   LoadElimination(Editor* editor, JSGraph* jsgraph, Zone* zone)
       : AdvancedReducer(editor), node_states_(zone), jsgraph_(jsgraph) {}
   ~LoadElimination() final {}
+
+  const char* reducer_name() const override { return "LoadElimination"; }
 
   Reduction Reduce(Node* node) final;
 
@@ -128,19 +130,21 @@ class V8_EXPORT_PRIVATE LoadElimination final
   class AbstractField final : public ZoneObject {
    public:
     explicit AbstractField(Zone* zone) : info_for_node_(zone) {}
-    AbstractField(Node* object, Node* value, Zone* zone)
+    AbstractField(Node* object, Node* value, MaybeHandle<Name> name, Zone* zone)
         : info_for_node_(zone) {
-      info_for_node_.insert(std::make_pair(object, value));
+      info_for_node_.insert(std::make_pair(object, Field(value, name)));
     }
 
-    AbstractField const* Extend(Node* object, Node* value, Zone* zone) const {
+    AbstractField const* Extend(Node* object, Node* value,
+                                MaybeHandle<Name> name, Zone* zone) const {
       AbstractField* that = new (zone) AbstractField(zone);
       that->info_for_node_ = this->info_for_node_;
-      that->info_for_node_.insert(std::make_pair(object, value));
+      that->info_for_node_.insert(std::make_pair(object, Field(value, name)));
       return that;
     }
     Node* Lookup(Node* object) const;
-    AbstractField const* Kill(Node* object, Zone* zone) const;
+    AbstractField const* Kill(Node* object, MaybeHandle<Name> name,
+                              Zone* zone) const;
     bool Equals(AbstractField const* that) const {
       return this == that || this->info_for_node_ == that->info_for_node_;
     }
@@ -149,10 +153,10 @@ class V8_EXPORT_PRIVATE LoadElimination final
       AbstractField* copy = new (zone) AbstractField(zone);
       for (auto this_it : this->info_for_node_) {
         Node* this_object = this_it.first;
-        Node* this_value = this_it.second;
+        Field this_second = this_it.second;
         auto that_it = that->info_for_node_.find(this_object);
         if (that_it != that->info_for_node_.end() &&
-            that_it->second == this_value) {
+            that_it->second == this_second) {
           copy->info_for_node_.insert(this_it);
         }
       }
@@ -162,7 +166,19 @@ class V8_EXPORT_PRIVATE LoadElimination final
     void Print() const;
 
    private:
-    ZoneMap<Node*, Node*> info_for_node_;
+    struct Field {
+      Field() {}
+      Field(Node* value, MaybeHandle<Name> name) : value(value), name(name) {}
+
+      bool operator==(const Field& other) const {
+        return value == other.value && name.address() == other.name.address();
+      }
+
+      Node* value = nullptr;
+      MaybeHandle<Name> name;
+    };
+
+    ZoneMap<Node*, Field> info_for_node_;
   };
 
   static size_t const kMaxTrackedFields = 32;
@@ -178,31 +194,13 @@ class V8_EXPORT_PRIVATE LoadElimination final
     }
 
     AbstractMaps const* Extend(Node* object, ZoneHandleSet<Map> maps,
-                               Zone* zone) const {
-      AbstractMaps* that = new (zone) AbstractMaps(zone);
-      that->info_for_node_ = this->info_for_node_;
-      that->info_for_node_.insert(std::make_pair(object, maps));
-      return that;
-    }
+                               Zone* zone) const;
     bool Lookup(Node* object, ZoneHandleSet<Map>* object_maps) const;
     AbstractMaps const* Kill(Node* object, Zone* zone) const;
     bool Equals(AbstractMaps const* that) const {
       return this == that || this->info_for_node_ == that->info_for_node_;
     }
-    AbstractMaps const* Merge(AbstractMaps const* that, Zone* zone) const {
-      if (this->Equals(that)) return this;
-      AbstractMaps* copy = new (zone) AbstractMaps(zone);
-      for (auto this_it : this->info_for_node_) {
-        Node* this_object = this_it.first;
-        ZoneHandleSet<Map> this_maps = this_it.second;
-        auto that_it = that->info_for_node_.find(this_object);
-        if (that_it != that->info_for_node_.end() &&
-            that_it->second == this_maps) {
-          copy->info_for_node_.insert(this_it);
-        }
-      }
-      return copy;
-    }
+    AbstractMaps const* Merge(AbstractMaps const* that, Zone* zone) const;
 
     void Print() const;
 
@@ -227,10 +225,11 @@ class V8_EXPORT_PRIVATE LoadElimination final
     bool LookupMaps(Node* object, ZoneHandleSet<Map>* object_maps) const;
 
     AbstractState const* AddField(Node* object, size_t index, Node* value,
-                                  Zone* zone) const;
+                                  MaybeHandle<Name> name, Zone* zone) const;
     AbstractState const* KillField(Node* object, size_t index,
-                                   Zone* zone) const;
-    AbstractState const* KillFields(Node* object, Zone* zone) const;
+                                   MaybeHandle<Name> name, Zone* zone) const;
+    AbstractState const* KillFields(Node* object, MaybeHandle<Name> name,
+                                    Zone* zone) const;
     Node* LookupField(Node* object, size_t index) const;
 
     AbstractState const* AddElement(Node* object, Node* index, Node* value,
@@ -267,6 +266,8 @@ class V8_EXPORT_PRIVATE LoadElimination final
 
   Reduction ReduceArrayBufferWasNeutered(Node* node);
   Reduction ReduceCheckMaps(Node* node);
+  Reduction ReduceCompareMaps(Node* node);
+  Reduction ReduceMapGuard(Node* node);
   Reduction ReduceEnsureWritableFastElements(Node* node);
   Reduction ReduceMaybeGrowFastElements(Node* node);
   Reduction ReduceTransitionElementsKind(Node* node);
@@ -274,6 +275,7 @@ class V8_EXPORT_PRIVATE LoadElimination final
   Reduction ReduceStoreField(Node* node);
   Reduction ReduceLoadElement(Node* node);
   Reduction ReduceStoreElement(Node* node);
+  Reduction ReduceTransitionAndStoreElement(Node* node);
   Reduction ReduceStoreTypedElement(Node* node);
   Reduction ReduceEffectPhi(Node* node);
   Reduction ReduceStart(Node* node);
@@ -283,6 +285,8 @@ class V8_EXPORT_PRIVATE LoadElimination final
 
   AbstractState const* ComputeLoopState(Node* node,
                                         AbstractState const* state) const;
+  AbstractState const* UpdateStateForPhi(AbstractState const* state,
+                                         Node* effect_phi, Node* phi);
 
   static int FieldIndexOf(int offset);
   static int FieldIndexOf(FieldAccess const& access);

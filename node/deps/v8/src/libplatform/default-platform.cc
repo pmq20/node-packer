@@ -31,11 +31,13 @@ void PrintStackTrace() {
 
 v8::Platform* CreateDefaultPlatform(
     int thread_pool_size, IdleTaskSupport idle_task_support,
-    InProcessStackDumping in_process_stack_dumping) {
+    InProcessStackDumping in_process_stack_dumping,
+    v8::TracingController* tracing_controller) {
   if (in_process_stack_dumping == InProcessStackDumping::kEnabled) {
     v8::base::debug::EnableInProcessStackDumping();
   }
-  DefaultPlatform* platform = new DefaultPlatform(idle_task_support);
+  DefaultPlatform* platform =
+      new DefaultPlatform(idle_task_support, tracing_controller);
   platform->SetThreadPoolSize(thread_pool_size);
   platform->EnsureInitialized();
   return platform;
@@ -43,41 +45,45 @@ v8::Platform* CreateDefaultPlatform(
 
 bool PumpMessageLoop(v8::Platform* platform, v8::Isolate* isolate,
                      MessageLoopBehavior behavior) {
-  return reinterpret_cast<DefaultPlatform*>(platform)->PumpMessageLoop(
-      isolate, behavior);
+  return static_cast<DefaultPlatform*>(platform)->PumpMessageLoop(isolate,
+                                                                  behavior);
 }
 
 void EnsureEventLoopInitialized(v8::Platform* platform, v8::Isolate* isolate) {
-  return reinterpret_cast<DefaultPlatform*>(platform)
-      ->EnsureEventLoopInitialized(isolate);
+  return static_cast<DefaultPlatform*>(platform)->EnsureEventLoopInitialized(
+      isolate);
 }
 
 void RunIdleTasks(v8::Platform* platform, v8::Isolate* isolate,
                   double idle_time_in_seconds) {
-  reinterpret_cast<DefaultPlatform*>(platform)->RunIdleTasks(
-      isolate, idle_time_in_seconds);
+  static_cast<DefaultPlatform*>(platform)->RunIdleTasks(isolate,
+                                                        idle_time_in_seconds);
 }
 
 void SetTracingController(
     v8::Platform* platform,
     v8::platform::tracing::TracingController* tracing_controller) {
-  return reinterpret_cast<DefaultPlatform*>(platform)->SetTracingController(
+  static_cast<DefaultPlatform*>(platform)->SetTracingController(
       tracing_controller);
 }
 
 const int DefaultPlatform::kMaxThreadPoolSize = 8;
 
-DefaultPlatform::DefaultPlatform(IdleTaskSupport idle_task_support)
+DefaultPlatform::DefaultPlatform(IdleTaskSupport idle_task_support,
+                                 v8::TracingController* tracing_controller)
     : initialized_(false),
       thread_pool_size_(0),
-      idle_task_support_(idle_task_support) {}
+      idle_task_support_(idle_task_support) {
+  if (tracing_controller) {
+    tracing_controller_.reset(tracing_controller);
+  } else {
+    tracing::TracingController* controller = new tracing::TracingController();
+    controller->Initialize(nullptr);
+    tracing_controller_.reset(controller);
+  }
+}
 
 DefaultPlatform::~DefaultPlatform() {
-  if (tracing_controller_) {
-    tracing_controller_->StopTracing();
-    tracing_controller_.reset();
-  }
-
   base::LockGuard<base::Mutex> guard(&lock_);
   queue_.Terminate();
   if (initialized_) {
@@ -272,62 +278,18 @@ double DefaultPlatform::MonotonicallyIncreasingTime() {
          static_cast<double>(base::Time::kMicrosecondsPerSecond);
 }
 
-uint64_t DefaultPlatform::AddTraceEvent(
-    char phase, const uint8_t* category_enabled_flag, const char* name,
-    const char* scope, uint64_t id, uint64_t bind_id, int num_args,
-    const char** arg_names, const uint8_t* arg_types,
-    const uint64_t* arg_values,
-    std::unique_ptr<v8::ConvertableToTraceFormat>* arg_convertables,
-    unsigned int flags) {
-  if (tracing_controller_) {
-    return tracing_controller_->AddTraceEvent(
-        phase, category_enabled_flag, name, scope, id, bind_id, num_args,
-        arg_names, arg_types, arg_values, arg_convertables, flags);
-  }
-
-  return 0;
-}
-
-void DefaultPlatform::UpdateTraceEventDuration(
-    const uint8_t* category_enabled_flag, const char* name, uint64_t handle) {
-  if (tracing_controller_) {
-    tracing_controller_->UpdateTraceEventDuration(category_enabled_flag, name,
-                                                  handle);
-  }
-}
-
-const uint8_t* DefaultPlatform::GetCategoryGroupEnabled(const char* name) {
-  if (tracing_controller_) {
-    return tracing_controller_->GetCategoryGroupEnabled(name);
-  }
-  static uint8_t no = 0;
-  return &no;
-}
-
-
-const char* DefaultPlatform::GetCategoryGroupName(
-    const uint8_t* category_enabled_flag) {
-  static const char dummy[] = "dummy";
-  return dummy;
+TracingController* DefaultPlatform::GetTracingController() {
+  return tracing_controller_.get();
 }
 
 void DefaultPlatform::SetTracingController(
-    tracing::TracingController* tracing_controller) {
+    v8::TracingController* tracing_controller) {
+  DCHECK_NOT_NULL(tracing_controller);
   tracing_controller_.reset(tracing_controller);
 }
 
 size_t DefaultPlatform::NumberOfAvailableBackgroundThreads() {
   return static_cast<size_t>(thread_pool_size_);
-}
-
-void DefaultPlatform::AddTraceStateObserver(TraceStateObserver* observer) {
-  if (!tracing_controller_) return;
-  tracing_controller_->AddTraceStateObserver(observer);
-}
-
-void DefaultPlatform::RemoveTraceStateObserver(TraceStateObserver* observer) {
-  if (!tracing_controller_) return;
-  tracing_controller_->RemoveTraceStateObserver(observer);
 }
 
 Platform::StackTracePrinter DefaultPlatform::GetStackTracePrinter() {

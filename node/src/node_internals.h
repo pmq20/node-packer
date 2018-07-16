@@ -25,17 +25,24 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "node.h"
-#include "util.h"
 #include "util-inl.h"
+#include "env-inl.h"
 #include "uv.h"
 #include "v8.h"
 #include "tracing/trace_event.h"
+#include "node_perf_common.h"
 #include "node_debug_options.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 
 #include <string>
+
+enum {
+  NM_F_BUILTIN  = 1 << 0,
+  NM_F_LINKED   = 1 << 1,
+  NM_F_INTERNAL = 1 << 2,
+};
 
 struct sockaddr;
 
@@ -55,6 +62,82 @@ struct sockaddr;
                               constant_attributes).FromJust();                \
   } while (0)
 
+
+#if HAVE_OPENSSL
+#define NODE_BUILTIN_OPENSSL_MODULES(V) V(crypto) V(tls_wrap)
+#else
+#define NODE_BUILTIN_OPENSSL_MODULES(V)
+#endif
+
+#if NODE_HAVE_I18N_SUPPORT
+#define NODE_BUILTIN_ICU_MODULES(V) V(icu)
+#else
+#define NODE_BUILTIN_ICU_MODULES(V)
+#endif
+
+// A list of built-in modules. In order to do module registration
+// in node::Init(), need to add built-in modules in the following list.
+// Then in node::RegisterBuiltinModules(), it calls modules' registration
+// function. This helps the built-in modules are loaded properly when
+// node is built as static library. No need to depends on the
+// __attribute__((constructor)) like mechanism in GCC.
+#define NODE_BUILTIN_STANDARD_MODULES(V)                                      \
+    V(async_wrap)                                                             \
+    V(buffer)                                                                 \
+    V(cares_wrap)                                                             \
+    V(config)                                                                 \
+    V(contextify)                                                             \
+    V(fs)                                                                     \
+    V(fs_event_wrap)                                                          \
+    V(http2)                                                                  \
+    V(http_parser)                                                            \
+    V(inspector)                                                              \
+    V(js_stream)                                                              \
+    V(module_wrap)                                                            \
+    V(os)                                                                     \
+    V(performance)                                                            \
+    V(pipe_wrap)                                                              \
+    V(process_wrap)                                                           \
+    V(serdes)                                                                 \
+    V(signal_wrap)                                                            \
+    V(spawn_sync)                                                             \
+    V(stream_wrap)                                                            \
+    V(tcp_wrap)                                                               \
+    V(timer_wrap)                                                             \
+    V(trace_events)                                                           \
+    V(tty_wrap)                                                               \
+    V(udp_wrap)                                                               \
+    V(url)                                                                    \
+    V(util)                                                                   \
+    V(uv)                                                                     \
+    V(v8)                                                                     \
+    V(zlib)
+
+#define NODE_BUILTIN_MODULES(V)                                               \
+  NODE_BUILTIN_STANDARD_MODULES(V)                                            \
+  NODE_BUILTIN_OPENSSL_MODULES(V)                                             \
+  NODE_BUILTIN_ICU_MODULES(V)
+
+#define NODE_MODULE_CONTEXT_AWARE_CPP(modname, regfunc, priv, flags)          \
+  static node::node_module _module = {                                        \
+    NODE_MODULE_VERSION,                                                      \
+    flags,                                                                    \
+    nullptr,                                                                  \
+    __FILE__,                                                                 \
+    nullptr,                                                                  \
+    (node::addon_context_register_func) (regfunc),                            \
+    NODE_STRINGIFY(modname),                                                  \
+    priv,                                                                     \
+    nullptr                                                                   \
+  };                                                                          \
+  void _register_ ## modname() {                                              \
+    node_module_register(&_module);                                           \
+  }
+
+
+#define NODE_BUILTIN_MODULE_CONTEXT_AWARE(modname, regfunc)                   \
+  NODE_MODULE_CONTEXT_AWARE_CPP(modname, regfunc, nullptr, NM_F_BUILTIN)
+
 namespace node {
 
 // Set in node.cc by ParseArgs with the value of --openssl-config.
@@ -68,6 +151,15 @@ extern bool config_preserve_symlinks;
 
 // Set in node.cc by ParseArgs when --expose-http2 is used.
 extern bool config_expose_http2;
+// Set in node.cc by ParseArgs when --experimental-modules is used.
+// Used in node_config.cc to set a constant on process.binding('config')
+// that is used by lib/module.js
+extern bool config_experimental_modules;
+
+// Set in node.cc by ParseArgs when --loader is used.
+// Used in node_config.cc to set a constant on process.binding('config')
+// that is used by lib/internal/bootstrap_node.js
+extern std::string config_userland_loader;
 
 // Set in node.cc by ParseArgs when --expose-internals or --expose_internals is
 // used.
@@ -126,6 +218,11 @@ void GetSockOrPeerName(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(err);
 }
 
+void FatalException(v8::Isolate* isolate,
+                    v8::Local<v8::Value> error,
+                    v8::Local<v8::Message> message);
+
+
 void SignalExit(int signo);
 #ifdef __POSIX__
 void RegisterSignalHandler(int signal,
@@ -134,6 +231,9 @@ void RegisterSignalHandler(int signal,
 #endif
 
 bool SafeGetenv(const char* key, std::string* text);
+
+std::string GetHumanReadableProcessName();
+void GetHumanReadableProcessName(char (*name)[1024]);
 
 template <typename T, size_t N>
 constexpr size_t arraysize(const T(&)[N]) { return N; }
@@ -167,6 +267,12 @@ void SetupProcessObject(Environment* env,
                         const char* const* argv,
                         int exec_argc,
                         const char* const* exec_argv);
+
+// Call _register<module_name> functions for all of
+// the built-in modules. Because built-in modules don't
+// use the __attribute__((constructor)). Need to
+// explicitly call the _register* functions.
+void RegisterBuiltinModules();
 
 enum Endianness {
   kLittleEndian,  // _Not_ LITTLE_ENDIAN, clashes with endian.h.
@@ -224,6 +330,19 @@ v8::MaybeLocal<v8::Object> New(Environment* env,
 // Mixing operator new and free() is undefined behavior so don't do that.
 v8::MaybeLocal<v8::Object> New(Environment* env, char* data, size_t length);
 
+inline
+v8::MaybeLocal<v8::Uint8Array> New(Environment* env,
+                                   v8::Local<v8::ArrayBuffer> ab,
+                                   size_t byte_offset,
+                                   size_t length) {
+  v8::Local<v8::Uint8Array> ui = v8::Uint8Array::New(ab, byte_offset, length);
+  v8::Maybe<bool> mb =
+      ui->SetPrototype(env->context(), env->buffer_prototype_object());
+  if (mb.IsNothing())
+    return v8::MaybeLocal<v8::Uint8Array>();
+  return ui;
+}
+
 // Construct a Buffer from a MaybeStackBuffer (and also its subclasses like
 // Utf8Value and TwoByteValue).
 // If |buf| is invalidated, an empty MaybeLocal is returned, and nothing is
@@ -254,7 +373,48 @@ static v8::MaybeLocal<v8::Object> New(Environment* env,
 }
 }  // namespace Buffer
 
+v8::MaybeLocal<v8::Value> InternalMakeCallback(
+    Environment* env,
+    v8::Local<v8::Object> recv,
+    const v8::Local<v8::Function> callback,
+    int argc,
+    v8::Local<v8::Value> argv[],
+    async_context asyncContext);
+
+class InternalCallbackScope {
+ public:
+  // Tell the constructor whether its `object` parameter may be empty or not.
+  enum ResourceExpectation { kRequireResource, kAllowEmptyResource };
+  InternalCallbackScope(Environment* env,
+                        v8::Local<v8::Object> object,
+                        const async_context& asyncContext,
+                        ResourceExpectation expect = kRequireResource);
+  // Utility that can be used by AsyncWrap classes.
+  explicit InternalCallbackScope(AsyncWrap* async_wrap);
+  ~InternalCallbackScope();
+  void Close();
+
+  inline bool Failed() const { return failed_; }
+  inline void MarkAsFailed() { failed_ = true; }
+  inline bool IsInnerMakeCallback() const {
+    return callback_scope_.in_makecallback();
+  }
+
+ private:
+  Environment* env_;
+  async_context async_context_;
+  v8::Local<v8::Object> object_;
+  Environment::AsyncCallbackScope callback_scope_;
+  bool failed_ = false;
+  bool pushed_ids_ = false;
+  bool closed_ = false;
+};
+
+#define NODE_MODULE_CONTEXT_AWARE_INTERNAL(modname, regfunc)                  \
+  NODE_MODULE_CONTEXT_AWARE_CPP(modname, regfunc, nullptr, NM_F_INTERNAL)
+
 }  // namespace node
+
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 

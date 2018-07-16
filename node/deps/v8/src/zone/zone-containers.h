@@ -6,13 +6,17 @@
 #define V8_SRC_ZONE_ZONE_CONTAINERS_H_
 
 #include <deque>
+#include <forward_list>
 #include <list>
 #include <map>
 #include <queue>
 #include <set>
 #include <stack>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
+#include "src/base/functional.h"
 #include "src/zone/zone-allocator.h"
 
 namespace v8 {
@@ -44,7 +48,7 @@ class ZoneVector : public std::vector<T, ZoneAllocator<T>> {
       : std::vector<T, ZoneAllocator<T>>(first, last, ZoneAllocator<T>(zone)) {}
 };
 
-// A wrapper subclass std::deque to make it easy to construct one
+// A wrapper subclass for std::deque to make it easy to construct one
 // that uses a zone allocator.
 template <typename T>
 class ZoneDeque : public std::deque<T, RecyclingZoneAllocator<T>> {
@@ -55,7 +59,7 @@ class ZoneDeque : public std::deque<T, RecyclingZoneAllocator<T>> {
             RecyclingZoneAllocator<T>(zone)) {}
 };
 
-// A wrapper subclass std::list to make it easy to construct one
+// A wrapper subclass for std::list to make it easy to construct one
 // that uses a zone allocator.
 // TODO(mstarzinger): This should be renamed to ZoneList once we got rid of our
 // own home-grown ZoneList that actually is a ZoneVector.
@@ -67,7 +71,17 @@ class ZoneLinkedList : public std::list<T, ZoneAllocator<T>> {
       : std::list<T, ZoneAllocator<T>>(ZoneAllocator<T>(zone)) {}
 };
 
-// A wrapper subclass std::priority_queue to make it easy to construct one
+// A wrapper subclass for std::forward_list to make it easy to construct one
+// that uses a zone allocator.
+template <typename T>
+class ZoneForwardList : public std::forward_list<T, ZoneAllocator<T>> {
+ public:
+  // Constructs an empty list.
+  explicit ZoneForwardList(Zone* zone)
+      : std::forward_list<T, ZoneAllocator<T>>(ZoneAllocator<T>(zone)) {}
+};
+
+// A wrapper subclass for std::priority_queue to make it easy to construct one
 // that uses a zone allocator.
 template <typename T, typename Compare = std::less<T>>
 class ZonePriorityQueue
@@ -120,6 +134,35 @@ class ZoneMap
   explicit ZoneMap(Zone* zone)
       : std::map<K, V, Compare, ZoneAllocator<std::pair<const K, V>>>(
             Compare(), ZoneAllocator<std::pair<const K, V>>(zone)) {}
+};
+
+// A wrapper subclass for std::unordered_map to make it easy to construct one
+// that uses a zone allocator.
+template <typename K, typename V, typename Hash = base::hash<K>,
+          typename KeyEqual = std::equal_to<K>>
+class ZoneUnorderedMap
+    : public std::unordered_map<K, V, Hash, KeyEqual,
+                                ZoneAllocator<std::pair<const K, V>>> {
+ public:
+  // Constructs an empty map.
+  explicit ZoneUnorderedMap(Zone* zone)
+      : std::unordered_map<K, V, Hash, KeyEqual,
+                           ZoneAllocator<std::pair<const K, V>>>(
+            100, Hash(), KeyEqual(),
+            ZoneAllocator<std::pair<const K, V>>(zone)) {}
+};
+
+// A wrapper subclass for std::unordered_set to make it easy to construct one
+// that uses a zone allocator.
+template <typename K, typename Hash = base::hash<K>,
+          typename KeyEqual = std::equal_to<K>>
+class ZoneUnorderedSet
+    : public std::unordered_set<K, Hash, KeyEqual, ZoneAllocator<K>> {
+ public:
+  // Constructs an empty map.
+  explicit ZoneUnorderedSet(Zone* zone)
+      : std::unordered_set<K, Hash, KeyEqual, ZoneAllocator<K>>(
+            100, Hash(), KeyEqual(), ZoneAllocator<K>(zone)) {}
 };
 
 // A wrapper subclass for std::multimap to make it easy to construct one that

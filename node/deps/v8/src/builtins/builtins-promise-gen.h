@@ -28,22 +28,50 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
     kPromiseContextLength,
   };
 
+ protected:
+  enum PromiseAllResolveElementContextSlots {
+    // Whether the resolve callback was already called.
+    kPromiseAllResolveElementAlreadyVisitedSlot = Context::MIN_CONTEXT_SLOTS,
+
+    // Index into the values array
+    kPromiseAllResolveElementIndexSlot,
+
+    // Remaining elements count (mutable HeapNumber)
+    kPromiseAllResolveElementRemainingElementsSlot,
+
+    // Promise capability from Promise.all
+    kPromiseAllResolveElementCapabilitySlot,
+
+    // Values array from Promise.all
+    kPromiseAllResolveElementValuesArraySlot,
+
+    kPromiseAllResolveElementLength
+  };
+
+ public:
   enum FunctionContextSlot {
     kCapabilitySlot = Context::MIN_CONTEXT_SLOTS,
 
     kCapabilitiesContextLength,
   };
 
-  // This is used by the PromiseThenFinally and PromiseCatchFinally
-  // builtins to store the onFinally in the onFinallySlot.
-  //
-  // This is also used by the PromiseValueThunkFinally to store the
-  // value in the onFinallySlot and PromiseThrowerFinally to store the
-  // reason in the onFinallySlot.
+  // This is used by the Promise.prototype.finally builtin to store
+  // onFinally callback and the Promise constructor.
+  // TODO(gsathya): Add extra slot for Promise constructor.
+  // TODO(gsathya): For native promises we can create a variant of
+  // this without extra space for the constructor to save memory.
   enum PromiseFinallyContextSlot {
     kOnFinallySlot = Context::MIN_CONTEXT_SLOTS,
 
-    kOnFinallyContextLength,
+    kPromiseFinallyContextLength,
+  };
+
+  // This is used by the ThenFinally and CatchFinally builtins to
+  // store the value to return or reason to throw.
+  enum PromiseValueThunkOrReasonContextSlot {
+    kValueSlot = Context::MIN_CONTEXT_SLOTS,
+
+    kPromiseValueThunkOrReasonContextLength,
   };
 
   explicit PromiseBuiltinsAssembler(compiler::CodeAssemblerState* state)
@@ -60,7 +88,8 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
 
   // This allocates and initializes a promise with the given state and
   // fields.
-  Node* AllocateAndSetJSPromise(Node* context, Node* status, Node* result);
+  Node* AllocateAndSetJSPromise(Node* context, v8::Promise::PromiseState status,
+                                Node* result);
 
   Node* AllocatePromiseResolveThenableJobInfo(Node* result, Node* then,
                                               Node* resolve, Node* reject,
@@ -113,6 +142,7 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
   void BranchIfFastPath(Node* native_context, Node* promise_fun, Node* promise,
                         Label* if_isunmodified, Label* if_ismodified);
 
+  void InitializeFunctionContext(Node* native_context, Node* context, int len);
   Node* CreatePromiseContext(Node* native_context, int slots);
   void PromiseFulfill(Node* context, Node* promise, Node* result,
                       v8::Promise::PromiseState status);
@@ -127,15 +157,33 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
                              Node* debug_event);
   std::pair<Node*, Node*> CreatePromiseFinallyFunctions(Node* on_finally,
                                                         Node* native_context);
-  Node* CreatePromiseFinallyContext(Node* on_finally, Node* native_context);
-
   Node* CreateValueThunkFunction(Node* value, Node* native_context);
-  Node* CreateValueThunkFunctionContext(Node* value, Node* native_context);
 
-  Node* CreateThrowerFunctionContext(Node* reason, Node* native_context);
   Node* CreateThrowerFunction(Node* reason, Node* native_context);
 
+  Node* PerformPromiseAll(Node* context, Node* constructor, Node* capability,
+                          Node* iterator, Label* if_exception,
+                          Variable* var_exception);
+
+  Node* IncrementSmiCell(Node* cell, Label* if_overflow = nullptr);
+  Node* DecrementSmiCell(Node* cell);
+
+  void SetForwardingHandlerIfTrue(Node* context, Node* condition,
+                                  const NodeGenerator& object);
+  inline void SetForwardingHandlerIfTrue(Node* context, Node* condition,
+                                         Node* object) {
+    return SetForwardingHandlerIfTrue(context, condition,
+                                      [object]() -> Node* { return object; });
+  }
+  void SetPromiseHandledByIfTrue(Node* context, Node* condition, Node* promise,
+                                 const NodeGenerator& handled_by);
+
+  Node* PromiseStatus(Node* promise);
+
  private:
+  Node* IsPromiseStatus(Node* actual, v8::Promise::PromiseState expected);
+  void PromiseSetStatus(Node* promise, v8::Promise::PromiseState status);
+
   Node* AllocateJSPromise(Node* context);
 };
 

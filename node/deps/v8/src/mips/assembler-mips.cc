@@ -38,6 +38,7 @@
 
 #include "src/base/bits.h"
 #include "src/base/cpu.h"
+#include "src/code-stubs.h"
 #include "src/mips/assembler-mips-inl.h"
 
 namespace v8 {
@@ -190,33 +191,21 @@ bool RelocInfo::IsInConstantPool() {
   return false;
 }
 
-Address RelocInfo::wasm_memory_reference() {
-  DCHECK(IsWasmMemoryReference(rmode_));
+Address RelocInfo::embedded_address() const {
   return Assembler::target_address_at(pc_, host_);
 }
 
-Address RelocInfo::wasm_global_reference() {
-  DCHECK(IsWasmGlobalReference(rmode_));
-  return Assembler::target_address_at(pc_, host_);
-}
-
-uint32_t RelocInfo::wasm_memory_size_reference() {
-  DCHECK(IsWasmMemorySizeReference(rmode_));
+uint32_t RelocInfo::embedded_size() const {
   return reinterpret_cast<uint32_t>(Assembler::target_address_at(pc_, host_));
 }
 
-uint32_t RelocInfo::wasm_function_table_size_reference() {
-  DCHECK(IsWasmFunctionTableSizeReference(rmode_));
-  return reinterpret_cast<uint32_t>(Assembler::target_address_at(pc_, host_));
-}
-
-void RelocInfo::unchecked_update_wasm_memory_reference(
-    Isolate* isolate, Address address, ICacheFlushMode flush_mode) {
+void RelocInfo::set_embedded_address(Isolate* isolate, Address address,
+                                     ICacheFlushMode flush_mode) {
   Assembler::set_target_address_at(isolate, pc_, host_, address, flush_mode);
 }
 
-void RelocInfo::unchecked_update_wasm_size(Isolate* isolate, uint32_t size,
-                                           ICacheFlushMode flush_mode) {
+void RelocInfo::set_embedded_size(Isolate* isolate, uint32_t size,
+                                  ICacheFlushMode flush_mode) {
   Assembler::set_target_address_at(isolate, pc_, host_,
                                    reinterpret_cast<Address>(size), flush_mode);
 }
@@ -225,21 +214,27 @@ void RelocInfo::unchecked_update_wasm_size(Isolate* isolate, uint32_t size,
 // Implementation of Operand and MemOperand.
 // See assembler-mips-inl.h for inlined constructors.
 
-Operand::Operand(Handle<Object> handle) {
-  AllowDeferredHandleDereference using_raw_address;
+Operand::Operand(Handle<HeapObject> handle) {
   rm_ = no_reg;
-  // Verify all Objects referred by code are NOT in new space.
-  Object* obj = *handle;
-  if (obj->IsHeapObject()) {
-    imm32_ = reinterpret_cast<intptr_t>(handle.location());
-    rmode_ = RelocInfo::EMBEDDED_OBJECT;
-  } else {
-    // No relocation needed.
-    imm32_ = reinterpret_cast<intptr_t>(obj);
-    rmode_ = RelocInfo::NONE32;
-  }
+  value_.immediate = reinterpret_cast<intptr_t>(handle.address());
+  rmode_ = RelocInfo::EMBEDDED_OBJECT;
 }
 
+Operand Operand::EmbeddedNumber(double value) {
+  int32_t smi;
+  if (DoubleToSmiInteger(value, &smi)) return Operand(Smi::FromInt(smi));
+  Operand result(0, RelocInfo::EMBEDDED_OBJECT);
+  result.is_heap_object_request_ = true;
+  result.value_.heap_object_request = HeapObjectRequest(value);
+  return result;
+}
+
+Operand Operand::EmbeddedCode(CodeStub* stub) {
+  Operand result(0, RelocInfo::CODE_TARGET);
+  result.is_heap_object_request_ = true;
+  result.value_.heap_object_request = HeapObjectRequest(stub);
+  return result;
+}
 
 MemOperand::MemOperand(Register rm, int32_t offset) : Operand(rm) {
   offset_ = offset;
@@ -251,6 +246,24 @@ MemOperand::MemOperand(Register rm, int32_t unit, int32_t multiplier,
   offset_ = unit * multiplier + offset_addend;
 }
 
+void Assembler::AllocateAndInstallRequestedHeapObjects(Isolate* isolate) {
+  for (auto& request : heap_object_requests_) {
+    Handle<HeapObject> object;
+    switch (request.kind()) {
+      case HeapObjectRequest::kHeapNumber:
+        object = isolate->factory()->NewHeapNumber(request.heap_number(),
+                                                   IMMUTABLE, TENURED);
+        break;
+      case HeapObjectRequest::kCodeStub:
+        request.code_stub()->set_isolate(isolate);
+        object = request.code_stub()->GetCode();
+        break;
+    }
+    Address pc = buffer_ + request.offset();
+    set_target_value_at(isolate, pc,
+                        reinterpret_cast<uint32_t>(object.location()));
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Specific instructions, constants, and masks.
@@ -291,7 +304,7 @@ const Instr kLwSwOffsetMask = kImm16Mask;
 
 Assembler::Assembler(IsolateData isolate_data, void* buffer, int buffer_size)
     : AssemblerBase(isolate_data, buffer, buffer_size),
-      recorded_ast_id_(TypeFeedbackId::None()) {
+      scratch_register_list_(at.bit()) {
   reloc_info_writer.Reposition(buffer_ + buffer_size_, pc_);
 
   last_trampoline_pool_end_ = 0;
@@ -307,14 +320,14 @@ Assembler::Assembler(IsolateData isolate_data, void* buffer, int buffer_size)
   trampoline_emitted_ = FLAG_force_long_branches;
   unbound_labels_count_ = 0;
   block_buffer_growth_ = false;
-
-  ClearRecordedAstId();
 }
 
-
-void Assembler::GetCode(CodeDesc* desc) {
+void Assembler::GetCode(Isolate* isolate, CodeDesc* desc) {
   EmitForbiddenSlotInstruction();
   DCHECK(pc_ <= reloc_info_writer.pos());  // No overlap.
+
+  AllocateAndInstallRequestedHeapObjects(isolate);
+
   // Set up code descriptor.
   desc->buffer = buffer_;
   desc->buffer_size = buffer_size_;
@@ -328,7 +341,7 @@ void Assembler::GetCode(CodeDesc* desc) {
 
 
 void Assembler::Align(int m) {
-  DCHECK(m >= 4 && base::bits::IsPowerOfTwo32(m));
+  DCHECK(m >= 4 && base::bits::IsPowerOfTwo(m));
   EmitForbiddenSlotInstruction();
   while ((pc_offset() & (m - 1)) != 0) {
     nop();
@@ -480,6 +493,29 @@ const int kEndOfChain = -4;
 // Determines the end of the Jump chain (a subset of the label link chain).
 const int kEndOfJumpChain = 0;
 
+bool Assembler::IsMsaBranch(Instr instr) {
+  uint32_t opcode = GetOpcodeField(instr);
+  uint32_t rs_field = GetRsField(instr);
+  if (opcode == COP1) {
+    switch (rs_field) {
+      case BZ_V:
+      case BZ_B:
+      case BZ_H:
+      case BZ_W:
+      case BZ_D:
+      case BNZ_V:
+      case BNZ_B:
+      case BNZ_H:
+      case BNZ_W:
+      case BNZ_D:
+        return true;
+      default:
+        return false;
+    }
+  } else {
+    return false;
+  }
+}
 
 bool Assembler::IsBranch(Instr instr) {
   uint32_t opcode   = GetOpcodeField(instr);
@@ -493,7 +529,7 @@ bool Assembler::IsBranch(Instr instr) {
                             rt_field == BLTZAL || rt_field == BGEZAL)) ||
       (opcode == COP1 && rs_field == BC1) ||  // Coprocessor branch.
       (opcode == COP1 && rs_field == BC1EQZ) ||
-      (opcode == COP1 && rs_field == BC1NEZ);
+      (opcode == COP1 && rs_field == BC1NEZ) || IsMsaBranch(instr);
   if (!isBranch && IsMipsArchVariant(kMips32r6)) {
     // All the 3 variants of POP10 (BOVC, BEQC, BEQZALC) and
     // POP30 (BNVC, BNEC, BNEZALC) are branch ops.
@@ -1115,6 +1151,16 @@ void Assembler::GenInstrImmediate(Opcode opcode, Register rs, Register rt,
   emit(instr, is_compact_branch);
 }
 
+void Assembler::GenInstrImmediate(Opcode opcode, Register base, Register rt,
+                                  int32_t offset9, int bit6,
+                                  SecondaryField func) {
+  DCHECK(base.is_valid() && rt.is_valid() && is_int9(offset9) &&
+         is_uint1(bit6));
+  Instr instr = opcode | (base.code() << kBaseShift) | (rt.code() << kRtShift) |
+                ((offset9 << kImm9Shift) & kImm9Mask) | bit6 << kBit6Shift |
+                func;
+  emit(instr);
+}
 
 void Assembler::GenInstrImmediate(Opcode opcode, Register rs, SecondaryField SF,
                                   int32_t j,
@@ -1448,6 +1494,7 @@ void Assembler::bgec(Register rs, Register rt, int16_t offset) {
 
 void Assembler::bgezal(Register rs, int16_t offset) {
   DCHECK(!IsMipsArchVariant(kMips32r6) || rs.is(zero_reg));
+  DCHECK(!(rs.is(ra)));
   BlockTrampolinePoolScope block_trampoline_pool(this);
   GenInstrImmediate(REGIMM, rs, BGEZAL, offset);
   BlockTrampolinePoolFor(1);  // For associated delay slot.
@@ -1518,6 +1565,7 @@ void Assembler::bltz(Register rs, int16_t offset) {
 
 void Assembler::bltzal(Register rs, int16_t offset) {
   DCHECK(!IsMipsArchVariant(kMips32r6) || rs.is(zero_reg));
+  DCHECK(!(rs.is(ra)));
   BlockTrampolinePoolScope block_trampoline_pool(this);
   GenInstrImmediate(REGIMM, rs, BLTZAL, offset);
   BlockTrampolinePoolFor(1);  // For associated delay slot.
@@ -1554,6 +1602,7 @@ void Assembler::bnvc(Register rs, Register rt, int16_t offset) {
 void Assembler::blezalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(BLEZ, zero_reg, rt, offset,
                     CompactBranchType::COMPACT_BRANCH);
 }
@@ -1562,6 +1611,7 @@ void Assembler::blezalc(Register rt, int16_t offset) {
 void Assembler::bgezalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(BLEZ, rt, rt, offset, CompactBranchType::COMPACT_BRANCH);
 }
 
@@ -1569,6 +1619,7 @@ void Assembler::bgezalc(Register rt, int16_t offset) {
 void Assembler::bgezall(Register rs, int16_t offset) {
   DCHECK(!IsMipsArchVariant(kMips32r6));
   DCHECK(!(rs.is(zero_reg)));
+  DCHECK(!(rs.is(ra)));
   BlockTrampolinePoolScope block_trampoline_pool(this);
   GenInstrImmediate(REGIMM, rs, BGEZALL, offset);
   BlockTrampolinePoolFor(1);  // For associated delay slot.
@@ -1578,6 +1629,7 @@ void Assembler::bgezall(Register rs, int16_t offset) {
 void Assembler::bltzalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(BGTZ, rt, rt, offset, CompactBranchType::COMPACT_BRANCH);
 }
 
@@ -1585,6 +1637,7 @@ void Assembler::bltzalc(Register rt, int16_t offset) {
 void Assembler::bgtzalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(BGTZ, zero_reg, rt, offset,
                     CompactBranchType::COMPACT_BRANCH);
 }
@@ -1593,6 +1646,7 @@ void Assembler::bgtzalc(Register rt, int16_t offset) {
 void Assembler::beqzalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(ADDI, zero_reg, rt, offset,
                     CompactBranchType::COMPACT_BRANCH);
 }
@@ -1601,6 +1655,7 @@ void Assembler::beqzalc(Register rt, int16_t offset) {
 void Assembler::bnezalc(Register rt, int16_t offset) {
   DCHECK(IsMipsArchVariant(kMips32r6));
   DCHECK(!(rt.is(zero_reg)));
+  DCHECK(!(rt.is(ra)));
   GenInstrImmediate(DADDI, zero_reg, rt, offset,
                     CompactBranchType::COMPACT_BRANCH);
 }
@@ -1838,8 +1893,7 @@ void Assembler::sll(Register rd,
                     bool coming_from_nop) {
   // Don't allow nop instructions in the form sll zero_reg, zero_reg to be
   // generated using the sll instruction. They must be generated using
-  // nop(int/NopMarkerTypes) or MarkCode(int/NopMarkerTypes) pseudo
-  // instructions.
+  // nop(int/NopMarkerTypes).
   DCHECK(coming_from_nop || !(rd.is(zero_reg) && rt.is(zero_reg)));
   GenInstrRegister(SPECIAL, zero_reg, rt, rd, sa & 0x1F, SLL);
 }
@@ -1902,107 +1956,152 @@ void Assembler::lsa(Register rd, Register rt, Register rs, uint8_t sa) {
 
 // ------------Memory-instructions-------------
 
-// Helper for base-reg + offset, when offset is larger than int16.
-void Assembler::LoadRegPlusOffsetToAt(const MemOperand& src) {
-  DCHECK(!src.rm().is(at));
-  if (IsMipsArchVariant(kMips32r6)) {
-    int32_t hi = (src.offset_ >> kLuiShift) & kImm16Mask;
-    if (src.offset_ & kNegOffset) {
-      hi += 1;
+void Assembler::AdjustBaseAndOffset(MemOperand& src,
+                                    OffsetAccessType access_type,
+                                    int second_access_add_to_offset) {
+  // This method is used to adjust the base register and offset pair
+  // for a load/store when the offset doesn't fit into int16_t.
+  // It is assumed that 'base + offset' is sufficiently aligned for memory
+  // operands that are machine word in size or smaller. For doubleword-sized
+  // operands it's assumed that 'base' is a multiple of 8, while 'offset'
+  // may be a multiple of 4 (e.g. 4-byte-aligned long and double arguments
+  // and spilled variables on the stack accessed relative to the stack
+  // pointer register).
+  // We preserve the "alignment" of 'offset' by adjusting it by a multiple of 8.
+
+  bool doubleword_aligned = (src.offset() & (kDoubleSize - 1)) == 0;
+  bool two_accesses = static_cast<bool>(access_type) || !doubleword_aligned;
+  DCHECK(second_access_add_to_offset <= 7);  // Must be <= 7.
+
+  // is_int16 must be passed a signed value, hence the static cast below.
+  if (is_int16(src.offset()) &&
+      (!two_accesses || is_int16(static_cast<int32_t>(
+                            src.offset() + second_access_add_to_offset)))) {
+    // Nothing to do: 'offset' (and, if needed, 'offset + 4', or other specified
+    // value) fits into int16_t.
+    return;
+  }
+  UseScratchRegisterScope temps(this);
+  Register scratch = temps.Acquire();
+  DCHECK(!src.rm().is(scratch));  // Must not overwrite the register 'base'
+                                  // while loading 'offset'.
+
+#ifdef DEBUG
+  // Remember the "(mis)alignment" of 'offset', it will be checked at the end.
+  uint32_t misalignment = src.offset() & (kDoubleSize - 1);
+#endif
+
+  // Do not load the whole 32-bit 'offset' if it can be represented as
+  // a sum of two 16-bit signed offsets. This can save an instruction or two.
+  // To simplify matters, only do this for a symmetric range of offsets from
+  // about -64KB to about +64KB, allowing further addition of 4 when accessing
+  // 64-bit variables with two 32-bit accesses.
+  constexpr int32_t kMinOffsetForSimpleAdjustment =
+      0x7ff8;  // Max int16_t that's a multiple of 8.
+  constexpr int32_t kMaxOffsetForSimpleAdjustment =
+      2 * kMinOffsetForSimpleAdjustment;
+  if (0 <= src.offset() && src.offset() <= kMaxOffsetForSimpleAdjustment) {
+    addiu(at, src.rm(), kMinOffsetForSimpleAdjustment);
+    src.offset_ -= kMinOffsetForSimpleAdjustment;
+  } else if (-kMaxOffsetForSimpleAdjustment <= src.offset() &&
+             src.offset() < 0) {
+    addiu(at, src.rm(), -kMinOffsetForSimpleAdjustment);
+    src.offset_ += kMinOffsetForSimpleAdjustment;
+  } else if (IsMipsArchVariant(kMips32r6)) {
+    // On r6 take advantage of the aui instruction, e.g.:
+    //   aui   at, base, offset_high
+    //   lw    reg_lo, offset_low(at)
+    //   lw    reg_hi, (offset_low+4)(at)
+    // or when offset_low+4 overflows int16_t:
+    //   aui   at, base, offset_high
+    //   addiu at, at, 8
+    //   lw    reg_lo, (offset_low-8)(at)
+    //   lw    reg_hi, (offset_low-4)(at)
+    int16_t offset_high = static_cast<uint16_t>(src.offset() >> 16);
+    int16_t offset_low = static_cast<uint16_t>(src.offset());
+    offset_high += (offset_low < 0)
+                       ? 1
+                       : 0;  // Account for offset sign extension in load/store.
+    aui(scratch, src.rm(), static_cast<uint16_t>(offset_high));
+    if (two_accesses && !is_int16(static_cast<int32_t>(
+                            offset_low + second_access_add_to_offset))) {
+      // Avoid overflow in the 16-bit offset of the load/store instruction when
+      // adding 4.
+      addiu(scratch, scratch, kDoubleSize);
+      offset_low -= kDoubleSize;
     }
-    aui(at, src.rm(), hi);
-    addiu(at, at, src.offset_ & kImm16Mask);
+    src.offset_ = offset_low;
   } else {
-    lui(at, (src.offset_ >> kLuiShift) & kImm16Mask);
-    ori(at, at, src.offset_ & kImm16Mask);  // Load 32-bit offset.
-    addu(at, at, src.rm());                 // Add base register.
+    // Do not load the whole 32-bit 'offset' if it can be represented as
+    // a sum of three 16-bit signed offsets. This can save an instruction.
+    // To simplify matters, only do this for a symmetric range of offsets from
+    // about -96KB to about +96KB, allowing further addition of 4 when accessing
+    // 64-bit variables with two 32-bit accesses.
+    constexpr int32_t kMinOffsetForMediumAdjustment =
+        2 * kMinOffsetForSimpleAdjustment;
+    constexpr int32_t kMaxOffsetForMediumAdjustment =
+        3 * kMinOffsetForSimpleAdjustment;
+    if (0 <= src.offset() && src.offset() <= kMaxOffsetForMediumAdjustment) {
+      addiu(scratch, src.rm(), kMinOffsetForMediumAdjustment / 2);
+      addiu(scratch, scratch, kMinOffsetForMediumAdjustment / 2);
+      src.offset_ -= kMinOffsetForMediumAdjustment;
+    } else if (-kMaxOffsetForMediumAdjustment <= src.offset() &&
+               src.offset() < 0) {
+      addiu(scratch, src.rm(), -kMinOffsetForMediumAdjustment / 2);
+      addiu(scratch, scratch, -kMinOffsetForMediumAdjustment / 2);
+      src.offset_ += kMinOffsetForMediumAdjustment;
+    } else {
+      // Now that all shorter options have been exhausted, load the full 32-bit
+      // offset.
+      int32_t loaded_offset = RoundDown(src.offset(), kDoubleSize);
+      lui(scratch, (loaded_offset >> kLuiShift) & kImm16Mask);
+      ori(scratch, scratch, loaded_offset & kImm16Mask);  // Load 32-bit offset.
+      addu(scratch, scratch, src.rm());
+      src.offset_ -= loaded_offset;
+    }
   }
-}
+  src.rm_ = scratch;
 
-// Helper for base-reg + upper part of offset, when offset is larger than int16.
-// Loads higher part of the offset to AT register.
-// Returns lower part of the offset to be used as offset
-// in Load/Store instructions
-int32_t Assembler::LoadRegPlusUpperOffsetPartToAt(const MemOperand& src) {
-  DCHECK(!src.rm().is(at));
-  int32_t hi = (src.offset_ >> kLuiShift) & kImm16Mask;
-  // If the highest bit of the lower part of the offset is 1, this would make
-  // the offset in the load/store instruction negative. We need to compensate
-  // for this by adding 1 to the upper part of the offset.
-  if (src.offset_ & kNegOffset) {
-    hi += 1;
+  DCHECK(is_int16(src.offset()));
+  if (two_accesses) {
+    DCHECK(is_int16(
+        static_cast<int32_t>(src.offset() + second_access_add_to_offset)));
   }
-
-  if (IsMipsArchVariant(kMips32r6)) {
-    aui(at, src.rm(), hi);
-  } else {
-    lui(at, hi);
-    addu(at, at, src.rm());
-  }
-  return (src.offset_ & kImm16Mask);
-}
-
-// Helper for loading base-reg + upper offset's part to AT reg when we are using
-// two 32-bit loads/stores instead of one 64-bit
-int32_t Assembler::LoadUpperOffsetForTwoMemoryAccesses(const MemOperand& src) {
-  DCHECK(!src.rm().is(at));
-  if (is_int16((src.offset_ & kImm16Mask) + kIntSize)) {
-    // Only if lower part of offset + kIntSize fits in 16bits
-    return LoadRegPlusUpperOffsetPartToAt(src);
-  }
-  // In case offset's lower part + kIntSize doesn't fit in 16bits,
-  // load reg + hole offset to AT
-  LoadRegPlusOffsetToAt(src);
-  return 0;
+  DCHECK(misalignment == (src.offset() & (kDoubleSize - 1)));
 }
 
 void Assembler::lb(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(LB, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(LB, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(LB, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::lbu(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(LBU, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(LBU, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(LBU, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::lh(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(LH, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(LH, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(LH, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::lhu(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(LHU, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(LHU, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(LHU, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::lw(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(LW, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(LW, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(LW, source.rm(), rd, source.offset());
 }
 
 
@@ -2023,32 +2122,23 @@ void Assembler::lwr(Register rd, const MemOperand& rs) {
 
 
 void Assembler::sb(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(SB, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to store.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(SB, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(SB, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::sh(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(SH, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to store.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(SH, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(SH, source.rm(), rd, source.offset());
 }
 
 
 void Assembler::sw(Register rd, const MemOperand& rs) {
-  if (is_int16(rs.offset_)) {
-    GenInstrImmediate(SW, rs.rm(), rd, rs.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to store.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(rs);
-    GenInstrImmediate(SW, at, rd, off16);
-  }
+  MemOperand source = rs;
+  AdjustBaseAndOffset(source);
+  GenInstrImmediate(SW, source.rm(), rd, source.offset());
 }
 
 
@@ -2067,6 +2157,28 @@ void Assembler::swr(Register rd, const MemOperand& rs) {
   GenInstrImmediate(SWR, rs.rm(), rd, rs.offset_);
 }
 
+void Assembler::ll(Register rd, const MemOperand& rs) {
+  if (IsMipsArchVariant(kMips32r6)) {
+    DCHECK(is_int9(rs.offset_));
+    GenInstrImmediate(SPECIAL3, rs.rm(), rd, rs.offset_, 0, LL_R6);
+  } else {
+    DCHECK(IsMipsArchVariant(kLoongson) || IsMipsArchVariant(kMips32r1) ||
+           IsMipsArchVariant(kMips32r2));
+    DCHECK(is_int16(rs.offset_));
+    GenInstrImmediate(LL, rs.rm(), rd, rs.offset_);
+  }
+}
+
+void Assembler::sc(Register rd, const MemOperand& rs) {
+  if (IsMipsArchVariant(kMips32r6)) {
+    DCHECK(is_int9(rs.offset_));
+    GenInstrImmediate(SPECIAL3, rs.rm(), rd, rs.offset_, 0, SC_R6);
+  } else {
+    DCHECK(IsMipsArchVariant(kLoongson) || IsMipsArchVariant(kMips32r1) ||
+           IsMipsArchVariant(kMips32r2));
+    GenInstrImmediate(SC, rs.rm(), rd, rs.offset_);
+  }
+}
 
 void Assembler::lui(Register rd, int32_t j) {
   DCHECK(is_uint16(j));
@@ -2333,22 +2445,16 @@ void Assembler::seb(Register rd, Register rt) {
 
 // Load, store, move.
 void Assembler::lwc1(FPURegister fd, const MemOperand& src) {
-  if (is_int16(src.offset_)) {
-    GenInstrImmediate(LWC1, src.rm(), fd, src.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(src);
-    GenInstrImmediate(LWC1, at, fd, off16);
-  }
+  MemOperand tmp = src;
+  AdjustBaseAndOffset(tmp);
+  GenInstrImmediate(LWC1, tmp.rm(), fd, tmp.offset());
 }
 
 
 void Assembler::swc1(FPURegister fd, const MemOperand& src) {
-  if (is_int16(src.offset_)) {
-    GenInstrImmediate(SWC1, src.rm(), fd, src.offset_);
-  } else {  // Offset > 16 bits, use multiple instructions to load.
-    int32_t off16 = LoadRegPlusUpperOffsetPartToAt(src);
-    GenInstrImmediate(SWC1, at, fd, off16);
-  }
+  MemOperand tmp = src;
+  AdjustBaseAndOffset(tmp);
+  GenInstrImmediate(SWC1, tmp.rm(), fd, tmp.offset());
 }
 
 
@@ -3024,14 +3130,19 @@ MSA_BRANCH_LIST(MSA_BRANCH)
   V(st_w, ST_W)           \
   V(st_d, ST_D)
 
-#define MSA_LD_ST(name, opcode)                                \
-  void Assembler::name(MSARegister wd, const MemOperand& rs) { \
-    if (is_int10(rs.offset())) {                               \
-      GenInstrMsaMI10(opcode, rs.offset(), rs.rm(), wd);       \
-    } else {                                                   \
-      LoadRegPlusOffsetToAt(rs);                               \
-      GenInstrMsaMI10(opcode, 0, at, wd);                      \
-    }                                                          \
+#define MSA_LD_ST(name, opcode)                                  \
+  void Assembler::name(MSARegister wd, const MemOperand& rs) {   \
+    MemOperand source = rs;                                      \
+    AdjustBaseAndOffset(source);                                 \
+    if (is_int10(source.offset())) {                             \
+      GenInstrMsaMI10(opcode, source.offset(), source.rm(), wd); \
+    } else {                                                     \
+      UseScratchRegisterScope temps(this);                       \
+      Register scratch = temps.Acquire();                        \
+      DCHECK(!rs.rm().is(scratch));                              \
+      addiu(scratch, source.rm(), source.offset());              \
+      GenInstrMsaMI10(opcode, 0, scratch, wd);                   \
+    }                                                            \
   }
 
 MSA_LD_ST_LIST(MSA_LD_ST)
@@ -3539,7 +3650,6 @@ int Assembler::RelocateInternalReference(RelocInfo::Mode rmode, byte* pc,
       return 2;  // Number of instructions patched.
     } else {
       UNREACHABLE();
-      return 0;
     }
   }
 }
@@ -3558,9 +3668,7 @@ void Assembler::GrowBuffer() {
 
   // Some internal data structures overflow for very large buffers,
   // they must ensure that kMaximalBufferSize is not too large.
-  if (desc.buffer_size > kMaximalBufferSize ||
-      static_cast<size_t>(desc.buffer_size) >
-          isolate_data().max_old_generation_size_) {
+  if (desc.buffer_size > kMaximalBufferSize) {
     V8::FatalProcessOutOfMemory("Assembler::GrowBuffer");
   }
 
@@ -3635,12 +3743,6 @@ void Assembler::dd(Label* label) {
 void Assembler::RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data) {
   // We do not try to reuse pool constants.
   RelocInfo rinfo(pc_, rmode, data, NULL);
-  if (rmode >= RelocInfo::COMMENT &&
-      rmode <= RelocInfo::DEBUG_BREAK_SLOT_AT_TAIL_CALL) {
-    // Adjust code for new modes.
-    DCHECK(RelocInfo::IsDebugBreakSlot(rmode) || RelocInfo::IsComment(rmode));
-    // These modes do not need an entry in the constant pool.
-  }
   if (!RelocInfo::IsNone(rinfo.rmode())) {
     // Don't record external references unless the heap will be serialized.
     if (rmode == RelocInfo::EXTERNAL_REFERENCE &&
@@ -3648,14 +3750,7 @@ void Assembler::RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data) {
       return;
     }
     DCHECK(buffer_space() >= kMaxRelocSize);  // Too late to grow buffer here.
-    if (rmode == RelocInfo::CODE_TARGET_WITH_ID) {
-      RelocInfo reloc_info_with_ast_id(pc_, rmode, RecordedAstId().ToInt(),
-                                       NULL);
-      ClearRecordedAstId();
-      reloc_info_writer.Write(&reloc_info_with_ast_id);
-    } else {
-      reloc_info_writer.Write(&rinfo);
-    }
+    reloc_info_writer.Write(&rinfo);
   }
 }
 
@@ -3710,8 +3805,10 @@ void Assembler::CheckTrampolinePool() {
             // references until associated instructions are emitted and
             // available to be patched.
             RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE_ENCODED);
-            lui(at, lui_offset);
-            jic(at, jic_offset);
+            UseScratchRegisterScope temps(this);
+            Register scratch = temps.hasAvailable() ? temps.Acquire() : t8;
+            lui(scratch, lui_offset);
+            jic(scratch, jic_offset);
           }
           CheckBuffer();
         }
@@ -3719,17 +3816,19 @@ void Assembler::CheckTrampolinePool() {
         for (int i = 0; i < unbound_labels_count_; i++) {
           uint32_t imm32;
           imm32 = jump_address(&after_pool);
+          UseScratchRegisterScope temps(this);
+          Register scratch = temps.hasAvailable() ? temps.Acquire() : t8;
           {
             BlockGrowBufferScope block_buf_growth(this);
             // Buffer growth (and relocation) must be blocked for internal
             // references until associated instructions are emitted and
             // available to be patched.
             RecordRelocInfo(RelocInfo::INTERNAL_REFERENCE_ENCODED);
-            lui(at, (imm32 & kHiMask) >> kLuiShift);
-            ori(at, at, (imm32 & kImm16Mask));
+            lui(scratch, (imm32 & kHiMask) >> kLuiShift);
+            ori(scratch, scratch, (imm32 & kImm16Mask));
           }
           CheckBuffer();
-          jr(at);
+          jr(scratch);
           nop();
         }
       }
@@ -3769,7 +3868,6 @@ Address Assembler::target_address_at(Address pc) {
 
   // We should never get here, force a bad address if we do.
   UNREACHABLE();
-  return (Address)0x0;
 }
 
 
@@ -3791,15 +3889,14 @@ void Assembler::QuietNaN(HeapObject* object) {
 // There is an optimization below, which emits a nop when the address
 // fits in just 16 bits. This is unlikely to help, and should be benchmarked,
 // and possibly removed.
-void Assembler::set_target_address_at(Isolate* isolate, Address pc,
-                                      Address target,
-                                      ICacheFlushMode icache_flush_mode) {
+void Assembler::set_target_value_at(Isolate* isolate, Address pc,
+                                    uint32_t target,
+                                    ICacheFlushMode icache_flush_mode) {
   DCHECK_IMPLIES(isolate == nullptr, icache_flush_mode == SKIP_ICACHE_FLUSH);
 
   Instr instr2 = instr_at(pc + kInstrSize);
   uint32_t rt_code = GetRtField(instr2);
   uint32_t* p = reinterpret_cast<uint32_t*>(pc);
-  uint32_t itarget = reinterpret_cast<uint32_t>(target);
 
 #ifdef DEBUG
   // Check we have the result from a li macro-instruction, using instr pair.
@@ -3810,7 +3907,7 @@ void Assembler::set_target_address_at(Isolate* isolate, Address pc,
   if (IsJicOrJialc(instr2)) {
     // Must use 2 instructions to insure patchable code => use lui and jic
     uint32_t lui_offset, jic_offset;
-    Assembler::UnpackTargetAddressUnsigned(itarget, lui_offset, jic_offset);
+    Assembler::UnpackTargetAddressUnsigned(target, lui_offset, jic_offset);
 
     *p &= ~kImm16Mask;
     *(p + 1) &= ~kImm16Mask;
@@ -3822,14 +3919,33 @@ void Assembler::set_target_address_at(Isolate* isolate, Address pc,
     // Must use 2 instructions to insure patchable code => just use lui and ori.
     // lui rt, upper-16.
     // ori rt rt, lower-16.
-    *p = LUI | rt_code | ((itarget & kHiMask) >> kLuiShift);
-    *(p + 1) = ORI | rt_code | (rt_code << 5) | (itarget & kImm16Mask);
+    *p = LUI | rt_code | ((target & kHiMask) >> kLuiShift);
+    *(p + 1) = ORI | rt_code | (rt_code << 5) | (target & kImm16Mask);
   }
 
   if (icache_flush_mode != SKIP_ICACHE_FLUSH) {
     Assembler::FlushICache(isolate, pc, 2 * sizeof(int32_t));
   }
 }
+
+UseScratchRegisterScope::UseScratchRegisterScope(Assembler* assembler)
+    : available_(assembler->GetScratchRegisterList()),
+      old_available_(*available_) {}
+
+UseScratchRegisterScope::~UseScratchRegisterScope() {
+  *available_ = old_available_;
+}
+
+Register UseScratchRegisterScope::Acquire() {
+  DCHECK(available_ != nullptr);
+  DCHECK(*available_ != 0);
+  int index = static_cast<int>(base::bits::CountTrailingZeros32(*available_));
+  *available_ &= ~(1UL << index);
+
+  return Register::from_code(index);
+}
+
+bool UseScratchRegisterScope::hasAvailable() const { return *available_ != 0; }
 
 }  // namespace internal
 }  // namespace v8

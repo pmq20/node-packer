@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -54,6 +53,6 @@ server.listen(0, () => {
   req.on('data', common.mustNotCall());
   req.on('end', common.mustCall(() => {
     server.close();
-    client.destroy();
+    client.close();
   }));
 });

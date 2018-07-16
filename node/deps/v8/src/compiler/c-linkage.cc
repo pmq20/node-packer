@@ -14,10 +14,6 @@ namespace internal {
 namespace compiler {
 
 namespace {
-LinkageLocation regloc(Register reg, MachineType type) {
-  return LinkageLocation::ForRegister(reg.code(), type);
-}
-
 
 // Platform-specific configuration for C calling convention.
 #if V8_TARGET_ARCH_IA32
@@ -49,12 +45,6 @@ LinkageLocation regloc(Register reg, MachineType type) {
 #define CALLEE_SAVE_REGISTERS \
   rbx.bit() | r12.bit() | r13.bit() | r14.bit() | r15.bit()
 #endif
-
-#elif V8_TARGET_ARCH_X87
-// ===========================================================================
-// == x87 ====================================================================
-// ===========================================================================
-#define CALLEE_SAVE_REGISTERS esi.bit() | edi.bit() | ebx.bit()
 
 #elif V8_TARGET_ARCH_ARM
 // ===========================================================================
@@ -161,7 +151,7 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(
                                        msig->parameter_count());
   // Check the types of the signature.
   // Currently no floating point parameters or returns are allowed because
-  // on x87 and ia32, the FP top of stack is involved.
+  // on ia32, the FP top of stack is involved.
   for (size_t i = 0; i < msig->return_count(); i++) {
     MachineRepresentation rep = msig->GetReturn(i).representation();
     CHECK_NE(MachineRepresentation::kFloat32, rep);
@@ -184,19 +174,21 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(
   CHECK(locations.return_count_ <= 2);
 
   if (locations.return_count_ > 0) {
-    locations.AddReturn(regloc(kReturnRegister0, msig->GetReturn(0)));
+    locations.AddReturn(LinkageLocation::ForRegister(kReturnRegister0.code(),
+                                                     msig->GetReturn(0)));
   }
   if (locations.return_count_ > 1) {
-    locations.AddReturn(regloc(kReturnRegister1, msig->GetReturn(1)));
+    locations.AddReturn(LinkageLocation::ForRegister(kReturnRegister1.code(),
+                                                     msig->GetReturn(1)));
   }
 
   const int parameter_count = static_cast<int>(msig->parameter_count());
 
 #ifdef PARAM_REGISTERS
-  const Register kParamRegisters[] = {PARAM_REGISTERS};
+  const v8::internal::Register kParamRegisters[] = {PARAM_REGISTERS};
   const int kParamRegisterCount = static_cast<int>(arraysize(kParamRegisters));
 #else
-  const Register* kParamRegisters = nullptr;
+  const v8::internal::Register* kParamRegisters = nullptr;
   const int kParamRegisterCount = 0;
 #endif
 
@@ -208,7 +200,8 @@ CallDescriptor* Linkage::GetSimplifiedCDescriptor(
   // Add register and/or stack parameter(s).
   for (int i = 0; i < parameter_count; i++) {
     if (i < kParamRegisterCount) {
-      locations.AddParam(regloc(kParamRegisters[i], msig->GetParam(i)));
+      locations.AddParam(LinkageLocation::ForRegister(kParamRegisters[i].code(),
+                                                      msig->GetParam(i)));
     } else {
       locations.AddParam(LinkageLocation::ForCallerFrameSlot(
           -1 - stack_offset, msig->GetParam(i)));

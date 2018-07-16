@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -13,7 +12,7 @@ const server = h2.createServer();
 server.on('stream', common.mustCall(onStream));
 
 function onStream(stream, headers, flags) {
-  stream.rstStream();
+  stream.close();
 
   assert.throws(() => {
     stream.additionalHeaders({
@@ -29,19 +28,13 @@ function onStream(stream, headers, flags) {
 server.listen(0);
 
 server.on('listening', common.mustCall(() => {
-
   const client = h2.connect(`http://localhost:${server.address().port}`);
-
-  const req = client.request({ ':path': '/' });
-
+  const req = client.request();
   req.on('headers', common.mustNotCall());
-
-  req.on('streamClosed', common.mustCall((code) => {
+  req.on('close', common.mustCall((code) => {
     assert.strictEqual(h2.constants.NGHTTP2_NO_ERROR, code);
     server.close();
-    client.destroy();
+    client.close();
   }));
-
   req.on('response', common.mustNotCall());
-
 }));

@@ -6,197 +6,120 @@
 #define V8_HEAP_MARK_COMPACT_H_
 
 #include <deque>
+#include <vector>
 
-#include "src/base/bits.h"
-#include "src/base/platform/condition-variable.h"
-#include "src/cancelable-task.h"
-#include "src/heap/concurrent-marking-deque.h"
 #include "src/heap/marking.h"
 #include "src/heap/sequential-marking-deque.h"
 #include "src/heap/spaces.h"
-#include "src/heap/store-buffer.h"
+#include "src/heap/worklist.h"
 
 namespace v8 {
 namespace internal {
 
 // Forward declarations.
-class CodeFlusher;
 class EvacuationJobTraits;
 class HeapObjectVisitor;
-class LocalWorkStealingMarkingDeque;
-class MarkCompactCollector;
-class MinorMarkCompactCollector;
-class MarkingVisitor;
+class ItemParallelJob;
 class MigrationObserver;
-template <typename JobTraits>
-class PageParallelJob;
 class RecordMigratedSlotVisitor;
-class ThreadLocalTop;
-class WorkStealingMarkingDeque;
+class UpdatingItem;
 class YoungGenerationMarkingVisitor;
 
-#ifdef V8_CONCURRENT_MARKING
-using MarkingDeque = ConcurrentMarkingDeque;
-#else
-using MarkingDeque = SequentialMarkingDeque;
-#endif
-
-class ObjectMarking : public AllStatic {
+template <typename ConcreteState, AccessMode access_mode>
+class MarkingStateBase {
  public:
-  V8_INLINE static MarkBit MarkBitFrom(HeapObject* obj,
-                                       const MarkingState& state) {
-    const Address address = obj->address();
-    const MemoryChunk* p = MemoryChunk::FromAddress(address);
-    return state.bitmap()->MarkBitFromIndex(p->AddressToMarkbitIndex(address));
+  V8_INLINE MarkBit MarkBitFrom(HeapObject* obj) {
+    return MarkBitFrom(MemoryChunk::FromAddress(obj->address()),
+                       obj->address());
   }
 
-  static Marking::ObjectColor Color(HeapObject* obj,
-                                    const MarkingState& state) {
-    return Marking::Color(ObjectMarking::MarkBitFrom(obj, state));
+  V8_INLINE MarkBit MarkBitFrom(MemoryChunk* p, Address addr) {
+    return static_cast<ConcreteState*>(this)->bitmap(p)->MarkBitFromIndex(
+        p->AddressToMarkbitIndex(addr));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool IsImpossible(HeapObject* obj,
-                                     const MarkingState& state) {
-    return Marking::IsImpossible<access_mode>(MarkBitFrom(obj, state));
+  Marking::ObjectColor Color(HeapObject* obj) {
+    return Marking::Color(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool IsBlack(HeapObject* obj, const MarkingState& state) {
-    return Marking::IsBlack<access_mode>(MarkBitFrom(obj, state));
+  V8_INLINE bool IsImpossible(HeapObject* obj) {
+    return Marking::IsImpossible<access_mode>(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool IsWhite(HeapObject* obj, const MarkingState& state) {
-    return Marking::IsWhite<access_mode>(MarkBitFrom(obj, state));
+  V8_INLINE bool IsBlack(HeapObject* obj) {
+    return Marking::IsBlack<access_mode>(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool IsGrey(HeapObject* obj, const MarkingState& state) {
-    return Marking::IsGrey<access_mode>(MarkBitFrom(obj, state));
+  V8_INLINE bool IsWhite(HeapObject* obj) {
+    return Marking::IsWhite<access_mode>(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool IsBlackOrGrey(HeapObject* obj,
-                                      const MarkingState& state) {
-    return Marking::IsBlackOrGrey<access_mode>(MarkBitFrom(obj, state));
+  V8_INLINE bool IsGrey(HeapObject* obj) {
+    return Marking::IsGrey<access_mode>(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool BlackToGrey(HeapObject* obj,
-                                    const MarkingState& state) {
-    MarkBit markbit = MarkBitFrom(obj, state);
+  V8_INLINE bool IsBlackOrGrey(HeapObject* obj) {
+    return Marking::IsBlackOrGrey<access_mode>(MarkBitFrom(obj));
+  }
+
+  V8_INLINE bool BlackToGrey(HeapObject* obj) {
+    MemoryChunk* p = MemoryChunk::FromAddress(obj->address());
+    MarkBit markbit = MarkBitFrom(p, obj->address());
     if (!Marking::BlackToGrey<access_mode>(markbit)) return false;
-    state.IncrementLiveBytes<access_mode>(-obj->Size());
+    static_cast<ConcreteState*>(this)->IncrementLiveBytes(p, -obj->Size());
     return true;
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool WhiteToGrey(HeapObject* obj,
-                                    const MarkingState& state) {
-    return Marking::WhiteToGrey<access_mode>(MarkBitFrom(obj, state));
+  V8_INLINE bool WhiteToGrey(HeapObject* obj) {
+    return Marking::WhiteToGrey<access_mode>(MarkBitFrom(obj));
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool WhiteToBlack(HeapObject* obj,
-                                     const MarkingState& state) {
-    return ObjectMarking::WhiteToGrey<access_mode>(obj, state) &&
-           ObjectMarking::GreyToBlack<access_mode>(obj, state);
+  V8_INLINE bool WhiteToBlack(HeapObject* obj) {
+    return WhiteToGrey(obj) && GreyToBlack(obj);
   }
 
-  template <MarkBit::AccessMode access_mode = MarkBit::NON_ATOMIC>
-  V8_INLINE static bool GreyToBlack(HeapObject* obj,
-                                    const MarkingState& state) {
-    MarkBit markbit = MarkBitFrom(obj, state);
+  V8_INLINE bool GreyToBlack(HeapObject* obj) {
+    MemoryChunk* p = MemoryChunk::FromAddress(obj->address());
+    MarkBit markbit = MarkBitFrom(p, obj->address());
     if (!Marking::GreyToBlack<access_mode>(markbit)) return false;
-    state.IncrementLiveBytes<access_mode>(obj->Size());
+    static_cast<ConcreteState*>(this)->IncrementLiveBytes(p, obj->Size());
     return true;
   }
 
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectMarking);
-};
-
-// CodeFlusher collects candidates for code flushing during marking and
-// processes those candidates after marking has completed in order to
-// reset those functions referencing code objects that would otherwise
-// be unreachable. Code objects can be referenced in two ways:
-//    - SharedFunctionInfo references unoptimized code.
-//    - JSFunction references either unoptimized or optimized code.
-// We are not allowed to flush unoptimized code for functions that got
-// optimized or inlined into optimized code, because we might bailout
-// into the unoptimized code again during deoptimization.
-class CodeFlusher {
- public:
-  explicit CodeFlusher(Isolate* isolate)
-      : isolate_(isolate),
-        jsfunction_candidates_head_(nullptr),
-        shared_function_info_candidates_head_(nullptr) {}
-
-  inline void AddCandidate(SharedFunctionInfo* shared_info);
-  inline void AddCandidate(JSFunction* function);
-
-  void EvictCandidate(SharedFunctionInfo* shared_info);
-  void EvictCandidate(JSFunction* function);
-
-  void ProcessCandidates() {
-    ProcessSharedFunctionInfoCandidates();
-    ProcessJSFunctionCandidates();
+  void ClearLiveness(MemoryChunk* chunk) {
+    static_cast<ConcreteState*>(this)->bitmap(chunk)->Clear();
+    static_cast<ConcreteState*>(this)->SetLiveBytes(chunk, 0);
   }
-
-  inline void VisitListHeads(RootVisitor* v);
-
-  template <typename StaticVisitor>
-  inline void IteratePointersToFromSpace();
-
- private:
-  void ProcessJSFunctionCandidates();
-  void ProcessSharedFunctionInfoCandidates();
-
-  static inline JSFunction** GetNextCandidateSlot(JSFunction* candidate);
-  static inline JSFunction* GetNextCandidate(JSFunction* candidate);
-  static inline void SetNextCandidate(JSFunction* candidate,
-                                      JSFunction* next_candidate);
-  static inline void ClearNextCandidate(JSFunction* candidate,
-                                        Object* undefined);
-
-  static inline SharedFunctionInfo* GetNextCandidate(
-      SharedFunctionInfo* candidate);
-  static inline void SetNextCandidate(SharedFunctionInfo* candidate,
-                                      SharedFunctionInfo* next_candidate);
-  static inline void ClearNextCandidate(SharedFunctionInfo* candidate);
-
-  Isolate* isolate_;
-  JSFunction* jsfunction_candidates_head_;
-  SharedFunctionInfo* shared_function_info_candidates_head_;
-
-  DISALLOW_COPY_AND_ASSIGN(CodeFlusher);
 };
 
-class MarkBitCellIterator BASE_EMBEDDED {
+class MarkBitCellIterator {
  public:
-  MarkBitCellIterator(MemoryChunk* chunk, MarkingState state) : chunk_(chunk) {
-    last_cell_index_ = Bitmap::IndexToCell(Bitmap::CellAlignIndex(
+  MarkBitCellIterator(MemoryChunk* chunk, Bitmap* bitmap) : chunk_(chunk) {
+    DCHECK(Bitmap::IsCellAligned(
+        chunk_->AddressToMarkbitIndex(chunk_->area_start())));
+    DCHECK(Bitmap::IsCellAligned(
         chunk_->AddressToMarkbitIndex(chunk_->area_end())));
+    last_cell_index_ =
+        Bitmap::IndexToCell(chunk_->AddressToMarkbitIndex(chunk_->area_end()));
     cell_base_ = chunk_->area_start();
-    cell_index_ = Bitmap::IndexToCell(
-        Bitmap::CellAlignIndex(chunk_->AddressToMarkbitIndex(cell_base_)));
-    cells_ = state.bitmap()->cells();
+    cell_index_ =
+        Bitmap::IndexToCell(chunk_->AddressToMarkbitIndex(cell_base_));
+    cells_ = bitmap->cells();
   }
 
-  inline bool Done() { return cell_index_ == last_cell_index_; }
+  inline bool Done() { return cell_index_ >= last_cell_index_; }
 
   inline bool HasNext() { return cell_index_ < last_cell_index_ - 1; }
 
   inline MarkBit::CellType* CurrentCell() {
-    DCHECK(cell_index_ == Bitmap::IndexToCell(Bitmap::CellAlignIndex(
-                              chunk_->AddressToMarkbitIndex(cell_base_))));
+    DCHECK_EQ(cell_index_, Bitmap::IndexToCell(Bitmap::CellAlignIndex(
+                               chunk_->AddressToMarkbitIndex(cell_base_))));
     return &cells_[cell_index_];
   }
 
   inline Address CurrentCellBase() {
-    DCHECK(cell_index_ == Bitmap::IndexToCell(Bitmap::CellAlignIndex(
-                              chunk_->AddressToMarkbitIndex(cell_base_))));
+    DCHECK_EQ(cell_index_, Bitmap::IndexToCell(Bitmap::CellAlignIndex(
+                               chunk_->AddressToMarkbitIndex(cell_base_))));
     return cell_base_;
   }
 
@@ -233,65 +156,109 @@ class MarkBitCellIterator BASE_EMBEDDED {
   Address cell_base_;
 };
 
-// Grey objects can happen on black pages when black objects transition to
-// grey e.g. when calling RecordWrites on them.
 enum LiveObjectIterationMode {
   kBlackObjects,
   kGreyObjects,
   kAllLiveObjects
 };
 
-template <LiveObjectIterationMode T>
-class LiveObjectIterator BASE_EMBEDDED {
+template <LiveObjectIterationMode mode>
+class LiveObjectRange {
  public:
-  LiveObjectIterator(MemoryChunk* chunk, MarkingState state)
-      : chunk_(chunk),
-        it_(chunk_, state),
-        cell_base_(it_.CurrentCellBase()),
-        current_cell_(*it_.CurrentCell()) {}
+  class iterator {
+   public:
+    using value_type = std::pair<HeapObject*, int /* size */>;
+    using pointer = const value_type*;
+    using reference = const value_type&;
+    using iterator_category = std::forward_iterator_tag;
 
-  HeapObject* Next();
+    inline iterator(MemoryChunk* chunk, Bitmap* bitmap, Address start);
+
+    inline iterator& operator++();
+    inline iterator operator++(int);
+
+    bool operator==(iterator other) const {
+      return current_object_ == other.current_object_;
+    }
+
+    bool operator!=(iterator other) const { return !(*this == other); }
+
+    value_type operator*() {
+      return std::make_pair(current_object_, current_size_);
+    }
+
+   private:
+    inline void AdvanceToNextValidObject();
+
+    MemoryChunk* const chunk_;
+    Map* const one_word_filler_map_;
+    Map* const two_word_filler_map_;
+    Map* const free_space_map_;
+    MarkBitCellIterator it_;
+    Address cell_base_;
+    MarkBit::CellType current_cell_;
+    HeapObject* current_object_;
+    int current_size_;
+  };
+
+  LiveObjectRange(MemoryChunk* chunk, Bitmap* bitmap)
+      : chunk_(chunk),
+        bitmap_(bitmap),
+        start_(chunk_->area_start()),
+        end_(chunk->area_end()) {}
+
+  inline iterator begin();
+  inline iterator end();
 
  private:
-  inline Heap* heap() { return chunk_->heap(); }
-
-  MemoryChunk* chunk_;
-  MarkBitCellIterator it_;
-  Address cell_base_;
-  MarkBit::CellType current_cell_;
+  MemoryChunk* const chunk_;
+  Bitmap* bitmap_;
+  Address start_;
+  Address end_;
 };
 
-class LiveObjectVisitor BASE_EMBEDDED {
+class LiveObjectVisitor : AllStatic {
  public:
   enum IterationMode {
     kKeepMarking,
     kClearMarkbits,
   };
 
-  // Visits black objects on a MemoryChunk until the Visitor returns for an
-  // object. If IterationMode::kClearMarkbits is passed the markbits and slots
-  // for visited objects are cleared for each successfully visited object.
-  template <class Visitor>
-  bool VisitBlackObjects(MemoryChunk* chunk, const MarkingState& state,
-                         Visitor* visitor, IterationMode iteration_mode);
+  // Visits black objects on a MemoryChunk until the Visitor returns |false| for
+  // an object. If IterationMode::kClearMarkbits is passed the markbits and
+  // slots for visited objects are cleared for each successfully visited object.
+  template <class Visitor, typename MarkingState>
+  static bool VisitBlackObjects(MemoryChunk* chunk, MarkingState* state,
+                                Visitor* visitor, IterationMode iteration_mode,
+                                HeapObject** failed_object);
 
- private:
-  void RecomputeLiveBytes(MemoryChunk* chunk, const MarkingState& state);
+  // Visits black objects on a MemoryChunk. The visitor is not allowed to fail
+  // visitation for an object.
+  template <class Visitor, typename MarkingState>
+  static void VisitBlackObjectsNoFail(MemoryChunk* chunk, MarkingState* state,
+                                      Visitor* visitor,
+                                      IterationMode iteration_mode);
+
+  // Visits black objects on a MemoryChunk. The visitor is not allowed to fail
+  // visitation for an object.
+  template <class Visitor, typename MarkingState>
+  static void VisitGreyObjectsNoFail(MemoryChunk* chunk, MarkingState* state,
+                                     Visitor* visitor,
+                                     IterationMode iteration_mode);
+
+  template <typename MarkingState>
+  static void RecomputeLiveBytes(MemoryChunk* chunk, MarkingState* state);
 };
 
 enum PageEvacuationMode { NEW_TO_NEW, NEW_TO_OLD };
 enum FreeSpaceTreatmentMode { IGNORE_FREE_SPACE, ZAP_FREE_SPACE };
 enum MarkingTreatmentMode { KEEP, CLEAR };
+enum class RememberedSetUpdatingMode { ALL, OLD_TO_NEW_ONLY };
 
 // Base class for minor and full MC collectors.
 class MarkCompactCollectorBase {
  public:
   virtual ~MarkCompactCollectorBase() {}
-
-  // Note: Make sure to refer to the instances by their concrete collector
-  // type to avoid vtable lookups marking state methods when used in hot paths.
-  virtual MarkingState marking_state(HeapObject* object) const = 0;
-  virtual MarkingState marking_state(MemoryChunk* chunk) const = 0;
 
   virtual void SetUp() = 0;
   virtual void TearDown() = 0;
@@ -301,14 +268,15 @@ class MarkCompactCollectorBase {
   inline Isolate* isolate() { return heap()->isolate(); }
 
  protected:
-  explicit MarkCompactCollectorBase(Heap* heap) : heap_(heap) {}
+  explicit MarkCompactCollectorBase(Heap* heap)
+      : heap_(heap), old_to_new_slots_(0) {}
 
   // Marking operations for objects reachable from roots.
   virtual void MarkLiveObjects() = 0;
   // Mark objects reachable (transitively) from objects in the marking
   // stack.
-  virtual void EmptyMarkingDeque() = 0;
-  virtual void ProcessMarkingDeque() = 0;
+  virtual void EmptyMarkingWorklist() = 0;
+  virtual void ProcessMarkingWorklist() = 0;
   // Clear non-live references held in side data structures.
   virtual void ClearNonLiveReferences() = 0;
   virtual void EvacuatePrologue() = 0;
@@ -316,41 +284,97 @@ class MarkCompactCollectorBase {
   virtual void Evacuate() = 0;
   virtual void EvacuatePagesInParallel() = 0;
   virtual void UpdatePointersAfterEvacuation() = 0;
-
-  // The number of parallel compaction tasks, including the main thread.
-  int NumberOfParallelCompactionTasks(int pages, intptr_t live_bytes);
+  virtual UpdatingItem* CreateToSpaceUpdatingItem(MemoryChunk* chunk,
+                                                  Address start,
+                                                  Address end) = 0;
+  virtual UpdatingItem* CreateRememberedSetUpdatingItem(
+      MemoryChunk* chunk, RememberedSetUpdatingMode updating_mode) = 0;
 
   template <class Evacuator, class Collector>
   void CreateAndExecuteEvacuationTasks(
-      Collector* collector, PageParallelJob<EvacuationJobTraits>* job,
+      Collector* collector, ItemParallelJob* job,
       RecordMigratedSlotVisitor* record_visitor,
       MigrationObserver* migration_observer, const intptr_t live_bytes);
 
   // Returns whether this page should be moved according to heuristics.
   bool ShouldMovePage(Page* p, intptr_t live_bytes);
 
-  template <RememberedSetType type>
-  void UpdatePointersInParallel(Heap* heap, base::Semaphore* semaphore,
-                                const MarkCompactCollectorBase* collector);
+  int CollectToSpaceUpdatingItems(ItemParallelJob* job);
+  template <typename IterateableSpace>
+  int CollectRememberedSetUpdatingItems(ItemParallelJob* job,
+                                        IterateableSpace* space,
+                                        RememberedSetUpdatingMode mode);
 
   int NumberOfParallelCompactionTasks(int pages);
-  int NumberOfPointerUpdateTasks(int pages);
+  int NumberOfParallelPointerUpdateTasks(int pages, int slots);
+  int NumberOfParallelToSpacePointerUpdateTasks(int pages);
 
   Heap* heap_;
+  // Number of old to new slots. Should be computed during MarkLiveObjects.
+  // -1 indicates that the value couldn't be computed.
+  int old_to_new_slots_;
+};
+
+class MinorMarkingState final
+    : public MarkingStateBase<MinorMarkingState, AccessMode::ATOMIC> {
+ public:
+  Bitmap* bitmap(const MemoryChunk* chunk) const {
+    return chunk->young_generation_bitmap_;
+  }
+
+  void IncrementLiveBytes(MemoryChunk* chunk, intptr_t by) {
+    reinterpret_cast<base::AtomicNumber<intptr_t>*>(
+        &chunk->young_generation_live_byte_count_)
+        ->Increment(by);
+  }
+
+  intptr_t live_bytes(MemoryChunk* chunk) const {
+    return reinterpret_cast<base::AtomicNumber<intptr_t>*>(
+               &chunk->young_generation_live_byte_count_)
+        ->Value();
+  }
+
+  void SetLiveBytes(MemoryChunk* chunk, intptr_t value) {
+    reinterpret_cast<base::AtomicNumber<intptr_t>*>(
+        &chunk->young_generation_live_byte_count_)
+        ->SetValue(value);
+  }
+};
+
+class MinorNonAtomicMarkingState final
+    : public MarkingStateBase<MinorNonAtomicMarkingState,
+                              AccessMode::NON_ATOMIC> {
+ public:
+  Bitmap* bitmap(const MemoryChunk* chunk) const {
+    return chunk->young_generation_bitmap_;
+  }
+
+  void IncrementLiveBytes(MemoryChunk* chunk, intptr_t by) {
+    chunk->young_generation_live_byte_count_ += by;
+  }
+
+  intptr_t live_bytes(MemoryChunk* chunk) const {
+    return chunk->young_generation_live_byte_count_;
+  }
+
+  void SetLiveBytes(MemoryChunk* chunk, intptr_t value) {
+    chunk->young_generation_live_byte_count_ = value;
+  }
 };
 
 // Collector for young-generation only.
 class MinorMarkCompactCollector final : public MarkCompactCollectorBase {
  public:
+  using MarkingState = MinorMarkingState;
+  using NonAtomicMarkingState = MinorNonAtomicMarkingState;
+
   explicit MinorMarkCompactCollector(Heap* heap);
   ~MinorMarkCompactCollector();
 
-  MarkingState marking_state(HeapObject* object) const override {
-    return MarkingState::External(object);
-  }
+  MarkingState* marking_state() { return &marking_state_; }
 
-  MarkingState marking_state(MemoryChunk* chunk) const override {
-    return MarkingState::External(chunk);
+  NonAtomicMarkingState* non_atomic_marking_state() {
+    return &non_atomic_marking_state_;
   }
 
   void SetUp() override;
@@ -362,24 +386,22 @@ class MinorMarkCompactCollector final : public MarkCompactCollectorBase {
   void CleanupSweepToIteratePages();
 
  private:
-  class RootMarkingVisitorSeedOnly;
+  using MarkingWorklist = Worklist<HeapObject*, 64 /* segment size */>;
   class RootMarkingVisitor;
 
-  static const int kNumMarkers = 4;
+  static const int kNumMarkers = 8;
   static const int kMainMarker = 0;
 
-  inline WorkStealingMarkingDeque* marking_deque() { return marking_deque_; }
+  inline MarkingWorklist* worklist() { return worklist_; }
 
-  inline YoungGenerationMarkingVisitor* marking_visitor(int index) {
-    DCHECK_LT(index, kNumMarkers);
-    return marking_visitor_[index];
+  inline YoungGenerationMarkingVisitor* main_marking_visitor() {
+    return main_marking_visitor_;
   }
 
-  SlotCallbackResult CheckAndMarkObject(Heap* heap, Address slot_address);
   void MarkLiveObjects() override;
   void MarkRootSetInParallel();
-  void ProcessMarkingDeque() override;
-  void EmptyMarkingDeque() override;
+  void ProcessMarkingWorklist() override;
+  void EmptyMarkingWorklist() override;
   void ClearNonLiveReferences() override;
 
   void EvacuatePrologue() override;
@@ -388,28 +410,189 @@ class MinorMarkCompactCollector final : public MarkCompactCollectorBase {
   void EvacuatePagesInParallel() override;
   void UpdatePointersAfterEvacuation() override;
 
-  int NumberOfMarkingTasks();
+  UpdatingItem* CreateToSpaceUpdatingItem(MemoryChunk* chunk, Address start,
+                                          Address end) override;
+  UpdatingItem* CreateRememberedSetUpdatingItem(
+      MemoryChunk* chunk, RememberedSetUpdatingMode updating_mode) override;
 
-  WorkStealingMarkingDeque* marking_deque_;
-  YoungGenerationMarkingVisitor* marking_visitor_[kNumMarkers];
+  void CollectNewSpaceArrayBufferTrackerItems(ItemParallelJob* job);
+
+  int NumberOfParallelMarkingTasks(int pages);
+
+  MarkingWorklist* worklist_;
+
+  YoungGenerationMarkingVisitor* main_marking_visitor_;
   base::Semaphore page_parallel_job_semaphore_;
-  List<Page*> new_space_evacuation_pages_;
+  std::vector<Page*> new_space_evacuation_pages_;
   std::vector<Page*> sweep_to_iterate_pages_;
 
-  friend class MarkYoungGenerationJobTraits;
+  MarkingState marking_state_;
+  NonAtomicMarkingState non_atomic_marking_state_;
+
   friend class YoungGenerationMarkingTask;
   friend class YoungGenerationMarkingVisitor;
+};
+
+class MajorAtomicMarkingState final
+    : public MarkingStateBase<MajorAtomicMarkingState, AccessMode::ATOMIC> {
+ public:
+  Bitmap* bitmap(const MemoryChunk* chunk) const {
+    return Bitmap::FromAddress(chunk->address() + MemoryChunk::kHeaderSize);
+  }
+
+  void IncrementLiveBytes(MemoryChunk* chunk, intptr_t by) {
+    reinterpret_cast<base::AtomicNumber<intptr_t>*>(&chunk->live_byte_count_)
+        ->Increment(by);
+  }
+
+  intptr_t live_bytes(MemoryChunk* chunk) const {
+    return reinterpret_cast<base::AtomicNumber<intptr_t>*>(
+               &chunk->live_byte_count_)
+        ->Value();
+  }
+
+  void SetLiveBytes(MemoryChunk* chunk, intptr_t value) {
+    reinterpret_cast<base::AtomicNumber<intptr_t>*>(&chunk->live_byte_count_)
+        ->SetValue(value);
+  }
+};
+
+class MajorNonAtomicMarkingState final
+    : public MarkingStateBase<MajorNonAtomicMarkingState,
+                              AccessMode::NON_ATOMIC> {
+ public:
+  Bitmap* bitmap(const MemoryChunk* chunk) const {
+    return Bitmap::FromAddress(chunk->address() + MemoryChunk::kHeaderSize);
+  }
+
+  void IncrementLiveBytes(MemoryChunk* chunk, intptr_t by) {
+    chunk->live_byte_count_ += by;
+  }
+
+  intptr_t live_bytes(MemoryChunk* chunk) const {
+    return chunk->live_byte_count_;
+  }
+
+  void SetLiveBytes(MemoryChunk* chunk, intptr_t value) {
+    chunk->live_byte_count_ = value;
+  }
+};
+
+// Weak objects encountered during marking.
+struct WeakObjects {
+  Worklist<WeakCell*, 64> weak_cells;
+  Worklist<TransitionArray*, 64> transition_arrays;
 };
 
 // Collector for young and old generation.
 class MarkCompactCollector final : public MarkCompactCollectorBase {
  public:
+  using NonAtomicMarkingState = MajorNonAtomicMarkingState;
+
+  static const int kMainThread = 0;
+  // Wrapper for the shared and bailout worklists.
+  class MarkingWorklist {
+   public:
+    using ConcurrentMarkingWorklist = Worklist<HeapObject*, 64>;
+
+    // The heap parameter is not used but needed to match the sequential case.
+    explicit MarkingWorklist(Heap* heap) {}
+
+    bool Push(HeapObject* object) { return shared_.Push(kMainThread, object); }
+
+    bool PushBailout(HeapObject* object) {
+      return bailout_.Push(kMainThread, object);
+    }
+
+    HeapObject* Pop() {
+      HeapObject* result;
+#ifdef V8_CONCURRENT_MARKING
+      if (bailout_.Pop(kMainThread, &result)) return result;
+#endif
+      if (shared_.Pop(kMainThread, &result)) return result;
+      return nullptr;
+    }
+
+    void Clear() {
+      bailout_.Clear();
+      shared_.Clear();
+    }
+
+    bool IsFull() { return false; }
+
+    bool IsEmpty() {
+      return bailout_.IsLocalEmpty(kMainThread) &&
+             shared_.IsLocalEmpty(kMainThread) &&
+             bailout_.IsGlobalPoolEmpty() && shared_.IsGlobalPoolEmpty();
+    }
+
+    int Size() {
+      return static_cast<int>(bailout_.LocalSize(kMainThread) +
+                              shared_.LocalSize(kMainThread));
+    }
+
+    // Calls the specified callback on each element of the deques and replaces
+    // the element with the result of the callback. If the callback returns
+    // nullptr then the element is removed from the deque.
+    // The callback must accept HeapObject* and return HeapObject*.
+    template <typename Callback>
+    void Update(Callback callback) {
+      bailout_.Update(callback);
+      shared_.Update(callback);
+    }
+
+    ConcurrentMarkingWorklist* shared() { return &shared_; }
+    ConcurrentMarkingWorklist* bailout() { return &bailout_; }
+
+    // These empty functions are needed to match the interface
+    // of the sequential marking deque.
+    void SetUp() {}
+    void TearDown() { Clear(); }
+    void StartUsing() {}
+    void StopUsing() {}
+    void ClearOverflowed() {}
+    void SetOverflowed() {}
+    bool overflowed() const { return false; }
+
+    void Print() {
+      PrintWorklist("shared", &shared_);
+      PrintWorklist("bailout", &bailout_);
+    }
+
+   private:
+    // Prints the stats about the global pool of the worklist.
+    void PrintWorklist(const char* worklist_name,
+                       ConcurrentMarkingWorklist* worklist) {
+      std::map<InstanceType, int> count;
+      int total_count = 0;
+      worklist->IterateGlobalPool([&count, &total_count](HeapObject* obj) {
+        ++total_count;
+        count[obj->map()->instance_type()]++;
+      });
+      std::vector<std::pair<int, InstanceType>> rank;
+      for (auto i : count) {
+        rank.push_back(std::make_pair(i.second, i.first));
+      }
+      std::map<InstanceType, std::string> instance_type_name;
+#define INSTANCE_TYPE_NAME(name) instance_type_name[name] = #name;
+      INSTANCE_TYPE_LIST(INSTANCE_TYPE_NAME)
+#undef INSTANCE_TYPE_NAME
+      std::sort(rank.begin(), rank.end(),
+                std::greater<std::pair<int, InstanceType>>());
+      PrintF("Worklist %s: %d\n", worklist_name, total_count);
+      for (auto i : rank) {
+        PrintF("  [%s]: %d\n", instance_type_name[i.second].c_str(), i.first);
+      }
+    }
+    ConcurrentMarkingWorklist shared_;
+    ConcurrentMarkingWorklist bailout_;
+  };
+
   class RootMarkingVisitor;
+  class CustomRootBodyMarkingVisitor;
 
   class Sweeper {
    public:
-    class SweeperTask;
-
     enum FreeListRebuildingMode { REBUILD_FREE_LIST, IGNORE_FREE_LIST };
     enum ClearOldToNewSlotsMode {
       DO_NOT_CLEAR,
@@ -418,15 +601,17 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
     };
 
     typedef std::deque<Page*> SweepingList;
-    typedef List<Page*> SweptList;
+    typedef std::vector<Page*> SweptList;
 
-    static int RawSweep(Page* p, FreeListRebuildingMode free_list_mode,
-                        FreeSpaceTreatmentMode free_space_mode);
+    int RawSweep(Page* p, FreeListRebuildingMode free_list_mode,
+                 FreeSpaceTreatmentMode free_space_mode);
 
-    explicit Sweeper(Heap* heap)
+    explicit Sweeper(Heap* heap,
+                     MarkCompactCollector::NonAtomicMarkingState* marking_state)
         : heap_(heap),
+          marking_state_(marking_state),
+          num_tasks_(0),
           pending_sweeper_tasks_semaphore_(0),
-          semaphore_counter_(0),
           sweeping_in_progress_(false),
           num_sweeping_tasks_(0) {}
 
@@ -452,9 +637,10 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
     Page* GetSweptPageSafe(PagedSpace* space);
 
    private:
-    static const int kAllocationSpaces = LAST_PAGED_SPACE + 1;
+    class SweeperTask;
 
-    static ClearOldToNewSlotsMode GetClearOldToNewSlotsMode(Page* p);
+    static const int kAllocationSpaces = LAST_PAGED_SPACE + 1;
+    static const int kMaxSweeperTasks = kAllocationSpaces;
 
     template <typename Callback>
     void ForAllSweepingSpaces(Callback callback) {
@@ -464,14 +650,14 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
     }
 
     Page* GetSweepingPageSafe(AllocationSpace space);
-    void AddSweepingPageSafe(AllocationSpace space, Page* page);
 
     void PrepareToBeSweptPage(AllocationSpace space, Page* page);
 
-    Heap* heap_;
+    Heap* const heap_;
+    MarkCompactCollector::NonAtomicMarkingState* marking_state_;
+    int num_tasks_;
+    CancelableTaskManager::Id task_ids_[kMaxSweeperTasks];
     base::Semaphore pending_sweeper_tasks_semaphore_;
-    // Counter is only used for waiting on the semaphore.
-    intptr_t semaphore_counter_;
     base::Mutex mutex_;
     SweptList swept_list_[kAllocationSpaces];
     SweepingList sweeping_list_[kAllocationSpaces];
@@ -486,14 +672,8 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
     kClearMarkbits,
   };
 
-  static void Initialize();
-
-  MarkingState marking_state(HeapObject* object) const override {
-    return MarkingState::Internal(object);
-  }
-
-  MarkingState marking_state(MemoryChunk* chunk) const override {
-    return MarkingState::Internal(chunk);
+  NonAtomicMarkingState* non_atomic_marking_state() {
+    return &non_atomic_marking_state_;
   }
 
   void SetUp() override;
@@ -513,31 +693,18 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
 
   void AbortCompaction();
 
-  CodeFlusher* code_flusher() { return code_flusher_; }
-  inline bool is_code_flushing_enabled() const { return code_flusher_ != NULL; }
-
-  INLINE(static bool ShouldSkipEvacuationSlotRecording(Object* host)) {
-    return Page::FromAddress(reinterpret_cast<Address>(host))
-        ->ShouldSkipEvacuationSlotRecording();
-  }
-
   static inline bool IsOnEvacuationCandidate(HeapObject* obj) {
     return Page::FromAddress(reinterpret_cast<Address>(obj))
         ->IsEvacuationCandidate();
   }
 
   void RecordRelocSlot(Code* host, RelocInfo* rinfo, Object* target);
-  void RecordCodeEntrySlot(HeapObject* host, Address slot, Code* target);
-  void RecordCodeTargetPatch(Address pc, Code* target);
-  INLINE(void RecordSlot(HeapObject* object, Object** slot, Object* target));
-  INLINE(void ForceRecordSlot(HeapObject* object, Object** slot,
-                              Object* target));
+  V8_INLINE static void RecordSlot(HeapObject* object, Object** slot,
+                                   Object* target);
   void RecordLiveSlotsOnPage(Page* page);
 
   void UpdateSlots(SlotsBuffer* buffer);
   void UpdateSlotsRecordedIn(SlotsBuffer* buffer);
-
-  void InvalidateCode(Code* code);
 
   void ClearMarkbits();
 
@@ -561,7 +728,17 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
 
   bool evacuation() const { return evacuation_; }
 
-  MarkingDeque* marking_deque() { return &marking_deque_; }
+  MarkingWorklist* marking_worklist() { return &marking_worklist_; }
+
+  WeakObjects* weak_objects() { return &weak_objects_; }
+
+  void AddWeakCell(WeakCell* weak_cell) {
+    weak_objects_.weak_cells.Push(kMainThread, weak_cell);
+  }
+
+  void AddTransitionArray(TransitionArray* array) {
+    weak_objects_.transition_arrays.Push(kMainThread, array);
+  }
 
   Sweeper& sweeper() { return sweeper_; }
 
@@ -574,10 +751,9 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
 #ifdef VERIFY_HEAP
   void VerifyValidStoreAndSlotsBufferEntries();
   void VerifyMarkbitsAreClean();
-  static void VerifyMarkbitsAreClean(PagedSpace* space);
-  static void VerifyMarkbitsAreClean(NewSpace* space);
+  void VerifyMarkbitsAreClean(PagedSpace* space);
+  void VerifyMarkbitsAreClean(NewSpace* space);
   void VerifyWeakEmbeddedObjectsInCode();
-  void VerifyOmittedMapChecks();
 #endif
 
  private:
@@ -596,34 +772,31 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
   // Finishes GC, performs heap verification if enabled.
   void Finish();
 
-  // Mark code objects that are active on the stack to prevent them
-  // from being flushed.
-  void PrepareThreadForCodeFlushing(Isolate* isolate, ThreadLocalTop* top);
-
-  void PrepareForCodeFlushing();
-
   void MarkLiveObjects() override;
 
-  // Pushes a black object onto the marking stack and accounts for live bytes.
-  // Note that this assumes live bytes have not yet been counted.
+  // Pushes a black object onto the marking work list.
   V8_INLINE void PushBlack(HeapObject* obj);
 
-  // Unshifts a black object into the marking stack and accounts for live bytes.
-  // Note that this assumes lives bytes have already been counted.
-  V8_INLINE void UnshiftBlack(HeapObject* obj);
-
-  // Marks the object black and pushes it on the marking stack.
+  // Marks the object black and adds it to the marking work list.
   // This is for non-incremental marking only.
-  V8_INLINE void MarkObject(HeapObject* obj);
+  V8_INLINE void MarkObject(HeapObject* host, HeapObject* obj);
+
+  // Marks the object black and adds it to the marking work list.
+  // This is for non-incremental marking only.
+  V8_INLINE void MarkRootObject(Root root, HeapObject* obj);
+
+  // Used by wrapper tracing.
+  V8_INLINE void MarkExternallyReferencedObject(HeapObject* obj);
 
   // Mark the heap roots and all objects reachable from them.
-  void MarkRoots(RootMarkingVisitor* visitor);
+  void MarkRoots(RootVisitor* root_visitor,
+                 ObjectVisitor* custom_root_body_visitor);
 
   // Mark the string table specially.  References to internalized strings from
   // the string table are weak.
-  void MarkStringTable(RootMarkingVisitor* visitor);
+  void MarkStringTable(ObjectVisitor* visitor);
 
-  void ProcessMarkingDeque() override;
+  void ProcessMarkingWorklist() override;
 
   // Mark objects reachable (transitively) from objects in the marking stack
   // or overflowed in the heap.  This respects references only considered in
@@ -634,24 +807,24 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
   void ProcessEphemeralMarking(bool only_process_harmony_weak_collections);
 
   // If the call-site of the top optimized code was not prepared for
-  // deoptimization, then treat the maps in the code as strong pointers,
-  // otherwise a map can die and deoptimize the code.
-  void ProcessTopOptimizedFrame(RootMarkingVisitor* visitor);
+  // deoptimization, then treat embedded pointers in the code as strong as
+  // otherwise they can die and try to deoptimize the underlying code.
+  void ProcessTopOptimizedFrame(ObjectVisitor* visitor);
 
   // Collects a list of dependent code from maps embedded in optimize code.
   DependentCode* DependentCodeListFromNonLiveMaps();
 
   // This function empties the marking stack, but may leave overflowed objects
   // in the heap, in which case the marking stack's overflow flag will be set.
-  void EmptyMarkingDeque() override;
+  void EmptyMarkingWorklist() override;
 
   // Refill the marking stack with overflowed objects from the heap.  This
   // function either leaves the marking stack full or clears the overflow
   // flag on the marking stack.
-  void RefillMarkingDeque();
+  void RefillMarkingWorklist();
 
   // Helper methods for refilling the marking stack by discovering grey objects
-  // on various pages of the heap. Used by {RefillMarkingDeque} only.
+  // on various pages of the heap. Used by {RefillMarkingWorklist} only.
   template <class T>
   void DiscoverGreyObjectsWithIterator(T* it);
   void DiscoverGreyObjectsOnPage(MemoryChunk* p);
@@ -666,10 +839,12 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
   // and deoptimize dependent code of non-live maps.
   void ClearNonLiveReferences() override;
   void MarkDependentCodeForDeoptimization(DependentCode* list);
-  // Find non-live targets of simple transitions in the given list. Clear
-  // transitions to non-live targets and if needed trim descriptors arrays.
-  void ClearSimpleMapTransitions(Object* non_live_map_list);
-  void ClearSimpleMapTransition(Map* map, Map* dead_transition);
+  // Checks if the given weak cell is a simple transition from the parent map
+  // of the given dead target. If so it clears the transition and trims
+  // the descriptor array of the parent if needed.
+  void ClearSimpleMapTransition(WeakCell* potential_transition,
+                                Map* dead_target);
+  void ClearSimpleMapTransition(Map* map, Map* dead_target);
   // Compact every array in the global list of transition arrays and
   // trim the corresponding descriptor array if a transition target is non-live.
   void ClearFullMapTransitions();
@@ -692,11 +867,13 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
   // collections when incremental marking is aborted.
   void AbortWeakCollections();
 
-  void ClearWeakCells(Object** non_live_map_list,
-                      DependentCode** dependent_code_list);
-  void AbortWeakCells();
-
-  void AbortTransitionArrays();
+  // Goes through the list of encountered weak cells and clears those with
+  // dead values. If the value is a dead map and the parent map transitions to
+  // the dead map via weak cell, then this function also clears the map
+  // transition.
+  void ClearWeakCellsAndSimpleMapTransitions(
+      DependentCode** dependent_code_list);
+  void AbortWeakObjects();
 
   // Starts sweeping of spaces by contributing on the main thread and setting
   // up other pages for sweeping. Does not start sweeper tasks.
@@ -709,9 +886,22 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
   void EvacuatePagesInParallel() override;
   void UpdatePointersAfterEvacuation() override;
 
+  UpdatingItem* CreateToSpaceUpdatingItem(MemoryChunk* chunk, Address start,
+                                          Address end) override;
+  UpdatingItem* CreateRememberedSetUpdatingItem(
+      MemoryChunk* chunk, RememberedSetUpdatingMode updating_mode) override;
+
+  void CollectNewSpaceArrayBufferTrackerItems(ItemParallelJob* job);
+  void CollectOldSpaceArrayBufferTrackerItems(ItemParallelJob* job);
+
   void ReleaseEvacuationCandidates();
   void PostProcessEvacuationCandidates();
+  void ReportAbortedEvacuationCandidate(HeapObject* failed_object, Page* page);
 
+  void ClearMarkbitsInPagedSpace(PagedSpace* space);
+  void ClearMarkbitsInNewSpace(NewSpace* space);
+
+  base::Mutex mutex_;
   base::Semaphore page_parallel_job_semaphore_;
 
 #ifdef DEBUG
@@ -741,29 +931,28 @@ class MarkCompactCollector final : public MarkCompactCollectorBase {
 
   bool have_code_to_deoptimize_;
 
-  MarkingDeque marking_deque_;
-
-  CodeFlusher* code_flusher_;
+  MarkingWorklist marking_worklist_;
+  WeakObjects weak_objects_;
 
   // Candidates for pages that should be evacuated.
-  List<Page*> evacuation_candidates_;
+  std::vector<Page*> evacuation_candidates_;
   // Pages that are actually processed during evacuation.
-  List<Page*> old_space_evacuation_pages_;
-  List<Page*> new_space_evacuation_pages_;
+  std::vector<Page*> old_space_evacuation_pages_;
+  std::vector<Page*> new_space_evacuation_pages_;
+  std::vector<std::pair<HeapObject*, Page*>> aborted_evacuation_candidates_;
 
   Sweeper sweeper_;
 
-  friend class CodeMarkingVisitor;
+  NonAtomicMarkingState non_atomic_marking_state_;
+
+  friend class FullEvacuator;
   friend class Heap;
   friend class IncrementalMarkingMarkingVisitor;
   friend class MarkCompactMarkingVisitor;
-  friend class MarkingVisitor;
   friend class RecordMigratedSlotVisitor;
-  friend class SharedFunctionInfoMarkingVisitor;
-  friend class StoreBuffer;
 };
 
-class EvacuationScope BASE_EMBEDDED {
+class EvacuationScope {
  public:
   explicit EvacuationScope(MarkCompactCollector* collector)
       : collector_(collector) {

@@ -25,7 +25,7 @@ function testCipher1(key) {
   let txt = decipher.update(ciph, 'hex', 'utf8');
   txt += decipher.final('utf8');
 
-  assert.strictEqual(txt, plaintext, 'encryption and decryption');
+  assert.strictEqual(txt, plaintext);
 
   // streaming cipher interface
   // NB: In real life, it's not guaranteed that you can get all of it
@@ -39,7 +39,7 @@ function testCipher1(key) {
   dStream.end(ciph);
   txt = dStream.read().toString('utf8');
 
-  assert.strictEqual(txt, plaintext, 'encryption and decryption with streams');
+  assert.strictEqual(txt, plaintext);
 }
 
 
@@ -61,7 +61,7 @@ function testCipher2(key) {
   let txt = decipher.update(ciph, 'base64', 'utf8');
   txt += decipher.final('utf8');
 
-  assert.strictEqual(txt, plaintext, 'encryption and decryption with Base64');
+  assert.strictEqual(txt, plaintext);
 }
 
 testCipher1('MySecretKey123');
@@ -70,7 +70,8 @@ testCipher1(Buffer.from('MySecretKey123'));
 testCipher2('0123456789abcdef');
 testCipher2(Buffer.from('0123456789abcdef'));
 
-// Base64 padding regression test, see #4837.
+// Base64 padding regression test, see
+// https://github.com/nodejs/node-v0.x-archive/issues/4837.
 {
   const c = crypto.createCipher('aes-256-cbc', 'secret');
   const s = c.update('test', 'utf8', 'base64') + c.final('base64');
@@ -78,7 +79,7 @@ testCipher2(Buffer.from('0123456789abcdef'));
 }
 
 // Calling Cipher.final() or Decipher.final() twice should error but
-// not assert. See #4886.
+// not assert. See https://github.com/nodejs/node-v0.x-archive/issues/4886.
 {
   const c = crypto.createCipher('aes-256-cbc', 'secret');
   try { c.final('xxx'); } catch (e) { /* Ignore. */ }
@@ -90,14 +91,16 @@ testCipher2(Buffer.from('0123456789abcdef'));
   try { d.final('xxx'); } catch (e) { /* Ignore. */ }
 }
 
-// Regression test for #5482: string to Cipher#update() should not assert.
+// Regression test for https://github.com/nodejs/node-v0.x-archive/issues/5482:
+// string to Cipher#update() should not assert.
 {
   const c = crypto.createCipher('aes192', '0123456789abcdef');
   c.update('update');
   c.final();
 }
 
-// #5655 regression tests, 'utf-8' and 'utf8' are identical.
+// https://github.com/nodejs/node-v0.x-archive/issues/5655 regression tests,
+// 'utf-8' and 'utf8' are identical.
 {
   let c = crypto.createCipher('aes192', '0123456789abcdef');
   c.update('update', '');  // Defaults to "utf8".
@@ -125,23 +128,23 @@ testCipher2(Buffer.from('0123456789abcdef'));
   let txt;
   assert.doesNotThrow(() => txt = decipher.update(ciph, 'base64', 'ucs2'));
   assert.doesNotThrow(() => txt += decipher.final('ucs2'));
-  assert.strictEqual(txt, plaintext, 'decrypted result in ucs2');
+  assert.strictEqual(txt, plaintext);
 
   decipher = crypto.createDecipher('aes192', key);
   assert.doesNotThrow(() => txt = decipher.update(ciph, 'base64', 'ucs-2'));
   assert.doesNotThrow(() => txt += decipher.final('ucs-2'));
-  assert.strictEqual(txt, plaintext, 'decrypted result in ucs-2');
+  assert.strictEqual(txt, plaintext);
 
   decipher = crypto.createDecipher('aes192', key);
   assert.doesNotThrow(() => txt = decipher.update(ciph, 'base64', 'utf-16le'));
   assert.doesNotThrow(() => txt += decipher.final('utf-16le'));
-  assert.strictEqual(txt, plaintext, 'decrypted result in utf-16le');
+  assert.strictEqual(txt, plaintext);
 }
 
 // setAutoPadding/setAuthTag/setAAD should return `this`
 {
   const key = '0123456789';
-  const tagbuf = Buffer.from('tagbuf');
+  const tagbuf = Buffer.from('auth_tag');
   const aadbuf = Buffer.from('aadbuf');
   const decipher = crypto.createDecipher('aes-256-gcm', key);
   assert.strictEqual(decipher.setAutoPadding(), decipher);
@@ -154,6 +157,9 @@ testCipher2(Buffer.from('0123456789abcdef'));
   const key = '0123456789';
   const aadbuf = Buffer.from('aadbuf');
   const data = Buffer.from('test-crypto-cipher-decipher');
+
+  common.expectWarning('Warning',
+                       'Use Cipheriv for counter mode of aes-256-gcm');
 
   const cipher = crypto.createCipher('aes-256-gcm', key);
   cipher.setAAD(aadbuf);

@@ -20,9 +20,11 @@
 #include "src/strtod.h"
 #include "src/utils.h"
 
-#ifndef _STLP_VENDOR_CSTD
+#if defined(_STLP_VENDOR_CSTD)
 // STLPort doesn't import fpclassify into the std namespace.
-using std::fpclassify;
+#define FPCLASSIFY_NAMESPACE
+#else
+#define FPCLASSIFY_NAMESPACE std
 #endif
 
 namespace v8 {
@@ -122,7 +124,7 @@ double StringToInt(UnicodeCache* unicode_cache,
 
 
 const char* DoubleToCString(double v, Vector<char> buffer) {
-  switch (fpclassify(v)) {
+  switch (FPCLASSIFY_NAMESPACE::fpclassify(v)) {
     case FP_NAN: return "NaN";
     case FP_INFINITE: return (v < 0.0 ? "-Infinity" : "Infinity");
     case FP_ZERO: return "0";
@@ -199,9 +201,8 @@ const char* IntToCString(int n, Vector<char> buffer) {
 char* DoubleToFixedCString(double value, int f) {
   const int kMaxDigitsBeforePoint = 21;
   const double kFirstNonFixed = 1e21;
-  const int kMaxDigitsAfterPoint = 20;
   DCHECK(f >= 0);
-  DCHECK(f <= kMaxDigitsAfterPoint);
+  DCHECK(f <= kMaxFractionDigits);
 
   bool negative = false;
   double abs_value = value;
@@ -213,7 +214,7 @@ char* DoubleToFixedCString(double value, int f) {
   // If abs_value has more than kMaxDigitsBeforePoint digits before the point
   // use the non-fixed conversion routine.
   if (abs_value >= kFirstNonFixed) {
-    char arr[100];
+    char arr[kMaxFractionDigits];
     Vector<char> buffer(arr, arraysize(arr));
     return StrDup(DoubleToCString(value, buffer));
   }
@@ -223,7 +224,7 @@ char* DoubleToFixedCString(double value, int f) {
   int sign;
   // Add space for the '\0' byte.
   const int kDecimalRepCapacity =
-      kMaxDigitsBeforePoint + kMaxDigitsAfterPoint + 1;
+      kMaxDigitsBeforePoint + kMaxFractionDigits + 1;
   char decimal_rep[kDecimalRepCapacity];
   int decimal_rep_length;
   DoubleToAscii(value, DTOA_FIXED, f,
@@ -300,9 +301,8 @@ static char* CreateExponentialRepresentation(char* decimal_rep,
 
 
 char* DoubleToExponentialCString(double value, int f) {
-  const int kMaxDigitsAfterPoint = 20;
   // f might be -1 to signal that f was undefined in JavaScript.
-  DCHECK(f >= -1 && f <= kMaxDigitsAfterPoint);
+  DCHECK(f >= -1 && f <= kMaxFractionDigits);
 
   bool negative = false;
   if (value < 0) {
@@ -316,10 +316,10 @@ char* DoubleToExponentialCString(double value, int f) {
   // f corresponds to the digits after the point. There is always one digit
   // before the point. The number of requested_digits equals hence f + 1.
   // And we have to add one character for the null-terminator.
-  const int kV8DtoaBufferCapacity = kMaxDigitsAfterPoint + 1 + 1;
+  const int kV8DtoaBufferCapacity = kMaxFractionDigits + 1 + 1;
   // Make sure that the buffer is big enough, even if we fall back to the
   // shortest representation (which happens when f equals -1).
-  DCHECK(kBase10MaximalLength <= kMaxDigitsAfterPoint + 1);
+  DCHECK(kBase10MaximalLength <= kMaxFractionDigits + 1);
   char decimal_rep[kV8DtoaBufferCapacity];
   int decimal_rep_length;
 
@@ -346,8 +346,7 @@ char* DoubleToExponentialCString(double value, int f) {
 
 char* DoubleToPrecisionCString(double value, int p) {
   const int kMinimalDigits = 1;
-  const int kMaximalDigits = 21;
-  DCHECK(p >= kMinimalDigits && p <= kMaximalDigits);
+  DCHECK(p >= kMinimalDigits && p <= kMaxFractionDigits);
   USE(kMinimalDigits);
 
   bool negative = false;
@@ -360,7 +359,7 @@ char* DoubleToPrecisionCString(double value, int p) {
   int decimal_point;
   int sign;
   // Add one for the terminating null character.
-  const int kV8DtoaBufferCapacity = kMaximalDigits + 1;
+  const int kV8DtoaBufferCapacity = kMaxFractionDigits + 1;
   char decimal_rep[kV8DtoaBufferCapacity];
   int decimal_rep_length;
 

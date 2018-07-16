@@ -39,7 +39,7 @@
 namespace v8 {
 namespace internal {
 
-const auto GetRegConfig = RegisterConfiguration::Crankshaft;
+const auto GetRegConfig = RegisterConfiguration::Default;
 
 //------------------------------------------------------------------------------
 
@@ -166,7 +166,6 @@ int Decoder::FormatRegister(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
-  return -1;
 }
 
 
@@ -325,7 +324,6 @@ int Decoder::FormatOption(Instruction* instr, const char* format) {
   }
 
   UNREACHABLE();
-  return -1;
 }
 
 
@@ -347,7 +345,7 @@ void Decoder::Format(Instruction* instr, const char* format) {
 
 
 // The disassembler may end up decoding data inlined in the code. We do not want
-// it to crash if the data does not ressemble any known instruction.
+// it to crash if the data does not resemble any known instruction.
 #define VERIFY(condition) \
   if (!(condition)) {     \
     Unknown(instr);       \

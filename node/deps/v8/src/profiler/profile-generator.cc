@@ -96,23 +96,18 @@ CodeEntry::~CodeEntry() {
 
 
 uint32_t CodeEntry::GetHash() const {
-  uint32_t hash = ComputeIntegerHash(tag(), v8::internal::kZeroHashSeed);
+  uint32_t hash = ComputeIntegerHash(tag());
   if (script_id_ != v8::UnboundScript::kNoScriptId) {
-    hash ^= ComputeIntegerHash(static_cast<uint32_t>(script_id_),
-                               v8::internal::kZeroHashSeed);
-    hash ^= ComputeIntegerHash(static_cast<uint32_t>(position_),
-                               v8::internal::kZeroHashSeed);
+    hash ^= ComputeIntegerHash(static_cast<uint32_t>(script_id_));
+    hash ^= ComputeIntegerHash(static_cast<uint32_t>(position_));
   } else {
     hash ^= ComputeIntegerHash(
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(name_prefix_)),
-        v8::internal::kZeroHashSeed);
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(name_prefix_)));
     hash ^= ComputeIntegerHash(
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(name_)),
-        v8::internal::kZeroHashSeed);
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(name_)));
     hash ^= ComputeIntegerHash(
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(resource_name_)),
-        v8::internal::kZeroHashSeed);
-    hash ^= ComputeIntegerHash(line_number_, v8::internal::kZeroHashSeed);
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(resource_name_)));
+    hash ^= ComputeIntegerHash(line_number_);
   }
   return hash;
 }
@@ -207,7 +202,7 @@ ProfileNode* ProfileNode::FindOrAddChild(CodeEntry* entry) {
   if (!node) {
     node = new ProfileNode(tree_, entry, this);
     map_entry->value = node;
-    children_list_.Add(node);
+    children_list_.push_back(node);
   }
   return node;
 }
@@ -353,7 +348,7 @@ class Position {
     return node->children()->at(child_idx_);
   }
   INLINE(bool has_current_child()) {
-    return child_idx_ < node->children()->length();
+    return child_idx_ < static_cast<int>(node->children()->size());
   }
   INLINE(void next_child()) { ++child_idx_; }
 

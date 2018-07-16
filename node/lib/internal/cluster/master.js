@@ -1,7 +1,8 @@
 'use strict';
 const assert = require('assert');
-const fork = require('child_process').fork;
+const { fork } = require('child_process');
 const util = require('util');
+const path = require('path');
 const EventEmitter = require('events');
 const RoundRobinHandle = require('internal/cluster/round_robin_handle');
 const SharedHandle = require('internal/cluster/shared_handle');
@@ -12,7 +13,8 @@ const cluster = new EventEmitter();
 const intercom = new EventEmitter();
 const SCHED_NONE = 1;
 const SCHED_RR = 2;
-const {isLegalPort} = require('internal/net');
+const { isLegalPort } = require('internal/net');
+const [ minPort, maxPort ] = [ 1024, 65535 ];
 
 module.exports = cluster;
 
@@ -118,6 +120,8 @@ function createWorkerProcess(id, env) {
       }
     } else {
       inspectPort = process.debugPort + debugPortOffset;
+      if (inspectPort > maxPort)
+        inspectPort = inspectPort - maxPort + minPort - 1;
       debugPortOffset++;
     }
 
@@ -275,6 +279,18 @@ function queryServer(worker, message) {
   var handle = handles[key];
 
   if (handle === undefined) {
+    let address = message.address;
+
+    // Find shortest path for unix sockets because of the ~100 byte limit
+    if (message.port < 0 && typeof address === 'string' &&
+        process.platform !== 'win32') {
+
+      address = path.relative(process.cwd(), address);
+
+      if (message.address.length < address.length)
+        address = message.address;
+    }
+
     var constructor = RoundRobinHandle;
     // UDP is exempt from round-robin connection balancing for what should
     // be obvious reasons: it's connectionless. There is nothing to send to
@@ -286,7 +302,7 @@ function queryServer(worker, message) {
     }
 
     handles[key] = handle = new constructor(key,
-                                            message.address,
+                                            address,
                                             message.port,
                                             message.addressType,
                                             message.fd,

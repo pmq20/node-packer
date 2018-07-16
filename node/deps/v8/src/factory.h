@@ -12,20 +12,49 @@
 #include "src/objects/descriptor-array.h"
 #include "src/objects/dictionary.h"
 #include "src/objects/scope-info.h"
+#include "src/objects/string.h"
 #include "src/string-hasher.h"
 
 namespace v8 {
 namespace internal {
 
+class AliasedArgumentsEntry;
+class BreakPointInfo;
+class BreakPoint;
 class BoilerplateDescription;
 class ConstantElementsPair;
+class CoverageInfo;
+class DebugInfo;
+class JSModuleNamespace;
+struct SourceRange;
+class PreParsedScopeData;
 
 enum FunctionMode {
-  // With prototype.
-  FUNCTION_WITH_WRITEABLE_PROTOTYPE,
-  FUNCTION_WITH_READONLY_PROTOTYPE,
+  kWithNameBit = 1 << 0,
+  kWithHomeObjectBit = 1 << 1,
+  kWithWritablePrototypeBit = 1 << 2,
+  kWithReadonlyPrototypeBit = 1 << 3,
+  kWithPrototypeBits = kWithWritablePrototypeBit | kWithReadonlyPrototypeBit,
+
   // Without prototype.
-  FUNCTION_WITHOUT_PROTOTYPE
+  FUNCTION_WITHOUT_PROTOTYPE = 0,
+  METHOD_WITH_NAME = kWithNameBit,
+  METHOD_WITH_HOME_OBJECT = kWithHomeObjectBit,
+  METHOD_WITH_NAME_AND_HOME_OBJECT = kWithNameBit | kWithHomeObjectBit,
+
+  // With writable prototype.
+  FUNCTION_WITH_WRITEABLE_PROTOTYPE = kWithWritablePrototypeBit,
+  FUNCTION_WITH_NAME_AND_WRITEABLE_PROTOTYPE =
+      kWithWritablePrototypeBit | kWithNameBit,
+  FUNCTION_WITH_HOME_OBJECT_AND_WRITEABLE_PROTOTYPE =
+      kWithWritablePrototypeBit | kWithHomeObjectBit,
+  FUNCTION_WITH_NAME_AND_HOME_OBJECT_AND_WRITEABLE_PROTOTYPE =
+      kWithWritablePrototypeBit | kWithNameBit | kWithHomeObjectBit,
+
+  // With readonly prototype.
+  FUNCTION_WITH_READONLY_PROTOTYPE = kWithReadonlyPrototypeBit,
+  FUNCTION_WITH_NAME_AND_READONLY_PROTOTYPE =
+      kWithReadonlyPrototypeBit | kWithNameBit,
 };
 
 // Interface for handle based allocation.
@@ -38,6 +67,8 @@ class V8_EXPORT_PRIVATE Factory final {
   // Allocates a fixed array initialized with undefined values.
   Handle<FixedArray> NewFixedArray(int size,
                                    PretenureFlag pretenure = NOT_TENURED);
+  Handle<PropertyArray> NewPropertyArray(int size,
+                                         PretenureFlag pretenure = NOT_TENURED);
   // Tries allocating a fixed array initialized with undefined values.
   // In case of an allocation failure (OOM) an empty handle is returned.
   // The caller has to manually signal an
@@ -54,6 +85,11 @@ class V8_EXPORT_PRIVATE Factory final {
 
   // Allocates an uninitialized fixed array. It must be filled by the caller.
   Handle<FixedArray> NewUninitializedFixedArray(int size);
+
+  // Allocates a feedback vector whose slots are initialized with undefined
+  // values.
+  Handle<FeedbackVector> NewFeedbackVector(
+      Handle<SharedFunctionInfo> shared, PretenureFlag pretenure = NOT_TENURED);
 
   // Allocates a fixed array for name-value pairs of boilerplate properties and
   // calculates the number of properties we need to store in the backing store.
@@ -79,6 +115,13 @@ class V8_EXPORT_PRIVATE Factory final {
 
   Handle<OrderedHashSet> NewOrderedHashSet();
   Handle<OrderedHashMap> NewOrderedHashMap();
+
+  Handle<SmallOrderedHashSet> NewSmallOrderedHashSet(
+      int size = SmallOrderedHashSet::kMinCapacity,
+      PretenureFlag pretenure = NOT_TENURED);
+  Handle<SmallOrderedHashMap> NewSmallOrderedHashMap(
+      int size = SmallOrderedHashMap::kMinCapacity,
+      PretenureFlag pretenure = NOT_TENURED);
 
   // Create a new PrototypeInfo struct.
   Handle<PrototypeInfo> NewPrototypeInfo();
@@ -269,9 +312,6 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<Symbol> NewSymbol();
   Handle<Symbol> NewPrivateSymbol();
 
-  // Create a promise.
-  Handle<JSPromise> NewJSPromise();
-
   // Create a global (but otherwise uninitialized) context.
   Handle<Context> NewNativeContext();
 
@@ -327,6 +367,7 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<Script> NewScript(Handle<String> source);
 
   Handle<BreakPointInfo> NewBreakPointInfo(int source_position);
+  Handle<BreakPoint> NewBreakPoint(int id, Handle<String> condition);
   Handle<StackFrameInfo> NewStackFrameInfo();
   Handle<SourcePositionTableWithFrameCache>
   NewSourcePositionTableWithFrameCache(
@@ -358,7 +399,7 @@ class V8_EXPORT_PRIVATE Factory final {
 
   Handle<Cell> NewCell(Handle<Object> value);
 
-  Handle<PropertyCell> NewPropertyCell();
+  Handle<PropertyCell> NewPropertyCell(Handle<Name> name);
 
   Handle<WeakCell> NewWeakCell(Handle<HeapObject> value);
 
@@ -371,10 +412,8 @@ class V8_EXPORT_PRIVATE Factory final {
   // Allocate a tenured AllocationSite. It's payload is null.
   Handle<AllocationSite> NewAllocationSite();
 
-  Handle<Map> NewMap(
-      InstanceType type,
-      int instance_size,
-      ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND);
+  Handle<Map> NewMap(InstanceType type, int instance_size,
+                     ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND);
 
   Handle<HeapObject> NewFillerObject(int size,
                                      bool double_align,
@@ -394,6 +433,10 @@ class V8_EXPORT_PRIVATE Factory final {
       Handle<FixedArray> array, int grow_by,
       PretenureFlag pretenure = NOT_TENURED);
 
+  Handle<PropertyArray> CopyPropertyArrayAndGrow(
+      Handle<PropertyArray> array, int grow_by,
+      PretenureFlag pretenure = NOT_TENURED);
+
   Handle<FixedArray> CopyFixedArrayUpTo(Handle<FixedArray> array, int new_len,
                                         PretenureFlag pretenure = NOT_TENURED);
 
@@ -405,6 +448,8 @@ class V8_EXPORT_PRIVATE Factory final {
 
   Handle<FixedDoubleArray> CopyFixedDoubleArray(
       Handle<FixedDoubleArray> array);
+
+  Handle<FeedbackVector> CopyFeedbackVector(Handle<FeedbackVector> array);
 
   // Numbers (e.g. literals) are pretenured by the parser.
   // The return value may be a smi or a heap number.
@@ -563,9 +608,12 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<JSMap> NewJSMap();
   Handle<JSSet> NewJSSet();
 
-  // TODO(aandrey): Maybe these should take table, index and kind arguments.
-  Handle<JSMapIterator> NewJSMapIterator();
-  Handle<JSSetIterator> NewJSSetIterator();
+  Handle<JSMapIterator> NewJSMapIterator(Handle<Map> map,
+                                         Handle<OrderedHashMap> table,
+                                         int index);
+  Handle<JSSetIterator> NewJSSetIterator(Handle<Map> map,
+                                         Handle<OrderedHashSet> table,
+                                         int index);
 
   // Allocates a bound function.
   MaybeHandle<JSBoundFunction> NewJSBoundFunction(
@@ -591,11 +639,12 @@ class V8_EXPORT_PRIVATE Factory final {
                                  PretenureFlag pretenure = TENURED);
   Handle<JSFunction> NewFunction(Handle<String> name, Handle<Code> code,
                                  Handle<Object> prototype,
-                                 bool is_strict = false);
+                                 LanguageMode language_mode = SLOPPY,
+                                 MutableMode prototype_mutability = MUTABLE);
   Handle<JSFunction> NewFunction(Handle<String> name);
-  Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
-                                                 Handle<Code> code,
-                                                 bool is_strict = false);
+  Handle<JSFunction> NewFunctionWithoutPrototype(
+      Handle<String> name, Handle<Code> code,
+      LanguageMode language_mode = SLOPPY);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<Map> initial_map, Handle<SharedFunctionInfo> function_info,
@@ -617,7 +666,8 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<JSFunction> NewFunction(Handle<String> name, Handle<Code> code,
                                  Handle<Object> prototype, InstanceType type,
                                  int instance_size,
-                                 bool is_strict = false);
+                                 LanguageMode language_mode = SLOPPY,
+                                 MutableMode prototype_mutability = MUTABLE);
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Code> code,
                                  InstanceType type,
@@ -631,19 +681,17 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<ModuleInfoEntry> NewModuleInfoEntry();
   Handle<ModuleInfo> NewModuleInfo();
 
+  Handle<PreParsedScopeData> NewPreParsedScopeData();
+
   // Create an External object for V8's external API.
   Handle<JSObject> NewExternal(void* value);
 
   // The reference to the Code object is stored in self_reference.
   // This allows generated code to reference its own Code object
   // by containing this handle.
-  Handle<Code> NewCode(const CodeDesc& desc,
-                       Code::Flags flags,
-                       Handle<Object> self_reference,
-                       bool immovable = false,
-                       bool crankshafted = false,
-                       int prologue_offset = Code::kPrologueOffsetNotSet,
-                       bool is_debug = false);
+  Handle<Code> NewCode(const CodeDesc& desc, Code::Flags flags,
+                       Handle<Object> self_reference, bool immovable = false,
+                       int prologue_offset = Code::kPrologueOffsetNotSet);
 
   Handle<Code> CopyCode(Handle<Code> code);
 
@@ -741,21 +789,33 @@ class V8_EXPORT_PRIVATE Factory final {
 
   // Allocates a new SharedFunctionInfo object.
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(
-      Handle<String> name, FunctionKind kind, Handle<Code> code,
+      MaybeHandle<String> name, FunctionKind kind, Handle<Code> code,
       Handle<ScopeInfo> scope_info);
-  Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name,
-                                                   MaybeHandle<Code> code,
-                                                   bool is_constructor);
+  Handle<SharedFunctionInfo> NewSharedFunctionInfo(
+      MaybeHandle<String> name, MaybeHandle<Code> code, bool is_constructor,
+      FunctionKind kind = kNormalFunction);
 
   Handle<SharedFunctionInfo> NewSharedFunctionInfoForLiteral(
       FunctionLiteral* literal, Handle<Script> script);
 
   static bool IsFunctionModeWithPrototype(FunctionMode function_mode) {
-    return (function_mode == FUNCTION_WITH_WRITEABLE_PROTOTYPE ||
-            function_mode == FUNCTION_WITH_READONLY_PROTOTYPE);
+    return (function_mode & kWithPrototypeBits) != 0;
   }
 
-  Handle<Map> CreateSloppyFunctionMap(FunctionMode function_mode);
+  static bool IsFunctionModeWithWritablePrototype(FunctionMode function_mode) {
+    return (function_mode & kWithWritablePrototypeBit) != 0;
+  }
+
+  static bool IsFunctionModeWithName(FunctionMode function_mode) {
+    return (function_mode & kWithNameBit) != 0;
+  }
+
+  static bool IsFunctionModeWithHomeObject(FunctionMode function_mode) {
+    return (function_mode & kWithHomeObjectBit) != 0;
+  }
+
+  Handle<Map> CreateSloppyFunctionMap(
+      FunctionMode function_mode, MaybeHandle<JSFunction> maybe_empty_function);
 
   Handle<Map> CreateStrictFunctionMap(FunctionMode function_mode,
                                       Handle<JSFunction> empty_function);
@@ -771,6 +831,8 @@ class V8_EXPORT_PRIVATE Factory final {
                                              Handle<Object> stack_frames);
 
   Handle<DebugInfo> NewDebugInfo(Handle<SharedFunctionInfo> shared);
+
+  Handle<CoverageInfo> NewCoverageInfo(const ZoneVector<SourceRange>& slots);
 
   // Return a map for given number of properties using the map cache in the
   // native context.
@@ -837,8 +899,8 @@ class V8_EXPORT_PRIVATE Factory final {
   Handle<JSArray> NewJSArray(ElementsKind elements_kind,
                              PretenureFlag pretenure = NOT_TENURED);
 
-  void SetFunctionInstanceDescriptor(Handle<Map> map,
-                                     FunctionMode function_mode);
+  void SetSloppyFunctionInstanceDescriptor(Handle<Map> map,
+                                           FunctionMode function_mode);
 
   void SetStrictFunctionInstanceDescriptor(Handle<Map> map,
                                            FunctionMode function_mode);

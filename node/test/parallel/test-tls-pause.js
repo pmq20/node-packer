@@ -26,12 +26,11 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(path.join(common.fixturesDir, 'test_key.pem')),
-  cert: fs.readFileSync(path.join(common.fixturesDir, 'test_cert.pem'))
+  key: fixtures.readSync('test_key.pem'),
+  cert: fixtures.readSync('test_cert.pem')
 };
 
 const bufSize = 1024 * 1024;
@@ -58,7 +57,7 @@ server.listen(0, function() {
     function send() {
       console.error('sending');
       const ret = client.write(Buffer.allocUnsafe(bufSize));
-      console.error('write => %j', ret);
+      console.error(`write => ${ret}`);
       if (false !== ret) {
         console.error('write again');
         sent += bufSize;

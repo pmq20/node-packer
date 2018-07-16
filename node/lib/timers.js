@@ -26,21 +26,32 @@ const TimerWrap = process.binding('timer_wrap').Timer;
 const L = require('internal/linkedlist');
 const internalUtil = require('internal/util');
 const { createPromise, promiseResolve } = process.binding('util');
-const async_hooks = require('async_hooks');
 const assert = require('assert');
 const util = require('util');
 const debug = util.debuglog('timer');
 const kOnTimeout = TimerWrap.kOnTimeout | 0;
-const initTriggerId = async_hooks.initTriggerId;
 // Two arrays that share state between C++ and JS.
-const { async_hook_fields, async_uid_fields } = async_wrap;
-// The needed emit*() functions.
-const { emitInit, emitBefore, emitAfter, emitDestroy } = async_hooks;
+const { async_hook_fields, async_id_fields } = async_wrap;
+const {
+  getDefaultTriggerAsyncId,
+  // The needed emit*() functions.
+  emitInit,
+  emitBefore,
+  emitAfter,
+  emitDestroy
+} = require('internal/async_hooks');
 // Grab the constants necessary for working with internal arrays.
-const { kInit, kDestroy, kAsyncUidCntr } = async_wrap.constants;
+const { kInit, kDestroy, kAsyncIdCounter } = async_wrap.constants;
 // Symbols for storing async id state.
 const async_id_symbol = Symbol('asyncId');
-const trigger_id_symbol = Symbol('triggerAsyncId');
+const trigger_async_id_symbol = Symbol('triggerAsyncId');
+
+/* This is an Uint32Array for easier sharing with C++ land. */
+const scheduledImmediateCount = process._scheduledImmediateCount;
+delete process._scheduledImmediateCount;
+/* Kick off setImmediate processing */
+const activateImmediateCheck = process._activateImmediateCheck;
+delete process._activateImmediateCheck;
 
 // Timeout values > TIMEOUT_MAX are set to 1.
 const TIMEOUT_MAX = 2147483647; // 2^31-1
@@ -78,6 +89,7 @@ const TIMEOUT_MAX = 2147483647; // 2^31-1
 // TimerWrap C++ handle, which makes the call after the duration to process the
 // list it is attached to.
 //
+/* eslint-disable non-ascii-character */
 //
 // ╔════ > Object Map
 // ║
@@ -99,6 +111,7 @@ const TIMEOUT_MAX = 2147483647; // 2^31-1
 // ║
 // ╚════ > Linked List
 //
+/* eslint-enable non-ascii-character */
 //
 // With this, virtually constant-time insertion (append), removal, and timeout
 // is possible in the JavaScript layer. Any one list of timers is able to be
@@ -107,7 +120,7 @@ const TIMEOUT_MAX = 2147483647; // 2^31-1
 // timeout later, thus only needing to be appended.
 // Removal from an object-property linked list is also virtually constant-time
 // as can be seen in the lib/internal/linkedlist.js implementation.
-// Timeouts only need to process any timers due to currently timeout, which will
+// Timeouts only need to process any timers currently due to expire, which will
 // always be at the beginning of the list for reasons stated above. Any timers
 // after the first one encountered that does not yet need to timeout will also
 // always be due to timeout at a later time.
@@ -168,10 +181,12 @@ function insert(item, unrefed) {
 
   if (!item[async_id_symbol] || item._destroyed) {
     item._destroyed = false;
-    item[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-    item[trigger_id_symbol] = initTriggerId();
+    item[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+    item[trigger_async_id_symbol] = getDefaultTriggerAsyncId();
     if (async_hook_fields[kInit] > 0)
-      emitInit(item[async_id_symbol], 'Timeout', item[trigger_id_symbol], item);
+      emitInit(
+        item[async_id_symbol], 'Timeout', item[trigger_async_id_symbol], item
+      );
   }
 
   L.append(list, item);
@@ -202,6 +217,17 @@ function TimersList(msecs, unrefed) {
   this.nextTick = false;
 }
 
+function deleteTimersList(list, msecs) {
+  // Either refedLists[msecs] or unrefedLists[msecs] may have been removed and
+  // recreated since the reference to `list` was created. Make sure they're
+  // the same instance of the list before destroying.
+  if (list._unrefed === true && list === unrefedLists[msecs]) {
+    delete unrefedLists[msecs];
+  } else if (list === refedLists[msecs]) {
+    delete refedLists[msecs];
+  }
+}
+
 function listOnTimeout() {
   var list = this._list;
   var msecs = list.msecs;
@@ -226,7 +252,7 @@ function listOnTimeout() {
     if (diff < msecs) {
       var timeRemaining = msecs - (TimerWrap.now() - timer._idleStart);
       if (timeRemaining < 0) {
-        timeRemaining = 0;
+        timeRemaining = 1;
       }
       this.start(timeRemaining);
       debug('%d list wait because diff is %d', msecs, diff);
@@ -273,14 +299,7 @@ function listOnTimeout() {
   debug('%d list empty', msecs);
   assert(L.isEmpty(list));
 
-  // Either refedLists[msecs] or unrefedLists[msecs] may have been removed and
-  // recreated since the reference to `list` was created. Make sure they're
-  // the same instance of the list before destroying.
-  if (list._unrefed === true && list === unrefedLists[msecs]) {
-    delete unrefedLists[msecs];
-  } else if (list === refedLists[msecs]) {
-    delete refedLists[msecs];
-  }
+  deleteTimersList(list, msecs);
 
   // Do not close the underlying handle if its ownership has changed
   // (e.g it was unrefed in its callback).
@@ -299,7 +318,7 @@ function tryOnTimeout(timer, list) {
     timer[async_id_symbol] : null;
   var threw = true;
   if (timerAsyncId !== null)
-    emitBefore(timerAsyncId, timer[trigger_id_symbol]);
+    emitBefore(timerAsyncId, timer[trigger_async_id_symbol]);
   try {
     ontimeout(timer);
     threw = false;
@@ -314,24 +333,34 @@ function tryOnTimeout(timer, list) {
       }
     }
 
-    if (!threw) return;
+    if (threw) {
+      const { msecs } = list;
 
-    // Postpone all later list events to next tick. We need to do this
-    // so that the events are called in the order they were created.
-    const lists = list._unrefed === true ? unrefedLists : refedLists;
-    for (var key in lists) {
-      if (key > list.msecs) {
-        lists[key].nextTick = true;
+      if (L.isEmpty(list)) {
+        deleteTimersList(list, msecs);
+
+        if (!list._timer.owner)
+          list._timer.close();
+      } else {
+        // Postpone all later list events to next tick. We need to do this
+        // so that the events are called in the order they were created.
+        const lists = list._unrefed === true ? unrefedLists : refedLists;
+        for (var key in lists) {
+          if (key > msecs) {
+            lists[key].nextTick = true;
+          }
+        }
+
+        // We need to continue processing after domain error handling
+        // is complete, but not by using whatever domain was left over
+        // when the timeout threw its exception.
+        const domain = process.domain;
+        process.domain = null;
+        // If we threw, we need to process the rest of the list in nextTick.
+        process.nextTick(listOnTimeoutNT, list);
+        process.domain = domain;
       }
     }
-    // We need to continue processing after domain error handling
-    // is complete, but not by using whatever domain was left over
-    // when the timeout threw its exception.
-    const domain = process.domain;
-    process.domain = null;
-    // If we threw, we need to process the rest of the list in nextTick.
-    process.nextTick(listOnTimeoutNT, list);
-    process.domain = domain;
   }
 }
 
@@ -567,10 +596,12 @@ function Timeout(after, callback, args) {
   this._timerArgs = args;
   this._repeat = null;
   this._destroyed = false;
-  this[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-  this[trigger_id_symbol] = initTriggerId();
+  this[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+  this[trigger_async_id_symbol] = getDefaultTriggerAsyncId();
   if (async_hook_fields[kInit] > 0)
-    emitInit(this[async_id_symbol], 'Timeout', this[trigger_id_symbol], this);
+    emitInit(
+      this[async_id_symbol], 'Timeout', this[trigger_async_id_symbol], this
+    );
 }
 
 
@@ -723,33 +754,31 @@ function processImmediate() {
     else
       immediate = next;
   }
-
-  // Only round-trip to C++ land if we have to. Calling clearImmediate() on an
-  // immediate that's in |queue| is okay. Worst case is we make a superfluous
-  // call to NeedImmediateCallbackSetter().
-  if (!immediateQueue.head) {
-    process._needImmediateCallback = false;
-  }
 }
 
+process._immediateCallback = processImmediate;
 
 // An optimization so that the try/finally only de-optimizes (since at least v8
 // 4.7) what is in this smaller function.
 function tryOnImmediate(immediate, oldTail) {
   var threw = true;
-  emitBefore(immediate[async_id_symbol], immediate[trigger_id_symbol]);
+  emitBefore(immediate[async_id_symbol], immediate[trigger_async_id_symbol]);
   try {
-    // make the actual call outside the try/catch to allow it to be optimized
+    // make the actual call outside the try/finally to allow it to be optimized
     runCallback(immediate);
     threw = false;
   } finally {
-    // clearImmediate checks _callback === null for kDestroy hooks.
     immediate._callback = null;
     if (!threw)
       emitAfter(immediate[async_id_symbol]);
-    if (async_hook_fields[kDestroy] > 0 && !immediate._destroyed) {
-      emitDestroy(immediate[async_id_symbol]);
+
+    if (!immediate._destroyed) {
       immediate._destroyed = true;
+      scheduledImmediateCount[0]--;
+
+      if (async_hook_fields[kDestroy] > 0) {
+        emitDestroy(immediate[async_id_symbol]);
+      }
     }
 
     if (threw && immediate._idleNext) {
@@ -802,10 +831,12 @@ function Immediate() {
   this._onImmediate = null;
   this._destroyed = false;
   this.domain = process.domain;
-  this[async_id_symbol] = ++async_uid_fields[kAsyncUidCntr];
-  this[trigger_id_symbol] = initTriggerId();
+  this[async_id_symbol] = ++async_id_fields[kAsyncIdCounter];
+  this[trigger_async_id_symbol] = getDefaultTriggerAsyncId();
   if (async_hook_fields[kInit] > 0)
-    emitInit(this[async_id_symbol], 'Immediate', this[trigger_id_symbol], this);
+    emitInit(
+      this[async_id_symbol], 'Immediate', this[trigger_async_id_symbol], this
+    );
 }
 
 function setImmediate(callback, arg1, arg2, arg3) {
@@ -850,10 +881,9 @@ function createImmediate(args, callback) {
   immediate._argv = args;
   immediate._onImmediate = callback;
 
-  if (!process._needImmediateCallback) {
-    process._needImmediateCallback = true;
-    process._immediateCallback = processImmediate;
-  }
+  if (scheduledImmediateCount[0] === 0)
+    activateImmediateCheck();
+  scheduledImmediateCount[0]++;
 
   immediateQueue.append(immediate);
 
@@ -864,18 +894,16 @@ function createImmediate(args, callback) {
 exports.clearImmediate = function(immediate) {
   if (!immediate) return;
 
-  if (async_hook_fields[kDestroy] > 0 &&
-      immediate._callback !== null &&
-      !immediate._destroyed) {
-    emitDestroy(immediate[async_id_symbol]);
+  if (!immediate._destroyed) {
+    scheduledImmediateCount[0]--;
     immediate._destroyed = true;
+
+    if (async_hook_fields[kDestroy] > 0) {
+      emitDestroy(immediate[async_id_symbol]);
+    }
   }
 
   immediate._onImmediate = null;
 
   immediateQueue.remove(immediate);
-
-  if (!immediateQueue.head) {
-    process._needImmediateCallback = false;
-  }
 };

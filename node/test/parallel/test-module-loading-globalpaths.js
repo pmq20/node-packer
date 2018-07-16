@@ -1,5 +1,6 @@
 'use strict';
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
@@ -9,10 +10,11 @@ const pkgName = 'foo';
 if (process.argv[2] === 'child') {
   console.log(require(pkgName).string);
 } else {
-  common.refreshTmpDir();
+  const tmpdir = require('../common/tmpdir');
+  tmpdir.refresh();
 
   // Copy node binary into a test $PREFIX directory.
-  const prefixPath = path.join(common.tmpDir, 'install');
+  const prefixPath = path.join(tmpdir.path, 'install');
   fs.mkdirSync(prefixPath);
   let testExecPath;
   if (common.isWindows) {
@@ -33,8 +35,7 @@ if (process.argv[2] === 'child') {
     assert.strictEqual(child.trim(), expectedString);
   };
 
-  const testFixturesDir = path.join(common.fixturesDir,
-                                    path.basename(__filename, '.js'));
+  const testFixturesDir = fixtures.path(path.basename(__filename, '.js'));
 
   const env = Object.assign({}, process.env);
   env['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1';
@@ -44,7 +45,7 @@ if (process.argv[2] === 'child') {
   delete env['NODE_PATH'];
 
   // Test empty global path.
-  const noPkgHomeDir = path.join(common.tmpDir, 'home-no-pkg');
+  const noPkgHomeDir = path.join(tmpdir.path, 'home-no-pkg');
   fs.mkdirSync(noPkgHomeDir);
   env['HOME'] = env['USERPROFILE'] = noPkgHomeDir;
   assert.throws(

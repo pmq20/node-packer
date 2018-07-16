@@ -20,6 +20,7 @@ namespace interpreter {
 
 #define REGISTER_OUTPUT_OPERAND_TYPE_LIST(V)          \
   V(RegOut, OperandTypeInfo::kScalableSignedByte)     \
+  V(RegOutList, OperandTypeInfo::kScalableSignedByte) \
   V(RegOutPair, OperandTypeInfo::kScalableSignedByte) \
   V(RegOutTriple, OperandTypeInfo::kScalableSignedByte)
 
@@ -129,10 +130,14 @@ V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
                                            const OperandScale& operand_scale);
 V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
                                            const OperandSize& operand_size);
-std::ostream& operator<<(std::ostream& os, const OperandType& operand_type);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const OperandType& operand_type);
 
 class BytecodeOperands {
  public:
+  // The total number of bytecodes used.
+  static const int kOperandTypeCount = static_cast<int>(OperandType::kLast) + 1;
+
   // Returns true if |accumulator_use| reads the accumulator.
   static constexpr bool ReadsAccumulator(AccumulatorUse accumulator_use) {
     return accumulator_use == AccumulatorUse::kRead ||

@@ -116,7 +116,7 @@ class DescriptorArray : public FixedArray {
       Isolate* isolate, int number_of_descriptors, int slack,
       PretenureFlag pretenure = NOT_TENURED);
 
-  DECLARE_CAST(DescriptorArray)
+  DECL_CAST(DescriptorArray)
 
   // Constant for denoting key was not found.
   static const int kNotFound = -1;
@@ -160,9 +160,6 @@ class DescriptorArray : public FixedArray {
 #ifdef DEBUG
   // Is the descriptor array sorted and without duplicates?
   bool IsSortedNoDuplicates(int valid_descriptors = -1);
-
-  // Is the descriptor array consistent with the back pointers in targets?
-  bool IsConsistentWithBackPointers(Map* current_map);
 
   // Are two DescriptorArrays equal?
   bool IsEqualTo(DescriptorArray* other);

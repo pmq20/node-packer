@@ -3,16 +3,18 @@ const common = require('../common');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const doesNotExist = path.join(common.tmpDir, '__this_should_not_exist');
-const readOnlyFile = path.join(common.tmpDir, 'read_only_file');
-const readWriteFile = path.join(common.tmpDir, 'read_write_file');
+
+const tmpdir = require('../common/tmpdir');
+const doesNotExist = path.join(tmpdir.path, '__this_should_not_exist');
+const readOnlyFile = path.join(tmpdir.path, 'read_only_file');
+const readWriteFile = path.join(tmpdir.path, 'read_write_file');
 
 function createFileWithPerms(file, mode) {
   fs.writeFileSync(file, '');
   fs.chmodSync(file, mode);
 }
 
-common.refreshTmpDir();
+tmpdir.refresh();
 createFileWithPerms(readOnlyFile, 0o444);
 createFileWithPerms(readWriteFile, 0o666);
 
@@ -28,7 +30,7 @@ createFileWithPerms(readWriteFile, 0o666);
  * The change of user id is done after creating the fixtures files for the same
  * reason: the test may be run as the superuser within a directory in which
  * only the superuser can create files, and thus it may need superuser
- * priviledges to create them.
+ * privileges to create them.
  *
  * There's not really any point in resetting the process' user id to 0 after
  * changing it to 'nobody', since in the case that the test runs without

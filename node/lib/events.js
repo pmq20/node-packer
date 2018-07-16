@@ -22,6 +22,7 @@
 'use strict';
 
 var domain;
+var spliceOne;
 
 function EventEmitter() {
   EventEmitter.init.call(this);
@@ -264,13 +265,11 @@ function _addListener(target, type, listener, prepend) {
       // Adding the second element, need to change to array.
       existing = events[type] =
         prepend ? [listener, existing] : [existing, listener];
-    } else {
       // If we've already got an array, just append.
-      if (prepend) {
-        existing.unshift(listener);
-      } else {
-        existing.push(listener);
-      }
+    } else if (prepend) {
+      existing.unshift(listener);
+    } else {
+      existing.push(listener);
     }
 
     // Check for listener leak
@@ -391,8 +390,11 @@ EventEmitter.prototype.removeListener =
 
         if (position === 0)
           list.shift();
-        else
+        else {
+          if (spliceOne === undefined)
+            spliceOne = require('internal/util').spliceOne;
           spliceOne(list, position);
+        }
 
         if (list.length === 1)
           events[type] = list[0];
@@ -503,13 +505,6 @@ function listenerCount(type) {
 EventEmitter.prototype.eventNames = function eventNames() {
   return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
 };
-
-// About 1.5x faster than the two-arg version of Array#splice().
-function spliceOne(list, index) {
-  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
-    list[i] = list[k];
-  list.pop();
-}
 
 function arrayClone(arr, n) {
   var copy = new Array(n);
